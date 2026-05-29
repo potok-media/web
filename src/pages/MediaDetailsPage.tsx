@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState, useEffect } from "react";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate, Link } from "react-router-dom";
 import { Play, Star, Eye, Bookmark } from "lucide-react";
 import { useHUD } from "../context/HUDContext";
 import { useAppSettings } from "../context/AppSettingsContext";
@@ -88,21 +88,38 @@ export const MediaDetailsPage: React.FC = () => {
           )}
 
           <div className="details-actions-container">
-            <button
-              className={`btn-watch-primary ${!canWatch ? "disabled" : ""}`}
-              onClick={() => {
-                if (!canWatch) return;
-                if (selectedEpisode) {
-                  handleNavigateToTorrents(selectedEpisode.seasonNumber, selectedEpisode.episode.episodeNumber);
-                } else {
-                  handleNavigateToTorrents();
-                }
-              }}
-              title={!canWatch ? (services?.searchEngine?.configured ? "Поисковый шлюз недоступен. Функция поиска торрентов временно заблокирована." : "Поисковик по торрентам не настроен. Вы можете настроить его в параметрах.") : undefined}
-            >
-              <Play size={18} fill={canWatch ? "black" : "currentColor"} />
-              <span>Смотреть</span>
-            </button>
+            {canWatch ? (
+              <Link
+                to={`/media/${mediaType}/${mediaId}/torrents${selectedEpisode ? `?season=${selectedEpisode.seasonNumber}&episode=${selectedEpisode.episode.episodeNumber}` : ""}`}
+                state={{
+                  season: selectedEpisode?.seasonNumber,
+                  episode: selectedEpisode?.episode.episodeNumber,
+                  media
+                }}
+                className="btn-watch-primary"
+                onClick={(e) => {
+                  if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+                    e.preventDefault();
+                    if (selectedEpisode) {
+                      handleNavigateToTorrents(selectedEpisode.seasonNumber, selectedEpisode.episode.episodeNumber);
+                    } else {
+                      handleNavigateToTorrents();
+                    }
+                  }
+                }}
+              >
+                <Play size={18} fill="black" />
+                <span>Смотреть</span>
+              </Link>
+            ) : (
+              <button
+                className="btn-watch-primary disabled"
+                title={services?.searchEngine?.configured ? "Поисковый шлюз недоступен. Функция поиска торрентов временно заблокирована." : "Поисковик по торрентам не настроен. Вы можете настроить его в параметрах."}
+              >
+                <Play size={18} fill="currentColor" />
+                <span>Смотреть</span>
+              </button>
+            )}
 
             <div className="details-actions-row">
               <button

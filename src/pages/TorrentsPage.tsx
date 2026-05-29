@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
 import { useHUD } from "../context/HUDContext";
 import { useTorrentsPage } from "../hooks/useTorrentsPage";
@@ -14,12 +14,13 @@ export const TorrentsPage: React.FC = () => {
   const { mediaType, id } = useParams<{ mediaType: string; id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { show: showHUD } = useHUD();
 
   const mediaId = Number(id);
   const state = location.state as { season?: number; episode?: number; media?: any } | null;
-  const season = state?.season;
-  const episode = state?.episode;
+  const season = state?.season ?? (searchParams.get("season") ? Number(searchParams.get("season")) : undefined);
+  const episode = state?.episode ?? (searchParams.get("episode") ? Number(searchParams.get("episode")) : undefined);
   const initialMedia = state?.media;
 
   const [selectedTorrent, setSelectedTorrent] = useState<any | null>(null);

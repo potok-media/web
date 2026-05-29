@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { 
   Film, 
   Search as SearchIcon, 
@@ -93,9 +93,9 @@ export const LibraryPage: React.FC = () => {
         <p className="library-empty-subtitle">
           Чтобы просматривать разделы медиатеки, пожалуйста, привяжите вашу учетную запись Trakt в настройках Potok.
         </p>
-        <button className="btn-accent" onClick={() => navigate("/settings")}>
+        <Link className="btn-accent" to="/settings">
           Перейти к настройкам
-        </button>
+        </Link>
       </div>
     );
   }

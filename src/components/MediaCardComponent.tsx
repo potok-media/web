@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { Star } from "lucide-react";
 import type { MediaCard } from "../network/ApiClient";
 
 interface MediaCardComponentProps {
   item: MediaCard;
-  onClick: (item: MediaCard) => void;
+  onClick?: (item: MediaCard) => void;
   style?: React.CSSProperties;
   delay?: number;
 }
@@ -12,7 +13,7 @@ interface MediaCardComponentProps {
 export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(({ item, onClick, style, delay = 0 }) => {
   const [isIntersecting, setIsIntersecting] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
     // If there is no poster, mark image as loaded immediately so we can show card structure
@@ -65,8 +66,13 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
   const epInfo = getEpisodeInfo();
   const showProgress = item.progress && item.progress.percentage > 0;
 
-  const handleCardClick = () => {
-    onClick(item);
+  const handleCardClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+      if (onClick) {
+        e.preventDefault();
+        onClick(item);
+      }
+    }
   };
 
   // Guard reveal transition: Card only becomes visible when inside viewport AND image is fully loaded/decoded.
@@ -74,8 +80,9 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
   const isVisible = isIntersecting && isImageLoaded;
 
   return (
-    <div
+    <Link
       ref={cardRef}
+      to={`/media/${item.mediaType}/${item.id}`}
       className={`media-card ${isVisible ? "is-visible" : ""}`}
       onClick={handleCardClick}
       style={{
@@ -128,7 +135,7 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
         <h3 className="media-card-title">{item.title}</h3>
         {item.subtitle && <p className="media-card-subtitle">{item.subtitle}</p>}
       </div>
-    </div>
+    </Link>
   );
 });
 

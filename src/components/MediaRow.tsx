@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import type { MediaCard } from "../network/ApiTypes";
 import { MediaCardComponent } from "./MediaCardComponent";
@@ -16,18 +17,28 @@ export const MediaRow: React.FC<MediaRowProps> = React.memo(({ id, title, items,
 
   if (!items || items.length === 0) return null;
 
+  const handleSeeAllClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+      if (onSeeAllClick && id) {
+        e.preventDefault();
+        onSeeAllClick(id, title);
+      }
+    }
+  };
+
   return (
     <div className="carousel-container">
       <div className="carousel-header">
         {id && onSeeAllClick ? (
-          <button 
+          <Link 
+            to={`/library/${id}`}
             className="carousel-title-link"
-            onClick={() => onSeeAllClick(id, title)}
+            onClick={handleSeeAllClick}
             title={`Показать все в категории ${title}`}
           >
             <h2 className="carousel-title">{title}</h2>
             <ChevronRight className="carousel-title-chevron" size={20} />
-          </button>
+          </Link>
         ) : (
           <h2 className="carousel-title">{title}</h2>
         )}

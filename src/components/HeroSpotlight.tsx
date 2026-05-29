@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Play, Info, Plus, Check } from "lucide-react";
 import type { HeroItem } from "../network/ApiTypes";
 import { SyncApiClient } from "../network/SyncApiClient";
@@ -89,14 +90,32 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo(({ items, 
             <p className="hero-overview">{card.overview}</p>
 
             <div className="hero-buttons">
-              <button className="btn-accent" onClick={() => onPlay(activeItem)}>
+              <Link 
+                to={`/media/${card.mediaType}/${card.id}?play=true`}
+                className="btn-accent"
+                onClick={(e) => {
+                  if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+                    e.preventDefault();
+                    onPlay(activeItem);
+                  }
+                }}
+              >
                 <Play size={18} fill="white" />
                 <span>Смотреть</span>
-              </button>
-              <button className="btn-glass" onClick={() => onDetails(activeItem)}>
+              </Link>
+              <Link 
+                to={`/media/${card.mediaType}/${card.id}`}
+                className="btn-glass"
+                onClick={(e) => {
+                  if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+                    e.preventDefault();
+                    onDetails(activeItem);
+                  }
+                }}
+              >
                 <Info size={18} />
                 <span>Инфо</span>
-              </button>
+              </Link>
               <button className="btn-glass" onClick={handleToggleWatchlist}>
                 {inWatchlist ? <Check size={18} className="hero-btn-success-check" /> : <Plus size={18} />}
                 <span>{inWatchlist ? "В списке" : "Буду смотреть"}</span>
