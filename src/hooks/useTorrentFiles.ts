@@ -67,7 +67,7 @@ export function useTorrentFiles({
       const override = await ApiClient.getTorrentOverride(hash);
 
       // Refine files by parsing seasons/episodes client-side matching macOS
-      const refinedFiles = rawFiles.map((file) => {
+      const refinedFiles = rawFiles.map((file, fileIdx) => {
         let filePath = file.path || file.title || "";
         if (!filePath.includes("/")) {
           filePath = torrent.title ? `${torrent.title}/${filePath}` : filePath;
@@ -77,7 +77,8 @@ export function useTorrentFiles({
           mediaItem.mediaType,
           mediaItem.numberOfSeasons,
           override?.season,
-          override?.episodeOffset
+          override?.episodeOffset,
+          fileIdx
         );
 
         return {

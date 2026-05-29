@@ -13,33 +13,33 @@ export class TorrentParser {
     { regex: /\bs(\d{2})(\d{2,3})\b/i, keys: ["season", "episode"] },
     { regex: /season (\d+) episode (\d+)/i, keys: ["season", "episode"] },
     { regex: /сезон (\d+) серия (\d+)/i, keys: ["season", "episode"] },
-    { regex: /(\d+) season (\d+) episode/i, keys: ["season", "episode"] },
-    { regex: /(\d+) сезон (\d+) серия/i, keys: ["season", "episode"] },
+    { regex: /(\d+)(?:st|nd|rd|th)?\s*season (\d+) episode/i, keys: ["season", "episode"] },
+    { regex: /(\d+)\s*сезон (\d+) серия/i, keys: ["season", "episode"] },
     { regex: /episode (\d+)/i, keys: ["episode"] },
     { regex: /серия (\d+)/i, keys: ["episode"] },
     { regex: /(\d+) episode/i, keys: ["episode"] },
     { regex: /(\d+) серия/i, keys: ["episode"] },
     { regex: /season (\d+)/i, keys: ["season"] },
     { regex: /сезон (\d+)/i, keys: ["season"] },
-    { regex: /(\d+) season/i, keys: ["season"] },
-    { regex: /(\d+) сезон/i, keys: ["season"] },
+    { regex: /(\d+)(?:st|nd|rd|th)?\s*season/i, keys: ["season"] },
+    { regex: /(\d+)\s*сезон/i, keys: ["season"] },
     { regex: /\bs(\d+)\b/i, keys: ["season"] },
     { regex: /\bep?\.?(\d+)\b/i, keys: ["episode"] },
     { regex: /\b(\d{1,3}) of (\d+)\b/i, keys: ["episode"] },
     { regex: /\b(\d{1,3}) из (\d+)\b/i, keys: ["episode"] },
     { regex: / - (\d{1,3})\b/i, keys: ["episode"] },
     { regex: /\[(\d{1,3})\]/i, keys: ["episode"] },
-    { regex: /(\d+) сер/i, keys: ["episode"] }
+    { regex: /(\d+)\s*сер/i, keys: ["episode"] }
   ];
 
   private static folderRegexps: { regex: RegExp; key: string }[] = [
     { regex: /season (\d+)/i, key: "season" },
     { regex: /сезон (\d+)/i, key: "season" },
-    { regex: /(\d+) season/i, key: "season" },
-    { regex: /(\d+) сезон/i, key: "season" },
+    { regex: /(\d+)(?:st|nd|rd|th)?\s*season/i, key: "season" },
+    { regex: /(\d+)\s*сезон/i, key: "season" },
     { regex: /\bs(\d+)\b/i, key: "season" },
-    { regex: /\btv[ -]?(\d+)\b/i, key: "season" },
-    { regex: /\bтв[ -]?(\d+)\b/i, key: "season" }
+    { regex: /tv[ -]?(\d+)/i, key: "season" },
+    { regex: /тв[ -]?(\d+)/i, key: "season" }
   ];
 
   public static parseEpisode(
@@ -47,7 +47,8 @@ export class TorrentParser {
     mediaType: string,
     numberOfSeasons?: number,
     overrideSeason?: number,
-    overrideEpisodeOffset?: number
+    overrideEpisodeOffset?: number,
+    fileIndex?: number
   ): TorrentFileEpisodeInfo {
     const isSerial = mediaType === "tv" || (numberOfSeasons ?? 0) > 0;
     const info: TorrentFileEpisodeInfo = {
@@ -120,10 +121,19 @@ export class TorrentParser {
     // 4. Apply Overrides (User overrides are the absolute source of truth!)
     if (overrideSeason !== undefined && overrideSeason !== null) {
       info.season = overrideSeason;
-    }
-
-    if (overrideEpisodeOffset !== undefined && overrideEpisodeOffset !== null && info.episode !== undefined) {
-      info.episode = Math.max(1, info.episode + overrideEpisodeOffset);
+      
+      // If we have an override, we map episodes sequentially based on the file index in the sorted list!
+      // This makes the mapping 100% bulletproof for flat files, absolute numbering, etc.
+      if (fileIndex !== undefined) {
+        const offset = overrideEpisodeOffset ?? 0;
+        info.episode = offset + 1 + fileIndex;
+      } else if (overrideEpisodeOffset !== undefined && overrideEpisodeOffset !== null && info.episode !== undefined) {
+        info.episode = Math.max(1, info.episode + overrideEpisodeOffset);
+      }
+    } else {
+      if (overrideEpisodeOffset !== undefined && overrideEpisodeOffset !== null && info.episode !== undefined) {
+        info.episode = Math.max(1, info.episode + overrideEpisodeOffset);
+      }
     }
 
     return info;
