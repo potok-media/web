@@ -98,7 +98,10 @@ export async function playTorrentFile({
       }
 
       const cleanBase = tgUrl.replace(/\/+$/, "");
-      const streamUrl = `${cleanBase}/stream/${hash.toLowerCase()}/${file.id}/${fileName}`;
+      let streamUrl = `${cleanBase}/stream/${hash.toLowerCase()}/${file.id}/${fileName}`;
+      if (ext.toLowerCase() === ".mkv") {
+        streamUrl += "?remux=true";
+      }
 
       playVideo({
         streamUrl,
