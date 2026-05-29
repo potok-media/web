@@ -162,6 +162,12 @@ export class TorrentParser {
     });
   }
 
+  public static getFileExtension(path?: string): string {
+    if (!path) return ".mkv";
+    const match = path.match(/\.[a-zA-Z0-9]{2,5}$/);
+    return match ? match[0] : ".mkv";
+  }
+
   public static generateStreamUrl(params: {
     baseUrl: string;
     hash: string;
@@ -175,13 +181,7 @@ export class TorrentParser {
     title?: string;
     tmdbId?: number;
   }): string {
-    let ext = ".mkv";
-    if (params.originalPath) {
-      const match = params.originalPath.match(/\.[a-zA-Z0-9]{2,5}$/);
-      if (match) {
-        ext = match[0];
-      }
-    }
+    const ext = this.getFileExtension(params.originalPath);
 
     const rawTitle = params.englishTitle || params.originalTitle || params.title || "";
     let cleanTitle = rawTitle.replace(/[^a-zA-Z0-9]+/g, ".");

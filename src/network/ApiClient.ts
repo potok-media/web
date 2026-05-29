@@ -93,49 +93,68 @@ export class ApiClient {
     return normalized;
   }
 
+  private static _cachedBaseURL?: string;
+  private static _cachedSearchEngineURL?: string;
+  private static _cachedTorrentGoURL?: string;
+
+  public static invalidateCache(): void {
+    this._cachedBaseURL = undefined;
+    this._cachedSearchEngineURL = undefined;
+    this._cachedTorrentGoURL = undefined;
+  }
+
   public static get baseURL(): string {
-    const bffEnv = getEnv("VITE_DEFAULT_BFF_URL");
-    let url = "";
-    if (this.isSettingsLocked && bffEnv) {
-      url = bffEnv;
-    } else {
-      const defaultProfs = this.getDefaultProfiles();
-      const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
-      const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
-      const active = profiles.find((p) => p.id === activeID);
-      url = active?.gatewayURL || bffEnv || "";
+    if (!this._cachedBaseURL) {
+      const bffEnv = getEnv("VITE_DEFAULT_BFF_URL");
+      let url = "";
+      if (this.isSettingsLocked && bffEnv) {
+        url = bffEnv;
+      } else {
+        const defaultProfs = this.getDefaultProfiles();
+        const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
+        const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
+        const active = profiles.find((p) => p.id === activeID);
+        url = active?.gatewayURL || bffEnv || "";
+      }
+      this._cachedBaseURL = this.ensureAbsoluteURL(url);
     }
-    return this.ensureAbsoluteURL(url);
+    return this._cachedBaseURL;
   }
 
   public static get searchEngineURL(): string {
-    const searchEnv = getEnv("VITE_DEFAULT_SEARCH_URL");
-    let url = "";
-    if (this.isSettingsLocked) {
-      url = searchEnv;
-    } else {
-      const defaultProfs = this.getDefaultProfiles();
-      const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
-      const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
-      const active = profiles.find((p) => p.id === activeID);
-      url = active?.searchEngineURL || "";
+    if (!this._cachedSearchEngineURL) {
+      const searchEnv = getEnv("VITE_DEFAULT_SEARCH_URL");
+      let url = "";
+      if (this.isSettingsLocked) {
+        url = searchEnv;
+      } else {
+        const defaultProfs = this.getDefaultProfiles();
+        const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
+        const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
+        const active = profiles.find((p) => p.id === activeID);
+        url = active?.searchEngineURL || "";
+      }
+      this._cachedSearchEngineURL = this.ensureAbsoluteURL(url);
     }
-    return this.ensureAbsoluteURL(url);
+    return this._cachedSearchEngineURL;
   }
 
   public static get torrentGoURL(): string {
-    const torrentEnv = getEnv("VITE_DEFAULT_TORRENT_URL");
-    let url = "";
-    if (this.isSettingsLocked) {
-      url = torrentEnv;
-    } else {
-      const defaultProfs = this.getDefaultProfiles();
-      const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
-      const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
-      const active = profiles.find((p) => p.id === activeID);
-      url = active?.torrentGoURL || "";
+    if (!this._cachedTorrentGoURL) {
+      const torrentEnv = getEnv("VITE_DEFAULT_TORRENT_URL");
+      let url = "";
+      if (this.isSettingsLocked) {
+        url = torrentEnv;
+      } else {
+        const defaultProfs = this.getDefaultProfiles();
+        const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
+        const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
+        const active = profiles.find((p) => p.id === activeID);
+        url = active?.torrentGoURL || "";
+      }
+      this._cachedTorrentGoURL = this.ensureAbsoluteURL(url);
     }
-    return this.ensureAbsoluteURL(url);
+    return this._cachedTorrentGoURL;
   }
 
   public static get headers(): HeadersInit {
@@ -373,6 +392,20 @@ export class ApiClient {
       body: JSON.stringify(request),
     });
     return this.handleResponse<{ hash: string; items: TorrentFileItem[] }>(res, "Failed to get torrent files");
+  }
+
+  public static async deleteTorrent(hash: string): Promise<void> {
+    const tgUrl = this.torrentGoURL.trim();
+    if (!tgUrl) return;
+    let normalized = tgUrl.replace(/\/$/, "");
+    if (!/^https?:\/\//i.test(normalized)) {
+      normalized = `http://${normalized}`;
+    }
+    await fetch(`${normalized}/api/torrent/${hash.toLowerCase()}`, {
+      method: "DELETE",
+    }).catch(() => {
+      // Safe fallback
+    });
   }
 
   public static async saveTorrentOverride(hash: string, season: number, episodeOffset: number): Promise<void> {

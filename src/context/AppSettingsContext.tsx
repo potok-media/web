@@ -138,7 +138,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setActivePlayback(null);
   };
 
-  const [isSettingsLocked] = useState(() => hostConfig.locked);
+  const isSettingsLocked = hostConfig.locked;
 
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
 
@@ -362,6 +362,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const selectProfile = (id: string) => {
     Storage.set("activeProfileID", id);
     setActiveProfileID(id);
+    ApiClient.invalidateCache();
   };
 
   const addProfile = (profile: Omit<ConnectionProfile, "id">) => {
@@ -369,6 +370,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const updated = [...connectionProfiles, newProfile];
     Storage.set("connectionProfiles", updated);
     setConnectionProfiles(updated);
+    ApiClient.invalidateCache();
     selectProfile(newProfile.id);
   };
 
@@ -376,6 +378,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const updated = connectionProfiles.filter((p) => p.id !== id);
     Storage.set("connectionProfiles", updated);
     setConnectionProfiles(updated);
+    ApiClient.invalidateCache();
     if (activeProfileID === id && updated.length > 0) {
       selectProfile(updated[0].id);
     }
@@ -385,6 +388,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const updated = connectionProfiles.map((p) => (p.id === profile.id ? profile : p));
     Storage.set("connectionProfiles", updated);
     setConnectionProfiles(updated);
+    ApiClient.invalidateCache();
     if (activeProfileID === profile.id) {
       checkConnection();
     }

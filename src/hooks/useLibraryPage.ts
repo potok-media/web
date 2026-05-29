@@ -79,7 +79,7 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
   };
 
   const loadData = useCallback(
-    async (showLoading = true, currentQuery = query, forceRefetch = false) => {
+    async (showLoading = true, currentQuery = "", forceRefetch = false) => {
       if (!isSearchPage && !collectionType) {
         setError("Категория не найдена");
         return;
@@ -135,7 +135,7 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
         setLoading(false);
       }
     },
-    [profileKey, collectionType, isSearchPage, query, getCollectionCache, getPaginationCache]
+    [profileKey, collectionType, isSearchPage, getCollectionCache, getPaginationCache]
   );
 
   const loadNextPage = useCallback(async () => {

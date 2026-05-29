@@ -27,6 +27,8 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle })
     return `sidebar-nav-item ${isLinkActive ? "active" : ""} ${extraClasses}`.trim();
   };
 
+  const navigateDebounceTimer = useRef<any>(null);
+
   // Sync sidebar search input with URL search param when on search page
   const queryParam = useMemo(() => {
     return new URLSearchParams(location.search).get("q") || "";
@@ -40,17 +42,35 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle })
     }
   }, [location.pathname, queryParam]);
 
+  useEffect(() => {
+    return () => {
+      if (navigateDebounceTimer.current) {
+        clearTimeout(navigateDebounceTimer.current);
+      }
+    };
+  }, []);
+
   const handleSidebarSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setSidebarSearch(val);
-    if (val.trim()) {
-      navigate(`/search?q=${encodeURIComponent(val.trim())}`);
-    } else {
-      navigate("/search");
+
+    if (navigateDebounceTimer.current) {
+      clearTimeout(navigateDebounceTimer.current);
     }
+
+    navigateDebounceTimer.current = setTimeout(() => {
+      if (val.trim()) {
+        navigate(`/search?q=${encodeURIComponent(val.trim())}`);
+      } else {
+        navigate("/search");
+      }
+    }, 300);
   };
 
   const handleClearSidebarSearch = () => {
+    if (navigateDebounceTimer.current) {
+      clearTimeout(navigateDebounceTimer.current);
+    }
     setSidebarSearch("");
     navigate("/search");
     inputRef.current?.focus();

@@ -59,8 +59,7 @@ export async function playTorrentFile({
     try {
       let streamUrl = TorrentParser.generateStreamUrl(urlParams);
       
-      const originalPath = file.path || "";
-      const ext = originalPath.match(/\.[a-zA-Z0-9]{2,5}$/)?.[0] || ".mkv";
+      const ext = TorrentParser.getFileExtension(file.path);
       if (ext.toLowerCase() === ".mkv") {
         streamUrl += "?remux=true";
       }
