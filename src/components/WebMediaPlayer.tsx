@@ -11,6 +11,8 @@ import { loadExternalSubtitle } from "../utils/SubtitleHelper";
 import { useTimecodes } from "../hooks/useTimecodes";
 import { usePlayerStats } from "../hooks/usePlayerStats";
 
+type SafeArtplayer = Artplayer & { hls?: Hls; };
+
 interface WebMediaPlayerProps {
   playback: ActivePlayback;
   onClose: () => void;
@@ -60,10 +62,15 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const displayCurrentTime = seekOffset > 0 ? (seekOffset + currentTime) : currentTime;
   const displayBufferedTime = seekOffset > 0 ? (seekOffset + bufferedTime) : bufferedTime;
 
+  const displayCurrentTimeRef = useRef(displayCurrentTime);
+  useEffect(() => {
+    displayCurrentTimeRef.current = displayCurrentTime;
+  }, [displayCurrentTime]);
+
   // Hooks
   const { introRange, outroRange } = useTimecodes(playback.id, playback.season, playback.episode, playback.mediaType === "tv", displayDuration);
   const { downloadSpeed, bitrate, resolution, fps } = usePlayerStats(
-    artRef.current,
+    artRef,
     isPlaying,
     showStats,
     playback.streamUrl,
@@ -193,7 +200,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
             const hls = new Hls({ maxBufferLength: 30, maxMaxBufferLength: 60 });
             hls.loadSource(url);
             hls.attachMedia(video);
-            (art as any).hls = hls;
+            (art as SafeArtplayer).hls = hls;
 
             const updateAudioTracks = () => {
               const audios = (hls.audioTracks || []).map((t, idx) => ({ id: t.id, name: t.name || `Дорожка ${idx + 1}` }));
@@ -269,8 +276,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === " ") { e.preventDefault(); art.toggle(); }
-      else if (e.key === "ArrowRight") { e.preventDefault(); handleSeek(displayCurrentTime + 10); }
-      else if (e.key === "ArrowLeft") { e.preventDefault(); handleSeek(Math.max(displayCurrentTime - 10, 0)); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); handleSeek(displayCurrentTimeRef.current + 10); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); handleSeek(Math.max(displayCurrentTimeRef.current - 10, 0)); }
       else if (e.key === "Escape") { e.preventDefault(); onClose(); }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -284,7 +291,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const switchAudio = (id: number) => {
     const art = artRef.current;
     if (!art) return;
-    const h = (art as any).hls as Hls;
+    const h = (art as SafeArtplayer).hls;
     if (h) {
       h.audioTrack = id;
       setCurrentAudioTrack(id);
@@ -310,7 +317,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const handleSeek = (time: number) => {
     const art = artRef.current;
     if (!art) return;
-    const h = (art as any).hls as Hls;
+    const h = (art as SafeArtplayer).hls;
     if (h) { art.currentTime = time; return; }
 
     const isMKV = playback.streamUrl.includes(".mkv") || playback.streamUrl.includes(".MKV");
@@ -340,7 +347,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         video.textTracks[i].mode = i === id ? "showing" : "disabled";
       }
     }
-    const h = (artRef.current as any).hls as Hls;
+    const h = (artRef.current as SafeArtplayer | null)?.hls;
     if (h) h.subtitleTrack = id;
     setCurrentSubtitleTrack(id);
     setShowSubtitleMenu(false);

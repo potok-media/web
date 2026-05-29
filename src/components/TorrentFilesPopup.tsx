@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useState, useRef, useEffect } from "react";
 import type { TorrentSearchResult, TorrentFileItem, MediaCard } from "../network/ApiTypes";
 import { useAppSettings } from "../context/AppSettingsContext";
 import { useHUD } from "../context/HUDContext";
@@ -46,7 +46,30 @@ export const TorrentFilesPopup: React.FC<TorrentFilesPopupProps> = ({
     showHUD,
   });
 
-  const handlePlayFile = async (file: TorrentFileItem) => {
+  const [visibleCount, setVisibleCount] = useState(25);
+  const listSentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setVisibleCount(25);
+  }, [torrent.id, torrent.magnetUri]);
+
+  useEffect(() => {
+    const sentinel = listSentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setVisibleCount((prev) => prev + 25);
+      }
+    });
+
+    observer.observe(sentinel);
+    return () => {
+      observer.disconnect();
+    };
+  }, [visibleCount, files.length]);
+
+  const handlePlayFile = useCallback(async (file: TorrentFileItem) => {
     try {
       await playTorrentFile({
         defaultPlayer,
@@ -59,7 +82,7 @@ export const TorrentFilesPopup: React.FC<TorrentFilesPopupProps> = ({
     } catch {
       showHUD("error", "Ошибка запуска стрима");
     }
-  };
+  }, [defaultPlayer, torrent, mediaItem, showHUD, playVideo]);
 
   const checkWatched = (file: TorrentFileItem) => {
     const progress = mediaItem.progress;
@@ -114,16 +137,19 @@ export const TorrentFilesPopup: React.FC<TorrentFilesPopupProps> = ({
                 </div>
               ) : files.length > 0 ? (
                 <div className="torrent-popup-rows-list">
-                  {files.map((file) => (
+                  {files.slice(0, visibleCount).map((file) => (
                     <TorrentFileRow
                       key={file.id}
                       file={file}
-                      metadata={file.season && file.episode ? episodeMetadata[`${file.season}:${file.episode}`] : null}
+                      metadata={(file.season !== undefined && file.season !== null && file.episode !== undefined && file.episode !== null) ? episodeMetadata[`${file.season}:${file.episode}`] : null}
                       mediaItem={mediaItem}
                       isWatched={checkWatched(file)}
                       onPlay={handlePlayFile}
                     />
                   ))}
+                  {visibleCount < files.length && (
+                    <div ref={listSentinelRef} style={{ height: "1px" }} />
+                  )}
                 </div>
               ) : (
                 <div className="torrent-popup-empty-files">

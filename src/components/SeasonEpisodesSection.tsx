@@ -73,6 +73,14 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
               key={ep.id}
               className="episode-card"
               onClick={() => onEpisodeClick(ep, activeSeason)}
+              tabIndex={0}
+              role="button"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onEpisodeClick(ep, activeSeason);
+                }
+              }}
             >
               <div className="episode-still-wrap">
                 <img

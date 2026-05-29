@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
+import { useParams, useLocation, Link } from "react-router-dom";
 import { 
   Film, 
   Search as SearchIcon, 
@@ -13,7 +13,6 @@ import "../styles/media.css";
 
 export const LibraryPage: React.FC = () => {
   const { collectionType: routeType } = useParams<{ collectionType: string }>();
-  const navigate = useNavigate();
   const location = useLocation();
 
   const isSearchPage = location.pathname === "/search";
@@ -152,7 +151,6 @@ export const LibraryPage: React.FC = () => {
               <MediaCardComponent
                 key={item.id}
                 item={item}
-                onClick={() => navigate(`/media/${item.mediaType}/${item.id}`)}
               />
             ))}
           </div>

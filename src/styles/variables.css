@@ -22,6 +22,14 @@
   --success: HSL(142, 70%, 45%);
   --warning: HSL(38, 92%, 50%);
   --error: HSL(354, 78%, 48%);
+  --error-dim: hsla(354, 78%, 48%, 0.1);
+  --error-dim-low: hsla(354, 78%, 48%, 0.03);
+  --error-border: hsla(354, 78%, 48%, 0.3);
+  --error-border-low: hsla(354, 78%, 48%, 0.15);
+  --error-border-high: hsla(354, 78%, 48%, 0.6);
+  --error-hover: hsla(354, 78%, 40%, 1);
+  --warning-dim: hsla(38, 92%, 50%, 0.08);
+  --warning-border: hsla(38, 92%, 50%, 0.2);
   
   --space-xxs: 0.25rem;
   --space-xs: 0.5rem;
@@ -52,6 +60,7 @@
   --font-caption-bold: 700 0.8rem var(--font-family);
   
   --glass-blur: blur(25px);
+  --blur-glass: blur(25px);
   --glass-bg: RGBA(15, 15, 20, 0.65);
   --glass-border: 1px solid RGBA(255, 255, 255, 0.08);
   --shadow-l: 0 12px 40px RGBA(0, 0, 0, 0.5);

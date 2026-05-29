@@ -4,6 +4,7 @@ import { useAppSettings } from "../context/AppSettingsContext";
 import { AppSidebar } from "./AppSidebar";
 import { getEnv } from "../utils/EnvService";
 import { WebMediaPlayer } from "./WebMediaPlayer";
+import { ErrorBoundary } from "./ErrorBoundary";
 import "../styles/layout.css";
 
 export const AppLayout: React.FC = () => {
@@ -46,6 +47,14 @@ export const AppLayout: React.FC = () => {
   const [inputUrl, setInputUrl] = React.useState(
     activeProfile?.gatewayURL || getEnv("VITE_DEFAULT_BFF_URL") || ""
   );
+
+  const [prevActiveProfileID, setPrevActiveProfileID] = React.useState<string | null>(activeProfileID);
+
+  if (activeProfileID !== prevActiveProfileID) {
+    setPrevActiveProfileID(activeProfileID);
+    setInputUrl(activeProfile?.gatewayURL || getEnv("VITE_DEFAULT_BFF_URL") || "");
+  }
+
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(() => {
     return localStorage.getItem("isSidebarCollapsed") === "true";
   });
@@ -55,14 +64,8 @@ export const AppLayout: React.FC = () => {
       const next = !prev;
       localStorage.setItem("isSidebarCollapsed", String(next));
       return next;
-    });
+      });
   };
-
-  React.useEffect(() => {
-    if (activeProfile) {
-      setInputUrl(activeProfile.gatewayURL);
-    }
-  }, [activeProfileID]);
 
   const handleSaveAndConnect = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,10 +174,65 @@ export const AppLayout: React.FC = () => {
       </main>
 
       {activePlayback && (
-        <WebMediaPlayer
-          playback={activePlayback}
-          onClose={stopVideo}
-        />
+        <ErrorBoundary fallback={(error, resetError) => (
+          <div style={{
+            position: "fixed",
+            bottom: "20px",
+            right: "20px",
+            zIndex: 9999,
+            width: "350px",
+            padding: "1rem",
+            background: "rgba(20, 20, 20, 0.95)",
+            backdropFilter: "blur(25px)",
+            borderRadius: "12px",
+            border: "1px solid var(--error, #ef4444)",
+            color: "#fff",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.5)"
+          }}>
+            <h4 style={{ color: "var(--error, #ef4444)", margin: "0 0 0.5rem 0" }}>Ошибка плеера</h4>
+            <p style={{ fontSize: "0.85rem", opacity: 0.8, margin: "0 0 1rem 0" }}>
+              {error.message || "Не удалось воспроизвести видео."}
+            </p>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button
+                onClick={resetError}
+                style={{
+                  flex: 1,
+                  padding: "0.4rem",
+                  background: "var(--error, #ef4444)",
+                  border: "none",
+                  borderRadius: "4px",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontSize: "0.85rem",
+                  fontWeight: 600
+                }}
+              >
+                Повторить
+              </button>
+              <button
+                onClick={stopVideo}
+                style={{
+                  flex: 1,
+                  padding: "0.4rem",
+                  background: "rgba(255,255,255,0.1)",
+                  border: "none",
+                  borderRadius: "4px",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontSize: "0.85rem"
+                }}
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
+        )}>
+          <WebMediaPlayer
+            playback={activePlayback}
+            onClose={stopVideo}
+          />
+        </ErrorBoundary>
       )}
     </div>
   );

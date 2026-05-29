@@ -22,7 +22,10 @@ export async function playTorrentFile({
 }: PlayPlaybackParams): Promise<void> {
   showHUD("info", "Готовим ссылку на стрим...");
 
-  const hash = torrent.id || torrent.magnetUri || "";
+  const hash = ApiClient.getHashFromMagnet(torrent.magnetUri || "") || 
+               ApiClient.getHashFromMagnet(torrent.link || "") || 
+               torrent.id || 
+               "";
   const tgUrl = ApiClient.torrentGoURL.trim();
   if (!tgUrl) {
     showHUD("error", "Адрес торрент-плеера не настроен.");

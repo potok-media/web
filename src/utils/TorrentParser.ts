@@ -63,6 +63,7 @@ export class TorrentParser {
 
     // 1. Parse filename
     for (const { regex, keys } of this.regexps) {
+      if (info.season !== undefined && info.episode !== undefined) { break; }
       const match = fileName.match(regex);
       if (match) {
         keys.forEach((key, index) => {
@@ -113,11 +114,7 @@ export class TorrentParser {
 
     // 3. Validate parsed season against TMDB (before overrides!)
     if (numberOfSeasons && numberOfSeasons > 0 && info.season !== undefined && info.season > numberOfSeasons) {
-      if (numberOfSeasons === 1) {
-        info.season = 1;
-      } else {
-        info.season = undefined; // Trigger manual fix
-      }
+      info.season = undefined; // Trigger manual fix / parsing failure
     }
 
     // 4. Apply Overrides (User overrides are the absolute source of truth!)

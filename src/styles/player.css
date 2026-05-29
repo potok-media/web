@@ -246,8 +246,8 @@
   width: 100%;
   max-width: 960px;
   background: rgba(15, 15, 20, 0.75);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
   padding: 16px 24px;
@@ -490,8 +490,8 @@
   position: absolute;
   inset: 0;
   background: rgba(10, 10, 15, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
   z-index: 9999;
   display: flex;
   flex-direction: column;

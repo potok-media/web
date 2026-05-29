@@ -124,14 +124,18 @@ export const ProfilePage: React.FC = () => {
   if (!potokToken) {
     return (
       <div className="profile-auth-screen-container">
-        <PotokAuthView onSuccess={() => {
-          const token = Storage.get<string | null>("potokToken", null) || "";
-          const user = Storage.get<any | null>("potokUser", null);
-          const strategy = Storage.get<string>("syncStrategy", "none");
-          const traktTokenFromStorage = Storage.get<string | null>("traktAccessToken", null);
-          setSyncStrategy(strategy);
-          setTraktToken(traktTokenFromStorage);
-          login(token, user);
+        <PotokAuthView onSuccess={(data) => {
+          Storage.set("potokToken", data.token);
+          Storage.set("potokUser", data.user);
+          Storage.set("syncStrategy", data.user.syncStrategy);
+          if (data.user.traktAccessToken) {
+            Storage.set("traktAccessToken", data.user.traktAccessToken);
+          } else {
+            Storage.remove("traktAccessToken");
+          }
+          setSyncStrategy(data.user.syncStrategy);
+          setTraktToken(data.user.traktAccessToken || null);
+          login(data.token, data.user);
         }} />
       </div>
     );

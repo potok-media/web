@@ -41,7 +41,7 @@
 }
 
 .profile-logout-btn:hover {
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--error-dim);
   opacity: 1;
 }
 
@@ -157,8 +157,8 @@
 
 .trakt-logout-btn {
   color: var(--error);
-  border: 0.0625rem solid rgba(239, 68, 68, 0.3);
-  background: rgba(239, 68, 68, 0.03);
+  border: 0.0625rem solid var(--error-border);
+  background: var(--error-dim-low);
   padding: 0.5rem 1rem;
   font: var(--font-caption-bold);
   font-size: 0.8125rem;
@@ -168,8 +168,8 @@
 }
 
 .trakt-logout-btn:hover {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.6);
+  background: var(--error-dim);
+  border-color: var(--error-border-high);
   transform: scale(1.02);
 }
 
@@ -242,8 +242,8 @@
 
 .profile-warning-card {
   padding: 1.5rem;
-  background: rgba(239, 68, 68, 0.03);
-  border: 0.0625rem solid rgba(239, 68, 68, 0.15);
+  background: var(--error-dim-low);
+  border: 0.0625rem solid var(--error-border-low);
   color: var(--text-primary);
   text-align: center;
   gap: 0.75rem;

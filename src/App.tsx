@@ -10,6 +10,7 @@ import { ProfilePage } from "./pages/ProfilePage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { MediaDetailsPage } from "./pages/MediaDetailsPage";
 import { TorrentsPage } from "./pages/TorrentsPage";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import "./index.css";
 
 export const App: React.FC = () => {
@@ -17,18 +18,20 @@ export const App: React.FC = () => {
     <HUDProvider>
       <AppSettingsProvider>
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<AppLayout />}>
-              <Route index element={<HomePage />} />
-              <Route path="search" element={<LibraryPage />} />
-              <Route path="calendar" element={<CalendarPage />} />
-              <Route path="profile" element={<ProfilePage />} />
-              <Route path="settings" element={<SettingsPage />} />
-              <Route path="media/:mediaType/:id" element={<MediaDetailsPage />} />
-              <Route path="media/:mediaType/:id/torrents" element={<TorrentsPage />} />
-              <Route path="library/:collectionType" element={<LibraryPage />} />
-            </Route>
-          </Routes>
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/" element={<AppLayout />}>
+                <Route index element={<HomePage />} />
+                <Route path="search" element={<LibraryPage />} />
+                <Route path="calendar" element={<CalendarPage />} />
+                <Route path="profile" element={<ProfilePage />} />
+                <Route path="settings" element={<SettingsPage />} />
+                <Route path="media/:mediaType/:id" element={<MediaDetailsPage />} />
+                <Route path="media/:mediaType/:id/torrents" element={<TorrentsPage />} />
+                <Route path="library/:collectionType" element={<LibraryPage />} />
+              </Route>
+            </Routes>
+          </ErrorBoundary>
         </BrowserRouter>
       </AppSettingsProvider>
     </HUDProvider>

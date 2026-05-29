@@ -1,10 +1,21 @@
 import { useEffect, useState } from "react";
+import type React from "react";
 import type Artplayer from "artplayer";
 import type Hls from "hls.js";
 import { ApiClient } from "../network/ApiClient";
 
+type SafeArtplayer = Artplayer & { hls?: Hls; };
+
+interface HTMLVideoElementWithQuality extends Omit<HTMLVideoElement, 'getVideoPlaybackQuality'> {
+  getVideoPlaybackQuality?: () => {
+    totalVideoFrames: number;
+    droppedVideoFrames: number;
+    corruptedVideoFrames?: number;
+  };
+}
+
 export function usePlayerStats(
-  art: Artplayer | null,
+  artRef: React.RefObject<Artplayer | null>,
   isPlaying: boolean,
   showStats: boolean,
   streamUrl: string,
@@ -41,12 +52,13 @@ export function usePlayerStats(
 
   // 2. Real-time network and quality polling interval
   useEffect(() => {
+    const art = artRef.current;
     if (!art || !showStats) return;
 
     const statsInterval = setInterval(() => {
       if (!art.playing) return;
 
-      const hls = (art as any).hls as Hls;
+      const hls = (art as SafeArtplayer).hls;
       if (hls) {
         // Hls.js bandwidth estimation (bits/sec -> MB/s)
         setDownloadSpeed((hls.bandwidthEstimate / 8 / 1024 / 1024).toFixed(1));
@@ -69,10 +81,10 @@ export function usePlayerStats(
       }
 
       // Native frame rate observer
-      const video = art.video;
-      if (video && (video as any).getVideoPlaybackQuality) {
-        const q = (video as any).getVideoPlaybackQuality();
-        if (q.totalVideoFrames) {
+      const video = art.video as HTMLVideoElementWithQuality | undefined;
+      if (video && video.getVideoPlaybackQuality) {
+        const q = video.getVideoPlaybackQuality();
+        if (q && q.totalVideoFrames) {
           setFps(q.corruptedVideoFrames ? 23 : 24);
         }
       }
@@ -81,7 +93,7 @@ export function usePlayerStats(
     return () => {
       clearInterval(statsInterval);
     };
-  }, [art, isPlaying, showStats, torrentHash]);
+  }, [artRef, isPlaying, showStats, torrentHash]);
 
   return { downloadSpeed, bitrate, resolution, fps };
 }

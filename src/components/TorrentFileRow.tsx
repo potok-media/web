@@ -38,7 +38,18 @@ export const TorrentFileRow: React.FC<TorrentFileRowProps> = React.memo(({
   };
 
   return (
-    <div className="file-card-row" onClick={() => onPlay(file)}>
+    <div
+      className="file-card-row"
+      onClick={() => onPlay(file)}
+      tabIndex={0}
+      role="button"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onPlay(file);
+        }
+      }}
+    >
       {showBanner && (
         <div className="file-card-banner">
           {imageUrl ? (

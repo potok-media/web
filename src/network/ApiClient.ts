@@ -111,7 +111,7 @@ export class ApiClient {
         url = bffEnv;
       } else {
         const defaultProfs = this.getDefaultProfiles();
-        const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
+        const activeID = Storage.get<string | null>("activeProfileID", ApiClient.isSettingsLocked ? defaultProfs[0].id : null);
         const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
         const active = profiles.find((p) => p.id === activeID);
         url = active?.gatewayURL || bffEnv || "";
@@ -129,7 +129,7 @@ export class ApiClient {
         url = searchEnv;
       } else {
         const defaultProfs = this.getDefaultProfiles();
-        const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
+        const activeID = Storage.get<string | null>("activeProfileID", ApiClient.isSettingsLocked ? defaultProfs[0].id : null);
         const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
         const active = profiles.find((p) => p.id === activeID);
         url = active?.searchEngineURL || "";
@@ -147,7 +147,7 @@ export class ApiClient {
         url = torrentEnv;
       } else {
         const defaultProfs = this.getDefaultProfiles();
-        const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
+        const activeID = Storage.get<string | null>("activeProfileID", ApiClient.isSettingsLocked ? defaultProfs[0].id : null);
         const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
         const active = profiles.find((p) => p.id === activeID);
         url = active?.torrentGoURL || "";
@@ -285,9 +285,19 @@ export class ApiClient {
     }
   }
 
+  public static cleanHash(hash: string): string {
+    if (!hash) return "";
+    if (hash.toLowerCase().startsWith("magnet:")) {
+      const match = hash.match(/xt=urn:btih:([^&/]+)/i);
+      return match ? match[1].toLowerCase() : hash.toLowerCase();
+    }
+    return hash.toLowerCase();
+  }
+
   public static async getTorrentOverride(hash: string): Promise<TorrentOverride | null> {
+    const clean = this.cleanHash(hash);
     try {
-      const res = await fetch(`${this.baseURL}/api/torrents/overrides/${hash.toLowerCase()}`, {
+      const res = await fetch(`${this.baseURL}/api/torrents/overrides/${clean}`, {
         headers: this.headers,
       });
       if (res.status === 404) return null;
@@ -300,11 +310,12 @@ export class ApiClient {
 
   public static async getBatchOverrides(hashes: string[]): Promise<Record<string, TorrentOverride>> {
     if (hashes.length === 0) return {};
+    const cleaned = hashes.map(h => this.cleanHash(h));
     try {
       const res = await fetch(`${this.baseURL}/api/torrents/overrides/batch`, {
         method: "POST",
         headers: this.headers,
-        body: JSON.stringify(hashes),
+        body: JSON.stringify(cleaned),
       });
       if (res.ok) {
         return await res.json();
@@ -315,7 +326,7 @@ export class ApiClient {
 
     // Fallback to fetching single overrides concurrently in parallel
     const result: Record<string, TorrentOverride> = {};
-    const uniqueHashes = Array.from(new Set(hashes.map(h => h.toLowerCase())));
+    const uniqueHashes = Array.from(new Set(cleaned));
     
     await Promise.all(
       uniqueHashes.map(async (hash) => {
@@ -409,11 +420,12 @@ export class ApiClient {
   }
 
   public static async saveTorrentOverride(hash: string, season: number, episodeOffset: number): Promise<void> {
+    const clean = this.cleanHash(hash);
     const res = await fetch(`${this.baseURL}/api/torrents/overrides`, {
       method: "POST",
       headers: this.headers,
       body: JSON.stringify({
-        hash,
+        hash: clean,
         override: {
           season,
           episodeOffset

@@ -61,7 +61,7 @@
 }
 
 .kp-rating-badge {
-  background-color: #e50914; 
+  background-color: var(--error); 
   color: white;
   padding: 3px 8px;
   border-radius: var(--radius-s);
@@ -118,7 +118,7 @@
   gap: 8px;
   cursor: pointer;
   text-decoration: none;
-  backdrop-filter: blur(10px);
+  backdrop-filter: var(--blur-glass);
   transition: all var(--timing-hover);
 }
 
@@ -500,8 +500,8 @@
 
 .media-glass-pill {
   background: rgba(13, 14, 18, 0.65);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
   border: 0.5px solid rgba(255, 255, 255, 0.15);
   color: var(--text-primary);
   padding: 4px 8px;
@@ -748,7 +748,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  backdrop-filter: blur(10px);
+  backdrop-filter: var(--blur-glass);
   transition: all var(--timing-hover) cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -1113,7 +1113,7 @@
   position: fixed;
   inset: 0;
   background-color: rgba(13, 14, 18, 0.7);
-  backdrop-filter: blur(25px);
+  backdrop-filter: var(--blur-glass);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1381,8 +1381,8 @@
   display: flex;
   flex-direction: column;
   background: rgba(13, 14, 18, 0.55);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   padding: var(--space-xl) var(--space-l);
   box-sizing: border-box;
@@ -1522,8 +1522,8 @@
 
 .filter-popover {
   background: rgba(22, 23, 29, 0.85);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -1561,11 +1561,11 @@
 /* TMDB Episode Picker Styles */
 
 .parsing-hint-banner {
-  background-color: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  background-color: var(--warning-dim);
+  border: 1px solid var(--warning-border);
   border-radius: var(--radius-m);
   padding: 10px 14px;
-  color: #f59e0b;
+  color: var(--warning);
   font-size: 0.75rem;
   line-height: 1.4;
   text-align: right;
@@ -1696,7 +1696,7 @@
   font-size: 0.6875rem;
   padding: 3px 6px;
   border-radius: calc(var(--radius-s) / 2);
-  backdrop-filter: blur(4px);
+  backdrop-filter: var(--blur-glass);
 }
 
 .episode-card-info {
@@ -1731,8 +1731,8 @@
   position: absolute;
   inset: 0;
   background-color: rgba(13, 14, 18, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1957,9 +1957,9 @@
   display: block;
   width: 100%;
   text-align: center;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  border: 1px solid var(--error-border);
+  background-color: var(--error-dim);
+  color: var(--error);
   padding: 6px 12px;
   border-radius: var(--radius-s);
   font-size: 0.6875rem;
@@ -1970,9 +1970,9 @@
 }
 
 .popover-reset-btn:hover {
-  background-color: #ef4444;
+  background-color: var(--error);
   color: white;
-  border-color: #ef4444;
+  border-color: var(--error);
 }
 
 .torrent-tag-badge.override-badge {
@@ -2083,8 +2083,8 @@
 /* Premium Glass Loading Card */
 .loading-glass-card {
   background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
   border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 36px 54px;
   border-radius: var(--radius-l);

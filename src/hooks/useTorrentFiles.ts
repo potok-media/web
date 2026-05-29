@@ -58,14 +58,20 @@ export function useTorrentFiles({
       });
 
       const rawFiles = res.items || [];
-      const hash = torrent.id || torrent.magnetUri || "";
+      const hash = ApiClient.getHashFromMagnet(torrent.magnetUri || "") || 
+                   ApiClient.getHashFromMagnet(torrent.link || "") || 
+                   torrent.id || 
+                   "";
       
       // Get override offset from backend
       const override = await ApiClient.getTorrentOverride(hash);
 
       // Refine files by parsing seasons/episodes client-side matching macOS
       const refinedFiles = rawFiles.map((file) => {
-        const filePath = file.path || "";
+        let filePath = file.path || file.title || "";
+        if (!filePath.includes("/")) {
+          filePath = torrent.title ? `${torrent.title}/${filePath}` : filePath;
+        }
         const parsed = TorrentParser.parseEpisode(
           filePath,
           mediaItem.mediaType,
@@ -120,8 +126,13 @@ export function useTorrentFiles({
     const unsubOverride = webSocketClient.subscribe("override-updated", (data) => {
       try {
         const payload = JSON.parse(data);
-        const currentHash = torrent.id || torrent.magnetUri || "";
-        if (payload.hash === currentHash) {
+        const currentHash = ApiClient.getHashFromMagnet(torrent.magnetUri || "") || 
+                            ApiClient.getHashFromMagnet(torrent.link || "") || 
+                            torrent.id || 
+                            "";
+        const cleanCurrent = ApiClient.cleanHash(currentHash);
+        const cleanPayload = ApiClient.cleanHash(payload.hash || "");
+        if (cleanPayload === cleanCurrent) {
           showHUDRef.current("info", "Смещение обновлено. Перечитываем файлы...");
           fetchFiles();
         }
@@ -164,11 +175,15 @@ export function useTorrentFiles({
   const handleApplyOverride = async (seasonNum: number, epNum: number) => {
     try {
       setIsSaving(true);
-      const hash = torrent.id || torrent.magnetUri || "";
+      const hash = ApiClient.getHashFromMagnet(torrent.magnetUri || "") || 
+                   ApiClient.getHashFromMagnet(torrent.link || "") || 
+                   torrent.id || 
+                   "";
       const episodeOffset = epNum - 1;
       await ApiClient.saveTorrentOverride(hash, seasonNum, episodeOffset);
       showHUDRef.current("success", "Смещение успешно сохранено!");
       setIsEditing(false);
+      fetchFiles();
     } catch {
       showHUDRef.current("error", "Не удалось сохранить смещение");
     } finally {

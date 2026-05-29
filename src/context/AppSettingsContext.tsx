@@ -5,6 +5,7 @@ import type { ServiceStatus, ConnectionProfile, PotokUser } from "../network/Api
 import { webSocketClient } from "../network/WebSocketClient";
 import { AuthApiClient } from "../network/AuthApiClient";
 import { getEnv } from "../utils/EnvService";
+import { logger } from "../utils/logger";
 
 export type ConnectionState = "checking" | "connected" | "offline" | "setupRequired";
 
@@ -116,7 +117,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return cleanProfiles;
   });
   const [activeProfileID, setActiveProfileID] = useState<string | null>(() => 
-    Storage.get<string | null>("activeProfileID", defaultProfiles[0].id)
+    Storage.get<string | null>("activeProfileID", hostConfig.locked ? defaultProfiles[0].id : null)
   );
   const [accentTheme, _setAccentTheme] = useState<string>(() => 
     Storage.get<string>("accentTheme", "nordicFrost")
@@ -213,7 +214,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const checkConnection = async () => {
     stopPingTimer();
     const currentGateway = ApiClient.baseURL;
-    if (!currentGateway) {
+    if (!currentGateway || !activeProfileID || (!isSettingsLocked && (!activeProfile || !activeProfile.gatewayURL))) {
       setConnectionState("setupRequired");
       setBffLatencyMs(-1);
       return;
@@ -250,13 +251,16 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const startPingTimer = () => {
     if (pingIntervalRef.current) return;
+    if (!activeProfileID || (!isSettingsLocked && (!activeProfile || !activeProfile.gatewayURL))) {
+      return;
+    }
     pingIntervalRef.current = setInterval(async () => {
       const currentGateway = ApiClient.baseURL;
       if (!currentGateway) return;
 
       // Skip ping if browser reports no network connection at all (sleep/wake/tab hibernation protection)
       if (navigator.onLine === false) {
-        console.warn("Network interface is down (navigator.onLine = false). Skipping health check.");
+        logger.warn("Network interface is down (navigator.onLine = false). Skipping health check.");
         return;
       }
 
@@ -307,7 +311,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   useEffect(() => {
-    console.log(`[AppSettings] WebSocket lifecycle effect triggered. ActiveProfileID: ${activeProfileID}, Configured gatewayURL: ${gatewayURL}`);
+    logger.log(`[AppSettings] WebSocket lifecycle effect triggered. ActiveProfileID: ${activeProfileID}, Configured gatewayURL: ${gatewayURL}`);
     if (activeProfileID && gatewayURL) {
       webSocketClient.startListening(gatewayURL);
     } else {
@@ -327,6 +331,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return () => {
       unsubConnected();
       unsubOffline();
+      webSocketClient.stopListening();
     };
   }, [activeProfileID, gatewayURL]);
 
@@ -351,7 +356,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
           }
         })
         .catch((err) => {
-          console.error("Failed to fetch current user profile:", err);
+          logger.error("Failed to fetch current user profile:", err);
           if (err instanceof Error && err.message === "Unauthorized") {
             logout();
           }

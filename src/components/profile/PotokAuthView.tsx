@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { User, KeyRound } from "lucide-react";
 import { AuthApiClient } from "../../network/AuthApiClient";
-import { Storage } from "../../utils/StorageService";
 import { useHUD } from "../../context/HUDContext";
 import { useAppSettings } from "../../context/AppSettingsContext";
+import type { AuthResponse } from "../../network/ApiTypes";
 
 interface PotokAuthViewProps {
-  onSuccess: () => void;
+  onSuccess: (data: AuthResponse) => void;
 }
 
 export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
@@ -33,15 +33,7 @@ export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
         data = await AuthApiClient.login({ username, password });
         showHUD("success", "Успешный вход!");
       }
-      Storage.set("potokToken", data.token);
-      Storage.set("potokUser", data.user);
-      Storage.set("syncStrategy", data.user.syncStrategy);
-      if (data.user.traktAccessToken) {
-        Storage.set("traktAccessToken", data.user.traktAccessToken);
-      } else {
-        Storage.remove("traktAccessToken");
-      }
-      onSuccess();
+      onSuccess(data);
     } catch (err: unknown) {
       showHUD("error", err instanceof Error ? err.message : "Ошибка авторизации");
     } finally {
