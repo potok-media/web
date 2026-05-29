@@ -476,6 +476,16 @@ export class ApiClient {
     return this.handleResponse<MediaCard[]>(res, `Failed to fetch media row: ${rowId}`);
   }
 
+  public static async fetchBatchDetails(items: { tmdbId: number; mediaType: string }[]): Promise<MediaCard[]> {
+    if (items.length === 0) return [];
+    const res = await fetch(`${this.baseURL}/api/media/batch`, {
+      method: "POST",
+      headers: this.headers,
+      body: JSON.stringify({ items }),
+    });
+    return this.handleResponse<MediaCard[]>(res, "Failed to fetch batch media details");
+  }
+
   public static async fetchLibraryCategory(category: string): Promise<MediaCard[]> {
     if (category.includes(".")) {
       return this.fetchMediaRow(category);
@@ -506,16 +516,10 @@ export class ApiClient {
         seen.add(key);
         return true;
       });
-      const cards = await Promise.all(
-        unique.map(async (e) => {
-          try {
-            return await this.fetchMediaDetails(e.mediaType, Number(e.tmdbId));
-          } catch {
-            return null;
-          }
-        })
-      );
-      return cards.filter((c): c is MediaCard => c !== null);
+      return this.fetchBatchDetails(unique.map((e) => ({
+        tmdbId: Number(e.tmdbId),
+        mediaType: e.mediaType,
+      })));
     }
     return [];
   }
