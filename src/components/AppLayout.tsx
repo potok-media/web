@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { useAppSettings } from "../context/AppSettingsContext";
 import { AppSidebar } from "./AppSidebar";
 import { getEnv } from "../utils/EnvService";
+import { WebMediaPlayer } from "./WebMediaPlayer";
 import "../styles/layout.css";
 
 export const AppLayout: React.FC = () => {
@@ -36,7 +37,9 @@ export const AppLayout: React.FC = () => {
     connectionProfiles,
     activeProfileID,
     updateProfile,
-    addProfile
+    addProfile,
+    activePlayback,
+    stopVideo
   } = useAppSettings();
 
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
@@ -166,6 +169,13 @@ export const AppLayout: React.FC = () => {
       <main ref={mainContentRef} onScroll={handleScroll} className="main-content">
         <Outlet />
       </main>
+
+      {activePlayback && (
+        <WebMediaPlayer
+          playback={activePlayback}
+          onClose={stopVideo}
+        />
+      )}
     </div>
   );
 };

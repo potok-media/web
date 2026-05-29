@@ -23,7 +23,7 @@ export const TorrentFilesPopup: React.FC<TorrentFilesPopupProps> = ({
   torrent,
   mediaItem,
 }) => {
-  const { defaultPlayer } = useAppSettings();
+  const { defaultPlayer, playVideo } = useAppSettings();
   const { show: showHUD } = useHUD();
 
   const {
@@ -54,6 +54,7 @@ export const TorrentFilesPopup: React.FC<TorrentFilesPopupProps> = ({
         file,
         mediaItem,
         showHUD,
+        playVideo,
       });
     } catch {
       showHUD("error", "Ошибка запуска стрима");

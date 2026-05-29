@@ -8,6 +8,16 @@ import { getEnv } from "../utils/EnvService";
 
 export type ConnectionState = "checking" | "connected" | "offline" | "setupRequired";
 
+export interface ActivePlayback {
+  streamUrl: string;
+  title: string;
+  mediaType: "movie" | "tv";
+  id: number;
+  season?: number;
+  episode?: number;
+  torrentHash: string;
+}
+
 interface AppSettingsContextType {
   connectionState: ConnectionState;
   bffLatencyMs: number;
@@ -21,6 +31,7 @@ interface AppSettingsContextType {
   potokUser: PotokUser | null;
   multiUserMode: boolean;
   isSettingsLocked: boolean;
+  activePlayback: ActivePlayback | null;
   
   checkConnection: () => Promise<void>;
   selectProfile: (id: string) => void;
@@ -32,6 +43,8 @@ interface AppSettingsContextType {
   setUiFontScale: (scale: number) => void;
   login: (token: string, user: PotokUser) => void;
   logout: () => void;
+  playVideo: (playback: ActivePlayback) => void;
+  stopVideo: () => void;
 }
 
 const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
@@ -115,6 +128,16 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     Storage.get<number>("uiFontScale", 1.0)
   );
 
+  const [activePlayback, setActivePlayback] = useState<ActivePlayback | null>(null);
+
+  const playVideo = (playback: ActivePlayback) => {
+    setActivePlayback(playback);
+  };
+
+  const stopVideo = () => {
+    setActivePlayback(null);
+  };
+
   const [isSettingsLocked] = useState(() => hostConfig.locked);
 
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
@@ -122,14 +145,6 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const gatewayURL = isSettingsLocked 
     ? getEnv("VITE_DEFAULT_BFF_URL") 
     : (activeProfile?.gatewayURL || "");
-
-  const torrentGoURL = isSettingsLocked 
-    ? getEnv("VITE_DEFAULT_TORRENT_URL") 
-    : (activeProfile?.torrentGoURL || "");
-
-  const searchEngineURL = isSettingsLocked 
-    ? getEnv("VITE_DEFAULT_SEARCH_URL") 
-    : (activeProfile?.searchEngineURL || "");
 
   const [connectionState, setConnectionState] = useState<ConnectionState>("checking");
   const [bffLatencyMs, setBffLatencyMs] = useState<number>(-1);
@@ -197,7 +212,8 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const checkConnection = async () => {
     stopPingTimer();
-    if (!gatewayURL) {
+    const currentGateway = ApiClient.baseURL;
+    if (!currentGateway) {
       setConnectionState("setupRequired");
       setBffLatencyMs(-1);
       return;
@@ -206,14 +222,17 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setConnectionState("checking");
 
     try {
-      const handshake = await ApiClient.performHandshake(gatewayURL);
+      const handshake = await ApiClient.performHandshake(currentGateway);
       const isMultiUser = handshake.multiUserMode ?? false;
       Storage.set("multiUserMode", isMultiUser);
       setMultiUserMode(isMultiUser);
       
-      const bff = await ApiClient.pingHealth(gatewayURL, "/api/health/bff", true);
-      const search = searchEngineURL ? await ApiClient.pingHealth(searchEngineURL, "/health") : { configured: false, online: false };
-      const torrent = torrentGoURL ? await ApiClient.pingHealth(torrentGoURL, "/health") : { configured: false, online: false };
+      const currentTorrent = ApiClient.torrentGoURL;
+      const currentSearch = ApiClient.searchEngineURL;
+
+      const bff = await ApiClient.pingHealth(currentGateway, "/api/health/bff", true);
+      const search = currentSearch ? await ApiClient.pingHealth(currentSearch, "/health") : { configured: false, online: false };
+      const torrent = currentTorrent ? await ApiClient.pingHealth(currentTorrent, "/health") : { configured: false, online: false };
 
       const currentServices = { bff, searchEngine: search, torrentGo: torrent };
       setBffLatencyMs(bff.latencyMs ?? -1);
@@ -232,7 +251,8 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const startPingTimer = () => {
     if (pingIntervalRef.current) return;
     pingIntervalRef.current = setInterval(async () => {
-      if (!gatewayURL) return;
+      const currentGateway = ApiClient.baseURL;
+      if (!currentGateway) return;
 
       // Skip ping if browser reports no network connection at all (sleep/wake/tab hibernation protection)
       if (navigator.onLine === false) {
@@ -241,9 +261,12 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
 
       try {
-        const bff = await ApiClient.pingHealth(gatewayURL, "/api/health/bff", true);
-        const search = searchEngineURL ? await ApiClient.pingHealth(searchEngineURL, "/health") : { configured: false, online: false };
-        const torrent = torrentGoURL ? await ApiClient.pingHealth(torrentGoURL, "/health") : { configured: false, online: false };
+        const currentTorrent = ApiClient.torrentGoURL;
+        const currentSearch = ApiClient.searchEngineURL;
+
+        const bff = await ApiClient.pingHealth(currentGateway, "/api/health/bff", true);
+        const search = currentSearch ? await ApiClient.pingHealth(currentSearch, "/health") : { configured: false, online: false };
+        const torrent = currentTorrent ? await ApiClient.pingHealth(currentTorrent, "/health") : { configured: false, online: false };
 
         if (!bff.online) {
           consecutiveFailuresRef.current += 1;
@@ -397,6 +420,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
         potokUser,
         multiUserMode,
         isSettingsLocked,
+        activePlayback,
         checkConnection,
         selectProfile,
         addProfile,
@@ -407,6 +431,8 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
         setUiFontScale,
         login,
         logout,
+        playVideo,
+        stopVideo,
       }}
     >
       {children}

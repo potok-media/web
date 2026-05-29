@@ -243,3 +243,18 @@ export class ApiError extends Error {
   }
 }
 
+export interface ClientTrack {
+  index: number;
+  type: "audio" | "subtitle";
+  codec: string;
+  language: string;
+  title: string;
+  relIndex: number;
+}
+
+export interface ClientMetadata {
+  success: boolean;
+  duration: number;
+  tracks: ClientTrack[];
+}
+

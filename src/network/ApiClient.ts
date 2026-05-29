@@ -19,6 +19,8 @@ import type {
   StreamUrlRequest,
   InfuseSaveRequest,
   TraktSyncRequest,
+  ClientMetadata,
+  ClientTrack,
 } from "./ApiTypes";
 
 export type {
@@ -38,6 +40,8 @@ export type {
   StreamUrlRequest,
   InfuseSaveRequest,
   TraktSyncRequest,
+  ClientMetadata,
+  ClientTrack,
 };
 
 
@@ -80,40 +84,58 @@ export class ApiClient {
     return getEnv("VITE_BLOCK_SETTINGS_INPUT") === "true" || hostname === "beta.potok.rip";
   }
 
+  private static ensureAbsoluteURL(url: string): string {
+    if (!url) return "";
+    let normalized = url.trim();
+    if (!/^https?:\/\//i.test(normalized)) {
+      normalized = `http://${normalized}`;
+    }
+    return normalized;
+  }
+
   public static get baseURL(): string {
     const bffEnv = getEnv("VITE_DEFAULT_BFF_URL");
+    let url = "";
     if (this.isSettingsLocked && bffEnv) {
-      return bffEnv;
+      url = bffEnv;
+    } else {
+      const defaultProfs = this.getDefaultProfiles();
+      const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
+      const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
+      const active = profiles.find((p) => p.id === activeID);
+      url = active?.gatewayURL || bffEnv || "";
     }
-    const defaultProfs = this.getDefaultProfiles();
-    const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
-    const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
-    const active = profiles.find((p) => p.id === activeID);
-    return active?.gatewayURL || bffEnv || "";
+    return this.ensureAbsoluteURL(url);
   }
 
   public static get searchEngineURL(): string {
     const searchEnv = getEnv("VITE_DEFAULT_SEARCH_URL");
+    let url = "";
     if (this.isSettingsLocked) {
-      return searchEnv;
+      url = searchEnv;
+    } else {
+      const defaultProfs = this.getDefaultProfiles();
+      const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
+      const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
+      const active = profiles.find((p) => p.id === activeID);
+      url = active?.searchEngineURL || "";
     }
-    const defaultProfs = this.getDefaultProfiles();
-    const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
-    const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
-    const active = profiles.find((p) => p.id === activeID);
-    return active?.searchEngineURL || "";
+    return this.ensureAbsoluteURL(url);
   }
 
   public static get torrentGoURL(): string {
     const torrentEnv = getEnv("VITE_DEFAULT_TORRENT_URL");
+    let url = "";
     if (this.isSettingsLocked) {
-      return torrentEnv;
+      url = torrentEnv;
+    } else {
+      const defaultProfs = this.getDefaultProfiles();
+      const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
+      const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
+      const active = profiles.find((p) => p.id === activeID);
+      url = active?.torrentGoURL || "";
     }
-    const defaultProfs = this.getDefaultProfiles();
-    const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
-    const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
-    const active = profiles.find((p) => p.id === activeID);
-    return active?.torrentGoURL || "";
+    return this.ensureAbsoluteURL(url);
   }
 
   public static get headers(): HeadersInit {
@@ -137,7 +159,8 @@ export class ApiClient {
   }
 
   public static async performHandshake(url: string): Promise<HandshakeResponse> {
-    const normalized = url.replace(/\/$/, "");
+    const absolute = this.ensureAbsoluteURL(url);
+    const normalized = absolute.replace(/\/$/, "");
     const res = await fetch(`${normalized}/api/handshake`, { signal: AbortSignal.timeout(4000) });
     if (!res.ok) throw new Error(`Handshake failed: ${res.status}`);
     return res.json();
@@ -462,5 +485,16 @@ export class ApiClient {
       return cards.filter((c): c is MediaCard => c !== null);
     }
     return [];
+  }
+
+  public static async getStreamMetadata(hash: string, fileId: string | number): Promise<ClientMetadata | null> {
+    try {
+      const cleanBase = this.torrentGoURL.replace(/\/+$/, "");
+      const res = await fetch(`${cleanBase}/api/torrent/metadata/${hash.toLowerCase()}/${fileId}`);
+      if (!res.ok) return null;
+      return res.json();
+    } catch {
+      return null;
+    }
   }
 }
