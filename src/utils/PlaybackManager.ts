@@ -1,7 +1,7 @@
 import { ApiClient } from "../network/ApiClient";
 import type { TorrentSearchResult, TorrentFileItem, MediaCard } from "../network/ApiClient";
 import type { ActivePlayback } from "../context/AppSettingsContext";
-
+import { TorrentParser } from "./TorrentParser";
 
 interface PlayPlaybackParams {
   defaultPlayer?: string;
@@ -29,37 +29,24 @@ export async function playTorrentFile({
     return;
   }
 
+  // Common parameters for URL generation
+  const urlParams = {
+    baseUrl: tgUrl,
+    hash,
+    index: file.id,
+    originalPath: file.path,
+    mediaType: mediaItem.mediaType,
+    season: file.season,
+    episode: file.episode,
+    englishTitle: mediaItem.englishTitle,
+    originalTitle: mediaItem.originalTitle,
+    title: mediaItem.title,
+    tmdbId: mediaItem.id,
+  };
+
   if (defaultPlayer === "infuse") {
     try {
-      let ext = ".mkv";
-      const originalPath = file.path || "";
-      if (originalPath) {
-        const match = originalPath.match(/\.[a-zA-Z0-9]{2,5}$/);
-        if (match) {
-          ext = match[0];
-        }
-      }
-
-      const rawTitle = mediaItem.englishTitle || mediaItem.originalTitle || mediaItem.title || "";
-      let cleanTitle = rawTitle.replace(/[^a-zA-Z0-9]+/g, ".").replace(/\.{2,}/g, ".").replace(/^\.|\.$/g, "");
-      if (!cleanTitle) {
-        cleanTitle = "Media";
-      }
-
-      const idTag = mediaItem.id ? `.{tmdb-${mediaItem.id}}` : "";
-      let fileName = cleanTitle;
-
-      const isTv = mediaItem.mediaType === "tv" || file.season !== undefined;
-      if (isTv) {
-        const s = String(file.season ?? 1).padStart(2, "0");
-        const e = String(file.episode ?? 1).padStart(2, "0");
-        fileName = `${cleanTitle}.S${s}E${e}${idTag}${ext}`;
-      } else {
-        fileName = `${cleanTitle}${idTag}${ext}`;
-      }
-
-      const cleanBase = tgUrl.replace(/\/+$/, "");
-      const streamUrl = `${cleanBase}/stream/${hash.toLowerCase()}/${file.id}/${fileName}`;
+      const streamUrl = TorrentParser.generateStreamUrl(urlParams);
       const encodedUrl = encodeURIComponent(streamUrl);
 
       triggerCustomProtocol(`infuse://x-callback-url/play?url=${encodedUrl}`);
@@ -70,35 +57,10 @@ export async function playTorrentFile({
   } else {
     // Native built-in web player!
     try {
-      let ext = ".mkv";
+      let streamUrl = TorrentParser.generateStreamUrl(urlParams);
+      
       const originalPath = file.path || "";
-      if (originalPath) {
-        const match = originalPath.match(/\.[a-zA-Z0-9]{2,5}$/);
-        if (match) {
-          ext = match[0];
-        }
-      }
-
-      const rawTitle = mediaItem.englishTitle || mediaItem.originalTitle || mediaItem.title || "";
-      let cleanTitle = rawTitle.replace(/[^a-zA-Z0-9]+/g, ".").replace(/\.{2,}/g, ".").replace(/^\.|\.$/g, "");
-      if (!cleanTitle) {
-        cleanTitle = "Media";
-      }
-
-      const idTag = mediaItem.id ? `.{tmdb-${mediaItem.id}}` : "";
-      let fileName = cleanTitle;
-
-      const isTv = mediaItem.mediaType === "tv" || file.season !== undefined;
-      if (isTv) {
-        const s = String(file.season ?? 1).padStart(2, "0");
-        const e = String(file.episode ?? 1).padStart(2, "0");
-        fileName = `${cleanTitle}.S${s}E${e}${idTag}${ext}`;
-      } else {
-        fileName = `${cleanTitle}${idTag}${ext}`;
-      }
-
-      const cleanBase = tgUrl.replace(/\/+$/, "");
-      let streamUrl = `${cleanBase}/stream/${hash.toLowerCase()}/${file.id}/${fileName}`;
+      const ext = originalPath.match(/\.[a-zA-Z0-9]{2,5}$/)?.[0] || ".mkv";
       if (ext.toLowerCase() === ".mkv") {
         streamUrl += "?remux=true";
       }

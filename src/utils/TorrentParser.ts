@@ -37,7 +37,9 @@ export class TorrentParser {
     { regex: /сезон (\d+)/i, key: "season" },
     { regex: /(\d+) season/i, key: "season" },
     { regex: /(\d+) сезон/i, key: "season" },
-    { regex: /\bs(\d+)\b/i, key: "season" }
+    { regex: /\bs(\d+)\b/i, key: "season" },
+    { regex: /\btv[ -]?(\d+)\b/i, key: "season" },
+    { regex: /\bтв[ -]?(\d+)\b/i, key: "season" }
   ];
 
   public static parseEpisode(
@@ -109,22 +111,22 @@ export class TorrentParser {
       }
     }
 
-    // 3. Apply Overrides
-    if (overrideSeason !== undefined && overrideSeason !== null) {
-      info.season = overrideSeason;
-    }
-
-    if (overrideEpisodeOffset !== undefined && overrideEpisodeOffset !== null && info.episode !== undefined) {
-      info.episode = Math.max(1, info.episode + overrideEpisodeOffset);
-    }
-
-    // 4. Validate against TMDB
+    // 3. Validate parsed season against TMDB (before overrides!)
     if (numberOfSeasons && numberOfSeasons > 0 && info.season !== undefined && info.season > numberOfSeasons) {
       if (numberOfSeasons === 1) {
         info.season = 1;
       } else {
         info.season = undefined; // Trigger manual fix
       }
+    }
+
+    // 4. Apply Overrides (User overrides are the absolute source of truth!)
+    if (overrideSeason !== undefined && overrideSeason !== null) {
+      info.season = overrideSeason;
+    }
+
+    if (overrideEpisodeOffset !== undefined && overrideEpisodeOffset !== null && info.episode !== undefined) {
+      info.episode = Math.max(1, info.episode + overrideEpisodeOffset);
     }
 
     return info;
@@ -193,7 +195,7 @@ export class TorrentParser {
     const idTag = params.tmdbId ? `.{tmdb-${params.tmdbId}}` : "";
     let fileName = cleanTitle;
 
-    if (params.mediaType === "tv" || params.season !== undefined) {
+    if (params.mediaType === "tv") {
       const s = String(params.season ?? 1).padStart(2, "0");
       const e = String(params.episode ?? 1).padStart(2, "0");
       fileName = `${cleanTitle}.S${s}E${e}${idTag}${ext}`;
