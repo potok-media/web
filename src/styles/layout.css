@@ -1,0 +1,160 @@
+.app-container {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--bg-window);
+  overflow: hidden;
+}
+
+.main-content {
+  flex-grow: 1;
+  height: 100vh;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-container {
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-l);
+  flex-grow: 1;
+  z-index: 2;
+}
+
+/* Immersive background decoration */
+.backdrop-blur-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.backdrop-blur-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(60px) brightness(0.4);
+  opacity: 0.5;
+  transform: scale(1.1);
+}
+
+.backdrop-gradient-mask {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 0%, var(--bg-window) 80%);
+}
+
+/* State Overlays */
+.overlay-screen {
+  position: fixed;
+  inset: 0;
+  background-color: var(--bg-window);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.overlay-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-m);
+  max-width: 400px;
+  text-align: center;
+}
+
+.overlay-title {
+  font: var(--font-title1);
+  color: var(--text-primary);
+}
+
+.overlay-text {
+  font: var(--font-body);
+  color: var(--text-secondary);
+}
+
+.overlay-btn {
+  padding: 10px 20px;
+  border-radius: var(--radius-m);
+  font: var(--font-body-bold);
+  color: white;
+  background-color: var(--accent);
+  border: none;
+}
+
+.overlay-btn:hover {
+  background-color: var(--accent-hover);
+}
+
+/* Spinner */
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--bg-surface-highest);
+  border-top: 3px solid var(--accent);
+  border-radius: var(--radius-full);
+  animation: spin 1s linear repeat-forever;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.overlay-content.compact {
+  max-width: 450px;
+}
+
+.overlay-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.overlay-form.offline {
+  margin: 8px 0 16px 0;
+}
+
+.overlay-input {
+  width: 100%;
+  text-align: center;
+  font-size: 16px;
+}
+
+.overlay-btn.wide {
+  width: 100%;
+  cursor: pointer;
+}
+
+.overlay-btn.secondary {
+  background: transparent;
+  border: var(--glass-border);
+  color: var(--text-secondary);
+  width: 100%;
+  cursor: pointer;
+}
+
+.overlay-btn.secondary:hover {
+  background: var(--bg-surface-high);
+  color: var(--text-primary);
+}
+
+.overlay-title.error {
+  color: var(--error);
+}
+
+.overlay-label {
+  align-self: center;
+  font-size: 12px;
+}
+

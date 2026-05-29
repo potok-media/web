@@ -1,0 +1,64 @@
+@import "./styles/variables.css";
+
+/* Modern Box Model Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-window);
+  color: var(--text-primary);
+  overflow: hidden; /* Prevent default browser scrollbars for app shell */
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+  height: 100vh;
+  width: 100vw;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Premium Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-surface-highest);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Interactive elements transition */
+a, button {
+  cursor: pointer;
+  transition: all var(--timing-hover);
+}
+
+/* App Shell utilities */
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Common Overlay and Backdrop Effects */
+.glass-effect {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+}
+
+.immersive-mask {
+  background: linear-gradient(to bottom, RGBA(15, 15, 20, 0) 0%, var(--bg-window) 100%);
+}

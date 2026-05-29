@@ -1,0 +1,145 @@
+:root {
+  --accent-h: 200;
+  --accent-s: 85%;
+  --accent-l: 55%;
+  
+  --accent: HSL(var(--accent-h), var(--accent-s), var(--accent-l));
+  --accent-hover: HSL(var(--accent-h), var(--accent-s), calc(var(--accent-l) - 8%));
+  --accent-dim: HSLA(var(--accent-h), var(--accent-s), var(--accent-l), 0.15);
+  --accent-semi: HSLA(var(--accent-h), var(--accent-s), var(--accent-l), 0.4);
+  --text-accent: white;
+  
+  --bg-window: HSL(240, 8%, 7%);
+  --bg-sidebar: HSL(240, 6%, 10%);
+  --bg-surface: HSL(240, 5%, 13%);
+  --bg-surface-high: HSL(240, 5%, 17%);
+  --bg-surface-highest: HSL(240, 4%, 23%);
+  
+  --text-primary: HSL(0, 0%, 96%);
+  --text-secondary: HSL(0, 0%, 75%);
+  --text-tertiary: HSL(0, 0%, 55%);
+  
+  --success: HSL(142, 70%, 45%);
+  --warning: HSL(38, 92%, 50%);
+  --error: HSL(354, 78%, 48%);
+  
+  --space-xxs: 4px;
+  --space-xs: 8px;
+  --space-s: 12px;
+  --space-m: 16px;
+  --space-l: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+  
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-l: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+  
+  --sidebar-width: 260px;
+  --topbar-height: 52px;
+  
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-hero: 800 2.2rem var(--font-family);
+  --font-title1: 700 1.6rem var(--font-family);
+  --font-title2: 700 1.3rem var(--font-family);
+  --font-title3: 600 1.1rem var(--font-family);
+  --font-body-bold: 600 0.95rem var(--font-family);
+  --font-body: 400 0.95rem var(--font-family);
+  --font-metadata: 500 0.85rem var(--font-family);
+  --font-caption: 400 0.8rem var(--font-family);
+  --font-caption-bold: 700 0.8rem var(--font-family);
+  
+  --glass-blur: blur(25px);
+  --glass-bg: RGBA(15, 15, 20, 0.65);
+  --glass-border: 1px solid RGBA(255, 255, 255, 0.08);
+  --shadow-l: 0 12px 40px RGBA(0, 0, 0, 0.5);
+  --shadow-m: 0 8px 24px RGBA(0, 0, 0, 0.35);
+  --shadow-s: 0 4px 12px RGBA(0, 0, 0, 0.2);
+  
+  --timing-hover: 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --timing-sheet: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  --timing-hud: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Nordic Frost Theme */
+html[data-theme="nordicFrost"] {
+  --bg-window: rgb(15, 18, 24);
+  --bg-sidebar: rgb(10, 12, 16);
+  --bg-surface: rgb(24, 30, 40);
+  --bg-surface-high: rgb(32, 40, 52);
+  --bg-surface-highest: rgb(44, 54, 70);
+  --accent: rgb(173, 216, 230);
+  --accent-hover: rgb(153, 201, 218);
+  --accent-dim: rgba(173, 216, 230, 0.15);
+  --accent-semi: rgba(173, 216, 230, 0.4);
+  --text-accent: rgb(20, 20, 22);
+  --glass-bg: rgba(24, 30, 40, 0.8);
+  --glass-border: 1px solid rgba(173, 216, 230, 0.15);
+}
+
+/* Sage Muted Theme */
+html[data-theme="sageMuted"] {
+  --bg-window: rgb(15, 17, 15);
+  --bg-sidebar: rgb(10, 12, 10);
+  --bg-surface: rgb(23, 27, 24);
+  --bg-surface-high: rgb(31, 36, 32);
+  --bg-surface-highest: rgb(42, 49, 43);
+  --accent: rgb(180, 200, 180);
+  --accent-hover: rgb(160, 185, 160);
+  --accent-dim: rgba(180, 200, 180, 0.15);
+  --accent-semi: rgba(180, 200, 180, 0.4);
+  --text-accent: rgb(20, 20, 22);
+  --glass-bg: rgba(23, 27, 24, 0.8);
+  --glass-border: 1px solid rgba(180, 200, 180, 0.15);
+}
+
+/* Graphite Theme */
+html[data-theme="graphite"] {
+  --bg-window: rgb(15, 15, 16);
+  --bg-sidebar: rgb(10, 10, 11);
+  --bg-surface: rgb(24, 24, 26);
+  --bg-surface-high: rgb(32, 32, 35);
+  --bg-surface-highest: rgb(44, 44, 48);
+  --accent: rgb(255, 255, 255);
+  --accent-hover: rgb(220, 220, 220);
+  --accent-dim: rgba(255, 255, 255, 0.15);
+  --accent-semi: rgba(255, 255, 255, 0.4);
+  --text-accent: rgb(20, 20, 22);
+  --glass-bg: rgba(24, 24, 26, 0.8);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Amber Gold Theme */
+html[data-theme="amberGold"] {
+  --bg-window: rgb(18, 14, 10);
+  --bg-sidebar: rgb(12, 9, 6);
+  --bg-surface: rgb(28, 22, 16);
+  --bg-surface-high: rgb(38, 30, 22);
+  --bg-surface-highest: rgb(52, 42, 30);
+  --accent: rgb(229, 160, 13);
+  --accent-hover: rgb(199, 138, 9);
+  --accent-dim: rgba(229, 160, 13, 0.15);
+  --accent-semi: rgba(229, 160, 13, 0.4);
+  --text-accent: rgb(255, 255, 255);
+  --glass-bg: rgba(28, 22, 16, 0.8);
+  --glass-border: 1px solid rgba(229, 160, 13, 0.15);
+}
+
+/* System Theme (Default Blue) */
+html[data-theme="system"] {
+  --bg-window: rgb(15, 15, 18);
+  --bg-sidebar: rgb(11, 11, 13);
+  --bg-surface: rgb(22, 22, 26);
+  --bg-surface-high: rgb(30, 30, 36);
+  --bg-surface-highest: rgb(42, 42, 50);
+  --accent: rgb(0, 122, 255);
+  --accent-hover: rgb(0, 102, 225);
+  --accent-dim: rgba(0, 122, 255, 0.15);
+  --accent-semi: rgba(0, 122, 255, 0.4);
+  --text-accent: rgb(255, 255, 255);
+  --glass-bg: rgba(22, 22, 26, 0.8);
+  --glass-border: 1px solid rgba(0, 122, 255, 0.15);
+}
+
