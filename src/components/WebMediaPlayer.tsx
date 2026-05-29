@@ -33,7 +33,16 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
   // Virtualized Clock States
   const [metadataDuration, setMetadataDuration] = useState(0);
-  const [seekOffset, setSeekOffset] = useState(0);
+  const [seekOffset, setSeekOffset] = useState(() => {
+    try {
+      const url = new URL(playback.streamUrl);
+      const start = url.searchParams.get("start");
+      return start ? Number(start) : 0;
+    } catch {
+      const match = playback.streamUrl.match(/[?&]start=(\d+)/i);
+      return match ? Number(match[1]) : 0;
+    }
+  });
 
   // Tracks Lists
   const [audioTracks, setAudioTracks] = useState<{ id: number; name: string }[]>([]);
@@ -162,8 +171,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       }
     };
 
-    const t = setTimeout(loadMetadata, 1000);
-    return () => { isMounted = false; clearTimeout(t); };
+    loadMetadata();
+    return () => { isMounted = false; };
   }, [playback.streamUrl, playback.torrentHash]);
 
   useEffect(() => {
@@ -291,10 +300,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     const newUrl = `${baseUrl}?audio=${id}${startQuery}`;
 
     art.switchUrl(newUrl).then(() => {
-      art.once("ready", () => {
-        reinjectSubtitles();
-        art.play();
-      });
+      reinjectSubtitles();
+      art.play();
     });
     setCurrentAudioTrack(id);
     setShowAudioMenu(false);
@@ -307,18 +314,18 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     if (h) { art.currentTime = time; return; }
 
     const isMKV = playback.streamUrl.includes(".mkv") || playback.streamUrl.includes(".MKV");
-    const hasAudio = currentAudioTrack !== -1;
+    
+    const isDefaultAudio = audioTracks.length === 0 || currentAudioTrack === -1 || currentAudioTrack === audioTracks[0].id;
+    const needsRemux = isMKV || !isDefaultAudio;
 
-    if (isMKV || hasAudio) {
+    if (needsRemux) {
       setSeekOffset(time);
       const baseUrl = playback.streamUrl.split("?")[0];
       const audioQuery = currentAudioTrack !== -1 ? `&audio=${currentAudioTrack}` : "";
       const newUrl = `${baseUrl}?start=${Math.floor(time)}${audioQuery}`;
       art.switchUrl(newUrl).then(() => {
-        art.once("ready", () => {
-          reinjectSubtitles();
-          art.play();
-        });
+        reinjectSubtitles();
+        art.play();
       });
     } else {
       setSeekOffset(0);
