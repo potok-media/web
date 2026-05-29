@@ -1,73 +1,89 @@
-# React + TypeScript + Vite
+# Potok Web Client 💻
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Добро пожаловать в репозиторий веб-клиента проекта **Potok**. Это современное веб-приложение на базе **React + TypeScript + Vite**, реализующее премиальный, высокоэстетичный интерфейс в стиле macOS для удобного поиска и стриминга торрент-контента.
 
-Currently, two official plugins are available:
+Клиент полностью оптимизирован для работы со шлюзом **Potok Gateway (BFF)**, торрент-движком **TorrentGo** и поисковиком **SearchEngine**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🛠️ Особенности и стек технологий
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+* **Ядро**: React 18, TypeScript, Vite.
+* **Стилизация**: Чистый премиальный CSS с поддержкой CSS-переменных, плавной физики анимаций, адаптивного грида и тем оформления (Nordic Frost, Sage Muted, Graphite, Amber Gold, System).
+* **Сетевой слой**: Архитектура с автоматическим расчетом прогресса просмотра, поддержкой WebSockets и рекурсивной нормализацией ответов API.
+* **Профили**: Возможность переключения между несколькими серверами (BFF/TorrentGo) «на лету» с изоляцией данных и кэша Trakt/Медиатеки.
+* **Блокировка настроек**: Поддержка флагов окружения для развертывания веб-клиента в качестве защищенного публичного веб-интерфейса (без возможности манипулирования адресами шлюзов со стороны конечных пользователей).
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🚀 Локальный запуск (Разработка)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Для запуска веб-клиента на локальной машине без контейнеров выполните следующие шаги:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1. **Установка зависимостей**:
+   ```bash
+   npm install
+   ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+2. **Настройка конфигурации окружения**:
+   Скопируйте шаблон переменного окружения `.env.example` в `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   *Вы можете настроить адреса BFF шлюза, TorrentGo и SearchEngine, а также включить блокировку полей настроек подключения.*
+
+3. **Запуск сервера разработки**:
+   ```bash
+   npm run dev
+   ```
+   Приложение запустится в режиме разработчика и будет доступно по адресу `http://localhost:5173`.
+
+4. **Сборка продакшн-версии**:
+   ```bash
+   npm run build
+   ```
+
+---
+
+## 🐳 Запуск в Docker и Докеризация
+
+Веб-клиент полностью докеризован и поддерживает два режима: локальный дебаг с автоперезагрузкой и защищенный релиз.
+
+### 1. Локальный Дебаг / Разработка (Debug Mode)
+Этот режим собирает образ разработчика и пробрасывает порты с поддержкой Hot Module Replacement (HMR):
+```bash
+docker compose -f docker-compose.debug.yml up -d
 ```
+* **Доступ**: `http://localhost:3000`
+* *Автоматически монтирует исходный код для отслеживания изменений на хосте без пересборки контейнера.*
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 2. Релиз / Продакшн (Release Mode)
+Запускает оптимизированный production-бандл, обслуживаемый сервером **Nginx** с нативной поддержкой SPA-маршрутов:
+```bash
+docker compose up -d
 ```
+* **Доступ**: `http://localhost:3000` (настраивается через переменную `WEB_PORT` в корневом `.env`).
+
+---
+
+## 📄 Настройка Переменных Окружения
+
+Вы можете гибко изменять поведение клиента на этапе сборки и старта контейнеров через файл `.env`:
+
+| Переменная | Описание | Значение по умолчанию |
+|---|---|---|
+| `VITE_DEFAULT_BFF_URL` | Адрес шлюза Potok Gateway (BFF) по умолчанию | `http://localhost:5000` |
+| `VITE_DEFAULT_TORRENT_URL` | Адрес TorrentGo по умолчанию | `http://localhost:5282` |
+| `VITE_DEFAULT_SEARCH_URL` | Адрес поисковика трекеров по умолчанию | `http://localhost:6000` |
+| `VITE_BLOCK_SETTINGS_INPUT` | Блокировка изменения настроек подключения (режим "только для чтения") | `false` |
+
+> [!IMPORTANT]
+> Если переменная `VITE_BLOCK_SETTINGS_INPUT` установлена в `true` или веб-клиент открыт по адресу `beta.potok.rip`, поля ввода настроек будут визуально отключены, а кнопки создания и удаления профилей будут скрыты от конечных пользователей.
+
+---
+
+## ⚙️ CI/CD и Gitflow Автоматизация
+
+В проекте настроен автоматизированный GitHub Actions пайплайн для сборки и выкатки версий:
+* **Скрипт релиза**: Находится в `.github/workflows/web-release.yml`.
+* **Что делает**: Автоматически считывает версию из `package.json`, инкрементирует её (major/minor/patch), фиксирует изменения в репозитории от имени GitHub-бота, собирает оптимизированный Docker-образ, пушит его в GitHub Container Registry (`ghcr.io`) под тегами `latest`/`beta` и соответствующей версией, а затем публикует официальный GitHub Release с автоматическими примечаниями к выпуску.

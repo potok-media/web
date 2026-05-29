@@ -75,7 +75,7 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
           <input
             className="settings-input"
             type="text"
-            placeholder="http://127.0.0.1:5000"
+            placeholder="Адрес до BFF-шлюза"
             value={formGateway}
             onChange={(e) => setFormGateway(e.target.value)}
             disabled={isSettingsLocked}
@@ -88,7 +88,7 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
           <input
             className="settings-input"
             type="text"
-            placeholder="http://127.0.0.1:5282 (опционально)"
+            placeholder="Адрес до TorrentGo (опционально)"
             value={formTorrentGo}
             onChange={(e) => setFormTorrentGo(e.target.value)}
             disabled={isSettingsLocked}
@@ -100,7 +100,7 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
           <input
             className="settings-input"
             type="text"
-            placeholder="http://127.0.0.1:8081 (опционально)"
+            placeholder="Адрес до Поисковика (опционально)"
             value={formSearchEngine}
             onChange={(e) => setFormSearchEngine(e.target.value)}
             disabled={isSettingsLocked}

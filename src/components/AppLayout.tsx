@@ -39,7 +39,9 @@ export const AppLayout: React.FC = () => {
   } = useAppSettings();
 
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
-  const [inputUrl, setInputUrl] = React.useState(activeProfile?.gatewayURL || "http://127.0.0.1:5000");
+  const [inputUrl, setInputUrl] = React.useState(
+    activeProfile?.gatewayURL || import.meta.env.VITE_DEFAULT_BFF_URL || ""
+  );
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(() => {
     return localStorage.getItem("isSidebarCollapsed") === "true";
   });
@@ -110,7 +112,7 @@ export const AppLayout: React.FC = () => {
             <input
               type="text"
               className="settings-input overlay-input"
-              placeholder="http://127.0.0.1:5000"
+              placeholder="Адрес до BFF-шлюза"
               value={inputUrl}
               onChange={(e) => setInputUrl(e.target.value)}
               required
@@ -136,7 +138,7 @@ export const AppLayout: React.FC = () => {
             <input
               type="text"
               className="settings-input overlay-input"
-              placeholder="http://127.0.0.1:5000"
+              placeholder="Адрес до BFF-шлюза"
               value={inputUrl}
               onChange={(e) => setInputUrl(e.target.value)}
               required

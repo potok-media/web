@@ -53,7 +53,7 @@ export class ApiClient {
     const activeID = Storage.get<string | null>("activeProfileID", null);
     const profiles = Storage.get<any[]>("connectionProfiles", []);
     const active = profiles.find((p) => p.id === activeID);
-    return active?.gatewayURL || "http://127.0.0.1:5000";
+    return active?.gatewayURL || import.meta.env.VITE_DEFAULT_BFF_URL || "";
   }
 
   public static get searchEngineURL(): string {
