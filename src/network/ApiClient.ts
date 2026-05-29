@@ -41,6 +41,39 @@ export type {
 
 
 export class ApiClient {
+  private static getHostConfig() {
+    const hostname = typeof window !== "undefined" ? window.location.hostname : "";
+    const envBff = import.meta.env.VITE_DEFAULT_BFF_URL || "";
+    const envTorrent = import.meta.env.VITE_DEFAULT_TORRENT_URL || "";
+    const envSearch = import.meta.env.VITE_DEFAULT_SEARCH_URL || "";
+    const envLocked = import.meta.env.VITE_BLOCK_SETTINGS_INPUT === "true";
+
+    const isLocked = envLocked || hostname === "beta.potok.rip";
+
+    return {
+      bff: envBff,
+      torrent: envTorrent,
+      search: envSearch,
+      locked: isLocked,
+      profileName: hostname === "beta.potok.rip" ? "Potok Beta" : "Основной профиль"
+    };
+  }
+
+  private static getDefaultProfiles() {
+    const hostConfig = this.getHostConfig();
+    return [
+      {
+        id: "default-profile",
+        name: hostConfig.profileName,
+        gatewayURL: hostConfig.bff,
+        torrentGoURL: hostConfig.torrent,
+        searchEngineURL: hostConfig.search,
+        torrentGoAuthEnabled: false,
+        torrentGoAuthLogin: "",
+      }
+    ];
+  }
+
   public static get isSettingsLocked(): boolean {
     const hostname = typeof window !== "undefined" ? window.location.hostname : "";
     return import.meta.env.VITE_BLOCK_SETTINGS_INPUT === "true" || hostname === "beta.potok.rip";
@@ -50,8 +83,9 @@ export class ApiClient {
     if (this.isSettingsLocked && import.meta.env.VITE_DEFAULT_BFF_URL) {
       return import.meta.env.VITE_DEFAULT_BFF_URL;
     }
-    const activeID = Storage.get<string | null>("activeProfileID", null);
-    const profiles = Storage.get<any[]>("connectionProfiles", []);
+    const defaultProfs = this.getDefaultProfiles();
+    const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
+    const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
     const active = profiles.find((p) => p.id === activeID);
     return active?.gatewayURL || import.meta.env.VITE_DEFAULT_BFF_URL || "";
   }
@@ -60,8 +94,9 @@ export class ApiClient {
     if (this.isSettingsLocked) {
       return import.meta.env.VITE_DEFAULT_SEARCH_URL || "";
     }
-    const activeID = Storage.get<string | null>("activeProfileID", null);
-    const profiles = Storage.get<any[]>("connectionProfiles", []);
+    const defaultProfs = this.getDefaultProfiles();
+    const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
+    const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
     const active = profiles.find((p) => p.id === activeID);
     return active?.searchEngineURL || "";
   }
@@ -70,8 +105,9 @@ export class ApiClient {
     if (this.isSettingsLocked) {
       return import.meta.env.VITE_DEFAULT_TORRENT_URL || "";
     }
-    const activeID = Storage.get<string | null>("activeProfileID", null);
-    const profiles = Storage.get<any[]>("connectionProfiles", []);
+    const defaultProfs = this.getDefaultProfiles();
+    const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
+    const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
     const active = profiles.find((p) => p.id === activeID);
     return active?.torrentGoURL || "";
   }

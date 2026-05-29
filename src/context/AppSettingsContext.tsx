@@ -286,7 +286,9 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
 
     const unsubConnected = webSocketClient.subscribe("connected", () => {
-      setConnectionState((state) => (state === "offline" || state === "checking" ? "connected" : state));
+      // При переподключении сокета всегда запускаем реальную проверку здоровья API.
+      // Это полностью исключает ложные срабатывания (например, при перехвате сокета сервером Vite HMR на порту 3000).
+      checkConnection();
     });
 
     const unsubOffline = webSocketClient.subscribe("offline", () => {
