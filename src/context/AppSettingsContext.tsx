@@ -187,7 +187,11 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [accentTheme]);
 
   useEffect(() => {
-    document.documentElement.style.setProperty("font-size", `${uiFontScale * 100}%`);
+    const scale = uiFontScale || 1.0;
+    document.documentElement.style.setProperty("--ui-scale", String(scale));
+    if (document.body) {
+      document.body.style.zoom = String(scale);
+    }
   }, [uiFontScale]);
 
   const checkConnection = async () => {

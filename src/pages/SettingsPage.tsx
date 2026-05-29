@@ -26,6 +26,10 @@ export const SettingsPage: React.FC = () => {
 
   const { show: showHUD } = useHUD();
 
+  const isApple = typeof window !== "undefined" && 
+    (/Mac|iPad|iPhone|iPod/.test(navigator.userAgent) || 
+     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+
   // Selected profile to edit
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
 
@@ -172,13 +176,13 @@ export const SettingsPage: React.FC = () => {
                 onChange={(e) => setDefaultPlayer(e.target.value)}
               >
                 <option value="native">Встроенный веб-плеер</option>
-                <option value="infuse">Infuse Client (Дип-линк)</option>
+                {isApple && <option value="infuse">Infuse</option>}
               </select>
             </div>
 
             {/* Font Scale */}
             <div className="settings-form-group settings-preference-group">
-              <label className="settings-label">Масштаб интерфейса ({Math.round(uiFontScale * 100)}%)</label>
+              <label className="settings-label">Масштаб интерфейса</label>
               <select
                 className="settings-select"
                 value={uiFontScale}
