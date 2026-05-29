@@ -49,5 +49,16 @@ RUN echo 'server { \
     } \
 }' > /etc/nginx/conf.d/default.conf
 
+# Generate an entrypoint script to dynamically inject environment variables at runtime
+RUN echo -e '#!/bin/sh \n\
+# Заменяем плейсхолдеры в index.html значениями переменных окружения контейнера \n\
+sed -i "s|__VITE_DEFAULT_BFF_URL__|${VITE_DEFAULT_BFF_URL}|g" /usr/share/nginx/html/index.html \n\
+sed -i "s|__VITE_DEFAULT_TORRENT_URL__|${VITE_DEFAULT_TORRENT_URL}|g" /usr/share/nginx/html/index.html \n\
+sed -i "s|__VITE_DEFAULT_SEARCH_URL__|${VITE_DEFAULT_SEARCH_URL}|g" /usr/share/nginx/html/index.html \n\
+sed -i "s|__VITE_BLOCK_SETTINGS_INPUT__|${VITE_BLOCK_SETTINGS_INPUT:-false}|g" /usr/share/nginx/html/index.html \n\
+\n\
+# Запуск веб-сервера Nginx \n\
+exec nginx -g "daemon off;"' > /entrypoint.sh && chmod +x /entrypoint.sh
+
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/entrypoint.sh"]

@@ -2,6 +2,7 @@ import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useAppSettings } from "../context/AppSettingsContext";
 import { AppSidebar } from "./AppSidebar";
+import { getEnv } from "../utils/EnvService";
 import "../styles/layout.css";
 
 export const AppLayout: React.FC = () => {
@@ -40,7 +41,7 @@ export const AppLayout: React.FC = () => {
 
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
   const [inputUrl, setInputUrl] = React.useState(
-    activeProfile?.gatewayURL || import.meta.env.VITE_DEFAULT_BFF_URL || ""
+    activeProfile?.gatewayURL || getEnv("VITE_DEFAULT_BFF_URL") || ""
   );
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(() => {
     return localStorage.getItem("isSidebarCollapsed") === "true";

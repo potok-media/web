@@ -4,6 +4,7 @@ import { ApiClient } from "../network/ApiClient";
 import type { ServiceStatus, ConnectionProfile, PotokUser } from "../network/ApiTypes";
 import { webSocketClient } from "../network/WebSocketClient";
 import { AuthApiClient } from "../network/AuthApiClient";
+import { getEnv } from "../utils/EnvService";
 
 export type ConnectionState = "checking" | "connected" | "offline" | "setupRequired";
 
@@ -37,10 +38,10 @@ const AppSettingsContext = createContext<AppSettingsContextType | undefined>(und
 
 const getHostConfig = () => {
   const hostname = typeof window !== "undefined" ? window.location.hostname : "";
-  const envBff = import.meta.env.VITE_DEFAULT_BFF_URL || "";
-  const envTorrent = import.meta.env.VITE_DEFAULT_TORRENT_URL || "";
-  const envSearch = import.meta.env.VITE_DEFAULT_SEARCH_URL || "";
-  const envLocked = import.meta.env.VITE_BLOCK_SETTINGS_INPUT === "true";
+  const envBff = getEnv("VITE_DEFAULT_BFF_URL");
+  const envTorrent = getEnv("VITE_DEFAULT_TORRENT_URL");
+  const envSearch = getEnv("VITE_DEFAULT_SEARCH_URL");
+  const envLocked = getEnv("VITE_BLOCK_SETTINGS_INPUT") === "true";
 
   const isLocked = envLocked || hostname === "beta.potok.rip";
 
@@ -119,15 +120,15 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
 
   const gatewayURL = isSettingsLocked 
-    ? (import.meta.env.VITE_DEFAULT_BFF_URL || "") 
+    ? getEnv("VITE_DEFAULT_BFF_URL") 
     : (activeProfile?.gatewayURL || "");
 
   const torrentGoURL = isSettingsLocked 
-    ? (import.meta.env.VITE_DEFAULT_TORRENT_URL || "") 
+    ? getEnv("VITE_DEFAULT_TORRENT_URL") 
     : (activeProfile?.torrentGoURL || "");
 
   const searchEngineURL = isSettingsLocked 
-    ? (import.meta.env.VITE_DEFAULT_SEARCH_URL || "") 
+    ? getEnv("VITE_DEFAULT_SEARCH_URL") 
     : (activeProfile?.searchEngineURL || "");
 
   const [connectionState, setConnectionState] = useState<ConnectionState>("checking");

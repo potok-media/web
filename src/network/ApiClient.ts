@@ -1,6 +1,7 @@
 import { Storage } from "../utils/StorageService";
 import { SyncApiClient } from "./SyncApiClient";
 import { ApiError } from "./ApiTypes";
+import { getEnv } from "../utils/EnvService";
 import type {
   ServiceInfo,
   ServiceStatus,
@@ -43,10 +44,10 @@ export type {
 export class ApiClient {
   private static getHostConfig() {
     const hostname = typeof window !== "undefined" ? window.location.hostname : "";
-    const envBff = import.meta.env.VITE_DEFAULT_BFF_URL || "";
-    const envTorrent = import.meta.env.VITE_DEFAULT_TORRENT_URL || "";
-    const envSearch = import.meta.env.VITE_DEFAULT_SEARCH_URL || "";
-    const envLocked = import.meta.env.VITE_BLOCK_SETTINGS_INPUT === "true";
+    const envBff = getEnv("VITE_DEFAULT_BFF_URL");
+    const envTorrent = getEnv("VITE_DEFAULT_TORRENT_URL");
+    const envSearch = getEnv("VITE_DEFAULT_SEARCH_URL");
+    const envLocked = getEnv("VITE_BLOCK_SETTINGS_INPUT") === "true";
 
     const isLocked = envLocked || hostname === "beta.potok.rip";
 
@@ -76,23 +77,25 @@ export class ApiClient {
 
   public static get isSettingsLocked(): boolean {
     const hostname = typeof window !== "undefined" ? window.location.hostname : "";
-    return import.meta.env.VITE_BLOCK_SETTINGS_INPUT === "true" || hostname === "beta.potok.rip";
+    return getEnv("VITE_BLOCK_SETTINGS_INPUT") === "true" || hostname === "beta.potok.rip";
   }
 
   public static get baseURL(): string {
-    if (this.isSettingsLocked && import.meta.env.VITE_DEFAULT_BFF_URL) {
-      return import.meta.env.VITE_DEFAULT_BFF_URL;
+    const bffEnv = getEnv("VITE_DEFAULT_BFF_URL");
+    if (this.isSettingsLocked && bffEnv) {
+      return bffEnv;
     }
     const defaultProfs = this.getDefaultProfiles();
     const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
     const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
     const active = profiles.find((p) => p.id === activeID);
-    return active?.gatewayURL || import.meta.env.VITE_DEFAULT_BFF_URL || "";
+    return active?.gatewayURL || bffEnv || "";
   }
 
   public static get searchEngineURL(): string {
+    const searchEnv = getEnv("VITE_DEFAULT_SEARCH_URL");
     if (this.isSettingsLocked) {
-      return import.meta.env.VITE_DEFAULT_SEARCH_URL || "";
+      return searchEnv;
     }
     const defaultProfs = this.getDefaultProfiles();
     const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
@@ -102,8 +105,9 @@ export class ApiClient {
   }
 
   public static get torrentGoURL(): string {
+    const torrentEnv = getEnv("VITE_DEFAULT_TORRENT_URL");
     if (this.isSettingsLocked) {
-      return import.meta.env.VITE_DEFAULT_TORRENT_URL || "";
+      return torrentEnv;
     }
     const defaultProfs = this.getDefaultProfiles();
     const activeID = Storage.get<string | null>("activeProfileID", defaultProfs[0].id);
