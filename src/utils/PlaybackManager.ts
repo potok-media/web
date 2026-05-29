@@ -27,28 +27,40 @@ export async function playTorrentFile({
   }
 
   if (defaultPlayer === "infuse") {
-    // Infuse requires saving stream first and getting playable links
     try {
-      const streams = await ApiClient.saveInfuseItemAndGetStreams({
-        hash,
-        index: file.id,
-        originalPath: file.path || "",
-        title: mediaItem.title,
-        mediaType: mediaItem.mediaType,
-        tmdbId: mediaItem.id,
-        season: file.season,
-        episode: file.episode,
-        originalTitle: mediaItem.originalTitle,
-        poster: mediaItem.posterSrc,
-        link: torrent.link,
-        magnetUri: torrent.magnetUri,
-      });
-      if (streams && streams.length > 0) {
-        triggerCustomProtocol(`infuse://x-callback-url/play?url=${encodeURIComponent(streams[0])}`);
-        showHUD("success", "Открываем в Infuse!");
-      } else {
-        showHUD("error", "Infuse: Ссылка пуста");
+      let ext = ".mkv";
+      const originalPath = file.path || "";
+      if (originalPath) {
+        const match = originalPath.match(/\.[a-zA-Z0-9]{2,5}$/);
+        if (match) {
+          ext = match[0];
+        }
       }
+
+      const rawTitle = mediaItem.englishTitle || mediaItem.originalTitle || mediaItem.title || "";
+      let cleanTitle = rawTitle.replace(/[^a-zA-Z0-9]+/g, ".").replace(/\.{2,}/g, ".").replace(/^\.|\.$/g, "");
+      if (!cleanTitle) {
+        cleanTitle = "Media";
+      }
+
+      const idTag = mediaItem.id ? `.{tmdb-${mediaItem.id}}` : "";
+      let fileName = cleanTitle;
+
+      const isTv = mediaItem.mediaType === "tv" || file.season !== undefined;
+      if (isTv) {
+        const s = String(file.season ?? 1).padStart(2, "0");
+        const e = String(file.episode ?? 1).padStart(2, "0");
+        fileName = `${cleanTitle}.S${s}E${e}${idTag}${ext}`;
+      } else {
+        fileName = `${cleanTitle}${idTag}${ext}`;
+      }
+
+      const cleanBase = tgUrl.replace(/\/+$/, "");
+      const streamUrl = `${cleanBase}/stream/${hash.toLowerCase()}/${file.id}/${fileName}`;
+      const encodedUrl = encodeURIComponent(streamUrl);
+
+      triggerCustomProtocol(`infuse://x-callback-url/play?url=${encodedUrl}`);
+      showHUD("success", "Открываем в Infuse!");
     } catch (err: unknown) {
       showHUD("error", "Ошибка Infuse: " + (err instanceof Error ? err.message : String(err)));
     }
