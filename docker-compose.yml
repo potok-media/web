@@ -1,0 +1,13 @@
+services:
+  # 💻 Веб-клиент Potok (Frontend)
+  potok-web:
+    image: ghcr.io/potok-media/potok-web:main
+    container_name: potok-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3000}:80"
+    environment:
+      - VITE_DEFAULT_BFF_URL=${VITE_DEFAULT_BFF_URL}
+      - VITE_DEFAULT_TORRENT_URL=${VITE_DEFAULT_TORRENT_URL}
+      - VITE_DEFAULT_SEARCH_URL=${VITE_DEFAULT_SEARCH_URL}
+      - VITE_BLOCK_SETTINGS_INPUT=${VITE_BLOCK_SETTINGS_INPUT:-false}

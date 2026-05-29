@@ -1,0 +1,185 @@
+name: Web Client Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Тип обновления версии'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: 'patch'
+      is_beta:
+        description: 'Выпустить как бета-версию (pre-release)'
+        required: true
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_PREFIX: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # --- Automated Versioning ---
+      - name: Calculate and bump version in package.json
+        id: get_version
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          IS_BETA="${{ github.event.inputs.is_beta }}"
+          BUMP="${{ github.event.inputs.bump_type }}"
+          
+          if [[ "$CURRENT_VERSION" == *"-beta."* ]]; then
+            BASE="${CURRENT_VERSION%-beta.*}"
+            BETA_NUM="${CURRENT_VERSION##*-beta.}"
+            HAS_BETA=true
+          else
+            BASE="$CURRENT_VERSION"
+            BETA_NUM=0
+            HAS_BETA=false
+          fi
+          
+          IFS='.' read -r -a parts <<< "$BASE"
+          MAJOR="${parts[0]:-1}"
+          MINOR="${parts[1]:-0}"
+          PATCH="${parts[2]:-0}"
+          
+          if [ "$IS_BETA" = "true" ]; then
+            if [ "$HAS_BETA" = "true" ]; then
+              NEW_BETA_NUM=$((BETA_NUM + 1))
+              NEW_VERSION="$BASE-beta.$NEW_BETA_NUM"
+            else
+              if [ "$BUMP" = "major" ]; then
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+              elif [ "$BUMP" = "minor" ]; then
+                MINOR=$((MINOR + 1))
+                PATCH=0
+              else
+                PATCH=$((PATCH + 1))
+              fi
+              NEW_VERSION="$MAJOR.$MINOR.$PATCH-beta.1"
+            fi
+            echo "DOCKER_TAG_SECONDARY=beta" >> $GITHUB_ENV
+            echo "PRERELEASE=true" >> $GITHUB_ENV
+          else
+            if [ "$HAS_BETA" = "true" ]; then
+              NEW_VERSION="$BASE"
+            else
+              if [ "$BUMP" = "major" ]; then
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+              elif [ "$BUMP" = "minor" ]; then
+                MINOR=$((MINOR + 1))
+                PATCH=0
+              else
+                PATCH=$((PATCH + 1))
+              fi
+              NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+            fi
+            echo "DOCKER_TAG_SECONDARY=latest" >> $GITHUB_ENV
+            echo "PRERELEASE=false" >> $GITHUB_ENV
+          fi
+          
+          # Update version in package.json
+          node -e "
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('./package.json'));
+          pkg.version = '$NEW_VERSION';
+          fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+          
+          # Update version in package-lock.json if it exists
+          if [ -f package-lock.json ]; then
+            node -e "
+            const fs = require('fs');
+            const lock = JSON.parse(fs.readFileSync('./package-lock.json'));
+            lock.version = '$NEW_VERSION';
+            if (lock.packages && lock.packages['']) {
+              lock.packages[''].version = '$NEW_VERSION';
+            }
+            fs.writeFileSync('./package-lock.json', JSON.stringify(lock, null, 2) + '\n');
+            "
+          fi
+          
+          echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
+          echo "Bumping package.json to version $NEW_VERSION"
+
+      - name: Commit version bump
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -am "Bump web version to ${{ env.new_version }}"
+          git push
+
+      # Set up Buildx runner
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Login to GitHub Container Registry
+      - name: Log into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Format repository names to lowercase to satisfy Docker naming rules
+      - name: Get lowercased owner and repo names
+        id: prep
+        run: |
+          OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "owner_lc=${OWNER_LC}" >> $GITHUB_OUTPUT
+
+      # --- Build & Push: Web Client ---
+      - name: Extract Web Client metadata
+        id: meta-web
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ steps.prep.outputs.owner_lc }}/potok-web
+          tags: |
+            type=raw,value=${{ env.DOCKER_TAG_SECONDARY }}
+            type=raw,value=${{ env.new_version }}
+
+      - name: Build and Push Web Client
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          target: release
+          push: true
+          tags: ${{ steps.meta-web.outputs.tags }}
+          labels: ${{ steps.meta-web.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # --- Create GitHub Release ---
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: web-v${{ env.new_version }}
+          name: Web Release v${{ env.new_version }}
+          generate_release_notes: true
+          prerelease: ${{ env.PRERELEASE }}
