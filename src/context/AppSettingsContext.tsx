@@ -189,8 +189,9 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   useEffect(() => {
     const scale = uiFontScale || 1.0;
     document.documentElement.style.setProperty("--ui-scale", String(scale));
+    document.documentElement.style.setProperty("font-size", `${scale * 100}%`);
     if (document.body) {
-      document.body.style.zoom = String(scale);
+      document.body.style.zoom = "";
     }
   }, [uiFontScale]);
 

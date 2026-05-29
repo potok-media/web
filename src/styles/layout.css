@@ -128,7 +128,7 @@
 .overlay-input {
   width: 100%;
   text-align: center;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .overlay-btn.wide {
@@ -155,6 +155,6 @@
 
 .overlay-label {
   align-self: center;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 

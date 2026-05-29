@@ -185,7 +185,7 @@ export const SettingsPage: React.FC = () => {
               <label className="settings-label">Масштаб интерфейса</label>
               <select
                 className="settings-select"
-                value={uiFontScale}
+                value={uiFontScale.toFixed(1)}
                 onChange={(e) => setUiFontScale(parseFloat(e.target.value))}
               >
                 <option value="0.8">Мелкий (80%)</option>

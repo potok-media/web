@@ -372,7 +372,7 @@
   color: var(--text-primary);
   border-radius: var(--radius-m);
   font: var(--font-body);
-  font-size: 15px;
+  font-size: 0.9375rem;
   outline: none;
   transition: all var(--timing-hover);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -502,7 +502,7 @@
   padding: 4px 8px;
   border-radius: 6px;
   font: var(--font-caption-bold);
-  font-size: 10.5px;
+  font-size: 0.65625rem;
   display: inline-flex;
   align-items: center;
 }
@@ -1043,7 +1043,7 @@
   font: var(--font-body-bold);
   color: var(--text-primary);
   line-height: 1.4;
-  font-size: 15px;
+  font-size: 0.9375rem;
   margin: 0;
   flex: 1;
 }
@@ -1054,7 +1054,7 @@
   padding: 4px 8px;
   border-radius: 6px;
   font: var(--font-caption-bold);
-  font-size: 11px;
+  font-size: 0.6875rem;
   white-space: nowrap;
 }
 
@@ -1070,7 +1070,7 @@
   padding: 4px 8px;
   border-radius: 4px;
   font: var(--font-caption-bold);
-  font-size: 11px;
+  font-size: 0.6875rem;
   text-transform: uppercase;
 }
 
@@ -1173,7 +1173,7 @@
 }
 
 .modal-title-custom-size {
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .modal-subtitle-text {
@@ -1535,7 +1535,7 @@
   padding: 10px 16px;
   cursor: pointer;
   font: var(--font-body-bold);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-secondary);
   transition: all 0.15s ease;
   white-space: nowrap;
@@ -1560,7 +1560,7 @@
   border-radius: var(--radius-m);
   padding: 10px 14px;
   color: #f59e0b;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.4;
   text-align: right;
   max-width: 320px;
@@ -1572,7 +1572,7 @@
   gap: var(--space-xs);
   color: var(--accent);
   font: var(--font-caption-bold);
-  font-size: 11px;
+  font-size: 0.6875rem;
   margin-top: 2px;
 }
 
@@ -1634,7 +1634,7 @@
 }
 
 .season-section-title {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 900;
   color: rgba(255, 255, 255, 0.9);
 }
@@ -1687,7 +1687,7 @@
   background-color: rgba(0, 0, 0, 0.8);
   color: var(--text-primary);
   font: var(--font-caption-bold);
-  font-size: 11px;
+  font-size: 0.6875rem;
   padding: 3px 6px;
   border-radius: calc(var(--radius-s) / 2);
   backdrop-filter: blur(4px);
@@ -1703,7 +1703,7 @@
 .episode-card-title {
   font: var(--font-caption-bold);
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -1717,7 +1717,7 @@
 .episode-card-date {
   font: var(--font-caption);
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 /* Saving Overlay */
@@ -1806,7 +1806,7 @@
   position: absolute;
   top: -10px;
   left: 6px;
-  font-size: 64px;
+  font-size: 4rem;
   font-weight: 900;
   color: rgba(255, 255, 255, 0.28);
   font-family: system-ui, -apple-system, sans-serif;
@@ -1832,7 +1832,7 @@
 
 .file-card-title {
   font: var(--font-body-bold);
-  font-size: 16px;
+  font-size: 1rem;
   color: var(--text-primary);
   line-height: 1.4;
   white-space: nowrap;
@@ -1842,7 +1842,7 @@
 
 .file-card-subtitle {
   font: var(--font-caption);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-secondary);
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -1864,7 +1864,7 @@
   gap: 4px;
   background-color: var(--accent-dim);
   color: var(--accent);
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: bold;
   padding: 3px 8px;
   border-radius: var(--radius-s);
@@ -1873,13 +1873,13 @@
 
 .file-card-size {
   font-family: monospace, Courier, sans-serif;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: bold;
   color: var(--text-primary);
 }
 
 .file-card-ext-badge {
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 900;
   color: var(--text-secondary);
   background-color: var(--bg-surface-highest);
@@ -1927,7 +1927,7 @@
   font-family: inherit;
   font-weight: bold;
   color: var(--text-primary);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .torrents-header-actions {
@@ -1937,7 +1937,7 @@
 }
 
 .filter-section-title {
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: bold;
   text-transform: uppercase;
   color: var(--text-secondary);
@@ -1956,7 +1956,7 @@
   color: #ef4444;
   padding: 6px 12px;
   border-radius: var(--radius-s);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -2117,7 +2117,7 @@
 
 .loading-text {
   font: var(--font-body-bold);
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-primary);
   opacity: 0.9;
   letter-spacing: 0.03em;
@@ -2152,7 +2152,7 @@
 }
 
 .torrent-row-title {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: bold;
   color: var(--text-primary);
 }
@@ -2242,7 +2242,7 @@
 
 .details-section-title {
   padding-left: 0 !important;
-  font-size: 18px !important;
+  font-size: 1.125rem !important;
 }
 
 .torrent-popup-body {
@@ -2386,7 +2386,7 @@
 .season-episodes-title {
   font: var(--font-title2);
   color: var(--text-primary);
-  font-size: 18px;
+  font-size: 1.125rem;
   padding-left: 0;
   margin: 0 0 var(--space-m) 0;
 }
@@ -2434,7 +2434,7 @@
 
 .spinner-message-text {
   font: var(--font-caption-bold);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-secondary);
   letter-spacing: 0.02em;
   animation: pulse 1.6s ease-in-out infinite;
