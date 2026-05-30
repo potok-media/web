@@ -164,11 +164,19 @@
   align-items: center;
   gap: 8px;
   font: var(--font-caption-bold);
+  color: var(--text-secondary);
+  transition: all var(--timing-hover) ease;
+}
+
+.theme-card:hover {
+  background-color: var(--bg-surface-highest);
+  color: var(--text-primary);
 }
 
 .theme-card.active {
   border-color: var(--accent);
   background-color: var(--accent-dim);
+  color: var(--text-primary);
 }
 
 .theme-dot {

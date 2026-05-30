@@ -27,7 +27,6 @@ export const PluginSandbox: React.FC = () => {
 
     syncExtensions();
     window.addEventListener("storage", syncExtensions);
-    // Custom event to trigger immediate reload within settings
     window.addEventListener("potok_extensions_updated", syncExtensions);
 
     return () => {
@@ -105,7 +104,7 @@ export const PluginSandbox: React.FC = () => {
 
     // 2. Tear down iframes for disabled/deleted extensions
     for (const [id, iframe] of iframeRefs.current.entries()) {
-      if (!activeEnabled.some((e) => e.id === id)) {
+      if (!activeEnabled.some((e) => e.enabled && e.id === id)) {
         if (iframe.parentNode) {
           iframe.parentNode.removeChild(iframe);
         }
@@ -145,8 +144,6 @@ export const PluginSandbox: React.FC = () => {
 
         case "REGISTER_SLOT_CONTRIBUTION":
           ExtensionRegistry.registerSlotContribution(pluginId, payload);
-          // Immediately trigger initial slot render request if applicable
-          ExtensionRegistry.triggerSlotRender(payload.id, {});
           break;
 
         case "SLOT_RENDER_RESPONSE":
@@ -157,9 +154,55 @@ export const PluginSandbox: React.FC = () => {
           showHUD(payload.type, payload.message);
           break;
 
-        case "PLAY_VIDEO":
-          playVideo(payload);
+        case "PLAY_VIDEO": {
+          const wrapInProxy = (url: string, headers?: Record<string, string>): string => {
+            if (!url) return url;
+            if (url.includes("/api/v1/proxy") || url.startsWith("http://localhost:8090")) {
+              return url;
+            }
+            const gatewayURL = activeProfile?.gatewayURL;
+            if (!gatewayURL) return url;
+
+            try {
+              // Base64 URL-safe encode
+              const uEncoded = btoa(unescape(encodeURIComponent(url)))
+                .replace(/\+/g, "-")
+                .replace(/\//g, "_")
+                .replace(/=/g, "");
+
+              let hEncoded = "";
+              if (headers && Object.keys(headers).length > 0) {
+                const json = JSON.stringify(headers);
+                hEncoded = btoa(unescape(encodeURIComponent(json)))
+                  .replace(/\+/g, "-")
+                  .replace(/\//g, "_")
+                  .replace(/=/g, "");
+              }
+
+              let proxyUrl = `${gatewayURL}/api/v1/proxy?u=${uEncoded}`;
+              if (hEncoded) {
+                proxyUrl += `&h=${hEncoded}`;
+              }
+              return proxyUrl;
+            } catch (e) {
+              console.error("[PluginSandbox] URL proxy wrap failed:", e);
+              return url;
+            }
+          };
+
+          const playback = { ...payload };
+          if (playback.streamUrl && playback.headers) {
+            playback.streamUrl = wrapInProxy(playback.streamUrl, playback.headers);
+          }
+          if (playback.audios && playback.headers) {
+            playback.audios = playback.audios.map((a: any) => ({
+              ...a,
+              url: wrapInProxy(a.url, playback.headers)
+            }));
+          }
+          playVideo(playback);
           break;
+        }
 
         case "LOOKUP_RESPONSE":
           ExtensionRegistry.handleLookupResponse(payload.requestId, payload.results, payload.error);
@@ -167,21 +210,23 @@ export const PluginSandbox: React.FC = () => {
 
         case "STORAGE_GET": {
           const val = localStorage.getItem(`potok_plugin:scoped:${pluginId}:${payload.key}`);
-          event.source.postMessage({
+          // CRITICAL: We use "*" instead of event.origin here because blob URL origins can be "null" 
+          // inside sandboxed frames, which would block postMessage callbacks from being delivered.
+          (event.source as any).postMessage({
             source: "potok-host",
             action: "STORAGE_GET_RESPONSE",
             payload: { requestId: payload.requestId, value: val }
-          }, event.origin as any);
+          }, "*");
           break;
         }
 
         case "STORAGE_SET": {
           localStorage.setItem(`potok_plugin:scoped:${pluginId}:${payload.key}`, payload.value);
-          event.source.postMessage({
+          (event.source as any).postMessage({
             source: "potok-host",
             action: "STORAGE_SET_RESPONSE",
             payload: { requestId: payload.requestId }
-          }, event.origin as any);
+          }, "*");
           break;
         }
 
@@ -207,17 +252,17 @@ export const PluginSandbox: React.FC = () => {
               responseData = await res.text();
             }
 
-            event.source.postMessage({
+            (event.source as any).postMessage({
               source: "potok-host",
               action: "HTTP_RESPONSE",
               payload: { requestId, status: responseStatus, data: responseData, error: null }
-            }, event.origin as any);
+            }, "*");
           } catch (err: any) {
-            event.source.postMessage({
+            (event.source as any).postMessage({
               source: "potok-host",
               action: "HTTP_RESPONSE",
               payload: { requestId, status: 500, data: "", error: err.message || "HTTP Proxy failed" }
-            }, event.origin as any);
+            }, "*");
           }
           break;
         }
@@ -247,3 +292,4 @@ export const PluginSandbox: React.FC = () => {
 
   return null;
 };
+export default PluginSandbox;

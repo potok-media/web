@@ -9,6 +9,122 @@ interface ExtensionSlotProps {
   props?: any;
 }
 
+// 1. SafeInput component to maintain local state synchronously and prevent React input locking
+const SafeInput: React.FC<{
+  schema: UIComponentSchema;
+  pluginId: string;
+  baseStyle: React.CSSProperties;
+}> = ({ schema, pluginId, baseStyle }) => {
+  const { id, props: componentProps, events } = schema;
+  const [localValue, setLocalValue] = useState(componentProps.value || "");
+
+  useEffect(() => {
+    setLocalValue(componentProps.value || "");
+  }, [componentProps.value]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLocalValue(val); // Update local state synchronously for smooth 120fps typing
+    if (events?.onChange) {
+      ExtensionRegistry.triggerUIEvent(pluginId, events.onChange, val);
+    }
+  };
+
+  return (
+    <div key={id} className="potok-input-group" style={baseStyle}>
+      {componentProps.label && <label className="potok-label">{componentProps.label}</label>}
+      <input
+        className="potok-input"
+        type={componentProps.inputType || "text"}
+        placeholder={componentProps.placeholder}
+        value={localValue}
+        disabled={componentProps.disabled}
+        onChange={handleInputChange}
+      />
+    </div>
+  );
+};
+
+// 2. SafeToggle component to maintain local checked state synchronously
+const SafeToggle: React.FC<{
+  schema: UIComponentSchema;
+  pluginId: string;
+  baseStyle: React.CSSProperties;
+}> = ({ schema, pluginId, baseStyle }) => {
+  const { id, props: componentProps, events } = schema;
+  const [localChecked, setLocalChecked] = useState(!!componentProps.checked);
+
+  useEffect(() => {
+    setLocalChecked(!!componentProps.checked);
+  }, [componentProps.checked]);
+
+  const handleToggleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    setLocalChecked(checked);
+    if (events?.onChange) {
+      ExtensionRegistry.triggerUIEvent(pluginId, events.onChange, checked);
+    }
+  };
+
+  return (
+    <label key={id} className="potok-toggle-group" style={baseStyle}>
+      <div className="potok-toggle-label-wrap">
+        <span className="potok-label">{componentProps.label}</span>
+        {componentProps.description && <span className="potok-toggle-desc">{componentProps.description}</span>}
+      </div>
+      <div className="potok-switch">
+        <input
+          type="checkbox"
+          checked={localChecked}
+          disabled={componentProps.disabled}
+          onChange={handleToggleChange}
+        />
+        <span className="potok-slider" />
+      </div>
+    </label>
+  );
+};
+
+// 3. SafeSelect component to maintain local selection state
+const SafeSelect: React.FC<{
+  schema: UIComponentSchema;
+  pluginId: string;
+  baseStyle: React.CSSProperties;
+}> = ({ schema, pluginId, baseStyle }) => {
+  const { id, props: componentProps, events } = schema;
+  const [localSelected, setLocalSelected] = useState(componentProps.selected || "");
+
+  useEffect(() => {
+    setLocalSelected(componentProps.selected || "");
+  }, [componentProps.selected]);
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setLocalSelected(val);
+    if (events?.onChange) {
+      ExtensionRegistry.triggerUIEvent(pluginId, events.onChange, val);
+    }
+  };
+
+  return (
+    <div key={id} className="potok-input-group" style={baseStyle}>
+      {componentProps.label && <label className="potok-label">{componentProps.label}</label>}
+      <select
+        className="potok-select"
+        value={localSelected}
+        disabled={componentProps.disabled}
+        onChange={handleSelectChange}
+      >
+        {componentProps.options?.map((opt: any) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+};
+
 export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }) => {
   const [, setTick] = useState(0);
 
@@ -51,15 +167,6 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }
     const handleClick = () => {
       if (events?.onClick) {
         ExtensionRegistry.triggerUIEvent(pluginId, events.onClick, {});
-      }
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      if (events?.onChange) {
-        const val = e.target.type === "checkbox" 
-          ? (e.target as HTMLInputElement).checked 
-          : e.target.value;
-        ExtensionRegistry.triggerUIEvent(pluginId, events.onChange, val);
       }
     };
 
@@ -162,59 +269,15 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }
       }
 
       case "Input": {
-        return (
-          <div key={id} className="potok-input-group" style={baseStyle}>
-            {componentProps.label && <label className="potok-label">{componentProps.label}</label>}
-            <input
-              className="potok-input"
-              type={componentProps.inputType || "text"}
-              placeholder={componentProps.placeholder}
-              value={componentProps.value || ""}
-              disabled={componentProps.disabled}
-              onChange={handleChange}
-            />
-          </div>
-        );
+        return <SafeInput key={id} schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
       }
 
       case "Toggle": {
-        return (
-          <label key={id} className="potok-toggle-group" style={baseStyle}>
-            <div className="potok-toggle-label-wrap">
-              <span className="potok-label">{componentProps.label}</span>
-              {componentProps.description && <span className="potok-toggle-desc">{componentProps.description}</span>}
-            </div>
-            <div className="potok-switch">
-              <input
-                type="checkbox"
-                checked={!!componentProps.checked}
-                disabled={componentProps.disabled}
-                onChange={handleChange}
-              />
-              <span className="potok-slider" />
-            </div>
-          </label>
-        );
+        return <SafeToggle key={id} schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
       }
 
       case "Select": {
-        return (
-          <div key={id} className="potok-input-group" style={baseStyle}>
-            {componentProps.label && <label className="potok-label">{componentProps.label}</label>}
-            <select
-              className="potok-select"
-              value={componentProps.selected || ""}
-              disabled={componentProps.disabled}
-              onChange={handleChange}
-            >
-              {componentProps.options?.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        );
+        return <SafeSelect key={id} schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
       }
 
       default:
