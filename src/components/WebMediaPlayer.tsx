@@ -16,9 +16,10 @@ type SafeArtplayer = Artplayer & { hls?: Hls; };
 interface WebMediaPlayerProps {
   playback: ActivePlayback;
   onClose: () => void;
+  isNetworkOffline?: boolean;
 }
 
-export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClose }) => {
+export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClose, isNetworkOffline = false }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const artRef = useRef<Artplayer | null>(null);
 
@@ -186,6 +187,16 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     handleUserActivity();
     return () => { if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current); };
   }, []);
+
+  useEffect(() => {
+    if (isNetworkOffline) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch((err) => {
+          console.warn("Failed to exit fullscreen imperatively:", err);
+        });
+      }
+    }
+  }, [isNetworkOffline]);
 
   // Main ArtPlayer setup
   useEffect(() => {
@@ -392,6 +403,32 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         onClose={onClose}
         visible={controlsVisible}
       />
+
+      {isNetworkOffline && (
+        <div style={{
+          position: "absolute",
+          top: "80px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 99,
+          background: "rgba(220, 38, 38, 0.9)",
+          backdropFilter: "blur(10px)",
+          border: "1px solid rgba(255, 255, 255, 0.2)",
+          color: "#fff",
+          padding: "10px 20px",
+          borderRadius: "8px",
+          fontSize: "0.95rem",
+          fontWeight: 600,
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.4)",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          pointerEvents: "none"
+        }}>
+          <AlertTriangle size={18} />
+          <span>Связь потеряна. Воспроизведение идет из буфера...</span>
+        </div>
+      )}
 
       {showSkipIntro && (
         <button className="skip-intro-overlay-btn" onClick={(e) => { e.stopPropagation(); if (artRef.current && introRange) handleSeek(introRange.end); }}>

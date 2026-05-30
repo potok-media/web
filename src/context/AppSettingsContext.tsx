@@ -6,6 +6,7 @@ import { webSocketClient } from "../network/WebSocketClient";
 import { AuthApiClient } from "../network/AuthApiClient";
 import { getEnv } from "../utils/EnvService";
 import { logger } from "../utils/logger";
+import { useSystemWake } from "../hooks/useSystemWake";
 
 export type ConnectionState = "checking" | "connected" | "offline" | "setupRequired";
 
@@ -34,7 +35,7 @@ interface AppSettingsContextType {
   isSettingsLocked: boolean;
   activePlayback: ActivePlayback | null;
   
-  checkConnection: () => Promise<void>;
+  checkConnection: (options?: { silent?: boolean }) => Promise<void>;
   selectProfile: (id: string) => void;
   addProfile: (profile: Omit<ConnectionProfile, "id">) => void;
   deleteProfile: (id: string) => void;
@@ -82,34 +83,55 @@ const defaultProfiles: ConnectionProfile[] = [
   }
 ];
 
+interface LegacyProfile {
+  id?: string;
+  name?: string;
+  gatewayURL?: string;
+  torrentGoURL?: string;
+  searchEngineURL?: string;
+  torrentGoAuthEnabled?: boolean;
+  torrentGoAuthLogin?: string;
+  torrServerURL?: string;
+  torrServerAuthEnabled?: boolean;
+  torrServerAuthLogin?: string;
+}
+
 export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [connectionProfiles, setConnectionProfiles] = useState<ConnectionProfile[]>(() => {
-    const raw = Storage.get<any[]>("connectionProfiles", defaultProfiles);
+    const raw = Storage.get<LegacyProfile[]>("connectionProfiles", defaultProfiles);
     let migrated = false;
-    const cleanProfiles = raw.map((p: any) => {
+    const cleanProfiles = raw.map((p: LegacyProfile): ConnectionProfile => {
       const copy = { ...p };
-      if ("torrServerURL" in copy) {
+      if ("torrServerURL" in copy && copy.torrServerURL) {
         if (!copy.torrentGoURL) {
           copy.torrentGoURL = copy.torrServerURL;
         }
         delete copy.torrServerURL;
         migrated = true;
       }
-      if ("torrServerAuthEnabled" in copy) {
+      if ("torrServerAuthEnabled" in copy && copy.torrServerAuthEnabled !== undefined) {
         if (copy.torrentGoAuthEnabled === undefined) {
           copy.torrentGoAuthEnabled = copy.torrServerAuthEnabled;
         }
         delete copy.torrServerAuthEnabled;
         migrated = true;
       }
-      if ("torrServerAuthLogin" in copy) {
+      if ("torrServerAuthLogin" in copy && copy.torrServerAuthLogin !== undefined) {
         if (copy.torrentGoAuthLogin === undefined) {
           copy.torrentGoAuthLogin = copy.torrServerAuthLogin;
         }
         delete copy.torrServerAuthLogin;
         migrated = true;
       }
-      return copy as ConnectionProfile;
+      return {
+        id: copy.id || `profile-${Date.now()}`,
+        name: copy.name || "Unnamed Profile",
+        gatewayURL: copy.gatewayURL || "",
+        torrentGoURL: copy.torrentGoURL || "",
+        searchEngineURL: copy.searchEngineURL || "",
+        torrentGoAuthEnabled: !!copy.torrentGoAuthEnabled,
+        torrentGoAuthLogin: copy.torrentGoAuthLogin || "",
+      };
     });
     if (migrated) {
       Storage.set("connectionProfiles", cleanProfiles);
@@ -155,7 +177,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     searchEngine: { configured: true, online: false },
   });
 
-  const pingIntervalRef = useRef<any>(null);
+  const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const consecutiveFailuresRef = useRef<number>(0);
   const connectionStateRef = useRef<ConnectionState>("checking");
   useEffect(() => {
@@ -211,7 +233,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, [uiFontScale]);
 
-  const checkConnection = async () => {
+  const checkConnection = async (options?: { silent?: boolean }) => {
     stopPingTimer();
     const currentGateway = ApiClient.baseURL;
     if (!currentGateway || !activeProfileID || (!isSettingsLocked && (!activeProfile || !activeProfile.gatewayURL))) {
@@ -220,7 +242,9 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
       return;
     }
 
-    setConnectionState("checking");
+    if (!options?.silent) {
+      setConnectionState("checking");
+    }
 
     try {
       const handshake = await ApiClient.performHandshake(currentGateway);
@@ -286,10 +310,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
           });
           const currentState = connectionStateRef.current;
           if (currentState === "offline") {
-            setConnectionState("checking");
-            setTimeout(() => {
-              checkConnection();
-            }, 0);
+            checkConnection({ silent: true });
           } else {
             setConnectionState("connected");
           }
@@ -309,6 +330,13 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
       pingIntervalRef.current = null;
     }
   };
+
+  useSystemWake((log) => {
+    logger.log(`[AppSettings] System wake event: drift = ${log.driftMs}ms, online = ${log.navigatorOnline}`);
+    if (log.navigatorOnline) {
+      checkConnection({ silent: true });
+    }
+  });
 
   useEffect(() => {
     logger.log(`[AppSettings] WebSocket lifecycle effect triggered. ActiveProfileID: ${activeProfileID}, Configured gatewayURL: ${gatewayURL}`);

@@ -1,10 +1,13 @@
 import React from "react";
+import ReactDOM from "react-dom";
 import { Outlet, useLocation } from "react-router-dom";
 import { useAppSettings } from "../context/AppSettingsContext";
 import { AppSidebar } from "./AppSidebar";
 import { getEnv } from "../utils/EnvService";
 import { WebMediaPlayer } from "./WebMediaPlayer";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { OfflineOverlay } from "./OfflineOverlay";
+import { FocusTrap } from "./FocusTrap";
 import "../styles/layout.css";
 
 export const AppLayout: React.FC = () => {
@@ -96,80 +99,15 @@ export const AppLayout: React.FC = () => {
     }, 150);
   };
 
-  if (connectionState === "checking") {
-    return (
-      <div className="overlay-screen">
-        <div className="overlay-content">
-          <div className="spinner" />
-          <h2 className="overlay-title">Подключение к Potok...</h2>
-          <p className="overlay-text">Опрашиваем шлюз API Gateway шлюза</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (connectionState === "setupRequired") {
-    return (
-      <div className="overlay-screen">
-        <div className="overlay-content compact">
-          <h2 className="overlay-title">Требуется настройка</h2>
-          <p className="overlay-text">Укажите адрес BFF-шлюза (API Gateway) для связи с сервером Potok:</p>
-          
-          <form onSubmit={handleSaveAndConnect} className="overlay-form">
-            <input
-              type="text"
-              className="settings-input overlay-input"
-              placeholder="Адрес до BFF-шлюза"
-              value={inputUrl}
-              onChange={(e) => setInputUrl(e.target.value)}
-              required
-            />
-            <button type="submit" className="overlay-btn wide">
-              Сохранить и подключиться
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
-  if (connectionState === "offline") {
-    return (
-      <div className="overlay-screen">
-        <div className="overlay-content compact">
-          <h2 className="overlay-title error">Сервер Potok недоступен</h2>
-          <p className="overlay-text">Не удалось соединиться по адресу: <strong>{activeProfile?.gatewayURL}</strong></p>
-          
-          <form onSubmit={handleSaveAndConnect} className="overlay-form offline">
-            <label className="settings-label overlay-label">Указать другой адрес BFF:</label>
-            <input
-              type="text"
-              className="settings-input overlay-input"
-              placeholder="Адрес до BFF-шлюза"
-              value={inputUrl}
-              onChange={(e) => setInputUrl(e.target.value)}
-              required
-            />
-            <button type="submit" className="overlay-btn wide">
-              Применить и повторить попытку
-            </button>
-          </form>
-          
-          <button
-            className="overlay-btn secondary"
-            onClick={() => checkConnection()}
-          >
-            Проверить снова
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={`app-container ${isSidebarCollapsed ? "sidebar-collapsed" : ""}`}>
       <AppSidebar isCollapsed={isSidebarCollapsed} onToggle={toggleSidebar} />
-      <main ref={mainContentRef} onScroll={handleScroll} className="main-content">
+      <main
+        ref={mainContentRef}
+        onScroll={handleScroll}
+        className="main-content"
+        aria-hidden={connectionState !== "connected"}
+      >
         <Outlet />
       </main>
 
@@ -231,8 +169,23 @@ export const AppLayout: React.FC = () => {
           <WebMediaPlayer
             playback={activePlayback}
             onClose={stopVideo}
+            isNetworkOffline={connectionState === "offline"}
           />
         </ErrorBoundary>
+      )}
+
+      {connectionState !== "connected" && ReactDOM.createPortal(
+        <FocusTrap>
+          <OfflineOverlay
+            connectionState={connectionState}
+            inputUrl={inputUrl}
+            setInputUrl={setInputUrl}
+            handleSaveAndConnect={handleSaveAndConnect}
+            activeProfile={activeProfile}
+            checkConnection={checkConnection}
+          />
+        </FocusTrap>,
+        document.body
       )}
     </div>
   );

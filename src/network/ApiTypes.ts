@@ -258,3 +258,23 @@ export interface ClientMetadata {
   tracks: ClientTrack[];
 }
 
+export type PatchOp = "add" | "replace" | "remove";
+
+export interface PatchOperation {
+  op: PatchOp;
+  path: string;
+  value: string | number | boolean;
+}
+
+export interface SystemWakeLog {
+  timestamp: number;
+  driftMs: number;
+  navigatorOnline: boolean;
+}
+
+export interface FullscreenTrackingState {
+  isFullscreenActive: boolean;
+  activeElementTag: string | null;
+}
+
+
