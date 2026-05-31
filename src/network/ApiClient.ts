@@ -266,9 +266,13 @@ export class ApiClient {
     return this.handleResponse<MediaCard>(res, "Failed to fetch details");
   }
 
-  public static async fetchTvSeason(tvId: number, seasonNumber: number): Promise<TvSeason> {
+  public static async fetchTvSeason(tvId: number, seasonNumber: number, options?: RequestInit): Promise<TvSeason> {
     const res = await fetch(`${this.baseURL}/api/media/tmdb/tv/${tvId}/season/${seasonNumber}`, {
-      headers: this.headers,
+      ...options,
+      headers: {
+        ...this.headers,
+        ...options?.headers,
+      },
     });
     return this.handleResponse<TvSeason>(res, "Failed to fetch season details");
   }

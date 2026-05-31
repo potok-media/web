@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { Outlet, useLocation } from "react-router-dom";
-import { useAppSettings } from "../context/AppSettingsContext";
+import { useSettings, useConnectionHealth, usePlayback } from "../context/AppSettingsContext";
 import { AppSidebar } from "./AppSidebar";
 import { getEnv } from "../utils/EnvService";
 import { WebMediaPlayer } from "./WebMediaPlayer";
@@ -39,13 +39,19 @@ export const AppLayout: React.FC = () => {
   const {
     connectionState,
     checkConnection,
+  } = useConnectionHealth();
+
+  const {
     connectionProfiles,
     activeProfileID,
     updateProfile,
     addProfile,
+  } = useSettings();
+
+  const {
     activePlayback,
-    stopVideo
-  } = useAppSettings();
+    stopVideo,
+  } = usePlayback();
 
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
   const [inputUrl, setInputUrl] = React.useState(

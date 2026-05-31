@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useHUD } from "../context/HUDContext";
-import { useAppSettings } from "../context/AppSettingsContext";
+import { usePlayback } from "../context/AppSettingsContext";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import type { GenericEpisodeItem } from "../components/common/EpisodeSelectorPopup";
 import { ApiClient } from "../network/ApiClient";
@@ -25,7 +25,7 @@ interface UseMediaStreamsParams {
 
 export function useMediaStreams({ mediaType, mediaId, season, episode, initialMedia, activeTab: activeTabParam }: UseMediaStreamsParams) {
   const { show: showHUD } = useHUD();
-  const { playVideo } = useAppSettings();
+  const { playVideo } = usePlayback();
 
   const [clickedStream, setClickedStream] = useState<RawStreamPayload | null>(null);
   const [episodeSelectorData, setEpisodeSelectorData] = useState<{

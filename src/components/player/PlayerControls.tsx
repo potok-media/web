@@ -8,13 +8,15 @@ import {
   Maximize, 
   Minimize, 
   Subtitles, 
-  Activity,
-  RotateCcw,
-  RotateCw,
-  Settings,
+  Activity, 
+  RotateCcw, 
+  RotateCw, 
+  Settings, 
   ListVideo
 } from "lucide-react";
 import { TrackSelectorDropdown } from "./TrackSelectorDropdown";
+import { TimelineSlider } from "./TimelineSlider";
+import { TimeDisplay } from "./TimeDisplay";
 
 interface TrackItem {
   id: number;
@@ -22,6 +24,7 @@ interface TrackItem {
 }
 
 interface PlayerControlsProps {
+  videoRef: React.RefObject<HTMLVideoElement | null>;
   controlsVisible: boolean;
   isPlaying: boolean;
   onTogglePlay: () => void;
@@ -58,29 +61,20 @@ interface PlayerControlsProps {
   onSelectPlaylistItem?: (index: number) => void;
   showPlaylistMenu?: boolean;
   onTogglePlaylistMenu?: () => void;
+  seekOffset?: number;
 }
 
-// Format seconds into HH:MM:SS
-function formatTime(seconds: number): string {
-  if (isNaN(seconds) || seconds === Infinity) return "00:00";
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  
-  const pad = (n: number) => String(n).padStart(2, "0");
-  if (h > 0) {
-    return `${pad(h)}:${pad(m)}:${pad(s)}`;
-  }
-  return `${pad(m)}:${pad(s)}`;
-}
+// Fallback constant array prevents re-rendering allocations
+const FALLBACK_AUDIO_TRACKS = [{ id: -1, name: "Основная (По умолчанию)" }];
 
-export const PlayerControls: React.FC<PlayerControlsProps> = ({
+export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
+  videoRef,
   controlsVisible,
   isPlaying,
   onTogglePlay,
-  currentTime,
+  // currentTime,
   duration,
-  bufferedTime,
+  // bufferedTime,
   onSeek,
   volume,
   isMuted,
@@ -111,26 +105,8 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
   onSelectPlaylistItem,
   showPlaylistMenu,
   onTogglePlaylistMenu,
+  seekOffset = 0,
 }) => {
-  const [localTime, setLocalTime] = React.useState(currentTime);
-  const [isDragging, setIsDragging] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!isDragging) {
-      setLocalTime(currentTime);
-    }
-  }, [currentTime]);
-
-  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsDragging(true);
-    setLocalTime(parseFloat(e.target.value));
-  };
-
-  const handleSliderRelease = () => {
-    onSeek(localTime);
-    setIsDragging(false);
-  };
-
   const changeVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
     onVolumeChange(parseFloat(e.target.value));
   };
@@ -145,10 +121,9 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
     }));
   }, [playlist]);
 
-  // Premium UI: Ensure selectors are always visible by providing fallbacks
   const displayAudioTracks = audioTracks.length > 0 
     ? audioTracks 
-    : [{ id: -1, name: "Основная (По умолчанию)" }];
+    : FALLBACK_AUDIO_TRACKS;
 
   const displayCurrentAudio = audioTracks.length > 0 ? currentAudioTrack : -1;
 
@@ -159,28 +134,18 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
     >
       <div className="player-controller-glass-pill">
         <div className="player-timeline-wrapper">
-          <input 
-            type="range"
-            min={0}
-            max={duration || 100}
-            value={localTime}
-            onChange={handleSliderChange}
-            onMouseUp={handleSliderRelease}
-            onTouchEnd={handleSliderRelease}
-            className="player-timeline-slider"
-            style={{
-              "--timeline-progress": `${(localTime / (duration || 100)) * 100}%`,
-              "--buffer-progress": `${(bufferedTime / (duration || 100)) * 100}%`,
-            } as React.CSSProperties}
-            aria-label="Перемотка видео"
-          />
+          <TimelineSlider videoRef={videoRef} onSeek={onSeek} initialDuration={duration} seekOffset={seekOffset} />
         </div>
 
         <div className="player-controls-row">
           <div className="controls-group left">
             <button 
               className="control-icon-btn" 
-              onClick={() => onSeek(Math.max(currentTime - 10, 0))}
+              onClick={() => {
+                const currentTime = videoRef.current?.currentTime || 0;
+                const T_new = Math.max(seekOffset + currentTime - 10, 0);
+                onSeek(T_new);
+              }}
               title="Назад на 10 сек."
               aria-label="Назад на 10 секунд"
             >
@@ -193,7 +158,11 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
 
             <button 
               className="control-icon-btn" 
-              onClick={() => onSeek(Math.min(currentTime + 10, duration))}
+              onClick={() => {
+                const currentTime = videoRef.current?.currentTime || 0;
+                const T_new = Math.min(seekOffset + currentTime + 10, duration);
+                onSeek(T_new);
+              }}
               title="Вперед на 10 сек."
               aria-label="Вперед на 10 секунд"
             >
@@ -216,23 +185,22 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
               />
             </div>
 
-            <span className="player-time-display">
-              {formatTime(currentTime)} <span className="time-divider">/</span> {formatTime(duration)}
-            </span>
+            <TimeDisplay videoRef={videoRef} initialDuration={duration} seekOffset={seekOffset} />
           </div>
 
           <div className="controls-group right">
             <button 
               className={`control-icon-btn ${showStats ? "active-accent" : ""}`}
               onClick={onToggleStats}
-              title="Показать сетевую статистику"
+              title="Диагностика"
+              aria-label="Показать диагностику"
             >
               <Activity size={18} />
             </button>
 
             <TrackSelectorDropdown
               icon={<Volume2 size={18} />}
-              title="Аудиодорожка"
+              title="Аудиодорожки"
               items={displayAudioTracks}
               currentItemId={displayCurrentAudio}
               onSelect={onSelectAudioTrack}
@@ -285,4 +253,6 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
       </div>
     </div>
   );
-};
+});
+
+PlayerControls.displayName = "PlayerControls";

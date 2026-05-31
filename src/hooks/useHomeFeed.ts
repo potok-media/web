@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { ApiClient } from "../network/ApiClient";
 import { ApiError } from "../network/ApiTypes";
 import type { HomeResponse } from "../network/ApiTypes";
-import { useAppSettings } from "../context/AppSettingsContext";
+import { useSettings, useAuth } from "../context/AppSettingsContext";
 
 // In-memory feed cache mapped by profile ID to prevent profile switching data leaks!
 const profileFeedCache: Record<string, HomeResponse> = {};
 
 export function useHomeFeed(onError: (msg: string) => void) {
-  const { activeProfileID, logout } = useAppSettings();
+  const { activeProfileID } = useSettings();
+  const { logout } = useAuth();
   const profileKey = activeProfileID || "default";
 
   const [feed, setFeed] = useState<HomeResponse | null>(() => {

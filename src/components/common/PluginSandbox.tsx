@@ -15,6 +15,10 @@ export const PluginSandbox: React.FC = () => {
   const { show: showHUD } = useHUD();
   const navigate = useNavigate();
   const [activeExtensions, setActiveExtensions] = useState<RegisteredExtension[]>([]);
+  
+  // Physically rendered extensions list
+  const [renderedExtensions, setRenderedExtensions] = useState<RegisteredExtension[]>([]);
+  const shuttingDownRefs = useRef<Set<string>>(new Set());
   const iframeRefs = useRef<Map<string, HTMLIFrameElement>>(new Map());
 
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || connectionProfiles[0] || null;
@@ -62,32 +66,60 @@ export const PluginSandbox: React.FC = () => {
     };
   }, [showHUD]);
 
+  // Graceful Shutdown: Stateful Deferred Unmounting
   useEffect(() => {
     const activeEnabled = activeExtensions.filter((e) => e.enabled);
+    const activeIds = new Set(activeEnabled.map((e) => e.id));
 
-    activeEnabled.forEach(async (ext) => {
-      if (iframeRefs.current.has(ext.id)) return;
+    // 1. Identify extensions that should undergo shutdown
+    const toShutdown = renderedExtensions.filter(
+      (e) => !activeIds.has(e.id) && !shuttingDownRefs.current.has(e.id)
+    );
 
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none";
-      iframe.setAttribute("sandbox", "allow-scripts");
-      iframe.srcdoc = createIframeHtml(ext, activeProfile);
-      document.body.appendChild(iframe);
+    toShutdown.forEach((ext) => {
+      const iframe = iframeRefs.current.get(ext.id);
+      if (iframe?.contentWindow) {
+        shuttingDownRefs.current.add(ext.id);
+        
+        // Dispatch shutdown signal to plugin SDK
+        iframe.contentWindow.postMessage({
+          source: "potok-host",
+          action: "PLUGIN_SHUTDOWN",
+          payload: { gracePeriodMs: 800 }
+        }, "*");
 
-      iframeRefs.current.set(ext.id, iframe);
-      ExtensionRegistry.registerSandbox(ext.id, iframe);
+        // Safety timeout in case sandbox hangs
+        setTimeout(() => {
+          triggerPhysicalRemoval(ext.id);
+        }, 1000);
+      } else {
+        triggerPhysicalRemoval(ext.id);
+      }
     });
 
-    for (const [id, iframe] of iframeRefs.current.entries()) {
-      if (!activeEnabled.some((e) => e.enabled && e.id === id)) {
-        if (iframe.parentNode) {
-          iframe.parentNode.removeChild(iframe);
-        }
-        iframeRefs.current.delete(id);
-        ExtensionRegistry.unregisterSandbox(id);
+    // 2. Compute next rendered list (new active + currently shutting down)
+    const nextRendered = [...activeEnabled];
+    renderedExtensions.forEach((e) => {
+      if (shuttingDownRefs.current.has(e.id)) {
+        nextRendered.push(e);
       }
+    });
+
+    // Sync only when there are structural changes to avoid infinite loop
+    const currentKeys = renderedExtensions.map(e => e.id).join(",");
+    const nextKeys = nextRendered.map(e => e.id).join(",");
+    if (currentKeys !== nextKeys) {
+      setRenderedExtensions(nextRendered);
     }
-  }, [activeExtensions, activeProfile]);
+  }, [activeExtensions, renderedExtensions]);
+
+  const triggerPhysicalRemoval = (pluginId: string) => {
+    if (!shuttingDownRefs.current.has(pluginId)) return;
+    shuttingDownRefs.current.delete(pluginId);
+    iframeRefs.current.delete(pluginId);
+    ExtensionRegistry.unregisterSandbox(pluginId);
+    setRenderedExtensions((prev) => prev.filter((e) => e.id !== pluginId));
+  };
 
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
@@ -108,6 +140,9 @@ export const PluginSandbox: React.FC = () => {
       const { action, payload } = msg;
 
       switch (action) {
+        case "SHUTDOWN_ACK":
+          triggerPhysicalRemoval(pluginId);
+          break;
         case "REGISTER_PLUGIN":
           ExtensionRegistry.registerPlugin(pluginId, payload);
           break;
@@ -196,7 +231,7 @@ export const PluginSandbox: React.FC = () => {
           break;
         }
         case "HTTP_REQUEST":
-          handleHttpProxyRequest(payload, permissions, event.source, activeProfile);
+          handleHttpProxyRequest(payload, permissions, event.source, activeProfile, pluginId);
           break;
         case "REFRESH_STREAM_URL_RESPONSE": {
           if (payload.success) {
@@ -225,16 +260,26 @@ export const PluginSandbox: React.FC = () => {
     return () => window.removeEventListener("message", handleMessage);
   }, [activeProfile, showHUD, activeExtensions, activePlayback, playVideo, navigate]);
 
-  useEffect(() => {
-    return () => {
-      iframeRefs.current.forEach((iframe) => {
-        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-      });
-      iframeRefs.current.clear();
-    };
-  }, []);
-
-  return null;
+  return (
+    <div style={{ display: "none" }} aria-hidden="true">
+      {renderedExtensions.map((ext) => (
+        <iframe
+          key={`${ext.id}-${activeProfile?.id}`}
+          ref={(el) => {
+            if (el) {
+              iframeRefs.current.set(ext.id, el);
+              ExtensionRegistry.registerSandbox(ext.id, el);
+            } else {
+              // Automatically triggers cleanup in the registry on physical DOM removal
+              iframeRefs.current.delete(ext.id);
+            }
+          }}
+          sandbox="allow-scripts"
+          srcDoc={createIframeHtml(ext, activeProfile)}
+        />
+      ))}
+    </div>
+  );
 };
 
 export default PluginSandbox;

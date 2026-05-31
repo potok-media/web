@@ -3,6 +3,32 @@ import { Link } from "react-router-dom";
 import { Star } from "lucide-react";
 import type { MediaCard } from "../network/ApiClient";
 
+// Shared singleton IntersectionObserver subscription system
+type ObserverCallback = (entry: IntersectionObserverEntry) => void;
+const subscribers = new WeakMap<Element, ObserverCallback>();
+
+let sharedObserver: IntersectionObserver | null = null;
+
+function getSharedObserver(): IntersectionObserver {
+  if (!sharedObserver) {
+    sharedObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const callback = subscribers.get(entry.target);
+          if (callback) {
+            callback(entry);
+          }
+        }
+      },
+      {
+        rootMargin: "160px 0px 160px 0px", // Trigger 160px early so transition finishes before viewport entry
+        threshold: 0.01,
+      }
+    );
+  }
+  return sharedObserver;
+}
+
 interface MediaCardComponentProps {
   item: MediaCard;
   onClick?: (item: MediaCard) => void;
@@ -21,23 +47,21 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
       setIsImageLoaded(true);
     }
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        // Toggle intersection state in both directions to hide off-screen items
-        setIsIntersecting(entry.isIntersecting);
-      },
-      {
-        rootMargin: "160px 0px 160px 0px", // Trigger 160px early so transition finishes before viewport entry
-        threshold: 0.01,
-      }
-    );
+    const element = cardRef.current;
+    if (!element) return;
 
-    if (cardRef.current) {
-      observer.observe(cardRef.current);
-    }
+    const observer = getSharedObserver();
+
+    const callback: ObserverCallback = (entry) => {
+      setIsIntersecting(entry.isIntersecting);
+    };
+
+    subscribers.set(element, callback);
+    observer.observe(element);
 
     return () => {
-      observer.disconnect();
+      subscribers.delete(element);
+      observer.unobserve(element);
     };
   }, [item.id, item.posterSrc]);
 
@@ -91,14 +115,17 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
       }}
     >
       <div className="media-poster-wrap">
-        <img
-          src={item.posterSrc || "https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?auto=format&fit=crop&w=160&h=240"}
-          className="media-poster"
-          alt={item.title}
-          decoding="async"
-          onLoad={handleImageLoad}
-          onError={handleImageError}
-        />
+        {(isIntersecting || isImageLoaded) && (
+          <img
+            src={item.posterSrc || "https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?auto=format&fit=crop&w=160&h=240"}
+            className="media-poster"
+            alt={item.title}
+            loading="lazy"
+            decoding="async"
+            onLoad={handleImageLoad}
+            onError={handleImageError}
+          />
+        )}
         
         {/* Dark bottom gradient overlay */}
         <div className="media-card-overlay">

@@ -1,4 +1,4 @@
-import { initPotokSDK } from "./SDKRuntime";
+import { getSDKRuntimeString } from "./SDKRuntime";
 
 export const normalizeUrl = (url: string): string => {
   let clean = url.trim();
@@ -33,7 +33,7 @@ export const createIframeHtml = (ext: any, activeProfile: any): string => {
       </script>
       <base href="${baseUrl}">
       <script>
-        (${initPotokSDK.toString()})(
+        (${getSDKRuntimeString()})(
           ${JSON.stringify(ext.id)},
           ${JSON.stringify(ext.manifest.permissions || [])},
           ${JSON.stringify({

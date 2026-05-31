@@ -59,8 +59,8 @@
   --font-caption: 400 0.8rem var(--font-family);
   --font-caption-bold: 700 0.8rem var(--font-family);
   
-  --glass-blur: blur(25px);
-  --blur-glass: blur(25px);
+  --glass-blur: blur(8px);
+  --blur-glass: blur(8px);
   --glass-bg: RGBA(15, 15, 20, 0.65);
   --glass-border: 1px solid RGBA(255, 255, 255, 0.08);
   --shadow-l: 0 12px 40px RGBA(0, 0, 0, 0.5);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useAppSettings } from "../../context/AppSettingsContext";
+import { useSettings } from "../../context/AppSettingsContext";
 import { useHUD } from "../../context/HUDContext";
 import type { ConnectionProfile } from "../../network/ApiTypes";
 import ProfileSelector from "../ProfileSelector";
@@ -14,7 +14,7 @@ export const ProfilesSettings: React.FC = () => {
     addProfile,
     deleteProfile,
     updateProfile,
-  } = useAppSettings();
+  } = useSettings();
 
   const { show: showHUD } = useHUD();
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;

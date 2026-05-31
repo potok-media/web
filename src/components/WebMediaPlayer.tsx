@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import Hls from "hls.js";
 import { ChevronRight, AlertTriangle } from "lucide-react";
 import { ApiClient } from "../network/ApiClient";
-import { useAppSettings, type ActivePlayback } from "../context/AppSettingsContext";
+import { usePlayback, type ActivePlayback } from "../context/AppSettingsContext";
 import { PlayerTopBar } from "./player/PlayerTopBar";
 import { PlayerStatsHUD } from "./player/PlayerStatsHUD";
 import { PlayerControls } from "./player/PlayerControls";
@@ -73,6 +73,8 @@ interface WebMediaPlayerProps {
   isNetworkOffline?: boolean;
 }
 
+const subtitleObjectUrls = new Set<string>();
+
 export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClose, isNetworkOffline = false }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -81,7 +83,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const playerSessionRef = useRef<number>(0);
   const isMountedRef = useRef<boolean>(true);
   const autoRefreshCountRef = useRef<number>(0);
-  const { playVideo } = useAppSettings();
+  const { playVideo } = usePlayback();
 
   // States
   const [isPlaying, setIsPlaying] = useState(false);
@@ -121,7 +123,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
     const savedResume = localStorage.getItem(resumeKey);
     if (savedResume) {
-      localStorage.removeItem(resumeKey);
       const parsed = Number(savedResume);
       if (!isNaN(parsed) && parsed > 0) return parsed;
     }
@@ -141,6 +142,11 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
   const controlsTimeoutRef = useRef<any>(null);
 
+  const playbackRef = useRef(playback);
+  useEffect(() => {
+    playbackRef.current = playback;
+  }, [playback]);
+
   // Helper to route external CDN streams through high-performance C# BFF stream proxy
   const getProxyUrl = useCallback((targetUrl: string) => {
     if (!targetUrl) return targetUrl;
@@ -151,16 +157,17 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     const gatewayBase = ApiClient.baseURL.replace(/\/+$/, "");
     let proxyUrl = `${gatewayBase}/api/proxy?url=${encodeURIComponent(targetUrl)}`;
 
-    if (playback.headers) {
-      if (playback.headers["Referer"]) {
-        proxyUrl += `&referer=${encodeURIComponent(playback.headers["Referer"])}`;
+    const currentHeaders = playbackRef.current.headers;
+    if (currentHeaders) {
+      if (currentHeaders["Referer"]) {
+        proxyUrl += `&referer=${encodeURIComponent(currentHeaders["Referer"])}`;
       }
-      if (playback.headers["Origin"]) {
-        proxyUrl += `&origin=${encodeURIComponent(playback.headers["Origin"])}`;
+      if (currentHeaders["Origin"]) {
+        proxyUrl += `&origin=${encodeURIComponent(currentHeaders["Origin"])}`;
       }
     }
     return proxyUrl;
-  }, [playback.headers]);
+  }, []);
 
   // Audio track initializer
   useEffect(() => {
@@ -372,11 +379,21 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         video.pause();
         video.src = "";
         video.removeAttribute("src");
+        video.querySelectorAll("track").forEach(t => t.remove());
         video.load();
       } catch (e) {
         console.error("[WebMediaPlayer] Video teardown error:", e);
       }
     }
+
+    subtitleObjectUrls.forEach((url) => {
+      try {
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        console.warn("[WebMediaPlayer] Failed to revoke Object URL during cleanup:", e);
+      }
+    });
+    subtitleObjectUrls.clear();
   }, []);
 
   const handleRefreshStream = useCallback(() => {
@@ -422,7 +439,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
     const savedResume = localStorage.getItem(resumeKey);
     if (savedResume) {
-      localStorage.removeItem(resumeKey);
       const parsed = Number(savedResume);
       if (!isNaN(parsed) && parsed > 0) startPos = parsed;
     } else {
@@ -577,6 +593,19 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const handlePlay = () => setIsPlaying(true);
   const handlePause = () => setIsPlaying(false);
 
+  const handlePlaying = () => {
+    setIsPlaying(true);
+    setIsMetadataLoading(false);
+    
+    // Clear resume key from localStorage upon actual playback start to survive Strict Mode double mount
+    const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
+    localStorage.removeItem(resumeKey);
+  };
+
+  const handleCanPlay = () => {
+    setIsMetadataLoading(false);
+  };
+
   const playPlaylistItem = (index: number) => {
     if (!playback.playlist || index < 0 || index >= playback.playlist.length) return;
     const item = playback.playlist[index];
@@ -600,23 +629,30 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     }
   };
   
+  const lastTimeRef = useRef(0);
+  
   const handleTimeUpdate = () => {
     const video = videoRef.current;
     if (!video) return;
-    setCurrentTime(video.currentTime);
 
-    // Buffer diagnostics calculation
-    const buffered = video.buffered;
-    let buf = 0;
-    for (let i = 0; i < buffered.length; i++) {
-      if (video.currentTime >= buffered.start(i) && video.currentTime <= buffered.end(i)) {
-        buf = buffered.end(i) - video.currentTime;
-        break;
+    const currentInt = Math.floor(video.currentTime);
+    if (currentInt !== Math.floor(lastTimeRef.current)) {
+      lastTimeRef.current = video.currentTime;
+      setCurrentTime(video.currentTime);
+
+      // Buffer diagnostics calculation
+      const buffered = video.buffered;
+      let buf = 0;
+      for (let i = 0; i < buffered.length; i++) {
+        if (video.currentTime >= buffered.start(i) && video.currentTime <= buffered.end(i)) {
+          buf = buffered.end(i) - video.currentTime;
+          break;
+        }
       }
-    }
-    setBufferSec(buf);
-    if (buffered.length > 0) {
-      setBufferedTime(buffered.end(buffered.length - 1));
+      setBufferSec(buf);
+      if (buffered.length > 0) {
+        setBufferedTime(buffered.end(buffered.length - 1));
+      }
     }
   };
 
@@ -753,6 +789,18 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         hlsRef.current = null;
       }
 
+      // Clear all track elements from DOM before setting new src
+      video.querySelectorAll("track").forEach(t => t.remove());
+
+      subtitleObjectUrls.forEach((url) => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (e) {
+          console.warn("[WebMediaPlayer] Failed to revoke Object URL on subtitle change:", e);
+        }
+      });
+      subtitleObjectUrls.clear();
+
       const proxiedNewUrl = getProxyUrl(newUrl);
       video.src = proxiedNewUrl;
       
@@ -801,6 +849,18 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         } catch (e) {}
         hlsRef.current = null;
       }
+
+      // Clear all track elements from DOM before setting new src
+      video.querySelectorAll("track").forEach(t => t.remove());
+
+      subtitleObjectUrls.forEach((url) => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (e) {
+          console.warn("[WebMediaPlayer] Failed to revoke Object URL on subtitle change:", e);
+        }
+      });
+      subtitleObjectUrls.clear();
 
       const proxiedNewUrl = getProxyUrl(newUrl);
       video.pause();
@@ -864,7 +924,10 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const handleUploadSubtitle = (file: File) => {
     const video = videoRef.current;
     if (!video) return;
-    loadExternalSubtitle(video, file, (newIndex) => {
+    loadExternalSubtitle(video, file, (newIndex, url) => {
+      if (url) {
+        subtitleObjectUrls.add(url);
+      }
       syncNativeTextTracks();
       if (newIndex !== -1) switchSubtitle(newIndex);
     });
@@ -953,6 +1016,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         <video
           ref={videoRef}
           onPlay={handlePlay}
+          onPlaying={handlePlaying}
+          onCanPlay={handleCanPlay}
           onPause={handlePause}
           onTimeUpdate={handleTimeUpdate}
           onDurationChange={handleDurationChange}
@@ -1045,6 +1110,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       />
 
       <PlayerControls
+        videoRef={videoRef}
         controlsVisible={controlsVisible}
         isPlaying={isPlaying}
         onTogglePlay={togglePlay}
@@ -1081,6 +1147,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         onSelectPlaylistItem={playPlaylistItem}
         showPlaylistMenu={showPlaylistMenu}
         onTogglePlaylistMenu={() => { setShowPlaylistMenu(!showPlaylistMenu); setShowAudioMenu(false); setShowSubtitleMenu(false); setShowQualityMenu(false); }}
+        seekOffset={seekOffset}
       />
     </div>
   );

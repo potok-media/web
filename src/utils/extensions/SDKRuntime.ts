@@ -17,8 +17,7 @@ export function initPotokSDK(
   // It is never actually executed on the host.
 }
 
-// Custom toString implementation that compiles the full sandboxed runtime!
-initPotokSDK.toString = (): string => {
+export function getSDKRuntimeString(): string {
   return `function initPotokSDK(pluginId, permissions, config) {
     const win = window;
     if (win.PotokSDK) return;
@@ -187,4 +186,4 @@ initPotokSDK.toString = (): string => {
       }
     });
   }`;
-};
+}

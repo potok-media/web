@@ -10,6 +10,8 @@ interface WSMessageFrame {
   traceId: string;
 }
 
+export type ConnectionState = "DISCONNECTED" | "CONNECTING" | "CONNECTED" | "RECONNECTING";
+
 export class WebSocketClient {
   private static instance: WebSocketClient | null = null;
   private socket: WebSocket | null = null;
@@ -17,12 +19,16 @@ export class WebSocketClient {
   private rawUrl: string | null = null;
   private listeners: Record<string, Set<WSCallback>> = {};
   
+  // Strict ConnectionState machine
+  private state: ConnectionState = "DISCONNECTED";
+  // Single AbortController to manage events
+  private abortController: AbortController | null = null;
+
   // Reconnection state
-  private isConnecting = false;
   private retryCount = 0;
   private maxRetryDelay = 30000;
-  private reconnectTimeoutId: any = null;
-  private pingIntervalId: any = null;
+  private reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private pingIntervalId: ReturnType<typeof setInterval> | null = null;
 
   public static get shared(): WebSocketClient {
     if (!this.instance) {
@@ -39,6 +45,25 @@ export class WebSocketClient {
         this.reconnect(true);
       });
 
+      window.addEventListener("offline", () => {
+        logger.log("[WS] Browser went offline. Proactively clearing timers and closing WebSocket...");
+        if (this.reconnectTimeoutId) {
+          clearTimeout(this.reconnectTimeoutId);
+          this.reconnectTimeoutId = null;
+        }
+        this.stopPingInterval();
+        if (this.socket) {
+          try {
+            this.socket.onclose = null;
+            this.socket.close(1000, "Normal closure");
+          } catch (err) {
+            // ignore
+          }
+          this.socket = null;
+        }
+        this.transitionTo("DISCONNECTED");
+      });
+
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {
           logger.log("[WS] Tab became visible. Re-validating WebSocket state...");
@@ -48,6 +73,11 @@ export class WebSocketClient {
         }
       });
     }
+  }
+
+  private transitionTo(newState: ConnectionState): void {
+    logger.log(`[WS] State transition: ${this.state} -> ${newState}`);
+    this.state = newState;
   }
 
   private startPingInterval(): void {
@@ -119,56 +149,77 @@ export class WebSocketClient {
   }
 
   private connect(): void {
-    if (!this.currentUrl || this.isConnecting) return;
-    this.isConnecting = true;
+    if (!this.currentUrl || this.state === "CONNECTING" || this.state === "CONNECTED") return;
+    this.transitionTo("CONNECTING");
 
     logger.log(`[WS] Connecting to WebSocket at ${this.currentUrl}...`);
+
+    if (this.socket) {
+      try {
+        this.socket.onclose = null;
+        this.socket.close(1000, "Normal closure");
+      } catch (err) {
+        logger.error("[WS] Failed to close WebSocket before reconnecting:", err);
+      }
+      this.socket = null;
+    }
+
+    // Clean up previous abortController if any
+    if (this.abortController) {
+      this.abortController.abort();
+    }
+    this.abortController = new AbortController();
+    const { signal } = this.abortController;
 
     try {
       const ws = new WebSocket(this.currentUrl);
       this.socket = ws;
 
-      ws.onopen = () => {
+      ws.addEventListener("open", () => {
+        if (signal.aborted) return;
         logger.log("[WS] WebSocket connected successfully!");
-        this.isConnecting = false;
+        this.transitionTo("CONNECTED");
         this.retryCount = 0;
         this.trigger("connected", "");
         this.startPingInterval();
-      };
+      }, { signal });
 
-      ws.onmessage = (event: MessageEvent) => {
+      ws.addEventListener("message", (event: MessageEvent) => {
+        if (signal.aborted) return;
         try {
           const frame: WSMessageFrame = JSON.parse(event.data);
-          
           logger.log(`[WS] Event: ${frame.event} [TraceId: ${frame.traceId}]`);
           this.trigger(frame.event, frame.payload);
         } catch (err) {
-          logger.warn("[WS] Received raw frame that failed parser schema validation:", event.data);
+          logger.warn("[WS] Received raw frame that failed parser schema validation:", event.data, err);
           this.trigger("message", event.data);
         }
-      };
+      }, { signal });
 
-      ws.onerror = (err) => {
-        logger.warn("[WS] Connection encountered an error:", err);
-      };
+      ws.addEventListener("error", () => {
+        if (signal.aborted) return;
+        logger.warn("[WS] Connection encountered an error.");
+      }, { signal });
 
-      ws.onclose = (event) => {
-        this.isConnecting = false;
+      ws.addEventListener("close", (event) => {
+        if (signal.aborted) return;
         this.socket = null;
         this.stopPingInterval();
         this.trigger("offline", "");
         
         if (event.wasClean) {
           logger.log("[WS] Connection closed cleanly by client or host.");
+          this.transitionTo("DISCONNECTED");
         } else {
           logger.warn("[WS] Connection lost abruptly. Scheduling auto-reconnect...");
+          this.transitionTo("RECONNECTING");
           this.scheduleReconnect();
         }
-      };
+      }, { signal });
     } catch (e) {
-      this.isConnecting = false;
       this.socket = null;
       logger.error("[WS] Connection attempt threw synchronous exception:", e);
+      this.transitionTo("RECONNECTING");
       this.scheduleReconnect();
     }
   }
@@ -200,7 +251,7 @@ export class WebSocketClient {
     }
     
     if (force) {
-      this.isConnecting = false;
+      this.transitionTo("DISCONNECTED");
       this.retryCount = 0;
     }
 
@@ -217,14 +268,24 @@ export class WebSocketClient {
 
     this.stopPingInterval();
 
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
+    }
+
     if (this.socket) {
-      this.socket.close(1000, "Normal closure request");
+      try {
+        this.socket.onclose = null;
+        this.socket.close(1000, "Normal closure");
+      } catch (err) {
+        logger.error("[WS] Failed to close WebSocket cleanly:", err);
+      }
       this.socket = null;
     }
 
     this.currentUrl = null;
-    this.isConnecting = false;
     this.retryCount = 0;
+    this.transitionTo("DISCONNECTED");
     logger.log("[WS] WebSocket listener stopped completely.");
   }
 
@@ -236,6 +297,10 @@ export class WebSocketClient {
         logger.error(`[WS] Error executing callback for event "${event}":`, err);
       }
     });
+  }
+
+  public get currentState(): ConnectionState {
+    return this.state;
   }
 }
 

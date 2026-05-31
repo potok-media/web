@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { ApiClient } from "../network/ApiClient";
+import React, { useState, useEffect } from "react";
+import { useSeasonEpisodes } from "../hooks/useSeasonEpisodes";
 import { useHUD } from "../context/HUDContext";
 import type { TvEpisode } from "../network/ApiTypes";
 
@@ -15,40 +15,24 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   onEpisodeClick,
 }) => {
   const [activeSeason, setActiveSeason] = useState<number>(1);
-  const [episodes, setEpisodes] = useState<TvEpisode[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { episodes, loading, error } = useSeasonEpisodes(mediaId, activeSeason);
   const { show: showHUD } = useHUD();
 
-  const fetchEpisodes = async (seasonNum: number) => {
-    if (!mediaId) return;
-    try {
-      setLoading(true);
-      const data = await ApiClient.fetchTvSeason(mediaId, seasonNum);
-      const mappedEpisodes: TvEpisode[] = (data.episodes || []).map((ep) => ({
-        id: ep.id,
-        episodeNumber: ep.episodeNumber,
-        name: ep.name,
-        overview: ep.overview,
-        stillPath: ep.stillPath || ep.still_path,
-        airDate: ep.airDate,
-        seasonNumber: seasonNum,
-      }));
-      setEpisodes(mappedEpisodes);
-    } catch {
-      showHUD("error", "Не удалось загрузить эпизоды сезона");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Reset active season back to 1 when mediaId changes to prevent loading incorrect seasons for a new show
+  useEffect(() => {
+    setActiveSeason(1);
+  }, [mediaId]);
 
   useEffect(() => {
-    fetchEpisodes(activeSeason);
-  }, [mediaId, activeSeason]);
+    if (error) {
+      showHUD("error", error);
+    }
+  }, [error, showHUD]);
 
   if (numberOfSeasons <= 0) return null;
 
   return (
-    <section className="season-episodes-section">
+    <section className="season-episodes-section" style={{ minHeight: "350px" }}>
       <h2 className="season-episodes-title">Выбор серий</h2>
       <div className="tabs-header">
         {Array.from({ length: numberOfSeasons }, (_, i) => i + 1).map((sNum) => (
@@ -63,8 +47,30 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
       </div>
 
       {loading ? (
-        <div className="season-episodes-loading">
-          <div className="spinner" />
+        // Bulletproof Skeleton prevents Cumulative Layout Shift (CLS)
+        <div 
+          className="season-episodes-skeleton-grid" 
+          style={{ 
+            display: "grid", 
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", 
+            gap: "16px", 
+            minHeight: "220px",
+            marginTop: "16px"
+          }}
+        >
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div 
+              key={idx} 
+              className="episode-card-skeleton" 
+              style={{ 
+                height: "230px", 
+                background: "rgba(255, 255, 255, 0.03)", 
+                borderRadius: "12px", 
+                border: "1px solid rgba(255, 255, 255, 0.05)",
+                opacity: 0.6,
+              }} 
+            />
+          ))}
         </div>
       ) : episodes.length > 0 ? (
         <div className="episodes-grid">
@@ -107,4 +113,3 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
     </section>
   );
 };
-

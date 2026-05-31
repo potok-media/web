@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { ApiClient } from "../network/ApiClient";
 import { ApiError } from "../network/ApiTypes";
 import type { MediaCard } from "../network/ApiTypes";
-import { useAppSettings } from "../context/AppSettingsContext";
+import { useSettings } from "../context/AppSettingsContext";
 
 // Profile-scoped SWR caches to completely prevent profile switching data leaks!
 const profileCollectionsCache: Record<string, Record<string, MediaCard[]>> = {};
@@ -17,7 +17,7 @@ interface UseLibraryPageProps {
 }
 
 export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: UseLibraryPageProps) {
-  const { activeProfileID } = useAppSettings();
+  const { activeProfileID } = useSettings();
   const profileKey = activeProfileID || "default";
 
   // Safely initialize active profile collection cache

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Sliders, Puzzle, Globe } from "lucide-react";
-import { useAppSettings } from "../context/AppSettingsContext";
+import { useSettings } from "../context/AppSettingsContext";
 import GeneralSettings from "../components/settings/GeneralSettings";
 import ProfilesSettings from "../components/settings/ProfilesSettings";
 import ExtensionsManager from "../components/ExtensionsManager";
@@ -18,7 +18,7 @@ export const SettingsPage: React.FC = () => {
     setAccentTheme,
     setDefaultPlayer,
     setUiFontScale,
-  } = useAppSettings();
+  } = useSettings();
 
   const [activeTab, setActiveTab] = useState<string>("general");
   const [, setTick] = useState(0);

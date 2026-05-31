@@ -21,7 +21,7 @@ export function convertSrtToVtt(srtContent: string): string {
 export function loadExternalSubtitle(
   video: HTMLVideoElement,
   file: File,
-  onLoaded: (trackIndex: number) => void
+  onLoaded: (trackIndex: number, url: string) => void
 ): void {
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -53,7 +53,7 @@ export function loadExternalSubtitle(
           video.textTracks[i].mode = "disabled";
         }
       }
-      onLoaded(registeredIndex);
+      onLoaded(registeredIndex, url);
     }, 100);
   };
   reader.readAsText(file);
