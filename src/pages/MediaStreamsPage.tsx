@@ -1,12 +1,11 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React from "react";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
-import { useHUD } from "../context/HUDContext";
+import { StreamList } from "../components/common/StreamList";
 import { StreamSidebar } from "../components/StreamSidebar";
-import { ApiClient } from "../network/ApiClient";
-import type { MediaCard } from "../network/ApiTypes";
 import { EpisodeSelectorPopup } from "../components/common/EpisodeSelectorPopup";
-import { DynamicBlock } from "../components/common/DynamicBlock";
+import { useMediaStreams } from "../hooks/useMediaStreams";
+import type { MediaCard } from "../network/ApiTypes";
 import "../styles/media.css";
 
 export const MediaStreamsPage: React.FC = () => {
@@ -14,99 +13,93 @@ export const MediaStreamsPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { show: showHUD } = useHUD();
 
   const mediaId = Number(id);
-  const state = location.state as { season?: number; episode?: number; media?: any; tab?: string } | null;
+  const state = location.state as { season?: number; episode?: number; media?: MediaCard } | null;
   const season = state?.season ?? (searchParams.get("season") ? Number(searchParams.get("season")) : undefined);
   const episode = state?.episode ?? (searchParams.get("episode") ? Number(searchParams.get("episode")) : undefined);
   const initialMedia = state?.media;
 
-  // Active state for generic episode selector modal
-  const [episodeSelectorData, setEpisodeSelectorData] = useState<{
-    title: string;
-    episodes: any[];
-    onPlay: (episode: any, audioId: string) => void;
-    onStartEditing?: () => void;
-    onApplyOverride?: (seasonNum: number, epNum: number) => void;
-    seasons?: any[];
-    seasonsLoading?: boolean;
-    isSaving?: boolean;
-    tmdbSeasonsCount?: number;
-  } | null>(null);
+  const {
+    loadingMediaDetails,
+    currentMedia,
+    streams,
+    loading,
+    error,
+    handleRefresh,
+    handleSelectStream,
+    clickedStream,
+    setClickedStream,
+    episodeSelectorData,
+    setEpisodeSelectorData,
+    handlePlayEpisode,
+    handleStartEditing,
+    handleApplyOverride,
+    seasons,
+    seasonsLoading,
+    isSaving,
+  } = useMediaStreams({
+    mediaType,
+    mediaId,
+    season,
+    episode,
+    initialMedia,
+    activeTab: tab,
+  });
 
-  useEffect(() => {
-    const handleShowSelector = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      if (customEvent.detail) {
-        setEpisodeSelectorData((prev) => {
-          if (!prev) return customEvent.detail;
-          
-          const cleanDetail = { ...customEvent.detail };
-          Object.keys(cleanDetail).forEach((key) => {
-            if (cleanDetail[key] === undefined) {
-              delete cleanDetail[key];
-            }
-          });
-
-          return {
-            ...prev,
-            ...cleanDetail
-          };
-        });
-      }
-    };
-
-    window.addEventListener("potok:show-episode-selector", handleShowSelector);
-
-    return () => {
-      window.removeEventListener("potok:show-episode-selector", handleShowSelector);
-    };
-  }, []);
-
-  const handleOnError = useCallback((err: unknown) => {
-    console.error("[MediaStreamsPage] Error details:", err);
-    const msg = err instanceof Error ? err.message : "Ошибка загрузки деталей медиа";
-    showHUD("error", msg);
-  }, [showHUD]);
-
-  // Dynamic media details state to populate sidebar
-  const [mediaDetails, setMediaDetails] = useState<MediaCard | null>(initialMedia || null);
-  const [loadingMediaDetails, setLoadingMediaDetails] = useState(!initialMedia);
-
-  useEffect(() => {
-    if (initialMedia) {
-      setMediaDetails(initialMedia);
-      setLoadingMediaDetails(false);
-      return;
+  const renderSidebar = () => {
+    if (currentMedia) {
+      return <StreamSidebar media={currentMedia} season={season} episode={episode} onBack={() => navigate(-1)} />;
     }
-    if (!mediaType || !mediaId) return;
+    return (
+      <aside className="streams-page-sidebar skeleton-loading">
+        <button className="streams-sidebar-back-btn" onClick={() => navigate(-1)}><ArrowLeft size={18} /></button>
+        <div className="streams-sidebar-poster skeleton" style={{ height: "360px", borderRadius: "12px", background: "rgba(255,255,255,0.05)" }} />
+      </aside>
+    );
+  };
 
-    let isMounted = true;
-    setLoadingMediaDetails(true);
-    ApiClient.fetchMediaDetails(mediaType, mediaId)
-      .then((data) => {
-        if (isMounted) {
-          setMediaDetails(data);
-          setLoadingMediaDetails(false);
-        }
-      })
-      .catch((err) => {
-        if (isMounted) {
-          handleOnError(err);
-          setLoadingMediaDetails(false);
-        }
-      });
+  const renderContent = () => (
+    <section className="streams-page-content" style={{ display: "flex", flexDirection: "column" }}>
+      <div style={{ flex: 1, padding: "20px", overflowY: "auto" }}>
+        <StreamList
+          streams={streams}
+          loading={loading}
+          showFilters={true}
+          emptyText={error || "Потоков не найдено. Попробуйте сменить фильтры."}
+          onSelectStream={handleSelectStream}
+          onRefresh={handleRefresh}
+        />
+      </div>
+    </section>
+  );
 
-    return () => {
-      isMounted = false;
-    };
-  }, [mediaType, mediaId, initialMedia, handleOnError]);
+  const renderPopup = () => {
+    if (!episodeSelectorData || !clickedStream) return null;
+    return (
+      <EpisodeSelectorPopup
+        isOpen={!!episodeSelectorData}
+        onClose={() => {
+          setEpisodeSelectorData(null);
+          setClickedStream(null);
+        }}
+        title={episodeSelectorData.title}
+        episodes={episodeSelectorData.episodes}
+        onPlay={handlePlayEpisode}
+        onStartEditing={handleStartEditing}
+        onApplyOverride={handleApplyOverride}
+        seasons={seasons}
+        seasonsLoading={seasonsLoading}
+        isSaving={isSaving}
+        tmdbSeasonsCount={episodeSelectorData.tmdbSeasonsCount}
+        backdropSrc={currentMedia?.backdropSrc}
+        posterSrc={currentMedia?.posterSrc}
+        mediaType={mediaType}
+      />
+    );
+  };
 
-  const currentMedia = mediaDetails || null;
-  const isMediaLoading = loadingMediaDetails;
-
-  if (!isMediaLoading && !currentMedia) {
+  if (!loadingMediaDetails && !currentMedia) {
     return (
       <div className="media-not-found-container">
         <ShieldAlert size={48} className="media-not-found-icon" />
@@ -118,72 +111,10 @@ export const MediaStreamsPage: React.FC = () => {
 
   return (
     <div className="streams-page-layout">
-      {/* Shared Immersive backdrop */}
-      <div
-        className="streams-page-backdrop"
-        style={{ backgroundImage: `url(${currentMedia?.backdropSrc || ""})` }}
-      />
-
-      {/* Shared Sidebar layout */}
-      {currentMedia ? (
-        <StreamSidebar 
-          media={currentMedia}
-          season={season}
-          episode={episode}
-          onBack={() => navigate(-1)}
-        />
-      ) : (
-        <aside className="streams-page-sidebar skeleton-loading">
-          <button className="streams-sidebar-back-btn" onClick={() => navigate(-1)}>
-            <ArrowLeft size={18} />
-          </button>
-          <div className="streams-sidebar-poster skeleton" style={{ height: "360px", borderRadius: "12px", background: "rgba(255,255,255,0.05)" }} />
-        </aside>
-      )}
-
-      <section className="streams-page-content" style={{ display: "flex", flexDirection: "column" }}>
-        <DynamicBlock
-          name="media-streams-header"
-          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: tab || ("potok-tor" + "rents") }}
-        >
-          <div id="streams-header-default" />
-        </DynamicBlock>
-
-        <DynamicBlock
-          name="media-streams-filters"
-          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: tab || ("potok-tor" + "rents") }}
-        >
-          <div id="streams-filter-bar" />
-        </DynamicBlock>
-
-        <DynamicBlock
-          name="media-streams-results"
-          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: tab || ("potok-tor" + "rents") }}
-        >
-          <div className="streams-results-list" id="streams-results-list" />
-        </DynamicBlock>
-      </section>
-
-
-      {/* Generic Episode Selector Popup Sheet */}
-      {episodeSelectorData && (
-        <EpisodeSelectorPopup
-          isOpen={!!episodeSelectorData}
-          onClose={() => setEpisodeSelectorData(null)}
-          title={episodeSelectorData.title}
-          episodes={episodeSelectorData.episodes}
-          onPlay={episodeSelectorData.onPlay}
-          onStartEditing={episodeSelectorData.onStartEditing}
-          onApplyOverride={episodeSelectorData.onApplyOverride}
-          seasons={episodeSelectorData.seasons}
-          seasonsLoading={episodeSelectorData.seasonsLoading}
-          isSaving={episodeSelectorData.isSaving}
-          tmdbSeasonsCount={episodeSelectorData.tmdbSeasonsCount ?? currentMedia?.numberOfSeasons}
-          backdropSrc={currentMedia?.backdropSrc}
-          posterSrc={currentMedia?.posterSrc}
-          mediaType={mediaType}
-        />
-      )}
+      <div className="streams-page-backdrop" style={{ backgroundImage: `url(${currentMedia?.backdropSrc || ""})` }} />
+      {renderSidebar()}
+      {renderContent()}
+      {renderPopup()}
     </div>
   );
 };

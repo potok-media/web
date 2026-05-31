@@ -30,11 +30,18 @@ export const MediaDetailsPage: React.FC = () => {
   const mediaRef = useRef<MediaCard | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<SelectedEpisodeState | null>(null);
 
-  const handleNavigateToStreams = useCallback((season?: number, episode?: number) => {
-    navigate(`/media/${mediaType}/${mediaId}/watch`, {
+  const handleNavigateToStreams = useCallback((tab?: string, season?: number, episode?: number) => {
+    const path = tab 
+      ? `/media/${mediaType}/${mediaId}/watch/${tab}` 
+      : `/media/${mediaType}/${mediaId}/watch`;
+    navigate(path, {
       state: { season, episode, media: mediaRef.current }
     });
   }, [navigate, mediaType, mediaId]);
+
+  const handleDeepLinkNavigate = useCallback((season?: number, episode?: number) => {
+    handleNavigateToStreams("potok-torrents", season, episode);
+  }, [handleNavigateToStreams]);
 
   const {
     media,
@@ -51,7 +58,7 @@ export const MediaDetailsPage: React.FC = () => {
     mediaType,
     mediaId,
     playParam: searchParams.get("play"),
-    onNavigateToStreams: handleNavigateToStreams,
+    onNavigateToStreams: handleDeepLinkNavigate,
     showHUD,
   });
 
@@ -103,6 +110,7 @@ export const MediaDetailsPage: React.FC = () => {
                   name="media-details-actions"
                   contextProps={{ mediaId, tmdbId, mediaType, selectedEpisode, media }}
                 >
+
                   {/* Dynamically Rendered Plugin Extension Slot for Media Actions (Plugins contribute their watch buttons here) */}
                   <ExtensionSlot
                     id="media-actions"

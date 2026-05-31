@@ -2,11 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppSettings } from "../../context/AppSettingsContext";
 import { useHUD } from "../../context/HUDContext";
-import { initPotokSDK } from "../../utils/extensions/SDKRuntime";
 import { ExtensionRegistry } from "../../utils/extensions/ExtensionRegistry";
 import type { RegisteredExtension } from "../../network/SDKTypes";
 import { logger } from "../../utils/logger";
 import { ApiClient } from "../../network/ApiClient";
+import { createIframeHtml } from "../../utils/extensions/iframeHelper";
+import { handleHttpProxyRequest } from "../../utils/extensions/httpProxyHelper";
+import { handleShowEpisodeSelector } from "../../utils/extensions/episodeSelectorHelper";
 
 export const PluginSandbox: React.FC = () => {
   const { connectionProfiles, activeProfileID, playVideo, activePlayback } = useAppSettings();
@@ -17,7 +19,6 @@ export const PluginSandbox: React.FC = () => {
 
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || connectionProfiles[0] || null;
 
-  // Sync active extensions from localStorage periodically/initially
   useEffect(() => {
     const syncExtensions = () => {
       try {
@@ -25,28 +26,23 @@ export const PluginSandbox: React.FC = () => {
         const list: RegisteredExtension[] = raw ? JSON.parse(raw) : [];
         setActiveExtensions(list);
       } catch (err) {
-        console.error("[PluginSandbox] Sync failed:", err);
+        logger.error("[PluginSandbox] Sync failed:", err);
       }
     };
-
     syncExtensions();
     window.addEventListener("storage", syncExtensions);
     window.addEventListener("potok_extensions_updated", syncExtensions);
-
     return () => {
       window.removeEventListener("storage", syncExtensions);
       window.removeEventListener("potok_extensions_updated", syncExtensions);
     };
   }, []);
 
-  // Listen for stream refresh requests from the player
   useEffect(() => {
     const handleRefreshRequest = (e: Event) => {
       const customEvent = e as CustomEvent;
       const payload = customEvent.detail;
-
       showHUD("info", "Запрос на обновление ссылки...");
-
       let dispatched = false;
       for (const [, iframe] of iframeRefs.current.entries()) {
         iframe.contentWindow?.postMessage({
@@ -56,102 +52,32 @@ export const PluginSandbox: React.FC = () => {
         }, "*");
         dispatched = true;
       }
-
       if (!dispatched) {
         showHUD("error", "Плагин онлайн источников не активен.");
       }
     };
-
     window.addEventListener("potok:refresh-stream-url", handleRefreshRequest);
     return () => {
       window.removeEventListener("potok:refresh-stream-url", handleRefreshRequest);
     };
   }, [showHUD]);
 
-  // Helper to translate direct GitHub raw links to jsDelivr CDN links to solve MIME type restrictions
-  const normalizeUrl = (url: string): string => {
-    let clean = url.trim();
-    if (clean.includes("raw.githubusercontent.com")) {
-      const match = clean.match(/githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/);
-      if (match) {
-        const [, user, repo, branch, path] = match;
-        clean = `https://cdn.jsdelivr.net/gh/${user}/${repo}@${branch}/${path}`;
-      }
-    }
-    return clean;
-  };
-
   useEffect(() => {
     const activeEnabled = activeExtensions.filter((e) => e.enabled);
 
-    // 1. Mount new iframes for newly enabled extensions
     activeEnabled.forEach(async (ext) => {
       if (iframeRefs.current.has(ext.id)) return;
-
-      const normalizedDirUrl = normalizeUrl(ext.url);
-      const baseUrl = normalizedDirUrl.endsWith("/") ? normalizedDirUrl : `${normalizedDirUrl}/`;
 
       const iframe = document.createElement("iframe");
       iframe.style.display = "none";
       iframe.setAttribute("sandbox", "allow-scripts");
-
-      const iframeHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <script type="importmap">
-            {
-              "imports": {
-                "potok-sdk": "data:text/javascript,export const PotokSDK = window.PotokSDK;",
-                "@potok/sdk": "data:text/javascript,export const PotokSDK = window.PotokSDK;",
-                "../sdk.js": "data:text/javascript,export const PotokSDK = window.PotokSDK;",
-                "./sdk.js": "data:text/javascript,export const PotokSDK = window.PotokSDK;"
-              }
-            }
-          </script>
-          <base href="${baseUrl}">
-          <script>
-            (${initPotokSDK.toString()})(
-              ${JSON.stringify(ext.id)},
-              ${JSON.stringify(ext.manifest.permissions || [])},
-              ${JSON.stringify({
-                searchEngineURL: activeProfile?.searchEngineURL || "",
-                gatewayURL: activeProfile?.gatewayURL || "",
-                playerServerURL: activeProfile?.playerServerURL || "",
-                playerServerAuthEnabled: !!activeProfile?.playerServerAuthEnabled,
-                playerServerAuthLogin: activeProfile?.playerServerAuthLogin || "",
-                playerServerAuthPassword: activeProfile?.playerServerAuthPassword || "",
-                ["tor" + "rentGoURL"]: activeProfile?.playerServerURL || "",
-                ["tor" + "rentGoAuthEnabled"]: !!activeProfile?.playerServerAuthEnabled,
-                ["tor" + "rentGoAuthLogin"]: activeProfile?.playerServerAuthLogin || "",
-                ["tor" + "rentGoAuthPassword"]: activeProfile?.playerServerAuthPassword || ""
-              })}
-            );
-          </script>
-        </head>
-        <body>
-          <script type="module">
-            import("./${ext.manifest.entrypoint}").catch(err => {
-              window.parent.postMessage({
-                source: 'potok-plugin-sdk',
-                action: 'SCRIPT_CRASH',
-                payload: { error: err.message, stack: err.stack }
-              }, '*');
-            });
-          </script>
-        </body>
-        </html>
-      `;
-
-      iframe.srcdoc = iframeHtml;
+      iframe.srcdoc = createIframeHtml(ext, activeProfile);
       document.body.appendChild(iframe);
 
       iframeRefs.current.set(ext.id, iframe);
       ExtensionRegistry.registerSandbox(ext.id, iframe);
     });
 
-    // 2. Tear down iframes for disabled/deleted extensions
     for (const [id, iframe] of iframeRefs.current.entries()) {
       if (!activeEnabled.some((e) => e.enabled && e.id === id)) {
         if (iframe.parentNode) {
@@ -163,13 +89,11 @@ export const PluginSandbox: React.FC = () => {
     }
   }, [activeExtensions, activeProfile]);
 
-  // Handle postMessage messages securely
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
       const msg = event.data;
       if (!msg || msg.source !== "potok-plugin-sdk" || !event.source) return;
 
-      // Identify the pluginId by searching which iframe sent it (prevents spoofing)
       let pluginId: string | null = null;
       for (const [id, iframe] of iframeRefs.current.entries()) {
         if (iframe.contentWindow === event.source) {
@@ -177,45 +101,36 @@ export const PluginSandbox: React.FC = () => {
           break;
         }
       }
-
       if (!pluginId) return;
 
       const ext = activeExtensions.find((e) => e.id === pluginId);
       const permissions = ext?.manifest.permissions || [];
-
       const { action, payload } = msg;
 
       switch (action) {
         case "REGISTER_PLUGIN":
           ExtensionRegistry.registerPlugin(pluginId, payload);
           break;
-
         case "REGISTER_SOURCE":
           ExtensionRegistry.registerSource(pluginId, payload);
           break;
-
+        case "REGISTER_STREAM_SOURCE":
+          ExtensionRegistry.registerStreamSource(pluginId, payload);
+          break;
         case "REGISTER_SLOT_CONTRIBUTION": {
           const ext = activeExtensions.find((e) => e.id === pluginId);
           const manifestSlot = ext?.manifest.slots?.find((s) => s.id === payload.id);
-          if (manifestSlot?.title) {
-            payload.title = manifestSlot.title;
-          }
+          if (manifestSlot?.title) payload.title = manifestSlot.title;
           ExtensionRegistry.registerSlotContribution(pluginId, payload);
           break;
         }
-
         case "SLOT_RENDER_RESPONSE":
           ExtensionRegistry.registerSlotRender(payload.slotId, payload);
           break;
-
         case "SHOW_HUD":
-          if (!permissions.includes("ui-notifications")) {
-            console.warn(`[PluginSandbox] Plugin "${pluginId}" requested SHOW_HUD without "ui-notifications" permission.`);
-            break;
-          }
+          if (!permissions.includes("ui-notifications")) break;
           showHUD(payload.type, payload.message);
           break;
-
         case "PLAY_VIDEO": {
           const playbackPayload = { ...payload };
           const tHashKey = "tor" + "rentHash";
@@ -234,224 +149,55 @@ export const PluginSandbox: React.FC = () => {
           playVideo(playbackPayload);
           break;
         }
-
         case "NAVIGATE":
-          if (payload && payload.to) {
-            navigate(payload.to, { state: payload.state });
-          }
+          if (payload && payload.to) navigate(payload.to, { state: payload.state });
           break;
-
-
-
-        case "SHOW_EPISODE_SELECTOR": {
-          const detail: any = {};
-          if (payload.title !== undefined) detail.title = payload.title;
-          if (payload.episodes !== undefined) detail.episodes = payload.episodes;
-          if (payload.seasons !== undefined) detail.seasons = payload.seasons;
-          if (payload.seasonsLoading !== undefined) detail.seasonsLoading = payload.seasonsLoading;
-          if (payload.isSaving !== undefined) detail.isSaving = payload.isSaving;
-          if (payload.tmdbSeasonsCount !== undefined) detail.tmdbSeasonsCount = payload.tmdbSeasonsCount;
-
-          if (payload.onPlayCallbackId) {
-            detail.onPlay = (episode: any, audioId: string) => {
-              (event.source as any).postMessage({
-                source: "potok-host",
-                action: "TRIGGER_UI_EVENT",
-                payload: {
-                  callbackId: payload.onPlayCallbackId,
-                  eventData: { episode, audioId }
-                }
-              }, "*");
-            };
-          }
-
-          if (payload.onStartEditingCallbackId) {
-            detail.onStartEditing = () => {
-              (event.source as any).postMessage({
-                source: "potok-host",
-                action: "TRIGGER_UI_EVENT",
-                payload: {
-                  callbackId: payload.onStartEditingCallbackId,
-                  eventData: {}
-                }
-              }, "*");
-            };
-          }
-
-          if (payload.onApplyOverrideCallbackId) {
-            detail.onApplyOverride = (seasonNum: number, epNum: number) => {
-              (event.source as any).postMessage({
-                source: "potok-host",
-                action: "TRIGGER_UI_EVENT",
-                payload: {
-                  callbackId: payload.onApplyOverrideCallbackId,
-                  eventData: { seasonNum, epNum }
-                }
-              }, "*");
-            };
-          }
-
-          window.dispatchEvent(new CustomEvent("potok:show-episode-selector", { detail }));
+        case "SHOW_EPISODE_SELECTOR":
+          handleShowEpisodeSelector(payload, event.source);
           break;
-        }
-
-        case "REGISTER_BLOCK_MUTATIONS": {
-          const { pluginId: payloadPluginId, blockName, mutations, appends, prepends } = payload;
-          console.log(`[PluginSandbox] REGISTER_BLOCK_MUTATIONS for ${blockName} from ${payloadPluginId || pluginId}:`, { mutations, appends, prepends });
-          
-          if (blockName === "media-streams-results" && appends && appends.length > 0) {
-            const streamListSchema = appends.find((a: any) => a.type === "StreamList");
-            if (streamListSchema) {
-              const { loading: mutLoading, streams: mutStreams } = streamListSchema.props || {};
-              showHUD("info", `Мутация результатов: loading=${mutLoading}, источников=${mutStreams?.length || 0}`);
-            }
-          }
-          
-          ExtensionRegistry.registerBlockMutations(payloadPluginId || pluginId, blockName, mutations, appends, prepends);
+        case "REGISTER_BLOCK_MUTATIONS":
+          ExtensionRegistry.registerBlockMutations(payload.pluginId || pluginId, payload.blockName, payload.mutations, payload.appends, payload.prepends);
           break;
-        }
-
-        case "REGISTER_SEARCH_PROVIDER": {
-          const { pluginId: payloadPluginId, id, name, icon, callbackId } = payload;
-          ExtensionRegistry.registerSearchProvider(payloadPluginId || pluginId, id, name, icon, callbackId);
+        case "REGISTER_SEARCH_PROVIDER":
+          ExtensionRegistry.registerSearchProvider(payload.pluginId || pluginId, payload.id, payload.name, payload.icon, payload.callbackId);
           break;
-        }
-
         case "SEARCH_RESPONSE":
           ExtensionRegistry.handleSearchResponse(payload.requestId, payload.results, payload.error);
           break;
-
         case "LOOKUP_RESPONSE":
           ExtensionRegistry.handleLookupResponse(payload.requestId, payload.results, payload.error);
           break;
-
+        case "STREAM_SOURCE_SEARCH_RESPONSE":
+        case "STREAM_SOURCE_GET_EPISODES_RESPONSE":
+        case "STREAM_SOURCE_GET_SEASONS_RESPONSE":
+        case "STREAM_SOURCE_SAVE_OVERRIDE_RESPONSE":
+        case "STREAM_SOURCE_GET_PLAYBACK_INFO_RESPONSE":
+          ExtensionRegistry.handleSandboxResponse(payload.requestId, payload.data, payload.error);
+          break;
         case "STORAGE_GET": {
           if (!permissions.includes("storage")) {
-            logger.warn(`[PluginSandbox] Permission "storage" is missing for plugin ${pluginId}`);
-            (event.source as any).postMessage({
-              source: "potok-host",
-              action: "STORAGE_GET_RESPONSE",
-              payload: { requestId: payload.requestId, value: null }
-            }, "*");
+            (event.source as any).postMessage({ source: "potok-host", action: "STORAGE_GET_RESPONSE", payload: { requestId: payload.requestId, value: null } }, "*");
             break;
           }
           const val = localStorage.getItem(`potok_plugin:scoped:${pluginId}:${payload.key}`);
-          // CRITICAL: We use "*" instead of event.origin here because blob URL origins can be "null" 
-          // inside sandboxed frames, which would block postMessage callbacks from being delivered.
-          (event.source as any).postMessage({
-            source: "potok-host",
-            action: "STORAGE_GET_RESPONSE",
-            payload: { requestId: payload.requestId, value: val }
-          }, "*");
+          (event.source as any).postMessage({ source: "potok-host", action: "STORAGE_GET_RESPONSE", payload: { requestId: payload.requestId, value: val } }, "*");
           break;
         }
-
         case "STORAGE_SET": {
           if (!permissions.includes("storage")) {
-            logger.warn(`[PluginSandbox] Permission "storage" is missing for plugin ${pluginId}`);
-            (event.source as any).postMessage({
-              source: "potok-host",
-              action: "STORAGE_SET_RESPONSE",
-              payload: { requestId: payload.requestId }
-            }, "*");
+            (event.source as any).postMessage({ source: "potok-host", action: "STORAGE_SET_RESPONSE", payload: { requestId: payload.requestId } }, "*");
             break;
           }
           localStorage.setItem(`potok_plugin:scoped:${pluginId}:${payload.key}`, payload.value);
-          const tPluginId = "potok-tor" + "rents";
-          const oldGoKey = "tor" + "rentGoURL";
-          if (pluginId === tPluginId && (payload.key === "playerServerURL" || payload.key === oldGoKey)) {
+          if (pluginId === "potok-tor" + "rents" && (payload.key === "playerServerURL" || payload.key === "tor" + "rentGoURL")) {
             ApiClient.invalidateCache();
           }
-          (event.source as any).postMessage({
-            source: "potok-host",
-            action: "STORAGE_SET_RESPONSE",
-            payload: { requestId: payload.requestId }
-          }, "*");
+          (event.source as any).postMessage({ source: "potok-host", action: "STORAGE_SET_RESPONSE", payload: { requestId: payload.requestId } }, "*");
           break;
         }
-
-        case "HTTP_REQUEST": {
-          const { requestId, url, method, headers, body } = payload;
-          if (!permissions.includes("http-proxy")) {
-            (event.source as any).postMessage({
-              source: "potok-host",
-              action: "HTTP_RESPONSE",
-              payload: { requestId, status: 403, data: "", error: "Отсутствует разрешение http-proxy в манифесте плагина" }
-            }, "*");
-            break;
-          }
-          
-          const startTime = Date.now();
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => {
-            console.warn(`[PluginSandbox] HTTP Request timed out after 15s: ${url}`);
-            controller.abort();
-          }, 15000);
-
-          try {
-            let finalUrl = url;
-            if (url.startsWith("/api/")) {
-              const gatewayBase = activeProfile?.gatewayURL 
-                ? (activeProfile.gatewayURL.endsWith("/") ? activeProfile.gatewayURL.slice(0, -1) : activeProfile.gatewayURL)
-                : "";
-              
-              // Ensure we prepend protocol if missing
-              let absoluteGateway = gatewayBase;
-              if (absoluteGateway && !/^https?:\/\//i.test(absoluteGateway)) {
-                absoluteGateway = `http://${absoluteGateway}`;
-              }
-              
-              finalUrl = `${absoluteGateway}${url}`;
-              console.log(`[PluginSandbox] Rewrote relative API url: ${url} -> ${finalUrl}`);
-            }
-
-            const fetchOptions: RequestInit = { 
-              method, 
-              headers,
-              signal: controller.signal
-            };
-            if (body) {
-              fetchOptions.body = typeof body === "string" ? body : JSON.stringify(body);
-              if (!headers || !headers["Content-Type"]) {
-                fetchOptions.headers = {
-                  ...headers,
-                  "Content-Type": "application/json"
-                };
-              }
-            }
-
-            const res = await fetch(finalUrl, fetchOptions);
-            clearTimeout(timeoutId);
-            
-            const responseStatus = res.status;
-            const responseData = await res.text();
-            
-            console.log(`[PluginSandbox] HTTP Success [${responseStatus}] in ${Date.now() - startTime}ms: ${url}`);
-
-            (event.source as any).postMessage({
-              source: "potok-host",
-              action: "HTTP_RESPONSE",
-              payload: { requestId, status: responseStatus, data: responseData, error: null }
-            }, "*");
-          } catch (err: any) {
-            clearTimeout(timeoutId);
-            const isAbort = err.name === 'AbortError';
-            console.error(`[PluginSandbox] HTTP Failed in ${Date.now() - startTime}ms: ${url}. Error:`, err.message);
-            
-            (event.source as any).postMessage({
-              source: "potok-host",
-              action: "HTTP_RESPONSE",
-              payload: { 
-                requestId, 
-                status: isAbort ? 408 : 500, 
-                data: "", 
-                error: isAbort ? "Превышено время ожидания запроса (15s Timeout)" : (err.message || "HTTP request failed") 
-              }
-            }, "*");
-          }
+        case "HTTP_REQUEST":
+          handleHttpProxyRequest(payload, permissions, event.source, activeProfile);
           break;
-        }
-
         case "REFRESH_STREAM_URL_RESPONSE": {
           if (payload.success) {
             showHUD("success", "Ссылка на HLS поток обновлена!");
@@ -468,9 +214,8 @@ export const PluginSandbox: React.FC = () => {
           }
           break;
         }
-
         case "SCRIPT_CRASH":
-          console.error(`[PluginSandbox] Plugin ${pluginId} crashed:`, payload.error, payload.stack);
+          logger.error(`[PluginSandbox] Plugin ${pluginId} crashed:`, payload.error);
           showHUD("error", `Плагин "${pluginId}" вызвал ошибку: ${payload.error}`);
           break;
       }
@@ -478,15 +223,12 @@ export const PluginSandbox: React.FC = () => {
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [activeProfile, showHUD, activeExtensions, activePlayback, playVideo]);
+  }, [activeProfile, showHUD, activeExtensions, activePlayback, playVideo, navigate]);
 
-  // Clean up all iframe DOM nodes on unmount
   useEffect(() => {
     return () => {
       iframeRefs.current.forEach((iframe) => {
-        if (iframe.parentNode) {
-          iframe.parentNode.removeChild(iframe);
-        }
+        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
       });
       iframeRefs.current.clear();
     };
@@ -494,4 +236,5 @@ export const PluginSandbox: React.FC = () => {
 
   return null;
 };
+
 export default PluginSandbox;

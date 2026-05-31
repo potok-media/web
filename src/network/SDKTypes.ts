@@ -1,7 +1,4 @@
-/**
- * Potok Extension & Plugin SDK Core TypeScript Definitions
- * Strict compliance with WEB_ARCHITECTURAL_STANDARDS.md.
- */
+import type { StreamUIItem } from "./ApiTypes";
 
 export interface UIComponentSchema {
   type: string;
@@ -34,7 +31,7 @@ export interface UIComponentSchema {
     spacing?: number;
     alignItems?: 'start' | 'center' | 'end' | 'stretch';
     justifyContent?: 'start' | 'center' | 'end' | 'between' | 'around';
-    stream?: any;
+    stream: StreamUIItem;
     streams?: RawStreamPayload[];
     loading?: boolean;
     showFilters?: boolean;
@@ -127,7 +124,7 @@ export interface RegisteredExtension {
 export interface ElementMutation {
   elementId: string;
   action: 'hide' | 'edit' | 'before' | 'after' | 'replace';
-  props?: Record<string, any>;
+  props?: Record<string, unknown>;
   layout?: UIComponentSchema;
 }
 
@@ -167,4 +164,51 @@ export interface StreamProviderRegistration {
   id: string;
   name: string;
   icon?: string;
+}
+
+export interface StreamEpisode {
+  id: string;
+  season: number;
+  episode: number;
+  title: string;
+  url: string;
+  audios?: { id: string; name: string; url: string }[];
+  headers?: Record<string, string>;
+}
+
+export interface PlaybackInfo {
+  streamUrl: string;
+  streamType?: 'mp4' | 'm3u8' | 'dash' | string;
+  title: string;
+  season?: number;
+  episode?: number;
+  torrentHash?: string;
+  audios?: { id: string; name: string; url: string }[];
+  headers?: Record<string, string>;
+  providerId?: string;
+  voice?: string;
+}
+
+export interface StreamSourceEpisodesResult {
+  episodes: StreamEpisode[];
+  tmdbSeasonsCount: number;
+}
+
+export interface DeclarativeStreamSource {
+  id: string;
+  name: string;
+  supportedTypes: ('movie' | 'tv')[];
+  search(query: StreamSearchQuery): Promise<RawStreamPayload[]>;
+  getEpisodes?(stream: RawStreamPayload, context: LookupQuery): Promise<StreamSourceEpisodesResult>;
+  getSeasonsMetadata?(stream: RawStreamPayload, context: LookupQuery): Promise<Record<string, unknown>[]>;
+  saveMetadataOverride?(stream: RawStreamPayload, context: LookupQuery, seasonNum: number, episodeOffset: number): Promise<void>;
+  getPlaybackInfo(stream: RawStreamPayload, episode?: StreamEpisode, context?: LookupQuery): Promise<PlaybackInfo>;
+  refreshStreamUrl?(payload: {
+    providerId: string;
+    mediaId: number;
+    mediaType: 'movie' | 'tv';
+    season?: number;
+    episode?: number;
+    voice?: string;
+  }): Promise<{ streamUrl: string; audios?: { id: string; name: string; url: string }[]; headers?: Record<string, string> }>;
 }
