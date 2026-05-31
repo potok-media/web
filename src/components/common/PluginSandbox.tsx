@@ -53,7 +53,7 @@ export const PluginSandbox: React.FC = () => {
         dispatched = true;
       }
       if (!dispatched) {
-        showHUD("error", "Плагин онлайн источников не активен.");
+        showHUD("error", "Нет активных плагинов для обновления ссылки.");
       }
     };
     window.addEventListener("potok:refresh-stream-url", handleRefreshRequest);

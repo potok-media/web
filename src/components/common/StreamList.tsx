@@ -47,12 +47,12 @@ const mapStreamToUI = (stream: RawStreamPayload & {
 
   const seeds = stream.seeds !== undefined ? stream.seeds : stream.seeders;
   const peers = stream.peers !== undefined ? stream.peers : stream.leechers;
-  const provider = stream.provider || stream.tracker || "Онлайн источник";
+  const provider = stream.provider || stream.tracker || "Источник";
   const sizeBytes = typeof stream.size === 'number' ? stream.size : stream.sizeBytes;
 
   return {
     id: stream.url || stream.magnet || stream.hash || `${stream.title}-${index}`,
-    title: stream.title || "Онлайн источник",
+    title: stream.title || "Источник",
     sizeLabel: stream.quality ? stream.quality.toUpperCase() : "",
     sizeBytes,
     tracker: provider,
