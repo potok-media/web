@@ -1,70 +1,60 @@
 import React from "react";
-import { Sliders } from "lucide-react";
-import type { TorrentSearchResult } from "../network/ApiTypes";
+import type { StreamUIItem } from "../network/ApiTypes";
 import { extractBadges } from "../utils/torrentUtils";
 import { formatBytes, formatPublishDate } from "../utils/formatters";
 
 interface StreamRowComponentProps {
-  torrent: TorrentSearchResult;
-  onClick: (torrent: TorrentSearchResult) => void;
+  stream: StreamUIItem;
+  onClick: (stream: StreamUIItem) => void;
 }
 
-export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(({ torrent, onClick }) => {
-  const extracted = extractBadges(torrent.title);
+export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(({ stream, onClick }) => {
+  const extracted = extractBadges(stream.title);
   const parsedTags = Array.from(new Set([
-    ...(torrent.tags?.map(t => t.value) || []),
+    ...(stream.tags?.map((t: { kind: string; value: string }) => t.value) || []),
     ...extracted
   ])).slice(0, 6);
 
   return (
-    <div className="torrent-row" onClick={() => onClick(torrent)}>
+    <div className="torrent-row" onClick={() => onClick(stream)}>
       <div className="torrent-header-row">
         <div className="torrent-row-header-left">
           <h3 className="torrent-title-text torrent-row-title">
-            {torrent.title}
+            {stream.title}
           </h3>
           
           <div className="torrent-badges-row">
-            {torrent.override && (
-              <span className="torrent-tag-badge override-badge">
-                <Sliders size={11} className="torrent-row-override-badge-icon" />
-                <span className="torrent-row-override-badge-text">
-                  S{torrent.override.season}
-                  {torrent.override.episodeOffset !== undefined && torrent.override.episodeOffset !== null && torrent.override.episodeOffset !== 0 ? ` Off: ${torrent.override.episodeOffset > 0 ? "+" : ""}${torrent.override.episodeOffset}` : ""}
-                </span>
-              </span>
-            )}
             {parsedTags.map((tagVal, i) => (
               <span key={i} className="torrent-tag-badge">{tagVal}</span>
             ))}
           </div>
         </div>
 
-        {(torrent.sizeLabel || torrent.sizeBytes) && (
+        {(stream.sizeLabel || stream.sizeBytes) && (
           <span className="torrent-size-badge">
-            {torrent.sizeLabel || formatBytes(torrent.sizeBytes)}
+            {stream.sizeLabel || formatBytes(stream.sizeBytes)}
           </span>
         )}
       </div>
 
       <div className="torrent-footer-row torrent-row-footer-separator">
         <div className="torrent-footer-left">
-          {torrent.publishDate && <span>{formatPublishDate(torrent.publishDate)}</span>}
-          {torrent.tracker && <span className="tracker-name">{torrent.tracker}</span>}
+          {stream.publishDate && <span>{formatPublishDate(stream.publishDate)}</span>}
+          {stream.tracker && <span className="tracker-name">{stream.tracker}</span>}
         </div>
 
         <div className="torrent-footer-right">
-          {(torrent.seeders === undefined || torrent.seeders === null) && (torrent.leechers === undefined || torrent.leechers === null) ? (
+          {(stream.seeders === undefined || stream.seeders === null) && (stream.leechers === undefined || stream.leechers === null) ? (
             <span className="torrent-play-action" style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--color-accent, #007aff)", fontWeight: 600 }}>
               <span style={{ fontSize: "9px" }}>▶</span> Смотреть
             </span>
           ) : (
             <>
               <span>
-                Раздают: <span className="torrent-peer-num">{torrent.seeders ?? 0}</span>
+                Раздают: <span className="torrent-peer-num">{stream.seeders ?? 0}</span>
               </span>
               <span>
-                Скачивают: <span className="torrent-peer-num">{torrent.leechers ?? 0}</span>
+                Скачивают: <span className="torrent-peer-num">{stream.leechers ?? 0}</span>
               </span>
             </>
           )}

@@ -2309,7 +2309,7 @@
   font-size: 1.125rem !important;
 }
 
-.torrent-popup-body {
+.episode-popup-body {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -2317,7 +2317,7 @@
   position: relative;
 }
 
-.torrent-popup-loading-container {
+.episode-popup-loading-container {
   display: flex;
   flex: 1;
   height: 100%;
@@ -2325,13 +2325,13 @@
   justify-content: center;
 }
 
-.torrent-popup-rows-list {
+.episode-popup-rows-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.torrent-popup-empty-files {
+.episode-popup-empty-files {
   text-align: center;
   color: var(--text-secondary);
   margin-top: 40px;

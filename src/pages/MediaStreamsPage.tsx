@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
 import { useHUD } from "../context/HUDContext";
-import { TorrentFilesPopup } from "../components/TorrentFilesPopup";
 import { StreamSidebar } from "../components/StreamSidebar";
 import { ApiClient } from "../network/ApiClient";
 import type { MediaCard } from "../network/ApiTypes";
@@ -22,14 +21,6 @@ export const MediaStreamsPage: React.FC = () => {
   const season = state?.season ?? (searchParams.get("season") ? Number(searchParams.get("season")) : undefined);
   const episode = state?.episode ?? (searchParams.get("episode") ? Number(searchParams.get("episode")) : undefined);
   const initialMedia = state?.media;
-
-  // State for dynamic torrent files popup sheet triggerable via global event
-  const [torrentFilesData, setTorrentFilesData] = useState<{
-    torrent: any;
-    mediaItem: any;
-    seasonNumber?: number;
-    episodeNumber?: number;
-  } | null>(null);
 
   // Active state for generic episode selector modal
   const [episodeSelectorData, setEpisodeSelectorData] = useState<{
@@ -66,19 +57,10 @@ export const MediaStreamsPage: React.FC = () => {
       }
     };
 
-    const handleShowTorrentFiles = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      if (customEvent.detail) {
-        setTorrentFilesData(customEvent.detail);
-      }
-    };
-
     window.addEventListener("potok:show-episode-selector", handleShowSelector);
-    window.addEventListener("potok:show-torrent-files", handleShowTorrentFiles);
 
     return () => {
       window.removeEventListener("potok:show-episode-selector", handleShowSelector);
-      window.removeEventListener("potok:show-torrent-files", handleShowTorrentFiles);
     };
   }, []);
 
@@ -181,18 +163,7 @@ export const MediaStreamsPage: React.FC = () => {
           <div className="torrents-results-list" id="streams-results-list" />
         </DynamicBlock>
       </section>
- 
-      {/* Selected torrent files dynamic popup sheet */}
-      {torrentFilesData && (
-        <TorrentFilesPopup
-          isOpen={!!torrentFilesData}
-          onClose={() => setTorrentFilesData(null)}
-          torrent={torrentFilesData.torrent}
-          mediaItem={currentMedia || torrentFilesData.mediaItem}
-          seasonNumber={torrentFilesData.seasonNumber ?? season}
-          episodeNumber={torrentFilesData.episodeNumber ?? episode}
-        />
-      )}
+
 
       {/* Generic Episode Selector Popup Sheet */}
       {episodeSelectorData && (

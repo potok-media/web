@@ -10,17 +10,12 @@ import type {
   WatchProgress,
   HeroItem,
   HomeResponse,
-  TorrentSearchResult,
-  TorrentOverride,
-  TorrentFileItem,
   TvSeason,
-  TorrentSearchRequest,
-  TorrentFilesRequest,
-  StreamUrlRequest,
   InfuseSaveRequest,
   TraktSyncRequest,
   ClientMetadata,
   ClientTrack,
+  StreamUIItem,
 } from "./ApiTypes";
 
 export type {
@@ -31,17 +26,12 @@ export type {
   WatchProgress,
   HeroItem,
   HomeResponse,
-  TorrentSearchResult,
-  TorrentOverride,
-  TorrentFileItem,
   TvSeason,
-  TorrentSearchRequest,
-  TorrentFilesRequest,
-  StreamUrlRequest,
   InfuseSaveRequest,
   TraktSyncRequest,
   ClientMetadata,
   ClientTrack,
+  StreamUIItem,
 };
 
 
@@ -283,190 +273,6 @@ export class ApiClient {
     return this.handleResponse<TvSeason>(res, "Failed to fetch season details");
   }
 
-  public static getHashFromMagnet(magnet: string): string | null {
-    if (!magnet) return null;
-    try {
-      const match = magnet.match(/xt=urn:btih:([^&/]+)/i);
-      return match ? match[1].toLowerCase() : null;
-    } catch {
-      return null;
-    }
-  }
-
-  public static cleanHash(hash: string): string {
-    if (!hash) return "";
-    if (hash.toLowerCase().startsWith("magnet:")) {
-      const match = hash.match(/xt=urn:btih:([^&/]+)/i);
-      return match ? match[1].toLowerCase() : hash.toLowerCase();
-    }
-    return hash.toLowerCase();
-  }
-
-  public static async getTorrentOverride(hash: string): Promise<TorrentOverride | null> {
-    const clean = this.cleanHash(hash);
-    try {
-      const res = await fetch(`${this.baseURL}/api/media/override/${clean}`, {
-        headers: this.headers,
-      });
-      if (res.status === 404) return null;
-      if (!res.ok) return null;
-      return res.json();
-    } catch {
-      return null;
-    }
-  }
-
-  public static async getBatchOverrides(hashes: string[]): Promise<Record<string, TorrentOverride>> {
-    if (hashes.length === 0) return {};
-    const cleaned = hashes.map(h => this.cleanHash(h));
-    try {
-      const res = await fetch(`${this.baseURL}/api/media/override/batch`, {
-        method: "POST",
-        headers: this.headers,
-        body: JSON.stringify(cleaned),
-      });
-      if (res.ok) {
-        return await res.json();
-      }
-    } catch {
-      // Fallback
-    }
-
-    // Fallback to fetching single overrides concurrently in parallel
-    const result: Record<string, TorrentOverride> = {};
-    const uniqueHashes = Array.from(new Set(cleaned));
-    
-    await Promise.all(
-      uniqueHashes.map(async (hash) => {
-        try {
-          const over = await this.getTorrentOverride(hash);
-          if (over) {
-            result[hash] = over;
-          }
-        } catch {
-          // Ignore failed single fetch
-        }
-      })
-    );
-    return result;
-  }
-
-  public static async searchTorrents(request: TorrentSearchRequest): Promise<{ results: TorrentSearchResult[] }> {
-    const searchUrl = this.searchEngineURL.trim();
-    if (!searchUrl) {
-      throw new Error("Адрес поисковика торрентов не настроен.");
-    }
-    let normalized = searchUrl;
-    if (!/^https?:\/\//i.test(normalized)) {
-      normalized = `http://${normalized}`;
-    }
-    const res = await fetch(`${normalized}/api/v1/torrents/search`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
-    });
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new ApiError(`Torrent search failed (Status ${res.status})`, res.status, errorText);
-    }
-    const data = await res.json();
-    const results: TorrentSearchResult[] = data.results || [];
-    
-    // Gather all unique hashes from search results
-    const hashes = results
-      .map(t => this.getHashFromMagnet(t.magnetUri || "") || this.getHashFromMagnet(t.link || ""))
-      .filter((h): h is string => !!h);
-
-    // Fetch all overrides in a single batch request!
-    const overrides = await this.getBatchOverrides(hashes);
-
-    // Map overrides to matching torrent items
-    const enriched = results.map(torrent => {
-      const hash = this.getHashFromMagnet(torrent.magnetUri || "") || this.getHashFromMagnet(torrent.link || "");
-      if (hash && overrides[hash.toLowerCase()]) {
-        return { ...torrent, override: overrides[hash.toLowerCase()] };
-      }
-      return torrent;
-    });
-
-    return { results: enriched };
-  }
-
-  public static async getTorrentFiles(request: TorrentFilesRequest): Promise<{ hash: string; items: TorrentFileItem[] }> {
-    const tgUrl = this.torrentGoURL.trim();
-    if (!tgUrl) {
-      throw new Error("Адрес торрент-плеера не настроен.");
-    }
-    let normalized = tgUrl.replace(/\/$/, "");
-    if (!/^https?:\/\//i.test(normalized)) {
-      normalized = `http://${normalized}`;
-    }
-    const res = await fetch(`${normalized}/api/torrent/files`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
-    });
-    return this.handleResponse<{ hash: string; items: TorrentFileItem[] }>(res, "Failed to get torrent files");
-  }
-
-  public static async deleteTorrent(hash: string): Promise<void> {
-    const tgUrl = this.torrentGoURL.trim();
-    if (!tgUrl) return;
-    let normalized = tgUrl.replace(/\/$/, "");
-    if (!/^https?:\/\//i.test(normalized)) {
-      normalized = `http://${normalized}`;
-    }
-    await fetch(`${normalized}/api/torrent/${hash.toLowerCase()}`, {
-      method: "DELETE",
-    }).catch(() => {
-      // Safe fallback
-    });
-  }
-
-  public static async saveTorrentOverride(hash: string, season: number, episodeOffset: number): Promise<void> {
-    const clean = this.cleanHash(hash);
-    const res = await fetch(`${this.baseURL}/api/media/override`, {
-      method: "POST",
-      headers: this.headers,
-      body: JSON.stringify({
-        hash: clean,
-        override: {
-          season,
-          episodeOffset
-        }
-      }),
-    });
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new ApiError(`Failed to save override (Status ${res.status})`, res.status, errorText);
-    }
-  }
-
-  public static async getStreamUrl(request: StreamUrlRequest): Promise<{ streamUrl: string }> {
-    const tgUrl = this.torrentGoURL.trim();
-    if (!tgUrl) {
-      throw new Error("Адрес торрент-плеера не настроен.");
-    }
-    let normalized = tgUrl.replace(/\/$/, "");
-    if (!/^https?:\/\//i.test(normalized)) {
-      normalized = `http://${normalized}`;
-    }
-    const hash = request.hash;
-    const fileId = request.index ?? request.id;
-    let url = `${normalized}/stream/${hash}/${fileId}`;
-    if (request.originalPath) {
-      const parts = request.originalPath.split("/");
-      const filename = parts[parts.length - 1];
-      if (filename) {
-        url += `/${encodeURIComponent(filename)}`;
-      }
-    }
-    return { streamUrl: url };
-  }
 
   public static async saveInfuseItemAndGetStreams(request: InfuseSaveRequest): Promise<string[]> {
     const res = await fetch(`${this.baseURL}/api/infuse/save`, {

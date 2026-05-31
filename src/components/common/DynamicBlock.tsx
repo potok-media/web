@@ -383,7 +383,7 @@ export const DynamicBlock: React.FC<DynamicBlockProps> = ({
         return (
           <StreamRowComponent
             key={keyToUse}
-            torrent={componentProps.torrent}
+            stream={componentProps.torrent}
             onClick={handleTorrentClick}
           />
         );

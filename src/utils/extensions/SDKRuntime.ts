@@ -585,18 +585,6 @@ export function initPotokSDK(pluginId?: string, permissions?: string[], config?:
       },
       navigateTo(to: string, state?: any) {
         window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'NAVIGATE', payload: { to, state } }, '*');
-      },
-      showTorrentFiles(cfg: any) {
-        window.parent.postMessage({
-          source: 'potok-plugin-sdk',
-          action: 'SHOW_TORRENT_FILES',
-          payload: {
-            torrent: cfg.torrent,
-            mediaItem: cfg.mediaItem,
-            seasonNumber: cfg.seasonNumber,
-            episodeNumber: cfg.episodeNumber
-          }
-        }, '*');
       }
     },
     registerPlugin(meta: any) { window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_PLUGIN', payload: meta }, '*'); },

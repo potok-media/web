@@ -223,16 +223,7 @@ export const PluginSandbox: React.FC = () => {
           }
           break;
 
-        case "SHOW_TORRENT_FILES": {
-          const detail = {
-            torrent: payload.torrent,
-            mediaItem: payload.mediaItem,
-            seasonNumber: payload.seasonNumber,
-            episodeNumber: payload.episodeNumber
-          };
-          window.dispatchEvent(new CustomEvent("potok:show-torrent-files", { detail }));
-          break;
-        }
+
 
         case "SHOW_EPISODE_SELECTOR": {
           const detail: any = {};

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { ShieldAlert } from "lucide-react";
 import type { RawStreamPayload } from "../../network/SDKTypes";
-import type { TorrentSearchResult } from "../../network/ApiTypes";
+import type { StreamUIItem } from "../../network/ApiTypes";
 import { StreamFilterBar } from "../StreamFilterBar";
 import StreamRowComponent from "../StreamRowComponent";
 import StreamSkeletonList from "../StreamSkeletonList";
@@ -17,7 +17,7 @@ export interface StreamListProps {
   nounPlurals?: [string, string, string];
 }
 
-const mapStreamToTorrent = (stream: RawStreamPayload, index: number): TorrentSearchResult => {
+const mapStreamToTorrent = (stream: RawStreamPayload, index: number): StreamUIItem => {
   const voiceTags = stream.voice
     ? stream.voice
         .split(/[,;]+/)
@@ -130,11 +130,11 @@ export const StreamList: React.FC<StreamListProps> = ({
           <StreamSkeletonList />
         ) : filteredAndSortedStreams.length > 0 ? (
           filteredAndSortedStreams.map((stream, index) => {
-            const torrent = mapStreamToTorrent(stream, index);
+            const streamUI = mapStreamToTorrent(stream, index);
             return (
               <StreamRowComponent
-                key={`${torrent.id || "stream"}-${index}`}
-                torrent={torrent}
+                key={`${streamUI.id || "stream"}-${index}`}
+                stream={streamUI}
                 onClick={() => onSelectStream(stream)}
               />
             );

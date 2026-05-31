@@ -356,7 +356,7 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }
         return (
           <StreamRowComponent
             key={id}
-            torrent={componentProps.torrent}
+            stream={componentProps.torrent}
             onClick={handleTorrentClick}
           />
         );

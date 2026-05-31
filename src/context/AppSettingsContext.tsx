@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import { Storage } from "../utils/StorageService";
+import { useHUD } from "./HUDContext";
 import { ApiClient } from "../network/ApiClient";
 import type { ServiceStatus, ConnectionProfile, PotokUser } from "../network/ApiTypes";
 import { webSocketClient } from "../network/WebSocketClient";
@@ -159,8 +160,29 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const [activePlayback, setActivePlayback] = useState<ActivePlayback | null>(null);
 
+  const { show: showHUD } = useHUD();
+
   const playVideo = (playback: ActivePlayback) => {
-    setActivePlayback(playback);
+    if (defaultPlayer === "infuse") {
+      try {
+        const encodedUrl = encodeURIComponent(playback.streamUrl);
+        const triggerUrl = `infuse://x-callback-url/play?url=${encodedUrl}`;
+        const iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.src = triggerUrl;
+        document.body.appendChild(iframe);
+        setTimeout(() => {
+          if (iframe.parentNode) {
+            document.body.removeChild(iframe);
+          }
+        }, 100);
+        showHUD("success", "Открываем в Infuse!");
+      } catch (err: any) {
+        showHUD("error", "Ошибка Infuse: " + err.message);
+      }
+    } else {
+      setActivePlayback(playback);
+    }
   };
 
   const stopVideo = () => {
