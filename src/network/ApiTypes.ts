@@ -41,6 +41,8 @@ export interface MediaCard {
   nextEpisodeSeason?: number;
   nextEpisodeTitle?: string;
   cast?: CastMember[];
+  kpId?: string;
+  imdbId?: string;
 }
 
 export interface WatchProgress {

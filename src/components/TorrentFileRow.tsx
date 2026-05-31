@@ -26,6 +26,14 @@ export const TorrentFileRow: React.FC<TorrentFileRowProps> = React.memo(({
   let displaySubtitle = "";
   if (file.season !== undefined && file.season !== null && file.episode !== undefined && file.episode !== null) {
     displaySubtitle = `Сезон ${file.season} • Серия ${file.episode}`;
+    if (metadata?.airDate) {
+      try {
+        const airDateStr = new Date(metadata.airDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
+        displaySubtitle += ` • ${airDateStr}`;
+      } catch (e) {
+        console.warn("Failed to parse airDate:", metadata.airDate, e);
+      }
+    }
   } else {
     displaySubtitle = file.folderName || "";
   }

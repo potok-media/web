@@ -4,6 +4,7 @@ import { useHUD } from "../../context/HUDContext";
 import { initPotokSDK } from "../../utils/extensions/SDKRuntime";
 import { ExtensionRegistry } from "../../utils/extensions/ExtensionRegistry";
 import type { RegisteredExtension } from "../../network/SDKTypes";
+import { logger } from "../../utils/logger";
 
 export const PluginSandbox: React.FC = () => {
   const { connectionProfiles, activeProfileID, playVideo } = useAppSettings();
@@ -11,7 +12,7 @@ export const PluginSandbox: React.FC = () => {
   const [activeExtensions, setActiveExtensions] = useState<RegisteredExtension[]>([]);
   const iframeRefs = useRef<Map<string, HTMLIFrameElement>>(new Map());
 
-  const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
+  const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || connectionProfiles[0] || null;
 
   // Sync active extensions from localStorage periodically/initially
   useEffect(() => {
@@ -131,6 +132,9 @@ export const PluginSandbox: React.FC = () => {
 
       if (!pluginId) return;
 
+      const ext = activeExtensions.find((e) => e.id === pluginId);
+      const permissions = ext?.manifest.permissions || [];
+
       const { action, payload } = msg;
 
       switch (action) {
@@ -142,73 +146,115 @@ export const PluginSandbox: React.FC = () => {
           ExtensionRegistry.registerSource(pluginId, payload);
           break;
 
-        case "REGISTER_SLOT_CONTRIBUTION":
+        case "REGISTER_SLOT_CONTRIBUTION": {
+          const ext = activeExtensions.find((e) => e.id === pluginId);
+          const manifestSlot = ext?.manifest.slots?.find((s) => s.id === payload.id);
+          if (manifestSlot?.title) {
+            payload.title = manifestSlot.title;
+          }
           ExtensionRegistry.registerSlotContribution(pluginId, payload);
           break;
+        }
 
         case "SLOT_RENDER_RESPONSE":
           ExtensionRegistry.registerSlotRender(payload.slotId, payload);
           break;
 
         case "SHOW_HUD":
+          if (!permissions.includes("ui-notifications")) {
+            console.warn(`[PluginSandbox] Plugin "${pluginId}" requested SHOW_HUD without "ui-notifications" permission.`);
+            break;
+          }
           showHUD(payload.type, payload.message);
           break;
 
         case "PLAY_VIDEO": {
-          const wrapInProxy = (url: string, headers?: Record<string, string>): string => {
-            if (!url) return url;
-            if (url.includes("/api/v1/proxy") || url.startsWith("http://localhost:8090")) {
-              return url;
-            }
-            const gatewayURL = activeProfile?.gatewayURL;
-            if (!gatewayURL) return url;
-
-            try {
-              // Base64 URL-safe encode
-              const uEncoded = btoa(unescape(encodeURIComponent(url)))
-                .replace(/\+/g, "-")
-                .replace(/\//g, "_")
-                .replace(/=/g, "");
-
-              let hEncoded = "";
-              if (headers && Object.keys(headers).length > 0) {
-                const json = JSON.stringify(headers);
-                hEncoded = btoa(unescape(encodeURIComponent(json)))
-                  .replace(/\+/g, "-")
-                  .replace(/\//g, "_")
-                  .replace(/=/g, "");
-              }
-
-              let proxyUrl = `${gatewayURL}/api/v1/proxy?u=${uEncoded}`;
-              if (hEncoded) {
-                proxyUrl += `&h=${hEncoded}`;
-              }
-              return proxyUrl;
-            } catch (e) {
-              console.error("[PluginSandbox] URL proxy wrap failed:", e);
-              return url;
-            }
-          };
-
-          const playback = { ...payload };
-          if (playback.streamUrl && playback.headers) {
-            playback.streamUrl = wrapInProxy(playback.streamUrl, playback.headers);
-          }
-          if (playback.audios && playback.headers) {
-            playback.audios = playback.audios.map((a: any) => ({
-              ...a,
-              url: wrapInProxy(a.url, playback.headers)
-            }));
-          }
-          playVideo(playback);
+          playVideo(payload);
           break;
         }
+
+        case "SHOW_EPISODE_SELECTOR": {
+          const detail: any = {};
+          if (payload.title !== undefined) detail.title = payload.title;
+          if (payload.episodes !== undefined) detail.episodes = payload.episodes;
+          if (payload.seasons !== undefined) detail.seasons = payload.seasons;
+          if (payload.seasonsLoading !== undefined) detail.seasonsLoading = payload.seasonsLoading;
+          if (payload.isSaving !== undefined) detail.isSaving = payload.isSaving;
+          if (payload.tmdbSeasonsCount !== undefined) detail.tmdbSeasonsCount = payload.tmdbSeasonsCount;
+
+          if (payload.onPlayCallbackId) {
+            detail.onPlay = (episode: any, audioId: string) => {
+              (event.source as any).postMessage({
+                source: "potok-host",
+                action: "TRIGGER_UI_EVENT",
+                payload: {
+                  callbackId: payload.onPlayCallbackId,
+                  eventData: { episode, audioId }
+                }
+              }, "*");
+            };
+          }
+
+          if (payload.onStartEditingCallbackId) {
+            detail.onStartEditing = () => {
+              (event.source as any).postMessage({
+                source: "potok-host",
+                action: "TRIGGER_UI_EVENT",
+                payload: {
+                  callbackId: payload.onStartEditingCallbackId,
+                  eventData: {}
+                }
+              }, "*");
+            };
+          }
+
+          if (payload.onApplyOverrideCallbackId) {
+            detail.onApplyOverride = (seasonNum: number, epNum: number) => {
+              (event.source as any).postMessage({
+                source: "potok-host",
+                action: "TRIGGER_UI_EVENT",
+                payload: {
+                  callbackId: payload.onApplyOverrideCallbackId,
+                  eventData: { seasonNum, epNum }
+                }
+              }, "*");
+            };
+          }
+
+          window.dispatchEvent(new CustomEvent("potok:show-episode-selector", { detail }));
+          break;
+        }
+
+        case "REGISTER_BLOCK_MUTATIONS": {
+          const { pluginId: payloadPluginId, blockName, mutations, appends, prepends } = payload;
+          ExtensionRegistry.registerBlockMutations(payloadPluginId || pluginId, blockName, mutations, appends, prepends);
+          break;
+        }
+
+        case "REGISTER_SEARCH_PROVIDER": {
+          const { pluginId: payloadPluginId, id, name, icon, callbackId } = payload;
+          ExtensionRegistry.registerSearchProvider(payloadPluginId || pluginId, id, name, icon, callbackId);
+          break;
+        }
+
+        case "SEARCH_RESPONSE":
+          ExtensionRegistry.handleSearchResponse(payload.requestId, payload.results, payload.error);
+          break;
 
         case "LOOKUP_RESPONSE":
           ExtensionRegistry.handleLookupResponse(payload.requestId, payload.results, payload.error);
           break;
 
         case "STORAGE_GET": {
+          if (!permissions.includes("storage")) {
+            logger.warn(`[PluginSandbox] Permission "storage" is missing for plugin ${pluginId}`);
+            (event.source as any).postMessage({
+              source: "potok-host",
+              action: "STORAGE_GET_RESPONSE",
+              payload: { requestId: payload.requestId, value: null }
+            }, "*");
+            break;
+          }
           const val = localStorage.getItem(`potok_plugin:scoped:${pluginId}:${payload.key}`);
           // CRITICAL: We use "*" instead of event.origin here because blob URL origins can be "null" 
           // inside sandboxed frames, which would block postMessage callbacks from being delivered.
@@ -221,6 +267,15 @@ export const PluginSandbox: React.FC = () => {
         }
 
         case "STORAGE_SET": {
+          if (!permissions.includes("storage")) {
+            logger.warn(`[PluginSandbox] Permission "storage" is missing for plugin ${pluginId}`);
+            (event.source as any).postMessage({
+              source: "potok-host",
+              action: "STORAGE_SET_RESPONSE",
+              payload: { requestId: payload.requestId }
+            }, "*");
+            break;
+          }
           localStorage.setItem(`potok_plugin:scoped:${pluginId}:${payload.key}`, payload.value);
           (event.source as any).postMessage({
             source: "potok-host",
@@ -231,26 +286,46 @@ export const PluginSandbox: React.FC = () => {
         }
 
         case "HTTP_REQUEST": {
-          const { requestId, url, method, headers } = payload;
+          const { requestId, url, method, headers, body } = payload;
+          if (!permissions.includes("http-proxy")) {
+            (event.source as any).postMessage({
+              source: "potok-host",
+              action: "HTTP_RESPONSE",
+              payload: { requestId, status: 403, data: "", error: "Отсутствует разрешение http-proxy в манифесте плагина" }
+            }, "*");
+            break;
+          }
           try {
-            const gatewayURL = activeProfile?.gatewayURL;
-            let responseData = "";
-            let responseStatus = 200;
-
-            if (gatewayURL) {
-              const res = await fetch(`${gatewayURL}/api/v1/proxy`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ url, method, headers })
-              });
-              responseStatus = res.status;
-              responseData = await res.text();
-            } else {
-              // Direct fetch fallback if no gateway configured
-              const res = await fetch(url, { method, headers });
-              responseStatus = res.status;
-              responseData = await res.text();
+            let finalUrl = url;
+            if (url.startsWith("/api/")) {
+              const gatewayBase = activeProfile?.gatewayURL 
+                ? (activeProfile.gatewayURL.endsWith("/") ? activeProfile.gatewayURL.slice(0, -1) : activeProfile.gatewayURL)
+                : "";
+              
+              // Ensure we prepend protocol if missing
+              let absoluteGateway = gatewayBase;
+              if (absoluteGateway && !/^https?:\/\//i.test(absoluteGateway)) {
+                absoluteGateway = `http://${absoluteGateway}`;
+              }
+              
+              finalUrl = `${absoluteGateway}${url}`;
+              console.log(`[PluginSandbox] Rewrote relative API url: ${url} -> ${finalUrl}`);
             }
+
+            const fetchOptions: RequestInit = { method, headers };
+            if (body) {
+              fetchOptions.body = typeof body === "string" ? body : JSON.stringify(body);
+              if (!headers || !headers["Content-Type"]) {
+                fetchOptions.headers = {
+                  ...headers,
+                  "Content-Type": "application/json"
+                };
+              }
+            }
+
+            const res = await fetch(finalUrl, fetchOptions);
+            const responseStatus = res.status;
+            const responseData = await res.text();
 
             (event.source as any).postMessage({
               source: "potok-host",
@@ -261,7 +336,7 @@ export const PluginSandbox: React.FC = () => {
             (event.source as any).postMessage({
               source: "potok-host",
               action: "HTTP_RESPONSE",
-              payload: { requestId, status: 500, data: "", error: err.message || "HTTP Proxy failed" }
+              payload: { requestId, status: 500, data: "", error: err.message || "HTTP request failed" }
             }, "*");
           }
           break;
@@ -276,7 +351,7 @@ export const PluginSandbox: React.FC = () => {
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [activeProfile, showHUD]);
+  }, [activeProfile, showHUD, activeExtensions]);
 
   // Clean up all iframe DOM nodes on unmount
   useEffect(() => {

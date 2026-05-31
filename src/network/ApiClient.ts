@@ -297,7 +297,7 @@ export class ApiClient {
   public static async getTorrentOverride(hash: string): Promise<TorrentOverride | null> {
     const clean = this.cleanHash(hash);
     try {
-      const res = await fetch(`${this.baseURL}/api/torrents/overrides/${clean}`, {
+      const res = await fetch(`${this.baseURL}/api/media/override/${clean}`, {
         headers: this.headers,
       });
       if (res.status === 404) return null;
@@ -312,7 +312,7 @@ export class ApiClient {
     if (hashes.length === 0) return {};
     const cleaned = hashes.map(h => this.cleanHash(h));
     try {
-      const res = await fetch(`${this.baseURL}/api/torrents/overrides/batch`, {
+      const res = await fetch(`${this.baseURL}/api/media/override/batch`, {
         method: "POST",
         headers: this.headers,
         body: JSON.stringify(cleaned),
@@ -421,7 +421,7 @@ export class ApiClient {
 
   public static async saveTorrentOverride(hash: string, season: number, episodeOffset: number): Promise<void> {
     const clean = this.cleanHash(hash);
-    const res = await fetch(`${this.baseURL}/api/torrents/overrides`, {
+    const res = await fetch(`${this.baseURL}/api/media/override`, {
       method: "POST",
       headers: this.headers,
       body: JSON.stringify({

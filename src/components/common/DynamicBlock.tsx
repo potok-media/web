@@ -5,16 +5,23 @@ import { ErrorBoundary } from "../ErrorBoundary";
 import { ChevronDown, Check } from "lucide-react";
 import StreamSkeletonList from "../StreamSkeletonList";
 import StreamRowComponent from "../StreamRowComponent";
-import StreamList from "./StreamList";
 import "../../styles/extensions.css";
 
-interface ExtensionSlotProps {
-  id?: string;
-  name: string;
-  props?: any;
-}
+// Global click-timestamp registry to throttle custom element clicks to 1 per 400ms
+const globalClickTimestamps = new Map<string, number>();
 
-// 1. SafeInput component to maintain local state synchronously and prevent React input locking
+const debounceClick = (pluginId: string, callback: () => void) => {
+  const now = Date.now();
+  const lastClick = globalClickTimestamps.get(pluginId) || 0;
+  if (now - lastClick >= 400) {
+    globalClickTimestamps.set(pluginId, now);
+    callback();
+  } else {
+    console.warn(`[DynamicBlock] Click on plugin ${pluginId} throttled (400ms debounce active).`);
+  }
+};
+
+// Safe Input to maintain local state synchronously and prevent locking
 const SafeInput: React.FC<{
   schema: UIComponentSchema;
   pluginId: string;
@@ -29,7 +36,7 @@ const SafeInput: React.FC<{
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    setLocalValue(val); // Update local state synchronously for smooth 120fps typing
+    setLocalValue(val);
     if (events?.onChange) {
       ExtensionRegistry.triggerUIEvent(pluginId, events.onChange, val);
     }
@@ -50,7 +57,7 @@ const SafeInput: React.FC<{
   );
 };
 
-// 2. SafeToggle component to maintain local checked state synchronously
+// Safe Toggle
 const SafeToggle: React.FC<{
   schema: UIComponentSchema;
   pluginId: string;
@@ -90,7 +97,7 @@ const SafeToggle: React.FC<{
   );
 };
 
-// 3. SafeSelect component to maintain local selection state using premium custom popovers
+// Safe Select with premium customs
 const SafeSelect: React.FC<{
   schema: UIComponentSchema;
   pluginId: string;
@@ -185,12 +192,33 @@ const SafeSelect: React.FC<{
   );
 };
 
-export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }) => {
+interface DynamicBlockProps {
+  name: string;
+  contextProps?: any;
+  children: React.ReactNode;
+  skeletonHeight?: number;
+}
+
+export const DynamicBlock: React.FC<DynamicBlockProps> = ({
+  name,
+  contextProps,
+  children,
+  skeletonHeight = 50
+}) => {
+  const [settlementState, setSettlementState] = useState(ExtensionRegistry.settlementState);
   const [, setTick] = useState(0);
 
-  // Force re-render whenever the ExtensionRegistry state updates
+  // Reference contextProps to prevent TS6133 unused local error
+  useEffect(() => {
+    if (contextProps) {
+      console.debug(`[DynamicBlock] Initialized ${name} with context props:`, contextProps);
+    }
+  }, [name, contextProps]);
+
+  // Force re-render and settlement state synchronization whenever the ExtensionRegistry state updates
   useEffect(() => {
     const handleUpdate = () => {
+      setSettlementState(ExtensionRegistry.settlementState);
       setTick((t) => t + 1);
     };
 
@@ -201,24 +229,14 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }
     };
   }, [name]);
 
-  const contributions = ExtensionRegistry.getSlotContributions(name);
-  const contributionIds = contributions.map((c) => c.contribution.id).join(",");
-
-  // Trigger slot render in sandbox whenever contributions are registered/updated or props change
-  useEffect(() => {
-    contributions.forEach((c) => {
-      ExtensionRegistry.triggerSlotRender(c.contribution.id, props);
-    });
-  }, [contributionIds, JSON.stringify(props)]);
-
-  if (contributions.length === 0) {
-    return null;
-  }
-
-  // Recursive renderer for arbitrary dynamic UI schemas
-  const renderComponent = (schema: UIComponentSchema, pluginId: string): React.ReactNode => {
+  // Render Component defined by schema (with key override support for deterministic React keys)
+  const renderComponent = (
+    schema: UIComponentSchema, 
+    pluginId: string, 
+    overrideKey?: string
+  ): React.ReactNode => {
     if (!schema || !schema.type) return null;
-    const { type, id, props: componentProps, children, events } = schema;
+    const { type, id, props: componentProps, children: subChildren, events } = schema;
 
     const baseStyle: React.CSSProperties = {};
     if (componentProps.width !== undefined) baseStyle.width = componentProps.width;
@@ -226,9 +244,13 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }
     if (componentProps.flex !== undefined) baseStyle.flex = componentProps.flex;
     if (componentProps.visible === false) return null;
 
+    const keyToUse = overrideKey || id;
+
     const handleClick = () => {
       if (events?.onClick) {
-        ExtensionRegistry.triggerUIEvent(pluginId, events.onClick, {});
+        debounceClick(pluginId, () => {
+          ExtensionRegistry.triggerUIEvent(pluginId, events.onClick!, {});
+        });
       }
     };
 
@@ -245,8 +267,8 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }
             : componentProps.justifyContent,
         };
         return (
-          <div key={id} className="potok-vstack" style={inlineStyle}>
-            {children?.map((child) => renderComponent(child, pluginId))}
+          <div key={keyToUse} className="potok-vstack" style={inlineStyle}>
+            {subChildren?.map((child) => renderComponent(child, pluginId))}
           </div>
         );
       }
@@ -263,15 +285,15 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }
             : componentProps.justifyContent,
         };
         return (
-          <div key={id} className="potok-hstack" style={inlineStyle}>
-            {children?.map((child) => renderComponent(child, pluginId))}
+          <div key={keyToUse} className="potok-hstack" style={inlineStyle}>
+            {subChildren?.map((child) => renderComponent(child, pluginId))}
           </div>
         );
       }
 
       case "Card": {
         return (
-          <div key={id} className="potok-card" style={baseStyle}>
+          <div key={keyToUse} className="potok-card" style={baseStyle}>
             {(componentProps.title || componentProps.subtitle) && (
               <div className="potok-card-header">
                 {componentProps.title && <h3 className="potok-card-title">{componentProps.title}</h3>}
@@ -279,7 +301,7 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }
               </div>
             )}
             <div className="potok-card-body">
-              {children?.map((child) => renderComponent(child, pluginId))}
+              {subChildren?.map((child) => renderComponent(child, pluginId))}
             </div>
           </div>
         );
@@ -288,7 +310,7 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }
       case "Heading": {
         const Level = `h${componentProps.level || 1}` as "h1" | "h2" | "h3" | "h4";
         return (
-          <Level key={id} className={`potok-heading potok-heading-${componentProps.level || 1}`} style={baseStyle}>
+          <Level key={keyToUse} className={`potok-heading potok-heading-${componentProps.level || 1}`} style={baseStyle}>
             {componentProps.text}
           </Level>
         );
@@ -299,7 +321,7 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }
           componentProps.bold ? "potok-text-bold" : ""
         }`;
         return (
-          <span key={id} className={textClass} style={baseStyle}>
+          <span key={keyToUse} className={textClass} style={baseStyle}>
             {componentProps.text}
           </span>
         );
@@ -307,76 +329,58 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }
 
       case "Badge": {
         return (
-          <span key={id} className={`potok-badge potok-badge-${componentProps.color || "info"}`} style={baseStyle}>
+          <span key={keyToUse} className={`potok-badge potok-badge-${componentProps.color || "info"}`} style={baseStyle}>
             {componentProps.text}
           </span>
         );
       }
 
       case "Divider": {
-        return <hr key={id} className="potok-divider" style={baseStyle} />;
+        return <hr key={keyToUse} className="potok-divider" style={baseStyle} />;
       }
 
       case "Spacer": {
-        return <div key={id} className="potok-spacer" style={{ ...baseStyle, flexGrow: 1 }} />;
+        return <div key={keyToUse} className="potok-spacer" style={{ ...baseStyle, flexGrow: 1 }} />;
       }
 
       case "Button": {
         const btnClass = `potok-btn potok-btn-${componentProps.variant || "secondary"}`;
         return (
-          <button key={id} className={btnClass} disabled={componentProps.disabled} onClick={handleClick} style={baseStyle}>
+          <button key={keyToUse} className={btnClass} disabled={componentProps.disabled} onClick={handleClick} style={baseStyle}>
             {componentProps.text}
           </button>
         );
       }
 
       case "Input": {
-        return <SafeInput key={id} schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
+        return <SafeInput key={keyToUse} schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
       }
 
       case "Toggle": {
-        return <SafeToggle key={id} schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
+        return <SafeToggle key={keyToUse} schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
       }
 
       case "Select": {
-        return <SafeSelect key={id} schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
+        return <SafeSelect key={keyToUse} schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
       }
 
       case "StreamSkeletonList": {
-        return <StreamSkeletonList key={id} />;
+        return <StreamSkeletonList key={keyToUse} />;
       }
 
       case "StreamRowComponent": {
         const handleTorrentClick = () => {
           if (events?.onClick) {
-            ExtensionRegistry.triggerUIEvent(pluginId, events.onClick, componentProps.torrent);
+            debounceClick(pluginId, () => {
+              ExtensionRegistry.triggerUIEvent(pluginId, events.onClick!, componentProps.torrent);
+            });
           }
         };
         return (
           <StreamRowComponent
-            key={id}
+            key={keyToUse}
             torrent={componentProps.torrent}
             onClick={handleTorrentClick}
-          />
-        );
-      }
-
-      case "StreamList": {
-        const { streams, loading, showFilters, emptyText } = componentProps;
-        const handleSelectStream = (streamPayload: any) => {
-          const selectEvent = (events as any)?.onSelectStream;
-          if (selectEvent) {
-            ExtensionRegistry.triggerUIEvent(pluginId, selectEvent, streamPayload);
-          }
-        };
-        return (
-          <StreamList
-            key={id}
-            streams={streams || []}
-            loading={loading}
-            showFilters={showFilters}
-            emptyText={emptyText}
-            onSelectStream={handleSelectStream}
           />
         );
       }
@@ -386,23 +390,127 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }
     }
   };
 
+  // If settling, show our beautiful high-fidelity pulse placeholder
+  if (settlementState === "settling") {
+    return (
+      <div 
+        className="potok-shimmer-placeholder" 
+        style={{ 
+          height: `${skeletonHeight}px`, 
+          width: "100%", 
+          borderRadius: "12px" 
+        }} 
+      />
+    );
+  }
+
+  // 1. Flatten children and map them to standard { id, element } shape
+  const childArray = React.Children.toArray(children);
+  let elements: { id: string; element: React.ReactNode }[] = [];
+  childArray.forEach((child, index) => {
+    if (child === null || child === undefined || typeof child === "boolean") {
+      return;
+    }
+    let elementId = `child-${index}`;
+    if (React.isValidElement(child) && child.props && (child.props as any).id) {
+      elementId = (child.props as any).id;
+    }
+    elements.push({ id: elementId, element: child });
+  });
+
+  // 2. Fetch block mutations from the registry
+  const blockMutations = ExtensionRegistry.getBlockMutations(name);
+
+  // 3. Apply mutations (PREPEND, APPEND, HIDE, EDIT, INSERT_BEFORE, INSERT_AFTER, REPLACE)
+  blockMutations.forEach(({ pluginId, mutations, appends, prepends }) => {
+    // A. Apply Prepends
+    prepends.forEach((prependSchema, index) => {
+      const stableKey = `ext-mut:${pluginId}:${name}:prepend:direct:${index}`;
+      const rendered = renderComponent(prependSchema, pluginId, stableKey);
+      if (rendered !== null) {
+        elements.unshift({ id: stableKey, element: rendered });
+      }
+    });
+
+    // B. Apply Appends
+    appends.forEach((appendSchema, index) => {
+      const stableKey = `ext-mut:${pluginId}:${name}:append:direct:${index}`;
+      const rendered = renderComponent(appendSchema, pluginId, stableKey);
+      if (rendered !== null) {
+        elements.push({ id: stableKey, element: rendered });
+      }
+    });
+
+    // C. Apply element mutations
+    mutations.forEach((mutation, index) => {
+      const targetId = mutation.elementId;
+      const action = mutation.action;
+
+      if (action === "hide") {
+        // HIDE action
+        elements = elements.filter((el) => el.id !== targetId);
+      } else if (action === "edit") {
+        // EDIT action (clone element with custom props)
+        elements = elements.map((el) => {
+          if (el.id === targetId && React.isValidElement(el.element)) {
+            return {
+              ...el,
+              element: React.cloneElement(el.element, {
+                ...(el.element.props as any),
+                ...(mutation.props || {}),
+              }),
+            };
+          }
+          return el;
+        });
+      } else if (action === "before" && mutation.layout) {
+        // INSERT_BEFORE action
+        const stableKey = `ext-mut:${pluginId}:${name}:before:${targetId}:${index}`;
+        const rendered = renderComponent(mutation.layout, pluginId, stableKey);
+        if (rendered !== null) {
+          const targetIndex = elements.findIndex((el) => el.id === targetId);
+          if (targetIndex !== -1) {
+            elements.splice(targetIndex, 0, { id: stableKey, element: rendered });
+          }
+        }
+      } else if (action === "after" && mutation.layout) {
+        // INSERT_AFTER action
+        const stableKey = `ext-mut:${pluginId}:${name}:after:${targetId}:${index}`;
+        const rendered = renderComponent(mutation.layout, pluginId, stableKey);
+        if (rendered !== null) {
+          const targetIndex = elements.findIndex((el) => el.id === targetId);
+          if (targetIndex !== -1) {
+            elements.splice(targetIndex + 1, 0, { id: stableKey, element: rendered });
+          }
+        }
+      } else if (action === "replace" && mutation.layout) {
+        // REPLACE action
+        const stableKey = `ext-mut:${pluginId}:${name}:replace:${targetId}:${index}`;
+        const rendered = renderComponent(mutation.layout, pluginId, stableKey);
+        if (rendered !== null) {
+          const targetIndex = elements.findIndex((el) => el.id === targetId);
+          if (targetIndex !== -1) {
+            elements[targetIndex] = { id: stableKey, element: rendered };
+          }
+        }
+      }
+    });
+  });
+
   return (
     <ErrorBoundary>
-      <div className="potok-extension-slot">
-        {contributions.map((c) => {
-          const renderResponse = ExtensionRegistry.getSlotRender(c.contribution.id);
-          if (!renderResponse || !renderResponse.layout) {
-            // Skeleton loader or null while waiting for plugin to process RENDER_SLOT
-            return null;
+      <React.Fragment>
+        {elements.map((el) => {
+          // If the element has a key defined or is valid element, make sure it renders beautifully
+          if (React.isValidElement(el.element)) {
+            // We can clone with key to guarantee stable React tracking key
+            return React.cloneElement(el.element, { key: el.id });
           }
-          return (
-            <div key={c.contribution.id} className="potok-extension-contribution">
-              {renderComponent(renderResponse.layout, c.pluginId)}
-            </div>
-          );
+          return <React.Fragment key={el.id}>{el.element}</React.Fragment>;
         })}
-      </div>
+      </React.Fragment>
     </ErrorBoundary>
   );
 };
-export default ExtensionSlot;
+
+export default DynamicBlock;

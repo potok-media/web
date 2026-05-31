@@ -7,9 +7,11 @@ import { useMediaDetails } from "../hooks/useMediaDetails";
 import { SeasonEpisodesSection } from "../components/SeasonEpisodesSection";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ExtensionSlot } from "../components/common/ExtensionSlot";
+import { DynamicBlock } from "../components/common/DynamicBlock";
 import { MediaCastSection } from "../components/MediaCastSection";
 import { MediaOverviewSection } from "../components/MediaOverviewSection";
 import type { TvEpisode, MediaCard } from "../network/ApiTypes";
+import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import "../styles/media.css";
 
 interface SelectedEpisodeState {
@@ -28,6 +30,17 @@ export const MediaDetailsPage: React.FC = () => {
 
   const mediaRef = useRef<MediaCard | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<SelectedEpisodeState | null>(null);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setTick((t) => t + 1);
+    };
+    ExtensionRegistry.addListener(handleUpdate);
+    return () => {
+      ExtensionRegistry.removeListener(handleUpdate);
+    };
+  }, []);
 
   const handleNavigateToTorrents = useCallback((season?: number, episode?: number) => {
     navigate(`/media/${mediaType}/${mediaId}/torrents`, {
@@ -79,6 +92,7 @@ export const MediaDetailsPage: React.FC = () => {
   const cast = media.cast || [];
   const tmdbId = media.id;
   const canWatch = !!(services?.searchEngine?.configured && services?.searchEngine?.online);
+  const hasOnlinePlugin = tick >= 0 && ExtensionRegistry.getSearchProviders().length > 0;
 
   return (
     <div className="details-layout">
@@ -99,80 +113,104 @@ export const MediaDetailsPage: React.FC = () => {
               )}
 
               <div className="details-actions-container">
-                {/* 1. Core Primary Watch torrent button */}
-                {canWatch ? (
-                  <Link
-                    to={`/media/${mediaType}/${mediaId}/torrents${selectedEpisode ? `?season=${selectedEpisode.seasonNumber}&episode=${selectedEpisode.episode.episodeNumber}` : ""}`}
-                    state={{
+                <DynamicBlock
+                  name="media-details-actions"
+                  contextProps={{ mediaId, tmdbId, mediaType, selectedEpisode, media }}
+                >
+                  {/* 1. Core Primary Watch torrent button */}
+                  {canWatch ? (
+                    <Link
+                      id="watch-primary"
+                      to={`/media/${mediaType}/${mediaId}/torrents${selectedEpisode ? `?season=${selectedEpisode.seasonNumber}&episode=${selectedEpisode.episode.episodeNumber}` : ""}`}
+                      state={{
+                        season: selectedEpisode?.seasonNumber,
+                        episode: selectedEpisode?.episode.episodeNumber,
+                        media
+                      }}
+                      className="btn-watch-primary"
+                      onClick={(e) => {
+                        if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+                          e.preventDefault();
+                          if (selectedEpisode) {
+                            handleNavigateToTorrents(selectedEpisode.seasonNumber, selectedEpisode.episode.episodeNumber);
+                          } else {
+                            handleNavigateToTorrents();
+                          }
+                        }
+                      }}
+                    >
+                      <Play size={18} fill="black" />
+                      <span>Смотреть</span>
+                    </Link>
+                  ) : (
+                    <button
+                      id="watch-primary"
+                      className="btn-watch-primary disabled"
+                      title={services?.searchEngine?.configured ? "Поисковый шлюз недоступен. Функция поиска торрентов временно заблокирована." : "Поисковик по торрентам не настроен. Вы можете настроить его в параметрах."}
+                    >
+                      <Play size={18} fill="currentColor" />
+                      <span>Смотреть</span>
+                    </button>
+                  )}
+
+                  {hasOnlinePlugin && (
+                    <Link
+                      id="watch-online"
+                      to={`/media/${mediaType}/${mediaId}/online${selectedEpisode ? `?season=${selectedEpisode.seasonNumber}&episode=${selectedEpisode.episode.episodeNumber}` : ""}`}
+                      state={{
+                        season: selectedEpisode?.seasonNumber,
+                        episode: selectedEpisode?.episode.episodeNumber,
+                        media
+                      }}
+                      className="btn-watch-online"
+                    >
+                      <Play size={18} fill="currentColor" />
+                      <span>Смотреть Онлайн</span>
+                    </Link>
+                  )}
+
+                  {/* 2. Dynamically Rendered Plugin Extension Slot for Media Actions (Online Balancer buttons go here) */}
+                  <ExtensionSlot
+                    id="media-actions"
+                    name="media-actions"
+                    props={{
+                      mediaId,
+                      tmdbId,
+                      mediaType,
                       season: selectedEpisode?.seasonNumber,
                       episode: selectedEpisode?.episode.episodeNumber,
-                      media
+                      title: media.title,
+                      originalTitle: media.originalTitle
                     }}
-                    className="btn-watch-primary"
-                    onClick={(e) => {
-                      if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
-                        e.preventDefault();
-                        if (selectedEpisode) {
-                          handleNavigateToTorrents(selectedEpisode.seasonNumber, selectedEpisode.episode.episodeNumber);
-                        } else {
-                          handleNavigateToTorrents();
-                        }
-                      }
-                    }}
-                  >
-                    <Play size={18} fill="black" />
-                    <span>Смотреть</span>
-                  </Link>
-                ) : (
-                  <button
-                    className="btn-watch-primary disabled"
-                    title={services?.searchEngine?.configured ? "Поисковый шлюз недоступен. Функция поиска торрентов временно заблокирована." : "Поисковик по торрентам не настроен. Вы можете настроить его в параметрах."}
-                  >
-                    <Play size={18} fill="currentColor" />
-                    <span>Смотреть</span>
-                  </button>
-                )}
+                  />
 
-                {/* 2. Dynamically Rendered Plugin Extension Slot for Media Actions (Online Balancer buttons go here) */}
-                <ExtensionSlot
-                  name="media-actions"
-                  props={{
-                    mediaId,
-                    tmdbId,
-                    mediaType,
-                    season: selectedEpisode?.seasonNumber,
-                    episode: selectedEpisode?.episode.episodeNumber,
-                    title: media.title,
-                    originalTitle: media.originalTitle
-                  }}
-                />
+                  {/* 3. Social and Watchlist row */}
+                  <div id="social-actions-row" className="details-actions-row">
+                    <button
+                      className={`action-btn-circle ${isWatched ? "active" : ""}`}
+                      onClick={toggleWatched}
+                      title={isWatched ? "Удалить из истории просмотра" : "Отметить просмотренным"}
+                    >
+                      <Eye size={18} />
+                    </button>
 
-                {/* 3. Social and Watchlist row */}
-                <div className="details-actions-row">
-                  <button
-                    className={`action-btn-circle ${isWatched ? "active" : ""}`}
-                    onClick={toggleWatched}
-                    title={isWatched ? "Удалить из истории просмотра" : "Отметить просмотренным"}
-                  >
-                    <Eye size={18} />
-                  </button>
+                    <button
+                      className={`action-btn-circle ${inWatchlist ? "active" : ""}`}
+                      onClick={toggleWatchlist}
+                      title={inWatchlist ? "Удалить из списка ожидания" : "В список ожидания"}
+                    >
+                      <Bookmark size={18} fill={inWatchlist ? "var(--accent)" : "none"} />
+                    </button>
 
-                  <button
-                    className={`action-btn-circle ${inWatchlist ? "active" : ""}`}
-                    onClick={toggleWatchlist}
-                    title={inWatchlist ? "Удалить из списка ожидания" : "В список ожидания"}
-                  >
-                    <Bookmark size={18} fill={inWatchlist ? "var(--accent)" : "none"} />
-                  </button>
-
-                  <button
-                    className={`action-btn-circle ${isFavorite ? "active" : ""}`}
-                    onClick={toggleFavorite}
-                    title={isFavorite ? "Удалить из избранного" : "Добавить в избранное"}
-                  >
-                    <Star size={18} fill={isFavorite ? "var(--accent)" : "none"} />
-                  </button>
-                </div>
+                    <button
+                      className={`action-btn-circle ${isFavorite ? "active" : ""}`}
+                      onClick={toggleFavorite}
+                      title={isFavorite ? "Удалить из избранного" : "Добавить в избранное"}
+                    >
+                      <Star size={18} fill={isFavorite ? "var(--accent)" : "none"} />
+                    </button>
+                  </div>
+                </DynamicBlock>
               </div>
             </div>
 

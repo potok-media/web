@@ -730,6 +730,36 @@
   box-shadow: none;
 }
 
+.btn-watch-online {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 14px 20px;
+  border-radius: var(--radius-m);
+  font: var(--font-body-bold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--timing-hover) cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.btn-watch-online:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.05);
+}
+
+.btn-watch-online:active {
+  transform: translateY(0);
+}
+
 .details-actions-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -2702,7 +2732,51 @@
 .details-reset-episode-btn:active {
   transform: scale(0.97);
 }
+/* Premium Online Episodes Explorer Styles */
+.card-hover-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
+.episode-picker-card:hover .card-hover-overlay {
+  opacity: 1;
+}
 
+.episode-watched-checkmark {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background-color: var(--success);
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
 
+/* Glassmorphic tab badges */
+.potok-badge-info {
+  background-color: var(--accent);
+  color: white;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+  font-weight: 700;
+}
 
+.potok-badge-secondary {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.potok-badge-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}

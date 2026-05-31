@@ -17,7 +17,11 @@ export interface ActivePlayback {
   id: number;
   season?: number;
   episode?: number;
-  torrentHash: string;
+  torrentHash?: string;
+  streamType?: "m3u8" | "mp4" | "dash";
+  audios?: { name: string; url: string }[];
+  audioNames?: string[];
+  headers?: Record<string, string>;
 }
 
 interface AppSettingsContextType {

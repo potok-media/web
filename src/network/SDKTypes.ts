@@ -34,6 +34,11 @@ export interface UIComponentSchema {
     spacing?: number;
     alignItems?: 'start' | 'center' | 'end' | 'stretch';
     justifyContent?: 'start' | 'center' | 'end' | 'between' | 'around';
+    torrent?: any;
+    streams?: RawStreamPayload[];
+    loading?: boolean;
+    showFilters?: boolean;
+    emptyText?: string;
   };
   children?: UIComponentSchema[];
   events?: {
@@ -99,6 +104,7 @@ export interface LookupSource {
 export interface SlotContribution {
   slotName: string;
   id: string;
+  title?: string;
 }
 
 export interface SlotRenderResponse {
@@ -113,4 +119,49 @@ export interface RegisteredExtension {
   url: string; // The base directory URL of the extension
   manifest: ExtensionManifest;
   enabled: boolean;
+}
+
+export interface ElementMutation {
+  elementId: string;
+  action: 'hide' | 'edit' | 'before' | 'after' | 'replace';
+  props?: Record<string, any>;
+  layout?: UIComponentSchema;
+}
+
+export interface BlockMutationContribution {
+  blockName: string;
+  mutations: ElementMutation[];
+  appends: UIComponentSchema[];
+  prepends: UIComponentSchema[];
+}
+
+export interface RawStreamPayload {
+  title: string;
+  url?: string;
+  magnet?: string;
+  quality?: string;
+  size?: string | number;
+  seeds?: number;
+  peers?: number;
+  provider?: string;
+  hash?: string;
+  voice?: string;
+  kind?: 'hls' | 'mp4' | 'torrent' | string;
+  headers?: Record<string, string>;
+}
+
+export interface StreamSearchQuery {
+  title: string;
+  year?: number;
+  imdbId?: string;
+  tmdbId?: number;
+  type: 'movie' | 'tv';
+  season?: number;
+  episode?: number;
+}
+
+export interface StreamProviderRegistration {
+  id: string;
+  name: string;
+  icon?: string;
 }

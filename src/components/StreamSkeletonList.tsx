@@ -1,6 +1,6 @@
 import React from "react";
 
-export const TorrentSkeletonList: React.FC = () => {
+export const StreamSkeletonList: React.FC = () => {
   return (
     <>
       {Array.from({ length: 4 }).map((_, i) => (
@@ -32,4 +32,4 @@ export const TorrentSkeletonList: React.FC = () => {
   );
 };
 
-export default TorrentSkeletonList;
+export default StreamSkeletonList;

@@ -12,6 +12,7 @@ interface TorrentFilesHeaderProps {
   loading: boolean;
   filesLength: number;
   onStartEditing: () => void;
+  customTitle?: string;
 }
 
 export const TorrentFilesHeader: React.FC<TorrentFilesHeaderProps> = React.memo(({
@@ -24,6 +25,7 @@ export const TorrentFilesHeader: React.FC<TorrentFilesHeaderProps> = React.memo(
   loading,
   filesLength,
   onStartEditing,
+  customTitle,
 }) => {
   const handleBackOrClose = isEditing ? onBackToFiles : onClose;
 
@@ -34,7 +36,7 @@ export const TorrentFilesHeader: React.FC<TorrentFilesHeaderProps> = React.memo(
           <ArrowLeft size={20} />
         </button>
         <div className="modal-title-text-group">
-          <h3 className="modal-title modal-title-custom-size">Файлы раздачи</h3>
+          <h3 className="modal-title modal-title-custom-size">{customTitle || "Файлы раздачи"}</h3>
           <span className="modal-subtitle modal-subtitle-text">
             {torrent.title}
           </span>

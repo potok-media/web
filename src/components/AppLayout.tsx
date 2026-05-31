@@ -169,6 +169,7 @@ export const AppLayout: React.FC = () => {
           </div>
         )}>
           <WebMediaPlayer
+            key={`${activePlayback.id}-${activePlayback.season || 0}-${activePlayback.episode || 0}-${activePlayback.streamUrl}`}
             playback={activePlayback}
             onClose={stopVideo}
             isNetworkOffline={connectionState === "offline"}

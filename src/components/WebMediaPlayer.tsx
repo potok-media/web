@@ -23,6 +23,113 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const containerRef = useRef<HTMLDivElement>(null);
   const artRef = useRef<Artplayer | null>(null);
 
+  // Added refs for absolute resource tracking and cleanup
+  const playerSessionRef = useRef<number>(0);
+  const hlsRef = useRef<Hls | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const isMountedRef = useRef<boolean>(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  // Centralized, bulletproof and highly aggressive resource cleanup function
+  const cleanupActiveResources = () => {
+    // 1. Invalidate any active session
+    playerSessionRef.current += 1;
+    const currentSession = playerSessionRef.current;
+    
+    console.log(`[WebMediaPlayer] Cleaning up resources for session ${currentSession}...`);
+
+    // 2. Tear down active HLS instance
+    if (hlsRef.current) {
+      try {
+        console.log("[WebMediaPlayer] Destroying active HLS instance...");
+        hlsRef.current.stopLoad();
+        hlsRef.current.detachMedia();
+        hlsRef.current.destroy();
+      } catch (e) {
+        console.error("[WebMediaPlayer] Error destroying HLS instance:", e);
+      }
+      hlsRef.current = null;
+    }
+
+    // 3. Tear down active video element
+    if (videoRef.current) {
+      try {
+        console.log("[WebMediaPlayer] Pausing and clearing video element...");
+        const video = videoRef.current;
+        video.pause();
+        video.src = "";
+        video.removeAttribute("src");
+        video.load();
+      } catch (e) {
+        console.error("[WebMediaPlayer] Error cleaning up video element:", e);
+      }
+      videoRef.current = null;
+    }
+
+    // 4. Tear down Artplayer instance
+    if (artRef.current) {
+      try {
+        console.log("[WebMediaPlayer] Destroying Artplayer instance...");
+        const art = artRef.current;
+        if (art.video) {
+          try {
+            art.video.pause();
+            art.video.src = "";
+            art.video.removeAttribute("src");
+            art.video.load();
+          } catch (e) {}
+        }
+        art.destroy();
+      } catch (e) {
+        console.error("[WebMediaPlayer] Error destroying Artplayer instance:", e);
+      }
+      artRef.current = null;
+    }
+
+    // 5. Aggressively scan container and kill any remaining / orphaned video elements
+    if (containerRef.current) {
+      try {
+        const videos = containerRef.current.getElementsByTagName("video");
+        for (let i = 0; i < videos.length; i++) {
+          const v = videos[i];
+          console.log("[WebMediaPlayer] Aggressively pausing and clearing orphaned video element in container");
+          try {
+            v.pause();
+            v.src = "";
+            v.removeAttribute("src");
+            v.load();
+          } catch (e) {}
+        }
+      } catch (e) {}
+      containerRef.current.innerHTML = "";
+    }
+
+    // 6. Global sweep of all video and audio elements inside application mount container (#root) as a ultimate safety net
+    try {
+      console.log("[WebMediaPlayer] Performing isolated media teardown sweep inside #root...");
+      const allMedia = document.querySelectorAll("#root video, #root audio");
+      allMedia.forEach((el) => {
+        try {
+          const media = el as HTMLMediaElement;
+          media.pause();
+          media.src = "";
+          media.removeAttribute("src");
+          media.load();
+        } catch (e) {
+          console.error("[WebMediaPlayer] Error during global media teardown sweep on el:", e);
+        }
+      });
+    } catch (e) {
+      console.error("[WebMediaPlayer] Error during global media teardown sweep:", e);
+    }
+  };
+
   // States
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -56,6 +163,46 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const [showSubtitleMenu, setShowSubtitleMenu] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [showStats, setShowStats] = useState(false);
+
+  // Helper to automatically route external CDN streams through high-performance C# BFF stream proxy
+  const getProxyUrl = (targetUrl: string) => {
+    if (!targetUrl) return targetUrl;
+    if (targetUrl.includes("localhost") || targetUrl.includes("127.0.0.1") || targetUrl.includes("/api/torrent") || targetUrl.includes("/stream/")) {
+      return targetUrl;
+    }
+    const gatewayBase = ApiClient.baseURL.replace(/\/+$/, "");
+    return `${gatewayBase}/api/proxy?url=${encodeURIComponent(targetUrl)}`;
+  };
+
+  // Initialize audioTracks from playback.audios if provided
+  useEffect(() => {
+    if (playback.audios && playback.audios.length > 0) {
+      const tracks = playback.audios.map((a, idx) => ({ id: idx, name: a.name }));
+      setAudioTracks(tracks);
+      
+      // Determine default active track based on URL query
+      let activeIdx = 0;
+      try {
+        const url = new URL(playback.streamUrl);
+        const audioParam = url.searchParams.get("audio");
+        if (audioParam !== null) {
+          const parsed = parseInt(audioParam, 10);
+          if (!isNaN(parsed) && parsed >= 0 && parsed < playback.audios.length) {
+            activeIdx = parsed;
+          }
+        }
+      } catch {
+        const match = playback.streamUrl.match(/[?&]audio=(\d+)/i);
+        if (match) {
+          const parsed = parseInt(match[1], 10);
+          if (parsed >= 0 && parsed < playback.audios.length) {
+            activeIdx = parsed;
+          }
+        }
+      }
+      setCurrentAudioTrack(activeIdx);
+    }
+  }, [playback.audios, playback.streamUrl]);
 
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -201,20 +348,84 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   // Main ArtPlayer setup
   useEffect(() => {
     if (!containerRef.current) return;
+
+    // 1. First, call cleanup to synchronously kill everything currently active
+    cleanupActiveResources();
+
+    // 2. Increment session counter to signify a brand new initialization session
+    playerSessionRef.current += 1;
+    const sessionId = playerSessionRef.current;
+
+    const proxiedUrl = getProxyUrl(playback.streamUrl);
+    console.log(`[WebMediaPlayer] Initializing player session ${sessionId} for ${playback.streamUrl} (proxied: ${proxiedUrl})`);
+
     const art = new Artplayer({
       container: containerRef.current,
-      url: playback.streamUrl,
+      url: proxiedUrl,
       type: playback.streamUrl.includes(".m3u8") ? "m3u8" : "mp4",
       customType: {
         m3u8: function (video: HTMLVideoElement, url: string) {
+          // Check if this initialization session is still the active one
+          if (playerSessionRef.current !== sessionId) {
+            console.warn(`[WebMediaPlayer] Session ${sessionId} became inactive before Hls initialization. Aborting.`);
+            try {
+              video.pause();
+              video.src = "";
+              video.removeAttribute("src");
+              video.load();
+            } catch (e) {}
+            return;
+          }
+
           if (Hls.isSupported()) {
+            // Clean up any old Hls instance first
+            if (hlsRef.current) {
+              try {
+                hlsRef.current.stopLoad();
+                hlsRef.current.detachMedia();
+                hlsRef.current.destroy();
+              } catch (e) {}
+              hlsRef.current = null;
+            }
+
             const hls = new Hls({ maxBufferLength: 30, maxMaxBufferLength: 60 });
+            
+            // Immediately store in refs so we can clean it up if needed
+            hlsRef.current = hls;
+            videoRef.current = video;
+
             hls.loadSource(url);
             hls.attachMedia(video);
-            (art as SafeArtplayer).hls = hls;
+
+            // Double check session validity after synchronous calls
+            if (playerSessionRef.current !== sessionId) {
+              console.warn(`[WebMediaPlayer] Session ${sessionId} became inactive during Hls attachment. Destroying Hls.`);
+              try {
+                hls.stopLoad();
+                hls.detachMedia();
+                hls.destroy();
+              } catch (e) {}
+              if (hlsRef.current === hls) hlsRef.current = null;
+              try {
+                video.pause();
+                video.src = "";
+                video.removeAttribute("src");
+                video.load();
+              } catch (e) {}
+              return;
+            }
 
             const updateAudioTracks = () => {
-              const audios = (hls.audioTracks || []).map((t, idx) => ({ id: t.id, name: t.name || `Дорожка ${idx + 1}` }));
+              if (playerSessionRef.current !== sessionId) return;
+              const audios = (hls.audioTracks || []).map((t, idx) => {
+                let name = t.name || `Дорожка ${idx + 1}`;
+                if (playback.audios && playback.audios[idx]) {
+                  name = playback.audios[idx].name;
+                } else if (playback.audioNames && playback.audioNames[idx]) {
+                  name = playback.audioNames[idx];
+                }
+                return { id: t.id, name };
+              });
               setAudioTracks(audios);
               setCurrentAudioTrack(hls.audioTrack);
               syncNativeTextTracks();
@@ -223,16 +434,42 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
             hls.on(Hls.Events.MANIFEST_PARSED, updateAudioTracks);
             hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, updateAudioTracks);
             hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, syncNativeTextTracks);
-            hls.on(Hls.Events.AUDIO_TRACK_SWITCHED, () => setCurrentAudioTrack(hls.audioTrack));
+            hls.on(Hls.Events.AUDIO_TRACK_SWITCHED, () => {
+              if (playerSessionRef.current !== sessionId) return;
+              setCurrentAudioTrack(hls.audioTrack);
+            });
 
             hls.on(Hls.Events.ERROR, (_, data) => {
+              if (playerSessionRef.current !== sessionId) return;
               if (data.fatal) {
+                const responseCode = (data.response as any)?.code;
+                if (responseCode === 403 || responseCode === 401) {
+                  hls.stopLoad();
+                  setPlayerError("Доступ к воспроизведению ограничен.");
+                  return;
+                }
+                if (responseCode === 410) {
+                  hls.stopLoad();
+                  setPlayerError("Срок действия ссылки на поток истек.");
+                  return;
+                }
+
                 if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
                 else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
               }
             });
-            art.on("destroy", () => hls.destroy());
+
+            art.on("destroy", () => {
+              try {
+                hls.stopLoad();
+                hls.detachMedia();
+                hls.destroy();
+              } catch (e) {
+                console.warn("Hls destroy error:", e);
+              }
+            });
           } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+            videoRef.current = video;
             video.src = url;
           }
         }
@@ -244,7 +481,12 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
     artRef.current = art;
     if (art.video) {
-      art.video.crossOrigin = "anonymous";
+      videoRef.current = art.video;
+      if (playback.streamUrl.includes(".m3u8")) {
+        art.video.crossOrigin = "anonymous";
+      } else {
+        art.video.removeAttribute("crossorigin");
+      }
       art.video.style.cursor = "pointer";
       art.video.addEventListener("click", () => art.toggle());
       art.video.textTracks.addEventListener("addtrack", syncNativeTextTracks);
@@ -252,26 +494,57 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       art.video.textTracks.addEventListener("change", syncNativeTextTracks);
     }
 
+    // Set .hls on art now if it's already set (synchronous customType)
+    if (hlsRef.current) {
+      try {
+        (art as SafeArtplayer).hls = hlsRef.current;
+      } catch (e) {}
+    }
+
     art.on("ready", () => {
+      if (playerSessionRef.current !== sessionId) return;
       art.play().catch(() => { art.muted = true; art.play().catch((err) => console.error("Autoplay failed:", err)); });
       syncNativeTextTracks();
     });
 
-    art.on("play", () => { setIsPlaying(true); setPlayerError(null); });
-    art.on("pause", () => setIsPlaying(false));
-    art.on("error", (err) => setPlayerError(err?.message || "Ошибка инициализации медиаплеера"));
+    art.on("play", () => {
+      if (playerSessionRef.current !== sessionId) return;
+      setIsPlaying(true);
+      setPlayerError(null);
+    });
+    art.on("pause", () => {
+      if (playerSessionRef.current !== sessionId) return;
+      setIsPlaying(false);
+    });
+    art.on("error", (err) => {
+      if (playerSessionRef.current !== sessionId) return;
+      setPlayerError(err?.message || "Ошибка инициализации медиаплеера");
+    });
     art.on("video:error", () => {
-      const e = art.video?.error;
-      let msg = "Ошибка загрузки видео-потока";
-      if (e?.code === e?.MEDIA_ERR_DECODE || e?.code === e?.MEDIA_ERR_SRC_NOT_SUPPORTED) {
-        msg = "Данный файл не поддерживается плеером.";
-      }
-      setPlayerError(msg);
+      if (playerSessionRef.current !== sessionId) return;
+      fetch(playback.streamUrl, { method: "HEAD" })
+        .then((res) => {
+          if (playerSessionRef.current !== sessionId) return;
+          if (res.status === 403 || res.status === 401) {
+            setPlayerError("Доступ к воспроизведению ограничен.");
+          } else if (res.status === 410) {
+            setPlayerError("Срок действия ссылки на поток истек.");
+          } else {
+            setPlayerError("Не удалось загрузить видео-поток.");
+          }
+        })
+        .catch((err) => {
+          if (playerSessionRef.current !== sessionId) return;
+          console.error("[WebMediaPlayer] video:error fetch failed:", err);
+          setPlayerError("Не удалось загрузить видео-поток.");
+        });
     });
 
     art.on("video:timeupdate", () => {
+      if (playerSessionRef.current !== sessionId) return;
       setCurrentTime(art.currentTime);
       const v = art.video;
+      if (!v) return;
       const b = v.buffered;
       let buf = 0;
       for (let i = 0; i < b.length; i++) {
@@ -281,9 +554,19 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       if (b.length > 0) setBufferedTime(b.end(b.length - 1));
     });
 
-    art.on("video:durationchange", () => setDuration(art.duration));
-    art.on("video:volumechange", () => { setVolume(art.volume); setIsMuted(art.muted); });
-    art.on("fullscreen", (state) => setIsFullscreen(state));
+    art.on("video:durationchange", () => {
+      if (playerSessionRef.current !== sessionId) return;
+      setDuration(art.duration);
+    });
+    art.on("video:volumechange", () => {
+      if (playerSessionRef.current !== sessionId) return;
+      setVolume(art.volume);
+      setIsMuted(art.muted);
+    });
+    art.on("fullscreen", (state) => {
+      if (playerSessionRef.current !== sessionId) return;
+      setIsFullscreen(state);
+    });
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === " ") { e.preventDefault(); art.toggle(); }
@@ -295,7 +578,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      art.destroy();
+      cleanupActiveResources();
     };
   }, [playback.streamUrl]);
 
@@ -310,17 +593,60 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       return;
     }
 
+    const isTorrent = !!playback.torrentHash;
     const time = displayCurrentTime;
-    setSeekOffset(time);
+    if (isTorrent) {
+      setSeekOffset(time);
+    } else {
+      setSeekOffset(0);
+    }
 
-    const baseUrl = playback.streamUrl.split("?")[0];
-    const startQuery = time > 1 ? `&start=${Math.floor(time)}` : "";
-    const newUrl = `${baseUrl}?audio=${id}${startQuery}`;
+    let newUrl = "";
+    if (playback.audios && playback.audios[id]) {
+      try {
+        const targetUrlObj = new URL(playback.audios[id].url);
+        if (time > 1) {
+          targetUrlObj.searchParams.set("start", Math.floor(time).toString());
+        }
+        newUrl = targetUrlObj.toString();
+      } catch {
+        const baseUrl = playback.audios[id].url.split("?")[0];
+        const startQuery = time > 1 ? `&start=${Math.floor(time)}` : "";
+        newUrl = `${baseUrl}?audio=${id}${startQuery}`;
+      }
+    } else {
+      const baseUrl = playback.streamUrl.split("?")[0];
+      const startQuery = time > 1 ? `&start=${Math.floor(time)}` : "";
+      newUrl = `${baseUrl}?audio=${id}${startQuery}`;
+    }
 
-    art.switchUrl(newUrl).then(() => {
-      reinjectSubtitles();
-      art.play();
-    });
+    // Clean up active Hls if switching to a non-m3u8 stream to prevent background leak
+    const isNewM3U8 = newUrl.includes(".m3u8");
+    if (!isNewM3U8 && hlsRef.current) {
+      try {
+        hlsRef.current.stopLoad();
+        hlsRef.current.detachMedia();
+        hlsRef.current.destroy();
+      } catch (e) {}
+      hlsRef.current = null;
+    }
+
+    const proxiedNewUrl = getProxyUrl(newUrl);
+    art.switchUrl(proxiedNewUrl)
+      .then(() => {
+        if (!isMountedRef.current || artRef.current !== art) {
+          console.log("[WebMediaPlayer] switchAudio promise resolved but component is unmounted or art instance changed. Preventing .play()");
+          return;
+        }
+        if (!isTorrent) {
+          art.currentTime = time;
+        }
+        reinjectSubtitles();
+        art.play();
+      })
+      .catch((err) => {
+        console.warn("[WebMediaPlayer] switchAudio URL switch failed or aborted:", err);
+      });
     setCurrentAudioTrack(id);
     setShowAudioMenu(false);
   };
@@ -331,20 +657,55 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     const h = (art as SafeArtplayer).hls;
     if (h) { art.currentTime = time; return; }
 
+    const isTorrent = !!playback.torrentHash;
     const isMKV = playback.streamUrl.includes(".mkv") || playback.streamUrl.includes(".MKV");
     
     const isDefaultAudio = audioTracks.length === 0 || currentAudioTrack === -1 || currentAudioTrack === audioTracks[0].id;
-    const needsRemux = isMKV || !isDefaultAudio;
+    const needsRemux = isTorrent && (isMKV || !isDefaultAudio);
 
     if (needsRemux) {
       setSeekOffset(time);
-      const baseUrl = playback.streamUrl.split("?")[0];
-      const audioQuery = currentAudioTrack !== -1 ? `&audio=${currentAudioTrack}` : "";
-      const newUrl = `${baseUrl}?start=${Math.floor(time)}${audioQuery}`;
-      art.switchUrl(newUrl).then(() => {
-        reinjectSubtitles();
-        art.play();
-      });
+      let newUrl = "";
+      if (playback.audios && playback.audios[currentAudioTrack]) {
+        try {
+          const targetUrlObj = new URL(playback.audios[currentAudioTrack].url);
+          targetUrlObj.searchParams.set("start", Math.floor(time).toString());
+          newUrl = targetUrlObj.toString();
+        } catch {
+          const baseUrl = playback.audios[currentAudioTrack].url.split("?")[0];
+          const audioQuery = currentAudioTrack !== -1 ? `&audio=${currentAudioTrack}` : "";
+          newUrl = `${baseUrl}?start=${Math.floor(time)}${audioQuery}`;
+        }
+      } else {
+        const baseUrl = playback.streamUrl.split("?")[0];
+        const audioQuery = currentAudioTrack !== -1 ? `&audio=${currentAudioTrack}` : "";
+        newUrl = `${baseUrl}?start=${Math.floor(time)}${audioQuery}`;
+      }
+
+      // Clean up active Hls if switching to a non-m3u8 stream to prevent background leak
+      const isNewM3U8 = newUrl.includes(".m3u8");
+      if (!isNewM3U8 && hlsRef.current) {
+        try {
+          hlsRef.current.stopLoad();
+          hlsRef.current.detachMedia();
+          hlsRef.current.destroy();
+        } catch (e) {}
+          hlsRef.current = null;
+      }
+
+      const proxiedNewUrl = getProxyUrl(newUrl);
+      art.switchUrl(proxiedNewUrl)
+        .then(() => {
+          if (!isMountedRef.current || artRef.current !== art) {
+            console.log("[WebMediaPlayer] handleSeek promise resolved but component is unmounted or art instance changed. Preventing .play()");
+            return;
+          }
+          reinjectSubtitles();
+          art.play();
+        })
+        .catch((err) => {
+          console.warn("[WebMediaPlayer] handleSeek URL switch failed or aborted:", err);
+        });
     } else {
       setSeekOffset(0);
       art.currentTime = time;

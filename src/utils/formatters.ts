@@ -12,6 +12,18 @@ export const formatBytes = (bytes?: number): string => {
 };
 
 /**
+ * Возвращает правильную форму существительного во множественном числе для русских числительных.
+ */
+export const getPluralForm = (num: number, forms: [string, string, string]): string => {
+  const n = Math.abs(num) % 100;
+  const n1 = n % 10;
+  if (n > 10 && n < 20) return forms[2];
+  if (n1 > 1 && n1 < 5) return forms[1];
+  if (n1 === 1) return forms[0];
+  return forms[2];
+};
+
+/**
  * Преобразует ISO дату в относительное время на русском языке (например: "2 дня назад").
  */
 export const formatPublishDate = (dateStr?: string): string => {
@@ -31,31 +43,22 @@ export const formatPublishDate = (dateStr?: string): string => {
   const diffMonths = Math.floor(diffDays / 30.4);
   const diffYears = Math.floor(diffDays / 365);
 
-  const getPlural = (num: number, forms: [string, string, string]): string => {
-    const n = Math.abs(num) % 100;
-    const n1 = n % 10;
-    if (n > 10 && n < 20) return forms[2];
-    if (n1 > 1 && n1 < 5) return forms[1];
-    if (n1 === 1) return forms[0];
-    return forms[2];
-  };
-
   if (diffSec < 60) {
     return "только что";
   }
   if (diffMin < 60) {
-    return `${diffMin} ${getPlural(diffMin, ["минуту", "минуты", "минут"])} назад`;
+    return `${diffMin} ${getPluralForm(diffMin, ["минуту", "минуты", "минут"])} назад`;
   }
   if (diffHrs < 24) {
-    return `${diffHrs} ${getPlural(diffHrs, ["час", "часа", "часов"])} назад`;
+    return `${diffHrs} ${getPluralForm(diffHrs, ["час", "часа", "часов"])} назад`;
   }
   if (diffDays < 30) {
-    return `${diffDays} ${getPlural(diffDays, ["день", "дня", "дней"])} назад`;
+    return `${diffDays} ${getPluralForm(diffDays, ["день", "дня", "дней"])} назад`;
   }
   if (diffMonths < 12) {
-    return `${diffMonths} ${getPlural(diffMonths, ["месяц", "месяца", "месяцев"])} назад`;
+    return `${diffMonths} ${getPluralForm(diffMonths, ["месяц", "месяца", "месяцев"])} назад`;
   }
-  return `${diffYears} ${getPlural(diffYears, ["год", "года", "лет"])} назад`;
+  return `${diffYears} ${getPluralForm(diffYears, ["год", "года", "лет"])} назад`;
 };
 
 /**

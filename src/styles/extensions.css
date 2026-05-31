@@ -22,13 +22,14 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  transition: border-color 0.15s ease-in-out, background-color 0.15s ease-in-out;
 }
 
 .potok-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.18);
+  background-color: rgba(255, 255, 255, 0.1);
 }
+
 
 .potok-card-header {
   margin-bottom: var(--spacing-s, 8px);
@@ -172,7 +173,7 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
-.potok-input, .potok-select {
+.potok-input {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
@@ -184,8 +185,43 @@
   box-sizing: border-box;
 }
 
-.potok-input:focus, .potok-select:focus {
+.potok-input:focus {
   border-color: var(--color-accent, #007aff);
+}
+
+.potok-select {
+  background: var(--bg-surface-high, rgba(255, 255, 255, 0.08)) !important;
+  border: var(--glass-border, 1px solid rgba(255, 255, 255, 0.1)) !important;
+  color: var(--text-primary, #fff) !important;
+  padding: 10px 18px !important;
+  border-radius: var(--radius-m, 12px) !important;
+  backdrop-filter: var(--blur-glass, blur(20px)) !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease-in-out !important;
+  cursor: pointer;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.potok-select:hover:not(:disabled) {
+  background: var(--bg-surface-highest, rgba(255, 255, 255, 0.15)) !important;
+  transform: translateY(-2px);
+}
+
+.potok-btn-secondary {
+  background: var(--bg-surface-high, rgba(255, 255, 255, 0.08)) !important;
+  border: var(--glass-border, 1px solid rgba(255, 255, 255, 0.1)) !important;
+  color: var(--text-primary, #fff) !important;
+  padding: 10px 18px !important;
+  border-radius: var(--radius-m, 12px) !important;
+  backdrop-filter: var(--blur-glass, blur(20px)) !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.potok-btn-secondary:hover:not(:disabled) {
+  background: var(--bg-surface-highest, rgba(255, 255, 255, 0.15)) !important;
+  transform: translateY(-2px);
 }
 
 /* Switch / Toggle */
@@ -251,4 +287,26 @@ input:checked + .potok-slider {
 
 input:checked + .potok-slider:before {
   transform: translateX(20px);
+}
+
+/* Shimmer/Pulse loading animation for DynamicBlock loading phase */
+.potok-shimmer-placeholder {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: potok-shimmer-pulse 1.5s infinite linear;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes potok-shimmer-pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }

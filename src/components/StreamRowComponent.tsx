@@ -4,12 +4,12 @@ import type { TorrentSearchResult } from "../network/ApiTypes";
 import { extractBadges } from "../utils/torrentUtils";
 import { formatBytes, formatPublishDate } from "../utils/formatters";
 
-interface TorrentRowComponentProps {
+interface StreamRowComponentProps {
   torrent: TorrentSearchResult;
   onClick: (torrent: TorrentSearchResult) => void;
 }
 
-export const TorrentRowComponent: React.FC<TorrentRowComponentProps> = React.memo(({ torrent, onClick }) => {
+export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(({ torrent, onClick }) => {
   const parsedTags = torrent.tags && torrent.tags.length > 0
     ? torrent.tags.slice(0, 6).map(tag => tag.value)
     : extractBadges(torrent.title);
@@ -52,17 +52,25 @@ export const TorrentRowComponent: React.FC<TorrentRowComponentProps> = React.mem
         </div>
 
         <div className="torrent-footer-right">
-          <span>
-            Раздают: <span className="torrent-peer-num">{torrent.seeders ?? 0}</span>
-          </span>
-          <span>
-            Скачивают: <span className="torrent-peer-num">{torrent.leechers ?? 0}</span>
-          </span>
+          {(torrent.seeders === undefined || torrent.seeders === null) && (torrent.leechers === undefined || torrent.leechers === null) ? (
+            <span className="torrent-play-action" style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--color-accent, #007aff)", fontWeight: 600 }}>
+              <span style={{ fontSize: "9px" }}>▶</span> Смотреть
+            </span>
+          ) : (
+            <>
+              <span>
+                Раздают: <span className="torrent-peer-num">{torrent.seeders ?? 0}</span>
+              </span>
+              <span>
+                Скачивают: <span className="torrent-peer-num">{torrent.leechers ?? 0}</span>
+              </span>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 });
 
-TorrentRowComponent.displayName = "TorrentRowComponent";
-export default TorrentRowComponent;
+StreamRowComponent.displayName = "StreamRowComponent";
+export default StreamRowComponent;

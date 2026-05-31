@@ -56,6 +56,7 @@ export function usePlayerStats(
     if (!art || !showStats) return;
 
     const statsInterval = setInterval(() => {
+      if (artRef.current !== art || !art.video) return;
       if (!art.playing) return;
 
       const hls = (art as SafeArtplayer).hls;

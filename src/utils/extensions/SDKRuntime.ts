@@ -1,30 +1,65 @@
-/**
- * SDKRuntime.ts - Consolidating fluent UI builders to strictly stay under 250 lines.
- */
+import type {
+  RawStreamPayload,
+  StreamSearchQuery,
+  UIComponentSchema,
+  ElementMutation
+} from "../../network/SDKTypes";
+
 export function initPotokSDK() {
   const win = window as any;
   if (win.PotokSDK) return;
 
   class CallbackRegistry {
-    private static callbacks = new Map<string, Function>();
+    private static callbacks = new Map<string, { cb: Function; slotId: string }>();
+    private static activeSlotId: string | null = null;
     private static activeRenderCallbacks = new Set<string>();
+
     static register(cb: Function): string {
       const id = `cb_${Math.random().toString(36).substring(2, 9)}_${Date.now()}`;
-      this.callbacks.set(id, cb);
+      const slotId = this.activeSlotId || "global";
+      this.callbacks.set(id, { cb, slotId });
       this.activeRenderCallbacks.add(id);
       return id;
     }
-    static trigger(id: string, data?: any) {
-      const cb = this.callbacks.get(id);
-      if (cb) cb(data);
+
+    static get(id: string): Function | undefined {
+      return this.callbacks.get(id)?.cb;
     }
-    static startRenderScope() { this.activeRenderCallbacks.clear(); }
-    static commitRenderScope() {
-      for (const k of this.callbacks.keys()) {
-        if (!this.activeRenderCallbacks.has(k)) this.callbacks.delete(k);
+
+    static trigger(id: string, data?: any) {
+      const entry = this.callbacks.get(id);
+      if (entry) {
+        const { cb } = entry;
+        if (data && typeof data === 'object') {
+          if ('seasonNum' in data && 'epNum' in data) {
+            cb(data.seasonNum, data.epNum);
+          } else if ('episode' in data && 'audioId' in data) {
+            cb(data.episode, data.audioId);
+          } else {
+            cb(data);
+          }
+        } else {
+          cb(data);
+        }
       }
     }
+
+    static startRenderScope(slotId: string) {
+      this.activeSlotId = slotId;
+      this.activeRenderCallbacks.clear();
+    }
+
+    static commitRenderScope(slotId: string) {
+      for (const [k, v] of this.callbacks.entries()) {
+        if (v.slotId === slotId && !this.activeRenderCallbacks.has(k)) {
+          this.callbacks.delete(k);
+        }
+      }
+      this.activeSlotId = null;
+    }
   }
+
+  win.PotokSDKCallbackRegistry = CallbackRegistry;
 
   function createState<T extends object>(init: T): T & { $subscribe: (fn: () => void) => void } {
     const listeners = new Set<() => void>();
@@ -203,6 +238,214 @@ export function initPotokSDK() {
     }
   }
 
+  class StreamSkeletonListBuilder extends UIComponent {
+    constructor() { super("StreamSkeletonList"); }
+    protected getProps() { return {}; }
+  }
+
+  class StreamRowComponentBuilder extends UIComponent {
+    private _torrent?: any;
+    private _onClick?: (t: any) => void | Promise<void>;
+    constructor() { super("StreamRowComponent"); }
+    torrent(v: any): this { this._torrent = v; return this; }
+    onClick(cb: (t: any) => void | Promise<void>): this { this._onClick = cb; return this; }
+    protected getProps() { return { torrent: this._torrent }; }
+    compile(): any {
+      const json = super.compile();
+      if (this._onClick) {
+        json.events = json.events || {};
+        json.events.onClick = CallbackRegistry.register(this._onClick);
+      }
+      return json;
+    }
+  }
+
+  class StreamListBuilder extends UIComponent {
+    private _streams: RawStreamPayload[] = [];
+    private _loading = false;
+    private _showFilters = false;
+    private _emptyText?: string;
+    private _onSelectStream?: (stream: RawStreamPayload) => void | Promise<void>;
+
+    constructor() {
+      super("StreamList");
+    }
+
+    streams(v: RawStreamPayload[]): this {
+      this._streams = v;
+      return this;
+    }
+
+    loading(v: boolean): this {
+      this._loading = v;
+      return this;
+    }
+
+    showFilters(v: boolean): this {
+      this._showFilters = v;
+      return this;
+    }
+
+    emptyText(v: string): this {
+      this._emptyText = v;
+      return this;
+    }
+
+    onSelectStream(cb: (stream: RawStreamPayload) => void | Promise<void>): this {
+      this._onSelectStream = cb;
+      return this;
+    }
+
+    protected getProps() {
+      return {
+        streams: this._streams,
+        loading: this._loading,
+        showFilters: this._showFilters,
+        emptyText: this._emptyText
+      };
+    }
+
+    compile(): any {
+      const json = super.compile();
+      if (this._onSelectStream) {
+        json.events = json.events || {};
+        json.events.onSelectStream = CallbackRegistry.register(this._onSelectStream);
+      }
+      return json;
+    }
+  }
+
+  class MediaSearchProviderBuilder {
+    private id: string;
+    private name: string;
+    private iconUrl?: string;
+
+    constructor(id: string, name: string) {
+      this.id = id;
+      this.name = name;
+    }
+
+    icon(url: string): this {
+      this.iconUrl = url;
+      return this;
+    }
+
+    onSearch(cb: (query: StreamSearchQuery) => Promise<RawStreamPayload[]>): this {
+      const callbackId = CallbackRegistry.register(cb);
+      window.parent.postMessage({
+        source: 'potok-plugin-sdk',
+        action: 'REGISTER_SEARCH_PROVIDER',
+        payload: {
+          id: this.id,
+          name: this.name,
+          icon: this.iconUrl,
+          callbackId
+        }
+      }, '*');
+      return this;
+    }
+
+    register(cb: (query: StreamSearchQuery) => Promise<RawStreamPayload[]>): this {
+      return this.onSearch(cb);
+    }
+  }
+
+  class ElementMutationBuilder {
+    private builder: BlockMutationBuilder;
+    private elementId: string;
+
+    constructor(builder: BlockMutationBuilder, elementId: string) {
+      this.builder = builder;
+      this.elementId = elementId;
+    }
+
+    hide(): BlockMutationBuilder {
+      this.builder.addMutation({
+        elementId: this.elementId,
+        action: 'hide'
+      });
+      return this.builder;
+    }
+
+    edit(props: Record<string, any>): BlockMutationBuilder {
+      this.builder.addMutation({
+        elementId: this.elementId,
+        action: 'edit',
+        props
+      });
+      return this.builder;
+    }
+
+    before(ui: UIComponent | any): BlockMutationBuilder {
+      this.builder.addMutation({
+        elementId: this.elementId,
+        action: 'before',
+        layout: ui && typeof ui.compile === 'function' ? ui.compile() : ui
+      });
+      return this.builder;
+    }
+
+    after(ui: UIComponent | any): BlockMutationBuilder {
+      this.builder.addMutation({
+        elementId: this.elementId,
+        action: 'after',
+        layout: ui && typeof ui.compile === 'function' ? ui.compile() : ui
+      });
+      return this.builder;
+    }
+
+    replace(ui: UIComponent | any): BlockMutationBuilder {
+      this.builder.addMutation({
+        elementId: this.elementId,
+        action: 'replace',
+        layout: ui && typeof ui.compile === 'function' ? ui.compile() : ui
+      });
+      return this.builder;
+    }
+  }
+
+  class BlockMutationBuilder {
+    private blockName: string;
+    private mutations: ElementMutation[] = [];
+    private appends: UIComponentSchema[] = [];
+    private prepends: UIComponentSchema[] = [];
+
+    constructor(blockName: string) {
+      this.blockName = blockName;
+    }
+
+    element(id: string): ElementMutationBuilder {
+      return new ElementMutationBuilder(this, id);
+    }
+
+    addMutation(mutation: ElementMutation) {
+      this.mutations.push(mutation);
+    }
+
+    append(ui: UIComponent | any): this {
+      this.appends.push(ui && typeof ui.compile === 'function' ? ui.compile() : ui);
+      return this;
+    }
+
+    prepend(ui: UIComponent | any): this {
+      this.prepends.push(ui && typeof ui.compile === 'function' ? ui.compile() : ui);
+      return this;
+    }
+
+    apply(): void {
+      window.parent.postMessage({
+        source: 'potok-plugin-sdk',
+        action: 'REGISTER_BLOCK_MUTATIONS',
+        payload: {
+          blockName: this.blockName,
+          mutations: this.mutations,
+          appends: this.appends,
+          prepends: this.prepends
+        }
+      }, '*');
+    }
+  }
+
   const HttpClient = {
     async get(url: string, headers?: Record<string, string>): Promise<{ status: number; data: string }> {
       return new Promise((resolve, reject) => {
@@ -217,6 +460,21 @@ export function initPotokSDK() {
         };
         window.addEventListener('message', handler);
         window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'HTTP_REQUEST', payload: { requestId, url, method: 'GET', headers } }, '*');
+      });
+    },
+    async post(url: string, body?: any, headers?: Record<string, string>): Promise<{ status: number; data: string }> {
+      return new Promise((resolve, reject) => {
+        const requestId = `req_${Math.random().toString(36).substring(2, 9)}_${Date.now()}`;
+        const handler = (event: MessageEvent) => {
+          const message = event.data;
+          if (message && message.source === 'potok-host' && message.action === 'HTTP_RESPONSE' && message.payload.requestId === requestId) {
+            window.removeEventListener('message', handler);
+            if (message.payload.error) reject(new Error(message.payload.error));
+            else resolve({ status: message.payload.status, data: message.payload.data });
+          }
+        };
+        window.addEventListener('message', handler);
+        window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'HTTP_REQUEST', payload: { requestId, url, method: 'POST', body, headers } }, '*');
       });
     }
   };
@@ -254,24 +512,59 @@ export function initPotokSDK() {
 
   win.PotokSDK = {
     CallbackRegistry, createState, http: HttpClient, storage: { local: LocalStorageBridge },
+    media: {
+      searchProvider: (id: string, name: string) => new MediaSearchProviderBuilder(id, name)
+    },
     ui: {
+      block: (name: string) => new BlockMutationBuilder(name),
       components: {
         VStack: () => new VStackBuilder(), HStack: () => new HStackBuilder(), Card: () => new CardBuilder(),
         Heading: (t: string) => new HeadingBuilder(t), Text: (t: string) => new TextBuilder(t), Badge: (t: string) => new BadgeBuilder(t),
         Divider: () => new DividerBuilder(), Spacer: () => new SpacerBuilder(), Button: (t: string) => new ButtonBuilder(t),
-        Input: (n: string) => new InputBuilder(n), Toggle: (n: string) => new ToggleBuilder(n), Select: (n: string) => new SelectBuilder(n)
+        Input: (n: string) => new InputBuilder(n), Toggle: (n: string) => new ToggleBuilder(n), Select: (n: string) => new SelectBuilder(n),
+        StreamSkeletonList: () => new StreamSkeletonListBuilder(), StreamRowComponent: () => new StreamRowComponentBuilder(),
+        StreamList: () => new StreamListBuilder()
       },
-      render(root: any) {
-        CallbackRegistry.startRenderScope();
+      render(root: any, slotId?: string) {
+        const scopeId = slotId || "default";
+        CallbackRegistry.startRenderScope(scopeId);
         const payload = root.compile();
-        CallbackRegistry.commitRenderScope();
-        window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'RENDER_UI', payload }, '*');
+        CallbackRegistry.commitRenderScope(scopeId);
+        if (slotId) {
+          window.parent.postMessage({
+            source: 'potok-plugin-sdk',
+            action: 'SLOT_RENDER_RESPONSE',
+            payload: { slotId, layout: payload }
+          }, '*');
+        } else {
+          window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'RENDER_UI', payload }, '*');
+        }
       },
       showHUD(type: 'success' | 'error' | 'info', message: string) {
         window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'SHOW_HUD', payload: { type, message } }, '*');
       },
       playVideo(playback: any) {
         window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'PLAY_VIDEO', payload: playback }, '*');
+      },
+      showEpisodeSelector(cfg: any) {
+        const onPlayCallbackId = cfg.onPlay ? CallbackRegistry.register(cfg.onPlay) : undefined;
+        const onStartEditingCallbackId = cfg.onStartEditing ? CallbackRegistry.register(cfg.onStartEditing) : undefined;
+        const onApplyOverrideCallbackId = cfg.onApplyOverride ? CallbackRegistry.register(cfg.onApplyOverride) : undefined;
+
+        window.parent.postMessage({
+          source: 'potok-plugin-sdk',
+          action: 'SHOW_EPISODE_SELECTOR',
+          payload: {
+            title: cfg.title,
+            episodes: cfg.episodes,
+            seasons: cfg.seasons,
+            seasonsLoading: cfg.seasonsLoading,
+            isSaving: cfg.isSaving,
+            onPlayCallbackId,
+            onStartEditingCallbackId,
+            onApplyOverrideCallbackId
+          }
+        }, '*');
       }
     },
     registerPlugin(meta: any) { window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_PLUGIN', payload: meta }, '*'); },
@@ -286,9 +579,12 @@ export function initPotokSDK() {
         if (msg && msg.source === 'potok-host' && msg.action === 'RENDER_SLOT' && msg.payload.slotId === cfg.id) {
           const res = cfg.render(msg.payload.props);
           if (res && res.layout) {
+            CallbackRegistry.startRenderScope(cfg.id);
+            const layoutPayload = res.layout.compile();
+            CallbackRegistry.commitRenderScope(cfg.id);
             window.parent.postMessage({
               source: 'potok-plugin-sdk', action: 'SLOT_RENDER_RESPONSE',
-              payload: { slotId: cfg.id, label: res.label, icon: res.icon, layout: res.layout.compile() }
+              payload: { slotId: cfg.id, label: res.label, icon: res.icon, layout: layoutPayload }
             }, '*');
           }
         }
@@ -311,6 +607,25 @@ export function initPotokSDK() {
           window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'LOOKUP_RESPONSE', payload: { requestId, results, error: null } }, '*');
         } catch (err: any) {
           window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'LOOKUP_RESPONSE', payload: { requestId, results: [], error: err.message || 'Lookup failed' } }, '*');
+        }
+      }
+    } else if (msg.action === 'TRIGGER_SEARCH') {
+      const { callbackId, query, requestId } = msg.payload;
+      const cb = CallbackRegistry.get(callbackId);
+      if (cb) {
+        try {
+          const results = await cb(query);
+          window.parent.postMessage({
+            source: 'potok-plugin-sdk',
+            action: 'SEARCH_RESPONSE',
+            payload: { requestId, results, error: null }
+          }, '*');
+        } catch (err: any) {
+          window.parent.postMessage({
+            source: 'potok-plugin-sdk',
+            action: 'SEARCH_RESPONSE',
+            payload: { requestId, results: [], error: err.message || 'Search failed' }
+          }, '*');
         }
       }
     }

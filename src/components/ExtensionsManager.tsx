@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Trash2, ShieldAlert } from "lucide-react";
-import type { RegisteredExtension } from "../network/SDKTypes";
+import { Plus, Trash2, ShieldAlert, Copy, FileCode } from "lucide-react";
+import type { RegisteredExtension, ExtensionManifest } from "../network/SDKTypes";
 import { useHUD } from "../context/HUDContext";
+import { ManifestViewerModal } from "./settings/ManifestViewerModal";
+import { ConsentModal } from "./settings/ConsentModal";
+import { useBlacklist } from "../hooks/useBlacklist";
 
 export const ExtensionsManager: React.FC = () => {
   const { show: showHUD } = useHUD();
   const [extensions, setExtensions] = useState<RegisteredExtension[]>([]);
   const [newUrl, setNewUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [activeManifest, setActiveManifest] = useState<ExtensionManifest | null>(null);
+  const [pendingExtension, setPendingExtension] = useState<{ manifest: ExtensionManifest; cleanUrl: string } | null>(null);
+  const blacklist = useBlacklist();
 
   const loadExtensions = () => {
     try {
@@ -43,17 +49,40 @@ export const ExtensionsManager: React.FC = () => {
     showHUD("success", "Расширение успешно удалено");
   };
 
+  const handleCopyLink = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      showHUD("success", "Ссылка на расширение скопирована в буфер обмена");
+    } catch {
+      showHUD("error", "Не удалось скопировать ссылку");
+    }
+  };
+
+  const installExtension = (manifest: ExtensionManifest, cleanUrl: string) => {
+    const newExt: RegisteredExtension = {
+      id: manifest.id,
+      url: cleanUrl,
+      enabled: true,
+      manifest
+    };
+
+    const updated = [...extensions, newExt];
+    localStorage.setItem("potok_extensions", JSON.stringify(updated));
+    setExtensions(updated);
+    setNewUrl("");
+    window.dispatchEvent(new Event("potok_extensions_updated"));
+    showHUD("success", `Расширение "${manifest.name}" успешно установлено!`);
+  };
+
   const handleAddExtension = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUrl.trim()) return;
 
     setIsLoading(true);
     try {
-      // 1. Fetch the manifest from the specified plugin directory
       const cleanUrl = newUrl.trim().replace(/\/$/, "");
       const manifestUrl = `${cleanUrl}/manifest.json`;
 
-      // Translate GitHub raw to jsDelivr if needed for manifest fetch
       let fetchUrl = manifestUrl;
       if (manifestUrl.includes("raw.githubusercontent.com")) {
         const match = manifestUrl.match(/githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/);
@@ -68,29 +97,26 @@ export const ExtensionsManager: React.FC = () => {
         throw new Error(`Не удалось загрузить manifest.json (HTTP ${res.status})`);
       }
 
-      const manifest = await res.json();
+      const manifest: ExtensionManifest = await res.json();
       if (!manifest.id || !manifest.name || !manifest.entrypoint) {
         throw new Error("Неверный формат manifest.json. Отсутствуют обязательные поля.");
       }
 
-      // Check if already exists
+      if (blacklist.includes(manifest.id)) {
+        showHUD("error", "Установка заблокирована: расширение находится в глобальном реестре заблокированных плагинов Potok по соображениям безопасности.");
+        throw new Error("Установка заблокирована: расширение находится в глобальном реестре заблокированных плагинов Potok по соображениям безопасности.");
+      }
+
       if (extensions.some((ext) => ext.id === manifest.id)) {
         throw new Error("Расширение с таким ID уже установлено.");
       }
 
-      const newExt: RegisteredExtension = {
-        id: manifest.id,
-        url: cleanUrl,
-        enabled: true,
-        manifest
-      };
-
-      const updated = [...extensions, newExt];
-      localStorage.setItem("potok_extensions", JSON.stringify(updated));
-      setExtensions(updated);
-      setNewUrl("");
-      window.dispatchEvent(new Event("potok_extensions_updated"));
-      showHUD("success", `Расширение "${manifest.name}" успешно установлено!`);
+      if (manifest.permissions && manifest.permissions.length > 0) {
+        setPendingExtension({ manifest, cleanUrl });
+        setNewUrl("");
+      } else {
+        installExtension(manifest, cleanUrl);
+      }
     } catch (err: any) {
       console.error("[ExtensionsManager] Install failed:", err);
       showHUD("error", err.message || "Ошибка при установке расширения");
@@ -139,7 +165,7 @@ export const ExtensionsManager: React.FC = () => {
             extensions.map((ext) => (
               <div key={ext.id} className="potok-card" style={{ margin: 0 }}>
                 <div className="potok-hstack" style={{ justifyContent: "space-between", alignItems: "flex-start", width: "100%" }}>
-                  <div className="potok-vstack" style={{ gap: "4px" }}>
+                  <div className="potok-vstack" style={{ gap: "4px", flex: 1, minWidth: 0 }}>
                     <div className="potok-hstack" style={{ alignItems: "center", gap: "8px" }}>
                       <span className="potok-text potok-text-bold" style={{ color: "#fff", fontSize: "1.1rem" }}>
                         {ext.manifest.name}
@@ -151,9 +177,23 @@ export const ExtensionsManager: React.FC = () => {
                         {ext.manifest.description}
                       </span>
                     )}
-                    <span className="potok-text potok-text-hint" style={{ fontSize: "0.75rem", marginTop: "4px" }}>
-                      ID: {ext.id} • Путь: {ext.url}
+                    <span className="potok-text potok-text-hint" style={{ fontSize: "0.75rem", marginTop: "4px", userSelect: "text" }}>
+                      ID: <span style={{ color: "rgba(255,255,255,0.6)", userSelect: "text" }}>{ext.id}</span>
                     </span>
+                    <div className="potok-hstack" style={{ alignItems: "center", gap: "8px", marginTop: "4px", minWidth: 0, width: "100%" }}>
+                      <span className="potok-text potok-text-hint" style={{ fontSize: "0.75rem", flexShrink: 0 }}>Путь:</span>
+                      <div className="extension-url-container">
+                        <span className="extension-url-text selectable-text">{ext.url}</span>
+                        <button
+                          type="button"
+                          className="copy-btn-inline"
+                          onClick={() => handleCopyLink(ext.url)}
+                          title="Скопировать ссылку"
+                        >
+                          <Copy size={12} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="potok-hstack" style={{ alignItems: "center", gap: "12px" }}>
@@ -173,6 +213,15 @@ export const ExtensionsManager: React.FC = () => {
 
                     <button
                       className="potok-btn potok-btn-ghost"
+                      style={{ padding: "8px", borderRadius: "6px", color: "rgba(255, 255, 255, 0.6)" }}
+                      onClick={() => setActiveManifest(ext.manifest)}
+                      title="Просмотреть манифест"
+                    >
+                      <FileCode size={16} />
+                    </button>
+
+                    <button
+                      className="potok-btn potok-btn-ghost"
                       style={{ padding: "8px", borderRadius: "6px", color: "#ff4d4f" }}
                       onClick={() => handleDelete(ext.id)}
                       title="Удалить расширение"
@@ -186,6 +235,24 @@ export const ExtensionsManager: React.FC = () => {
           )}
         </div>
       </section>
+
+      {activeManifest && (
+        <ManifestViewerModal
+          manifest={activeManifest}
+          onClose={() => setActiveManifest(null)}
+        />
+      )}
+
+      {pendingExtension && (
+        <ConsentModal
+          manifest={pendingExtension.manifest}
+          onConfirm={() => {
+            installExtension(pendingExtension.manifest, pendingExtension.cleanUrl);
+            setPendingExtension(null);
+          }}
+          onClose={() => setPendingExtension(null)}
+        />
+      )}
     </div>
   );
 };
