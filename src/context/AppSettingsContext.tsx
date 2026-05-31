@@ -22,6 +22,8 @@ export interface ActivePlayback {
   audios?: { name: string; url: string }[];
   audioNames?: string[];
   headers?: Record<string, string>;
+  providerId?: string;
+  voice?: string;
 }
 
 interface AppSettingsContextType {
@@ -177,8 +179,8 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [bffLatencyMs, setBffLatencyMs] = useState<number>(-1);
   const [services, setServices] = useState<ServiceStatus>({
     bff: { configured: true, online: false },
-    torrentGo: { configured: true, online: false },
-    searchEngine: { configured: true, online: false },
+    torrentGo: { configured: false, online: false },
+    searchEngine: { configured: false, online: false },
   });
 
   const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -256,12 +258,9 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
       Storage.set("multiUserMode", isMultiUser);
       setMultiUserMode(isMultiUser);
       
-      const currentTorrent = ApiClient.torrentGoURL;
-      const currentSearch = ApiClient.searchEngineURL;
-
       const bff = await ApiClient.pingHealth(currentGateway, "/api/health/bff", true);
-      const search = currentSearch ? await ApiClient.pingHealth(currentSearch, "/health") : { configured: false, online: false };
-      const torrent = currentTorrent ? await ApiClient.pingHealth(currentTorrent, "/health") : { configured: false, online: false };
+      const search = { configured: false, online: false };
+      const torrent = { configured: false, online: false };
 
       const currentServices = { bff, searchEngine: search, torrentGo: torrent };
       setBffLatencyMs(bff.latencyMs ?? -1);
@@ -293,12 +292,9 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
 
       try {
-        const currentTorrent = ApiClient.torrentGoURL;
-        const currentSearch = ApiClient.searchEngineURL;
-
         const bff = await ApiClient.pingHealth(currentGateway, "/api/health/bff", true);
-        const search = currentSearch ? await ApiClient.pingHealth(currentSearch, "/health") : { configured: false, online: false };
-        const torrent = currentTorrent ? await ApiClient.pingHealth(currentTorrent, "/health") : { configured: false, online: false };
+        const search = { configured: false, online: false };
+        const torrent = { configured: false, online: false };
 
         if (!bff.online) {
           consecutiveFailuresRef.current += 1;

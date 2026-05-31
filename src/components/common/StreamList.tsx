@@ -129,7 +129,7 @@ export const StreamList: React.FC<StreamListProps> = ({
             const torrent = mapStreamToTorrent(stream, index);
             return (
               <StreamRowComponent
-                key={torrent.id || index}
+                key={`${torrent.id || "stream"}-${index}`}
                 torrent={torrent}
                 onClick={() => onSelectStream(stream)}
               />

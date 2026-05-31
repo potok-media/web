@@ -8,7 +8,7 @@ import type { RegisteredExtension } from "../../network/SDKTypes";
 import { logger } from "../../utils/logger";
 
 export const PluginSandbox: React.FC = () => {
-  const { connectionProfiles, activeProfileID, playVideo } = useAppSettings();
+  const { connectionProfiles, activeProfileID, playVideo, activePlayback } = useAppSettings();
   const { show: showHUD } = useHUD();
   const navigate = useNavigate();
   const [activeExtensions, setActiveExtensions] = useState<RegisteredExtension[]>([]);
@@ -37,6 +37,35 @@ export const PluginSandbox: React.FC = () => {
       window.removeEventListener("potok_extensions_updated", syncExtensions);
     };
   }, []);
+
+  // Listen for stream refresh requests from the player
+  useEffect(() => {
+    const handleRefreshRequest = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const payload = customEvent.detail;
+
+      showHUD("info", "Запрос на обновление ссылки...");
+
+      let dispatched = false;
+      for (const [, iframe] of iframeRefs.current.entries()) {
+        iframe.contentWindow?.postMessage({
+          source: "potok-host",
+          action: "REFRESH_STREAM_URL",
+          payload
+        }, "*");
+        dispatched = true;
+      }
+
+      if (!dispatched) {
+        showHUD("error", "Плагин онлайн источников не активен.");
+      }
+    };
+
+    window.addEventListener("potok:refresh-stream-url", handleRefreshRequest);
+    return () => {
+      window.removeEventListener("potok:refresh-stream-url", handleRefreshRequest);
+    };
+  }, [showHUD]);
 
   // Helper to translate direct GitHub raw links to jsDelivr CDN links to solve MIME type restrictions
   const normalizeUrl = (url: string): string => {
@@ -73,6 +102,8 @@ export const PluginSandbox: React.FC = () => {
           <script type="importmap">
             {
               "imports": {
+                "potok-sdk": "data:text/javascript,export const PotokSDK = window.PotokSDK;",
+                "@potok/sdk": "data:text/javascript,export const PotokSDK = window.PotokSDK;",
                 "../sdk.js": "data:text/javascript,export const PotokSDK = window.PotokSDK;",
                 "./sdk.js": "data:text/javascript,export const PotokSDK = window.PotokSDK;"
               }
@@ -80,7 +111,18 @@ export const PluginSandbox: React.FC = () => {
           </script>
           <base href="${baseUrl}">
           <script>
-            (${initPotokSDK.toString()})();
+            (${initPotokSDK.toString()})(
+              ${JSON.stringify(ext.id)},
+              ${JSON.stringify(ext.manifest.permissions || [])},
+              ${JSON.stringify({
+                searchEngineURL: activeProfile?.searchEngineURL || "",
+                gatewayURL: activeProfile?.gatewayURL || "",
+                torrentGoURL: activeProfile?.torrentGoURL || "",
+                torrentGoAuthEnabled: !!activeProfile?.torrentGoAuthEnabled,
+                torrentGoAuthLogin: activeProfile?.torrentGoAuthLogin || "",
+                torrentGoAuthPassword: activeProfile?.torrentGoAuthPassword || ""
+              })}
+            );
           </script>
         </head>
         <body>
@@ -115,7 +157,7 @@ export const PluginSandbox: React.FC = () => {
         ExtensionRegistry.unregisterSandbox(id);
       }
     }
-  }, [activeExtensions]);
+  }, [activeExtensions, activeProfile]);
 
   // Handle postMessage messages securely
   useEffect(() => {
@@ -177,9 +219,20 @@ export const PluginSandbox: React.FC = () => {
 
         case "NAVIGATE":
           if (payload && payload.to) {
-            navigate(payload.to);
+            navigate(payload.to, { state: payload.state });
           }
           break;
+
+        case "SHOW_TORRENT_FILES": {
+          const detail = {
+            torrent: payload.torrent,
+            mediaItem: payload.mediaItem,
+            seasonNumber: payload.seasonNumber,
+            episodeNumber: payload.episodeNumber
+          };
+          window.dispatchEvent(new CustomEvent("potok:show-torrent-files", { detail }));
+          break;
+        }
 
         case "SHOW_EPISODE_SELECTOR": {
           const detail: any = {};
@@ -350,6 +403,23 @@ export const PluginSandbox: React.FC = () => {
           break;
         }
 
+        case "REFRESH_STREAM_URL_RESPONSE": {
+          if (payload.success) {
+            showHUD("success", "Ссылка на HLS поток обновлена!");
+            if (activePlayback) {
+              playVideo({
+                ...activePlayback,
+                streamUrl: payload.streamUrl,
+                audios: payload.audios || activePlayback.audios,
+                headers: payload.headers || activePlayback.headers
+              });
+            }
+          } else {
+            showHUD("error", `Не удалось обновить поток: ${payload.error || "ошибка"}`);
+          }
+          break;
+        }
+
         case "SCRIPT_CRASH":
           console.error(`[PluginSandbox] Plugin ${pluginId} crashed:`, payload.error, payload.stack);
           showHUD("error", `Плагин "${pluginId}" вызвал ошибку: ${payload.error}`);
@@ -359,7 +429,7 @@ export const PluginSandbox: React.FC = () => {
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [activeProfile, showHUD, activeExtensions]);
+  }, [activeProfile, showHUD, activeExtensions, activePlayback, playVideo]);
 
   // Clean up all iframe DOM nodes on unmount
   useEffect(() => {

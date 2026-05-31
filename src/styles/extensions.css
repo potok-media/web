@@ -1,5 +1,18 @@
 /* Potok Dynamic Extensions & Fluent UI Slots Styling */
 
+.potok-extension-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.potok-extension-contribution {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 .potok-vstack {
   display: flex;
   flex-direction: column;
@@ -309,4 +322,50 @@ input:checked + .potok-slider:before {
   100% {
     background-position: -200% 0;
   }
+}
+
+/* Sidebar Status Slot Contributions Styling */
+.sidebar-status-group .potok-extension-slot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.sidebar-status-group .potok-extension-slot .potok-hstack {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font: var(--font-caption);
+  color: var(--text-secondary);
+}
+
+.sidebar-status-group .potok-extension-slot .potok-badge {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  min-height: 8px;
+  padding: 0;
+  border-radius: var(--radius-full);
+  border: none;
+  display: inline-block;
+}
+
+.sidebar-status-group .potok-extension-slot .potok-badge-success { background-color: var(--success) !important; }
+.sidebar-status-group .potok-extension-slot .potok-badge-warning { background-color: var(--warning) !important; }
+.sidebar-status-group .potok-extension-slot .potok-badge-error { background-color: var(--error) !important; }
+.sidebar-status-group .potok-extension-slot .potok-badge-info { background-color: var(--text-tertiary) !important; opacity: 0.4; }
+
+.sidebar-status-group .potok-extension-slot .potok-text {
+  font: var(--font-caption);
+  color: var(--text-secondary);
+}
+
+.sidebar-status-group .potok-extension-slot .potok-text-secondary {
+  flex-grow: 1;
+}
+
+.sidebar-status-group .potok-extension-slot .potok-text-hint {
+  font: var(--font-caption-bold);
+  font-family: monospace;
+  color: var(--text-tertiary);
 }

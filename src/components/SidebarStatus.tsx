@@ -1,14 +1,14 @@
 import React from "react";
-import { AlertTriangle } from "lucide-react";
-import type { ServiceStatus } from "../network/ApiTypes";
+
+
+import { ExtensionSlot } from "./common/ExtensionSlot";
 
 interface SidebarStatusProps {
   isConnected: boolean;
   bffLatencyMs: number;
-  services: ServiceStatus;
 }
 
-export const SidebarStatus: React.FC<SidebarStatusProps> = React.memo(({ isConnected, bffLatencyMs, services }) => {
+export const SidebarStatus: React.FC<SidebarStatusProps> = React.memo(({ isConnected, bffLatencyMs }) => {
   const getStatusColor = (configured: boolean, online: boolean, latency: number) => {
     if (!configured) return "offline";
     if (!online || latency < 0) return "error";
@@ -34,29 +34,8 @@ export const SidebarStatus: React.FC<SidebarStatusProps> = React.memo(({ isConne
           </span>
         </div>
 
-        <div className="sidebar-status-row">
-          <span className={`sidebar-status-dot ${isConnected ? getStatusColor(services.searchEngine.configured, services.searchEngine.online, services.searchEngine.latencyMs ?? -1) : "offline"}`} />
-          <span className="sidebar-status-label">Поиск медиа</span>
-          <span className="sidebar-status-latency">
-            {isConnected ? getLatencyLabel(services.searchEngine.configured, services.searchEngine.online, services.searchEngine.latencyMs ?? -1) : "оффлайн"}
-          </span>
-        </div>
-
-        <div className="sidebar-status-row">
-          <span className={`sidebar-status-dot ${isConnected ? getStatusColor(services.torrentGo.configured, services.torrentGo.online, services.torrentGo.latencyMs ?? -1) : "offline"}`} />
-          <span className="sidebar-status-label">Торрент-плеер</span>
-          <span className="sidebar-status-latency">
-            {isConnected ? getLatencyLabel(services.torrentGo.configured, services.torrentGo.online, services.torrentGo.latencyMs ?? -1) : "оффлайн"}
-          </span>
-        </div>
+        <ExtensionSlot name="sidebar-status" />
       </div>
-
-      {isConnected && services.torrentGo.configured && !services.torrentGo.online && (
-        <div className="sidebar-alert-offline">
-          <AlertTriangle size={14} />
-          <span>Торрент-плеер оффлайн</span>
-        </div>
-      )}
     </div>
   );
 });

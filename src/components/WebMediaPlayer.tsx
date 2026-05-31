@@ -28,6 +28,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const hlsRef = useRef<Hls | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const isMountedRef = useRef<boolean>(true);
+  const autoRefreshCountRef = useRef<number>(0);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -144,6 +145,17 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   // Virtualized Clock States
   const [metadataDuration, setMetadataDuration] = useState(0);
   const [seekOffset, setSeekOffset] = useState(() => {
+    // Check if there is an auto-resume position from an expired link refresh
+    const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
+    const savedResume = localStorage.getItem(resumeKey);
+    if (savedResume) {
+      localStorage.removeItem(resumeKey);
+      const parsed = Number(savedResume);
+      if (!isNaN(parsed) && parsed > 0) {
+        return parsed;
+      }
+    }
+
     try {
       const url = new URL(playback.streamUrl);
       const start = url.searchParams.get("start");
@@ -171,7 +183,17 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       return targetUrl;
     }
     const gatewayBase = ApiClient.baseURL.replace(/\/+$/, "");
-    return `${gatewayBase}/api/proxy?url=${encodeURIComponent(targetUrl)}`;
+    let proxyUrl = `${gatewayBase}/api/proxy?url=${encodeURIComponent(targetUrl)}`;
+
+    if (playback.headers) {
+      if (playback.headers["Referer"]) {
+        proxyUrl += `&referer=${encodeURIComponent(playback.headers["Referer"])}`;
+      }
+      if (playback.headers["Origin"]) {
+        proxyUrl += `&origin=${encodeURIComponent(playback.headers["Origin"])}`;
+      }
+    }
+    return proxyUrl;
   };
 
   // Initialize audioTracks from playback.audios if provided
@@ -225,6 +247,28 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     playback.torrentHash || "",
     displayDuration
   );
+
+  const handleRefreshStream = () => {
+    const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
+    localStorage.setItem(resumeKey, Math.floor(displayCurrentTimeRef.current).toString());
+
+    if (playback.providerId) {
+      console.log(`[WebMediaPlayer] Requesting modular stream refresh for ${playback.providerId}`);
+      window.dispatchEvent(new CustomEvent("potok:refresh-stream-url", {
+        detail: {
+          providerId: playback.providerId,
+          mediaId: playback.id,
+          mediaType: playback.mediaType,
+          season: playback.season,
+          episode: playback.episode,
+          voice: playback.voice
+        }
+      }));
+    } else {
+      console.log("[WebMediaPlayer] Falling back to standard full page reload stream refresh");
+      window.location.reload();
+    }
+  };
 
   const showSkipIntro = introRange && displayCurrentTime >= introRange.start && displayCurrentTime <= introRange.end;
   const showSkipOutro = outroRange && displayCurrentTime >= outroRange.start && displayCurrentTime <= (outroRange.end || displayDuration);
@@ -450,7 +494,13 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
                 }
                 if (responseCode === 410) {
                   hls.stopLoad();
-                  setPlayerError("Срок действия ссылки на поток истек.");
+                  if (playback.providerId && autoRefreshCountRef.current < 1) {
+                    autoRefreshCountRef.current += 1;
+                    console.log("[WebMediaPlayer] Fatal HLS 410 Gone error. Auto-refreshing stream url...");
+                    handleRefreshStream();
+                  } else {
+                    setPlayerError("Срок действия ссылки на поток истек.");
+                  }
                   return;
                 }
 
@@ -528,7 +578,13 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
           if (res.status === 403 || res.status === 401) {
             setPlayerError("Доступ к воспроизведению ограничен.");
           } else if (res.status === 410) {
-            setPlayerError("Срок действия ссылки на поток истек.");
+            if (playback.providerId && autoRefreshCountRef.current < 1) {
+              autoRefreshCountRef.current += 1;
+              console.log("[WebMediaPlayer] video:error 410 Gone detected. Auto-refreshing stream...");
+              handleRefreshStream();
+            } else {
+              setPlayerError("Срок действия ссылки на поток истек.");
+            }
           } else {
             setPlayerError("Не удалось загрузить видео-поток.");
           }
@@ -752,7 +808,16 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
           <h3 className="error-title">Ошибка воспроизведения</h3>
           <p className="error-message">{playerError}</p>
           <div className="error-details">Ссылка: <code>{playback.streamUrl}</code></div>
-          <button className="error-close-btn" onClick={onClose}>Закрыть плеер</button>
+          <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
+            <button 
+              className="error-close-btn" 
+              style={{ background: "rgba(255, 255, 255, 0.15)", color: "#fff" }} 
+              onClick={handleRefreshStream}
+            >
+              Обновить поток
+            </button>
+            <button className="error-close-btn" onClick={onClose}>Закрыть плеер</button>
+          </div>
         </div>
       )}
 

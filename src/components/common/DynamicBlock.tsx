@@ -443,7 +443,15 @@ export const DynamicBlock: React.FC<DynamicBlockProps> = ({
   });
 
   // 2. Fetch block mutations from the registry
-  const blockMutations = ExtensionRegistry.getBlockMutations(name);
+  let blockMutations = ExtensionRegistry.getBlockMutations(name);
+
+  // Host-level Tab Isolation: Only allow plugin layout mutations that match the active tab (which is the pluginId)
+  if (name.startsWith("media-streams-") && contextProps?.tab) {
+    const activeTab = String(contextProps.tab).toLowerCase();
+    blockMutations = blockMutations.filter(({ pluginId }) => {
+      return pluginId.toLowerCase() === activeTab;
+    });
+  }
 
   // 3. Apply mutations (PREPEND, APPEND, HIDE, EDIT, INSERT_BEFORE, INSERT_AFTER, REPLACE)
   blockMutations.forEach(({ pluginId, mutations, appends, prepends }) => {

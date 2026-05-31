@@ -22,20 +22,10 @@ export const ProfilesSettings: React.FC = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [formName, setFormName] = useState("");
   const [formGateway, setFormGateway] = useState("");
-  const [formTorrentGo, setFormTorrentGo] = useState("");
-  const [formSearchEngine, setFormSearchEngine] = useState("");
-  const [formTorrentGoAuthEnabled, setFormTorrentGoAuthEnabled] = useState(false);
-  const [formTorrentGoAuthLogin, setFormTorrentGoAuthLogin] = useState("");
-  const [formTorrentGoAuthPassword, setFormTorrentGoAuthPassword] = useState("");
 
   const resetForm = () => {
     setFormName("");
     setFormGateway("");
-    setFormTorrentGo("");
-    setFormSearchEngine("");
-    setFormTorrentGoAuthEnabled(false);
-    setFormTorrentGoAuthLogin("");
-    setFormTorrentGoAuthPassword("");
     setIsAdding(false);
   };
 
@@ -49,11 +39,11 @@ export const ProfilesSettings: React.FC = () => {
     const payload = {
       name: formName.trim(),
       gatewayURL: formGateway.trim().replace(/\/$/, ""),
-      torrentGoURL: formTorrentGo.trim().replace(/\/$/, ""),
-      searchEngineURL: formSearchEngine.trim().replace(/\/$/, ""),
-      torrentGoAuthEnabled: formTorrentGoAuthEnabled,
-      torrentGoAuthLogin: formTorrentGoAuthLogin.trim(),
-      torrentGoAuthPassword: formTorrentGoAuthPassword || undefined,
+      torrentGoURL: activeProfile?.torrentGoURL || "",
+      searchEngineURL: activeProfile?.searchEngineURL || "",
+      torrentGoAuthEnabled: activeProfile?.torrentGoAuthEnabled || false,
+      torrentGoAuthLogin: activeProfile?.torrentGoAuthLogin || "",
+      torrentGoAuthPassword: activeProfile?.torrentGoAuthPassword || undefined,
     };
 
     if (isAdding) {
@@ -70,11 +60,6 @@ export const ProfilesSettings: React.FC = () => {
     setIsAdding(false);
     setFormName(prof.name);
     setFormGateway(prof.gatewayURL);
-    setFormTorrentGo(prof.torrentGoURL);
-    setFormSearchEngine(prof.searchEngineURL);
-    setFormTorrentGoAuthEnabled(prof.torrentGoAuthEnabled);
-    setFormTorrentGoAuthLogin(prof.torrentGoAuthLogin);
-    setFormTorrentGoAuthPassword(prof.torrentGoAuthPassword || "");
   };
 
   const startAdd = () => {
@@ -109,16 +94,6 @@ export const ProfilesSettings: React.FC = () => {
           setFormName={setFormName}
           formGateway={formGateway}
           setFormGateway={setFormGateway}
-          formTorrentGo={formTorrentGo}
-          setFormTorrentGo={setFormTorrentGo}
-          formSearchEngine={formSearchEngine}
-          setFormSearchEngine={setFormSearchEngine}
-          formTorrentGoAuthEnabled={formTorrentGoAuthEnabled}
-          setFormTorrentGoAuthEnabled={setFormTorrentGoAuthEnabled}
-          formTorrentGoAuthLogin={formTorrentGoAuthLogin}
-          setFormTorrentGoAuthLogin={setFormTorrentGoAuthLogin}
-          formTorrentGoAuthPassword={formTorrentGoAuthPassword}
-          setFormTorrentGoAuthPassword={setFormTorrentGoAuthPassword}
           onSave={handleSaveProfile}
           onCancel={resetForm}
           isSettingsLocked={isSettingsLocked}

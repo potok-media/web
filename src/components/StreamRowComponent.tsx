@@ -10,9 +10,11 @@ interface StreamRowComponentProps {
 }
 
 export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(({ torrent, onClick }) => {
-  const parsedTags = torrent.tags && torrent.tags.length > 0
-    ? torrent.tags.slice(0, 6).map(tag => tag.value)
-    : extractBadges(torrent.title);
+  const extracted = extractBadges(torrent.title);
+  const parsedTags = Array.from(new Set([
+    ...(torrent.tags?.map(t => t.value) || []),
+    ...extracted
+  ])).slice(0, 6);
 
   return (
     <div className="torrent-row" onClick={() => onClick(torrent)}>

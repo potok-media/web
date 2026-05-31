@@ -13,7 +13,7 @@ interface AppSidebarProps {
 }
 
 export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle }) => {
-  const { services, connectionState, bffLatencyMs, potokToken } = useAppSettings();
+  const { connectionState, bffLatencyMs, potokToken } = useAppSettings();
   const { show: showHUD } = useHUD();
   const navigate = useNavigate();
   const location = useLocation();
@@ -175,7 +175,6 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle })
       <SidebarStatus
         isConnected={isConnected}
         bffLatencyMs={bffLatencyMs}
-        services={services}
       />
     </aside>
   );

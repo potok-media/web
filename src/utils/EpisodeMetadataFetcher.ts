@@ -13,7 +13,12 @@ export async function fetchTvEpisodeMetadata(
     new Set(
       files
         .map((f) => f.season)
-        .filter((s): s is number => s !== undefined && s !== null && s > 0)
+        .filter((s): s is number => 
+          s !== undefined && 
+          s !== null && 
+          s > 0 && 
+          (!mediaItem.numberOfSeasons || s <= mediaItem.numberOfSeasons)
+        )
     )
   );
 

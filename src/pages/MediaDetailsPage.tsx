@@ -1,8 +1,8 @@
 import React, { useCallback, useRef, useState, useEffect } from "react";
-import { useParams, useSearchParams, useNavigate, Link } from "react-router-dom";
-import { Star, Eye, Bookmark, Play } from "lucide-react";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { Star, Eye, Bookmark } from "lucide-react";
 import { useHUD } from "../context/HUDContext";
-import { useAppSettings } from "../context/AppSettingsContext";
+
 import { useMediaDetails } from "../hooks/useMediaDetails";
 import { SeasonEpisodesSection } from "../components/SeasonEpisodesSection";
 import { LoadingSpinner } from "../components/LoadingSpinner";
@@ -25,13 +25,13 @@ export const MediaDetailsPage: React.FC = () => {
   const mediaId = Number(id);
 
   const { show: showHUD } = useHUD();
-  const { services } = useAppSettings();
+
 
   const mediaRef = useRef<MediaCard | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<SelectedEpisodeState | null>(null);
 
   const handleNavigateToTorrents = useCallback((season?: number, episode?: number) => {
-    navigate(`/media/${mediaType}/${mediaId}/torrents`, {
+    navigate(`/media/${mediaType}/${mediaId}/watch`, {
       state: { season, episode, media: mediaRef.current }
     });
   }, [navigate, mediaType, mediaId]);
@@ -79,7 +79,6 @@ export const MediaDetailsPage: React.FC = () => {
 
   const cast = media.cast || [];
   const tmdbId = media.id;
-  const canWatch = !!(services?.searchEngine?.configured && services?.searchEngine?.online);
 
   return (
     <div className="details-layout">
@@ -104,43 +103,7 @@ export const MediaDetailsPage: React.FC = () => {
                   name="media-details-actions"
                   contextProps={{ mediaId, tmdbId, mediaType, selectedEpisode, media }}
                 >
-                  {/* 1. Core Primary Watch torrent button */}
-                  {canWatch ? (
-                    <Link
-                      id="watch-primary"
-                      to={`/media/${mediaType}/${mediaId}/torrents${selectedEpisode ? `?season=${selectedEpisode.seasonNumber}&episode=${selectedEpisode.episode.episodeNumber}` : ""}`}
-                      state={{
-                        season: selectedEpisode?.seasonNumber,
-                        episode: selectedEpisode?.episode.episodeNumber,
-                        media
-                      }}
-                      className="btn-watch-primary"
-                      onClick={(e) => {
-                        if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
-                          e.preventDefault();
-                          if (selectedEpisode) {
-                            handleNavigateToTorrents(selectedEpisode.seasonNumber, selectedEpisode.episode.episodeNumber);
-                          } else {
-                            handleNavigateToTorrents();
-                          }
-                        }
-                      }}
-                    >
-                      <Play size={18} fill="black" />
-                      <span>Смотреть</span>
-                    </Link>
-                  ) : (
-                    <button
-                      id="watch-primary"
-                      className="btn-watch-primary disabled"
-                      title={services?.searchEngine?.configured ? "Поисковый шлюз недоступен. Функция поиска торрентов временно заблокирована." : "Поисковик по торрентам не настроен. Вы можете настроить его в параметрах."}
-                    >
-                      <Play size={18} fill="currentColor" />
-                      <span>Смотреть</span>
-                    </button>
-                  )}
-
-                  {/* 2. Dynamically Rendered Plugin Extension Slot for Media Actions (Online Balancer buttons go here) */}
+                  {/* Dynamically Rendered Plugin Extension Slot for Media Actions (Plugins contribute their watch buttons here) */}
                   <ExtensionSlot
                     id="media-actions"
                     name="media-actions"

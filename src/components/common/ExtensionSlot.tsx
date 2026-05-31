@@ -322,7 +322,8 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }
       }
 
       case "Button": {
-        const btnClass = `potok-btn potok-btn-${componentProps.variant || "secondary"}`;
+        const variant = componentProps.variant || "secondary";
+        const btnClass = `potok-btn potok-btn-${variant} ${variant.startsWith("btn-") ? variant : `btn-${variant}`}`;
         return (
           <button key={id} className={btnClass} disabled={componentProps.disabled} onClick={handleClick} style={baseStyle}>
             {componentProps.text}

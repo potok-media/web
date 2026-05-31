@@ -5,7 +5,7 @@ import type {
   ElementMutation
 } from "../../network/SDKTypes";
 
-export function initPotokSDK() {
+export function initPotokSDK(pluginId?: string, permissions?: string[], config?: any) {
   const win = window as any;
   if (win.PotokSDK) return;
 
@@ -512,6 +512,9 @@ export function initPotokSDK() {
   const registeredSources = new Map<string, Function>();
 
   win.PotokSDK = {
+    pluginId,
+    permissions,
+    config: config || {},
     CallbackRegistry, createState, http: HttpClient, storage: { local: LocalStorageBridge },
     media: {
       searchProvider: (id: string, name: string) => new MediaSearchProviderBuilder(id, name)
@@ -573,8 +576,20 @@ export function initPotokSDK() {
           blockContextListeners.delete(cb);
         };
       },
-      navigateTo(to: string) {
-        window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'NAVIGATE', payload: { to } }, '*');
+      navigateTo(to: string, state?: any) {
+        window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'NAVIGATE', payload: { to, state } }, '*');
+      },
+      showTorrentFiles(cfg: any) {
+        window.parent.postMessage({
+          source: 'potok-plugin-sdk',
+          action: 'SHOW_TORRENT_FILES',
+          payload: {
+            torrent: cfg.torrent,
+            mediaItem: cfg.mediaItem,
+            seasonNumber: cfg.seasonNumber,
+            episodeNumber: cfg.episodeNumber
+          }
+        }, '*');
       }
     },
     registerPlugin(meta: any) { window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_PLUGIN', payload: meta }, '*'); },

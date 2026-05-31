@@ -149,7 +149,7 @@
   backdrop-filter: var(--blur-glass);
   box-shadow: var(--shadow-s);
   min-height: 34.375rem;
-  max-width: 42rem; /* Expanded to 42rem (672px) for paths to fit comfortably */
+  max-width: 52rem; /* Expanded to 52rem (832px) for ultimate screen comfort on desktop */
   width: 100%;
 }
 
@@ -179,9 +179,15 @@
 /* Profiles Layout Components */
 .settings-profiles-layout {
   display: grid;
-  grid-template-columns: 1fr; /* Stack vertically for perfect fit in 36.25rem block */
+  grid-template-columns: 1fr;
   gap: var(--space-xl);
   align-items: start;
+}
+
+@media (min-width: 768px) {
+  .settings-profiles-layout {
+    grid-template-columns: 1fr 1.3fr;
+  }
 }
 
 .settings-profiles-sidebar-col,

@@ -2,34 +2,34 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
 import { useHUD } from "../context/HUDContext";
-import { useTorrentsPage } from "../hooks/useTorrentsPage";
-import StreamSkeletonList from "../components/StreamSkeletonList";
-import StreamRowComponent from "../components/StreamRowComponent";
 import { TorrentFilesPopup } from "../components/TorrentFilesPopup";
 import { StreamSidebar } from "../components/StreamSidebar";
-import { StreamFilterBar } from "../components/StreamFilterBar";
 import { ApiClient } from "../network/ApiClient";
 import type { MediaCard } from "../network/ApiTypes";
 import { EpisodeSelectorPopup } from "../components/common/EpisodeSelectorPopup";
-import { getPluralForm } from "../utils/formatters";
 import { DynamicBlock } from "../components/common/DynamicBlock";
 import "../styles/media.css";
 
 export const MediaStreamsPage: React.FC = () => {
-  const { mediaType, id } = useParams<{ mediaType: string; id: string }>();
+  const { mediaType, id, tab } = useParams<{ mediaType: string; id: string; tab?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { show: showHUD } = useHUD();
 
   const mediaId = Number(id);
-  const state = location.state as { season?: number; episode?: number; media?: any } | null;
+  const state = location.state as { season?: number; episode?: number; media?: any; tab?: string } | null;
   const season = state?.season ?? (searchParams.get("season") ? Number(searchParams.get("season")) : undefined);
   const episode = state?.episode ?? (searchParams.get("episode") ? Number(searchParams.get("episode")) : undefined);
   const initialMedia = state?.media;
 
-  // Selected torrent for files popup
-  const [selectedTorrent, setSelectedTorrent] = useState<any | null>(null);
+  // State for dynamic torrent files popup sheet triggerable via global event
+  const [torrentFilesData, setTorrentFilesData] = useState<{
+    torrent: any;
+    mediaItem: any;
+    seasonNumber?: number;
+    episodeNumber?: number;
+  } | null>(null);
 
   // Active state for generic episode selector modal
   const [episodeSelectorData, setEpisodeSelectorData] = useState<{
@@ -65,9 +65,20 @@ export const MediaStreamsPage: React.FC = () => {
         });
       }
     };
+
+    const handleShowTorrentFiles = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        setTorrentFilesData(customEvent.detail);
+      }
+    };
+
     window.addEventListener("potok:show-episode-selector", handleShowSelector);
+    window.addEventListener("potok:show-torrent-files", handleShowTorrentFiles);
+
     return () => {
       window.removeEventListener("potok:show-episode-selector", handleShowSelector);
+      window.removeEventListener("potok:show-torrent-files", handleShowTorrentFiles);
     };
   }, []);
 
@@ -108,18 +119,8 @@ export const MediaStreamsPage: React.FC = () => {
     };
   }, [mediaType, mediaId, initialMedia, handleOnError]);
 
-  // Hook for Torrents Page
-  const torrentsState = useTorrentsPage({
-    mediaType,
-    mediaId,
-    season,
-    episode,
-    initialMedia,
-    onError: handleOnError,
-  });
-
-  const currentMedia = torrentsState.media || mediaDetails || null;
-  const isMediaLoading = torrentsState.loadingMedia || loadingMediaDetails;
+  const currentMedia = mediaDetails || null;
+  const isMediaLoading = loadingMediaDetails;
 
   if (!isMediaLoading && !currentMedia) {
     return (
@@ -159,63 +160,35 @@ export const MediaStreamsPage: React.FC = () => {
       <section className="torrents-page-content" style={{ display: "flex", flexDirection: "column" }}>
         <DynamicBlock
           name="media-streams-header"
-          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: searchParams.get("tab") || undefined }}
+          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: tab || "potok-torrents" }}
         >
           <div id="streams-header-default" />
         </DynamicBlock>
 
         <DynamicBlock
           name="media-streams-filters"
-          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: searchParams.get("tab") || undefined }}
+          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: tab || "potok-torrents" }}
         >
-          <StreamFilterBar 
-            id="streams-filter-bar"
-            countLabel={`${torrentsState.torrents.length} ${getPluralForm(torrentsState.torrents.length, ["торрент", "торрента", "торрентов"])}`}
-            sortOption={torrentsState.sortOption}
-            setSortOption={torrentsState.setSortOption}
-            qualityFilter={torrentsState.qualityFilter}
-            setQualityFilter={torrentsState.setQualityFilter}
-            activeTracker={torrentsState.activeTracker}
-            setActiveTracker={torrentsState.setActiveTracker}
-            trackers={torrentsState.trackers}
-            onRefresh={torrentsState.refetch}
-          />
+          <div id="streams-filter-bar" />
         </DynamicBlock>
 
         <DynamicBlock
           name="media-streams-results"
-          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: searchParams.get("tab") || undefined }}
+          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: tab || "potok-torrents" }}
         >
-          <div className="torrents-results-list" id="streams-results-list">
-            {torrentsState.loadingTorrents ? (
-              <StreamSkeletonList />
-            ) : torrentsState.torrents.length > 0 ? (
-              torrentsState.torrents.map((t, index) => (
-                <StreamRowComponent
-                  key={t.id || index}
-                  torrent={t}
-                  onClick={setSelectedTorrent}
-                />
-              ))
-            ) : (
-              <div className="torrent-empty-state">
-                <ShieldAlert size={40} opacity={0.5} />
-                <span className="torrent-empty-state-text">Раздач не найдено. Попробуйте сменить фильтры.</span>
-              </div>
-            )}
-          </div>
+          <div className="torrents-results-list" id="streams-results-list" />
         </DynamicBlock>
       </section>
  
       {/* Selected torrent files dynamic popup sheet */}
-      {selectedTorrent && currentMedia && (
+      {torrentFilesData && (
         <TorrentFilesPopup
-          isOpen={!!selectedTorrent}
-          onClose={() => setSelectedTorrent(null)}
-          torrent={selectedTorrent}
-          mediaItem={currentMedia}
-          seasonNumber={season}
-          episodeNumber={episode}
+          isOpen={!!torrentFilesData}
+          onClose={() => setTorrentFilesData(null)}
+          torrent={torrentFilesData.torrent}
+          mediaItem={currentMedia || torrentFilesData.mediaItem}
+          seasonNumber={torrentFilesData.seasonNumber ?? season}
+          episodeNumber={torrentFilesData.episodeNumber ?? episode}
         />
       )}
 
