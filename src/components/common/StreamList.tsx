@@ -14,6 +14,7 @@ export interface StreamListProps {
   emptyText?: string;
   onSelectStream: (stream: RawStreamPayload) => void;
   onRefresh?: () => void;
+  nounPlurals?: [string, string, string];
 }
 
 const mapStreamToTorrent = (stream: RawStreamPayload, index: number): TorrentSearchResult => {
@@ -62,8 +63,9 @@ export const StreamList: React.FC<StreamListProps> = ({
   emptyText = "Потоков не найдено. Попробуйте сменить фильтры.",
   onSelectStream,
   onRefresh,
+  nounPlurals = ["источник", "источника", "источников"],
 }) => {
-  const [sortOption] = useState<string>("seedersDesc");
+  const [sortOption, setSortOption] = useState<string>("seedersDesc");
   const [qualityFilter, setQualityFilter] = useState<string>("all");
   const [activeTracker, setActiveTracker] = useState<string>("all");
 
@@ -108,14 +110,16 @@ export const StreamList: React.FC<StreamListProps> = ({
     <div className="stream-list-container" style={{ display: "flex", flexDirection: "column", gap: "var(--space-m)" }}>
       {showFilters && (
         <StreamFilterBar
-          countLabel={`${filteredAndSortedStreams.length} ${getPluralForm(filteredAndSortedStreams.length, ["источник", "источника", "источников"])}`}
+          countLabel={`${filteredAndSortedStreams.length} ${getPluralForm(filteredAndSortedStreams.length, nounPlurals)}`}
           qualityFilter={qualityFilter}
           setQualityFilter={setQualityFilter}
           activeTracker={activeTracker}
           setActiveTracker={setActiveTracker}
           trackers={trackers}
           onRefresh={handleRefreshClick}
-          showSort={false}
+          showSort={true}
+          sortOption={sortOption}
+          setSortOption={setSortOption}
           trackerLabel="Провайдер"
           allTrackersLabel="Все источники"
         />

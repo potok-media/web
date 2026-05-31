@@ -39,6 +39,7 @@ export interface UIComponentSchema {
     loading?: boolean;
     showFilters?: boolean;
     emptyText?: string;
+    nounPlurals?: string[];
   };
   children?: UIComponentSchema[];
   events?: {
@@ -67,6 +68,7 @@ export interface ExtensionManifest {
       type: 'string' | 'boolean' | 'number';
       default: string | boolean | number;
       label: string;
+      dependsOn?: string;
     }
   >;
 }

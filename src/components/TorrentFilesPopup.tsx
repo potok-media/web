@@ -49,6 +49,21 @@ export const TorrentFilesPopup: React.FC<TorrentFilesPopupProps> = ({
   const [visibleCount, setVisibleCount] = useState(25);
   const listSentinelRef = useRef<HTMLDivElement>(null);
 
+  // Stabilize callbacks to prevent child component re-renders
+  const playParamsRef = useRef({ defaultPlayer, torrent, mediaItem, showHUD, playVideo });
+  useEffect(() => {
+    playParamsRef.current = { defaultPlayer, torrent, mediaItem, showHUD, playVideo };
+  }, [defaultPlayer, torrent, mediaItem, showHUD, playVideo]);
+
+  // Fast O(1) set lookup for watched episodes
+  const watchedSet = React.useMemo(() => {
+    const progress = mediaItem.progress;
+    if (!progress || !progress.watchedEpisodes) return new Set<string>();
+    return new Set<string>(
+      progress.watchedEpisodes.map((we) => `${we.season}:${we.number}`)
+    );
+  }, [mediaItem.progress]);
+
   useEffect(() => {
     setVisibleCount(25);
   }, [torrent.id, torrent.magnetUri]);
@@ -70,6 +85,7 @@ export const TorrentFilesPopup: React.FC<TorrentFilesPopupProps> = ({
   }, [visibleCount, files.length]);
 
   const handlePlayFile = useCallback(async (file: TorrentFileItem) => {
+    const { defaultPlayer, torrent, mediaItem, showHUD, playVideo } = playParamsRef.current;
     try {
       await playTorrentFile({
         defaultPlayer,
@@ -79,23 +95,22 @@ export const TorrentFilesPopup: React.FC<TorrentFilesPopupProps> = ({
         showHUD,
         playVideo,
       });
-    } catch {
+    } catch (err) {
+      console.error("[TorrentFilesPopup] Failed to play torrent file:", err);
       showHUD("error", "Ошибка запуска стрима");
     }
-  }, [defaultPlayer, torrent, mediaItem, showHUD, playVideo]);
+  }, []);
 
-  const checkWatched = (file: TorrentFileItem) => {
+  const checkWatched = useCallback((file: TorrentFileItem) => {
     const progress = mediaItem.progress;
     if (!progress) return false;
     if (mediaItem.mediaType === "movie") {
       return progress.completed > 0;
     } else {
       if (file.season === undefined || file.season === null || file.episode === undefined || file.episode === null) return false;
-      return (progress.watchedEpisodes || []).some(
-        (we) => we.season === file.season && we.number === file.episode
-      );
+      return watchedSet.has(`${file.season}:${file.episode}`);
     }
-  };
+  }, [mediaItem.progress, mediaItem.mediaType, watchedSet]);
 
   if (!isOpen) return null;
 

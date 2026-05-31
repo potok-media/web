@@ -102,6 +102,13 @@ export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.mem
             const item = config[key];
             const val = settings[key];
 
+            if (item.dependsOn) {
+              const depValue = settings[item.dependsOn];
+              if (!depValue) {
+                return null;
+              }
+            }
+
             if (item.type === "boolean") {
               const checkedVal = val !== undefined ? !!val : !!item.default;
               return (

@@ -265,6 +265,7 @@ export function initPotokSDK(pluginId?: string, permissions?: string[], config?:
     private _loading = false;
     private _showFilters = false;
     private _emptyText?: string;
+    private _nounPlurals?: string[];
     private _onSelectStream?: (stream: RawStreamPayload) => void | Promise<void>;
 
     constructor() {
@@ -291,6 +292,11 @@ export function initPotokSDK(pluginId?: string, permissions?: string[], config?:
       return this;
     }
 
+    nounPlurals(v: string[]): this {
+      this._nounPlurals = v;
+      return this;
+    }
+
     onSelectStream(cb: (stream: RawStreamPayload) => void | Promise<void>): this {
       this._onSelectStream = cb;
       return this;
@@ -301,7 +307,8 @@ export function initPotokSDK(pluginId?: string, permissions?: string[], config?:
         streams: this._streams,
         loading: this._loading,
         showFilters: this._showFilters,
-        emptyText: this._emptyText
+        emptyText: this._emptyText,
+        nounPlurals: this._nounPlurals
       };
     }
 

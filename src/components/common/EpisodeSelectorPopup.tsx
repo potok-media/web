@@ -78,12 +78,57 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
 
   if (!isOpen) return null;
 
-  const currentSeasonEpisodes = episodes.filter((e) => e.season === selectedSeason);
+  const currentSeasonEpisodes = React.useMemo(() => {
+    return episodes.filter((e) => e.season === selectedSeason);
+  }, [episodes, selectedSeason]);
 
   const handleSelectEpisode = (ep: GenericEpisodeItem) => {
     onPlay(ep, "default");
     onClose();
   };
+
+  // Memoize mapped file and meta objects so that object references are stable in memory
+  const mappedSeasonEpisodes = React.useMemo(() => {
+    return currentSeasonEpisodes.map((ep) => {
+      const mappedFile = {
+        id: ep.id,
+        path: ep.title || `Серия ${ep.episode}`,
+        name: ep.title || `Серия ${ep.episode}`,
+        size: 0,
+        sizeLabel: ep.audios && ep.audios.length > 0 
+          ? `${ep.audios.length} ${ep.audios.length === 1 ? "озвучка" : ep.audios.length < 5 ? "озвучки" : "озвучек"}`
+          : "Основной поток",
+        episode: ep.episode,
+        season: ep.season,
+        isSerial: true,
+        title: ep.title,
+        extension: getStreamType(ep)
+      } as any;
+
+      const mappedMeta = {
+        id: ep.id,
+        episodeNumber: ep.episode,
+        name: ep.title || `Серия ${ep.episode}`,
+        stillPath: ep.stillPath,
+        airDate: ep.airDate,
+        seasonNumber: ep.season
+      } as any;
+
+      return {
+        ep,
+        mappedFile,
+        mappedMeta
+      };
+    });
+  }, [currentSeasonEpisodes]);
+
+  // Stable callback handler for onPlay to prevent re-renders on child TorrentFileRow components
+  const handlePlayFile = React.useCallback((file: any) => {
+    const found = episodes.find((e) => e.id === file.id);
+    if (found) {
+      handleSelectEpisode(found);
+    }
+  }, [episodes]);
 
   const handleStartEditing = () => {
     setIsEditing(true);
@@ -168,43 +213,17 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
 
               {/* Rows List (replicated 1-in-1 from TorrentFileRow design) */}
               <div className="torrent-popup-rows-list" style={{ padding: "20px", flex: 1, overflowY: "auto" }}>
-                {currentSeasonEpisodes.length > 0 ? (
-                  currentSeasonEpisodes.map((ep) => {
-                    const mappedFile = {
-                      id: ep.id,
-                      path: ep.title || `Серия ${ep.episode}`,
-                      name: ep.title || `Серия ${ep.episode}`,
-                      size: 0,
-                      sizeLabel: ep.audios && ep.audios.length > 0 
-                        ? `${ep.audios.length} ${ep.audios.length === 1 ? "озвучка" : ep.audios.length < 5 ? "озвучки" : "озвучек"}`
-                        : "Основной поток",
-                      episode: ep.episode,
-                      season: ep.season,
-                      isSerial: true,
-                      title: ep.title,
-                      extension: getStreamType(ep)
-                    } as any;
-
-                    const mappedMeta = {
-                      id: ep.id,
-                      episodeNumber: ep.episode,
-                      name: ep.title || `Серия ${ep.episode}`,
-                      stillPath: ep.stillPath,
-                      airDate: ep.airDate,
-                      seasonNumber: ep.season
-                    } as any;
-
-                    return (
-                      <TorrentFileRow
-                        key={ep.id}
-                        file={mappedFile}
-                        metadata={mappedMeta}
-                        mediaItem={dummyMedia}
-                        isWatched={!!ep.isWatched}
-                        onPlay={() => handleSelectEpisode(ep)}
-                      />
-                    );
-                  })
+                {mappedSeasonEpisodes.length > 0 ? (
+                  mappedSeasonEpisodes.map(({ ep, mappedFile, mappedMeta }) => (
+                    <TorrentFileRow
+                      key={ep.id}
+                      file={mappedFile}
+                      metadata={mappedMeta}
+                      mediaItem={dummyMedia}
+                      isWatched={!!ep.isWatched}
+                      onPlay={handlePlayFile}
+                    />
+                  ))
                 ) : (
                   <div className="torrent-popup-empty-files">
                     Нет доступных серий.

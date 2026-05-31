@@ -152,6 +152,14 @@ export class ApiClient {
         const active = profiles.find((p) => p.id === activeID);
         url = active?.torrentGoURL || "";
       }
+      if (!url) {
+        try {
+          const pluginScopedUrl = localStorage.getItem("potok_plugin:scoped:potok-torrents:torrentGoURL");
+          if (pluginScopedUrl) {
+            url = pluginScopedUrl;
+          }
+        } catch {}
+      }
       this._cachedTorrentGoURL = this.ensureAbsoluteURL(url);
     }
     return this._cachedTorrentGoURL;

@@ -405,6 +405,7 @@ export const DynamicBlock: React.FC<DynamicBlockProps> = ({
             showFilters={componentProps.showFilters}
             emptyText={componentProps.emptyText}
             onSelectStream={handleSelectStream}
+            nounPlurals={componentProps.nounPlurals as [string, string, string] | undefined}
           />
         );
       }

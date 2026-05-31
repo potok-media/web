@@ -82,7 +82,9 @@ export const MediaStreamsPage: React.FC = () => {
     };
   }, []);
 
-  const handleOnError = useCallback((msg: string) => {
+  const handleOnError = useCallback((err: unknown) => {
+    console.error("[MediaStreamsPage] Error details:", err);
+    const msg = err instanceof Error ? err.message : "Ошибка загрузки деталей медиа";
     showHUD("error", msg);
   }, [showHUD]);
 
@@ -109,7 +111,7 @@ export const MediaStreamsPage: React.FC = () => {
       })
       .catch((err) => {
         if (isMounted) {
-          handleOnError(err instanceof Error ? err.message : "Ошибка загрузки деталей медиа");
+          handleOnError(err);
           setLoadingMediaDetails(false);
         }
       });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Play, Info, Plus, Check } from "lucide-react";
+import { Info, Plus, Check } from "lucide-react";
 import type { HeroItem } from "../network/ApiTypes";
 import { SyncApiClient } from "../network/SyncApiClient";
 import { useHUD } from "../context/HUDContext";
@@ -11,7 +11,8 @@ interface HeroSpotlightProps {
   onDetails: (item: HeroItem) => void;
 }
 
-export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo(({ items, onPlay, onDetails }) => {
+export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) => {
+  const { items, onDetails } = props;
   const [activeIndex, setActiveIndex] = useState(0);
   const heroItems = React.useMemo(() => items.slice(0, 10), [items]);
   const activeItem = heroItems[activeIndex];
@@ -91,21 +92,8 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo(({ items, 
 
             <div className="hero-buttons">
               <Link 
-                to={`/media/${card.mediaType}/${card.id}?play=true`}
-                className="btn-accent"
-                onClick={(e) => {
-                  if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
-                    e.preventDefault();
-                    onPlay(activeItem);
-                  }
-                }}
-              >
-                <Play size={18} fill="white" />
-                <span>Смотреть</span>
-              </Link>
-              <Link 
                 to={`/media/${card.mediaType}/${card.id}`}
-                className="btn-glass"
+                className="btn-accent"
                 onClick={(e) => {
                   if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
                     e.preventDefault();
@@ -114,7 +102,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo(({ items, 
                 }}
               >
                 <Info size={18} />
-                <span>Инфо</span>
+                <span>Подробнее</span>
               </Link>
               <button className="btn-glass" onClick={handleToggleWatchlist}>
                 {inWatchlist ? <Check size={18} className="hero-btn-success-check" /> : <Plus size={18} />}

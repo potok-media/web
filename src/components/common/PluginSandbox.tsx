@@ -6,6 +6,7 @@ import { initPotokSDK } from "../../utils/extensions/SDKRuntime";
 import { ExtensionRegistry } from "../../utils/extensions/ExtensionRegistry";
 import type { RegisteredExtension } from "../../network/SDKTypes";
 import { logger } from "../../utils/logger";
+import { ApiClient } from "../../network/ApiClient";
 
 export const PluginSandbox: React.FC = () => {
   const { connectionProfiles, activeProfileID, playVideo, activePlayback } = useAppSettings();
@@ -139,8 +140,7 @@ export const PluginSandbox: React.FC = () => {
         </html>
       `;
 
-      const blob = new Blob([iframeHtml], { type: "text/html" });
-      iframe.src = URL.createObjectURL(blob);
+      iframe.srcdoc = iframeHtml;
       document.body.appendChild(iframe);
 
       iframeRefs.current.set(ext.id, iframe);
@@ -338,6 +338,9 @@ export const PluginSandbox: React.FC = () => {
             break;
           }
           localStorage.setItem(`potok_plugin:scoped:${pluginId}:${payload.key}`, payload.value);
+          if (pluginId === "potok-torrents" && payload.key === "torrentGoURL") {
+            ApiClient.invalidateCache();
+          }
           (event.source as any).postMessage({
             source: "potok-host",
             action: "STORAGE_SET_RESPONSE",

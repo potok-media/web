@@ -105,7 +105,8 @@ export function useTorrentFiles({
           setLoadingMetadata(false);
         }
       }
-    } catch {
+    } catch (err) {
+      console.error("[useTorrentFiles] Failed to read torrent files:", err);
       showHUDRef.current("error", "Не удалось прочитать файлы торрента");
       onCloseRef.current();
     } finally {
@@ -166,7 +167,8 @@ export function useTorrentFiles({
 
       const results = await Promise.all(promises);
       setSeasons(results);
-    } catch {
+    } catch (err) {
+      console.error("[useTorrentFiles] Failed to load episodes from TMDB:", err);
       showHUDRef.current("error", "Не удалось загрузить эпизоды с TMDB");
     } finally {
       setSeasonsLoading(false);
@@ -185,7 +187,8 @@ export function useTorrentFiles({
       showHUDRef.current("success", "Смещение успешно сохранено!");
       setIsEditing(false);
       fetchFiles();
-    } catch {
+    } catch (err) {
+      console.error("[useTorrentFiles] Failed to save torrent override offset:", err);
       showHUDRef.current("error", "Не удалось сохранить смещение");
     } finally {
       setIsSaving(false);

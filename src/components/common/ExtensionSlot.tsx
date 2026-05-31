@@ -363,7 +363,7 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }
       }
 
       case "StreamList": {
-        const { streams, loading, showFilters, emptyText } = componentProps;
+        const { streams, loading, showFilters, emptyText, nounPlurals } = componentProps;
         const handleSelectStream = (streamPayload: any) => {
           const selectEvent = (events as any)?.onSelectStream;
           if (selectEvent) {
@@ -378,6 +378,7 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }
             showFilters={showFilters}
             emptyText={emptyText}
             onSelectStream={handleSelectStream}
+            nounPlurals={nounPlurals as [string, string, string] | undefined}
           />
         );
       }

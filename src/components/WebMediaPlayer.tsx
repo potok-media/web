@@ -129,6 +129,10 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     } catch (e) {
       console.error("[WebMediaPlayer] Error during global media teardown sweep:", e);
     }
+
+    setQualityLevels([]);
+    setCurrentQualityLevel(-1);
+    setShowQualityMenu(false);
   };
 
   // States
@@ -173,6 +177,9 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const [currentSubtitleTrack, setCurrentSubtitleTrack] = useState(-1);
   const [showAudioMenu, setShowAudioMenu] = useState(false);
   const [showSubtitleMenu, setShowSubtitleMenu] = useState(false);
+  const [qualityLevels, setQualityLevels] = useState<{ id: number; name: string }[]>([]);
+  const [currentQualityLevel, setCurrentQualityLevel] = useState(-1);
+  const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [showStats, setShowStats] = useState(false);
 
@@ -461,6 +468,9 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
             const updateAudioTracks = () => {
               if (playerSessionRef.current !== sessionId) return;
+              if (playback.audios && playback.audios.length > 0 && (!hls.audioTracks || hls.audioTracks.length <= 1)) {
+                return;
+              }
               const audios = (hls.audioTracks || []).map((t, idx) => {
                 let name = t.name || `Дорожка ${idx + 1}`;
                 if (playback.audios && playback.audios[idx]) {
@@ -475,7 +485,24 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
               syncNativeTextTracks();
             };
 
-            hls.on(Hls.Events.MANIFEST_PARSED, updateAudioTracks);
+            const updateQualityLevels = () => {
+              if (playerSessionRef.current !== sessionId) return;
+              const levels = hls.levels || [];
+              const parsed = [
+                { id: -1, name: "Авто" },
+                ...levels.map((l, idx) => ({
+                  id: idx,
+                  name: l.height ? `${l.height}p` : `Качество ${idx + 1}`
+                }))
+              ];
+              setQualityLevels(parsed);
+              setCurrentQualityLevel(hls.loadLevel);
+            };
+
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+              updateAudioTracks();
+              updateQualityLevels();
+            });
             hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, updateAudioTracks);
             hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, syncNativeTextTracks);
             hls.on(Hls.Events.AUDIO_TRACK_SWITCHED, () => {
@@ -642,7 +669,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     const art = artRef.current;
     if (!art) return;
     const h = (art as SafeArtplayer).hls;
-    if (h) {
+    if (h && h.audioTracks && h.audioTracks.length > 1) {
       h.audioTrack = id;
       setCurrentAudioTrack(id);
       setShowAudioMenu(false);
@@ -781,6 +808,17 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     setShowSubtitleMenu(false);
   };
 
+  const switchQuality = (id: number) => {
+    const art = artRef.current;
+    if (!art) return;
+    const h = (art as SafeArtplayer).hls;
+    if (h) {
+      h.currentLevel = id;
+      setCurrentQualityLevel(id);
+    }
+    setShowQualityMenu(false);
+  };
+
   const handleUploadSubtitle = (file: File) => {
     const video = artRef.current?.video;
     if (!video) return;
@@ -902,13 +940,18 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         currentAudioTrack={currentAudioTrack}
         onSelectAudioTrack={switchAudio}
         showAudioMenu={showAudioMenu}
-        onToggleAudioMenu={() => { setShowAudioMenu(!showAudioMenu); setShowSubtitleMenu(false); }}
+        onToggleAudioMenu={() => { setShowAudioMenu(!showAudioMenu); setShowSubtitleMenu(false); setShowQualityMenu(false); }}
         subtitleTracks={subtitleTracks}
         currentSubtitleTrack={currentSubtitleTrack}
         onSelectSubtitleTrack={switchSubtitle}
         showSubtitleMenu={showSubtitleMenu}
-        onToggleSubtitleMenu={() => { setShowSubtitleMenu(!showSubtitleMenu); setShowAudioMenu(false); }}
+        onToggleSubtitleMenu={() => { setShowSubtitleMenu(!showSubtitleMenu); setShowAudioMenu(false); setShowQualityMenu(false); }}
         onUploadSubtitle={handleUploadSubtitle}
+        qualityLevels={qualityLevels}
+        currentQualityLevel={currentQualityLevel}
+        onSelectQualityLevel={switchQuality}
+        showQualityMenu={showQualityMenu}
+        onToggleQualityMenu={() => { setShowQualityMenu(!showQualityMenu); setShowAudioMenu(false); setShowSubtitleMenu(false); }}
       />
     </div>
   );

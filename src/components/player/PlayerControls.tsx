@@ -10,7 +10,8 @@ import {
   Subtitles, 
   Activity,
   RotateCcw,
-  RotateCw
+  RotateCw,
+  Settings
 } from "lucide-react";
 import { TrackSelectorDropdown } from "./TrackSelectorDropdown";
 
@@ -46,6 +47,11 @@ interface PlayerControlsProps {
   showSubtitleMenu: boolean;
   onToggleSubtitleMenu: () => void;
   onUploadSubtitle?: (file: File) => void;
+  qualityLevels: TrackItem[];
+  currentQualityLevel: number;
+  onSelectQualityLevel: (id: number) => void;
+  showQualityMenu: boolean;
+  onToggleQualityMenu: () => void;
 }
 
 // Format seconds into HH:MM:SS
@@ -89,6 +95,11 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
   showSubtitleMenu,
   onToggleSubtitleMenu,
   onUploadSubtitle,
+  qualityLevels,
+  currentQualityLevel,
+  onSelectQualityLevel,
+  showQualityMenu,
+  onToggleQualityMenu,
 }) => {
   const seekTo = (e: React.ChangeEvent<HTMLInputElement>) => {
     onSeek(parseFloat(e.target.value));
@@ -205,6 +216,18 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
               disableOptionLabel="Отключить"
               onUploadSubtitle={onUploadSubtitle}
             />
+
+            {qualityLevels && qualityLevels.length > 0 && (
+              <TrackSelectorDropdown
+                icon={<Settings size={18} />}
+                title="Качество"
+                items={qualityLevels}
+                currentItemId={currentQualityLevel}
+                onSelect={onSelectQualityLevel}
+                isOpen={showQualityMenu}
+                onToggle={onToggleQualityMenu}
+              />
+            )}
 
             <button className="control-icon-btn" onClick={onToggleFullscreen} aria-label="Во весь экран">
               {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
