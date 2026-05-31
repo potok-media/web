@@ -17,7 +17,13 @@ export interface StreamListProps {
   nounPlurals?: [string, string, string];
 }
 
-const mapStreamToUI = (stream: RawStreamPayload, index: number): StreamUIItem => {
+const mapStreamToUI = (stream: RawStreamPayload & {
+  sizeBytes?: number;
+  seeders?: number;
+  leechers?: number;
+  tracker?: string;
+  publishDate?: string;
+}, index: number): StreamUIItem => {
   const voiceTags = stream.voice
     ? stream.voice
         .split(/[,;]+/)
@@ -39,16 +45,22 @@ const mapStreamToUI = (stream: RawStreamPayload, index: number): StreamUIItem =>
         })
     : [];
 
+  const seeds = stream.seeds !== undefined ? stream.seeds : stream.seeders;
+  const peers = stream.peers !== undefined ? stream.peers : stream.leechers;
+  const provider = stream.provider || stream.tracker || "Онлайн источник";
+  const sizeBytes = typeof stream.size === 'number' ? stream.size : stream.sizeBytes;
+
   return {
     id: stream.url || stream.magnet || stream.hash || `${stream.title}-${index}`,
     title: stream.title || "Онлайн источник",
     sizeLabel: stream.quality ? stream.quality.toUpperCase() : "",
-    sizeBytes: typeof stream.size === 'number' ? stream.size : undefined,
-    tracker: stream.provider || "Онлайн источник",
-    seeders: stream.seeds,
-    leechers: stream.peers,
+    sizeBytes,
+    tracker: provider,
+    seeders: seeds,
+    leechers: peers,
+    publishDate: stream.publishDate,
     tags: [
-      ...(stream.kind
+      ...(stream.kind && stream.kind !== "torrent"
         ? [{ kind: "kind", value: `⚡ ${(stream.kind === "hls" || stream.kind === "m3u8") ? "M3U8" : stream.kind.toUpperCase()}` }]
         : []),
       ...voiceTags,
@@ -70,30 +82,33 @@ export const StreamList: React.FC<StreamListProps> = ({
   const [activeTracker, setActiveTracker] = useState<string>("all");
 
   const trackers = useMemo(() => {
-    return Array.from(new Set(streams.map((s) => s.provider).filter((p): p is string => !!p)));
+    return Array.from(new Set(streams.map((s) => s.provider || (s as any).tracker).filter((p): p is string => !!p)));
   }, [streams]);
 
   const filteredAndSortedStreams = useMemo(() => {
     const filtered = streams.filter((t) => {
+      const provider = t.provider || (t as any).tracker || "";
       const matchesQuality = qualityFilter === "all" 
         || t.title.toLowerCase().includes(qualityFilter.toLowerCase())
         || (t.quality && t.quality.toLowerCase().includes(qualityFilter.toLowerCase()));
-      const matchesTracker = activeTracker === "all" || t.provider === activeTracker;
+      const matchesTracker = activeTracker === "all" || provider === activeTracker;
       return matchesQuality && matchesTracker;
     });
 
     return [...filtered].sort((a, b) => {
       if (sortOption === "seedersDesc") {
-        return (b.seeds ?? 0) - (a.seeds ?? 0);
+        const seedsA = a.seeds !== undefined ? a.seeds : (a as any).seeders ?? 0;
+        const seedsB = b.seeds !== undefined ? b.seeds : (b as any).seeders ?? 0;
+        return seedsB - seedsA;
       }
       if (sortOption === "sizeDesc") {
-        const sizeA = typeof a.size === 'number' ? a.size : 0;
-        const sizeB = typeof b.size === 'number' ? b.size : 0;
+        const sizeA = typeof a.size === 'number' ? a.size : (a as any).sizeBytes ?? 0;
+        const sizeB = typeof b.size === 'number' ? b.size : (b as any).sizeBytes ?? 0;
         return sizeB - sizeA;
       }
       if (sortOption === "sizeAsc") {
-        const sizeA = typeof a.size === 'number' ? a.size : 0;
-        const sizeB = typeof b.size === 'number' ? b.size : 0;
+        const sizeA = typeof a.size === 'number' ? a.size : (a as any).sizeBytes ?? 0;
+        const sizeB = typeof b.size === 'number' ? b.size : (b as any).sizeBytes ?? 0;
         return sizeA - sizeB;
       }
       return 0;

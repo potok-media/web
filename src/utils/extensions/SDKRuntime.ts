@@ -571,6 +571,7 @@ export function initPotokSDK(pluginId?: string, permissions?: string[], config?:
             seasons: cfg.seasons,
             seasonsLoading: cfg.seasonsLoading,
             isSaving: cfg.isSaving,
+            tmdbSeasonsCount: cfg.tmdbSeasonsCount,
             onPlayCallbackId,
             onStartEditingCallbackId,
             onApplyOverrideCallbackId

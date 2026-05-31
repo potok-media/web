@@ -11,6 +11,18 @@ import { useSystemWake } from "../hooks/useSystemWake";
 
 export type ConnectionState = "checking" | "connected" | "offline" | "setupRequired";
 
+export interface PlaylistItem {
+  season: number;
+  episode: number;
+  title?: string;
+  streamUrl: string;
+  streamType?: "m3u8" | "mp4" | "dash";
+  audios?: { name: string; url: string }[];
+  headers?: Record<string, string>;
+  providerId?: string;
+  voice?: string;
+}
+
 export interface ActivePlayback {
   streamUrl: string;
   title: string;
@@ -25,6 +37,8 @@ export interface ActivePlayback {
   headers?: Record<string, string>;
   providerId?: string;
   voice?: string;
+  playlist?: PlaylistItem[];
+  playlistIndex?: number;
 }
 
 interface AppSettingsContextType {

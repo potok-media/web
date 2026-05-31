@@ -178,7 +178,10 @@ export const MediaStreamsPage: React.FC = () => {
           seasons={episodeSelectorData.seasons}
           seasonsLoading={episodeSelectorData.seasonsLoading}
           isSaving={episodeSelectorData.isSaving}
-          tmdbSeasonsCount={episodeSelectorData.tmdbSeasonsCount}
+          tmdbSeasonsCount={episodeSelectorData.tmdbSeasonsCount ?? currentMedia?.numberOfSeasons}
+          backdropSrc={currentMedia?.backdropSrc}
+          posterSrc={currentMedia?.posterSrc}
+          mediaType={mediaType}
         />
       )}
     </div>

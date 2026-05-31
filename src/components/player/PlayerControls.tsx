@@ -11,7 +11,8 @@ import {
   Activity,
   RotateCcw,
   RotateCw,
-  Settings
+  Settings,
+  ListVideo
 } from "lucide-react";
 import { TrackSelectorDropdown } from "./TrackSelectorDropdown";
 
@@ -52,6 +53,11 @@ interface PlayerControlsProps {
   onSelectQualityLevel: (id: number) => void;
   showQualityMenu: boolean;
   onToggleQualityMenu: () => void;
+  playlist?: { season: number; episode: number; title?: string }[];
+  playlistIndex?: number;
+  onSelectPlaylistItem?: (index: number) => void;
+  showPlaylistMenu?: boolean;
+  onTogglePlaylistMenu?: () => void;
 }
 
 // Format seconds into HH:MM:SS
@@ -100,6 +106,11 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
   onSelectQualityLevel,
   showQualityMenu,
   onToggleQualityMenu,
+  playlist,
+  playlistIndex,
+  onSelectPlaylistItem,
+  showPlaylistMenu,
+  onTogglePlaylistMenu,
 }) => {
   const seekTo = (e: React.ChangeEvent<HTMLInputElement>) => {
     onSeek(parseFloat(e.target.value));
@@ -108,6 +119,16 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
   const changeVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
     onVolumeChange(parseFloat(e.target.value));
   };
+
+  const playlistItems = React.useMemo(() => {
+    if (!playlist) return [];
+    return playlist.map((item, idx) => ({
+      id: idx,
+      name: item.season !== undefined && item.episode !== undefined
+        ? `S${item.season}E${item.episode} - ${item.title || "Серия"}`
+        : item.title || `Серия ${idx + 1}`
+    }));
+  }, [playlist]);
 
   const timelineStyle = {
     "--timeline-progress": `${(currentTime / (duration || 100)) * 100}%`,
@@ -216,6 +237,18 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
               disableOptionLabel="Отключить"
               onUploadSubtitle={onUploadSubtitle}
             />
+
+            {playlistItems && playlistItems.length > 0 && (
+              <TrackSelectorDropdown
+                icon={<ListVideo size={18} />}
+                title="Серии плейлиста"
+                items={playlistItems}
+                currentItemId={playlistIndex ?? -1}
+                onSelect={onSelectPlaylistItem || (() => {})}
+                isOpen={showPlaylistMenu || false}
+                onToggle={onTogglePlaylistMenu || (() => {})}
+              />
+            )}
 
             {qualityLevels && qualityLevels.length > 0 && (
               <TrackSelectorDropdown

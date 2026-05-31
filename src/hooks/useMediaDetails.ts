@@ -42,10 +42,10 @@ export function useMediaDetails({
       : item.progress.completed >= item.progress.aired;
   }, []);
 
-  const fetchDetails = useCallback(async () => {
+  const fetchDetails = useCallback(async (silent: boolean | any = false) => {
     if (!mediaType || !mediaId) return;
     try {
-      setLoading(true);
+      if (silent !== true) setLoading(true);
       setError(null);
       const data = await ApiClient.fetchMediaDetails(mediaType, mediaId);
       setMedia(data);
@@ -87,7 +87,7 @@ export function useMediaDetails({
   }, [mediaType, mediaId, playParam, checkIsWatched]);
 
   useEffect(() => {
-    fetchDetails();
+    fetchDetails(false);
   }, [fetchDetails]);
 
   const toggleWatchlist = async () => {
@@ -110,7 +110,7 @@ export function useMediaDetails({
         await ApiClient.syncTraktAction(nextState ? "watchlist" : "watchlist/remove", payload);
       }
       showHUDRef.current("success", nextState ? "Добавлено в список ожидания" : "Удалено из списка ожидания");
-      fetchDetails();
+      fetchDetails(true);
     } catch {
       setInWatchlist(media.isInWatchlist || false);
       showHUDRef.current("error", "Ошибка при обновлении списка ожидания");
@@ -137,7 +137,7 @@ export function useMediaDetails({
         await ApiClient.syncTraktAction(nextState ? "favorites" : "favorites/remove", payload);
       }
       showHUDRef.current("success", nextState ? "Добавлено в избранное" : "Удалено из избранного");
-      fetchDetails();
+      fetchDetails(true);
     } catch {
       setIsFavorite(media.isFavorite || false);
       showHUDRef.current("error", "Ошибка при обновлении избранного");
@@ -164,7 +164,7 @@ export function useMediaDetails({
         await ApiClient.syncTraktAction(nextState ? "history" : "history/remove", payload);
       }
       showHUDRef.current("success", nextState ? "Отмечено просмотренным" : "Удалено из истории");
-      fetchDetails();
+      fetchDetails(true);
     } catch {
       setIsWatched(checkIsWatched(media));
       showHUDRef.current("error", "Ошибка при обновлении истории");

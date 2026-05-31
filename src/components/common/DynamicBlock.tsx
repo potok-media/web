@@ -454,6 +454,10 @@ export const DynamicBlock: React.FC<DynamicBlockProps> = ({
     });
   }
 
+  if (name === "media-streams-results") {
+    console.log("[DynamicBlock] media-streams-results render. blockMutations:", blockMutations, "settlementState:", settlementState);
+  }
+
   // 3. Apply mutations (PREPEND, APPEND, HIDE, EDIT, INSERT_BEFORE, INSERT_AFTER, REPLACE)
   blockMutations.forEach(({ pluginId, mutations, appends, prepends }) => {
     // A. Apply Prepends

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Play, CheckCircle2, ArrowLeft, Pencil } from "lucide-react";
+import { Play, CheckCircle2, ArrowLeft, Pencil, ListVideo, MoreHorizontal } from "lucide-react";
 
 export interface GenericEpisodeItem {
   id: string;
@@ -141,6 +141,7 @@ interface EpisodeSelectorHeaderProps {
   percentage: number;
   parsingFailed: boolean;
   onStartEditing?: () => void;
+  onOpenAsPlaylist?: () => void;
 }
 
 const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo(({
@@ -155,8 +156,23 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
   percentage,
   parsingFailed,
   onStartEditing,
+  onOpenAsPlaylist,
 }) => {
   const handleBackOrClose = isEditing ? onBackToFiles : onClose;
+  const [showPopover, setShowPopover] = useState(false);
+  const popoverRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setShowPopover(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const hasOptions = !isEditing && mediaType === "tv" && totalCount > 0 && (onOpenAsPlaylist || onStartEditing);
 
   return (
     <div className="modal-header">
@@ -198,11 +214,107 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
           </div>
         )}
 
-        {mediaType === "tv" && !isEditing && totalCount > 0 && onStartEditing && (
-          <button className="edit-btn" onClick={onStartEditing}>
-            <Pencil size={14} />
-            <span>Править</span>
-          </button>
+        {hasOptions && (
+          <div className="popover-wrapper" ref={popoverRef} style={{ position: "relative" }}>
+            <button 
+              className="edit-btn popover-trigger-btn" 
+              onClick={() => setShowPopover(!showPopover)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "8px 16px",
+                background: "rgba(255, 255, 255, 0.05)",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                borderRadius: "8px",
+                color: "#fff",
+                fontWeight: 500,
+                cursor: "pointer",
+                transition: "background 0.2s ease"
+              }}
+            >
+              <MoreHorizontal size={16} />
+              <span>Дополнительно</span>
+            </button>
+
+            {showPopover && (
+              <div 
+                className="popover-dropdown-menu"
+                style={{
+                  position: "absolute",
+                  top: "calc(100% + 6px)",
+                  right: 0,
+                  width: "220px",
+                  background: "rgba(20, 20, 25, 0.95)",
+                  backdropFilter: "blur(16px)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  borderRadius: "10px",
+                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.6)",
+                  padding: "6px",
+                  zIndex: 100,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "4px"
+                }}
+              >
+                {onOpenAsPlaylist && (
+                  <button 
+                    className="popover-menu-item"
+                    onClick={() => { onOpenAsPlaylist(); setShowPopover(false); }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      width: "100%",
+                      padding: "10px 12px",
+                      background: "none",
+                      border: "none",
+                      borderRadius: "6px",
+                      color: "#fff",
+                      fontSize: "0.85rem",
+                      fontWeight: 500,
+                      textAlign: "left",
+                      cursor: "pointer",
+                      transition: "background 0.2s ease"
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255, 255, 255, 0.06)"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "none"}
+                  >
+                    <ListVideo size={16} style={{ color: "var(--accent)" }} />
+                    <span>Открыть как плейлист</span>
+                  </button>
+                )}
+
+                {onStartEditing && (
+                  <button 
+                    className="popover-menu-item"
+                    onClick={() => { onStartEditing(); setShowPopover(false); }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      width: "100%",
+                      padding: "10px 12px",
+                      background: "none",
+                      border: "none",
+                      borderRadius: "6px",
+                      color: "#fff",
+                      fontSize: "0.85rem",
+                      fontWeight: 500,
+                      textAlign: "left",
+                      cursor: "pointer",
+                      transition: "background 0.2s ease"
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255, 255, 255, 0.06)"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "none"}
+                  >
+                    <Pencil size={16} style={{ color: "rgba(255, 255, 255, 0.6)" }} />
+                    <span>Править соответствие</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         )}
 
         <button className="close-btn" onClick={handleBackOrClose}>
@@ -343,13 +455,15 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [isEditing, setIsEditing] = useState(false);
 
-  const uniqueSeasons = Array.from(new Set(episodes.map((e) => e.season))).sort((a, b) => a - b);
+  const uniqueSeasons = React.useMemo(() => {
+    return Array.from(new Set(episodes.map((e) => e.season))).sort((a, b) => a - b);
+  }, [episodes]);
 
   useEffect(() => {
     if (uniqueSeasons.length > 0 && !uniqueSeasons.includes(selectedSeason)) {
       setSelectedSeason(uniqueSeasons[0]);
     }
-  }, [episodes, uniqueSeasons, selectedSeason]);
+  }, [uniqueSeasons, selectedSeason]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -374,7 +488,43 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
     if (onApplyOverride) {
       onApplyOverride(seasonNum, epNum);
     }
+    setSelectedSeason(seasonNum);
     setIsEditing(false);
+  };
+
+  const handleOpenAsPlaylist = () => {
+    if (!episodes || episodes.length === 0) return;
+    
+    // 1. Map GenericEpisodeItem to PlaylistItem schema
+    const getStreamUrl = (ep: any) => ep.url || (ep.audios && ep.audios[0]?.url) || "";
+    
+    const mappedPlaylist = episodes.map((ep) => {
+      const streamUrl = getStreamUrl(ep);
+      return {
+        season: ep.season,
+        episode: ep.episode,
+        title: ep.title || `Серия ${ep.episode}`,
+        streamUrl,
+        streamType: streamUrl.includes(".m3u8") ? "m3u8" : streamUrl.includes(".mpd") ? "dash" : "mp4",
+        audios: ep.audios?.map((a: any) => ({ name: a.name, url: a.url || "" })),
+        voice: ep.audios?.[0]?.name || "Основной поток"
+      } as any;
+    }).filter(item => !!item.streamUrl);
+
+    if (mappedPlaylist.length === 0) return;
+
+    // 2. Save mapped playlist to window object override
+    (window as any).potok_playlist_override = mappedPlaylist;
+
+    // 3. Find the first unwatched episode, or fallback to first episode of selected season, or simply first episode
+    const uncompleted = episodes.find(e => e.season === selectedSeason && !e.isWatched) 
+      || episodes.find(e => !e.isWatched)
+      || episodes.find(e => e.season === selectedSeason)
+      || episodes[0];
+
+    if (uncompleted) {
+      onPlay(uncompleted, "default");
+    }
   };
 
   const completedCount = episodes.filter(e => e.isWatched).length;
@@ -404,6 +554,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
           percentage={percentage}
           parsingFailed={parsingFailed}
           onStartEditing={onStartEditing ? handleStartEditing : undefined}
+          onOpenAsPlaylist={handleOpenAsPlaylist}
         />
         <div className="episode-popup-body" style={{ flex: 1, overflowY: "auto", position: "relative" }}>
           {isEditing ? (

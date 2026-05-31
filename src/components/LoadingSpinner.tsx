@@ -35,6 +35,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
         <div className="loading-glass-card">
           <div className="premium-spinner">
+            <div className="spinner-outer" />
             <div className="spinner-inner" />
           </div>
           <span className="loading-text">{message}</span>
@@ -46,6 +47,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   return (
     <div className="spinner-flex-container" style={{ height }}>
       <div className="premium-spinner">
+        <div className="spinner-outer" />
         <div className="spinner-inner" />
       </div>
       {message && (

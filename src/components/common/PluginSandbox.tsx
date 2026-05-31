@@ -223,6 +223,14 @@ export const PluginSandbox: React.FC = () => {
             playbackPayload.streamHash = playbackPayload[tHashKey];
             delete playbackPayload[tHashKey];
           }
+          if ((window as any).potok_playlist_override) {
+            playbackPayload.playlist = (window as any).potok_playlist_override;
+            const currentIndex = playbackPayload.playlist.findIndex(
+              (item: any) => item.season === playbackPayload.season && item.episode === playbackPayload.episode
+            );
+            playbackPayload.playlistIndex = currentIndex !== -1 ? currentIndex : 0;
+            (window as any).potok_playlist_override = null;
+          }
           playVideo(playbackPayload);
           break;
         }
@@ -289,6 +297,16 @@ export const PluginSandbox: React.FC = () => {
 
         case "REGISTER_BLOCK_MUTATIONS": {
           const { pluginId: payloadPluginId, blockName, mutations, appends, prepends } = payload;
+          console.log(`[PluginSandbox] REGISTER_BLOCK_MUTATIONS for ${blockName} from ${payloadPluginId || pluginId}:`, { mutations, appends, prepends });
+          
+          if (blockName === "media-streams-results" && appends && appends.length > 0) {
+            const streamListSchema = appends.find((a: any) => a.type === "StreamList");
+            if (streamListSchema) {
+              const { loading: mutLoading, streams: mutStreams } = streamListSchema.props || {};
+              showHUD("info", `Мутация результатов: loading=${mutLoading}, источников=${mutStreams?.length || 0}`);
+            }
+          }
+          
           ExtensionRegistry.registerBlockMutations(payloadPluginId || pluginId, blockName, mutations, appends, prepends);
           break;
         }
@@ -362,6 +380,14 @@ export const PluginSandbox: React.FC = () => {
             }, "*");
             break;
           }
+          
+          const startTime = Date.now();
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => {
+            console.warn(`[PluginSandbox] HTTP Request timed out after 15s: ${url}`);
+            controller.abort();
+          }, 15000);
+
           try {
             let finalUrl = url;
             if (url.startsWith("/api/")) {
@@ -379,7 +405,11 @@ export const PluginSandbox: React.FC = () => {
               console.log(`[PluginSandbox] Rewrote relative API url: ${url} -> ${finalUrl}`);
             }
 
-            const fetchOptions: RequestInit = { method, headers };
+            const fetchOptions: RequestInit = { 
+              method, 
+              headers,
+              signal: controller.signal
+            };
             if (body) {
               fetchOptions.body = typeof body === "string" ? body : JSON.stringify(body);
               if (!headers || !headers["Content-Type"]) {
@@ -391,8 +421,12 @@ export const PluginSandbox: React.FC = () => {
             }
 
             const res = await fetch(finalUrl, fetchOptions);
+            clearTimeout(timeoutId);
+            
             const responseStatus = res.status;
             const responseData = await res.text();
+            
+            console.log(`[PluginSandbox] HTTP Success [${responseStatus}] in ${Date.now() - startTime}ms: ${url}`);
 
             (event.source as any).postMessage({
               source: "potok-host",
@@ -400,10 +434,19 @@ export const PluginSandbox: React.FC = () => {
               payload: { requestId, status: responseStatus, data: responseData, error: null }
             }, "*");
           } catch (err: any) {
+            clearTimeout(timeoutId);
+            const isAbort = err.name === 'AbortError';
+            console.error(`[PluginSandbox] HTTP Failed in ${Date.now() - startTime}ms: ${url}. Error:`, err.message);
+            
             (event.source as any).postMessage({
               source: "potok-host",
               action: "HTTP_RESPONSE",
-              payload: { requestId, status: 500, data: "", error: err.message || "HTTP request failed" }
+              payload: { 
+                requestId, 
+                status: isAbort ? 408 : 500, 
+                data: "", 
+                error: isAbort ? "Превышено время ожидания запроса (15s Timeout)" : (err.message || "HTTP request failed") 
+              }
             }, "*");
           }
           break;

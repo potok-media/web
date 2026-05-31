@@ -1,9 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
-import Artplayer from "artplayer";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import Hls from "hls.js";
 import { ChevronRight, AlertTriangle } from "lucide-react";
 import { ApiClient } from "../network/ApiClient";
-import type { ActivePlayback } from "../context/AppSettingsContext";
+import { useAppSettings, type ActivePlayback } from "../context/AppSettingsContext";
 import { PlayerTopBar } from "./player/PlayerTopBar";
 import { PlayerStatsHUD } from "./player/PlayerStatsHUD";
 import { PlayerControls } from "./player/PlayerControls";
@@ -11,7 +10,25 @@ import { loadExternalSubtitle } from "../utils/SubtitleHelper";
 import { useTimecodes } from "../hooks/useTimecodes";
 import { usePlayerStats } from "../hooks/usePlayerStats";
 
-type SafeArtplayer = Artplayer & { hls?: Hls; };
+// Helper to extract file extension from stream URL dynamically
+const getFileExtension = (url: string): string => {
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    const pathname = parsed.pathname;
+    const lastDot = pathname.lastIndexOf(".");
+    if (lastDot !== -1) {
+      return pathname.slice(lastDot + 1).toLowerCase();
+    }
+  } catch {
+    const cleanUrl = url.split("?")[0];
+    const lastDot = cleanUrl.lastIndexOf(".");
+    if (lastDot !== -1) {
+      return cleanUrl.slice(lastDot + 1).toLowerCase();
+    }
+  }
+  return "";
+};
 
 interface WebMediaPlayerProps {
   playback: ActivePlayback;
@@ -20,120 +37,14 @@ interface WebMediaPlayerProps {
 }
 
 export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClose, isNetworkOffline = false }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const artRef = useRef<Artplayer | null>(null);
-
-  // Added refs for absolute resource tracking and cleanup
-  const playerSessionRef = useRef<number>(0);
-  const hlsRef = useRef<Hls | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
+  
+  const playerSessionRef = useRef<number>(0);
   const isMountedRef = useRef<boolean>(true);
   const autoRefreshCountRef = useRef<number>(0);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  // Centralized, bulletproof and highly aggressive resource cleanup function
-  const cleanupActiveResources = () => {
-    // 1. Invalidate any active session
-    playerSessionRef.current += 1;
-    const currentSession = playerSessionRef.current;
-    
-    console.log(`[WebMediaPlayer] Cleaning up resources for session ${currentSession}...`);
-
-    // 2. Tear down active HLS instance
-    if (hlsRef.current) {
-      try {
-        console.log("[WebMediaPlayer] Destroying active HLS instance...");
-        hlsRef.current.stopLoad();
-        hlsRef.current.detachMedia();
-        hlsRef.current.destroy();
-      } catch (e) {
-        console.error("[WebMediaPlayer] Error destroying HLS instance:", e);
-      }
-      hlsRef.current = null;
-    }
-
-    // 3. Tear down active video element
-    if (videoRef.current) {
-      try {
-        console.log("[WebMediaPlayer] Pausing and clearing video element...");
-        const video = videoRef.current;
-        video.pause();
-        video.src = "";
-        video.removeAttribute("src");
-        video.load();
-      } catch (e) {
-        console.error("[WebMediaPlayer] Error cleaning up video element:", e);
-      }
-      videoRef.current = null;
-    }
-
-    // 4. Tear down Artplayer instance
-    if (artRef.current) {
-      try {
-        console.log("[WebMediaPlayer] Destroying Artplayer instance...");
-        const art = artRef.current;
-        if (art.video) {
-          try {
-            art.video.pause();
-            art.video.src = "";
-            art.video.removeAttribute("src");
-            art.video.load();
-          } catch (e) {}
-        }
-        art.destroy();
-      } catch (e) {
-        console.error("[WebMediaPlayer] Error destroying Artplayer instance:", e);
-      }
-      artRef.current = null;
-    }
-
-    // 5. Aggressively scan container and kill any remaining / orphaned video elements
-    if (containerRef.current) {
-      try {
-        const videos = containerRef.current.getElementsByTagName("video");
-        for (let i = 0; i < videos.length; i++) {
-          const v = videos[i];
-          console.log("[WebMediaPlayer] Aggressively pausing and clearing orphaned video element in container");
-          try {
-            v.pause();
-            v.src = "";
-            v.removeAttribute("src");
-            v.load();
-          } catch (e) {}
-        }
-      } catch (e) {}
-      containerRef.current.innerHTML = "";
-    }
-
-    // 6. Global sweep of all video and audio elements inside application mount container (#root) as a ultimate safety net
-    try {
-      console.log("[WebMediaPlayer] Performing isolated media teardown sweep inside #root...");
-      const allMedia = document.querySelectorAll("#root video, #root audio");
-      allMedia.forEach((el) => {
-        try {
-          const media = el as HTMLMediaElement;
-          media.pause();
-          media.src = "";
-          media.removeAttribute("src");
-          media.load();
-        } catch (e) {
-          console.error("[WebMediaPlayer] Error during global media teardown sweep on el:", e);
-        }
-      });
-    } catch (e) {
-      console.error("[WebMediaPlayer] Error during global media teardown sweep:", e);
-    }
-
-    setQualityLevels([]);
-    setCurrentQualityLevel(-1);
-    setShowQualityMenu(false);
-  };
+  const { playVideo } = useAppSettings();
 
   // States
   const [isPlaying, setIsPlaying] = useState(false);
@@ -145,46 +56,51 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [bufferSec, setBufferSec] = useState(0);
+  const [showStats, setShowStats] = useState(false);
+
+  // Subtitle/Track States
+  const [audioTracks, setAudioTracks] = useState<{ id: number; name: string }[]>([]);
+  const [currentAudioTrack, setCurrentAudioTrack] = useState(-1);
+  const [subtitleTracks, setSubtitleTracks] = useState<{ id: number; name: string }[]>([]);
+  const [currentSubtitleTrack, setCurrentSubtitleTrack] = useState(-1);
+  const [rawLevels, setRawLevels] = useState<{ id: number; height?: number }[]>([]);
+  const [hlsActiveLevel, setHlsActiveLevel] = useState(-1);
+  const [currentQualityLevel, setCurrentQualityLevel] = useState(-1);
+
+  // Control Visibility States
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const [showAudioMenu, setShowAudioMenu] = useState(false);
+  const [showSubtitleMenu, setShowSubtitleMenu] = useState(false);
+  const [showQualityMenu, setShowQualityMenu] = useState(false);
+  const [showPlaylistMenu, setShowPlaylistMenu] = useState(false);
 
   // Virtualized Clock States
+  const [isMetadataLoading, setIsMetadataLoading] = useState(() => {
+    return playback.streamUrl.includes("/stream/") || !!playback.streamHash;
+  });
   const [metadataDuration, setMetadataDuration] = useState(0);
+
   const [seekOffset, setSeekOffset] = useState(() => {
-    // Check if there is an auto-resume position from an expired link refresh
     const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
     const savedResume = localStorage.getItem(resumeKey);
     if (savedResume) {
       localStorage.removeItem(resumeKey);
       const parsed = Number(savedResume);
-      if (!isNaN(parsed) && parsed > 0) {
-        return parsed;
-      }
+      if (!isNaN(parsed) && parsed > 0) return parsed;
     }
-
     try {
-      const url = new URL(playback.streamUrl);
-      const start = url.searchParams.get("start");
-      return start ? Number(start) : 0;
+      const startParam = new URL(playback.streamUrl).searchParams.get("start");
+      return startParam ? Number(startParam) : 0;
     } catch {
       const match = playback.streamUrl.match(/[?&]start=(\d+)/i);
       return match ? Number(match[1]) : 0;
     }
   });
 
-  // Tracks Lists
-  const [audioTracks, setAudioTracks] = useState<{ id: number; name: string }[]>([]);
-  const [currentAudioTrack, setCurrentAudioTrack] = useState(-1);
-  const [subtitleTracks, setSubtitleTracks] = useState<{ id: number; name: string }[]>([]);
-  const [currentSubtitleTrack, setCurrentSubtitleTrack] = useState(-1);
-  const [showAudioMenu, setShowAudioMenu] = useState(false);
-  const [showSubtitleMenu, setShowSubtitleMenu] = useState(false);
-  const [qualityLevels, setQualityLevels] = useState<{ id: number; name: string }[]>([]);
-  const [currentQualityLevel, setCurrentQualityLevel] = useState(-1);
-  const [showQualityMenu, setShowQualityMenu] = useState(false);
-  const [controlsVisible, setControlsVisible] = useState(true);
-  const [showStats, setShowStats] = useState(false);
+  const controlsTimeoutRef = useRef<any>(null);
 
-  // Helper to automatically route external CDN streams through high-performance C# BFF stream proxy
-  const getProxyUrl = (targetUrl: string) => {
+  // Helper to route external CDN streams through high-performance C# BFF stream proxy
+  const getProxyUrl = useCallback((targetUrl: string) => {
     if (!targetUrl) return targetUrl;
     const apiTKey = "/api/tor" + "rent";
     if (targetUrl.includes("localhost") || targetUrl.includes("127.0.0.1") || targetUrl.includes(apiTKey) || targetUrl.includes("/stream/")) {
@@ -202,63 +118,204 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       }
     }
     return proxyUrl;
-  };
+  }, [playback.headers]);
 
-  // Initialize audioTracks from playback.audios if provided
+  // Audio track initializer
   useEffect(() => {
     if (playback.audios && playback.audios.length > 0) {
       const tracks = playback.audios.map((a, idx) => ({ id: idx, name: a.name }));
       setAudioTracks(tracks);
       
-      // Determine default active track based on URL query
       let activeIdx = 0;
       try {
-        const url = new URL(playback.streamUrl);
-        const audioParam = url.searchParams.get("audio");
+        const audioParam = new URL(playback.streamUrl).searchParams.get("audio");
         if (audioParam !== null) {
           const parsed = parseInt(audioParam, 10);
-          if (!isNaN(parsed) && parsed >= 0 && parsed < playback.audios.length) {
-            activeIdx = parsed;
-          }
+          if (!isNaN(parsed) && parsed >= 0 && parsed < playback.audios.length) activeIdx = parsed;
         }
       } catch {
         const match = playback.streamUrl.match(/[?&]audio=(\d+)/i);
         if (match) {
           const parsed = parseInt(match[1], 10);
-          if (parsed >= 0 && parsed < playback.audios.length) {
-            activeIdx = parsed;
-          }
+          if (parsed >= 0 && parsed < playback.audios.length) activeIdx = parsed;
         }
       }
       setCurrentAudioTrack(activeIdx);
     }
   }, [playback.audios, playback.streamUrl]);
 
-  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Track Synchronization Helper
+  const syncNativeTextTracks = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const tracks: { id: number; name: string }[] = [];
+    let activeIdx = -1;
+    for (let i = 0; i < video.textTracks.length; i++) {
+      const track = video.textTracks[i];
+      if (track.kind === "subtitles" || track.kind === "captions") {
+        tracks.push({
+          id: i,
+          name: track.label || track.language || `Субтитры ${i + 1}`,
+        });
+        if (track.mode === "showing") activeIdx = i;
+      }
+    }
+    setSubtitleTracks(tracks);
+    setCurrentSubtitleTrack(activeIdx);
+  }, []);
 
-  const displayDuration = metadataDuration > 0 ? metadataDuration : (duration || 100);
-  const displayCurrentTime = seekOffset > 0 ? (seekOffset + currentTime) : currentTime;
-  const displayBufferedTime = seekOffset > 0 ? (seekOffset + bufferedTime) : bufferedTime;
-
-  const displayCurrentTimeRef = useRef(displayCurrentTime);
+  // Sync with host metadata endpoint for custom Hls.js/torrent duration parameters
   useEffect(() => {
-    displayCurrentTimeRef.current = displayCurrentTime;
-  }, [displayCurrentTime]);
+    const torrentMatch = playback.streamUrl.match(/\/stream\/[a-f0-9]+\/(\d+)/i);
+    if (!torrentMatch || !playback.streamHash) {
+      setIsMetadataLoading(false);
+      return;
+    }
 
-  // Hooks
-  const { introRange, outroRange } = useTimecodes(playback.id, playback.season, playback.episode, playback.mediaType === "tv", displayDuration);
-  const { downloadSpeed, bitrate, resolution, fps } = usePlayerStats(
-    artRef,
-    isPlaying,
-    showStats,
-    playback.streamUrl,
-    playback.streamHash || "",
-    displayDuration
-  );
+    let isMounted = true;
+    setIsMetadataLoading(true);
+    const fileId = torrentMatch[1];
+    
+    (async () => {
+      try {
+        const metadata = await ApiClient.getStreamMetadata(playback.streamHash!, fileId);
+        if (!isMounted) return;
+        if (metadata && metadata.success) {
+          if (metadata.duration > 0) setMetadataDuration(metadata.duration);
 
-  const handleRefreshStream = () => {
+          const torrentAudioTracks = metadata.tracks
+            .filter((t) => t.type === "audio")
+            .map((t) => ({ id: t.index, name: t.title }));
+          
+          if (torrentAudioTracks.length > 0) {
+            setAudioTracks(torrentAudioTracks);
+            setCurrentAudioTrack((prev) => (prev === -1 ? torrentAudioTracks[0].id : prev));
+          }
+
+          const video = videoRef.current;
+          if (!video) return;
+
+          // Auto-inject external Hls subtitles
+          metadata.tracks
+            .filter((t) => t.type === "subtitle")
+            .forEach((t) => {
+              for (let i = 0; i < video.textTracks.length; i++) {
+                if (video.textTracks[i].label === t.title) return;
+              }
+              const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
+              const srcUrl = `${cleanBase}/stream/${playback.streamHash!.toLowerCase()}/${fileId}/subtitles/${t.relIndex}`;
+              
+              const track = document.createElement("track");
+              track.kind = "subtitles";
+              track.label = t.title;
+              track.srclang = t.language || "custom";
+              track.src = srcUrl;
+              video.appendChild(track);
+            });
+          
+          setTimeout(() => {
+            if (isMounted) syncNativeTextTracks();
+          }, 400);
+        }
+      } catch (err) {
+        console.warn("Failed to load stream metadata:", err);
+      } finally {
+        if (isMounted) {
+          setIsMetadataLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [playback.streamUrl, playback.streamHash, syncNativeTextTracks]);
+
+  // Activity Inactivity hide HUD manager
+  const handleUserActivity = useCallback(() => {
+    setControlsVisible(true);
+    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    controlsTimeoutRef.current = setTimeout(() => {
+      if (videoRef.current && !videoRef.current.paused) {
+        setControlsVisible(false);
+        setShowAudioMenu(false);
+        setShowSubtitleMenu(false);
+        setShowQualityMenu(false);
+      }
+    }, 3000);
+  }, []);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    handleUserActivity();
+    return () => {
+      isMountedRef.current = false;
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    };
+  }, [handleUserActivity]);
+
+  // Fullscreen Management
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    const el = overlayRef.current;
+    if (!el) return;
+    if (!document.fullscreenElement) {
+      el.requestFullscreen().catch((err) => {
+        console.error("[WebMediaPlayer] Failed to enter fullscreen:", err);
+      });
+    } else {
+      document.exitFullscreen().catch((err) => {
+        console.error("[WebMediaPlayer] Failed to exit fullscreen:", err);
+      });
+    }
+  }, []);
+
+  // Synchronous Media Teardown sweep
+  const cleanupActiveResources = useCallback(() => {
+    playerSessionRef.current += 1;
+    const session = playerSessionRef.current;
+    console.log(`[WebMediaPlayer] Cleaning up session ${session}...`);
+
+    if (hlsRef.current) {
+      try {
+        hlsRef.current.stopLoad();
+        hlsRef.current.detachMedia();
+        hlsRef.current.destroy();
+      } catch (e) {
+        console.error("[WebMediaPlayer] Hls destroy error:", e);
+      }
+      hlsRef.current = null;
+    }
+
+    const video = videoRef.current;
+    if (video) {
+      try {
+        video.pause();
+        video.src = "";
+        video.removeAttribute("src");
+        video.load();
+      } catch (e) {
+        console.error("[WebMediaPlayer] Video teardown error:", e);
+      }
+    }
+  }, []);
+
+  const handleRefreshStream = useCallback(() => {
     const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
-    localStorage.setItem(resumeKey, Math.floor(displayCurrentTimeRef.current).toString());
+    const video = videoRef.current;
+    const currentLoc = video ? video.currentTime : 0;
+    const seekedTime = seekOffset > 0 ? (seekOffset + currentLoc) : currentLoc;
+    
+    localStorage.setItem(resumeKey, Math.floor(seekedTime).toString());
 
     if (playback.providerId) {
       console.log(`[WebMediaPlayer] Requesting modular stream refresh for ${playback.providerId}`);
@@ -273,405 +330,297 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         }
       }));
     } else {
-      console.log("[WebMediaPlayer] Falling back to standard full page reload stream refresh");
       window.location.reload();
     }
-  };
+  }, [playback, seekOffset]);
 
-  const showSkipIntro = introRange && displayCurrentTime >= introRange.start && displayCurrentTime <= introRange.end;
-  const showSkipOutro = outroRange && displayCurrentTime >= outroRange.start && displayCurrentTime <= (outroRange.end || displayDuration);
-
-  const handleUserActivity = () => {
-    setControlsVisible(true);
-    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-    controlsTimeoutRef.current = setTimeout(() => {
-      if (artRef.current?.playing) {
-        setControlsVisible(false);
-        setShowAudioMenu(false);
-        setShowSubtitleMenu(false);
-      }
-    }, 3000);
-  };
-
-  const syncNativeTextTracks = () => {
-    const video = artRef.current?.video;
+  // Main Media Stream Setup Hook
+  useEffect(() => {
+    const video = videoRef.current;
     if (!video) return;
-    const tracks: { id: number; name: string }[] = [];
-    let activeIdx = -1;
-    for (let i = 0; i < video.textTracks.length; i++) {
-      const t = video.textTracks[i];
-      if (t.kind === "subtitles" || t.kind === "captions") {
-        tracks.push({ id: i, name: t.label || t.language || `Субтитры ${i + 1}` });
-        if (t.mode === "showing") activeIdx = i;
-      }
-    }
-    setSubtitleTracks(tracks);
-    setCurrentSubtitleTrack(activeIdx);
-  };
 
-  const reinjectSubtitles = () => {
-    const video = artRef.current?.video;
-    const streamHash = playback.streamHash;
-    if (!video || !streamHash) return;
-    const match = playback.streamUrl.match(/\/stream\/[a-f0-9]+\/(\d+)/i);
-    if (!match) return;
-    subtitleTracks.forEach((s) => {
-      for (let i = 0; i < video.textTracks.length; i++) {
-        if (video.textTracks[i].label === s.name) return;
-      }
-      const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
-      const track = document.createElement("track");
-      track.kind = "subtitles";
-      track.label = s.name;
-      track.srclang = "custom";
-      track.src = `${cleanBase}/stream/${streamHash.toLowerCase()}/${match[1]}/subtitles/${s.id}`;
-      video.appendChild(track);
-    });
-    setTimeout(() => {
-      for (let i = 0; i < video.textTracks.length; i++) {
-        video.textTracks[i].mode = i === currentSubtitleTrack ? "showing" : "disabled";
-      }
-    }, 200);
-  };
-
-  // Dynamic loopback subtitles & audio track discovery
-  useEffect(() => {
-    const match = playback.streamUrl.match(/\/stream\/[a-f0-9]+\/(\d+)/i);
-    const streamHash = playback.streamHash;
-    if (!match || !streamHash) return;
-    const fileId = match[1];
-    let isMounted = true;
-
-    const loadMetadata = async () => {
-      try {
-        const meta = await ApiClient.getStreamMetadata(streamHash, fileId);
-        if (!isMounted || !meta || !meta.success) return;
-        if (meta.duration > 0) setMetadataDuration(meta.duration);
-
-        const audios = meta.tracks.filter(t => t.type === "audio").map(t => ({ id: t.index, name: t.title }));
-        if (audios.length > 0) {
-          setAudioTracks(audios);
-          setCurrentAudioTrack(prev => prev === -1 ? audios[0].id : prev);
-        }
-
-        const video = artRef.current?.video;
-        if (!video) return;
-
-        meta.tracks.filter(t => t.type === "subtitle").forEach((s) => {
-          let exists = false;
-          for (let i = 0; i < video.textTracks.length; i++) {
-            if (video.textTracks[i].label === s.title) { exists = true; break; }
-          }
-          if (exists) return;
-
-          const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
-          const subUrl = `${cleanBase}/stream/${streamHash.toLowerCase()}/${fileId}/subtitles/${s.relIndex}`;
-          const track = document.createElement("track");
-          track.kind = "subtitles";
-          track.label = s.title;
-          track.srclang = s.language || "custom";
-          track.src = subUrl;
-          video.appendChild(track);
-        });
-
-        setTimeout(() => { if (isMounted) syncNativeTextTracks(); }, 400);
-      } catch (err) {
-        console.warn("Failed to load stream metadata:", err);
-      }
-    };
-
-    loadMetadata();
-    return () => { isMounted = false; };
-  }, [playback.streamUrl, playback.streamHash]);
-
-  useEffect(() => {
-    handleUserActivity();
-    return () => { if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current); };
-  }, []);
-
-  useEffect(() => {
-    if (isNetworkOffline) {
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch((err) => {
-          console.warn("Failed to exit fullscreen imperatively:", err);
-        });
-      }
-    }
-  }, [isNetworkOffline]);
-
-  // Main ArtPlayer setup
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    // 1. First, call cleanup to synchronously kill everything currently active
     cleanupActiveResources();
-
-    // 2. Increment session counter to signify a brand new initialization session
-    playerSessionRef.current += 1;
     const sessionId = playerSessionRef.current;
 
-    const proxiedUrl = getProxyUrl(playback.streamUrl);
-    console.log(`[WebMediaPlayer] Initializing player session ${sessionId} for ${playback.streamUrl} (proxied: ${proxiedUrl})`);
+    // Parse starting position for resume once on initial mount
+    let startPos = 0;
+    const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
+    const savedResume = localStorage.getItem(resumeKey);
+    if (savedResume) {
+      localStorage.removeItem(resumeKey);
+      const parsed = Number(savedResume);
+      if (!isNaN(parsed) && parsed > 0) startPos = parsed;
+    } else {
+      try {
+        const startParam = new URL(playback.streamUrl).searchParams.get("start");
+        if (startParam) startPos = Number(startParam);
+      } catch {
+        const match = playback.streamUrl.match(/[?&]start=(\d+)/i);
+        if (match) startPos = Number(match[1]);
+      }
+    }
 
-    const art = new Artplayer({
-      container: containerRef.current,
-      url: proxiedUrl,
-      type: playback.streamUrl.includes(".m3u8") ? "m3u8" : "mp4",
-      customType: {
-        m3u8: function (video: HTMLVideoElement, url: string) {
-          // Check if this initialization session is still the active one
-          if (playerSessionRef.current !== sessionId) {
-            console.warn(`[WebMediaPlayer] Session ${sessionId} became inactive before Hls initialization. Aborting.`);
-            try {
-              video.pause();
-              video.src = "";
-              video.removeAttribute("src");
-              video.load();
-            } catch (e) {}
+    const isStreamServer = playback.streamUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
+    const ext = getFileExtension(playback.streamUrl);
+    const isNonNative = ext ? !["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "m4a", "mpd"].includes(ext) : false;
+    const needsRemux = isStreamServer && isNonNative;
+
+    let finalStreamUrl = playback.streamUrl;
+    if (needsRemux) {
+      const baseUrl = playback.streamUrl.split("?")[0];
+      finalStreamUrl = `${baseUrl}?remux=true&start=${Math.floor(startPos)}&audio=0`;
+    }
+
+    const proxiedUrl = getProxyUrl(finalStreamUrl);
+    const isM3u8 = finalStreamUrl.includes(".m3u8");
+
+    setPlayerError(null);
+
+    if (isM3u8) {
+      video.crossOrigin = "anonymous";
+      if (Hls.isSupported()) {
+        const hls = new Hls({ maxBufferLength: 30, maxMaxBufferLength: 60 });
+        hlsRef.current = hls;
+
+        // Inject initial startPosition configuration for native Hls.js resume
+        if (startPos > 0) {
+          hls.config.startPosition = startPos;
+        }
+
+        const updateAudioTracks = () => {
+          if (playerSessionRef.current !== sessionId) return;
+          if (playback.audios && playback.audios.length > 0 && (!hls.audioTracks || hls.audioTracks.length <= 1)) {
             return;
           }
-
-          if (Hls.isSupported()) {
-            // Clean up any old Hls instance first
-            if (hlsRef.current) {
-              try {
-                hlsRef.current.stopLoad();
-                hlsRef.current.detachMedia();
-                hlsRef.current.destroy();
-              } catch (e) {}
-              hlsRef.current = null;
+          const audios = (hls.audioTracks || []).map((t, idx) => {
+            let name = t.name || `Дорожка ${idx + 1}`;
+            if (playback.audios && playback.audios[idx]) {
+              name = playback.audios[idx].name;
+            } else if (playback.audioNames && playback.audioNames[idx]) {
+              name = playback.audioNames[idx];
             }
+            return { id: idx, name };
+          });
+          setAudioTracks(audios);
+          setCurrentAudioTrack(hls.audioTrack);
+          syncNativeTextTracks();
+        };
 
-            const hls = new Hls({ maxBufferLength: 30, maxMaxBufferLength: 60 });
-            
-            // Immediately store in refs so we can clean it up if needed
-            hlsRef.current = hls;
-            videoRef.current = video;
+        const updateQualityLevels = () => {
+          if (playerSessionRef.current !== sessionId) return;
+          const levels = hls.levels || [];
+          setRawLevels(levels.map((l, idx) => ({ id: idx, height: l.height })));
+          setCurrentQualityLevel(hls.autoLevelEnabled ? -1 : hls.currentLevel);
+          setHlsActiveLevel(hls.currentLevel);
+        };
 
-            hls.loadSource(url);
-            hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          updateAudioTracks();
+          updateQualityLevels();
+          video.play().catch(() => {
+            video.muted = true;
+            video.play().catch((err) => console.error("Autoplay failed:", err));
+          });
+        });
 
-            // Double check session validity after synchronous calls
-            if (playerSessionRef.current !== sessionId) {
-              console.warn(`[WebMediaPlayer] Session ${sessionId} became inactive during Hls attachment. Destroying Hls.`);
-              try {
-                hls.stopLoad();
-                hls.detachMedia();
-                hls.destroy();
-              } catch (e) {}
-              if (hlsRef.current === hls) hlsRef.current = null;
-              try {
-                video.pause();
-                video.src = "";
-                video.removeAttribute("src");
-                video.load();
-              } catch (e) {}
+        hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, updateAudioTracks);
+        hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, syncNativeTextTracks);
+        hls.on(Hls.Events.AUDIO_TRACK_SWITCHED, () => {
+          if (playerSessionRef.current !== sessionId) return;
+          setCurrentAudioTrack(hls.audioTrack);
+        });
+        hls.on(Hls.Events.LEVEL_SWITCHED, (_, data) => {
+          if (playerSessionRef.current !== sessionId) return;
+          setHlsActiveLevel(data.level);
+          setCurrentQualityLevel(hls.autoLevelEnabled ? -1 : data.level);
+        });
+
+        hls.on(Hls.Events.ERROR, (_, data) => {
+          if (playerSessionRef.current !== sessionId) return;
+          if (data.fatal) {
+            const responseCode = (data.response as any)?.code;
+            if (responseCode === 403 || responseCode === 401) {
+              hls.stopLoad();
+              setPlayerError("Доступ к воспроизведению ограничен.");
               return;
             }
-
-            const updateAudioTracks = () => {
-              if (playerSessionRef.current !== sessionId) return;
-              if (playback.audios && playback.audios.length > 0 && (!hls.audioTracks || hls.audioTracks.length <= 1)) {
-                return;
+            if (responseCode === 410) {
+              hls.stopLoad();
+              if (playback.providerId && autoRefreshCountRef.current < 1) {
+                autoRefreshCountRef.current += 1;
+                console.log("[WebMediaPlayer] Fatal HLS 410 error. Refreshing stream...");
+                handleRefreshStream();
+              } else {
+                setPlayerError("Срок действия ссылки на поток истек.");
               }
-              const audios = (hls.audioTracks || []).map((t, idx) => {
-                let name = t.name || `Дорожка ${idx + 1}`;
-                if (playback.audios && playback.audios[idx]) {
-                  name = playback.audios[idx].name;
-                } else if (playback.audioNames && playback.audioNames[idx]) {
-                  name = playback.audioNames[idx];
-                }
-                return { id: t.id, name };
-              });
-              setAudioTracks(audios);
-              setCurrentAudioTrack(hls.audioTrack);
-              syncNativeTextTracks();
-            };
-
-            const updateQualityLevels = () => {
-              if (playerSessionRef.current !== sessionId) return;
-              const levels = hls.levels || [];
-              const parsed = [
-                { id: -1, name: "Авто" },
-                ...levels.map((l, idx) => ({
-                  id: idx,
-                  name: l.height ? `${l.height}p` : `Качество ${idx + 1}`
-                }))
-              ];
-              setQualityLevels(parsed);
-              setCurrentQualityLevel(hls.loadLevel);
-            };
-
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-              updateAudioTracks();
-              updateQualityLevels();
-            });
-            hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, updateAudioTracks);
-            hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, syncNativeTextTracks);
-            hls.on(Hls.Events.AUDIO_TRACK_SWITCHED, () => {
-              if (playerSessionRef.current !== sessionId) return;
-              setCurrentAudioTrack(hls.audioTrack);
-            });
-
-            hls.on(Hls.Events.ERROR, (_, data) => {
-              if (playerSessionRef.current !== sessionId) return;
-              if (data.fatal) {
-                const responseCode = (data.response as any)?.code;
-                if (responseCode === 403 || responseCode === 401) {
-                  hls.stopLoad();
-                  setPlayerError("Доступ к воспроизведению ограничен.");
-                  return;
-                }
-                if (responseCode === 410) {
-                  hls.stopLoad();
-                  if (playback.providerId && autoRefreshCountRef.current < 1) {
-                    autoRefreshCountRef.current += 1;
-                    console.log("[WebMediaPlayer] Fatal HLS 410 Gone error. Auto-refreshing stream url...");
-                    handleRefreshStream();
-                  } else {
-                    setPlayerError("Срок действия ссылки на поток истек.");
-                  }
-                  return;
-                }
-
-                if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
-                else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
-              }
-            });
-
-            art.on("destroy", () => {
-              try {
-                hls.stopLoad();
-                hls.detachMedia();
-                hls.destroy();
-              } catch (e) {
-                console.warn("Hls destroy error:", e);
-              }
-            });
-          } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-            videoRef.current = video;
-            video.src = url;
-          }
-        }
-      },
-      autoplay: true,
-      volume: 1,
-      muted: false,
-    });
-
-    artRef.current = art;
-    if (art.video) {
-      videoRef.current = art.video;
-      if (playback.streamUrl.includes(".m3u8")) {
-        art.video.crossOrigin = "anonymous";
-      } else {
-        art.video.removeAttribute("crossorigin");
-      }
-      art.video.style.cursor = "pointer";
-      art.video.addEventListener("click", () => art.toggle());
-      art.video.textTracks.addEventListener("addtrack", syncNativeTextTracks);
-      art.video.textTracks.addEventListener("removetrack", syncNativeTextTracks);
-      art.video.textTracks.addEventListener("change", syncNativeTextTracks);
-    }
-
-    // Set .hls on art now if it's already set (synchronous customType)
-    if (hlsRef.current) {
-      try {
-        (art as SafeArtplayer).hls = hlsRef.current;
-      } catch (e) {}
-    }
-
-    art.on("ready", () => {
-      if (playerSessionRef.current !== sessionId) return;
-      art.play().catch(() => { art.muted = true; art.play().catch((err) => console.error("Autoplay failed:", err)); });
-      syncNativeTextTracks();
-    });
-
-    art.on("play", () => {
-      if (playerSessionRef.current !== sessionId) return;
-      setIsPlaying(true);
-      setPlayerError(null);
-    });
-    art.on("pause", () => {
-      if (playerSessionRef.current !== sessionId) return;
-      setIsPlaying(false);
-    });
-    art.on("error", (err) => {
-      if (playerSessionRef.current !== sessionId) return;
-      setPlayerError(err?.message || "Ошибка инициализации медиаплеера");
-    });
-    art.on("video:error", () => {
-      if (playerSessionRef.current !== sessionId) return;
-      fetch(playback.streamUrl, { method: "HEAD" })
-        .then((res) => {
-          if (playerSessionRef.current !== sessionId) return;
-          if (res.status === 403 || res.status === 401) {
-            setPlayerError("Доступ к воспроизведению ограничен.");
-          } else if (res.status === 410) {
-            if (playback.providerId && autoRefreshCountRef.current < 1) {
-              autoRefreshCountRef.current += 1;
-              console.log("[WebMediaPlayer] video:error 410 Gone detected. Auto-refreshing stream...");
-              handleRefreshStream();
-            } else {
-              setPlayerError("Срок действия ссылки на поток истек.");
+              return;
             }
-          } else {
-            setPlayerError("Не удалось загрузить видео-поток.");
+            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
+            else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
           }
-        })
-        .catch((err) => {
-          if (playerSessionRef.current !== sessionId) return;
-          console.error("[WebMediaPlayer] video:error fetch failed:", err);
-          setPlayerError("Не удалось загрузить видео-поток.");
         });
-    });
 
-    art.on("video:timeupdate", () => {
-      if (playerSessionRef.current !== sessionId) return;
-      setCurrentTime(art.currentTime);
-      const v = art.video;
-      if (!v) return;
-      const b = v.buffered;
-      let buf = 0;
-      for (let i = 0; i < b.length; i++) {
-        if (v.currentTime >= b.start(i) && v.currentTime <= b.end(i)) { buf = b.end(i) - v.currentTime; break; }
+        hls.loadSource(proxiedUrl);
+        hls.attachMedia(video);
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = proxiedUrl;
+        video.play().then(() => {
+          if (startPos > 0) {
+            video.currentTime = startPos;
+          }
+        }).catch(() => {});
       }
-      setBufferSec(buf);
-      if (b.length > 0) setBufferedTime(b.end(b.length - 1));
-    });
-
-    art.on("video:durationchange", () => {
-      if (playerSessionRef.current !== sessionId) return;
-      setDuration(art.duration);
-    });
-    art.on("video:volumechange", () => {
-      if (playerSessionRef.current !== sessionId) return;
-      setVolume(art.volume);
-      setIsMuted(art.muted);
-    });
-    art.on("fullscreen", (state) => {
-      if (playerSessionRef.current !== sessionId) return;
-      setIsFullscreen(state);
-    });
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === " ") { e.preventDefault(); art.toggle(); }
-      else if (e.key === "ArrowRight") { e.preventDefault(); handleSeek(displayCurrentTimeRef.current + 10); }
-      else if (e.key === "ArrowLeft") { e.preventDefault(); handleSeek(Math.max(displayCurrentTimeRef.current - 10, 0)); }
-      else if (e.key === "Escape") { e.preventDefault(); onClose(); }
-    };
-    window.addEventListener("keydown", handleKeyDown);
+    } else {
+      video.removeAttribute("crossorigin");
+      video.src = proxiedUrl;
+      video.play().then(() => {
+        // If it's a remuxed stream, the server already seeked, so browser currentTime 0 is correct.
+        // Otherwise, seek to startPos natively.
+        if (startPos > 0 && !needsRemux) {
+          video.currentTime = startPos;
+        }
+      }).catch(() => {
+        video.muted = true;
+        video.play().then(() => {
+          if (startPos > 0 && !needsRemux) {
+            video.currentTime = startPos;
+          }
+        }).catch((err) => console.error("Autoplay failed:", err));
+      });
+    }
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
       cleanupActiveResources();
     };
-  }, [playback.streamUrl]);
+  }, [playback.streamUrl, cleanupActiveResources, getProxyUrl, syncNativeTextTracks, handleRefreshStream]);
 
+  // Video Native Event Handlers
+  const handlePlay = () => setIsPlaying(true);
+  const handlePause = () => setIsPlaying(false);
+
+  const playPlaylistItem = (index: number) => {
+    if (!playback.playlist || index < 0 || index >= playback.playlist.length) return;
+    const item = playback.playlist[index];
+    playVideo({
+      ...playback,
+      streamUrl: item.streamUrl,
+      streamType: item.streamType,
+      season: item.season,
+      episode: item.episode,
+      title: `${item.title} - S${item.season}E${item.episode}`,
+      audios: item.audios,
+      voice: item.voice,
+      playlistIndex: index
+    });
+  };
+
+  const handleEnded = () => {
+    if (playback.playlist && playback.playlistIndex !== undefined && playback.playlistIndex + 1 < playback.playlist.length) {
+      console.log("[WebMediaPlayer] Episode ended. Auto-playing next...");
+      playPlaylistItem(playback.playlistIndex + 1);
+    }
+  };
+  
+  const handleTimeUpdate = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    setCurrentTime(video.currentTime);
+
+    // Buffer diagnostics calculation
+    const buffered = video.buffered;
+    let buf = 0;
+    for (let i = 0; i < buffered.length; i++) {
+      if (video.currentTime >= buffered.start(i) && video.currentTime <= buffered.end(i)) {
+        buf = buffered.end(i) - video.currentTime;
+        break;
+      }
+    }
+    setBufferSec(buf);
+    if (buffered.length > 0) {
+      setBufferedTime(buffered.end(buffered.length - 1));
+    }
+  };
+
+  const handleDurationChange = () => {
+    if (videoRef.current) setDuration(videoRef.current.duration);
+  };
+
+  const handleVolumeChange = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    setVolume(video.volume);
+    setIsMuted(video.muted);
+  };
+
+  const handleVideoError = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    
+    const diagnosticUrl = getProxyUrl(playback.streamUrl);
+    fetch(diagnosticUrl, { method: "HEAD" })
+      .then((res) => {
+        if (res.status === 403 || res.status === 401) {
+          setPlayerError("Доступ к воспроизведению ограничен.");
+        } else if (res.status === 410) {
+          if (playback.providerId && autoRefreshCountRef.current < 1) {
+            autoRefreshCountRef.current += 1;
+            console.log("[WebMediaPlayer] video:error 410 Gone detected. Refreshing...");
+            handleRefreshStream();
+          } else {
+            setPlayerError("Срок действия ссылки на поток истек.");
+          }
+        } else {
+          setPlayerError("Не удалось загрузить видео-поток.");
+        }
+      })
+      .catch((err) => {
+        console.error("[WebMediaPlayer] Diagnostics HEAD fetch failed:", err);
+        setPlayerError("Не удалось загрузить видео-поток.");
+      });
+  };
+
+  // Keyboard Navigation Controls
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const video = videoRef.current;
+      if (!video) return;
+
+      if (e.key === " ") {
+        e.preventDefault();
+        if (video.paused) video.play().catch(() => {});
+        else video.pause();
+        handleUserActivity();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleSeek(video.currentTime + seekOffset + 10);
+        handleUserActivity();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handleSeek(Math.max(video.currentTime + seekOffset - 10, 0));
+        handleUserActivity();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        } else {
+          onClose();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [seekOffset, onClose, handleUserActivity]);
+
+  // Derived timeline state parameters
+  const displayDuration = metadataDuration > 0 ? metadataDuration : (duration || 100);
+  const displayCurrentTime = seekOffset > 0 ? (seekOffset + currentTime) : currentTime;
+  const displayBufferedTime = seekOffset > 0 ? (seekOffset + bufferedTime) : bufferedTime;
+
+  // Track Selectors and Player Controls API
   const switchAudio = (id: number) => {
-    const art = artRef.current;
-    if (!art) return;
-    const h = (art as SafeArtplayer).hls;
+    const h = hlsRef.current;
     if (h && h.audioTracks && h.audioTracks.length > 1) {
       h.audioTrack = id;
       setCurrentAudioTrack(id);
@@ -679,96 +628,38 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       return;
     }
 
-    const isStreamServer = !!(playback.streamHash || (playback as any)["tor" + "rentHash"]);
+    const isStreamServer = playback.streamUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
     const time = displayCurrentTime;
-    if (isStreamServer) {
-      setSeekOffset(time);
-    } else {
-      setSeekOffset(0);
-    }
 
     let newUrl = "";
-    if (playback.audios && playback.audios[id]) {
-      try {
-        const targetUrlObj = new URL(playback.audios[id].url);
-        if (time > 1) {
-          targetUrlObj.searchParams.set("start", Math.floor(time).toString());
-        }
-        newUrl = targetUrlObj.toString();
-      } catch {
-        const baseUrl = playback.audios[id].url.split("?")[0];
-        const startQuery = time > 1 ? `&start=${Math.floor(time)}` : "";
-        newUrl = `${baseUrl}?audio=${id}${startQuery}`;
-      }
-    } else {
-      const baseUrl = playback.streamUrl.split("?")[0];
-      const startQuery = time > 1 ? `&start=${Math.floor(time)}` : "";
-      newUrl = `${baseUrl}?audio=${id}${startQuery}`;
-    }
-
-    // Clean up active Hls if switching to a non-m3u8 stream to prevent background leak
-    const isNewM3U8 = newUrl.includes(".m3u8");
-    if (!isNewM3U8 && hlsRef.current) {
-      try {
-        hlsRef.current.stopLoad();
-        hlsRef.current.detachMedia();
-        hlsRef.current.destroy();
-      } catch (e) {}
-      hlsRef.current = null;
-    }
-
-    const proxiedNewUrl = getProxyUrl(newUrl);
-    art.switchUrl(proxiedNewUrl)
-      .then(() => {
-        if (!isMountedRef.current || artRef.current !== art) {
-          console.log("[WebMediaPlayer] switchAudio promise resolved but component is unmounted or art instance changed. Preventing .play()");
-          return;
-        }
-        if (!isStreamServer) {
-          art.currentTime = time;
-        }
-        reinjectSubtitles();
-        art.play();
-      })
-      .catch((err) => {
-        console.warn("[WebMediaPlayer] switchAudio URL switch failed or aborted:", err);
-      });
-    setCurrentAudioTrack(id);
-    setShowAudioMenu(false);
-  };
-
-  const handleSeek = (time: number) => {
-    const art = artRef.current;
-    if (!art) return;
-    const h = (art as SafeArtplayer).hls;
-    if (h) { art.currentTime = time; return; }
-
-    const isStreamServer = !!(playback.streamHash || (playback as any)["tor" + "rentHash"]);
-    const isMKV = playback.streamUrl.includes(".mkv") || playback.streamUrl.includes(".MKV");
-    
-    const isDefaultAudio = audioTracks.length === 0 || currentAudioTrack === -1 || currentAudioTrack === audioTracks[0].id;
-    const needsRemux = isStreamServer && (isMKV || !isDefaultAudio);
-
-    if (needsRemux) {
+    if (isStreamServer) {
       setSeekOffset(time);
-      let newUrl = "";
-      if (playback.audios && playback.audios[currentAudioTrack]) {
+      const baseUrl = playback.streamUrl.split("?")[0];
+      newUrl = `${baseUrl}?remux=true&start=${Math.floor(time)}&audio=${id}`;
+    } else {
+      setSeekOffset(0);
+      if (playback.audios && playback.audios[id]) {
         try {
-          const targetUrlObj = new URL(playback.audios[currentAudioTrack].url);
-          targetUrlObj.searchParams.set("start", Math.floor(time).toString());
+          const targetUrlObj = new URL(playback.audios[id].url);
+          if (time > 1) targetUrlObj.searchParams.set("start", Math.floor(time).toString());
           newUrl = targetUrlObj.toString();
         } catch {
-          const baseUrl = playback.audios[currentAudioTrack].url.split("?")[0];
-          const audioQuery = currentAudioTrack !== -1 ? `&audio=${currentAudioTrack}` : "";
-          newUrl = `${baseUrl}?start=${Math.floor(time)}${audioQuery}`;
+          const baseUrl = playback.audios[id].url.split("?")[0];
+          const startQuery = time > 1 ? `&start=${Math.floor(time)}` : "";
+          newUrl = `${baseUrl}?audio=${id}${startQuery}`;
         }
       } else {
         const baseUrl = playback.streamUrl.split("?")[0];
-        const audioQuery = currentAudioTrack !== -1 ? `&audio=${currentAudioTrack}` : "";
-        newUrl = `${baseUrl}?start=${Math.floor(time)}${audioQuery}`;
+        const startQuery = time > 1 ? `&start=${Math.floor(time)}` : "";
+        newUrl = `${baseUrl}?audio=${id}${startQuery}`;
       }
+    }
 
-      // Clean up active Hls if switching to a non-m3u8 stream to prevent background leak
+    // Update video element source for progressive mp4 streams
+    const video = videoRef.current;
+    if (video) {
+      video.pause();
+      
       const isNewM3U8 = newUrl.includes(".m3u8");
       if (!isNewM3U8 && hlsRef.current) {
         try {
@@ -776,54 +667,116 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
           hlsRef.current.detachMedia();
           hlsRef.current.destroy();
         } catch (e) {}
-          hlsRef.current = null;
+        hlsRef.current = null;
       }
 
       const proxiedNewUrl = getProxyUrl(newUrl);
-      art.switchUrl(proxiedNewUrl)
-        .then(() => {
-          if (!isMountedRef.current || artRef.current !== art) {
-            console.log("[WebMediaPlayer] handleSeek promise resolved but component is unmounted or art instance changed. Preventing .play()");
-            return;
-          }
-          reinjectSubtitles();
-          art.play();
-        })
-        .catch((err) => {
-          console.warn("[WebMediaPlayer] handleSeek URL switch failed or aborted:", err);
-        });
+      video.src = proxiedNewUrl;
+      
+      video.play().then(() => {
+        if (!isStreamServer) video.currentTime = time;
+        syncNativeTextTracks();
+      }).catch((err) => {
+        console.warn("[WebMediaPlayer] Switch audio source failed:", err);
+      });
+    }
+
+    setCurrentAudioTrack(id);
+    setShowAudioMenu(false);
+  };
+
+  const handleSeek = (time: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (hlsRef.current) {
+      video.currentTime = time;
+      return;
+    }
+
+    const isStreamServer = playback.streamUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
+    const ext = getFileExtension(playback.streamUrl);
+    const isNonNative = ext ? !["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "m4a", "mpd"].includes(ext) : false;
+    const isDefaultAudio = audioTracks.length === 0 || currentAudioTrack === -1 || currentAudioTrack === audioTracks[0].id;
+    const needsRemux = isStreamServer && (isNonNative || !isDefaultAudio);
+
+    if (needsRemux) {
+      setSeekOffset(time);
+      const baseUrl = playback.streamUrl.split("?")[0];
+      const audioVal = currentAudioTrack !== -1 ? currentAudioTrack : 0;
+      const newUrl = `${baseUrl}?remux=true&start=${Math.floor(time)}&audio=${audioVal}`;
+
+      const isNewM3U8 = newUrl.includes(".m3u8");
+      if (!isNewM3U8 && hlsRef.current) {
+        try {
+          (hlsRef.current as any).stopLoad();
+          (hlsRef.current as any).detachMedia();
+          (hlsRef.current as any).destroy();
+        } catch (e) {}
+        hlsRef.current = null;
+      }
+
+      const proxiedNewUrl = getProxyUrl(newUrl);
+      video.pause();
+      video.src = proxiedNewUrl;
+      video.play().then(() => {
+        syncNativeTextTracks();
+      }).catch((err) => console.warn("Seek remux play error:", err));
     } else {
       setSeekOffset(0);
-      art.currentTime = time;
+      video.currentTime = time;
     }
   };
 
   const switchSubtitle = (id: number) => {
-    const video = artRef.current?.video;
-    if (video) {
-      for (let i = 0; i < video.textTracks.length; i++) {
-        video.textTracks[i].mode = i === id ? "showing" : "disabled";
-      }
+    const video = videoRef.current;
+    if (!video) return;
+    for (let i = 0; i < video.textTracks.length; i++) {
+      video.textTracks[i].mode = i === id ? "showing" : "disabled";
     }
-    const h = (artRef.current as SafeArtplayer | null)?.hls;
+    const h = hlsRef.current;
     if (h) h.subtitleTrack = id;
     setCurrentSubtitleTrack(id);
     setShowSubtitleMenu(false);
   };
 
   const switchQuality = (id: number) => {
-    const art = artRef.current;
-    if (!art) return;
-    const h = (art as SafeArtplayer).hls;
-    if (h) {
+    const video = videoRef.current;
+    const h = hlsRef.current;
+    if (video && h) {
+      const playingState = !video.paused;
+      const time = video.currentTime;
+
+      video.pause();
       h.currentLevel = id;
+      h.nextLevel = id;
+
+      try {
+        h.trigger(Hls.Events.BUFFER_FLUSHING, {
+          startOffset: 0,
+          endOffset: Infinity,
+          type: "video"
+        });
+      } catch {
+        video.currentTime = time;
+      }
+
+      if (playingState) {
+        setTimeout(() => {
+          video.currentTime = time;
+          video.play().catch(() => {});
+        }, 100);
+      } else {
+        video.currentTime = time;
+      }
+
       setCurrentQualityLevel(id);
     }
     setShowQualityMenu(false);
   };
 
   const handleUploadSubtitle = (file: File) => {
-    const video = artRef.current?.video;
+    const video = videoRef.current;
     if (!video) return;
     loadExternalSubtitle(video, file, (newIndex) => {
       syncNativeTextTracks();
@@ -831,17 +784,99 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     });
   };
 
+  // Click gesture wrappers
+  const togglePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    handleUserActivity();
+    if (video.paused) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  };
+
+  // Dynamically format quality levels list to include current active ABR resolution in the "Auto" label
+  const displayQualityLevels = useMemo(() => {
+    const activeLevel = hlsActiveLevel >= 0 ? rawLevels.find(l => l.id === hlsActiveLevel) : null;
+    const autoLabel = activeLevel && activeLevel.height
+      ? `Авто (${activeLevel.height}p)`
+      : "Авто";
+
+    return [
+      { id: -1, name: autoLabel },
+      ...rawLevels.map((l) => ({
+        id: l.id,
+        name: l.height ? `${l.height}p` : `Качество ${l.id + 1}`
+      }))
+    ];
+  }, [rawLevels, hlsActiveLevel]);
+
+  // Hooks integration
+  const { introRange, outroRange } = useTimecodes(playback.id, playback.season, playback.episode, playback.mediaType === "tv", displayDuration);
+  const { downloadSpeed, bitrate, resolution, fps } = usePlayerStats(
+    videoRef,
+    hlsRef,
+    isPlaying,
+    showStats,
+    playback.streamUrl,
+    playback.streamHash || "",
+    displayDuration
+  );
+
+  const showSkipIntro = introRange && displayCurrentTime >= introRange.start && displayCurrentTime <= introRange.end;
+  const showSkipOutro = outroRange && displayCurrentTime >= outroRange.start && displayCurrentTime <= (outroRange.end || displayDuration);
+
   return (
     <div 
+      ref={overlayRef}
       className={`web-player-overlay ${!controlsVisible ? "controls-hidden" : ""}`}
       onMouseMove={handleUserActivity}
-      onClick={() => { handleUserActivity(); setShowAudioMenu(false); setShowSubtitleMenu(false); }}
+      onClick={() => { handleUserActivity(); setShowAudioMenu(false); setShowSubtitleMenu(false); setShowQualityMenu(false); setShowPlaylistMenu(false); }}
     >
-      <div 
-        ref={containerRef} 
-        className="artplayer-video-container"
-        onClick={(e) => { e.stopPropagation(); artRef.current?.toggle(); }}
-      />
+      {isMetadataLoading && (
+        <div className="player-loading-overlay" onClick={(e) => e.stopPropagation()}>
+          <div className="player-loading-spinner-container">
+            <div className="player-loading-spinner" />
+            <div className="player-loading-spinner-inner" />
+          </div>
+          <h3 className="player-loading-title">Анализ видео-файла...</h3>
+          <p className="player-loading-subtitle">Пожалуйста, подождите, мы определяем параметры потока</p>
+          <button 
+            className="error-close-btn" 
+            style={{ 
+              marginTop: "24px", 
+              background: "rgba(255, 255, 255, 0.08)", 
+              border: "1px solid rgba(255, 255, 255, 0.12)",
+              color: "#fff",
+              padding: "10px 24px",
+              borderRadius: "8px",
+              fontSize: "0.85rem",
+              fontWeight: 500,
+              cursor: "pointer",
+              transition: "all 0.2s ease"
+            }}
+            onClick={onClose}
+          >
+            Отмена
+          </button>
+        </div>
+      )}
+
+      <div className="artplayer-video-container" onClick={togglePlay} onDoubleClick={toggleFullscreen}>
+        <video
+          ref={videoRef}
+          onPlay={handlePlay}
+          onPause={handlePause}
+          onTimeUpdate={handleTimeUpdate}
+          onDurationChange={handleDurationChange}
+          onVolumeChange={handleVolumeChange}
+          onError={handleVideoError}
+          onEnded={handleEnded}
+          autoPlay
+          style={{ width: "100%", height: "100%", objectFit: "contain" }}
+        />
+      </div>
 
       {playerError && (
         <div className="player-error-overlay" onClick={(e) => e.stopPropagation()}>
@@ -898,7 +933,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       )}
 
       {showSkipIntro && (
-        <button className="skip-intro-overlay-btn" onClick={(e) => { e.stopPropagation(); if (artRef.current && introRange) handleSeek(introRange.end); }}>
+        <button className="skip-intro-overlay-btn" onClick={(e) => { e.stopPropagation(); if (introRange) handleSeek(introRange.end); }}>
           <span>Пропустить интро</span>
           <ChevronRight size={18} />
         </button>
@@ -907,7 +942,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       {showSkipOutro && (
         <button 
           className={`skip-intro-overlay-btn outro-btn ${showSkipIntro ? "stacked" : ""}`}
-          onClick={(e) => { e.stopPropagation(); if (artRef.current && outroRange) handleSeek(Math.min(outroRange.end || displayDuration, displayDuration - 1)); }}
+          onClick={(e) => { e.stopPropagation(); if (outroRange) handleSeek(Math.min(outroRange.end || displayDuration, displayDuration - 1)); }}
         >
           <span>Пропустить титры</span>
           <ChevronRight size={18} />
@@ -926,35 +961,40 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       <PlayerControls
         controlsVisible={controlsVisible}
         isPlaying={isPlaying}
-        onTogglePlay={() => artRef.current?.toggle()}
+        onTogglePlay={togglePlay}
         currentTime={displayCurrentTime}
         duration={displayDuration}
         bufferedTime={displayBufferedTime}
         onSeek={handleSeek}
         volume={volume}
         isMuted={isMuted}
-        onVolumeChange={(vol) => { if (artRef.current) artRef.current.volume = vol; }}
-        onToggleMuted={() => { if (artRef.current) artRef.current.muted = !artRef.current.muted; }}
+        onVolumeChange={(vol) => { if (videoRef.current) videoRef.current.volume = vol; }}
+        onToggleMuted={() => { if (videoRef.current) videoRef.current.muted = !videoRef.current.muted; }}
         showStats={showStats}
         onToggleStats={() => setShowStats(!showStats)}
         isFullscreen={isFullscreen}
-        onToggleFullscreen={() => { if (artRef.current) artRef.current.fullscreen = !artRef.current.fullscreen; }}
+        onToggleFullscreen={toggleFullscreen}
         audioTracks={audioTracks}
         currentAudioTrack={currentAudioTrack}
         onSelectAudioTrack={switchAudio}
         showAudioMenu={showAudioMenu}
-        onToggleAudioMenu={() => { setShowAudioMenu(!showAudioMenu); setShowSubtitleMenu(false); setShowQualityMenu(false); }}
+        onToggleAudioMenu={() => { setShowAudioMenu(!showAudioMenu); setShowSubtitleMenu(false); setShowQualityMenu(false); setShowPlaylistMenu(false); }}
         subtitleTracks={subtitleTracks}
         currentSubtitleTrack={currentSubtitleTrack}
         onSelectSubtitleTrack={switchSubtitle}
         showSubtitleMenu={showSubtitleMenu}
-        onToggleSubtitleMenu={() => { setShowSubtitleMenu(!showSubtitleMenu); setShowAudioMenu(false); setShowQualityMenu(false); }}
+        onToggleSubtitleMenu={() => { setShowSubtitleMenu(!showSubtitleMenu); setShowAudioMenu(false); setShowQualityMenu(false); setShowPlaylistMenu(false); }}
         onUploadSubtitle={handleUploadSubtitle}
-        qualityLevels={qualityLevels}
+        qualityLevels={displayQualityLevels}
         currentQualityLevel={currentQualityLevel}
         onSelectQualityLevel={switchQuality}
         showQualityMenu={showQualityMenu}
-        onToggleQualityMenu={() => { setShowQualityMenu(!showQualityMenu); setShowAudioMenu(false); setShowSubtitleMenu(false); }}
+        onToggleQualityMenu={() => { setShowQualityMenu(!showQualityMenu); setShowAudioMenu(false); setShowSubtitleMenu(false); setShowPlaylistMenu(false); }}
+        playlist={playback.playlist}
+        playlistIndex={playback.playlistIndex}
+        onSelectPlaylistItem={playPlaylistItem}
+        showPlaylistMenu={showPlaylistMenu}
+        onTogglePlaylistMenu={() => { setShowPlaylistMenu(!showPlaylistMenu); setShowAudioMenu(false); setShowSubtitleMenu(false); setShowQualityMenu(false); }}
       />
     </div>
   );
