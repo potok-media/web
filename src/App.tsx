@@ -27,8 +27,7 @@ export const App: React.FC = () => {
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="media/:mediaType/:id" element={<MediaDetailsPage />} />
-                <Route path="media/:mediaType/:id/torrents" element={<MediaStreamsPage mode="torrents" />} />
-                <Route path="media/:mediaType/:id/online" element={<MediaStreamsPage mode="online" />} />
+                <Route path="media/:mediaType/:id/torrents" element={<MediaStreamsPage />} />
                 <Route path="library/:collectionType" element={<LibraryPage />} />
               </Route>
             </Routes>

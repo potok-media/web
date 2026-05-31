@@ -11,7 +11,6 @@ import { DynamicBlock } from "../components/common/DynamicBlock";
 import { MediaCastSection } from "../components/MediaCastSection";
 import { MediaOverviewSection } from "../components/MediaOverviewSection";
 import type { TvEpisode, MediaCard } from "../network/ApiTypes";
-import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import "../styles/media.css";
 
 interface SelectedEpisodeState {
@@ -30,17 +29,6 @@ export const MediaDetailsPage: React.FC = () => {
 
   const mediaRef = useRef<MediaCard | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<SelectedEpisodeState | null>(null);
-  const [tick, setTick] = useState(0);
-
-  useEffect(() => {
-    const handleUpdate = () => {
-      setTick((t) => t + 1);
-    };
-    ExtensionRegistry.addListener(handleUpdate);
-    return () => {
-      ExtensionRegistry.removeListener(handleUpdate);
-    };
-  }, []);
 
   const handleNavigateToTorrents = useCallback((season?: number, episode?: number) => {
     navigate(`/media/${mediaType}/${mediaId}/torrents`, {
@@ -92,7 +80,6 @@ export const MediaDetailsPage: React.FC = () => {
   const cast = media.cast || [];
   const tmdbId = media.id;
   const canWatch = !!(services?.searchEngine?.configured && services?.searchEngine?.online);
-  const hasOnlinePlugin = tick >= 0 && ExtensionRegistry.getSearchProviders().length > 0;
 
   return (
     <div className="details-layout">
@@ -151,22 +138,6 @@ export const MediaDetailsPage: React.FC = () => {
                       <Play size={18} fill="currentColor" />
                       <span>Смотреть</span>
                     </button>
-                  )}
-
-                  {hasOnlinePlugin && (
-                    <Link
-                      id="watch-online"
-                      to={`/media/${mediaType}/${mediaId}/online${selectedEpisode ? `?season=${selectedEpisode.seasonNumber}&episode=${selectedEpisode.episode.episodeNumber}` : ""}`}
-                      state={{
-                        season: selectedEpisode?.seasonNumber,
-                        episode: selectedEpisode?.episode.episodeNumber,
-                        media
-                      }}
-                      className="btn-watch-online"
-                    >
-                      <Play size={18} fill="currentColor" />
-                      <span>Смотреть Онлайн</span>
-                    </Link>
                   )}
 
                   {/* 2. Dynamically Rendered Plugin Extension Slot for Media Actions (Online Balancer buttons go here) */}

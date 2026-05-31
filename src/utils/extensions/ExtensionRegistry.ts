@@ -87,6 +87,21 @@ class ExtensionRegistryManager {
     this.sandboxIframes.set(pluginId, iframe);
   }
 
+  broadcastBlockContext(blockName: string, context: any) {
+    for (const [, iframe] of this.sandboxIframes.entries()) {
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage(
+          {
+            source: "potok-host",
+            action: "BLOCK_CONTEXT_UPDATE",
+            payload: { blockName, context }
+          },
+          "*"
+        );
+      }
+    }
+  }
+
   unregisterSandbox(pluginId: string) {
     this.sandboxIframes.delete(pluginId);
     this.plugins.delete(pluginId);

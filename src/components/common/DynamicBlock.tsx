@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { ExtensionRegistry } from "../../utils/extensions/ExtensionRegistry";
-import type { UIComponentSchema } from "../../network/SDKTypes";
+import type { UIComponentSchema, RawStreamPayload } from "../../network/SDKTypes";
 import { ErrorBoundary } from "../ErrorBoundary";
 import { ChevronDown, Check } from "lucide-react";
 import StreamSkeletonList from "../StreamSkeletonList";
 import StreamRowComponent from "../StreamRowComponent";
+import StreamList from "./StreamList";
 import "../../styles/extensions.css";
 
 // Global click-timestamp registry to throttle custom element clicks to 1 per 400ms
@@ -208,10 +209,10 @@ export const DynamicBlock: React.FC<DynamicBlockProps> = ({
   const [settlementState, setSettlementState] = useState(ExtensionRegistry.settlementState);
   const [, setTick] = useState(0);
 
-  // Reference contextProps to prevent TS6133 unused local error
+  // Broadcast contextProps to extensions
   useEffect(() => {
     if (contextProps) {
-      console.debug(`[DynamicBlock] Initialized ${name} with context props:`, contextProps);
+      ExtensionRegistry.broadcastBlockContext(name, contextProps);
     }
   }, [name, contextProps]);
 
@@ -220,6 +221,9 @@ export const DynamicBlock: React.FC<DynamicBlockProps> = ({
     const handleUpdate = () => {
       setSettlementState(ExtensionRegistry.settlementState);
       setTick((t) => t + 1);
+      if (contextProps) {
+        ExtensionRegistry.broadcastBlockContext(name, contextProps);
+      }
     };
 
     ExtensionRegistry.addListener(handleUpdate);
@@ -227,7 +231,7 @@ export const DynamicBlock: React.FC<DynamicBlockProps> = ({
     return () => {
       ExtensionRegistry.removeListener(handleUpdate);
     };
-  }, [name]);
+  }, [name, contextProps]);
 
   // Render Component defined by schema (with key override support for deterministic React keys)
   const renderComponent = (
@@ -381,6 +385,26 @@ export const DynamicBlock: React.FC<DynamicBlockProps> = ({
             key={keyToUse}
             torrent={componentProps.torrent}
             onClick={handleTorrentClick}
+          />
+        );
+      }
+
+      case "StreamList": {
+        const handleSelectStream = (stream: RawStreamPayload) => {
+          if (events?.onSelectStream) {
+            debounceClick(pluginId, () => {
+              ExtensionRegistry.triggerUIEvent(pluginId, events.onSelectStream!, stream);
+            });
+          }
+        };
+        return (
+          <StreamList
+            key={keyToUse}
+            streams={componentProps.streams || []}
+            loading={componentProps.loading}
+            showFilters={componentProps.showFilters}
+            emptyText={componentProps.emptyText}
+            onSelectStream={handleSelectStream}
           />
         );
       }

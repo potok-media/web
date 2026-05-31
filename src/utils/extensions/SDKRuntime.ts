@@ -508,6 +508,7 @@ export function initPotokSDK() {
     }
   };
 
+  const blockContextListeners = new Set<(blockName: string, context: any) => void>();
   const registeredSources = new Map<string, Function>();
 
   win.PotokSDK = {
@@ -565,6 +566,15 @@ export function initPotokSDK() {
             onApplyOverrideCallbackId
           }
         }, '*');
+      },
+      onBlockContextUpdate(cb: (blockName: string, context: any) => void) {
+        blockContextListeners.add(cb);
+        return () => {
+          blockContextListeners.delete(cb);
+        };
+      },
+      navigateTo(to: string) {
+        window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'NAVIGATE', payload: { to } }, '*');
       }
     },
     registerPlugin(meta: any) { window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_PLUGIN', payload: meta }, '*'); },
@@ -628,6 +638,15 @@ export function initPotokSDK() {
           }, '*');
         }
       }
+    } else if (msg.action === 'BLOCK_CONTEXT_UPDATE') {
+      const { blockName, context } = msg.payload;
+      blockContextListeners.forEach((cb) => {
+        try {
+          cb(blockName, context);
+        } catch (err) {
+          console.error("[SDK] Error in block context listener:", err);
+        }
+      });
     }
   });
 }

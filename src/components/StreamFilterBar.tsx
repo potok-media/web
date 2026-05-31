@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { RotateCw, Flame, Calendar, ArrowUpCircle, ArrowDownCircle, ChevronDown, Check, Filter } from "lucide-react";
 
-interface TorrentsFilterBarProps {
+interface StreamFilterBarProps {
+  id?: string;
   countLabel: string;
   qualityFilter: string;
   setQualityFilter: (quality: string) => void;
@@ -23,7 +24,8 @@ const SORT_OPTIONS: Record<string, string> = {
   sizeAsc: "Сначала маленькие",
 };
 
-export const TorrentsFilterBar: React.FC<TorrentsFilterBarProps> = React.memo(({
+export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
+  id,
   countLabel,
   sortOption = "seedersDesc",
   setSortOption,
@@ -41,7 +43,7 @@ export const TorrentsFilterBar: React.FC<TorrentsFilterBarProps> = React.memo(({
   const [filterOpen, setFilterOpen] = useState(false);
 
   return (
-    <header className="torrents-results-header">
+    <header className="torrents-results-header" id={id}>
       <div className="torrents-results-count">
         {countLabel}
       </div>
@@ -189,4 +191,4 @@ export const TorrentsFilterBar: React.FC<TorrentsFilterBarProps> = React.memo(({
   );
 });
 
-TorrentsFilterBar.displayName = "TorrentsFilterBar";
+StreamFilterBar.displayName = "StreamFilterBar";

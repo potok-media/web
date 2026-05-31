@@ -6,22 +6,16 @@ import { useTorrentsPage } from "../hooks/useTorrentsPage";
 import StreamSkeletonList from "../components/StreamSkeletonList";
 import StreamRowComponent from "../components/StreamRowComponent";
 import { TorrentFilesPopup } from "../components/TorrentFilesPopup";
-import { TorrentsSidebar } from "../components/TorrentsSidebar";
-import { TorrentsFilterBar } from "../components/TorrentsFilterBar";
+import { StreamSidebar } from "../components/StreamSidebar";
+import { StreamFilterBar } from "../components/StreamFilterBar";
 import { ApiClient } from "../network/ApiClient";
 import type { MediaCard } from "../network/ApiTypes";
-import { getPluralForm } from "../utils/formatters";
 import { EpisodeSelectorPopup } from "../components/common/EpisodeSelectorPopup";
-import { useAppSettings } from "../context/AppSettingsContext";
-import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
-import StreamList from "../components/common/StreamList";
+import { getPluralForm } from "../utils/formatters";
+import { DynamicBlock } from "../components/common/DynamicBlock";
 import "../styles/media.css";
 
-interface MediaStreamsPageProps {
-  mode: "torrents" | "online";
-}
-
-export const MediaStreamsPage: React.FC<MediaStreamsPageProps> = ({ mode }) => {
+export const MediaStreamsPage: React.FC = () => {
   const { mediaType, id } = useParams<{ mediaType: string; id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,7 +28,7 @@ export const MediaStreamsPage: React.FC<MediaStreamsPageProps> = ({ mode }) => {
   const episode = state?.episode ?? (searchParams.get("episode") ? Number(searchParams.get("episode")) : undefined);
   const initialMedia = state?.media;
 
-  // Selected torrent for files popup (Torrents mode only)
+  // Selected torrent for files popup
   const [selectedTorrent, setSelectedTorrent] = useState<any | null>(null);
 
   // Active state for generic episode selector modal
@@ -81,7 +75,7 @@ export const MediaStreamsPage: React.FC<MediaStreamsPageProps> = ({ mode }) => {
     showHUD("error", msg);
   }, [showHUD]);
 
-  // Dynamic media details state to populate sidebar/online slots on direct page reload
+  // Dynamic media details state to populate sidebar
   const [mediaDetails, setMediaDetails] = useState<MediaCard | null>(initialMedia || null);
   const [loadingMediaDetails, setLoadingMediaDetails] = useState(!initialMedia);
 
@@ -114,105 +108,18 @@ export const MediaStreamsPage: React.FC<MediaStreamsPageProps> = ({ mode }) => {
     };
   }, [mediaType, mediaId, initialMedia, handleOnError]);
 
-  // Hook for Torrents Mode (deactivated in online mode by passing undefined ids)
+  // Hook for Torrents Page
   const torrentsState = useTorrentsPage({
-    mediaType: mode === "torrents" ? mediaType : undefined,
-    mediaId: mode === "torrents" ? mediaId : undefined,
+    mediaType,
+    mediaId,
     season,
     episode,
-    initialMedia: mode === "torrents" ? initialMedia : undefined,
+    initialMedia,
     onError: handleOnError,
   });
 
   const currentMedia = torrentsState.media || mediaDetails || null;
-  const isMediaLoading = mode === "torrents" ? torrentsState.loadingMedia : loadingMediaDetails;
-
-  const { playVideo } = useAppSettings();
-
-  // Reactive subscription to plugin registry changes to dynamically render segments/tabs
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    const handleUpdate = () => {
-      setTick((t) => t + 1);
-    };
-    ExtensionRegistry.addListener(handleUpdate);
-    return () => {
-      ExtensionRegistry.removeListener(handleUpdate);
-    };
-  }, []);
-
-  const hasOnlinePlugin = tick >= 0 && ExtensionRegistry.getSearchProviders().length > 0;
-
-  // Online Streams state
-  const [onlineStreams, setOnlineStreams] = useState<any[]>([]);
-  const [loadingOnlineStreams, setLoadingOnlineStreams] = useState(false);
-  const [onlineError, setOnlineError] = useState<string | null>(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  // Reactive query of online streams
-  useEffect(() => {
-    if (mode !== "online" || !currentMedia) return;
-
-    let isMounted = true;
-    setLoadingOnlineStreams(true);
-    setOnlineError(null);
-
-    const searchQuery = {
-      title: currentMedia.title,
-      imdbId: currentMedia.imdbId,
-      tmdbId: currentMedia.id,
-      type: mediaType === "tv" ? ("tv" as const) : ("movie" as const),
-      season,
-      episode
-    };
-
-    ExtensionRegistry.triggerSearch(searchQuery)
-      .then((results) => {
-        if (isMounted) {
-          setOnlineStreams(results || []);
-          setLoadingOnlineStreams(false);
-        }
-      })
-      .catch((err) => {
-        if (isMounted) {
-          const errMsg = err instanceof Error ? err.message : "Ошибка при поиске онлайн потоков";
-          setOnlineError(errMsg);
-          handleOnError(errMsg);
-          setLoadingOnlineStreams(false);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [mode, currentMedia, mediaType, season, episode, handleOnError, refreshTrigger]);
-
-  const handleSelectOnlineStream = useCallback((stream: any) => {
-    if (!stream.url) {
-      handleOnError("Выбранный поток не содержит рабочей ссылки");
-      return;
-    }
-
-    let streamType: "m3u8" | "mp4" | "dash" = "mp4";
-    if (stream.kind === "hls" || stream.url.includes(".m3u8")) {
-      streamType = "m3u8";
-    } else if (stream.kind === "mp4" || stream.url.includes(".mp4")) {
-      streamType = "mp4";
-    } else if (stream.kind === "dash" || stream.url.includes(".mpd")) {
-      streamType = "dash";
-    }
-
-    playVideo({
-      streamUrl: stream.url,
-      title: stream.title || currentMedia?.title || "Без названия",
-      mediaType: mediaType === "tv" ? "tv" : "movie",
-      id: mediaId,
-      season,
-      episode,
-      streamType,
-      headers: stream.headers
-    });
-  }, [playVideo, currentMedia, mediaType, mediaId, season, episode, handleOnError]);
+  const isMediaLoading = torrentsState.loadingMedia || loadingMediaDetails;
 
   if (!isMediaLoading && !currentMedia) {
     return (
@@ -234,7 +141,7 @@ export const MediaStreamsPage: React.FC<MediaStreamsPageProps> = ({ mode }) => {
 
       {/* Shared Sidebar layout */}
       {currentMedia ? (
-        <TorrentsSidebar 
+        <StreamSidebar 
           media={currentMedia}
           season={season}
           episode={episode}
@@ -249,71 +156,55 @@ export const MediaStreamsPage: React.FC<MediaStreamsPageProps> = ({ mode }) => {
         </aside>
       )}
 
-      {/* Dynamic Content Column */}
       <section className="torrents-page-content" style={{ display: "flex", flexDirection: "column" }}>
-        {hasOnlinePlugin && (
-          <div className="tabs-header" style={{ marginBottom: "var(--space-m)" }}>
-            <button
-              className={`tab-btn ${mode === "torrents" ? "active" : ""}`}
-              onClick={() => navigate(`/media/${mediaType}/${mediaId}/torrents${location.search}`, { state })}
-            >
-              Торренты
-            </button>
-            <button
-              className={`tab-btn ${mode === "online" ? "active" : ""}`}
-              onClick={() => navigate(`/media/${mediaType}/${mediaId}/online${location.search}`, { state })}
-            >
-              Онлайн
-            </button>
-          </div>
-        )}
+        <DynamicBlock
+          name="media-streams-header"
+          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: searchParams.get("tab") || undefined }}
+        >
+          <div id="streams-header-default" />
+        </DynamicBlock>
 
-        {mode === "torrents" ? (
-          <>
-            {/* Torrents Mode content layout */}
-            <TorrentsFilterBar 
-              countLabel={`${torrentsState.torrents.length} ${getPluralForm(torrentsState.torrents.length, ["торрент", "торрента", "торрентов"])}`}
-              sortOption={torrentsState.sortOption}
-              setSortOption={torrentsState.setSortOption}
-              qualityFilter={torrentsState.qualityFilter}
-              setQualityFilter={torrentsState.setQualityFilter}
-              activeTracker={torrentsState.activeTracker}
-              setActiveTracker={torrentsState.setActiveTracker}
-              trackers={torrentsState.trackers}
-              onRefresh={torrentsState.refetch}
-            />
+        <DynamicBlock
+          name="media-streams-filters"
+          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: searchParams.get("tab") || undefined }}
+        >
+          <StreamFilterBar 
+            id="streams-filter-bar"
+            countLabel={`${torrentsState.torrents.length} ${getPluralForm(torrentsState.torrents.length, ["торрент", "торрента", "торрентов"])}`}
+            sortOption={torrentsState.sortOption}
+            setSortOption={torrentsState.setSortOption}
+            qualityFilter={torrentsState.qualityFilter}
+            setQualityFilter={torrentsState.setQualityFilter}
+            activeTracker={torrentsState.activeTracker}
+            setActiveTracker={torrentsState.setActiveTracker}
+            trackers={torrentsState.trackers}
+            onRefresh={torrentsState.refetch}
+          />
+        </DynamicBlock>
 
-            <div className="torrents-results-list">
-              {torrentsState.loadingTorrents ? (
-                <StreamSkeletonList />
-              ) : torrentsState.torrents.length > 0 ? (
-                torrentsState.torrents.map((t, index) => (
-                  <StreamRowComponent
-                    key={t.id || index}
-                    torrent={t}
-                    onClick={setSelectedTorrent}
-                  />
-                ))
-              ) : (
-                <div className="torrent-empty-state">
-                  <ShieldAlert size={40} opacity={0.5} />
-                  <span className="torrent-empty-state-text">Раздач не найдено. Попробуйте сменить фильтры.</span>
-                </div>
-              )}
-            </div>
-          </>
-        ) : (
-          /* Online mode content slot contribution */
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            <StreamList
-              streams={onlineStreams}
-              loading={loadingOnlineStreams}
-              onSelectStream={handleSelectOnlineStream}
-              onRefresh={() => setRefreshTrigger((prev) => prev + 1)}
-              emptyText={onlineError || undefined}
-            />
+        <DynamicBlock
+          name="media-streams-results"
+          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: searchParams.get("tab") || undefined }}
+        >
+          <div className="torrents-results-list" id="streams-results-list">
+            {torrentsState.loadingTorrents ? (
+              <StreamSkeletonList />
+            ) : torrentsState.torrents.length > 0 ? (
+              torrentsState.torrents.map((t, index) => (
+                <StreamRowComponent
+                  key={t.id || index}
+                  torrent={t}
+                  onClick={setSelectedTorrent}
+                />
+              ))
+            ) : (
+              <div className="torrent-empty-state">
+                <ShieldAlert size={40} opacity={0.5} />
+                <span className="torrent-empty-state-text">Раздач не найдено. Попробуйте сменить фильтры.</span>
+              </div>
+            )}
           </div>
-        )}
+        </DynamicBlock>
       </section>
  
       {/* Selected torrent files dynamic popup sheet */}

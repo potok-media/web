@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { ShieldAlert } from "lucide-react";
 import type { RawStreamPayload } from "../../network/SDKTypes";
 import type { TorrentSearchResult } from "../../network/ApiTypes";
-import { TorrentsFilterBar } from "../TorrentsFilterBar";
+import { StreamFilterBar } from "../StreamFilterBar";
 import StreamRowComponent from "../StreamRowComponent";
 import StreamSkeletonList from "../StreamSkeletonList";
 import { getPluralForm } from "../../utils/formatters";
@@ -107,7 +107,7 @@ export const StreamList: React.FC<StreamListProps> = ({
   return (
     <div className="stream-list-container" style={{ display: "flex", flexDirection: "column", gap: "var(--space-m)" }}>
       {showFilters && (
-        <TorrentsFilterBar
+        <StreamFilterBar
           countLabel={`${filteredAndSortedStreams.length} ${getPluralForm(filteredAndSortedStreams.length, ["источник", "источника", "источников"])}`}
           qualityFilter={qualityFilter}
           setQualityFilter={setQualityFilter}

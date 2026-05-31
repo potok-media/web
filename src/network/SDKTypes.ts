@@ -44,6 +44,7 @@ export interface UIComponentSchema {
   events?: {
     onClick?: string;
     onChange?: string;
+    onSelectStream?: string;
   };
 }
 

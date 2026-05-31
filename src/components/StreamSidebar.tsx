@@ -2,14 +2,14 @@ import React from "react";
 import { ArrowLeft, Star } from "lucide-react";
 import type { MediaCard } from "../network/ApiClient";
 
-interface TorrentsSidebarProps {
+interface StreamSidebarProps {
   media: MediaCard;
   season?: number;
   episode?: number;
   onBack: () => void;
 }
 
-export const TorrentsSidebar: React.FC<TorrentsSidebarProps> = React.memo(({
+export const StreamSidebar: React.FC<StreamSidebarProps> = React.memo(({
   media,
   season,
   episode,
@@ -64,5 +64,5 @@ export const TorrentsSidebar: React.FC<TorrentsSidebarProps> = React.memo(({
   );
 });
 
-TorrentsSidebar.displayName = "TorrentsSidebar";
-export default TorrentsSidebar;
+StreamSidebar.displayName = "StreamSidebar";
+export default StreamSidebar;

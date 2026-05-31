@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppSettings } from "../../context/AppSettingsContext";
 import { useHUD } from "../../context/HUDContext";
 import { initPotokSDK } from "../../utils/extensions/SDKRuntime";
@@ -9,6 +10,7 @@ import { logger } from "../../utils/logger";
 export const PluginSandbox: React.FC = () => {
   const { connectionProfiles, activeProfileID, playVideo } = useAppSettings();
   const { show: showHUD } = useHUD();
+  const navigate = useNavigate();
   const [activeExtensions, setActiveExtensions] = useState<RegisteredExtension[]>([]);
   const iframeRefs = useRef<Map<string, HTMLIFrameElement>>(new Map());
 
@@ -172,6 +174,12 @@ export const PluginSandbox: React.FC = () => {
           playVideo(payload);
           break;
         }
+
+        case "NAVIGATE":
+          if (payload && payload.to) {
+            navigate(payload.to);
+          }
+          break;
 
         case "SHOW_EPISODE_SELECTOR": {
           const detail: any = {};
