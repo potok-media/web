@@ -16,25 +16,25 @@ export const StreamSidebar: React.FC<StreamSidebarProps> = React.memo(({
   onBack,
 }) => {
   return (
-    <aside className="torrents-page-sidebar">
+    <aside className="streams-page-sidebar">
       <button 
-        className="torrents-sidebar-back-btn" 
+        className="streams-sidebar-back-btn" 
         onClick={onBack} 
         title="Назад"
       >
         <ArrowLeft size={18} />
       </button>
 
-      <div className="torrents-sidebar-poster">
+      <div className="streams-sidebar-poster">
         <img src={media.posterSrc || ""} alt={media.title} />
       </div>
 
-      <h2 className="torrents-sidebar-title">{media.title}</h2>
+      <h2 className="streams-sidebar-title">{media.title}</h2>
       {media.originalTitle && (
-        <p className="torrents-sidebar-subtitle">{media.originalTitle}</p>
+        <p className="streams-sidebar-subtitle">{media.originalTitle}</p>
       )}
       
-      <div className="torrents-sidebar-badges">
+      <div className="streams-sidebar-badges">
         {media.imdbRating && (
           <span className="rating-badge">
             <Star size={12} fill="white" />
@@ -56,7 +56,7 @@ export const StreamSidebar: React.FC<StreamSidebarProps> = React.memo(({
       )}
 
       {media.overview && (
-        <div className="torrents-sidebar-overview">
+        <div className="streams-sidebar-overview">
           {media.overview}
         </div>
       )}

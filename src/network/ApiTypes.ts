@@ -6,7 +6,7 @@ export interface ServiceInfo {
 
 export interface ServiceStatus {
   bff: ServiceInfo;
-  torrentGo: ServiceInfo;
+  playerServer: ServiceInfo;
   searchEngine: ServiceInfo;
 }
 
@@ -85,11 +85,11 @@ export interface ConnectionProfile {
   id: string;
   name: string;
   gatewayURL: string;
-  torrentGoURL: string;
+  playerServerURL: string;
   searchEngineURL: string;
-  torrentGoAuthEnabled: boolean;
-  torrentGoAuthLogin: string;
-  torrentGoAuthPassword?: string;
+  playerServerAuthEnabled: boolean;
+  playerServerAuthLogin: string;
+  playerServerAuthPassword?: string;
 }
 
 export interface TraktProfile {

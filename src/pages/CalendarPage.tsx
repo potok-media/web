@@ -93,7 +93,7 @@ export const CalendarPage: React.FC = () => {
       {/* Timeline List */}
       <div className="calendar-list">
         {episodes.map((ep) => (
-          <div key={ep.id} className="torrent-row calendar-row">
+          <div key={ep.id} className="stream-row calendar-row">
             {/* Poster image preview */}
             <div className="calendar-poster-wrap">
               <img

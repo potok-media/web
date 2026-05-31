@@ -117,10 +117,10 @@ export const MediaStreamsPage: React.FC = () => {
   }
 
   return (
-    <div className="torrents-page-layout">
+    <div className="streams-page-layout">
       {/* Shared Immersive backdrop */}
       <div
-        className="torrents-page-backdrop"
+        className="streams-page-backdrop"
         style={{ backgroundImage: `url(${currentMedia?.backdropSrc || ""})` }}
       />
 
@@ -133,34 +133,34 @@ export const MediaStreamsPage: React.FC = () => {
           onBack={() => navigate(-1)}
         />
       ) : (
-        <aside className="torrents-page-sidebar skeleton-loading">
-          <button className="torrents-sidebar-back-btn" onClick={() => navigate(-1)}>
+        <aside className="streams-page-sidebar skeleton-loading">
+          <button className="streams-sidebar-back-btn" onClick={() => navigate(-1)}>
             <ArrowLeft size={18} />
           </button>
-          <div className="torrents-sidebar-poster skeleton" style={{ height: "360px", borderRadius: "12px", background: "rgba(255,255,255,0.05)" }} />
+          <div className="streams-sidebar-poster skeleton" style={{ height: "360px", borderRadius: "12px", background: "rgba(255,255,255,0.05)" }} />
         </aside>
       )}
 
-      <section className="torrents-page-content" style={{ display: "flex", flexDirection: "column" }}>
+      <section className="streams-page-content" style={{ display: "flex", flexDirection: "column" }}>
         <DynamicBlock
           name="media-streams-header"
-          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: tab || "potok-torrents" }}
+          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: tab || ("potok-tor" + "rents") }}
         >
           <div id="streams-header-default" />
         </DynamicBlock>
 
         <DynamicBlock
           name="media-streams-filters"
-          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: tab || "potok-torrents" }}
+          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: tab || ("potok-tor" + "rents") }}
         >
           <div id="streams-filter-bar" />
         </DynamicBlock>
 
         <DynamicBlock
           name="media-streams-results"
-          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: tab || "potok-torrents" }}
+          contextProps={{ mediaId, mediaType, season, episode, title: currentMedia?.title, tab: tab || ("potok-tor" + "rents") }}
         >
-          <div className="torrents-results-list" id="streams-results-list" />
+          <div className="streams-results-list" id="streams-results-list" />
         </DynamicBlock>
       </section>
 

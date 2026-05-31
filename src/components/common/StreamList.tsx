@@ -17,7 +17,7 @@ export interface StreamListProps {
   nounPlurals?: [string, string, string];
 }
 
-const mapStreamToTorrent = (stream: RawStreamPayload, index: number): StreamUIItem => {
+const mapStreamToUI = (stream: RawStreamPayload, index: number): StreamUIItem => {
   const voiceTags = stream.voice
     ? stream.voice
         .split(/[,;]+/)
@@ -125,12 +125,12 @@ export const StreamList: React.FC<StreamListProps> = ({
         />
       )}
 
-      <div className="torrents-results-list">
+      <div className="streams-results-list">
         {loading ? (
           <StreamSkeletonList />
         ) : filteredAndSortedStreams.length > 0 ? (
           filteredAndSortedStreams.map((stream, index) => {
-            const streamUI = mapStreamToTorrent(stream, index);
+            const streamUI = mapStreamToUI(stream, index);
             return (
               <StreamRowComponent
                 key={`${streamUI.id || "stream"}-${index}`}
@@ -140,9 +140,9 @@ export const StreamList: React.FC<StreamListProps> = ({
             );
           })
         ) : (
-          <div className="torrent-empty-state" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "var(--space-s)", padding: "var(--space-xl) var(--space-m)", color: "var(--text-secondary)" }}>
+          <div className="stream-empty-state" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "var(--space-s)", padding: "var(--space-xl) var(--space-m)", color: "var(--text-secondary)" }}>
             <ShieldAlert size={40} opacity={0.5} />
-            <span className="torrent-empty-state-text" style={{ font: "var(--font-body)", textAlign: "center" }}>
+            <span className="stream-empty-state-text" style={{ font: "var(--font-body)", textAlign: "center" }}>
               {emptyText}
             </span>
           </div>

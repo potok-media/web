@@ -8,7 +8,7 @@ interface UseMediaDetailsProps {
   mediaType?: string;
   mediaId?: number;
   playParam?: string | null;
-  onNavigateToTorrents: (season?: number, episode?: number) => void;
+  onNavigateToStreams: (season?: number, episode?: number) => void;
   showHUD: (type: "success" | "error" | "info" | "warning", msg: string) => void;
 }
 
@@ -16,7 +16,7 @@ export function useMediaDetails({
   mediaType,
   mediaId,
   playParam,
-  onNavigateToTorrents,
+  onNavigateToStreams,
   showHUD,
 }: UseMediaDetailsProps) {
   const [media, setMedia] = useState<MediaCard | null>(null);
@@ -27,13 +27,13 @@ export function useMediaDetails({
   const [isFavorite, setIsFavorite] = useState(false);
   const [isWatched, setIsWatched] = useState(false);
 
-  const onNavigateToTorrentsRef = useRef(onNavigateToTorrents);
+  const onNavigateToStreamsRef = useRef(onNavigateToStreams);
   const showHUDRef = useRef(showHUD);
 
   useEffect(() => {
-    onNavigateToTorrentsRef.current = onNavigateToTorrents;
+    onNavigateToStreamsRef.current = onNavigateToStreams;
     showHUDRef.current = showHUD;
-  }, [onNavigateToTorrents, showHUD]);
+  }, [onNavigateToStreams, showHUD]);
 
   const checkIsWatched = useCallback((item: MediaCard) => {
     if (!item.progress) return false;
@@ -74,9 +74,9 @@ export function useMediaDetails({
         if (data.mediaType === "tv") {
           const s = data.progress?.nextSeason || 1;
           const e = data.progress?.nextEpisode || 1;
-          onNavigateToTorrentsRef.current(s, e);
+          onNavigateToStreamsRef.current(s, e);
         } else {
-          onNavigateToTorrentsRef.current();
+          onNavigateToStreamsRef.current();
         }
       }
     } catch (err: unknown) {

@@ -20,12 +20,12 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   if (fullscreen) {
     return (
-      <div className="torrents-page-layout spinner-fullscreen-layout">
-        <div className="torrents-page-backdrop spinner-backdrop" />
+      <div className="streams-page-layout spinner-fullscreen-layout">
+        <div className="streams-page-backdrop spinner-backdrop" />
 
         {showBackButton && (
           <button 
-            className="torrents-sidebar-back-btn spinner-back-btn-pos" 
+            className="streams-sidebar-back-btn spinner-back-btn-pos" 
             onClick={() => navigate(-1)} 
             title="Назад"
           >

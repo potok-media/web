@@ -81,17 +81,17 @@ export const AppLayout: React.FC = () => {
       updateProfile({
         ...activeProfile,
         gatewayURL: targetUrl,
-        torrentGoURL: activeProfile.torrentGoURL,
+        playerServerURL: activeProfile.playerServerURL,
         searchEngineURL: activeProfile.searchEngineURL,
       });
     } else {
       addProfile({
         name: "Локальный BFF",
         gatewayURL: targetUrl,
-        torrentGoURL: "",
+        playerServerURL: "",
         searchEngineURL: "",
-        torrentGoAuthEnabled: false,
-        torrentGoAuthLogin: "",
+        playerServerAuthEnabled: false,
+        playerServerAuthLogin: "",
       });
     }
 

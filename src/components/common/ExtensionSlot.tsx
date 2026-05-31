@@ -348,16 +348,16 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ name, props = {} }
       }
 
       case "StreamRowComponent": {
-        const handleTorrentClick = () => {
+        const handleStreamClick = () => {
           if (events?.onClick) {
-            ExtensionRegistry.triggerUIEvent(pluginId, events.onClick, componentProps.torrent);
+            ExtensionRegistry.triggerUIEvent(pluginId, events.onClick, componentProps.stream);
           }
         };
         return (
           <StreamRowComponent
             key={id}
-            stream={componentProps.torrent}
-            onClick={handleTorrentClick}
+            stream={componentProps.stream}
+            onClick={handleStreamClick}
           />
         );
       }

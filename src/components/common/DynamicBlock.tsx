@@ -373,18 +373,18 @@ export const DynamicBlock: React.FC<DynamicBlockProps> = ({
       }
 
       case "StreamRowComponent": {
-        const handleTorrentClick = () => {
+        const handleStreamClick = () => {
           if (events?.onClick) {
             debounceClick(pluginId, () => {
-              ExtensionRegistry.triggerUIEvent(pluginId, events.onClick!, componentProps.torrent);
+              ExtensionRegistry.triggerUIEvent(pluginId, events.onClick!, componentProps.stream);
             });
           }
         };
         return (
           <StreamRowComponent
             key={keyToUse}
-            stream={componentProps.torrent}
-            onClick={handleTorrentClick}
+            stream={componentProps.stream}
+            onClick={handleStreamClick}
           />
         );
       }

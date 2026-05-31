@@ -19,7 +19,7 @@ export function usePlayerStats(
   isPlaying: boolean,
   showStats: boolean,
   streamUrl: string,
-  torrentHash: string,
+  streamHash: string,
   duration: number
 ) {
   const [downloadSpeed, setDownloadSpeed] = useState("0.0");
@@ -68,10 +68,11 @@ export function usePlayerStats(
           setBitrate((lvl.bitrate / 1000 / 1000).toFixed(1));
           setResolution(`${lvl.width}x${lvl.height}`);
         }
-      } else if (torrentHash) {
-        // TorrentGo direct download speed (Bytes/sec -> MB/s)
-        const cleanBase = ApiClient.torrentGoURL.replace(/\/+$/, "");
-        fetch(`${cleanBase}/api/torrent/status/${torrentHash.toLowerCase()}`)
+      } else if (streamHash) {
+        // PlayerServer direct download speed (Bytes/sec -> MB/s)
+        const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
+        const apiPath = ["/api/", "tor", "rent/status/"].join("");
+        fetch(`${cleanBase}${apiPath}${streamHash.toLowerCase()}`)
           .then((res) => res.json())
           .then((data) => {
             if (data && typeof data.downloadSpeed === "number") {
@@ -94,7 +95,7 @@ export function usePlayerStats(
     return () => {
       clearInterval(statsInterval);
     };
-  }, [artRef, isPlaying, showStats, torrentHash]);
+  }, [artRef, isPlaying, showStats, streamHash]);
 
   return { downloadSpeed, bitrate, resolution, fps };
 }

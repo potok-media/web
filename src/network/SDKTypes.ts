@@ -34,7 +34,7 @@ export interface UIComponentSchema {
     spacing?: number;
     alignItems?: 'start' | 'center' | 'end' | 'stretch';
     justifyContent?: 'start' | 'center' | 'end' | 'between' | 'around';
-    torrent?: any;
+    stream?: any;
     streams?: RawStreamPayload[];
     loading?: boolean;
     showFilters?: boolean;
@@ -149,7 +149,7 @@ export interface RawStreamPayload {
   provider?: string;
   hash?: string;
   voice?: string;
-  kind?: 'hls' | 'mp4' | 'torrent' | string;
+  kind?: 'hls' | 'mp4' | string;
   headers?: Record<string, string>;
 }
 

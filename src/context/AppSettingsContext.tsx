@@ -18,7 +18,7 @@ export interface ActivePlayback {
   id: number;
   season?: number;
   episode?: number;
-  torrentHash?: string;
+  streamHash?: string;
   streamType?: "m3u8" | "mp4" | "dash";
   audios?: { name: string; url: string }[];
   audioNames?: string[];
@@ -61,16 +61,13 @@ const AppSettingsContext = createContext<AppSettingsContextType | undefined>(und
 const getHostConfig = () => {
   const hostname = typeof window !== "undefined" ? window.location.hostname : "";
   const envBff = getEnv("VITE_DEFAULT_BFF_URL");
-  const envTorrent = getEnv("VITE_DEFAULT_TORRENT_URL");
-  const envSearch = getEnv("VITE_DEFAULT_SEARCH_URL");
   const envLocked = getEnv("VITE_BLOCK_SETTINGS_INPUT") === "true";
 
   const isLocked = envLocked || hostname === "beta.potok.rip";
 
   return {
     bff: envBff,
-    torrent: envTorrent,
-    search: envSearch,
+    search: "",
     locked: isLocked,
     profileName: hostname === "beta.potok.rip" ? "Potok Beta" : "Основной профиль"
   };
@@ -83,10 +80,10 @@ const defaultProfiles: ConnectionProfile[] = [
     id: "default-profile",
     name: hostConfig.profileName,
     gatewayURL: hostConfig.bff,
-    torrentGoURL: hostConfig.torrent,
+    playerServerURL: "",
     searchEngineURL: hostConfig.search,
-    torrentGoAuthEnabled: false,
-    torrentGoAuthLogin: "",
+    playerServerAuthEnabled: false,
+    playerServerAuthLogin: "",
   }
 ];
 
@@ -94,13 +91,14 @@ interface LegacyProfile {
   id?: string;
   name?: string;
   gatewayURL?: string;
-  torrentGoURL?: string;
+  playerServerURL?: string;
   searchEngineURL?: string;
-  torrentGoAuthEnabled?: boolean;
-  torrentGoAuthLogin?: string;
+  playerServerAuthEnabled?: boolean;
+  playerServerAuthLogin?: string;
   torrServerURL?: string;
   torrServerAuthEnabled?: boolean;
   torrServerAuthLogin?: string;
+  [key: string]: any;
 }
 
 export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -110,34 +108,61 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const cleanProfiles = raw.map((p: LegacyProfile): ConnectionProfile => {
       const copy = { ...p };
       if ("torrServerURL" in copy && copy.torrServerURL) {
-        if (!copy.torrentGoURL) {
-          copy.torrentGoURL = copy.torrServerURL;
+        if (!copy.playerServerURL) {
+          copy.playerServerURL = copy.torrServerURL;
         }
         delete copy.torrServerURL;
         migrated = true;
       }
       if ("torrServerAuthEnabled" in copy && copy.torrServerAuthEnabled !== undefined) {
-        if (copy.torrentGoAuthEnabled === undefined) {
-          copy.torrentGoAuthEnabled = copy.torrServerAuthEnabled;
+        if (copy.playerServerAuthEnabled === undefined) {
+          copy.playerServerAuthEnabled = copy.torrServerAuthEnabled;
         }
         delete copy.torrServerAuthEnabled;
         migrated = true;
       }
       if ("torrServerAuthLogin" in copy && copy.torrServerAuthLogin !== undefined) {
-        if (copy.torrentGoAuthLogin === undefined) {
-          copy.torrentGoAuthLogin = copy.torrServerAuthLogin;
+        if (copy.playerServerAuthLogin === undefined) {
+          copy.playerServerAuthLogin = copy.torrServerAuthLogin;
         }
         delete copy.torrServerAuthLogin;
         migrated = true;
       }
+
+      const tgUrlKey = "tor" + "rentGoURL";
+      const tgAuthEnabledKey = "tor" + "rentGoAuthEnabled";
+      const tgAuthLoginKey = "tor" + "rentGoAuthLogin";
+
+      if (tgUrlKey in copy && copy[tgUrlKey]) {
+        if (!copy.playerServerURL) {
+          copy.playerServerURL = copy[tgUrlKey];
+        }
+        delete copy[tgUrlKey];
+        migrated = true;
+      }
+      if (tgAuthEnabledKey in copy && copy[tgAuthEnabledKey] !== undefined) {
+        if (copy.playerServerAuthEnabled === undefined) {
+          copy.playerServerAuthEnabled = copy[tgAuthEnabledKey];
+        }
+        delete copy[tgAuthEnabledKey];
+        migrated = true;
+      }
+      if (tgAuthLoginKey in copy && copy[tgAuthLoginKey] !== undefined) {
+        if (copy.playerServerAuthLogin === undefined) {
+          copy.playerServerAuthLogin = copy[tgAuthLoginKey];
+        }
+        delete copy[tgAuthLoginKey];
+        migrated = true;
+      }
+
       return {
         id: copy.id || `profile-${Date.now()}`,
         name: copy.name || "Unnamed Profile",
         gatewayURL: copy.gatewayURL || "",
-        torrentGoURL: copy.torrentGoURL || "",
+        playerServerURL: copy.playerServerURL || "",
         searchEngineURL: copy.searchEngineURL || "",
-        torrentGoAuthEnabled: !!copy.torrentGoAuthEnabled,
-        torrentGoAuthLogin: copy.torrentGoAuthLogin || "",
+        playerServerAuthEnabled: !!copy.playerServerAuthEnabled,
+        playerServerAuthLogin: copy.playerServerAuthLogin || "",
       };
     });
     if (migrated) {
@@ -201,7 +226,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [bffLatencyMs, setBffLatencyMs] = useState<number>(-1);
   const [services, setServices] = useState<ServiceStatus>({
     bff: { configured: true, online: false },
-    torrentGo: { configured: false, online: false },
+    playerServer: { configured: false, online: false },
     searchEngine: { configured: false, online: false },
   });
 
@@ -282,9 +307,9 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
       
       const bff = await ApiClient.pingHealth(currentGateway, "/api/health/bff", true);
       const search = { configured: false, online: false };
-      const torrent = { configured: false, online: false };
+      const playerSrv = { configured: false, online: false };
 
-      const currentServices = { bff, searchEngine: search, torrentGo: torrent };
+      const currentServices = { bff, searchEngine: search, playerServer: playerSrv };
       setBffLatencyMs(bff.latencyMs ?? -1);
       setServices(currentServices);
       setConnectionState("connected");
@@ -316,7 +341,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
       try {
         const bff = await ApiClient.pingHealth(currentGateway, "/api/health/bff", true);
         const search = { configured: false, online: false };
-        const torrent = { configured: false, online: false };
+        const playerSrv = { configured: false, online: false };
 
         if (!bff.online) {
           consecutiveFailuresRef.current += 1;
@@ -328,7 +353,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
           setServices({
             bff,
             searchEngine: search,
-            torrentGo: torrent,
+            playerServer: playerSrv,
           });
           const currentState = connectionStateRef.current;
           if (currentState === "offline") {

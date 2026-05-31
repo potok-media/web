@@ -244,12 +244,12 @@ export function initPotokSDK(pluginId?: string, permissions?: string[], config?:
   }
 
   class StreamRowComponentBuilder extends UIComponent {
-    private _torrent?: any;
+    private _stream?: any;
     private _onClick?: (t: any) => void | Promise<void>;
     constructor() { super("StreamRowComponent"); }
-    torrent(v: any): this { this._torrent = v; return this; }
+    stream(v: any): this { this._stream = v; return this; }
     onClick(cb: (t: any) => void | Promise<void>): this { this._onClick = cb; return this; }
-    protected getProps() { return { torrent: this._torrent }; }
+    protected getProps() { return { stream: this._stream }; }
     compile(): any {
       const json = super.compile();
       if (this._onClick) {

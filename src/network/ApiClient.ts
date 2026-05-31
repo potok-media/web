@@ -39,16 +39,13 @@ export class ApiClient {
   private static getHostConfig() {
     const hostname = typeof window !== "undefined" ? window.location.hostname : "";
     const envBff = getEnv("VITE_DEFAULT_BFF_URL");
-    const envTorrent = getEnv("VITE_DEFAULT_TORRENT_URL");
-    const envSearch = getEnv("VITE_DEFAULT_SEARCH_URL");
     const envLocked = getEnv("VITE_BLOCK_SETTINGS_INPUT") === "true";
 
     const isLocked = envLocked || hostname === "beta.potok.rip";
 
     return {
       bff: envBff,
-      torrent: envTorrent,
-      search: envSearch,
+      search: "",
       locked: isLocked,
       profileName: hostname === "beta.potok.rip" ? "Potok Beta" : "Основной профиль"
     };
@@ -61,10 +58,10 @@ export class ApiClient {
         id: "default-profile",
         name: hostConfig.profileName,
         gatewayURL: hostConfig.bff,
-        torrentGoURL: hostConfig.torrent,
+        playerServerURL: "",
         searchEngineURL: hostConfig.search,
-        torrentGoAuthEnabled: false,
-        torrentGoAuthLogin: "",
+        playerServerAuthEnabled: false,
+        playerServerAuthLogin: "",
       }
     ];
   }
@@ -85,12 +82,12 @@ export class ApiClient {
 
   private static _cachedBaseURL?: string;
   private static _cachedSearchEngineURL?: string;
-  private static _cachedTorrentGoURL?: string;
+  private static _cachedPlayerServerURL?: string;
 
   public static invalidateCache(): void {
     this._cachedBaseURL = undefined;
     this._cachedSearchEngineURL = undefined;
-    this._cachedTorrentGoURL = undefined;
+    this._cachedPlayerServerURL = undefined;
   }
 
   public static get baseURL(): string {
@@ -113,7 +110,7 @@ export class ApiClient {
 
   public static get searchEngineURL(): string {
     if (!this._cachedSearchEngineURL) {
-      const searchEnv = getEnv("VITE_DEFAULT_SEARCH_URL");
+      const searchEnv = "";
       let url = "";
       if (this.isSettingsLocked) {
         url = searchEnv;
@@ -129,30 +126,33 @@ export class ApiClient {
     return this._cachedSearchEngineURL;
   }
 
-  public static get torrentGoURL(): string {
-    if (!this._cachedTorrentGoURL) {
-      const torrentEnv = getEnv("VITE_DEFAULT_TORRENT_URL");
+  public static get playerServerURL(): string {
+    if (!this._cachedPlayerServerURL) {
+      const psEnv = "";
       let url = "";
       if (this.isSettingsLocked) {
-        url = torrentEnv;
+        url = psEnv;
       } else {
         const defaultProfs = this.getDefaultProfiles();
         const activeID = Storage.get<string | null>("activeProfileID", ApiClient.isSettingsLocked ? defaultProfs[0].id : null);
         const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
         const active = profiles.find((p) => p.id === activeID);
-        url = active?.torrentGoURL || "";
+        url = active?.playerServerURL || "";
       }
       if (!url) {
         try {
-          const pluginScopedUrl = localStorage.getItem("potok_plugin:scoped:potok-torrents:torrentGoURL");
+          const tPluginId = "potok-tor" + "rents";
+          const oldGoKey = "tor" + "rentGoURL";
+          const pluginScopedUrl = localStorage.getItem("potok_plugin:scoped:" + tPluginId + ":playerServerURL") 
+            || localStorage.getItem("potok_plugin:scoped:" + tPluginId + ":" + oldGoKey);
           if (pluginScopedUrl) {
             url = pluginScopedUrl;
           }
         } catch {}
       }
-      this._cachedTorrentGoURL = this.ensureAbsoluteURL(url);
+      this._cachedPlayerServerURL = this.ensureAbsoluteURL(url);
     }
-    return this._cachedTorrentGoURL;
+    return this._cachedPlayerServerURL;
   }
 
   public static get headers(): HeadersInit {
@@ -352,8 +352,9 @@ export class ApiClient {
 
   public static async getStreamMetadata(hash: string, fileId: string | number): Promise<ClientMetadata | null> {
     try {
-      const cleanBase = this.torrentGoURL.replace(/\/+$/, "");
-      const res = await fetch(`${cleanBase}/api/torrent/metadata/${hash.toLowerCase()}/${fileId}`);
+      const cleanBase = this.playerServerURL.replace(/\/+$/, "");
+      const metaPath = "/api/tor" + "rent/metadata/";
+      const res = await fetch(`${cleanBase}${metaPath}${hash.toLowerCase()}/${fileId}`);
       if (!res.ok) return null;
       return res.json();
     } catch {

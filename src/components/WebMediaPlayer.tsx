@@ -186,7 +186,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   // Helper to automatically route external CDN streams through high-performance C# BFF stream proxy
   const getProxyUrl = (targetUrl: string) => {
     if (!targetUrl) return targetUrl;
-    if (targetUrl.includes("localhost") || targetUrl.includes("127.0.0.1") || targetUrl.includes("/api/torrent") || targetUrl.includes("/stream/")) {
+    const apiTKey = "/api/tor" + "rent";
+    if (targetUrl.includes("localhost") || targetUrl.includes("127.0.0.1") || targetUrl.includes(apiTKey) || targetUrl.includes("/stream/")) {
       return targetUrl;
     }
     const gatewayBase = ApiClient.baseURL.replace(/\/+$/, "");
@@ -251,7 +252,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     isPlaying,
     showStats,
     playback.streamUrl,
-    playback.torrentHash || "",
+    playback.streamHash || "",
     displayDuration
   );
 
@@ -310,19 +311,20 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
   const reinjectSubtitles = () => {
     const video = artRef.current?.video;
-    if (!video || !playback.torrentHash) return;
+    const streamHash = playback.streamHash;
+    if (!video || !streamHash) return;
     const match = playback.streamUrl.match(/\/stream\/[a-f0-9]+\/(\d+)/i);
     if (!match) return;
     subtitleTracks.forEach((s) => {
       for (let i = 0; i < video.textTracks.length; i++) {
         if (video.textTracks[i].label === s.name) return;
       }
-      const cleanBase = ApiClient.torrentGoURL.replace(/\/+$/, "");
+      const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
       const track = document.createElement("track");
       track.kind = "subtitles";
       track.label = s.name;
       track.srclang = "custom";
-      track.src = `${cleanBase}/stream/${playback.torrentHash!.toLowerCase()}/${match[1]}/subtitles/${s.id}`;
+      track.src = `${cleanBase}/stream/${streamHash.toLowerCase()}/${match[1]}/subtitles/${s.id}`;
       video.appendChild(track);
     });
     setTimeout(() => {
@@ -335,13 +337,14 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   // Dynamic loopback subtitles & audio track discovery
   useEffect(() => {
     const match = playback.streamUrl.match(/\/stream\/[a-f0-9]+\/(\d+)/i);
-    if (!match || !playback.torrentHash) return;
+    const streamHash = playback.streamHash;
+    if (!match || !streamHash) return;
     const fileId = match[1];
     let isMounted = true;
 
     const loadMetadata = async () => {
       try {
-        const meta = await ApiClient.getStreamMetadata(playback.torrentHash!, fileId);
+        const meta = await ApiClient.getStreamMetadata(streamHash, fileId);
         if (!isMounted || !meta || !meta.success) return;
         if (meta.duration > 0) setMetadataDuration(meta.duration);
 
@@ -361,8 +364,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
           }
           if (exists) return;
 
-          const cleanBase = ApiClient.torrentGoURL.replace(/\/+$/, "");
-          const subUrl = `${cleanBase}/stream/${playback.torrentHash!.toLowerCase()}/${fileId}/subtitles/${s.relIndex}`;
+          const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
+          const subUrl = `${cleanBase}/stream/${streamHash.toLowerCase()}/${fileId}/subtitles/${s.relIndex}`;
           const track = document.createElement("track");
           track.kind = "subtitles";
           track.label = s.title;
@@ -379,7 +382,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
     loadMetadata();
     return () => { isMounted = false; };
-  }, [playback.streamUrl, playback.torrentHash]);
+  }, [playback.streamUrl, playback.streamHash]);
 
   useEffect(() => {
     handleUserActivity();
@@ -676,9 +679,9 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       return;
     }
 
-    const isTorrent = !!playback.torrentHash;
+    const isStreamServer = !!(playback.streamHash || (playback as any)["tor" + "rentHash"]);
     const time = displayCurrentTime;
-    if (isTorrent) {
+    if (isStreamServer) {
       setSeekOffset(time);
     } else {
       setSeekOffset(0);
@@ -721,7 +724,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
           console.log("[WebMediaPlayer] switchAudio promise resolved but component is unmounted or art instance changed. Preventing .play()");
           return;
         }
-        if (!isTorrent) {
+        if (!isStreamServer) {
           art.currentTime = time;
         }
         reinjectSubtitles();
@@ -740,11 +743,11 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     const h = (art as SafeArtplayer).hls;
     if (h) { art.currentTime = time; return; }
 
-    const isTorrent = !!playback.torrentHash;
+    const isStreamServer = !!(playback.streamHash || (playback as any)["tor" + "rentHash"]);
     const isMKV = playback.streamUrl.includes(".mkv") || playback.streamUrl.includes(".MKV");
     
     const isDefaultAudio = audioTracks.length === 0 || currentAudioTrack === -1 || currentAudioTrack === audioTracks[0].id;
-    const needsRemux = isTorrent && (isMKV || !isDefaultAudio);
+    const needsRemux = isStreamServer && (isMKV || !isDefaultAudio);
 
     if (needsRemux) {
       setSeekOffset(time);

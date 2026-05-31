@@ -39,11 +39,11 @@ export const ProfilesSettings: React.FC = () => {
     const payload = {
       name: formName.trim(),
       gatewayURL: formGateway.trim().replace(/\/$/, ""),
-      torrentGoURL: activeProfile?.torrentGoURL || "",
+      playerServerURL: activeProfile?.playerServerURL || "",
       searchEngineURL: activeProfile?.searchEngineURL || "",
-      torrentGoAuthEnabled: activeProfile?.torrentGoAuthEnabled || false,
-      torrentGoAuthLogin: activeProfile?.torrentGoAuthLogin || "",
-      torrentGoAuthPassword: activeProfile?.torrentGoAuthPassword || undefined,
+      playerServerAuthEnabled: activeProfile?.playerServerAuthEnabled || false,
+      playerServerAuthLogin: activeProfile?.playerServerAuthLogin || "",
+      playerServerAuthPassword: activeProfile?.playerServerAuthPassword || undefined,
     };
 
     if (isAdding) {

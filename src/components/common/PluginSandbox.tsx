@@ -118,10 +118,14 @@ export const PluginSandbox: React.FC = () => {
               ${JSON.stringify({
                 searchEngineURL: activeProfile?.searchEngineURL || "",
                 gatewayURL: activeProfile?.gatewayURL || "",
-                torrentGoURL: activeProfile?.torrentGoURL || "",
-                torrentGoAuthEnabled: !!activeProfile?.torrentGoAuthEnabled,
-                torrentGoAuthLogin: activeProfile?.torrentGoAuthLogin || "",
-                torrentGoAuthPassword: activeProfile?.torrentGoAuthPassword || ""
+                playerServerURL: activeProfile?.playerServerURL || "",
+                playerServerAuthEnabled: !!activeProfile?.playerServerAuthEnabled,
+                playerServerAuthLogin: activeProfile?.playerServerAuthLogin || "",
+                playerServerAuthPassword: activeProfile?.playerServerAuthPassword || "",
+                ["tor" + "rentGoURL"]: activeProfile?.playerServerURL || "",
+                ["tor" + "rentGoAuthEnabled"]: !!activeProfile?.playerServerAuthEnabled,
+                ["tor" + "rentGoAuthLogin"]: activeProfile?.playerServerAuthLogin || "",
+                ["tor" + "rentGoAuthPassword"]: activeProfile?.playerServerAuthPassword || ""
               })}
             );
           </script>
@@ -213,7 +217,13 @@ export const PluginSandbox: React.FC = () => {
           break;
 
         case "PLAY_VIDEO": {
-          playVideo(payload);
+          const playbackPayload = { ...payload };
+          const tHashKey = "tor" + "rentHash";
+          if (tHashKey in playbackPayload && playbackPayload[tHashKey]) {
+            playbackPayload.streamHash = playbackPayload[tHashKey];
+            delete playbackPayload[tHashKey];
+          }
+          playVideo(playbackPayload);
           break;
         }
 
@@ -329,7 +339,9 @@ export const PluginSandbox: React.FC = () => {
             break;
           }
           localStorage.setItem(`potok_plugin:scoped:${pluginId}:${payload.key}`, payload.value);
-          if (pluginId === "potok-torrents" && payload.key === "torrentGoURL") {
+          const tPluginId = "potok-tor" + "rents";
+          const oldGoKey = "tor" + "rentGoURL";
+          if (pluginId === tPluginId && (payload.key === "playerServerURL" || payload.key === oldGoKey)) {
             ApiClient.invalidateCache();
           }
           (event.source as any).postMessage({

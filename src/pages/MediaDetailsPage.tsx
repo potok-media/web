@@ -30,7 +30,7 @@ export const MediaDetailsPage: React.FC = () => {
   const mediaRef = useRef<MediaCard | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<SelectedEpisodeState | null>(null);
 
-  const handleNavigateToTorrents = useCallback((season?: number, episode?: number) => {
+  const handleNavigateToStreams = useCallback((season?: number, episode?: number) => {
     navigate(`/media/${mediaType}/${mediaId}/watch`, {
       state: { season, episode, media: mediaRef.current }
     });
@@ -51,7 +51,7 @@ export const MediaDetailsPage: React.FC = () => {
     mediaType,
     mediaId,
     playParam: searchParams.get("play"),
-    onNavigateToTorrents: handleNavigateToTorrents,
+    onNavigateToStreams: handleNavigateToStreams,
     showHUD,
   });
 

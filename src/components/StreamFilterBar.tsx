@@ -43,12 +43,12 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
   const [filterOpen, setFilterOpen] = useState(false);
 
   return (
-    <header className="torrents-results-header" id={id}>
-      <div className="torrents-results-count">
+    <header className="streams-results-header" id={id}>
+      <div className="streams-results-count">
         {countLabel}
       </div>
       
-      <div className="torrents-header-actions">
+      <div className="streams-header-actions">
         {/* Refresh Button */}
         <button 
           className="btn-glass filter-btn-trigger" 
