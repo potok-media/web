@@ -29,6 +29,43 @@ const getFileExtension = (url: string): string => {
   }
   return "";
 };
+// Helper to safely preserve and update query parameters in a stream URL
+const updateStreamUrlParams = (url: string, params: { remux?: string; start?: string; audio?: string }): string => {
+  try {
+    const parsed = new URL(url);
+    if (params.remux !== undefined) parsed.searchParams.set("remux", params.remux);
+    if (params.start !== undefined) parsed.searchParams.set("start", params.start);
+    if (params.audio !== undefined) {
+      if (params.audio) parsed.searchParams.set("audio", params.audio);
+      else parsed.searchParams.delete("audio");
+    }
+    return parsed.toString();
+  } catch {
+    const baseUrl = url.split("?")[0];
+    const queryParts: string[] = [];
+    if (params.remux) queryParts.push(`remux=${params.remux}`);
+    if (params.start) queryParts.push(`start=${params.start}`);
+    if (params.audio) queryParts.push(`audio=${params.audio}`);
+    return queryParts.length > 0 ? `${baseUrl}?${queryParts.join("&")}` : baseUrl;
+  }
+};
+// Helper to normalize the stream URL to path-based format for robust player remuxing and seeking
+const normalizeStreamUrlToPath = (url: string): string => {
+  if (!url) return url;
+  try {
+    const parsed = new URL(url);
+    const linkParam = parsed.searchParams.get("link");
+    const indexParam = parsed.searchParams.get("index");
+    if (linkParam && indexParam) {
+      const baseUrl = url.split("/stream/")[0];
+      const filename = parsed.pathname.split("/").pop() || "video.mkv";
+      return `${baseUrl}/stream/${linkParam.toLowerCase()}/${indexParam}/${filename}`;
+    }
+  } catch {
+    // Ignore URL parsing errors
+  }
+  return url;
+};
 
 interface WebMediaPlayerProps {
   playback: ActivePlayback;
@@ -96,6 +133,11 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       return match ? Number(match[1]) : 0;
     }
   });
+
+  const seekOffsetRef = useRef(seekOffset);
+  useEffect(() => {
+    seekOffsetRef.current = seekOffset;
+  }, [seekOffset]);
 
   const controlsTimeoutRef = useRef<any>(null);
 
@@ -166,19 +208,47 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
   // Sync with host metadata endpoint for custom Hls.js/torrent duration parameters
   useEffect(() => {
-    const torrentMatch = playback.streamUrl.match(/\/stream\/[a-f0-9]+\/(\d+)/i);
-    if (!torrentMatch || !playback.streamHash) {
+    let fileId = "";
+    const pathMatch = playback.streamUrl.match(/\/stream\/[a-f0-9]+\/(\d+)/i);
+    if (pathMatch) {
+      fileId = pathMatch[1];
+    } else {
+      try {
+        const parsed = new URL(playback.streamUrl);
+        fileId = parsed.searchParams.get("index") || "";
+      } catch {
+        const match = playback.streamUrl.match(/[?&]index=(\d+)/i);
+        if (match) fileId = match[1];
+      }
+    }
+
+    let streamHash = playback.streamHash;
+    if (!streamHash) {
+      const hashMatch = playback.streamUrl.match(/\/stream\/([a-f0-9]{40})/i);
+      if (hashMatch) {
+        streamHash = hashMatch[1];
+      } else {
+        try {
+          const parsed = new URL(playback.streamUrl);
+          streamHash = parsed.searchParams.get("link") || "";
+        } catch {
+          const match = playback.streamUrl.match(/[?&]link=([a-f0-9]{40})/i);
+          if (match) streamHash = match[1];
+        }
+      }
+    }
+
+    if (!fileId || !streamHash) {
       setIsMetadataLoading(false);
       return;
     }
 
     let isMounted = true;
     setIsMetadataLoading(true);
-    const fileId = torrentMatch[1];
     
     (async () => {
       try {
-        const metadata = await ApiClient.getStreamMetadata(playback.streamHash!, fileId);
+        const metadata = await ApiClient.getStreamMetadata(streamHash, fileId);
         if (!isMounted) return;
         if (metadata && metadata.success) {
           if (metadata.duration > 0) setMetadataDuration(metadata.duration);
@@ -203,7 +273,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
                 if (video.textTracks[i].label === t.title) return;
               }
               const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
-              const srcUrl = `${cleanBase}/stream/${playback.streamHash!.toLowerCase()}/${fileId}/subtitles/${t.relIndex}`;
+              const srcUrl = `${cleanBase}/stream/${streamHash.toLowerCase()}/${fileId}/subtitles/${t.relIndex}`;
               
               const track = document.createElement("track");
               track.kind = "subtitles";
@@ -313,7 +383,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
     const video = videoRef.current;
     const currentLoc = video ? video.currentTime : 0;
-    const seekedTime = seekOffset > 0 ? (seekOffset + currentLoc) : currentLoc;
+    const seekedTime = seekOffsetRef.current > 0 ? (seekOffsetRef.current + currentLoc) : currentLoc;
     
     localStorage.setItem(resumeKey, Math.floor(seekedTime).toString());
 
@@ -332,7 +402,12 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     } else {
       window.location.reload();
     }
-  }, [playback, seekOffset]);
+  }, [playback]);
+
+  const handleRefreshStreamRef = useRef(handleRefreshStream);
+  useEffect(() => {
+    handleRefreshStreamRef.current = handleRefreshStream;
+  }, [handleRefreshStream]);
 
   // Main Media Stream Setup Hook
   useEffect(() => {
@@ -360,15 +435,19 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       }
     }
 
-    const isStreamServer = playback.streamUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
-    const ext = getFileExtension(playback.streamUrl);
+    const normalizedUrl = normalizeStreamUrlToPath(playback.streamUrl);
+    const isStreamServer = normalizedUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
+    const ext = getFileExtension(normalizedUrl);
     const isNonNative = ext ? !["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "m4a", "mpd"].includes(ext) : false;
     const needsRemux = isStreamServer && isNonNative;
 
-    let finalStreamUrl = playback.streamUrl;
+    let finalStreamUrl = normalizedUrl;
     if (needsRemux) {
-      const baseUrl = playback.streamUrl.split("?")[0];
-      finalStreamUrl = `${baseUrl}?remux=true&start=${Math.floor(startPos)}&audio=0`;
+      finalStreamUrl = updateStreamUrlParams(normalizedUrl, {
+        remux: "true",
+        start: Math.floor(startPos).toString(),
+        audio: currentAudioTrack !== -1 ? currentAudioTrack.toString() : ""
+      });
     }
 
     const proxiedUrl = getProxyUrl(finalStreamUrl);
@@ -449,7 +528,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
               if (playback.providerId && autoRefreshCountRef.current < 1) {
                 autoRefreshCountRef.current += 1;
                 console.log("[WebMediaPlayer] Fatal HLS 410 error. Refreshing stream...");
-                handleRefreshStream();
+                handleRefreshStreamRef.current();
               } else {
                 setPlayerError("Срок действия ссылки на поток истек.");
               }
@@ -492,7 +571,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     return () => {
       cleanupActiveResources();
     };
-  }, [playback.streamUrl, cleanupActiveResources, getProxyUrl, syncNativeTextTracks, handleRefreshStream]);
+  }, [playback.streamUrl, cleanupActiveResources, getProxyUrl, syncNativeTextTracks]);
 
   // Video Native Event Handlers
   const handlePlay = () => setIsPlaying(true);
@@ -565,7 +644,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
           if (playback.providerId && autoRefreshCountRef.current < 1) {
             autoRefreshCountRef.current += 1;
             console.log("[WebMediaPlayer] video:error 410 Gone detected. Refreshing...");
-            handleRefreshStream();
+            handleRefreshStreamRef.current();
           } else {
             setPlayerError("Срок действия ссылки на поток истек.");
           }
@@ -628,14 +707,18 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       return;
     }
 
-    const isStreamServer = playback.streamUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
+    const normalizedUrl = normalizeStreamUrlToPath(playback.streamUrl);
+    const isStreamServer = normalizedUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
     const time = displayCurrentTime;
 
     let newUrl = "";
     if (isStreamServer) {
       setSeekOffset(time);
-      const baseUrl = playback.streamUrl.split("?")[0];
-      newUrl = `${baseUrl}?remux=true&start=${Math.floor(time)}&audio=${id}`;
+      newUrl = updateStreamUrlParams(normalizedUrl, {
+        remux: "true",
+        start: Math.floor(time).toString(),
+        audio: id !== -1 ? id.toString() : ""
+      });
     } else {
       setSeekOffset(0);
       if (playback.audios && playback.audios[id]) {
@@ -694,17 +777,20 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       return;
     }
 
-    const isStreamServer = playback.streamUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
-    const ext = getFileExtension(playback.streamUrl);
+    const normalizedUrl = normalizeStreamUrlToPath(playback.streamUrl);
+    const isStreamServer = normalizedUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
+    const ext = getFileExtension(normalizedUrl);
     const isNonNative = ext ? !["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "m4a", "mpd"].includes(ext) : false;
     const isDefaultAudio = audioTracks.length === 0 || currentAudioTrack === -1 || currentAudioTrack === audioTracks[0].id;
     const needsRemux = isStreamServer && (isNonNative || !isDefaultAudio);
 
     if (needsRemux) {
       setSeekOffset(time);
-      const baseUrl = playback.streamUrl.split("?")[0];
-      const audioVal = currentAudioTrack !== -1 ? currentAudioTrack : 0;
-      const newUrl = `${baseUrl}?remux=true&start=${Math.floor(time)}&audio=${audioVal}`;
+      const newUrl = updateStreamUrlParams(normalizedUrl, {
+        remux: "true",
+        start: Math.floor(time).toString(),
+        audio: currentAudioTrack !== -1 ? currentAudioTrack.toString() : ""
+      });
 
       const isNewM3U8 = newUrl.includes(".m3u8");
       if (!isNewM3U8 && hlsRef.current) {

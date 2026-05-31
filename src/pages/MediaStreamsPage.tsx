@@ -38,6 +38,7 @@ export const MediaStreamsPage: React.FC = () => {
     seasons,
     seasonsLoading,
     isSaving,
+    actionLoading,
   } = useMediaStreams({
     mediaType,
     mediaId,
@@ -115,6 +116,16 @@ export const MediaStreamsPage: React.FC = () => {
       {renderSidebar()}
       {renderContent()}
       {renderPopup()}
+      {actionLoading && (
+        <div className="saving-overlay" style={{ position: "fixed", background: "rgba(20, 20, 25, 0.5)", backdropFilter: "blur(4px)" }}>
+          <div className="saving-content">
+            <div className="spinner" />
+            <span style={{ marginTop: "12px", fontSize: "0.95rem", color: "#fff", fontWeight: 500 }}>
+              Получение информации...
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

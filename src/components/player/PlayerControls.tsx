@@ -112,8 +112,23 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
   showPlaylistMenu,
   onTogglePlaylistMenu,
 }) => {
-  const seekTo = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onSeek(parseFloat(e.target.value));
+  const [localTime, setLocalTime] = React.useState(currentTime);
+  const [isDragging, setIsDragging] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isDragging) {
+      setLocalTime(currentTime);
+    }
+  }, [currentTime]);
+
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsDragging(true);
+    setLocalTime(parseFloat(e.target.value));
+  };
+
+  const handleSliderRelease = () => {
+    onSeek(localTime);
+    setIsDragging(false);
   };
 
   const changeVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,11 +144,6 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
         : item.title || `Серия ${idx + 1}`
     }));
   }, [playlist]);
-
-  const timelineStyle = {
-    "--timeline-progress": `${(currentTime / (duration || 100)) * 100}%`,
-    "--buffer-progress": `${(bufferedTime / (duration || 100)) * 100}%`,
-  } as React.CSSProperties;
 
   // Premium UI: Ensure selectors are always visible by providing fallbacks
   const displayAudioTracks = audioTracks.length > 0 
@@ -153,10 +163,15 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
             type="range"
             min={0}
             max={duration || 100}
-            value={currentTime}
-            onChange={seekTo}
+            value={localTime}
+            onChange={handleSliderChange}
+            onMouseUp={handleSliderRelease}
+            onTouchEnd={handleSliderRelease}
             className="player-timeline-slider"
-            style={timelineStyle}
+            style={{
+              "--timeline-progress": `${(localTime / (duration || 100)) * 100}%`,
+              "--buffer-progress": `${(bufferedTime / (duration || 100)) * 100}%`,
+            } as React.CSSProperties}
             aria-label="Перемотка видео"
           />
         </div>

@@ -171,6 +171,8 @@ export interface StreamEpisode {
   season: number;
   episode: number;
   title: string;
+  stillPath?: string;
+  airDate?: string;
   url: string;
   audios?: { id: string; name: string; url: string }[];
   headers?: Record<string, string>;

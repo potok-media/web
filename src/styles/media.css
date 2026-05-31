@@ -434,7 +434,6 @@
   opacity: 0;
   transform: translateY(12px) scale(0.99);
   transition: opacity 0.1s cubic-bezier(0.16, 1, 0.3, 1), transform 0.1s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
 }
 
 .media-card.is-visible {
@@ -454,7 +453,6 @@
     transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), 
     box-shadow 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
   z-index: 0;
-  will-change: transform, box-shadow;
 
   /* Enforce GPU layer compositing to prevent sub-pixel border clipping glitches in Chrome */
   transform: translate3d(0, 0, 0);
@@ -466,9 +464,8 @@
   transform: translateY(-4px) scale(1.03);
   box-shadow: 
     0 10px 24px rgba(0, 0, 0, 0.45),
-    0 0 16px rgba(var(--accent-rgb), 0.35);
+    0 0 16px var(--accent-semi);
   z-index: 10;
-  will-change: transform, box-shadow;
 }
 
 .media-poster {
@@ -806,7 +803,7 @@
 .action-btn-circle.active {
   color: var(--accent);
   border-color: var(--accent-dim);
-  background: rgba(var(--accent-rgb), 0.1);
+  background: var(--accent-dim);
 }
 
 .action-btn-circle svg {
@@ -1069,7 +1066,7 @@
   margin-bottom: var(--space-s);
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: all var(--timing-hover) ease-in-out;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .stream-row:hover {
@@ -1830,16 +1827,14 @@
   cursor: pointer;
   width: 100%;
   text-align: left;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
 }
 
 .file-card-row:hover {
-  background-color: rgba(255, 255, 255, 0.09);
-  border-color: var(--accent);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-  transform: translateY(-1px);
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent-semi);
 }
 
 .file-card-banner {
@@ -1932,7 +1927,7 @@
   font-weight: bold;
   padding: 3px 8px;
   border-radius: var(--radius-s);
-  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border: 1px solid var(--accent-semi);
 }
 
 .file-card-size {
@@ -1965,14 +1960,14 @@
   border: none;
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.15s ease, background-color 0.15s ease;
   flex-shrink: 0;
 }
 
 .file-card-row:hover .file-card-play-btn {
-  transform: scale(1.08);
+  transform: scale(1.05);
   background-color: var(--accent-hover);
-  box-shadow: 0 6px 14px rgba(var(--accent-rgb), 0.4);
+  box-shadow: 0 6px 14px var(--accent-semi);
 }
 
 
@@ -2037,7 +2032,7 @@
 .stream-tag-badge.override-badge {
   background-color: var(--accent-dim);
   color: var(--accent);
-  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border: 1px solid var(--accent-semi);
   text-transform: none; /* Keep S1 casing */
   display: inline-flex;
   align-items: center;
