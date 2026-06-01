@@ -6,7 +6,7 @@ export interface ServiceInfo {
 
 export interface ServiceStatus {
   bff: ServiceInfo;
-  torrentGo: ServiceInfo;
+  playerServer: ServiceInfo;
   searchEngine: ServiceInfo;
 }
 
@@ -41,6 +41,8 @@ export interface MediaCard {
   nextEpisodeSeason?: number;
   nextEpisodeTitle?: string;
   cast?: CastMember[];
+  kpId?: string;
+  imdbId?: string;
 }
 
 export interface WatchProgress {
@@ -71,40 +73,6 @@ export interface HomeResponse {
   }[];
 }
 
-export interface TorrentSearchResult {
-  id: string;
-  title: string;
-  tracker?: string;
-  sizeBytes?: number;
-  sizeLabel: string;
-  seeders?: number;
-  leechers?: number;
-  publishDate?: string;
-  magnetUri?: string;
-  link?: string;
-  tags?: { kind: string; value: string }[];
-  viewed?: boolean;
-  override?: TorrentOverride;
-}
-
-export interface TorrentOverride {
-  hash: string;
-  season?: number;
-  episodeOffset?: number;
-}
-
-export interface TorrentFileItem {
-  id: string;
-  title?: string;
-  sizeLabel?: string;
-  sizeBytes?: number;
-  path?: string;
-  season?: number;
-  episode?: number;
-  isSerial: boolean;
-  folderName: string;
-  extension: string;
-}
 
 export interface PotokUser {
   id?: string;
@@ -117,11 +85,11 @@ export interface ConnectionProfile {
   id: string;
   name: string;
   gatewayURL: string;
-  torrentGoURL: string;
+  playerServerURL: string;
   searchEngineURL: string;
-  torrentGoAuthEnabled: boolean;
-  torrentGoAuthLogin: string;
-  torrentGoAuthPassword?: string;
+  playerServerAuthEnabled: boolean;
+  playerServerAuthLogin: string;
+  playerServerAuthPassword?: string;
 }
 
 export interface TraktProfile {
@@ -161,33 +129,6 @@ export interface TvSeason {
   episodes: TvEpisode[];
 }
 
-export interface TorrentSearchRequest {
-  query: string;
-  mediaType: "movie" | "tv";
-  id?: number;
-  englishTitle?: string;
-  originalTitle?: string;
-  season?: number;
-  episode?: number;
-  forceSearch?: boolean;
-}
-
-export interface TorrentFilesRequest {
-  title: string;
-  link?: string;
-  magnetUri?: string;
-  mediaType: "movie" | "tv";
-  originalTitle?: string;
-  poster?: string;
-  tmdbId?: number;
-}
-
-export interface StreamUrlRequest {
-  hash: string;
-  index?: number;
-  id?: string;
-  originalPath?: string;
-}
 
 export interface InfuseSaveRequest {
   hash: string;
@@ -275,6 +216,14 @@ export interface SystemWakeLog {
 export interface FullscreenTrackingState {
   isFullscreenActive: boolean;
   activeElementTag: string | null;
+}export interface StreamUIItem {
+  id: string;
+  title: string;
+  tracker?: string;
+  sizeBytes?: number;
+  sizeLabel?: string;
+  seeders?: number;
+  leechers?: number;
+  publishDate?: string;
+  tags?: { kind: string; value: string }[];
 }
-
-

@@ -1,224 +1,156 @@
 import React, { useState, useEffect } from "react";
-import { Sliders } from "lucide-react";
-import { useAppSettings } from "../context/AppSettingsContext";
-import { useHUD } from "../context/HUDContext";
-import type { ConnectionProfile } from "../network/ApiTypes";
-import ProfileSelector from "../components/ProfileSelector";
-import ProfileEditorForm from "../components/ProfileEditorForm";
+import { Sliders, Puzzle, Globe } from "lucide-react";
+import { useSettings } from "../context/AppSettingsContext";
+import GeneralSettings from "../components/settings/GeneralSettings";
+import ProfilesSettings from "../components/settings/ProfilesSettings";
+import ExtensionsManager from "../components/ExtensionsManager";
+import DeclarativeSettings from "../components/settings/DeclarativeSettings";
+import { ExtensionSlot } from "../components/common/ExtensionSlot";
+import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
+import type { RegisteredExtension } from "../network/SDKTypes";
 import "../styles/settings.css";
 
 export const SettingsPage: React.FC = () => {
   const {
-    connectionProfiles,
-    activeProfileID,
     accentTheme,
     defaultPlayer,
     uiFontScale,
-    isSettingsLocked,
-    selectProfile,
-    addProfile,
-    deleteProfile,
-    updateProfile,
     setAccentTheme,
     setDefaultPlayer,
     setUiFontScale,
-  } = useAppSettings();
+  } = useSettings();
 
-  const { show: showHUD } = useHUD();
+  const [activeTab, setActiveTab] = useState<string>("general");
+  const [, setTick] = useState(0);
 
-  const isApple = typeof window !== "undefined" && 
-    (/Mac|iPad|iPhone|iPod/.test(navigator.userAgent) || 
-     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
-
-  // Selected profile to edit
-  const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
-
-  // Form states for creating/editing profile
-  const [isAdding, setIsAdding] = useState(false);
-  const [formName, setFormName] = useState("");
-  const [formGateway, setFormGateway] = useState("");
-  const [formTorrentGo, setFormTorrentGo] = useState("");
-  const [formSearchEngine, setFormSearchEngine] = useState("");
-  const [formTorrentGoAuthEnabled, setFormTorrentGoAuthEnabled] = useState(false);
-  const [formTorrentGoAuthLogin, setFormTorrentGoAuthLogin] = useState("");
-  const [formTorrentGoAuthPassword, setFormTorrentGoAuthPassword] = useState("");
-
-  const resetForm = () => {
-    setFormName("");
-    setFormGateway("");
-    setFormTorrentGo("");
-    setFormSearchEngine("");
-    setFormTorrentGoAuthEnabled(false);
-    setFormTorrentGoAuthLogin("");
-    setFormTorrentGoAuthPassword("");
-    setIsAdding(false);
-  };
-
-  const handleSaveProfile = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formName.trim() || !formGateway.trim()) {
-      showHUD("warning", "Заполните имя и URL шлюза");
-      return;
+  // Setup extensions state from localStorage and keep it in sync
+  const [extensions, setExtensions] = useState<RegisteredExtension[]>(() => {
+    try {
+      const raw = localStorage.getItem("potok_extensions");
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
     }
+  });
 
-    const payload = {
-      name: formName.trim(),
-      gatewayURL: formGateway.trim().replace(/\/$/, ""),
-      torrentGoURL: formTorrentGo.trim().replace(/\/$/, ""),
-      searchEngineURL: formSearchEngine.trim().replace(/\/$/, ""),
-      torrentGoAuthEnabled: formTorrentGoAuthEnabled,
-      torrentGoAuthLogin: formTorrentGoAuthLogin.trim(),
-      torrentGoAuthPassword: formTorrentGoAuthPassword || undefined,
+  // Subscribe to ExtensionRegistry changes to display extension tabs reactively
+  useEffect(() => {
+    const handleRegistryChange = () => setTick((t) => t + 1);
+    ExtensionRegistry.addListener(handleRegistryChange);
+    return () => ExtensionRegistry.removeListener(handleRegistryChange);
+  }, []);
+
+  // Subscribe to storage and custom extensions updated event for hot-reloading settings
+  useEffect(() => {
+    const syncExtensions = () => {
+      try {
+        const raw = localStorage.getItem("potok_extensions");
+        setExtensions(raw ? JSON.parse(raw) : []);
+      } catch (err) {
+        console.error("[SettingsPage] Sync failed:", err);
+      }
     };
 
-    if (isAdding) {
-      addProfile(payload);
-      showHUD("success", "Профиль успешно добавлен");
-      resetForm();
-    } else if (activeProfile) {
-      updateProfile({
-        ...activeProfile,
-        ...payload,
-      });
-      showHUD("success", "Профиль успешно сохранен");
-    }
-  };
+    window.addEventListener("potok_extensions_updated", syncExtensions);
+    window.addEventListener("storage", syncExtensions);
 
-  const startEdit = (prof: ConnectionProfile) => {
-    setIsAdding(false);
-    setFormName(prof.name);
-    setFormGateway(prof.gatewayURL);
-    setFormTorrentGo(prof.torrentGoURL);
-    setFormSearchEngine(prof.searchEngineURL);
-    setFormTorrentGoAuthEnabled(prof.torrentGoAuthEnabled);
-    setFormTorrentGoAuthLogin(prof.torrentGoAuthLogin);
-    setFormTorrentGoAuthPassword(prof.torrentGoAuthPassword || "");
-  };
+    return () => {
+      window.removeEventListener("potok_extensions_updated", syncExtensions);
+      window.removeEventListener("storage", syncExtensions);
+    };
+  }, []);
 
-  const startAdd = () => {
-    setIsAdding(true);
-    setFormName("");
-    setFormGateway("");
-    setFormTorrentGo("");
-    setFormSearchEngine("");
-    setFormTorrentGoAuthEnabled(false);
-    setFormTorrentGoAuthLogin("");
-    setFormTorrentGoAuthPassword("");
-  };
+  const slotContributions = ExtensionRegistry.getSlotContributions("settings-tabs");
 
-  useEffect(() => {
-    if (activeProfile && !isAdding) {
-      startEdit(activeProfile);
-    }
-  }, [activeProfileID, isAdding]);
-
-  const themes = [
-    { id: "nordicFrost", name: "Nordic Frost", color: "#3a86c8" },
-    { id: "amberGold", name: "Amber Gold", color: "#f59e0b" },
-    { id: "sageMuted", name: "Sage Muted", color: "#4f9e71" },
-    { id: "graphite", name: "Graphite", color: "#9ca3af" },
-    { id: "system", name: "System Accent", color: "#3b82f6" },
-  ];
+  const configExtensions = extensions.filter(
+    (ext) => ext.enabled && ext.manifest.config && Object.keys(ext.manifest.config).length > 0
+  );
 
   return (
     <div className="settings-page-container">
-      <header className="settings-page-header">
-        <h1 className="settings-page-title">Настройки</h1>
-        <p className="settings-page-description">
-          Управление подключениями, стилями интерфейса и внешними плеерами.
-        </p>
-      </header>
+      <div className="settings-container">
+        <aside className="settings-sidebar">
+          <div className="sidebar-brand">
+            <h1 className="sidebar-brand-title">Настройки</h1>
+            <p className="sidebar-brand-desc">Панель управления</p>
+          </div>
+          <div className="sidebar-divider" />
+          <div className="sidebar-section-title">Приложение</div>
+          <button
+            className={`sidebar-nav-item ${activeTab === "general" ? "active" : ""}`}
+            onClick={() => setActiveTab("general")}
+          >
+            <Sliders size={16} />
+            <span>Основные</span>
+          </button>
+          <button
+            className={`sidebar-nav-item ${activeTab === "profiles" ? "active" : ""}`}
+            onClick={() => setActiveTab("profiles")}
+          >
+            <Globe size={16} />
+            <span>Профили подключения</span>
+          </button>
 
-      <div className="settings-layout">
-        {/* Left Column: Connection Profiles & Preferences */}
-        <div className="settings-profile-column">
-          <ProfileSelector
-            connectionProfiles={connectionProfiles}
-            activeProfileID={activeProfileID}
-            onSelectProfile={selectProfile}
-            onStartEdit={startEdit}
-            onDeleteProfile={deleteProfile}
-            onStartAdd={startAdd}
-            showHUD={showHUD}
-            isSettingsLocked={isSettingsLocked}
-          />
+          <div className="sidebar-section-title">Интеграции</div>
+          <button
+            className={`sidebar-nav-item ${activeTab === "extensions" ? "active" : ""}`}
+            onClick={() => setActiveTab("extensions")}
+          >
+            <Puzzle size={16} />
+            <span>Расширения</span>
+          </button>
 
-          {/* Preferences Section */}
-          <section className="settings-section">
-            <h2 className="settings-section-title">
-              <Sliders size={20} />
-              <span>Внешний вид и плеер</span>
-            </h2>
+          {(slotContributions.length > 0 || configExtensions.length > 0) && (
+            <>
+              <div className="sidebar-section-title">Плагины</div>
+              {slotContributions.map((c) => (
+                <button
+                  key={c.contribution.id}
+                  className={`sidebar-nav-item ${activeTab === c.contribution.id ? "active" : ""}`}
+                  onClick={() => setActiveTab(c.contribution.id)}
+                >
+                  <Puzzle size={16} />
+                  <span>{c.contribution.title || c.contribution.id}</span>
+                </button>
+              ))}
+              {configExtensions.map((ext) => (
+                <button
+                  key={`config-${ext.id}`}
+                  className={`sidebar-nav-item ${activeTab === `config-${ext.id}` ? "active" : ""}`}
+                  onClick={() => setActiveTab(`config-${ext.id}`)}
+                >
+                  <Puzzle size={16} />
+                  <span>{ext.manifest.name || ext.id}</span>
+                </button>
+              ))}
+            </>
+          )}
+        </aside>
 
-            {/* Theme Selector */}
-            <div className="settings-form-group">
-              <label className="settings-label">Цветовой акцент</label>
-              <div className="theme-options">
-                {themes.map((t) => (
-                  <div
-                    key={t.id}
-                    className={`theme-card ${accentTheme === t.id ? "active" : ""}`}
-                    onClick={() => setAccentTheme(t.id)}
-                  >
-                    <span className="theme-dot" style={{ backgroundColor: t.color }} />
-                    <span>{t.name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+        <main className="settings-main-content">
+          {activeTab === "general" && (
+            <GeneralSettings
+              accentTheme={accentTheme}
+              setAccentTheme={setAccentTheme}
+              defaultPlayer={defaultPlayer}
+              setDefaultPlayer={setDefaultPlayer}
+              uiFontScale={uiFontScale}
+              setUiFontScale={setUiFontScale}
+            />
+          )}
+          {activeTab === "profiles" && <ProfilesSettings />}
+          {activeTab === "extensions" && <ExtensionsManager />}
+          {slotContributions.some((c) => c.contribution.id === activeTab) && (
+            <ExtensionSlot name="settings-tabs" />
+          )}
+          {configExtensions.map((ext) => (
+            activeTab === `config-${ext.id}` && (
+              <DeclarativeSettings key={ext.id} ext={ext} />
+            )
+          ))}
+        </main>
 
-            {/* Default Player */}
-            <div className="settings-form-group settings-preference-group">
-              <label className="settings-label">Плеер по умолчанию</label>
-              <select
-                className="settings-select"
-                value={defaultPlayer || "native"}
-                onChange={(e) => setDefaultPlayer(e.target.value)}
-              >
-                <option value="native">Встроенный веб-плеер</option>
-                {isApple && <option value="infuse">Infuse</option>}
-              </select>
-            </div>
-
-            {/* Font Scale */}
-            <div className="settings-form-group settings-preference-group">
-              <label className="settings-label">Масштаб интерфейса</label>
-              <select
-                className="settings-select"
-                value={uiFontScale.toFixed(1)}
-                onChange={(e) => setUiFontScale(parseFloat(e.target.value))}
-              >
-                <option value="0.8">Мелкий (80%)</option>
-                <option value="0.9">Компактный (90%)</option>
-                <option value="1.0">Стандартный (100%)</option>
-                <option value="1.1">Увеличенный (110%)</option>
-                <option value="1.2">Крупный (120%)</option>
-              </select>
-            </div>
-          </section>
-        </div>
-
-        {/* Right Column: Profile Editor Form */}
-        <ProfileEditorForm
-          isAdding={isAdding}
-          formName={formName}
-          setFormName={setFormName}
-          formGateway={formGateway}
-          setFormGateway={setFormGateway}
-          formTorrentGo={formTorrentGo}
-          setFormTorrentGo={setFormTorrentGo}
-          formSearchEngine={formSearchEngine}
-          setFormSearchEngine={setFormSearchEngine}
-          formTorrentGoAuthEnabled={formTorrentGoAuthEnabled}
-          setFormTorrentGoAuthEnabled={setFormTorrentGoAuthEnabled}
-          formTorrentGoAuthLogin={formTorrentGoAuthLogin}
-          setFormTorrentGoAuthLogin={setFormTorrentGoAuthLogin}
-          formTorrentGoAuthPassword={formTorrentGoAuthPassword}
-          setFormTorrentGoAuthPassword={setFormTorrentGoAuthPassword}
-          onSave={handleSaveProfile}
-          onCancel={resetForm}
-          isSettingsLocked={isSettingsLocked}
-        />
+        <div className="settings-sidebar-spacer" />
       </div>
     </div>
   );

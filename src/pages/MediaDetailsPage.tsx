@@ -1,31 +1,47 @@
 import React, { useCallback, useRef, useState, useEffect } from "react";
-import { useParams, useSearchParams, useNavigate, Link } from "react-router-dom";
-import { Play, Star, Eye, Bookmark } from "lucide-react";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { Star, Eye, Bookmark } from "lucide-react";
 import { useHUD } from "../context/HUDContext";
-import { useAppSettings } from "../context/AppSettingsContext";
+
 import { useMediaDetails } from "../hooks/useMediaDetails";
 import { SeasonEpisodesSection } from "../components/SeasonEpisodesSection";
 import { LoadingSpinner } from "../components/LoadingSpinner";
-import type { TvEpisode } from "../network/ApiTypes";
+import { ExtensionSlot } from "../components/common/ExtensionSlot";
+import { DynamicBlock } from "../components/common/DynamicBlock";
+import { MediaOverviewSection } from "../components/MediaOverviewSection";
+import type { TvEpisode, MediaCard } from "../network/ApiTypes";
 import "../styles/media.css";
+
+interface SelectedEpisodeState {
+  episode: TvEpisode;
+  seasonNumber: number;
+}
 
 export const MediaDetailsPage: React.FC = () => {
   const { mediaType, id } = useParams<{ mediaType: string; id: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const mediaId = Number(id);
+  const tmdbId = mediaId;
 
   const { show: showHUD } = useHUD();
-  const { services } = useAppSettings();
 
-  const mediaRef = useRef<any>(null);
-  const [selectedEpisode, setSelectedEpisode] = useState<{ episode: TvEpisode; seasonNumber: number } | null>(null);
 
-  const handleNavigateToTorrents = useCallback((season?: number, episode?: number) => {
-    navigate(`/media/${mediaType}/${mediaId}/torrents`, {
+  const mediaRef = useRef<MediaCard | null>(null);
+  const [selectedEpisode, setSelectedEpisode] = useState<SelectedEpisodeState | null>(null);
+
+  const handleNavigateToStreams = useCallback((tab?: string, season?: number, episode?: number) => {
+    const path = tab 
+      ? `/media/${mediaType}/${mediaId}/watch/${tab}` 
+      : `/media/${mediaType}/${mediaId}/watch`;
+    navigate(path, {
       state: { season, episode, media: mediaRef.current }
     });
   }, [navigate, mediaType, mediaId]);
+
+  const handleDeepLinkNavigate = useCallback((season?: number, episode?: number) => {
+    handleNavigateToStreams("potok-torrents", season, episode);
+  }, [handleNavigateToStreams]);
 
   const {
     media,
@@ -42,7 +58,7 @@ export const MediaDetailsPage: React.FC = () => {
     mediaType,
     mediaId,
     playParam: searchParams.get("play"),
-    onNavigateToTorrents: handleNavigateToTorrents,
+    onNavigateToStreams: handleDeepLinkNavigate,
     showHUD,
   });
 
@@ -67,7 +83,6 @@ export const MediaDetailsPage: React.FC = () => {
   }
 
   const cast = media.cast || [];
-  const canWatch = !!(services?.searchEngine?.configured && services?.searchEngine?.online);
 
   return (
     <div className="details-layout">
@@ -78,143 +93,71 @@ export const MediaDetailsPage: React.FC = () => {
         <div className="immersive-hero-overlay" />
         <div className="immersive-hero-content">
           <div className="details-content-container">
-        <div className="details-poster-sidebar">
-          {media.logoSrc ? (
-            <div className="details-logo-container">
-              <img src={media.logoSrc} className="details-logo" alt={media.title} />
-            </div>
-          ) : (
-            <h1 className="details-title-fallback">{media.title}</h1>
-          )}
+            <div className="details-poster-sidebar">
+              {media.logoSrc ? (
+                <div className="details-logo-container">
+                  <img src={media.logoSrc} className="details-logo" alt={media.title} />
+                </div>
+              ) : (
+                <h1 className="details-title-fallback">{media.title}</h1>
+              )}
 
-          <div className="details-actions-container">
-            {canWatch ? (
-              <Link
-                to={`/media/${mediaType}/${mediaId}/torrents${selectedEpisode ? `?season=${selectedEpisode.seasonNumber}&episode=${selectedEpisode.episode.episodeNumber}` : ""}`}
-                state={{
-                  season: selectedEpisode?.seasonNumber,
-                  episode: selectedEpisode?.episode.episodeNumber,
-                  media
-                }}
-                className="btn-watch-primary"
-                onClick={(e) => {
-                  if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
-                    e.preventDefault();
-                    if (selectedEpisode) {
-                      handleNavigateToTorrents(selectedEpisode.seasonNumber, selectedEpisode.episode.episodeNumber);
-                    } else {
-                      handleNavigateToTorrents();
-                    }
-                  }
-                }}
-              >
-                <Play size={18} fill="black" />
-                <span>Смотреть</span>
-              </Link>
-            ) : (
-              <button
-                className="btn-watch-primary disabled"
-                title={services?.searchEngine?.configured ? "Поисковый шлюз недоступен. Функция поиска торрентов временно заблокирована." : "Поисковик по торрентам не настроен. Вы можете настроить его в параметрах."}
-              >
-                <Play size={18} fill="currentColor" />
-                <span>Смотреть</span>
-              </button>
-            )}
+              <div className="details-actions-container">
+                <DynamicBlock
+                  name="media-details-actions"
+                  contextProps={{ mediaId, tmdbId, mediaType, selectedEpisode, media }}
+                >
+                  {/* Dynamically Rendered Plugin Extension Slot for Media Actions (Plugins contribute their watch buttons here) */}
+                  <ExtensionSlot
+                    id="media-actions"
+                    name="media-actions"
+                    props={{
+                      mediaId,
+                      tmdbId,
+                      mediaType,
+                      season: selectedEpisode?.seasonNumber,
+                      episode: selectedEpisode?.episode.episodeNumber,
+                      title: media.title,
+                      originalTitle: media.originalTitle
+                    }}
+                  />
 
-            <div className="details-actions-row">
-              <button
-                className={`action-btn-circle ${isWatched ? "active" : ""}`}
-                onClick={toggleWatched}
-                title={isWatched ? "Удалить из истории просмотра" : "Отметить просмотренным"}
-              >
-                <Eye size={18} />
-              </button>
+                  {/* Social and Watchlist row */}
+                  <div id="social-actions-row" className="details-actions-row">
+                    <button
+                      className={`action-btn-circle ${isWatched ? "active" : ""}`}
+                      onClick={toggleWatched}
+                      title={isWatched ? "Удалить из истории просмотра" : "Отметить просмотренным"}
+                    >
+                      <Eye size={18} />
+                    </button>
 
-              <button
-                className={`action-btn-circle ${inWatchlist ? "active" : ""}`}
-                onClick={toggleWatchlist}
-                title={inWatchlist ? "Удалить из списка ожидания" : "В список ожидания"}
-              >
-                <Bookmark size={18} fill={inWatchlist ? "var(--accent)" : "none"} />
-              </button>
+                    <button
+                      className={`action-btn-circle ${inWatchlist ? "active" : ""}`}
+                      onClick={toggleWatchlist}
+                      title={inWatchlist ? "Удалить из списка ожидания" : "В список ожидания"}
+                    >
+                      <Bookmark size={18} fill={inWatchlist ? "var(--accent)" : "none"} />
+                    </button>
 
-              <button
-                className={`action-btn-circle ${isFavorite ? "active" : ""}`}
-                onClick={toggleFavorite}
-                title={isFavorite ? "Удалить из избранного" : "Добавить в избранное"}
-              >
-                <Star size={18} fill={isFavorite ? "var(--accent)" : "none"} />
-              </button>
-            </div>
-
-            {!canWatch && (
-              <div className="search-warning-text">
-                {services?.searchEngine?.configured ? "Шлюз поиска недоступен" : "Поиск не настроен"}
+                    <button
+                      className={`action-btn-circle ${isFavorite ? "active" : ""}`}
+                      onClick={toggleFavorite}
+                      title={isFavorite ? "Удалить из избранного" : "Добавить в избранное"}
+                    >
+                      <Star size={18} fill={isFavorite ? "var(--accent)" : "none"} />
+                    </button>
+                  </div>
+                </DynamicBlock>
               </div>
-            )}
-          </div>
-        </div>
-
-        {selectedEpisode ? (
-          <div className="details-main-info selected-episode-mode">
-            {media.originalTitle && <p className="details-subtitles">{media.originalTitle}</p>}
-
-            <h2 className="details-episode-title">
-              S{selectedEpisode.seasonNumber} • E{selectedEpisode.episode.episodeNumber} — {selectedEpisode.episode.name || `Серия ${selectedEpisode.episode.episodeNumber}`}
-            </h2>
-
-            <div className="hero-metadata details-hero-metadata">
-              {selectedEpisode.episode.airDate && (
-                <span>{selectedEpisode.episode.airDate}</span>
-              )}
-              <span>• 1080p</span>
-              {media.genres && <span>• {media.genres}</span>}
             </div>
 
-            <p className="details-overview-text">
-              {selectedEpisode.episode.overview || media.overview || "Описание эпизода отсутствует."}
-            </p>
-
-            <button 
-              className="details-reset-episode-btn"
-              onClick={() => setSelectedEpisode(null)}
-            >
-              ← Вернуться к описанию сериала
-            </button>
-          </div>
-        ) : (
-          <div className="details-main-info">
-            {media.originalTitle && <p className="details-subtitles">{media.originalTitle}</p>}
-
-            <div className="hero-metadata details-hero-metadata">
-              {media.studioLogoSrc && (
-                <img src={media.studioLogoSrc} className="details-studio-logo" alt="Studio" />
-              )}
-              {media.subtitle && <span className="details-metadata-subtitle">{media.subtitle}</span>}
-              {media.genres && <span>• {media.genres}</span>}
-              {media.ageRating && <span>• {media.ageRating}</span>}
-              {media.numberOfSeasons && <span>• Сезонов: {media.numberOfSeasons}</span>}
-            </div>
-
-            {media.overview && (
-              <p className="details-overview-text">{media.overview}</p>
-            )}
-
-            <div className="details-rating-container">
-              {media.imdbRating && (
-                <span className="rating-badge details-rating-badge">
-                  <Star size={12} fill="white" />
-                  <span>IMDb {media.imdbRating.toFixed(1)}</span>
-                </span>
-              )}
-              {media.kpRating && (
-                <span className="kp-rating-badge details-rating-badge">
-                  <span>КП {media.kpRating.toFixed(1)}</span>
-                </span>
-              )}
-            </div>
-          </div>
-        )}
+            {/* Render dynamically extracted Media Overview section */}
+            <MediaOverviewSection
+              media={media}
+              selectedEpisode={selectedEpisode}
+              setSelectedEpisode={setSelectedEpisode}
+            />
           </div>
         </div>
       </div>

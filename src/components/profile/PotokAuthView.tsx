@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { User, KeyRound } from "lucide-react";
 import { AuthApiClient } from "../../network/AuthApiClient";
 import { useHUD } from "../../context/HUDContext";
-import { useAppSettings } from "../../context/AppSettingsContext";
+import { useAuth } from "../../context/AppSettingsContext";
 import type { AuthResponse } from "../../network/ApiTypes";
 
 interface PotokAuthViewProps {
@@ -11,7 +11,7 @@ interface PotokAuthViewProps {
 
 export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
   const { show: showHUD } = useHUD();
-  const { multiUserMode } = useAppSettings();
+  const { multiUserMode } = useAuth();
   const [isRegister, setIsRegister] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

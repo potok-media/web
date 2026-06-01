@@ -1,0 +1,68 @@
+import React from "react";
+import type { StreamUIItem } from "../network/ApiTypes";
+import { extractBadges } from "../utils/mediaUtils";
+import { formatBytes, formatPublishDate } from "../utils/formatters";
+
+interface StreamRowComponentProps {
+  stream: StreamUIItem;
+  onClick: (stream: StreamUIItem) => void;
+}
+
+export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(({ stream, onClick }) => {
+  const extracted = extractBadges(stream.title);
+  const parsedTags = Array.from(new Set([
+    ...(stream.tags?.map((t: { kind: string; value: string }) => t.value) || []),
+    ...extracted
+  ])).slice(0, 6);
+
+  return (
+    <div className="stream-row" onClick={() => onClick(stream)}>
+      <div className="stream-header-row">
+        <div className="stream-row-header-left">
+          <h3 className="stream-title-text stream-row-title">
+            {stream.title}
+          </h3>
+          
+          <div className="stream-badges-row">
+            {parsedTags.map((tagVal, i) => (
+              <span key={i} className="stream-tag-badge">{tagVal}</span>
+            ))}
+          </div>
+        </div>
+
+        {(stream.sizeLabel || stream.sizeBytes) && (
+          <span className="stream-size-badge">
+            {stream.sizeLabel || formatBytes(stream.sizeBytes)}
+          </span>
+        )}
+      </div>
+
+      <div className="stream-footer-row stream-row-footer-separator">
+        <div className="stream-footer-left">
+          {stream.publishDate && <span>{formatPublishDate(stream.publishDate)}</span>}
+          {stream.tracker && <span className="tracker-name">{stream.tracker}</span>}
+        </div>
+
+        <div className="stream-footer-right">
+          {(stream.seeders === undefined || stream.seeders === null) && (stream.leechers === undefined || stream.leechers === null) ? (
+            <span className="stream-play-action" style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--color-accent, #007aff)", fontWeight: 600 }}>
+              <span style={{ fontSize: "9px" }}>▶</span> Смотреть
+            </span>
+          ) : (
+            <>
+              <span>
+                Раздают: <span className="stream-peer-num">{stream.seeders ?? 0}</span>
+              </span>
+              <span>
+                Скачивают: <span className="stream-peer-num">{stream.leechers ?? 0}</span>
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+StreamRowComponent.displayName = "StreamRowComponent";
+export default StreamRowComponent;

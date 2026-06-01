@@ -9,7 +9,7 @@ import { CalendarPage } from "./pages/CalendarPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { MediaDetailsPage } from "./pages/MediaDetailsPage";
-import { TorrentsPage } from "./pages/TorrentsPage";
+import { MediaStreamsPage } from "./pages/MediaStreamsPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import "./index.css";
 
@@ -27,7 +27,7 @@ export const App: React.FC = () => {
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="media/:mediaType/:id" element={<MediaDetailsPage />} />
-                <Route path="media/:mediaType/:id/torrents" element={<TorrentsPage />} />
+                <Route path="media/:mediaType/:id/watch/:tab?" element={<MediaStreamsPage />} />
                 <Route path="library/:collectionType" element={<LibraryPage />} />
               </Route>
             </Routes>

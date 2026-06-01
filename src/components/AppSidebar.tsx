@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { Home, Calendar, User, Settings, Play, Bookmark, Star, Clock, PanelLeft, PanelLeftClose } from "lucide-react";
-import { useAppSettings } from "../context/AppSettingsContext";
+import { useConnectionHealth, useAuth } from "../context/AppSettingsContext";
 import { useHUD } from "../context/HUDContext";
 import SidebarStatus from "./SidebarStatus";
 import SidebarSearch from "./SidebarSearch";
@@ -13,7 +13,8 @@ interface AppSidebarProps {
 }
 
 export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle }) => {
-  const { services, connectionState, bffLatencyMs, potokToken } = useAppSettings();
+  const { connectionState, bffLatencyMs } = useConnectionHealth();
+  const { potokToken } = useAuth();
   const { show: showHUD } = useHUD();
   const navigate = useNavigate();
   const location = useLocation();
@@ -175,7 +176,6 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle })
       <SidebarStatus
         isConnected={isConnected}
         bffLatencyMs={bffLatencyMs}
-        services={services}
       />
     </aside>
   );

@@ -2,12 +2,12 @@ import { useState, useCallback, useEffect } from "react";
 import { Storage } from "../utils/StorageService";
 import { SettingsApiClient } from "../network/SettingsApiClient";
 import type { PatchOperation } from "../network/ApiTypes";
-import { useAppSettings } from "../context/AppSettingsContext";
+import { useSettings } from "../context/AppSettingsContext";
 
 const QUEUE_STORAGE_KEY_PREFIX = "settings_patch_queue_";
 
 export function usePatchQueue() {
-  const { activeProfileID } = useAppSettings();
+  const { activeProfileID } = useSettings();
   const profileId = activeProfileID || "default-profile";
   const storageKey = `${QUEUE_STORAGE_KEY_PREFIX}${profileId}`;
 

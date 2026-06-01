@@ -8,11 +8,15 @@ import {
   Maximize, 
   Minimize, 
   Subtitles, 
-  Activity,
-  RotateCcw,
-  RotateCw
+  Activity, 
+  RotateCcw, 
+  RotateCw, 
+  Settings, 
+  ListVideo
 } from "lucide-react";
 import { TrackSelectorDropdown } from "./TrackSelectorDropdown";
+import { TimelineSlider } from "./TimelineSlider";
+import { TimeDisplay } from "./TimeDisplay";
 
 interface TrackItem {
   id: number;
@@ -20,12 +24,11 @@ interface TrackItem {
 }
 
 interface PlayerControlsProps {
+  videoRef: React.RefObject<HTMLVideoElement | null>;
   controlsVisible: boolean;
   isPlaying: boolean;
   onTogglePlay: () => void;
-  currentTime: number;
   duration: number;
-  bufferedTime: number;
   onSeek: (time: number) => void;
   volume: number;
   isMuted: boolean;
@@ -46,29 +49,30 @@ interface PlayerControlsProps {
   showSubtitleMenu: boolean;
   onToggleSubtitleMenu: () => void;
   onUploadSubtitle?: (file: File) => void;
+  qualityLevels: TrackItem[];
+  currentQualityLevel: number;
+  onSelectQualityLevel: (id: number) => void;
+  showQualityMenu: boolean;
+  onToggleQualityMenu: () => void;
+  playlist?: { season: number; episode: number; title?: string }[];
+  playlistIndex?: number;
+  onSelectPlaylistItem?: (index: number) => void;
+  showPlaylistMenu?: boolean;
+  onTogglePlaylistMenu?: () => void;
+  seekOffset?: number;
+  streamHash?: string;
+  fileIndex?: string;
 }
 
-// Format seconds into HH:MM:SS
-function formatTime(seconds: number): string {
-  if (isNaN(seconds) || seconds === Infinity) return "00:00";
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  
-  const pad = (n: number) => String(n).padStart(2, "0");
-  if (h > 0) {
-    return `${pad(h)}:${pad(m)}:${pad(s)}`;
-  }
-  return `${pad(m)}:${pad(s)}`;
-}
+// Fallback constant array prevents re-rendering allocations
+const FALLBACK_AUDIO_TRACKS = [{ id: -1, name: "Основная (По умолчанию)" }];
 
-export const PlayerControls: React.FC<PlayerControlsProps> = ({
+export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
+  videoRef,
   controlsVisible,
   isPlaying,
   onTogglePlay,
-  currentTime,
   duration,
-  bufferedTime,
   onSeek,
   volume,
   isMuted,
@@ -89,24 +93,37 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
   showSubtitleMenu,
   onToggleSubtitleMenu,
   onUploadSubtitle,
+  qualityLevels,
+  currentQualityLevel,
+  onSelectQualityLevel,
+  showQualityMenu,
+  onToggleQualityMenu,
+  playlist,
+  playlistIndex,
+  onSelectPlaylistItem,
+  showPlaylistMenu,
+  onTogglePlaylistMenu,
+  seekOffset = 0,
+  streamHash,
+  fileIndex,
 }) => {
-  const seekTo = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onSeek(parseFloat(e.target.value));
-  };
-
   const changeVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
     onVolumeChange(parseFloat(e.target.value));
   };
 
-  const timelineStyle = {
-    "--timeline-progress": `${(currentTime / (duration || 100)) * 100}%`,
-    "--buffer-progress": `${(bufferedTime / (duration || 100)) * 100}%`,
-  } as React.CSSProperties;
+  const playlistItems = React.useMemo(() => {
+    if (!playlist) return [];
+    return playlist.map((item, idx) => ({
+      id: idx,
+      name: item.season !== undefined && item.episode !== undefined
+        ? `S${item.season}E${item.episode} - ${item.title || "Серия"}`
+        : item.title || `Серия ${idx + 1}`
+    }));
+  }, [playlist]);
 
-  // Premium UI: Ensure selectors are always visible by providing fallbacks
   const displayAudioTracks = audioTracks.length > 0 
     ? audioTracks 
-    : [{ id: -1, name: "Основная (По умолчанию)" }];
+    : FALLBACK_AUDIO_TRACKS;
 
   const displayCurrentAudio = audioTracks.length > 0 ? currentAudioTrack : -1;
 
@@ -117,15 +134,13 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
     >
       <div className="player-controller-glass-pill">
         <div className="player-timeline-wrapper">
-          <input 
-            type="range"
-            min={0}
-            max={duration || 100}
-            value={currentTime}
-            onChange={seekTo}
-            className="player-timeline-slider"
-            style={timelineStyle}
-            aria-label="Перемотка видео"
+          <TimelineSlider 
+            videoRef={videoRef} 
+            onSeek={onSeek} 
+            initialDuration={duration} 
+            seekOffset={seekOffset} 
+            streamHash={streamHash}
+            fileIndex={fileIndex}
           />
         </div>
 
@@ -133,7 +148,11 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
           <div className="controls-group left">
             <button 
               className="control-icon-btn" 
-              onClick={() => onSeek(Math.max(currentTime - 10, 0))}
+              onClick={() => {
+                const currentTime = videoRef.current?.currentTime || 0;
+                const T_new = Math.max(seekOffset + currentTime - 10, 0);
+                onSeek(T_new);
+              }}
               title="Назад на 10 сек."
               aria-label="Назад на 10 секунд"
             >
@@ -146,7 +165,11 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
 
             <button 
               className="control-icon-btn" 
-              onClick={() => onSeek(Math.min(currentTime + 10, duration))}
+              onClick={() => {
+                const currentTime = videoRef.current?.currentTime || 0;
+                const T_new = Math.min(seekOffset + currentTime + 10, duration);
+                onSeek(T_new);
+              }}
               title="Вперед на 10 сек."
               aria-label="Вперед на 10 секунд"
             >
@@ -165,27 +188,29 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
                 value={isMuted ? 0 : volume}
                 onChange={changeVolume}
                 className="volume-slider"
+                style={{
+                  background: `linear-gradient(to right, var(--text-primary) ${ (isMuted ? 0 : volume) * 100 }%, rgba(255, 255, 255, 0.2) ${ (isMuted ? 0 : volume) * 100 }%)`
+                }}
                 aria-label="Громкость"
               />
             </div>
 
-            <span className="player-time-display">
-              {formatTime(currentTime)} <span className="time-divider">/</span> {formatTime(duration)}
-            </span>
+            <TimeDisplay videoRef={videoRef} initialDuration={duration} seekOffset={seekOffset} />
           </div>
 
           <div className="controls-group right">
             <button 
               className={`control-icon-btn ${showStats ? "active-accent" : ""}`}
               onClick={onToggleStats}
-              title="Показать сетевую статистику"
+              title="Диагностика"
+              aria-label="Показать диагностику"
             >
               <Activity size={18} />
             </button>
 
             <TrackSelectorDropdown
               icon={<Volume2 size={18} />}
-              title="Аудиодорожка"
+              title="Аудиодорожки"
               items={displayAudioTracks}
               currentItemId={displayCurrentAudio}
               onSelect={onSelectAudioTrack}
@@ -204,7 +229,32 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
               showDisableOption={true}
               disableOptionLabel="Отключить"
               onUploadSubtitle={onUploadSubtitle}
+              disabled={true}
             />
+
+            {playlistItems && playlistItems.length > 0 && (
+              <TrackSelectorDropdown
+                icon={<ListVideo size={18} />}
+                title="Серии плейлиста"
+                items={playlistItems}
+                currentItemId={playlistIndex ?? -1}
+                onSelect={onSelectPlaylistItem || (() => {})}
+                isOpen={showPlaylistMenu || false}
+                onToggle={onTogglePlaylistMenu || (() => {})}
+              />
+            )}
+
+            {qualityLevels && qualityLevels.length > 0 && (
+              <TrackSelectorDropdown
+                icon={<Settings size={18} />}
+                title="Качество"
+                items={qualityLevels}
+                currentItemId={currentQualityLevel}
+                onSelect={onSelectQualityLevel}
+                isOpen={showQualityMenu}
+                onToggle={onToggleQualityMenu}
+              />
+            )}
 
             <button className="control-icon-btn" onClick={onToggleFullscreen} aria-label="Во весь экран">
               {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
@@ -214,4 +264,6 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
       </div>
     </div>
   );
-};
+});
+
+PlayerControls.displayName = "PlayerControls";

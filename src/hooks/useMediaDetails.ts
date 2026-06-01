@@ -8,7 +8,7 @@ interface UseMediaDetailsProps {
   mediaType?: string;
   mediaId?: number;
   playParam?: string | null;
-  onNavigateToTorrents: (season?: number, episode?: number) => void;
+  onNavigateToStreams: (season?: number, episode?: number) => void;
   showHUD: (type: "success" | "error" | "info" | "warning", msg: string) => void;
 }
 
@@ -16,7 +16,7 @@ export function useMediaDetails({
   mediaType,
   mediaId,
   playParam,
-  onNavigateToTorrents,
+  onNavigateToStreams,
   showHUD,
 }: UseMediaDetailsProps) {
   const [media, setMedia] = useState<MediaCard | null>(null);
@@ -27,13 +27,13 @@ export function useMediaDetails({
   const [isFavorite, setIsFavorite] = useState(false);
   const [isWatched, setIsWatched] = useState(false);
 
-  const onNavigateToTorrentsRef = useRef(onNavigateToTorrents);
+  const onNavigateToStreamsRef = useRef(onNavigateToStreams);
   const showHUDRef = useRef(showHUD);
 
   useEffect(() => {
-    onNavigateToTorrentsRef.current = onNavigateToTorrents;
+    onNavigateToStreamsRef.current = onNavigateToStreams;
     showHUDRef.current = showHUD;
-  }, [onNavigateToTorrents, showHUD]);
+  }, [onNavigateToStreams, showHUD]);
 
   const checkIsWatched = useCallback((item: MediaCard) => {
     if (!item.progress) return false;
@@ -42,10 +42,10 @@ export function useMediaDetails({
       : item.progress.completed >= item.progress.aired;
   }, []);
 
-  const fetchDetails = useCallback(async () => {
+  const fetchDetails = useCallback(async (silent: boolean | any = false) => {
     if (!mediaType || !mediaId) return;
     try {
-      setLoading(true);
+      if (silent !== true) setLoading(true);
       setError(null);
       const data = await ApiClient.fetchMediaDetails(mediaType, mediaId);
       setMedia(data);
@@ -74,9 +74,9 @@ export function useMediaDetails({
         if (data.mediaType === "tv") {
           const s = data.progress?.nextSeason || 1;
           const e = data.progress?.nextEpisode || 1;
-          onNavigateToTorrentsRef.current(s, e);
+          onNavigateToStreamsRef.current(s, e);
         } else {
-          onNavigateToTorrentsRef.current();
+          onNavigateToStreamsRef.current();
         }
       }
     } catch (err: unknown) {
@@ -87,7 +87,7 @@ export function useMediaDetails({
   }, [mediaType, mediaId, playParam, checkIsWatched]);
 
   useEffect(() => {
-    fetchDetails();
+    fetchDetails(false);
   }, [fetchDetails]);
 
   const toggleWatchlist = async () => {
@@ -110,7 +110,7 @@ export function useMediaDetails({
         await ApiClient.syncTraktAction(nextState ? "watchlist" : "watchlist/remove", payload);
       }
       showHUDRef.current("success", nextState ? "Добавлено в список ожидания" : "Удалено из списка ожидания");
-      fetchDetails();
+      fetchDetails(true);
     } catch {
       setInWatchlist(media.isInWatchlist || false);
       showHUDRef.current("error", "Ошибка при обновлении списка ожидания");
@@ -137,7 +137,7 @@ export function useMediaDetails({
         await ApiClient.syncTraktAction(nextState ? "favorites" : "favorites/remove", payload);
       }
       showHUDRef.current("success", nextState ? "Добавлено в избранное" : "Удалено из избранного");
-      fetchDetails();
+      fetchDetails(true);
     } catch {
       setIsFavorite(media.isFavorite || false);
       showHUDRef.current("error", "Ошибка при обновлении избранного");
@@ -164,7 +164,7 @@ export function useMediaDetails({
         await ApiClient.syncTraktAction(nextState ? "history" : "history/remove", payload);
       }
       showHUDRef.current("success", nextState ? "Отмечено просмотренным" : "Удалено из истории");
-      fetchDetails();
+      fetchDetails(true);
     } catch {
       setIsWatched(checkIsWatched(media));
       showHUDRef.current("error", "Ошибка при обновлении истории");

@@ -3,7 +3,7 @@ import { LogOut, RefreshCw, Popcorn } from "lucide-react";
 import { Storage } from "../utils/StorageService";
 import { AuthApiClient } from "../network/AuthApiClient";
 import { useHUD } from "../context/HUDContext";
-import { useAppSettings } from "../context/AppSettingsContext";
+import { useAuth } from "../context/AppSettingsContext";
 import { SyncStrategySelectionView } from "../components/profile/SyncStrategySelectionView";
 import { ServerSyncActiveView } from "../components/profile/ServerSyncActiveView";
 import { TraktDeviceAuthView } from "../components/profile/TraktDeviceAuthView";
@@ -14,7 +14,7 @@ import "../styles/profile.css";
 
 export const ProfilePage: React.FC = () => {
   const { show: showHUD } = useHUD();
-  const { potokToken, potokUser, login, logout } = useAppSettings();
+  const { potokToken, potokUser, login, logout } = useAuth();
   const [syncStrategy, setSyncStrategy] = useState<string>(() => Storage.get("syncStrategy", "none"));
   const [traktToken, setTraktToken] = useState<string | null>(() => Storage.get("traktAccessToken", null));
 

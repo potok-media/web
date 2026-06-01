@@ -1,16 +1,20 @@
 import React, { useState } from "react";
 import { RotateCw, Flame, Calendar, ArrowUpCircle, ArrowDownCircle, ChevronDown, Check, Filter } from "lucide-react";
 
-interface TorrentsFilterBarProps {
-  sortedCount: number;
-  sortOption: string;
-  setSortOption: (opt: string) => void;
+interface StreamFilterBarProps {
+  id?: string;
+  countLabel: string;
   qualityFilter: string;
   setQualityFilter: (quality: string) => void;
   activeTracker: string;
   setActiveTracker: (tracker: string) => void;
   trackers: string[];
   onRefresh: () => void;
+  showSort?: boolean;
+  sortOption?: string;
+  setSortOption?: (opt: string) => void;
+  trackerLabel?: string;
+  allTrackersLabel?: string;
 }
 
 const SORT_OPTIONS: Record<string, string> = {
@@ -20,9 +24,10 @@ const SORT_OPTIONS: Record<string, string> = {
   sizeAsc: "Сначала маленькие",
 };
 
-export const TorrentsFilterBar: React.FC<TorrentsFilterBarProps> = React.memo(({
-  sortedCount,
-  sortOption,
+export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
+  id,
+  countLabel,
+  sortOption = "seedersDesc",
   setSortOption,
   qualityFilter,
   setQualityFilter,
@@ -30,17 +35,20 @@ export const TorrentsFilterBar: React.FC<TorrentsFilterBarProps> = React.memo(({
   setActiveTracker,
   trackers,
   onRefresh,
+  showSort = true,
+  trackerLabel = "Источник",
+  allTrackersLabel = "Все трекеры",
 }) => {
   const [sortOpen, setSortOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
   return (
-    <header className="torrents-results-header">
-      <div className="torrents-results-count">
-        {sortedCount} торрентов
+    <header className="streams-results-header" id={id}>
+      <div className="streams-results-count">
+        {countLabel}
       </div>
       
-      <div className="torrents-header-actions">
+      <div className="streams-header-actions">
         {/* Refresh Button */}
         <button 
           className="btn-glass filter-btn-trigger" 
@@ -51,49 +59,51 @@ export const TorrentsFilterBar: React.FC<TorrentsFilterBarProps> = React.memo(({
         </button>
 
         {/* Sorting Dropdown */}
-        <div className="filter-popover-wrapper">
-          <button
-            className="btn-glass filter-btn-trigger"
-            onClick={() => {
-              setSortOpen(!sortOpen);
-              setFilterOpen(false);
-            }}
-          >
-            {sortOption === "seedersDesc" && <Flame size={14} />}
-            {sortOption === "publishDateDesc" && <Calendar size={14} />}
-            {sortOption === "sizeDesc" && <ArrowUpCircle size={14} />}
-            {sortOption === "sizeAsc" && <ArrowDownCircle size={14} />}
-            <span>{SORT_OPTIONS[sortOption]}</span>
-            <ChevronDown size={14} />
-          </button>
+        {showSort && setSortOption && (
+          <div className="filter-popover-wrapper">
+            <button
+              className="btn-glass filter-btn-trigger"
+              onClick={() => {
+                setSortOpen(!sortOpen);
+                setFilterOpen(false);
+              }}
+            >
+              {sortOption === "seedersDesc" && <Flame size={14} />}
+              {sortOption === "publishDateDesc" && <Calendar size={14} />}
+              {sortOption === "sizeDesc" && <ArrowUpCircle size={14} />}
+              {sortOption === "sizeAsc" && <ArrowDownCircle size={14} />}
+              <span>{SORT_OPTIONS[sortOption]}</span>
+              <ChevronDown size={14} />
+            </button>
 
-          {sortOpen && (
-            <>
-              <div className="filter-popover-overlay" onClick={() => setSortOpen(false)} />
-              <div className="filter-popover filter-popover-menu-sort">
-                {Object.entries(SORT_OPTIONS).map(([key, label]) => (
-                  <div
-                    key={key}
-                    className={`popover-item ${sortOption === key ? "active" : ""}`}
-                    onClick={() => {
-                      setSortOption(key);
-                      setSortOpen(false);
-                    }}
-                  >
-                    <div className="filter-popover-item-content">
-                      {key === "seedersDesc" && <Flame size={14} />}
-                      {key === "publishDateDesc" && <Calendar size={14} />}
-                      {key === "sizeDesc" && <ArrowUpCircle size={14} />}
-                      {key === "sizeAsc" && <ArrowDownCircle size={14} />}
-                      <span>{label}</span>
+            {sortOpen && (
+              <>
+                <div className="filter-popover-overlay" onClick={() => setSortOpen(false)} />
+                <div className="filter-popover filter-popover-menu-sort">
+                  {Object.entries(SORT_OPTIONS).map(([key, label]) => (
+                    <div
+                      key={key}
+                      className={`popover-item ${sortOption === key ? "active" : ""}`}
+                      onClick={() => {
+                        setSortOption(key);
+                        setSortOpen(false);
+                      }}
+                    >
+                      <div className="filter-popover-item-content">
+                        {key === "seedersDesc" && <Flame size={14} />}
+                        {key === "publishDateDesc" && <Calendar size={14} />}
+                        {key === "sizeDesc" && <ArrowUpCircle size={14} />}
+                        {key === "sizeAsc" && <ArrowDownCircle size={14} />}
+                        <span>{label}</span>
+                      </div>
+                      {sortOption === key && <Check size={14} className="filter-popover-check" />}
                     </div>
-                    {sortOption === key && <Check size={14} className="filter-popover-check" />}
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Filters Dropdown */}
         <div className="filter-popover-wrapper">
@@ -118,7 +128,7 @@ export const TorrentsFilterBar: React.FC<TorrentsFilterBarProps> = React.memo(({
               <div className="filter-popover filter-popover-menu-filter">
                 <div className="filter-section-title">Качество</div>
                 <div className="filter-popover-column">
-                  {["all", "2160p", "1080p", "720p"].map((q) => (
+                  {["all", "2160p", "1080p", "720p", "480p"].map((q) => (
                     <div
                       key={q}
                       className={`popover-item ${qualityFilter === q ? "active" : ""}`}
@@ -132,13 +142,17 @@ export const TorrentsFilterBar: React.FC<TorrentsFilterBarProps> = React.memo(({
 
                 <div className="filter-popover-divider" />
 
-                <div className="filter-section-title">Источник</div>
+                <div className="filter-section-title">
+                  {trackerLabel}
+                </div>
                 <div className="filter-popover-scroll-area">
                   <div
                     className={`popover-item ${activeTracker === "all" ? "active" : ""}`}
                     onClick={() => setActiveTracker("all")}
                   >
-                    <span>Все трекеры</span>
+                    <span>
+                      {allTrackersLabel}
+                    </span>
                     {activeTracker === "all" && <Check size={14} className="filter-popover-check" />}
                   </div>
                   {trackers.map((tr) => (
@@ -177,4 +191,4 @@ export const TorrentsFilterBar: React.FC<TorrentsFilterBarProps> = React.memo(({
   );
 });
 
-TorrentsFilterBar.displayName = "TorrentsFilterBar";
+StreamFilterBar.displayName = "StreamFilterBar";

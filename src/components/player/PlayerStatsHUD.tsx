@@ -1,23 +1,63 @@
 import React from "react";
 import { Gauge } from "lucide-react";
+import type Hls from "hls.js";
+import { usePlayerStats } from "../../hooks/usePlayerStats";
 
 interface PlayerStatsHUDProps {
   showStats: boolean;
-  downloadSpeed: string;
-  bitrate: string;
-  resolution: string;
-  bufferSec: number;
-  fps: number;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  hlsRef: React.RefObject<Hls | null>;
+  isPlaying: boolean;
+  streamUrl: string;
+  streamHash: string;
+  duration: number;
 }
 
 export const PlayerStatsHUD: React.FC<PlayerStatsHUDProps> = ({
   showStats,
-  downloadSpeed,
-  bitrate,
-  resolution,
-  bufferSec,
-  fps,
+  videoRef,
+  hlsRef,
+  isPlaying,
+  streamUrl,
+  streamHash,
+  duration,
 }) => {
+  const [bufferSec, setBufferSec] = React.useState(0);
+
+  const { downloadSpeed, bitrate, resolution, fps } = usePlayerStats(
+    videoRef,
+    hlsRef,
+    isPlaying,
+    showStats,
+    streamUrl,
+    streamHash,
+    duration
+  );
+
+  React.useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !showStats) return;
+
+    const handleTimeUpdate = () => {
+      const buffered = video.buffered;
+      let buf = 0;
+      for (let i = 0; i < buffered.length; i++) {
+        if (video.currentTime >= buffered.start(i) && video.currentTime <= buffered.end(i)) {
+          buf = buffered.end(i) - video.currentTime;
+          break;
+        }
+      }
+      setBufferSec(buf);
+    };
+
+    video.addEventListener("timeupdate", handleTimeUpdate);
+    handleTimeUpdate();
+
+    return () => {
+      video.removeEventListener("timeupdate", handleTimeUpdate);
+    };
+  }, [videoRef, showStats]);
+
   if (!showStats) return null;
 
   return (

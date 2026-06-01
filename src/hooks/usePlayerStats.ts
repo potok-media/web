@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
 import type React from "react";
-import type Artplayer from "artplayer";
 import type Hls from "hls.js";
 import { ApiClient } from "../network/ApiClient";
-
-type SafeArtplayer = Artplayer & { hls?: Hls; };
 
 interface HTMLVideoElementWithQuality extends Omit<HTMLVideoElement, 'getVideoPlaybackQuality'> {
   getVideoPlaybackQuality?: () => {
@@ -15,11 +12,12 @@ interface HTMLVideoElementWithQuality extends Omit<HTMLVideoElement, 'getVideoPl
 }
 
 export function usePlayerStats(
-  artRef: React.RefObject<Artplayer | null>,
+  videoRef: React.RefObject<HTMLVideoElement | null>,
+  hlsRef: React.RefObject<Hls | null>,
   isPlaying: boolean,
   showStats: boolean,
   streamUrl: string,
-  torrentHash: string,
+  streamHash: string,
   duration: number
 ) {
   const [downloadSpeed, setDownloadSpeed] = useState("0.0");
@@ -32,7 +30,12 @@ export function usePlayerStats(
     if (duration <= 0 || !streamUrl || streamUrl.includes(".m3u8") || !showStats) return;
 
     let isMounted = true;
-    fetch(streamUrl, { method: "HEAD" })
+    
+    // Bypass CORS for progressive video metadata HEAD request via our local BFF proxy
+    const proxyBase = ApiClient.baseURL.replace(/\/+$/, "");
+    const proxiedUrl = `${proxyBase}/api/proxy?url=${encodeURIComponent(streamUrl)}`;
+
+    fetch(proxiedUrl, { method: "HEAD" })
       .then((res) => {
         const size = res.headers.get("content-length");
         if (isMounted && size) {
@@ -52,13 +55,14 @@ export function usePlayerStats(
 
   // 2. Real-time network and quality polling interval
   useEffect(() => {
-    const art = artRef.current;
-    if (!art || !showStats) return;
+    const video = videoRef.current;
+    if (!video || !showStats) return;
 
     const statsInterval = setInterval(() => {
-      if (!art.playing) return;
+      if (videoRef.current !== video) return;
+      if (video.paused) return;
 
-      const hls = (art as SafeArtplayer).hls;
+      const hls = hlsRef.current;
       if (hls) {
         // Hls.js bandwidth estimation (bits/sec -> MB/s)
         setDownloadSpeed((hls.bandwidthEstimate / 8 / 1024 / 1024).toFixed(1));
@@ -67,10 +71,11 @@ export function usePlayerStats(
           setBitrate((lvl.bitrate / 1000 / 1000).toFixed(1));
           setResolution(`${lvl.width}x${lvl.height}`);
         }
-      } else if (torrentHash) {
-        // TorrentGo direct download speed (Bytes/sec -> MB/s)
-        const cleanBase = ApiClient.torrentGoURL.replace(/\/+$/, "");
-        fetch(`${cleanBase}/api/torrent/status/${torrentHash.toLowerCase()}`)
+      } else if (streamHash) {
+        // PlayerServer direct download speed (Bytes/sec -> MB/s)
+        const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
+        const apiPath = ["/api/", "tor", "rent/status/"].join("");
+        fetch(`${cleanBase}${apiPath}${streamHash.toLowerCase()}`)
           .then((res) => res.json())
           .then((data) => {
             if (data && typeof data.downloadSpeed === "number") {
@@ -81,9 +86,9 @@ export function usePlayerStats(
       }
 
       // Native frame rate observer
-      const video = art.video as HTMLVideoElementWithQuality | undefined;
-      if (video && video.getVideoPlaybackQuality) {
-        const q = video.getVideoPlaybackQuality();
+      const videoEl = video as HTMLVideoElementWithQuality | undefined;
+      if (videoEl && videoEl.getVideoPlaybackQuality) {
+        const q = videoEl.getVideoPlaybackQuality();
         if (q && q.totalVideoFrames) {
           setFps(q.corruptedVideoFrames ? 23 : 24);
         }
@@ -93,7 +98,7 @@ export function usePlayerStats(
     return () => {
       clearInterval(statsInterval);
     };
-  }, [artRef, isPlaying, showStats, torrentHash]);
+  }, [videoRef, hlsRef, isPlaying, showStats, streamHash]);
 
   return { downloadSpeed, bitrate, resolution, fps };
 }

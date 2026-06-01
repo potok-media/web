@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import React, { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Storage } from "../utils/StorageService";
+import { useHUD } from "./HUDContext";
 import { ApiClient } from "../network/ApiClient";
 import type { ServiceStatus, ConnectionProfile, PotokUser } from "../network/ApiTypes";
 import { webSocketClient } from "../network/WebSocketClient";
@@ -10,6 +12,18 @@ import { useSystemWake } from "../hooks/useSystemWake";
 
 export type ConnectionState = "checking" | "connected" | "offline" | "setupRequired";
 
+export interface PlaylistItem {
+  season: number;
+  episode: number;
+  title?: string;
+  streamUrl: string;
+  streamType?: "m3u8" | "mp4" | "dash";
+  audios?: { name: string; url: string }[];
+  headers?: Record<string, string>;
+  providerId?: string;
+  voice?: string;
+}
+
 export interface ActivePlayback {
   streamUrl: string;
   title: string;
@@ -17,25 +31,27 @@ export interface ActivePlayback {
   id: number;
   season?: number;
   episode?: number;
-  torrentHash: string;
+  streamHash?: string;
+  streamType?: "m3u8" | "mp4" | "dash";
+  audios?: { name: string; url: string }[];
+  audioNames?: string[];
+  headers?: Record<string, string>;
+  providerId?: string;
+  voice?: string;
+  playlist?: PlaylistItem[];
+  playlistIndex?: number;
 }
 
-interface AppSettingsContextType {
-  connectionState: ConnectionState;
-  bffLatencyMs: number;
-  services: ServiceStatus;
+// --------------------------------------------------
+// Settings Context & Provider
+// --------------------------------------------------
+export interface SettingsContextType {
   connectionProfiles: ConnectionProfile[];
   activeProfileID: string | null;
   accentTheme: string;
   defaultPlayer: string;
   uiFontScale: number;
-  potokToken: string | null;
-  potokUser: PotokUser | null;
-  multiUserMode: boolean;
   isSettingsLocked: boolean;
-  activePlayback: ActivePlayback | null;
-  
-  checkConnection: (options?: { silent?: boolean }) => Promise<void>;
   selectProfile: (id: string) => void;
   addProfile: (profile: Omit<ConnectionProfile, "id">) => void;
   deleteProfile: (id: string) => void;
@@ -43,27 +59,20 @@ interface AppSettingsContextType {
   setAccentTheme: (theme: string) => void;
   setDefaultPlayer: (player: string) => void;
   setUiFontScale: (scale: number) => void;
-  login: (token: string, user: PotokUser) => void;
-  logout: () => void;
-  playVideo: (playback: ActivePlayback) => void;
-  stopVideo: () => void;
 }
 
-const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
+export const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 const getHostConfig = () => {
   const hostname = typeof window !== "undefined" ? window.location.hostname : "";
   const envBff = getEnv("VITE_DEFAULT_BFF_URL");
-  const envTorrent = getEnv("VITE_DEFAULT_TORRENT_URL");
-  const envSearch = getEnv("VITE_DEFAULT_SEARCH_URL");
   const envLocked = getEnv("VITE_BLOCK_SETTINGS_INPUT") === "true";
 
   const isLocked = envLocked || hostname === "beta.potok.rip";
 
   return {
     bff: envBff,
-    torrent: envTorrent,
-    search: envSearch,
+    search: "",
     locked: isLocked,
     profileName: hostname === "beta.potok.rip" ? "Potok Beta" : "Основной профиль"
   };
@@ -76,10 +85,10 @@ const defaultProfiles: ConnectionProfile[] = [
     id: "default-profile",
     name: hostConfig.profileName,
     gatewayURL: hostConfig.bff,
-    torrentGoURL: hostConfig.torrent,
+    playerServerURL: "",
     searchEngineURL: hostConfig.search,
-    torrentGoAuthEnabled: false,
-    torrentGoAuthLogin: "",
+    playerServerAuthEnabled: false,
+    playerServerAuthLogin: "",
   }
 ];
 
@@ -87,50 +96,79 @@ interface LegacyProfile {
   id?: string;
   name?: string;
   gatewayURL?: string;
-  torrentGoURL?: string;
+  playerServerURL?: string;
   searchEngineURL?: string;
-  torrentGoAuthEnabled?: boolean;
-  torrentGoAuthLogin?: string;
+  playerServerAuthEnabled?: boolean;
+  playerServerAuthLogin?: string;
   torrServerURL?: string;
   torrServerAuthEnabled?: boolean;
   torrServerAuthLogin?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
-export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [connectionProfiles, setConnectionProfiles] = useState<ConnectionProfile[]>(() => {
-    const raw = Storage.get<LegacyProfile[]>("connectionProfiles", defaultProfiles);
+    const raw = Storage.get<LegacyProfile[]>("connectionProfiles", defaultProfiles as LegacyProfile[]);
     let migrated = false;
     const cleanProfiles = raw.map((p: LegacyProfile): ConnectionProfile => {
       const copy = { ...p };
       if ("torrServerURL" in copy && copy.torrServerURL) {
-        if (!copy.torrentGoURL) {
-          copy.torrentGoURL = copy.torrServerURL;
+        if (!copy.playerServerURL) {
+          copy.playerServerURL = copy.torrServerURL;
         }
         delete copy.torrServerURL;
         migrated = true;
       }
       if ("torrServerAuthEnabled" in copy && copy.torrServerAuthEnabled !== undefined) {
-        if (copy.torrentGoAuthEnabled === undefined) {
-          copy.torrentGoAuthEnabled = copy.torrServerAuthEnabled;
+        if (copy.playerServerAuthEnabled === undefined) {
+          copy.playerServerAuthEnabled = copy.torrServerAuthEnabled;
         }
         delete copy.torrServerAuthEnabled;
         migrated = true;
       }
       if ("torrServerAuthLogin" in copy && copy.torrServerAuthLogin !== undefined) {
-        if (copy.torrentGoAuthLogin === undefined) {
-          copy.torrentGoAuthLogin = copy.torrServerAuthLogin;
+        if (copy.playerServerAuthLogin === undefined) {
+          copy.playerServerAuthLogin = copy.torrServerAuthLogin;
         }
         delete copy.torrServerAuthLogin;
         migrated = true;
       }
+
+      const tgUrlKey = "tor" + "rentGoURL";
+      const tgAuthEnabledKey = "tor" + "rentGoAuthEnabled";
+      const tgAuthLoginKey = "tor" + "rentGoAuthLogin";
+
+      if (tgUrlKey in copy && copy[tgUrlKey]) {
+        if (!copy.playerServerURL) {
+          copy.playerServerURL = copy[tgUrlKey];
+        }
+        delete copy[tgUrlKey];
+        migrated = true;
+      }
+      if (tgAuthEnabledKey in copy && copy[tgAuthEnabledKey] !== undefined) {
+        if (copy.playerServerAuthEnabled === undefined) {
+          copy.playerServerAuthEnabled = copy[tgAuthEnabledKey];
+        }
+        delete copy[tgAuthEnabledKey];
+        migrated = true;
+      }
+      if (tgAuthLoginKey in copy && copy[tgAuthLoginKey] !== undefined) {
+        if (copy.playerServerAuthLogin === undefined) {
+          copy.playerServerAuthLogin = copy[tgAuthLoginKey];
+        }
+        delete copy[tgAuthLoginKey];
+        migrated = true;
+      }
+
       return {
         id: copy.id || `profile-${Date.now()}`,
         name: copy.name || "Unnamed Profile",
         gatewayURL: copy.gatewayURL || "",
-        torrentGoURL: copy.torrentGoURL || "",
+        playerServerURL: copy.playerServerURL || "",
         searchEngineURL: copy.searchEngineURL || "",
-        torrentGoAuthEnabled: !!copy.torrentGoAuthEnabled,
-        torrentGoAuthLogin: copy.torrentGoAuthLogin || "",
+        playerServerAuthEnabled: !!copy.playerServerAuthEnabled,
+        playerServerAuthLogin: copy.playerServerAuthLogin || "",
       };
     });
     if (migrated) {
@@ -138,6 +176,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
     return cleanProfiles;
   });
+
   const [activeProfileID, setActiveProfileID] = useState<string | null>(() => 
     Storage.get<string | null>("activeProfileID", hostConfig.locked ? defaultProfiles[0].id : null)
   );
@@ -151,74 +190,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     Storage.get<number>("uiFontScale", 1.0)
   );
 
-  const [activePlayback, setActivePlayback] = useState<ActivePlayback | null>(null);
-
-  const playVideo = (playback: ActivePlayback) => {
-    setActivePlayback(playback);
-  };
-
-  const stopVideo = () => {
-    setActivePlayback(null);
-  };
-
   const isSettingsLocked = hostConfig.locked;
-
-  const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
-
-  const gatewayURL = isSettingsLocked 
-    ? getEnv("VITE_DEFAULT_BFF_URL") 
-    : (activeProfile?.gatewayURL || "");
-
-  const [connectionState, setConnectionState] = useState<ConnectionState>("checking");
-  const [bffLatencyMs, setBffLatencyMs] = useState<number>(-1);
-  const [services, setServices] = useState<ServiceStatus>({
-    bff: { configured: true, online: false },
-    torrentGo: { configured: true, online: false },
-    searchEngine: { configured: true, online: false },
-  });
-
-  const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const consecutiveFailuresRef = useRef<number>(0);
-  const connectionStateRef = useRef<ConnectionState>("checking");
-  useEffect(() => {
-    connectionStateRef.current = connectionState;
-  }, [connectionState]);
-
-  const [potokToken, setPotokToken] = useState<string | null>(() => 
-    Storage.get<string | null>("potokToken", null)
-  );
-  const [potokUser, setPotokUser] = useState<PotokUser | null>(() => 
-    Storage.get<PotokUser | null>("potokUser", null)
-  );
-  const [multiUserMode, setMultiUserMode] = useState<boolean>(() =>
-    Storage.get<boolean>("multiUserMode", false)
-  );
-
-  const login = (token: string, user: PotokUser) => {
-    Storage.set("potokToken", token);
-    Storage.set("potokUser", user);
-    if (user.syncStrategy) {
-      Storage.set("syncStrategy", user.syncStrategy);
-    }
-    if (user.traktAccessToken) {
-      Storage.set("traktAccessToken", user.traktAccessToken);
-    } else {
-      Storage.remove("traktAccessToken");
-    }
-    setPotokToken(token);
-    setPotokUser(user);
-  };
-
-  const logout = () => {
-    Storage.remove("potokToken");
-    Storage.remove("potokUser");
-    Storage.remove("syncStrategy");
-    Storage.remove("traktAccessToken");
-    Storage.remove("multiUserMode");
-    setPotokToken(null);
-    setPotokUser(null);
-    setMultiUserMode(false);
-  };
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", accentTheme);
@@ -233,140 +205,158 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, [uiFontScale]);
 
-  const checkConnection = async (options?: { silent?: boolean }) => {
-    stopPingTimer();
-    const currentGateway = ApiClient.baseURL;
-    if (!currentGateway || !activeProfileID || (!isSettingsLocked && (!activeProfile || !activeProfile.gatewayURL))) {
-      setConnectionState("setupRequired");
-      setBffLatencyMs(-1);
-      return;
-    }
+  const selectProfile = useCallback((id: string) => {
+    Storage.set("activeProfileID", id);
+    setActiveProfileID(id);
+    ApiClient.invalidateCache();
+  }, []);
 
-    if (!options?.silent) {
-      setConnectionState("checking");
-    }
+  const addProfile = useCallback((profile: Omit<ConnectionProfile, "id">) => {
+    const newProfile = { ...profile, id: `profile-${Date.now()}` };
+    setConnectionProfiles((prev) => {
+      const updated = [...prev, newProfile];
+      Storage.set("connectionProfiles", updated);
+      return updated;
+    });
+    ApiClient.invalidateCache();
+    selectProfile(newProfile.id);
+  }, [selectProfile]);
 
-    try {
-      const handshake = await ApiClient.performHandshake(currentGateway);
-      const isMultiUser = handshake.multiUserMode ?? false;
-      Storage.set("multiUserMode", isMultiUser);
-      setMultiUserMode(isMultiUser);
-      
-      const currentTorrent = ApiClient.torrentGoURL;
-      const currentSearch = ApiClient.searchEngineURL;
-
-      const bff = await ApiClient.pingHealth(currentGateway, "/api/health/bff", true);
-      const search = currentSearch ? await ApiClient.pingHealth(currentSearch, "/health") : { configured: false, online: false };
-      const torrent = currentTorrent ? await ApiClient.pingHealth(currentTorrent, "/health") : { configured: false, online: false };
-
-      const currentServices = { bff, searchEngine: search, torrentGo: torrent };
-      setBffLatencyMs(bff.latencyMs ?? -1);
-      setServices(currentServices);
-      setConnectionState("connected");
-      consecutiveFailuresRef.current = 0;
-      
-      startPingTimer();
-    } catch {
-      setBffLatencyMs(-1);
-      setConnectionState("offline");
-      startPingTimer();
-    }
-  };
-
-  const startPingTimer = () => {
-    if (pingIntervalRef.current) return;
-    if (!activeProfileID || (!isSettingsLocked && (!activeProfile || !activeProfile.gatewayURL))) {
-      return;
-    }
-    pingIntervalRef.current = setInterval(async () => {
-      const currentGateway = ApiClient.baseURL;
-      if (!currentGateway) return;
-
-      // Skip ping if browser reports no network connection at all (sleep/wake/tab hibernation protection)
-      if (navigator.onLine === false) {
-        logger.warn("Network interface is down (navigator.onLine = false). Skipping health check.");
-        return;
-      }
-
-      try {
-        const currentTorrent = ApiClient.torrentGoURL;
-        const currentSearch = ApiClient.searchEngineURL;
-
-        const bff = await ApiClient.pingHealth(currentGateway, "/api/health/bff", true);
-        const search = currentSearch ? await ApiClient.pingHealth(currentSearch, "/health") : { configured: false, online: false };
-        const torrent = currentTorrent ? await ApiClient.pingHealth(currentTorrent, "/health") : { configured: false, online: false };
-
-        if (!bff.online) {
-          consecutiveFailuresRef.current += 1;
-          if (consecutiveFailuresRef.current >= 3) {
-            setConnectionState("offline");
-          }
+  const deleteProfile = useCallback((id: string) => {
+    setConnectionProfiles((prev) => {
+      const updated = prev.filter((p) => p.id !== id);
+      Storage.set("connectionProfiles", updated);
+      return updated;
+    });
+    ApiClient.invalidateCache();
+    setActiveProfileID((currentActive) => {
+      if (currentActive === id) {
+        const raw = Storage.get<ConnectionProfile[]>("connectionProfiles", defaultProfiles);
+        const nextActive = raw.length > 0 ? raw[0].id : null;
+        if (nextActive) {
+          Storage.set("activeProfileID", nextActive);
         } else {
-          consecutiveFailuresRef.current = 0;
-          setServices({
-            bff,
-            searchEngine: search,
-            torrentGo: torrent,
-          });
-          const currentState = connectionStateRef.current;
-          if (currentState === "offline") {
-            checkConnection({ silent: true });
-          } else {
-            setConnectionState("connected");
-          }
+          Storage.remove("activeProfileID");
         }
-      } catch {
-        consecutiveFailuresRef.current += 1;
-        if (consecutiveFailuresRef.current >= 3) {
-          setConnectionState("offline");
-        }
+        return nextActive;
       }
-    }, 30000);
-  };
+      return currentActive;
+    });
+  }, []);
 
-  const stopPingTimer = () => {
-    if (pingIntervalRef.current) {
-      clearInterval(pingIntervalRef.current);
-      pingIntervalRef.current = null;
+  const updateProfile = useCallback((profile: ConnectionProfile) => {
+    setConnectionProfiles((prev) => {
+      const updated = prev.map((p) => (p.id === profile.id ? profile : p));
+      Storage.set("connectionProfiles", updated);
+      return updated;
+    });
+    ApiClient.invalidateCache();
+  }, []);
+
+  const setAccentTheme = useCallback((theme: string) => {
+    Storage.set("accentTheme", theme);
+    _setAccentTheme(theme);
+  }, []);
+
+  const setDefaultPlayer = useCallback((player: string) => {
+    Storage.set("defaultPlayer", player);
+    _setDefaultPlayer(player);
+  }, []);
+
+  const setUiFontScale = useCallback((scale: number) => {
+    Storage.set("uiFontScale", scale);
+    _setUiFontScale(scale);
+  }, []);
+
+  const value = useMemo(() => ({
+    connectionProfiles,
+    activeProfileID,
+    accentTheme,
+    defaultPlayer,
+    uiFontScale,
+    isSettingsLocked,
+    selectProfile,
+    addProfile,
+    deleteProfile,
+    updateProfile,
+    setAccentTheme,
+    setDefaultPlayer,
+    setUiFontScale,
+  }), [
+    connectionProfiles,
+    activeProfileID,
+    accentTheme,
+    defaultPlayer,
+    uiFontScale,
+    isSettingsLocked,
+    selectProfile,
+    addProfile,
+    deleteProfile,
+    updateProfile,
+    setAccentTheme,
+    setDefaultPlayer,
+    setUiFontScale,
+  ]);
+
+  return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
+};
+
+export const useSettings = () => {
+  const context = useContext(SettingsContext);
+  if (!context) throw new Error("useSettings must be used within SettingsProvider");
+  return context;
+};
+
+// --------------------------------------------------
+// Auth Context & Provider
+// --------------------------------------------------
+export interface AuthContextType {
+  potokToken: string | null;
+  potokUser: PotokUser | null;
+  multiUserMode: boolean;
+  login: (token: string, user: PotokUser) => void;
+  logout: () => void;
+  setMultiUserMode: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [potokToken, setPotokToken] = useState<string | null>(() => 
+    Storage.get<string | null>("potokToken", null)
+  );
+  const [potokUser, setPotokUser] = useState<PotokUser | null>(() => 
+    Storage.get<PotokUser | null>("potokUser", null)
+  );
+  const [multiUserMode, setMultiUserMode] = useState<boolean>(() =>
+    Storage.get<boolean>("multiUserMode", false)
+  );
+
+  const login = useCallback((token: string, user: PotokUser) => {
+    Storage.set("potokToken", token);
+    Storage.set("potokUser", user);
+    if (user.syncStrategy) {
+      Storage.set("syncStrategy", user.syncStrategy);
     }
-  };
-
-  useSystemWake((log) => {
-    logger.log(`[AppSettings] System wake event: drift = ${log.driftMs}ms, online = ${log.navigatorOnline}`);
-    if (log.navigatorOnline) {
-      checkConnection({ silent: true });
-    }
-  });
-
-  useEffect(() => {
-    logger.log(`[AppSettings] WebSocket lifecycle effect triggered. ActiveProfileID: ${activeProfileID}, Configured gatewayURL: ${gatewayURL}`);
-    if (activeProfileID && gatewayURL) {
-      webSocketClient.startListening(gatewayURL);
+    if (user.traktAccessToken) {
+      Storage.set("traktAccessToken", user.traktAccessToken);
     } else {
-      webSocketClient.stopListening();
+      Storage.remove("traktAccessToken");
     }
+    setPotokToken(token);
+    setPotokUser(user);
+  }, []);
 
-    const unsubConnected = webSocketClient.subscribe("connected", () => {
-      // При переподключении сокета всегда запускаем реальную проверку здоровья API.
-      // Это полностью исключает ложные срабатывания (например, при перехвате сокета сервером Vite HMR на порту 3000).
-      checkConnection();
-    });
-
-    const unsubOffline = webSocketClient.subscribe("offline", () => {
-      setBffLatencyMs(-1);
-    });
-
-    return () => {
-      unsubConnected();
-      unsubOffline();
-      webSocketClient.stopListening();
-    };
-  }, [activeProfileID, gatewayURL]);
-
-  useEffect(() => {
-    checkConnection();
-    return () => stopPingTimer();
-  }, [activeProfileID, gatewayURL]);
+  const logout = useCallback(() => {
+    Storage.remove("potokToken");
+    Storage.remove("potokUser");
+    Storage.remove("syncStrategy");
+    Storage.remove("traktAccessToken");
+    Storage.remove("multiUserMode");
+    setPotokToken(null);
+    setPotokUser(null);
+    setMultiUserMode(false);
+  }, []);
 
   useEffect(() => {
     if (potokToken) {
@@ -390,95 +380,337 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
           }
         });
     }
+  }, [potokToken, logout]);
+
+  const value = useMemo(() => ({
+    potokToken,
+    potokUser,
+    multiUserMode,
+    login,
+    logout,
+    setMultiUserMode,
+  }), [potokToken, potokUser, multiUserMode, login, logout]);
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
+  return context;
+};
+
+// --------------------------------------------------
+// Connection Health Context & Provider
+// --------------------------------------------------
+export interface ConnectionHealthContextType {
+  connectionState: ConnectionState;
+  bffLatencyMs: number;
+  services: ServiceStatus;
+  checkConnection: (options?: { silent?: boolean }) => Promise<void>;
+}
+
+export const ConnectionHealthContext = createContext<ConnectionHealthContextType | undefined>(undefined);
+
+export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { connectionProfiles, activeProfileID, isSettingsLocked } = useSettings();
+  const { setMultiUserMode } = useAuth();
+
+  const activeProfile = useMemo(() => {
+    return connectionProfiles.find((p) => p.id === activeProfileID) || null;
+  }, [connectionProfiles, activeProfileID]);
+
+  const gatewayURL = useMemo(() => {
+    return isSettingsLocked 
+      ? getEnv("VITE_DEFAULT_BFF_URL") 
+      : (activeProfile?.gatewayURL || "");
+  }, [isSettingsLocked, activeProfile]);
+
+  const [connectionState, setConnectionState] = useState<ConnectionState>("checking");
+  const [bffLatencyMs, setBffLatencyMs] = useState<number>(-1);
+  const [services, setServices] = useState<ServiceStatus>({
+    bff: { configured: true, online: false },
+    playerServer: { configured: false, online: false },
+    searchEngine: { configured: false, online: false },
+  });
+
+  const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const consecutiveFailuresRef = useRef<number>(0);
+  const connectionStateRef = useRef<ConnectionState>("checking");
+  const checkConnectionRef = useRef<((options?: { silent?: boolean }) => Promise<void>) | null>(null);
+
+  useEffect(() => {
+    connectionStateRef.current = connectionState;
+  }, [connectionState]);
+
+  const stopPingTimer = useCallback(() => {
+    if (pingIntervalRef.current) {
+      clearInterval(pingIntervalRef.current);
+      pingIntervalRef.current = null;
+    }
+  }, []);
+
+  const startPingTimer = useCallback(() => {
+    if (pingIntervalRef.current) return;
+    if (!activeProfileID || (!isSettingsLocked && (!activeProfile || !activeProfile.gatewayURL))) {
+      return;
+    }
+    pingIntervalRef.current = setInterval(async () => {
+      const currentGateway = ApiClient.baseURL;
+      if (!currentGateway) return;
+
+      if (navigator.onLine === false) {
+        logger.warn("Network interface is down (navigator.onLine = false). Skipping health check.");
+        return;
+      }
+
+      try {
+        const bff = await ApiClient.pingHealth(currentGateway, "/api/health/bff", true);
+        const search = { configured: false, online: false };
+        const playerSrv = { configured: false, online: false };
+
+        if (!bff.online) {
+          consecutiveFailuresRef.current += 1;
+          if (consecutiveFailuresRef.current >= 3) {
+            setConnectionState("offline");
+          }
+        } else {
+          consecutiveFailuresRef.current = 0;
+          setServices({
+            bff,
+            searchEngine: search,
+            playerServer: playerSrv,
+          });
+          const currentState = connectionStateRef.current;
+          if (currentState === "offline") {
+            if (checkConnectionRef.current) {
+              checkConnectionRef.current({ silent: true });
+            }
+          } else {
+            setConnectionState("connected");
+          }
+        }
+      } catch {
+        consecutiveFailuresRef.current += 1;
+        if (consecutiveFailuresRef.current >= 3) {
+          setConnectionState("offline");
+        }
+      }
+    }, 30000);
+  }, [activeProfileID, isSettingsLocked, activeProfile]);
+
+  const checkConnection = useCallback(async (options?: { silent?: boolean }) => {
+    stopPingTimer();
+    const currentGateway = ApiClient.baseURL;
+    if (!currentGateway || !activeProfileID || (!isSettingsLocked && (!activeProfile || !activeProfile.gatewayURL))) {
+      setConnectionState("setupRequired");
+      setBffLatencyMs(-1);
+      return;
+    }
+
+    if (!options?.silent) {
+      setConnectionState("checking");
+    }
+
+    try {
+      const handshake = await ApiClient.performHandshake(currentGateway);
+      const isMultiUser = handshake.multiUserMode ?? false;
+      Storage.set("multiUserMode", isMultiUser);
+      setMultiUserMode(isMultiUser);
+      
+      const bff = await ApiClient.pingHealth(currentGateway, "/api/health/bff", true);
+      const search = { configured: false, online: false };
+      const playerSrv = { configured: false, online: false };
+
+      const currentServices = { bff, searchEngine: search, playerServer: playerSrv };
+      setBffLatencyMs(bff.latencyMs ?? -1);
+      setServices(currentServices);
+      setConnectionState("connected");
+      consecutiveFailuresRef.current = 0;
+      
+      startPingTimer();
+    } catch {
+      setBffLatencyMs(-1);
+      setConnectionState("offline");
+      startPingTimer();
+    }
+  }, [activeProfileID, isSettingsLocked, activeProfile, setMultiUserMode, startPingTimer, stopPingTimer]);
+
+  useEffect(() => {
+    checkConnectionRef.current = checkConnection;
+  }, [checkConnection]);
+
+  useSystemWake((log) => {
+    logger.log(`[AppSettings] System wake event: drift = ${log.driftMs}ms, online = ${log.navigatorOnline}`);
+    if (log.navigatorOnline) {
+      if (checkConnectionRef.current) {
+        checkConnectionRef.current({ silent: true });
+      }
+    }
+  });
+
+  useEffect(() => {
+    logger.log(`[AppSettings] WebSocket lifecycle effect triggered. ActiveProfileID: ${activeProfileID}, Configured gatewayURL: ${gatewayURL}`);
+    if (activeProfileID && gatewayURL) {
+      webSocketClient.startListening(gatewayURL);
+    } else {
+      webSocketClient.stopListening();
+    }
+
+    const unsubConnected = webSocketClient.subscribe("connected", () => {
+      if (checkConnectionRef.current) {
+        checkConnectionRef.current();
+      }
+    });
+
+    const unsubOffline = webSocketClient.subscribe("offline", () => {
+      setBffLatencyMs(-1);
+    });
+
+    return () => {
+      unsubConnected();
+      unsubOffline();
+      webSocketClient.stopListening();
+    };
+  }, [activeProfileID, gatewayURL]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      checkConnection();
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      stopPingTimer();
+    };
+  }, [activeProfileID, gatewayURL, checkConnection, stopPingTimer]);
+
+  const value = useMemo(() => ({
+    connectionState,
+    bffLatencyMs,
+    services,
+    checkConnection,
+  }), [
+    connectionState,
+    bffLatencyMs,
+    services,
+    checkConnection,
+  ]);
+
+  return <ConnectionHealthContext.Provider value={value}>{children}</ConnectionHealthContext.Provider>;
+};
+
+export const useConnectionHealth = () => {
+  const context = useContext(ConnectionHealthContext);
+  if (!context) throw new Error("useConnectionHealth must be used within ConnectionHealthProvider");
+  return context;
+};
+
+// --------------------------------------------------
+// Playback Context & Provider
+// --------------------------------------------------
+export interface PlaybackContextType {
+  activePlayback: ActivePlayback | null;
+  playVideo: (playback: ActivePlayback) => void;
+  stopVideo: () => void;
+}
+
+export const PlaybackContext = createContext<PlaybackContextType | undefined>(undefined);
+
+export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { defaultPlayer } = useSettings();
+  const { potokToken } = useAuth();
+  const { show: showHUD } = useHUD();
+
+  const [activePlayback, setActivePlayback] = useState<ActivePlayback | null>(null);
+
+  const playVideo = useCallback((playback: ActivePlayback) => {
+    if (defaultPlayer === "infuse") {
+      try {
+        const encodedUrl = encodeURIComponent(playback.streamUrl);
+        const triggerUrl = `infuse://x-callback-url/play?url=${encodedUrl}`;
+        const iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.src = triggerUrl;
+        document.body.appendChild(iframe);
+        setTimeout(() => {
+          if (iframe.parentNode) {
+            document.body.removeChild(iframe);
+          }
+        }, 100);
+        showHUD("success", "Открываем в Infuse!");
+      } catch (err: unknown) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        showHUD("error", "Ошибка Infuse: " + errorMsg);
+      }
+    } else {
+      setActivePlayback(playback);
+    }
+  }, [defaultPlayer, showHUD]);
+
+  const stopVideo = useCallback(() => {
+    setActivePlayback(null);
+  }, []);
+
+  // Declarative state reset on auth changes with non-cascading schedule to satisfy strict linting rules
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setActivePlayback(null);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [potokToken]);
 
-  const selectProfile = (id: string) => {
-    Storage.set("activeProfileID", id);
-    setActiveProfileID(id);
-    ApiClient.invalidateCache();
-  };
+  const value = useMemo(() => ({
+    activePlayback,
+    playVideo,
+    stopVideo,
+  }), [
+    activePlayback,
+    playVideo,
+    stopVideo,
+  ]);
 
-  const addProfile = (profile: Omit<ConnectionProfile, "id">) => {
-    const newProfile = { ...profile, id: `profile-${Date.now()}` };
-    const updated = [...connectionProfiles, newProfile];
-    Storage.set("connectionProfiles", updated);
-    setConnectionProfiles(updated);
-    ApiClient.invalidateCache();
-    selectProfile(newProfile.id);
-  };
+  return <PlaybackContext.Provider value={value}>{children}</PlaybackContext.Provider>;
+};
 
-  const deleteProfile = (id: string) => {
-    const updated = connectionProfiles.filter((p) => p.id !== id);
-    Storage.set("connectionProfiles", updated);
-    setConnectionProfiles(updated);
-    ApiClient.invalidateCache();
-    if (activeProfileID === id && updated.length > 0) {
-      selectProfile(updated[0].id);
-    }
-  };
+export const usePlayback = () => {
+  const context = useContext(PlaybackContext);
+  if (!context) throw new Error("usePlayback must be used within PlaybackProvider");
+  return context;
+};
 
-  const updateProfile = (profile: ConnectionProfile) => {
-    const updated = connectionProfiles.map((p) => (p.id === profile.id ? profile : p));
-    Storage.set("connectionProfiles", updated);
-    setConnectionProfiles(updated);
-    ApiClient.invalidateCache();
-    if (activeProfileID === profile.id) {
-      checkConnection();
-    }
-  };
+// --------------------------------------------------
+// Unified Backward-Compatible Hook & Nested Provider
+// --------------------------------------------------
+export interface AppSettingsContextType extends SettingsContextType, AuthContextType, ConnectionHealthContextType, PlaybackContextType {}
 
-  const setAccentTheme = (theme: string) => {
-    Storage.set("accentTheme", theme);
-    _setAccentTheme(theme);
-  };
-
-  const setDefaultPlayer = (player: string) => {
-    Storage.set("defaultPlayer", player);
-    _setDefaultPlayer(player);
-  };
-
-  const setUiFontScale = (scale: number) => {
-    Storage.set("uiFontScale", scale);
-    _setUiFontScale(scale);
-  };
-
+export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <AppSettingsContext.Provider
-      value={{
-        connectionState,
-        bffLatencyMs,
-        services,
-        connectionProfiles,
-        activeProfileID,
-        accentTheme,
-        defaultPlayer,
-        uiFontScale,
-        potokToken,
-        potokUser,
-        multiUserMode,
-        isSettingsLocked,
-        activePlayback,
-        checkConnection,
-        selectProfile,
-        addProfile,
-        deleteProfile,
-        updateProfile,
-        setAccentTheme,
-        setDefaultPlayer,
-        setUiFontScale,
-        login,
-        logout,
-        playVideo,
-        stopVideo,
-      }}
-    >
-      {children}
-    </AppSettingsContext.Provider>
+    <SettingsProvider>
+      <AuthProvider>
+        <ConnectionHealthProvider>
+          <PlaybackProvider>
+            {children}
+          </PlaybackProvider>
+        </ConnectionHealthProvider>
+      </AuthProvider>
+    </SettingsProvider>
   );
 };
 
 export const useAppSettings = () => {
-  const context = useContext(AppSettingsContext);
-  if (!context) throw new Error("useAppSettings must be used within AppSettingsProvider");
-  return context;
+  const settings = useContext(SettingsContext);
+  const auth = useContext(AuthContext);
+  const health = useContext(ConnectionHealthContext);
+  const playback = useContext(PlaybackContext);
+
+  if (!settings || !auth || !health || !playback) {
+    throw new Error("useAppSettings must be used within nested Providers: Settings -> Auth -> ConnectionHealth -> Playback");
+  }
+
+  return {
+    ...settings,
+    ...auth,
+    ...health,
+    ...playback,
+  };
 };

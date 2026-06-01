@@ -1,13 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { Outlet, useLocation } from "react-router-dom";
-import { useAppSettings } from "../context/AppSettingsContext";
+import { useSettings, useConnectionHealth, usePlayback } from "../context/AppSettingsContext";
 import { AppSidebar } from "./AppSidebar";
 import { getEnv } from "../utils/EnvService";
 import { WebMediaPlayer } from "./WebMediaPlayer";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { OfflineOverlay } from "./OfflineOverlay";
 import { FocusTrap } from "./FocusTrap";
+import { PluginSandbox } from "./common/PluginSandbox";
 import "../styles/layout.css";
 
 export const AppLayout: React.FC = () => {
@@ -38,13 +39,19 @@ export const AppLayout: React.FC = () => {
   const {
     connectionState,
     checkConnection,
+  } = useConnectionHealth();
+
+  const {
     connectionProfiles,
     activeProfileID,
     updateProfile,
     addProfile,
+  } = useSettings();
+
+  const {
     activePlayback,
-    stopVideo
-  } = useAppSettings();
+    stopVideo,
+  } = usePlayback();
 
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
   const [inputUrl, setInputUrl] = React.useState(
@@ -80,17 +87,17 @@ export const AppLayout: React.FC = () => {
       updateProfile({
         ...activeProfile,
         gatewayURL: targetUrl,
-        torrentGoURL: activeProfile.torrentGoURL,
+        playerServerURL: activeProfile.playerServerURL,
         searchEngineURL: activeProfile.searchEngineURL,
       });
     } else {
       addProfile({
         name: "Локальный BFF",
         gatewayURL: targetUrl,
-        torrentGoURL: "",
+        playerServerURL: "",
         searchEngineURL: "",
-        torrentGoAuthEnabled: false,
-        torrentGoAuthLogin: "",
+        playerServerAuthEnabled: false,
+        playerServerAuthLogin: "",
       });
     }
 
@@ -110,6 +117,8 @@ export const AppLayout: React.FC = () => {
       >
         <Outlet />
       </main>
+
+      <PluginSandbox />
 
       {activePlayback && (
         <ErrorBoundary fallback={(error, resetError) => (
@@ -167,6 +176,7 @@ export const AppLayout: React.FC = () => {
           </div>
         )}>
           <WebMediaPlayer
+            key={`${activePlayback.id}-${activePlayback.season || 0}-${activePlayback.episode || 0}-${activePlayback.streamUrl}`}
             playback={activePlayback}
             onClose={stopVideo}
             isNetworkOffline={connectionState === "offline"}

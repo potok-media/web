@@ -1,12 +1,12 @@
 import React from "react";
 
-export const TorrentSkeletonList: React.FC = () => {
+export const StreamSkeletonList: React.FC = () => {
   return (
     <>
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="torrent-skeleton-row">
-          <div className="torrent-header-row">
-            <div className="torrent-skeleton-header-left">
+        <div key={i} className="stream-skeleton-row">
+          <div className="stream-header-row">
+            <div className="stream-skeleton-header-left">
               <div className="skeleton-pulse skeleton-title" />
               <div className="skeleton-badge-row">
                 <div className="skeleton-pulse skeleton-badge" />
@@ -16,7 +16,7 @@ export const TorrentSkeletonList: React.FC = () => {
             </div>
             <div className="skeleton-pulse skeleton-size" />
           </div>
-          <div className="torrent-footer-row torrent-skeleton-footer-separator">
+          <div className="stream-footer-row stream-skeleton-footer-separator">
             <div className="skeleton-footer-left">
               <div className="skeleton-pulse skeleton-text-small" />
               <div className="skeleton-pulse skeleton-text-xs" />
@@ -32,4 +32,4 @@ export const TorrentSkeletonList: React.FC = () => {
   );
 };
 
-export default TorrentSkeletonList;
+export default StreamSkeletonList;
