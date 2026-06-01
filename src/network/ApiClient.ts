@@ -2,6 +2,7 @@ import { Storage } from "../utils/StorageService";
 import { SyncApiClient } from "./SyncApiClient";
 import { ApiError } from "./ApiTypes";
 import { getEnv } from "../utils/EnvService";
+import type { ExtensionManifest } from "./SDKTypes";
 import type {
   ServiceInfo,
   ServiceStatus,
@@ -364,5 +365,13 @@ export class ApiClient {
     } catch {
       return null;
     }
+  }
+
+  public static async fetchExtensionManifest(url: string, signal?: AbortSignal): Promise<ExtensionManifest> {
+    const res = await fetch(url, { signal });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    return res.json();
   }
 }

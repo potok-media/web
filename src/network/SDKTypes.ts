@@ -1,4 +1,28 @@
-import type { StreamUIItem } from "./ApiTypes";
+import type { StreamUIItem, MediaCard, TvEpisode, CastMember, ConnectionProfile } from "./ApiTypes";
+
+export interface SelectedEpisodeType {
+  episode: TvEpisode;
+  seasonNumber: number;
+}
+
+export interface SDKTvEpisode {
+  id?: number | string;
+  episodeNumber?: number;
+  episode_number?: number;
+  name?: string;
+  stillPath?: string;
+  still_path?: string;
+  airDate?: string;
+  air_date?: string;
+  overview?: string;
+}
+
+export interface SDKTvSeason {
+  id?: number | string;
+  seasonNumber?: number;
+  season_number?: number;
+  episodes?: SDKTvEpisode[];
+}
 
 export interface UIComponentSchema {
   type: string;
@@ -13,9 +37,8 @@ export interface UIComponentSchema {
     flex?: number;
     text?: string;
     level?: 1 | 2 | 3 | 4;
-    variant?: 'primary' | 'secondary' | 'hint' | 'error' | 'success' | 'danger' | 'ghost';
+    variant?: 'primary' | 'secondary' | 'hint' | 'error' | 'success' | 'danger' | 'ghost' | 'sidebar-item';
     size?: 'xs' | 'sm' | 'md' | 'lg';
-    bold?: boolean;
     color?: 'info' | 'success' | 'warning' | 'error';
     name?: string;
     label?: string;
@@ -23,6 +46,7 @@ export interface UIComponentSchema {
     inputType?: 'text' | 'password' | 'number';
     value?: string | number;
     checked?: boolean;
+    bold?: boolean;
     description?: string;
     options?: { label: string; value: string }[];
     selected?: string;
@@ -31,39 +55,40 @@ export interface UIComponentSchema {
     spacing?: number;
     alignItems?: 'start' | 'center' | 'end' | 'stretch';
     justifyContent?: 'start' | 'center' | 'end' | 'between' | 'around';
-    stream: StreamUIItem;
+    stream?: StreamUIItem;
     streams?: RawStreamPayload[];
     loading?: boolean;
     showFilters?: boolean;
     emptyText?: string;
     nounPlurals?: string[];
-    item?: any;
-    items?: any[];
+    item?: MediaCard;
+    items?: MediaCard[];
+    icon?: string;
 
-    // New props for the 10 host components
+    // Strict types for host components
     message?: string;
     fullscreen?: boolean;
     mediaId?: number;
     numberOfSeasons?: number;
-    cast?: any[];
-    media?: any;
-    selectedEpisode?: any;
-    playback?: any;
+    cast?: CastMember[];
+    media?: MediaCard;
+    selectedEpisode?: SelectedEpisodeType | null;
+    playback?: PlaybackInfo;
     isNetworkOffline?: boolean;
-    connectionProfiles?: any[];
+    connectionProfiles?: ConnectionProfile[];
     activeProfileID?: string | null;
     isSettingsLocked?: boolean;
     countLabel?: string;
-    trackers?: any[];
+    trackers?: string[];
     sortOption?: string;
     showSort?: boolean;
     isOpen?: boolean;
     seasonsLoading?: boolean;
     backdropSrc?: string;
-    seasons?: any[];
+    seasons?: SDKTvSeason[];
     qualityFilter?: string;
     activeTracker?: string;
-    episodes?: any[];
+    episodes?: StreamEpisode[];
     isSaving?: boolean;
     tmdbSeasonsCount?: number;
     posterSrc?: string;
@@ -78,7 +103,7 @@ export interface UIComponentSchema {
     onPlay?: string;
     onDetails?: string;
 
-    // New events for the 10 host components
+    // Events for host components
     onEpisodeClick?: string;
     onResetEpisode?: string;
     onCardClick?: string;

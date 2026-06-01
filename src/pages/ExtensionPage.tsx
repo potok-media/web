@@ -12,9 +12,9 @@ export const ExtensionPage: React.FC = () => {
   const title = currentContribution?.contribution.title || "Расширение";
 
   return (
-    <div className="extension-page-container" style={{ padding: "30px", overflowY: "auto", height: "100%" }}>
-      <header style={{ marginBottom: "24px" }}>
-        <h1 style={{ fontSize: "1.8rem", fontWeight: 700, color: "#fff", margin: 0 }}>
+    <div className="extension-page-container extension-page-wrapper">
+      <header className="extension-page-header">
+        <h1 className="extension-page-title">
           {title}
         </h1>
       </header>

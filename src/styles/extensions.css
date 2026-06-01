@@ -390,6 +390,8 @@ input:checked + .potok-slider:before {
   color: rgba(255, 255, 255, 0.85);
   margin-top: var(--spacing-m, 16px);
   margin-bottom: var(--spacing-m, 16px);
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .potok-markdown-body h1,
@@ -546,6 +548,8 @@ input:checked + .potok-slider:before {
   padding: 0 16px;
   flex-grow: 1;
   overflow: visible;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .potok-terminal-pre code {
@@ -635,3 +639,376 @@ input:checked + .potok-slider:before {
 .animate-spin {
   animation: potok-spin 1s linear infinite;
 }
+
+/* Decomposed Update Banner Styles */
+.potok-update-banner {
+  background: rgba(56, 189, 248, 0.07);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 8px 32px rgba(56, 189, 248, 0.05);
+  border-radius: 12px;
+  padding: 12px 18px;
+  margin: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.potok-update-banner-icon-box {
+  background: rgba(56, 189, 248, 0.15);
+  width: 36px;
+  height: 36px;
+  borderRadius: 8px;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.potok-update-banner-text-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.potok-update-banner-title {
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.potok-update-banner-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.potok-update-banner-btn {
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  background: #38bdf8;
+  color: #000;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.potok-update-banner-btn:hover {
+  background: #0ea5e9;
+  transform: translateY(-1px);
+}
+
+/* Decomposed Update Modal Styles */
+.potok-update-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.potok-update-modal-dialog {
+  width: 520px;
+  max-width: 90%;
+  background: rgba(20, 20, 23, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.potok-update-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.potok-update-modal-title-sec {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.potok-update-modal-title {
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.potok-update-modal-close-btn {
+  padding: 6px;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  transition: color 0.15s ease;
+}
+
+.potok-update-modal-close-btn:hover {
+  color: #fff;
+}
+
+.potok-update-modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.potok-update-modal-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.potok-update-modal-item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.potok-update-modal-item-name {
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.potok-update-modal-item-versions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.potok-update-modal-badge-new {
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  background: rgba(74, 222, 128, 0.15);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  color: #4ade80;
+}
+
+.potok-update-modal-btn-update {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  background: #4ade80;
+  color: #000;
+  font-weight: 600;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.potok-update-modal-btn-update:hover:not(:disabled) {
+  background: #22c55e;
+}
+
+.potok-update-modal-btn-update:disabled {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  cursor: not-allowed;
+}
+
+.potok-update-modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.potok-update-modal-btn-all {
+  font-size: 0.8rem;
+  padding: 8px 14px;
+  background: #4ade80;
+  color: #000;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.potok-update-modal-btn-all:hover:not(:disabled) {
+  background: #22c55e;
+}
+
+.potok-update-modal-btn-all:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Extensions Manager Component Styles */
+.potok-extensions-manager-container {
+  gap: 20px;
+}
+
+.potok-extensions-install-form {
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.potok-extensions-list {
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.potok-extensions-empty-card {
+  align-items: center;
+  padding: 30px;
+}
+
+.potok-extensions-empty-icon {
+  opacity: 0.5;
+  margin-bottom: 8px;
+}
+
+.potok-extension-card-no-margin {
+  margin: 0;
+}
+
+.potok-extension-card-layout {
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.potok-extension-details-col {
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.potok-extension-title-row {
+  align-items: center;
+  gap: 8px;
+}
+
+.potok-extension-name {
+  color: var(--text-primary, #fff);
+  font-size: 1.1rem;
+}
+
+.potok-extension-description {
+  font-size: 0.85rem;
+}
+
+.potok-extension-id-row {
+  font-size: 0.75rem;
+  margin-top: 4px;
+  user-select: text;
+}
+
+.potok-extension-id-val {
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  user-select: text;
+}
+
+.potok-extension-url-row {
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  min-width: 0;
+  width: 100%;
+}
+
+.potok-extension-path-label {
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.potok-extension-controls-row {
+  align-items: center;
+  gap: 12px;
+}
+
+.potok-extension-toggle-wrap {
+  width: auto;
+  gap: 8px;
+}
+
+.potok-extension-toggle-label {
+  font-size: 0.8rem;
+}
+
+.potok-extension-btn-check-update {
+  padding: 8px;
+  border-radius: 6px;
+  color: var(--color-accent-blue, #38bdf8);
+}
+
+.potok-extension-btn-view-manifest {
+  padding: 8px;
+  border-radius: 6px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+}
+
+.potok-extension-btn-delete {
+  padding: 8px;
+  border-radius: 6px;
+  color: var(--color-error, #ff4d4f);
+}
+
+/* ExtensionPage Component Styles */
+.extension-page-wrapper {
+  padding: 30px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.extension-page-header {
+  margin-bottom: 24px;
+}
+
+.extension-page-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-primary, #fff);
+  margin: 0;
+}
+
+
+
