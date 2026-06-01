@@ -153,7 +153,7 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
         className="player-timeline-slider"
         aria-label="Перемотка видео"
       />
-      {isHovering && streamHash && fileIndex && (
+      {isHovering && (
         <TimelinePreviewTooltip
           time={hoverTime}
           x={hoverX}

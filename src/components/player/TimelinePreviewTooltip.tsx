@@ -4,8 +4,8 @@ import { ApiClient } from "../../network/ApiClient";
 interface TimelinePreviewTooltipProps {
   time: number;
   x: number;
-  streamHash: string;
-  fileIndex: string;
+  streamHash?: string;
+  fileIndex?: string;
 }
 
 export const TimelinePreviewTooltip: React.FC<TimelinePreviewTooltipProps> = ({
@@ -15,7 +15,7 @@ export const TimelinePreviewTooltip: React.FC<TimelinePreviewTooltipProps> = ({
   fileIndex,
 }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Round time to nearest 5 seconds for backend cache reuse
@@ -26,6 +26,14 @@ export const TimelinePreviewTooltip: React.FC<TimelinePreviewTooltipProps> = ({
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
+
+    if (!streamHash || !fileIndex) {
+      setImageUrl(null);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
 
     // Debounce image request by 25ms
     timeoutRef.current = setTimeout(() => {
@@ -80,13 +88,16 @@ export const TimelinePreviewTooltip: React.FC<TimelinePreviewTooltipProps> = ({
         bottom: "100%",
         marginBottom: "12px",
         pointerEvents: "none",
+        padding: imageUrl ? "6px" : "5px 10px",
+        borderRadius: imageUrl ? "10px" : "6px",
+        gap: imageUrl ? "8px" : "0",
       }}
     >
-      <div className="preview-thumbnail-frame">
-        {isLoading && (
-          <div className="preview-thumbnail-placeholder" />
-        )}
-        {imageUrl && (
+      {imageUrl && (
+        <div className="preview-thumbnail-frame">
+          {isLoading && (
+            <div className="preview-thumbnail-placeholder" />
+          )}
           <img
             src={imageUrl}
             alt="Preview Frame"
@@ -98,8 +109,8 @@ export const TimelinePreviewTooltip: React.FC<TimelinePreviewTooltipProps> = ({
             onLoad={handleImageLoad}
             onError={handleImageError}
           />
-        )}
-      </div>
+        </div>
+      )}
       <div className="preview-time-label">{formatTime(time)}</div>
     </div>
   );
