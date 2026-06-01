@@ -8,7 +8,6 @@ import { SeasonEpisodesSection } from "../components/SeasonEpisodesSection";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ExtensionSlot } from "../components/common/ExtensionSlot";
 import { DynamicBlock } from "../components/common/DynamicBlock";
-import { MediaCastSection } from "../components/MediaCastSection";
 import { MediaOverviewSection } from "../components/MediaOverviewSection";
 import type { TvEpisode, MediaCard } from "../network/ApiTypes";
 import "../styles/media.css";
@@ -23,6 +22,7 @@ export const MediaDetailsPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const mediaId = Number(id);
+  const tmdbId = mediaId;
 
   const { show: showHUD } = useHUD();
 
@@ -62,9 +62,7 @@ export const MediaDetailsPage: React.FC = () => {
     showHUD,
   });
 
-  if (media) {
-    mediaRef.current = media;
-  }
+  mediaRef.current = media;
 
   // Reset selected episode when route details target changes
   useEffect(() => {
@@ -85,7 +83,6 @@ export const MediaDetailsPage: React.FC = () => {
   }
 
   const cast = media.cast || [];
-  const tmdbId = media.id;
 
   return (
     <div className="details-layout">
@@ -110,7 +107,6 @@ export const MediaDetailsPage: React.FC = () => {
                   name="media-details-actions"
                   contextProps={{ mediaId, tmdbId, mediaType, selectedEpisode, media }}
                 >
-
                   {/* Dynamically Rendered Plugin Extension Slot for Media Actions (Plugins contribute their watch buttons here) */}
                   <ExtensionSlot
                     id="media-actions"
@@ -126,7 +122,7 @@ export const MediaDetailsPage: React.FC = () => {
                     }}
                   />
 
-                  {/* 3. Social and Watchlist row */}
+                  {/* Social and Watchlist row */}
                   <div id="social-actions-row" className="details-actions-row">
                     <button
                       className={`action-btn-circle ${isWatched ? "active" : ""}`}
@@ -179,7 +175,26 @@ export const MediaDetailsPage: React.FC = () => {
           </div>
         )}
 
-        <MediaCastSection cast={cast} />
+        {cast.length > 0 && (
+          <div className="details-fullwidth-section">
+            <h2 className="carousel-title details-section-title">Актерский состав</h2>
+            <div className="cast-crew-grid">
+              {cast.slice(0, 10).map((c, i) => (
+                <div key={i} className="cast-member-card">
+                  <div className="cast-photo-wrap">
+                    <img
+                      src={c.profileSrc || c.ProfileSrc || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=64&h=64"}
+                      alt={c.name || c.Name}
+                      className="cast-photo"
+                    />
+                  </div>
+                  <span className="cast-name">{c.name || c.Name}</span>
+                  <span className="cast-role">{c.character || c.Character || c.role}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

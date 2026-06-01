@@ -8,7 +8,6 @@ import { WebMediaPlayer } from "./WebMediaPlayer";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { OfflineOverlay } from "./OfflineOverlay";
 import { FocusTrap } from "./FocusTrap";
-import { PluginSandbox } from "./common/PluginSandbox";
 import "../styles/layout.css";
 
 export const AppLayout: React.FC = () => {
@@ -108,7 +107,6 @@ export const AppLayout: React.FC = () => {
 
   return (
     <div className={`app-container ${isSidebarCollapsed ? "sidebar-collapsed" : ""}`}>
-      <PluginSandbox />
       <AppSidebar isCollapsed={isSidebarCollapsed} onToggle={toggleSidebar} />
       <main
         ref={mainContentRef}
