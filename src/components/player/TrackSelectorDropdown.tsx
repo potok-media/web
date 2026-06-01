@@ -16,6 +16,7 @@ interface TrackSelectorDropdownProps {
   showDisableOption?: boolean;
   disableOptionLabel?: string;
   onUploadSubtitle?: (file: File) => void;
+  disabled?: boolean;
 }
 
 export const TrackSelectorDropdown: React.FC<TrackSelectorDropdownProps> = ({
@@ -29,6 +30,7 @@ export const TrackSelectorDropdown: React.FC<TrackSelectorDropdownProps> = ({
   showDisableOption = false,
   disableOptionLabel = "Отключить",
   onUploadSubtitle,
+  disabled,
 }) => {
   const ITEM_HEIGHT = 36;
   const MAX_VISIBLE_HEIGHT = 282;
@@ -48,9 +50,11 @@ export const TrackSelectorDropdown: React.FC<TrackSelectorDropdownProps> = ({
     <div className="selector-menu-container">
       <button 
         className={`control-icon-btn ${isOpen ? "active-accent" : ""}`}
+        disabled={disabled}
+        style={disabled ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
         onClick={(e) => {
           e.stopPropagation();
-          onToggle();
+          if (!disabled) onToggle();
         }}
         title={`Выбор: ${title}`}
       >

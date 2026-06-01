@@ -81,7 +81,7 @@ export const SDK_STREAM_COMPONENTS_CODE = `
           icon: this.iconUrl,
           callbackId
         }
-      }, '*');
+      }, hostOrigin);
       return this;
     }
 
@@ -170,7 +170,7 @@ export const SDK_STREAM_COMPONENTS_CODE = `
           appends: this.appends,
           prepends: this.prepends
         }
-      }, '*');
+      }, hostOrigin);
     }
   }
 `;

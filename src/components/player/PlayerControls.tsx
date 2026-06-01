@@ -28,9 +28,7 @@ interface PlayerControlsProps {
   controlsVisible: boolean;
   isPlaying: boolean;
   onTogglePlay: () => void;
-  currentTime: number;
   duration: number;
-  bufferedTime: number;
   onSeek: (time: number) => void;
   volume: number;
   isMuted: boolean;
@@ -62,6 +60,8 @@ interface PlayerControlsProps {
   showPlaylistMenu?: boolean;
   onTogglePlaylistMenu?: () => void;
   seekOffset?: number;
+  streamHash?: string;
+  fileIndex?: string;
 }
 
 // Fallback constant array prevents re-rendering allocations
@@ -72,9 +72,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
   controlsVisible,
   isPlaying,
   onTogglePlay,
-  // currentTime,
   duration,
-  // bufferedTime,
   onSeek,
   volume,
   isMuted,
@@ -106,6 +104,8 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
   showPlaylistMenu,
   onTogglePlaylistMenu,
   seekOffset = 0,
+  streamHash,
+  fileIndex,
 }) => {
   const changeVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
     onVolumeChange(parseFloat(e.target.value));
@@ -134,7 +134,14 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
     >
       <div className="player-controller-glass-pill">
         <div className="player-timeline-wrapper">
-          <TimelineSlider videoRef={videoRef} onSeek={onSeek} initialDuration={duration} seekOffset={seekOffset} />
+          <TimelineSlider 
+            videoRef={videoRef} 
+            onSeek={onSeek} 
+            initialDuration={duration} 
+            seekOffset={seekOffset} 
+            streamHash={streamHash}
+            fileIndex={fileIndex}
+          />
         </div>
 
         <div className="player-controls-row">
@@ -181,6 +188,9 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
                 value={isMuted ? 0 : volume}
                 onChange={changeVolume}
                 className="volume-slider"
+                style={{
+                  background: `linear-gradient(to right, var(--text-primary) ${ (isMuted ? 0 : volume) * 100 }%, rgba(255, 255, 255, 0.2) ${ (isMuted ? 0 : volume) * 100 }%)`
+                }}
                 aria-label="Громкость"
               />
             </div>
@@ -219,6 +229,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
               showDisableOption={true}
               disableOptionLabel="Отключить"
               onUploadSubtitle={onUploadSubtitle}
+              disabled={true}
             />
 
             {playlistItems && playlistItems.length > 0 && (

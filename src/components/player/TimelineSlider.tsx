@@ -1,13 +1,23 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
+import { TimelinePreviewTooltip } from "./TimelinePreviewTooltip";
 
 interface TimelineSliderProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   onSeek: (time: number) => void;
   initialDuration: number;
   seekOffset?: number;
+  streamHash?: string;
+  fileIndex?: string;
 }
 
-export const TimelineSlider: React.FC<TimelineSliderProps> = ({ videoRef, onSeek, initialDuration, seekOffset = 0 }) => {
+export const TimelineSlider: React.FC<TimelineSliderProps> = ({ 
+  videoRef, 
+  onSeek, 
+  initialDuration, 
+  seekOffset = 0,
+  streamHash,
+  fileIndex
+}) => {
   const sliderRef = useRef<HTMLInputElement>(null);
   const isDraggingRef = useRef(false);
 
@@ -91,18 +101,66 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({ videoRef, onSeek
     onSeek(val);
   };
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isHovering, setIsHovering] = useState(false);
+  const [hoverTime, setHoverTime] = useState(0);
+  const [hoverX, setHoverX] = useState(0);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const width = rect.width;
+    const clampedX = Math.max(0, Math.min(x, width));
+
+    setHoverX(clampedX);
+
+    const video = videoRef.current;
+    const videoDuration = video ? video.duration : 0;
+    const isRemux = seekOffset > 0 || (videoDuration > 0 && videoDuration < 60 && initialDuration > 120);
+    const duration = isRemux || isNaN(videoDuration) || videoDuration === Infinity || videoDuration <= 0
+      ? initialDuration
+      : videoDuration;
+
+    const pct = clampedX / width;
+    const time = pct * duration;
+    setHoverTime(time);
+    setIsHovering(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+  };
+
   return (
-    <input
-      ref={sliderRef}
-      type="range"
-      min={0}
-      max={initialDuration}
-      defaultValue={seekOffset + (videoRef.current?.currentTime || 0)}
-      onChange={handleSliderChange}
-      onMouseUp={handleSliderRelease}
-      onTouchEnd={handleSliderRelease}
-      className="player-timeline-slider"
-      aria-label="Перемотка видео"
-    />
+    <div
+      ref={containerRef}
+      className="timeline-slider-wrapper"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <input
+        ref={sliderRef}
+        type="range"
+        min={0}
+        max={initialDuration}
+        defaultValue={seekOffset + (videoRef.current?.currentTime || 0)}
+        onChange={handleSliderChange}
+        onMouseUp={handleSliderRelease}
+        onTouchEnd={handleSliderRelease}
+        className="player-timeline-slider"
+        aria-label="Перемотка видео"
+      />
+      {isHovering && streamHash && fileIndex && (
+        <TimelinePreviewTooltip
+          time={hoverTime}
+          x={hoverX}
+          streamHash={streamHash}
+          fileIndex={fileIndex}
+        />
+      )}
+    </div>
   );
 };

@@ -18,14 +18,22 @@ export function initPotokSDK(
 }
 
 export function getSDKRuntimeString(): string {
-  return `function initPotokSDK(pluginId, permissions, config) {
+  return `function initPotokSDK() {
     const win = window;
     if (win.PotokSDK) return;
+
+    const initialState = win.PotokInitialState || {};
+    const pluginId = initialState.pluginId;
+    const permissions = initialState.permissions || [];
+    const config = initialState.config || {};
+    const hostOrigin = initialState.hostOrigin || "*";
 
     ${SDK_CORE_CODE}
     ${SDK_COMPONENTS_CODE}
     ${SDK_STREAM_COMPONENTS_CODE}
     ${SDK_DECLARATIVE_CODE}
+
+    LocalStorageBridge.init(initialState.localStorage);
 
     const blockContextListeners = new Set();
     const registeredSources = new Map();
@@ -71,16 +79,16 @@ export function getSDKRuntimeString(): string {
               source: 'potok-plugin-sdk',
               action: 'SLOT_RENDER_RESPONSE',
               payload: { slotId, layout: payload }
-            }, '*');
+            }, hostOrigin);
           } else {
-            window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'RENDER_UI', payload }, '*');
+            window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'RENDER_UI', payload }, hostOrigin);
           }
         },
         showHUD(type, message) {
-          window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'SHOW_HUD', payload: { type, message } }, '*');
+          window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'SHOW_HUD', payload: { type, message } }, hostOrigin);
         },
         playVideo(playback) {
-          window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'PLAY_VIDEO', payload: playback }, '*');
+          window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'PLAY_VIDEO', payload: playback }, hostOrigin);
         },
         showEpisodeSelector(cfg) {
           const onPlayCallbackId = cfg.onPlay ? CallbackRegistry.register(cfg.onPlay) : undefined;
@@ -101,7 +109,7 @@ export function getSDKRuntimeString(): string {
               onStartEditingCallbackId,
               onApplyOverrideCallbackId
             }
-          }, '*');
+          }, hostOrigin);
         },
         onBlockContextUpdate(cb) {
           blockContextListeners.add(cb);
@@ -110,16 +118,16 @@ export function getSDKRuntimeString(): string {
           };
         },
         navigateTo(to, state) {
-          window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'NAVIGATE', payload: { to, state } }, '*');
+          window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'NAVIGATE', payload: { to, state } }, hostOrigin);
         }
       },
-      registerPlugin(meta) { window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_PLUGIN', payload: meta }, '*'); },
+      registerPlugin(meta) { window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_PLUGIN', payload: meta }, hostOrigin); },
       registerSource(cfg) {
         registeredSources.set(cfg.id, cfg.lookup);
-        window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_SOURCE', payload: { id: cfg.id, name: cfg.name, supportedTypes: cfg.supportedTypes } }, '*');
+        window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_SOURCE', payload: { id: cfg.id, name: cfg.name, supportedTypes: cfg.supportedTypes } }, hostOrigin);
       },
       registerSlotContribution(cfg) {
-        window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_SLOT_CONTRIBUTION', payload: { slotName: cfg.slotName, id: cfg.id } }, '*');
+        window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_SLOT_CONTRIBUTION', payload: { slotName: cfg.slotName, id: cfg.id } }, hostOrigin);
         window.addEventListener('message', async (e) => {
           const msg = e.data;
           if (msg && msg.source === 'potok-host' && msg.action === 'RENDER_SLOT' && msg.payload.slotId === cfg.id) {
@@ -131,7 +139,7 @@ export function getSDKRuntimeString(): string {
               window.parent.postMessage({
                 source: 'potok-plugin-sdk', action: 'SLOT_RENDER_RESPONSE',
                 payload: { slotId: cfg.id, label: res.label, icon: res.icon, layout: layoutPayload }
-              }, '*');
+              }, hostOrigin);
             }
           }
         });
@@ -150,9 +158,9 @@ export function getSDKRuntimeString(): string {
         if (lookupFn) {
           try {
             const results = await lookupFn(query);
-            window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'LOOKUP_RESPONSE', payload: { requestId, results, error: null } }, '*');
+            window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'LOOKUP_RESPONSE', payload: { requestId, results, error: null } }, hostOrigin);
           } catch (err) {
-            window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'LOOKUP_RESPONSE', payload: { requestId, results: [], error: err.message || 'Lookup failed' } }, '*');
+            window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'LOOKUP_RESPONSE', payload: { requestId, results: [], error: err.message || 'Lookup failed' } }, hostOrigin);
           }
         }
       } else if (msg.action === 'TRIGGER_SEARCH') {
@@ -165,13 +173,13 @@ export function getSDKRuntimeString(): string {
               source: 'potok-plugin-sdk',
               action: 'SEARCH_RESPONSE',
               payload: { requestId, results, error: null }
-            }, '*');
+            }, hostOrigin);
           } catch (err) {
             window.parent.postMessage({
               source: 'potok-plugin-sdk',
               action: 'SEARCH_RESPONSE',
               payload: { requestId, results: [], error: err.message || 'Search failed' }
-            }, '*');
+            }, hostOrigin);
           }
         }
       } else if (msg.action === 'BLOCK_CONTEXT_UPDATE') {
@@ -183,6 +191,11 @@ export function getSDKRuntimeString(): string {
             console.error("[SDK] Error in block context listener:", err);
           }
         });
+      } else if (msg.action === 'PROFILE_UPDATED') {
+        const { config: newConfig } = msg.payload;
+        if (newConfig) {
+          Object.assign(win.PotokSDK.config, newConfig);
+        }
       }
     });
   }`;

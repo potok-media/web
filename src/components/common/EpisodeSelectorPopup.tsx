@@ -58,9 +58,27 @@ const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
   }
 
   const imageUrl = episodeItem.stillPath || backdropSrc || posterSrc;
-  const sizeLabel = episodeItem.sizeLabel || (episodeItem.audios && episodeItem.audios.length > 0 
-    ? `${episodeItem.audios.length} ${episodeItem.audios.length === 1 ? "озвучка" : episodeItem.audios.length < 5 ? "озвучки" : "озвучек"}`
-    : "Основной поток");
+  const getAudiosLabel = (audios: any[]) => {
+    if (!audios || audios.length === 0) return "";
+    if (audios.length === 1) return audios[0].name || "";
+    
+    const n = audios.length;
+    const remainder10 = n % 10;
+    const remainder100 = n % 100;
+    
+    if (remainder100 >= 11 && remainder100 <= 19) {
+      return `${n} озвучек`;
+    }
+    if (remainder10 === 1) {
+      return `${n} озвучка`;
+    }
+    if (remainder10 >= 2 && remainder10 <= 4) {
+      return `${n} озвучки`;
+    }
+    return `${n} озвучек`;
+  };
+
+  const sizeLabel = episodeItem.sizeLabel || getAudiosLabel(episodeItem.audios);
 
   const streamType = getStreamType(episodeItem);
 

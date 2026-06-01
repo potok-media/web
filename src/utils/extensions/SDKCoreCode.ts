@@ -8,22 +8,50 @@ export const SDK_CORE_CODE = `
     static callbacks = new Map();
     static activeSlotId = null;
     static activeRenderCallbacks = new Set();
+    static TTL = 300000; // 5 minutes auto-expiration
+    static MAX_CALLBACKS = 500;
 
     static register(cb) {
+      this.cleanup();
       const id = "cb_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now();
       const slotId = this.activeSlotId || "global";
-      this.callbacks.set(id, { cb, slotId });
+      this.callbacks.set(id, { cb, slotId, createdAt: Date.now() });
       this.activeRenderCallbacks.add(id);
+
+      // Enforce max callback limit to prevent leaks under heavy load
+      if (this.callbacks.size > this.MAX_CALLBACKS) {
+        let oldestKey = null;
+        let oldestTime = Infinity;
+        for (const [k, v] of this.callbacks.entries()) {
+          if (v.createdAt < oldestTime) {
+            oldestTime = v.createdAt;
+            oldestKey = k;
+          }
+        }
+        if (oldestKey) {
+          this.callbacks.delete(oldestKey);
+        }
+      }
       return id;
     }
 
     static get(id) {
-      return this.callbacks.get(id)?.cb;
+      const entry = this.callbacks.get(id);
+      if (!entry) return undefined;
+      if (Date.now() - entry.createdAt > this.TTL) {
+        this.callbacks.delete(id);
+        return undefined;
+      }
+      return entry.cb;
     }
 
     static trigger(id, data) {
       const entry = this.callbacks.get(id);
       if (entry) {
+        if (Date.now() - entry.createdAt > this.TTL) {
+          this.callbacks.delete(id);
+          return;
+        }
         const { cb } = entry;
         if (data && typeof data === 'object') {
           if ('seasonNum' in data && 'epNum' in data) {
@@ -51,6 +79,15 @@ export const SDK_CORE_CODE = `
         }
       }
       this.activeSlotId = null;
+    }
+
+    static cleanup() {
+      const now = Date.now();
+      for (const [k, v] of this.callbacks.entries()) {
+        if (now - v.createdAt > this.TTL) {
+          this.callbacks.delete(k);
+        }
+      }
     }
   }
 
@@ -82,7 +119,7 @@ export const SDK_CORE_CODE = `
           }
         };
         window.addEventListener('message', handler);
-        window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'HTTP_REQUEST', payload: { requestId, url, method: 'GET', headers } }, '*');
+        window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'HTTP_REQUEST', payload: { requestId, url, method: 'GET', headers } }, hostOrigin);
       });
     },
     async post(url, body, headers) {
@@ -97,37 +134,37 @@ export const SDK_CORE_CODE = `
           }
         };
         window.addEventListener('message', handler);
-        window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'HTTP_REQUEST', payload: { requestId, url, method: 'POST', body, headers } }, '*');
+        window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'HTTP_REQUEST', payload: { requestId, url, method: 'POST', body, headers } }, hostOrigin);
       });
     }
   };
 
   const LocalStorageBridge = {
-    async getItem(key) {
-      return new Promise((resolve) => {
-        const requestId = "store_get_" + Math.random().toString(36).substring(2, 9);
-        const handler = (event) => {
-          if (event.data && event.data.source === 'potok-host' && event.data.action === 'STORAGE_GET_RESPONSE' && event.data.payload.requestId === requestId) {
-            window.removeEventListener('message', handler);
-            resolve(event.data.payload.value);
-          }
-        };
-        window.addEventListener('message', handler);
-        window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'STORAGE_GET', payload: { requestId, key } }, '*');
-      });
+    cache: {},
+    init(initialData) {
+      if (initialData) {
+        this.cache = { ...initialData };
+      }
     },
-    async setItem(key, value) {
-      return new Promise((resolve) => {
-        const requestId = "store_set_" + Math.random().toString(36).substring(2, 9);
-        const handler = (event) => {
-          if (event.data && event.data.source === 'potok-host' && event.data.action === 'STORAGE_SET_RESPONSE' && event.data.payload.requestId === requestId) {
-            window.removeEventListener('message', handler);
-            resolve();
+    getItem(key) {
+      const val = this.cache[key];
+      return val !== undefined ? val : null;
+    },
+    setItem(key, value) {
+      const strVal = String(value);
+      this.cache[key] = strVal;
+      setTimeout(() => {
+        window.parent.postMessage({
+          source: 'potok-plugin-sdk',
+          action: 'STORAGE_SET',
+          payload: {
+            requestId: "store_set_async_" + Math.random().toString(36).substring(2, 9),
+            key,
+            value: strVal
           }
-        };
-        window.addEventListener('message', handler);
-        window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'STORAGE_SET', payload: { requestId, key, value } }, '*');
-      });
+        }, hostOrigin);
+      }, 0);
+      return Promise.resolve();
     }
   };
 `;

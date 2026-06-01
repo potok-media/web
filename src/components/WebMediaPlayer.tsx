@@ -8,7 +8,6 @@ import { PlayerStatsHUD } from "./player/PlayerStatsHUD";
 import { PlayerControls } from "./player/PlayerControls";
 import { loadExternalSubtitle } from "../utils/SubtitleHelper";
 import { useTimecodes } from "../hooks/useTimecodes";
-import { usePlayerStats } from "../hooks/usePlayerStats";
 
 // Helper to extract file extension from stream URL dynamically
 const getFileExtension = (url: string): string => {
@@ -67,6 +66,114 @@ const normalizeStreamUrlToPath = (url: string): string => {
   return url;
 };
 
+interface SkipIntroButtonProps {
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  seekOffset: number;
+  introRange: { start: number; end: number } | null | undefined;
+  displayDuration: number;
+  onSeek: (time: number) => void;
+}
+
+const SkipIntroButton: React.FC<SkipIntroButtonProps> = ({
+  videoRef,
+  seekOffset,
+  introRange,
+  displayDuration,
+  onSeek,
+}) => {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !introRange) {
+      setVisible(false);
+      return;
+    }
+
+    const checkVisibility = () => {
+      const displayCurrentTime = seekOffset > 0 ? (seekOffset + video.currentTime) : video.currentTime;
+      const isVisible = displayCurrentTime >= introRange.start && displayCurrentTime <= introRange.end;
+      setVisible(isVisible);
+    };
+
+    video.addEventListener("timeupdate", checkVisibility);
+    checkVisibility();
+
+    return () => {
+      video.removeEventListener("timeupdate", checkVisibility);
+    };
+  }, [videoRef, seekOffset, introRange, displayDuration]);
+
+  if (!visible || !introRange) return null;
+
+  return (
+    <button
+      className="skip-intro-overlay-btn"
+      onClick={(e) => {
+        e.stopPropagation();
+        onSeek(introRange.end);
+      }}
+    >
+      <span>Пропустить интро</span>
+      <ChevronRight size={18} />
+    </button>
+  );
+};
+
+interface SkipOutroButtonProps {
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  seekOffset: number;
+  outroRange: { start: number; end?: number } | null | undefined;
+  displayDuration: number;
+  onSeek: (time: number) => void;
+}
+
+const SkipOutroButton: React.FC<SkipOutroButtonProps> = ({
+  videoRef,
+  seekOffset,
+  outroRange,
+  displayDuration,
+  onSeek,
+}) => {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !outroRange) {
+      setVisible(false);
+      return;
+    }
+
+    const checkVisibility = () => {
+      const displayCurrentTime = seekOffset > 0 ? (seekOffset + video.currentTime) : video.currentTime;
+      const isVisible = displayCurrentTime >= outroRange.start && displayCurrentTime <= (outroRange.end || displayDuration);
+      setVisible(isVisible);
+    };
+
+    video.addEventListener("timeupdate", checkVisibility);
+    checkVisibility();
+
+    return () => {
+      video.removeEventListener("timeupdate", checkVisibility);
+    };
+  }, [videoRef, seekOffset, outroRange, displayDuration]);
+
+  if (!visible || !outroRange) return null;
+
+  return (
+    <button
+      className="skip-intro-overlay-btn outro-btn"
+      onClick={(e) => {
+        e.stopPropagation();
+        onSeek(Math.min(outroRange.end || displayDuration, displayDuration - 1));
+      }}
+    >
+      <span>Пропустить титры</span>
+      <ChevronRight size={18} />
+    </button>
+  );
+};
+
 interface WebMediaPlayerProps {
   playback: ActivePlayback;
   onClose: () => void;
@@ -87,14 +194,12 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
   // States
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
+  const [srcResetCounter, setSrcResetCounter] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
-  const [bufferedTime, setBufferedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [playerError, setPlayerError] = useState<string | null>(null);
-  const [bufferSec, setBufferSec] = useState(0);
   const [showStats, setShowStats] = useState(false);
 
   // Subtitle/Track States
@@ -102,6 +207,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const [currentAudioTrack, setCurrentAudioTrack] = useState(-1);
   const [subtitleTracks, setSubtitleTracks] = useState<{ id: number; name: string }[]>([]);
   const [currentSubtitleTrack, setCurrentSubtitleTrack] = useState(-1);
+  const [injectedSubtitles, setInjectedSubtitles] = useState<{ id: string; label: string; srclang: string; src: string }[]>([]);
   const [rawLevels, setRawLevels] = useState<{ id: number; height?: number }[]>([]);
   const [hlsActiveLevel, setHlsActiveLevel] = useState(-1);
   const [currentQualityLevel, setCurrentQualityLevel] = useState(-1);
@@ -215,6 +321,10 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
   // Sync with host metadata endpoint for custom Hls.js/torrent duration parameters
   useEffect(() => {
+    setInjectedSubtitles([]);
+    setSubtitleTracks([]);
+    setCurrentSubtitleTrack(-1);
+
     let fileId = "";
     const pathMatch = playback.streamUrl.match(/\/stream\/[a-f0-9]+\/(\d+)/i);
     if (pathMatch) {
@@ -269,26 +379,20 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
             setCurrentAudioTrack((prev) => (prev === -1 ? torrentAudioTracks[0].id : prev));
           }
 
-          const video = videoRef.current;
-          if (!video) return;
-
           // Auto-inject external Hls subtitles
-          metadata.tracks
+          const tracksToInject = metadata.tracks
             .filter((t) => t.type === "subtitle")
-            .forEach((t) => {
-              for (let i = 0; i < video.textTracks.length; i++) {
-                if (video.textTracks[i].label === t.title) return;
-              }
+            .map((t) => {
               const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
               const srcUrl = `${cleanBase}/stream/${streamHash.toLowerCase()}/${fileId}/subtitles/${t.relIndex}`;
-              
-              const track = document.createElement("track");
-              track.kind = "subtitles";
-              track.label = t.title;
-              track.srclang = t.language || "custom";
-              track.src = srcUrl;
-              video.appendChild(track);
+              return {
+                id: `${t.relIndex}_${t.title}`,
+                label: t.title,
+                srclang: t.language || "custom",
+                src: srcUrl,
+              };
             });
+          setInjectedSubtitles(tracksToInject);
           
           setTimeout(() => {
             if (isMounted) syncNativeTextTracks();
@@ -307,6 +411,23 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       isMounted = false;
     };
   }, [playback.streamUrl, playback.streamHash, syncNativeTextTracks]);
+
+  // Гарантированная синхронизация режима субтитров с React-состоянием
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    
+    const timer = setTimeout(() => {
+      for (let i = 0; i < video.textTracks.length; i++) {
+        const track = video.textTracks[i];
+        if (track.kind === "subtitles" || track.kind === "captions") {
+          track.mode = i === currentSubtitleTrack ? "showing" : "disabled";
+        }
+      }
+    }, 100); // Небольшой таймаут, чтобы браузер успел примонтировать треки в DOM
+
+    return () => clearTimeout(timer);
+  }, [currentSubtitleTrack, injectedSubtitles, srcResetCounter]);
 
   // Activity Inactivity hide HUD manager
   const handleUserActivity = useCallback(() => {
@@ -379,7 +500,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         video.pause();
         video.src = "";
         video.removeAttribute("src");
-        video.querySelectorAll("track").forEach(t => t.remove());
         video.load();
       } catch (e) {
         console.error("[WebMediaPlayer] Video teardown error:", e);
@@ -557,8 +677,10 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
         hls.loadSource(proxiedUrl);
         hls.attachMedia(video);
+        setSrcResetCounter(p => p + 1);
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = proxiedUrl;
+        setSrcResetCounter(p => p + 1);
         video.play().then(() => {
           if (startPos > 0) {
             video.currentTime = startPos;
@@ -566,8 +688,9 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         }).catch(() => {});
       }
     } else {
-      video.removeAttribute("crossorigin");
+      video.setAttribute("crossorigin", "anonymous");
       video.src = proxiedUrl;
+      setSrcResetCounter(p => p + 1);
       video.play().then(() => {
         // If it's a remuxed stream, the server already seeked, so browser currentTime 0 is correct.
         // Otherwise, seek to startPos natively.
@@ -638,21 +761,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     const currentInt = Math.floor(video.currentTime);
     if (currentInt !== Math.floor(lastTimeRef.current)) {
       lastTimeRef.current = video.currentTime;
-      setCurrentTime(video.currentTime);
-
-      // Buffer diagnostics calculation
-      const buffered = video.buffered;
-      let buf = 0;
-      for (let i = 0; i < buffered.length; i++) {
-        if (video.currentTime >= buffered.start(i) && video.currentTime <= buffered.end(i)) {
-          buf = buffered.end(i) - video.currentTime;
-          break;
-        }
-      }
-      setBufferSec(buf);
-      if (buffered.length > 0) {
-        setBufferedTime(buffered.end(buffered.length - 1));
-      }
     }
   };
 
@@ -730,8 +838,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
   // Derived timeline state parameters
   const displayDuration = metadataDuration > 0 ? metadataDuration : (duration || 100);
-  const displayCurrentTime = seekOffset > 0 ? (seekOffset + currentTime) : currentTime;
-  const displayBufferedTime = seekOffset > 0 ? (seekOffset + bufferedTime) : bufferedTime;
 
   // Track Selectors and Player Controls API
   const switchAudio = (id: number) => {
@@ -745,7 +851,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
     const normalizedUrl = normalizeStreamUrlToPath(playback.streamUrl);
     const isStreamServer = normalizedUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
-    const time = displayCurrentTime;
+    const video = videoRef.current;
+    const time = video ? (seekOffset > 0 ? seekOffset + video.currentTime : video.currentTime) : 0;
 
     let newUrl = "";
     if (isStreamServer) {
@@ -775,7 +882,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     }
 
     // Update video element source for progressive mp4 streams
-    const video = videoRef.current;
     if (video) {
       video.pause();
       
@@ -789,9 +895,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         hlsRef.current = null;
       }
 
-      // Clear all track elements from DOM before setting new src
-      video.querySelectorAll("track").forEach(t => t.remove());
-
       subtitleObjectUrls.forEach((url) => {
         try {
           URL.revokeObjectURL(url);
@@ -803,6 +906,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
       const proxiedNewUrl = getProxyUrl(newUrl);
       video.src = proxiedNewUrl;
+      setSrcResetCounter(p => p + 1);
       
       video.play().then(() => {
         if (!isStreamServer) video.currentTime = time;
@@ -850,9 +954,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         hlsRef.current = null;
       }
 
-      // Clear all track elements from DOM before setting new src
-      video.querySelectorAll("track").forEach(t => t.remove());
-
       subtitleObjectUrls.forEach((url) => {
         try {
           URL.revokeObjectURL(url);
@@ -865,6 +966,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       const proxiedNewUrl = getProxyUrl(newUrl);
       video.pause();
       video.src = proxiedNewUrl;
+      setSrcResetCounter(p => p + 1);
       video.play().then(() => {
         syncNativeTextTracks();
       }).catch((err) => console.warn("Seek remux play error:", err));
@@ -963,18 +1065,43 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
   // Hooks integration
   const { introRange, outroRange } = useTimecodes(playback.id, playback.season, playback.episode, playback.mediaType === "tv", displayDuration);
-  const { downloadSpeed, bitrate, resolution, fps } = usePlayerStats(
-    videoRef,
-    hlsRef,
-    isPlaying,
-    showStats,
-    playback.streamUrl,
-    playback.streamHash || "",
-    displayDuration
-  );
 
-  const showSkipIntro = introRange && displayCurrentTime >= introRange.start && displayCurrentTime <= introRange.end;
-  const showSkipOutro = outroRange && displayCurrentTime >= outroRange.start && displayCurrentTime <= (outroRange.end || displayDuration);
+  // Determine streamHash and fileIndex for hover thumbnails preview
+  const fileIndex = useMemo(() => {
+    let fileId = "";
+    const pathMatch = playback.streamUrl.match(/\/stream\/[a-f0-9]+\/(\d+)/i);
+    if (pathMatch) {
+      fileId = pathMatch[1];
+    } else {
+      try {
+        const parsed = new URL(playback.streamUrl);
+        fileId = parsed.searchParams.get("index") || "";
+      } catch {
+        const match = playback.streamUrl.match(/[?&]index=(\d+)/i);
+        if (match) fileId = match[1];
+      }
+    }
+    return fileId;
+  }, [playback.streamUrl]);
+
+  const streamHash = useMemo(() => {
+    let hash = playback.streamHash;
+    if (!hash) {
+      const hashMatch = playback.streamUrl.match(/\/stream\/([a-f0-9]{40})/i);
+      if (hashMatch) {
+        hash = hashMatch[1];
+      } else {
+        try {
+          const parsed = new URL(playback.streamUrl);
+          hash = parsed.searchParams.get("link") || "";
+        } catch {
+          const match = playback.streamUrl.match(/[?&]link=([a-f0-9]{40})/i);
+          if (match) hash = match[1];
+        }
+      }
+    }
+    return hash;
+  }, [playback.streamUrl, playback.streamHash]);
 
   return (
     <div 
@@ -1015,6 +1142,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       <div className="artplayer-video-container" onClick={togglePlay} onDoubleClick={toggleFullscreen}>
         <video
           ref={videoRef}
+          crossOrigin="anonymous"
           onPlay={handlePlay}
           onPlaying={handlePlaying}
           onCanPlay={handleCanPlay}
@@ -1026,7 +1154,18 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
           onEnded={handleEnded}
           autoPlay
           style={{ width: "100%", height: "100%", objectFit: "contain" }}
-        />
+        >
+          {injectedSubtitles.map((track, index) => (
+            <track
+              key={track.id + "_" + srcResetCounter}
+              kind="subtitles"
+              label={track.label}
+              srcLang={track.srclang}
+              src={track.src}
+              default={currentSubtitleTrack === index} // Установка флага по умолчанию
+            />
+          ))}
+        </video>
       </div>
 
       {playerError && (
@@ -1083,30 +1222,30 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         </div>
       )}
 
-      {showSkipIntro && (
-        <button className="skip-intro-overlay-btn" onClick={(e) => { e.stopPropagation(); if (introRange) handleSeek(introRange.end); }}>
-          <span>Пропустить интро</span>
-          <ChevronRight size={18} />
-        </button>
-      )}
+      <SkipIntroButton
+        videoRef={videoRef}
+        seekOffset={seekOffset}
+        introRange={introRange}
+        displayDuration={displayDuration}
+        onSeek={handleSeek}
+      />
 
-      {showSkipOutro && (
-        <button 
-          className={`skip-intro-overlay-btn outro-btn ${showSkipIntro ? "stacked" : ""}`}
-          onClick={(e) => { e.stopPropagation(); if (outroRange) handleSeek(Math.min(outroRange.end || displayDuration, displayDuration - 1)); }}
-        >
-          <span>Пропустить титры</span>
-          <ChevronRight size={18} />
-        </button>
-      )}
+      <SkipOutroButton
+        videoRef={videoRef}
+        seekOffset={seekOffset}
+        outroRange={outroRange}
+        displayDuration={displayDuration}
+        onSeek={handleSeek}
+      />
 
       <PlayerStatsHUD
         showStats={showStats}
-        downloadSpeed={downloadSpeed}
-        bitrate={bitrate}
-        resolution={resolution}
-        bufferSec={bufferSec}
-        fps={fps}
+        videoRef={videoRef}
+        hlsRef={hlsRef}
+        isPlaying={isPlaying}
+        streamUrl={playback.streamUrl}
+        streamHash={playback.streamHash || ""}
+        duration={displayDuration}
       />
 
       <PlayerControls
@@ -1114,9 +1253,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         controlsVisible={controlsVisible}
         isPlaying={isPlaying}
         onTogglePlay={togglePlay}
-        currentTime={displayCurrentTime}
         duration={displayDuration}
-        bufferedTime={displayBufferedTime}
         onSeek={handleSeek}
         volume={volume}
         isMuted={isMuted}
@@ -1148,6 +1285,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         showPlaylistMenu={showPlaylistMenu}
         onTogglePlaylistMenu={() => { setShowPlaylistMenu(!showPlaylistMenu); setShowAudioMenu(false); setShowSubtitleMenu(false); setShowQualityMenu(false); }}
         seekOffset={seekOffset}
+        streamHash={streamHash}
+        fileIndex={fileIndex}
       />
     </div>
   );

@@ -17,7 +17,7 @@ export const SDK_DECLARATIVE_CODE = `
           name: source.name,
           supportedTypes: source.supportedTypes
         }
-      }, '*');
+      }, hostOrigin);
     }
   };
 
@@ -35,20 +35,20 @@ export const SDK_DECLARATIVE_CODE = `
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_SEARCH_RESPONSE',
             payload: { requestId, data, error: null }
-          }, '*');
+          }, hostOrigin);
         } catch (err) {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_SEARCH_RESPONSE',
             payload: { requestId, data: [], error: err.message || 'Search failed' }
-          }, '*');
+          }, hostOrigin);
         }
       } else {
         window.parent.postMessage({
           source: 'potok-plugin-sdk',
           action: 'STREAM_SOURCE_SEARCH_RESPONSE',
           payload: { requestId, data: [], error: 'No stream source registered' }
-        }, '*');
+        }, hostOrigin);
       }
     } else if (msg.action === 'STREAM_SOURCE_GET_EPISODES') {
       const { requestId, stream, context, sourceId } = msg.payload;
@@ -60,20 +60,20 @@ export const SDK_DECLARATIVE_CODE = `
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_GET_EPISODES_RESPONSE',
             payload: { requestId, data, error: null }
-          }, '*');
+          }, hostOrigin);
         } catch (err) {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_GET_EPISODES_RESPONSE',
             payload: { requestId, data: null, error: err.message || 'Failed to get episodes' }
-          }, '*');
+          }, hostOrigin);
         }
       } else {
         window.parent.postMessage({
           source: 'potok-plugin-sdk',
           action: 'STREAM_SOURCE_GET_EPISODES_RESPONSE',
           payload: { requestId, data: null, error: 'Method getEpisodes not implemented' }
-        }, '*');
+        }, hostOrigin);
       }
     } else if (msg.action === 'STREAM_SOURCE_GET_SEASONS') {
       const { requestId, stream, context, sourceId } = msg.payload;
@@ -85,20 +85,20 @@ export const SDK_DECLARATIVE_CODE = `
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_GET_SEASONS_RESPONSE',
             payload: { requestId, data, error: null }
-          }, '*');
+          }, hostOrigin);
         } catch (err) {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_GET_SEASONS_RESPONSE',
             payload: { requestId, data: null, error: err.message || 'Failed to get seasons metadata' }
-          }, '*');
+          }, hostOrigin);
         }
       } else {
         window.parent.postMessage({
           source: 'potok-plugin-sdk',
           action: 'STREAM_SOURCE_GET_SEASONS_RESPONSE',
           payload: { requestId, data: [], error: null }
-        }, '*');
+        }, hostOrigin);
       }
     } else if (msg.action === 'STREAM_SOURCE_SAVE_OVERRIDE') {
       const { requestId, stream, context, seasonNum, episodeOffset, sourceId } = msg.payload;
@@ -110,20 +110,20 @@ export const SDK_DECLARATIVE_CODE = `
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_SAVE_OVERRIDE_RESPONSE',
             payload: { requestId, data: null, error: null }
-          }, '*');
+          }, hostOrigin);
         } catch (err) {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_SAVE_OVERRIDE_RESPONSE',
             payload: { requestId, data: null, error: err.message || 'Failed to save metadata override' }
-          }, '*');
+          }, hostOrigin);
         }
       } else {
         window.parent.postMessage({
           source: 'potok-plugin-sdk',
           action: 'STREAM_SOURCE_SAVE_OVERRIDE_RESPONSE',
           payload: { requestId, data: null, error: 'Method saveMetadataOverride not implemented' }
-        }, '*');
+        }, hostOrigin);
       }
     } else if (msg.action === 'STREAM_SOURCE_GET_PLAYBACK_INFO') {
       const { requestId, stream, episode, context, sourceId } = msg.payload;
@@ -135,20 +135,20 @@ export const SDK_DECLARATIVE_CODE = `
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_GET_PLAYBACK_INFO_RESPONSE',
             payload: { requestId, data, error: null }
-          }, '*');
+          }, hostOrigin);
         } catch (err) {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_GET_PLAYBACK_INFO_RESPONSE',
             payload: { requestId, data: null, error: err.message || 'Failed to get playback info' }
-          }, '*');
+          }, hostOrigin);
         }
       } else {
         window.parent.postMessage({
           source: 'potok-plugin-sdk',
           action: 'STREAM_SOURCE_GET_PLAYBACK_INFO_RESPONSE',
           payload: { requestId, data: null, error: 'Method getPlaybackInfo not implemented' }
-        }, '*');
+        }, hostOrigin);
       }
     } else if (msg.action === 'REFRESH_STREAM_URL') {
       const source = Array.from(registeredStreamSources.values())[0];
@@ -159,13 +159,13 @@ export const SDK_DECLARATIVE_CODE = `
             source: 'potok-plugin-sdk',
             action: 'REFRESH_STREAM_URL_RESPONSE',
             payload: { success: true, ...data }
-          }, '*');
+          }, hostOrigin);
         } catch (err) {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'REFRESH_STREAM_URL_RESPONSE',
             payload: { success: false, error: err.message || 'Failed to refresh stream URL' }
-          }, '*');
+          }, hostOrigin);
         }
       }
     }

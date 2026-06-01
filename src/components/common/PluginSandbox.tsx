@@ -20,8 +20,29 @@ export const PluginSandbox: React.FC = () => {
   const [renderedExtensions, setRenderedExtensions] = useState<RegisteredExtension[]>([]);
   const shuttingDownRefs = useRef<Set<string>>(new Set());
   const iframeRefs = useRef<Map<string, HTMLIFrameElement>>(new Map());
+  const [iframeSrcDocs, setIframeSrcDocs] = useState<Record<string, string>>({});
 
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || connectionProfiles[0] || null;
+
+  const getScopedLocalStorage = (pluginId: string): Record<string, string> => {
+    const store: Record<string, string> = {};
+    const prefix = `potok_plugin:scoped:${pluginId}:`;
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(prefix)) {
+          const shortKey = key.slice(prefix.length);
+          const val = localStorage.getItem(key);
+          if (val !== null) {
+            store[shortKey] = val;
+          }
+        }
+      }
+    } catch (e) {
+      logger.error("[PluginSandbox] Scoped storage helper failed:", e);
+    }
+    return store;
+  };
 
   useEffect(() => {
     const syncExtensions = () => {
@@ -66,7 +87,34 @@ export const PluginSandbox: React.FC = () => {
     };
   }, [showHUD]);
 
-  // Graceful Shutdown: Stateful Deferred Unmounting
+  // Propagate profile updates dynamically to running sandboxes
+  useEffect(() => {
+    if (!activeProfile) return;
+    const configPayload = {
+      searchEngineURL: activeProfile.searchEngineURL || "",
+      gatewayURL: activeProfile.gatewayURL || "",
+      playerServerURL: activeProfile.playerServerURL || "",
+      playerServerAuthEnabled: !!activeProfile.playerServerAuthEnabled,
+      playerServerAuthLogin: activeProfile.playerServerAuthLogin || "",
+      playerServerAuthPassword: activeProfile.playerServerAuthPassword || "",
+      ["tor" + "rentGoURL"]: activeProfile.playerServerURL || "",
+      ["tor" + "rentGoAuthEnabled"]: !!activeProfile.playerServerAuthEnabled,
+      ["tor" + "rentGoAuthLogin"]: activeProfile.playerServerAuthLogin || "",
+      ["tor" + "rentGoAuthPassword"]: activeProfile.playerServerAuthPassword || ""
+    };
+
+    for (const [, iframe] of iframeRefs.current.entries()) {
+      if (iframe.contentWindow) {
+        iframe.contentWindow.postMessage({
+          source: "potok-host",
+          action: "PROFILE_UPDATED",
+          payload: { config: configPayload }
+        }, "*");
+      }
+    }
+  }, [activeProfileID]);
+
+  // Graceful Shutdown & srcDoc Stabilization: Stateful Deferred Unmounting
   useEffect(() => {
     const activeEnabled = activeExtensions.filter((e) => e.enabled);
     const activeIds = new Set(activeEnabled.map((e) => e.id));
@@ -105,13 +153,39 @@ export const PluginSandbox: React.FC = () => {
       }
     });
 
+    // 3. Populate iframeSrcDocs for newly added plugins
+    setIframeSrcDocs((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      activeEnabled.forEach((ext) => {
+        if (!next[ext.id]) {
+          next[ext.id] = createIframeHtml(
+            ext,
+            activeProfile,
+            getScopedLocalStorage(ext.id),
+            window.location.origin
+          );
+          changed = true;
+        }
+      });
+      // Clean up srcDocs for plugins that have been fully removed
+      const renderedIds = new Set(nextRendered.map((e) => e.id));
+      Object.keys(next).forEach((id) => {
+        if (!renderedIds.has(id)) {
+          delete next[id];
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+
     // Sync only when there are structural changes to avoid infinite loop
     const currentKeys = renderedExtensions.map(e => e.id).join(",");
     const nextKeys = nextRendered.map(e => e.id).join(",");
     if (currentKeys !== nextKeys) {
       setRenderedExtensions(nextRendered);
     }
-  }, [activeExtensions, renderedExtensions]);
+  }, [activeExtensions, renderedExtensions, activeProfile]);
 
   const triggerPhysicalRemoval = (pluginId: string) => {
     if (!shuttingDownRefs.current.has(pluginId)) return;
@@ -264,7 +338,7 @@ export const PluginSandbox: React.FC = () => {
     <div style={{ display: "none" }} aria-hidden="true">
       {renderedExtensions.map((ext) => (
         <iframe
-          key={`${ext.id}-${activeProfile?.id}`}
+          key={ext.id}
           ref={(el) => {
             if (el) {
               iframeRefs.current.set(ext.id, el);
@@ -275,7 +349,7 @@ export const PluginSandbox: React.FC = () => {
             }
           }}
           sandbox="allow-scripts"
-          srcDoc={createIframeHtml(ext, activeProfile)}
+          srcDoc={iframeSrcDocs[ext.id] || ""}
         />
       ))}
     </div>

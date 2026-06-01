@@ -128,9 +128,10 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
   const context = useMemo(() => ({
     type: mediaType as "movie" | "tv",
     tmdbId: mediaId,
+    title: mediaTitle || "",
     season,
     episode,
-  }), [mediaType, mediaId, season, episode]);
+  }), [mediaType, mediaId, mediaTitle, season, episode]);
 
   const handleSelectStream = useCallback((stream: RawStreamPayload) => {
     if (!activeSource) return;

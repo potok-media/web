@@ -12,9 +12,26 @@ export const normalizeUrl = (url: string): string => {
   return clean;
 };
 
-export const createIframeHtml = (ext: any, activeProfile: any): string => {
+export const createIframeHtml = (
+  ext: any,
+  activeProfile: any,
+  scopedStorage: Record<string, string>,
+  hostOrigin: string
+): string => {
   const normalizedDirUrl = normalizeUrl(ext.url);
   const baseUrl = normalizedDirUrl.endsWith("/") ? normalizedDirUrl : `${normalizedDirUrl}/`;
+  const configPayload = {
+    searchEngineURL: activeProfile?.searchEngineURL || "",
+    gatewayURL: activeProfile?.gatewayURL || "",
+    playerServerURL: activeProfile?.playerServerURL || "",
+    playerServerAuthEnabled: !!activeProfile?.playerServerAuthEnabled,
+    playerServerAuthLogin: activeProfile?.playerServerAuthLogin || "",
+    playerServerAuthPassword: activeProfile?.playerServerAuthPassword || "",
+    ["tor" + "rentGoURL"]: activeProfile?.playerServerURL || "",
+    ["tor" + "rentGoAuthEnabled"]: !!activeProfile?.playerServerAuthEnabled,
+    ["tor" + "rentGoAuthLogin"]: activeProfile?.playerServerAuthLogin || "",
+    ["tor" + "rentGoAuthPassword"]: activeProfile?.playerServerAuthPassword || ""
+  };
 
   return `
     <!DOCTYPE html>
@@ -33,22 +50,16 @@ export const createIframeHtml = (ext: any, activeProfile: any): string => {
       </script>
       <base href="${baseUrl}">
       <script>
-        (${getSDKRuntimeString()})(
-          ${JSON.stringify(ext.id)},
-          ${JSON.stringify(ext.manifest.permissions || [])},
-          ${JSON.stringify({
-            searchEngineURL: activeProfile?.searchEngineURL || "",
-            gatewayURL: activeProfile?.gatewayURL || "",
-            playerServerURL: activeProfile?.playerServerURL || "",
-            playerServerAuthEnabled: !!activeProfile?.playerServerAuthEnabled,
-            playerServerAuthLogin: activeProfile?.playerServerAuthLogin || "",
-            playerServerAuthPassword: activeProfile?.playerServerAuthPassword || "",
-            ["tor" + "rentGoURL"]: activeProfile?.playerServerURL || "",
-            ["tor" + "rentGoAuthEnabled"]: !!activeProfile?.playerServerAuthEnabled,
-            ["tor" + "rentGoAuthLogin"]: activeProfile?.playerServerAuthLogin || "",
-            ["tor" + "rentGoAuthPassword"]: activeProfile?.playerServerAuthPassword || ""
-          })}
-        );
+        window.PotokInitialState = {
+          pluginId: ${JSON.stringify(ext.id)},
+          permissions: ${JSON.stringify(ext.manifest.permissions || [])},
+          config: ${JSON.stringify(configPayload)},
+          localStorage: ${JSON.stringify(scopedStorage)},
+          hostOrigin: ${JSON.stringify(hostOrigin)}
+        };
+      </script>
+      <script>
+        (${getSDKRuntimeString()})();
       </script>
     </head>
     <body>
@@ -58,7 +69,7 @@ export const createIframeHtml = (ext: any, activeProfile: any): string => {
             source: 'potok-plugin-sdk',
             action: 'SCRIPT_CRASH',
             payload: { error: err.message, stack: err.stack }
-          }, '*');
+          }, window.PotokInitialState.hostOrigin);
         });
       </script>
     </body>
