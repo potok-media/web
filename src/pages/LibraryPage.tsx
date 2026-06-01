@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { useParams, useLocation, Link } from "react-router-dom";
+import { useParams, useLocation, Link, useNavigate } from "react-router-dom";
 import { 
   Film, 
   Search as SearchIcon, 
@@ -14,6 +14,7 @@ import "../styles/media.css";
 export const LibraryPage: React.FC = () => {
   const { collectionType: routeType } = useParams<{ collectionType: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isSearchPage = location.pathname === "/search";
   const collectionType = isSearchPage ? "search" : (routeType || "");
@@ -133,6 +134,35 @@ export const LibraryPage: React.FC = () => {
     return null;
   };
 
+  const categoriesList = [
+    { id: "up-next", label: "Продолжить" },
+    { id: "watchlist", label: "Запланировано" },
+    { id: "favorites", label: "Избранное" },
+    { id: "history", label: "История" }
+  ];
+
+  const renderMobileCategories = () => {
+    if (isSearchPage) return null;
+    return (
+      <div className="library-mobile-tabs-container">
+        <div className="library-mobile-tabs-scroll">
+          {categoriesList.map((cat) => {
+            const isActive = collectionType === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => navigate(`/library/${cat.id}`)}
+                className={`library-mobile-tab-chip ${isActive ? "active" : ""}`}
+              >
+                {cat.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderContent = () => {
     if (loading && items.length === 0) {
       return (
@@ -215,6 +245,7 @@ export const LibraryPage: React.FC = () => {
   return (
     <div className="library-page-container">
       {renderHeader()}
+      {renderMobileCategories()}
       <main className="library-content-area">
         {renderContent()}
       </main>

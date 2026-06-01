@@ -33,11 +33,11 @@
   
   --space-xxs: 0.25rem;
   --space-xs: 0.5rem;
-  --space-s: 0.75rem;
-  --space-m: 1rem;
-  --space-l: 1.5rem;
-  --space-xl: 2rem;
-  --space-xxl: 3rem;
+  --space-s: clamp(0.5rem, 0.47vw + 0.32rem, 0.75rem);
+  --space-m: clamp(0.75rem, 0.47vw + 0.57rem, 1rem);
+  --space-l: clamp(1rem, 0.94vw + 0.65rem, 1.5rem);
+  --space-xl: clamp(1.25rem, 1.4vw + 0.72rem, 2rem);
+  --space-xxl: clamp(2rem, 1.88vw + 1.3rem, 3rem);
   
   --radius-s: 0.375rem;
   --radius-m: 0.625rem;
@@ -47,17 +47,40 @@
   
   --sidebar-width: 16.25rem;
   --topbar-height: 3.25rem;
+  --mobile-bottom-nav-height: 3.75rem;
   
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-hero: 800 2.2rem var(--font-family);
-  --font-title1: 700 1.6rem var(--font-family);
-  --font-title2: 700 1.3rem var(--font-family);
-  --font-title3: 600 1.1rem var(--font-family);
-  --font-body-bold: 600 0.95rem var(--font-family);
-  --font-body: 400 0.95rem var(--font-family);
-  --font-metadata: 500 0.85rem var(--font-family);
-  --font-caption: 400 0.8rem var(--font-family);
-  --font-caption-bold: 700 0.8rem var(--font-family);
+  
+  /* Typography Weight Tokens */
+  --font-weight-hero: 800;
+  --font-weight-title1: 700;
+  --font-weight-title2: 700;
+  --font-weight-title3: 600;
+  --font-weight-body-bold: 600;
+  --font-weight-body: 400;
+  --font-weight-metadata: 500;
+  --font-weight-caption: 400;
+  --font-weight-caption-bold: 700;
+
+  /* Fluid Typography Size Scale (375px to 1440px viewport) */
+  --font-size-hero: clamp(1.6rem, 0.95vw + 1.4rem, 2.2rem);
+  --font-size-title1: clamp(1.25rem, 0.75vw + 1.1rem, 1.6rem);
+  --font-size-title2: clamp(1.1rem, 0.5vw + 1.0rem, 1.3rem);
+  --font-size-title3: clamp(0.95rem, 0.35vw + 0.85rem, 1.1rem);
+  --font-size-body: clamp(0.875rem, 0.2vw + 0.8rem, 0.95rem);
+  --font-size-metadata: clamp(0.8rem, 0.15vw + 0.75rem, 0.85rem);
+  --font-size-caption: clamp(0.75rem, 0.1vw + 0.7rem, 0.8rem);
+
+  /* Typography Shortcut Variables */
+  --font-hero: var(--font-weight-hero) var(--font-size-hero) var(--font-family);
+  --font-title1: var(--font-weight-title1) var(--font-size-title1) var(--font-family);
+  --font-title2: var(--font-weight-title2) var(--font-size-title2) var(--font-family);
+  --font-title3: var(--font-weight-title3) var(--font-size-title3) var(--font-family);
+  --font-body-bold: var(--font-weight-body-bold) var(--font-size-body) var(--font-family);
+  --font-body: var(--font-weight-body) var(--font-size-body) var(--font-family);
+  --font-metadata: var(--font-weight-metadata) var(--font-size-metadata) var(--font-family);
+  --font-caption: var(--font-weight-caption) var(--font-size-caption) var(--font-family);
+  --font-caption-bold: var(--font-weight-caption-bold) var(--font-size-caption) var(--font-family);
   
   --glass-blur: blur(20px);
   --blur-glass: blur(20px);

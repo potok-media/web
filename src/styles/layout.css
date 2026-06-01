@@ -2,6 +2,7 @@
   display: flex;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   background-color: var(--bg-window);
   overflow: hidden;
 }
@@ -9,6 +10,7 @@
 .main-content {
   flex-grow: 1;
   height: 100vh;
+  height: 100dvh;
   overflow-y: auto;
   overscroll-behavior-y: contain;
   position: relative;
@@ -32,6 +34,7 @@
   left: 0;
   right: 0;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   z-index: 1;
   pointer-events: none;
@@ -157,4 +160,85 @@
   align-self: center;
   font-size: 0.75rem;
 }
+
+/* Responsive Layout Adaptation */
+:root {
+  --mobile-bottom-nav-height: 3.75rem;
+}
+
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .app-container {
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+  }
+  
+  .main-content {
+    height: 100dvh;
+    padding-bottom: calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom, 0px) + var(--space-m));
+  }
+  
+  .page-container {
+    padding: var(--space-m);
+    gap: var(--space-s);
+  }
+
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: rgba(13, 16, 23, 0.85); /* Slightly darker premium backdrop */
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    justify-content: space-around;
+    align-items: stretch;
+    z-index: 999;
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.4);
+    box-sizing: border-box;
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    height: var(--mobile-bottom-nav-height);
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.1s ease;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    padding: 0;
+    min-width: 44px;
+    box-sizing: border-box;
+  }
+
+  .mobile-nav-item:active {
+    transform: scale(0.92);
+  }
+
+  .mobile-nav-item.active {
+    color: var(--accent);
+  }
+
+  .mobile-nav-item span {
+    font-size: 0.625rem; /* Slightly smaller to fit 5 items beautifully */
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-top: 2px;
+  }
+}
+
 

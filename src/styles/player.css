@@ -34,8 +34,6 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  will-change: transform;
-  transform: translateZ(0);
 }
 
 /* Mac-style Top Bar */
@@ -191,6 +189,7 @@
 .stats-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   font-weight: 700;
   font-size: 0.875rem;
@@ -200,6 +199,29 @@
   margin-bottom: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding-bottom: 8px;
+}
+
+.stats-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--timing-hover);
+  margin-right: -4px;
+}
+
+.stats-close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.stats-close-btn:active {
+  transform: scale(0.92);
 }
 
 .stats-grid {
@@ -656,63 +678,203 @@
   line-height: 1;
 }
 
-/* Premium Loading Overlay style */
+/* Premium Glassmorphic Loading Overlay style */
 .player-loading-overlay {
   position: absolute;
   inset: 0;
-  background: #060608;
+  background: radial-gradient(circle at center, rgba(16, 16, 24, 0.8) 0%, rgba(6, 6, 8, 0.95) 100%);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
   z-index: 10000;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
   color: var(--text-primary);
   font-family: var(--font-family);
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 40px;
+  text-align: center;
+}
+
+.player-loading-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 40px 48px;
+  max-width: 560px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  transition: all 0.3s ease;
 }
 
 .player-loading-spinner-container {
   position: relative;
-  width: 70px;
-  height: 70px;
+  width: 80px;
+  height: 80px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .player-loading-spinner {
-  width: 60px;
-  height: 60px;
-  border: 3px solid rgba(255, 255, 255, 0.05);
-  border-top: 3px solid var(--accent);
+  width: 72px;
+  height: 72px;
+  border: 3.5px solid rgba(255, 255, 255, 0.04);
+  border-top: 3.5px solid var(--accent);
   border-radius: 50%;
   animation: spin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  filter: drop-shadow(0 0 12px var(--accent));
 }
 
 .player-loading-spinner-inner {
   position: absolute;
-  width: 44px;
-  height: 44px;
-  border: 2px solid rgba(255, 255, 255, 0.03);
+  width: 52px;
+  height: 52px;
+  border: 2px solid rgba(255, 255, 255, 0.02);
   border-bottom: 2px solid var(--accent);
   border-radius: 50%;
-  animation: spin 1.4s linear infinite reverse;
+  animation: spin 1.5s linear infinite reverse;
+  opacity: 0.6;
 }
 
 .player-loading-title {
-  font-size: 1.15rem;
-  font-weight: 600;
+  font-size: 1.35rem;
+  font-weight: 700;
   color: #fff;
   margin: 0;
   letter-spacing: 0.5px;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
 .player-loading-subtitle {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--text-secondary);
   margin: 0;
-  opacity: 0.85;
+  line-height: 1.5;
+  min-height: 2.7rem; /* prevents layout shift on text updates */
+}
+
+/* Step Progress Tracker */
+.player-loading-steps {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  position: relative;
+  margin: 16px 0;
+  padding: 0 8px;
+}
+
+.player-loading-steps::before {
+  content: "";
+  position: absolute;
+  top: 16px;
+  left: 32px;
+  right: 32px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  z-index: 1;
+}
+
+.player-loading-step-item {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.step-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #141416;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.player-loading-step-item.active .step-dot {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 16px var(--accent);
+  transform: scale(1.15);
+  animation: pulse-glow 2s infinite alternate;
+}
+
+.player-loading-step-item.completed .step-dot {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.step-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.player-loading-step-item.active .step-label {
+  color: #fff;
+  font-weight: 600;
+}
+
+.player-loading-step-item.completed .step-label {
+  color: var(--text-secondary);
+}
+
+.player-loading-cancel-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-top: 8px;
+}
+
+.player-loading-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.player-loading-cancel-btn:active {
+  transform: translateY(0);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 10px rgba(229, 9, 20, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(229, 9, 20, 0.8);
+  }
 }
 
 @keyframes spin {
@@ -790,6 +952,120 @@
   }
   100% {
     background-position: -200% 0;
+  }
+}
+
+/* Responsive styles for player mobile viewports */
+@media (max-width: 768px) {
+  /* 1. Header Top Bar safe area Notch & island adaptation */
+  .player-top-bar {
+    height: auto !important;
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px 16px !important;
+    gap: var(--space-s) !important;
+  }
+
+  .player-meta-info {
+    gap: 2px !important;
+    flex: 1 !important;
+    overflow: hidden !important;
+  }
+
+  /* Prevent text wrapping and let title fit on single line */
+  .player-title {
+    font-size: 1.05rem !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+    max-width: calc(100vw - 80px) !important;
+  }
+
+  .player-episode-info {
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+    max-width: calc(100vw - 80px) !important;
+  }
+
+  .player-close-btn {
+    width: 36px !important;
+    height: 36px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .player-close-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* 2. Bottom Controller Safe Area and Touch optimization */
+  .player-controller-container {
+    padding: 0 var(--space-s) calc(env(safe-area-inset-bottom, 0px) + 12px) var(--space-s) !important;
+    height: auto !important;
+  }
+
+  .player-controller-glass-pill {
+    padding: 10px 14px !important;
+    border-radius: var(--radius-m) !important;
+    gap: 8px !important;
+  }
+
+  .player-controls-row {
+    width: 100% !important;
+  }
+
+  .controls-group {
+    gap: 12px !important;
+  }
+
+  .control-icon-btn {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .control-icon-btn svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .volume-control-wrapper {
+    display: none !important;
+  }
+
+  /* 3. Stats bottom drawer overlay */
+  .player-stats-widget {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    border-radius: var(--radius-l) var(--radius-l) 0 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.4) !important;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    transform: translate3d(0, 0, 0) !important;
+    will-change: transform;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px) !important;
+  }
+
+  /* Skip Intro button mobile position safely above bottom bar */
+  .skip-intro-overlay-btn {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 95px) !important;
+    right: var(--space-m) !important;
+    padding: 10px 16px !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translate3d(0, 100%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
   }
 }
 

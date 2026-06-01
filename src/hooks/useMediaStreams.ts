@@ -136,26 +136,50 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
   const handleSelectStream = useCallback((stream: RawStreamPayload) => {
     if (!activeSource) return;
     setActionLoading(true);
-    if (mediaType === "movie") {
+
+    if (stream.kind !== "torrent") {
+      // Normal online balancers directly fetch playback info and play
       ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(activeSource.pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", { stream, context })
         .then((info) => playVideo({
-          streamUrl: info.streamUrl, title: info.title || currentMedia?.title || "", mediaType: "movie", id: mediaId,
+          streamUrl: info.streamUrl, title: info.title || currentMedia?.title || "", mediaType: mediaType as "movie" | "tv", id: mediaId,
+          season: mediaType === "tv" ? season : undefined, episode: mediaType === "tv" ? episode : undefined,
           streamHash: info.torrentHash, streamType: (info.streamType === "m3u8" || info.streamType === "mp4" || info.streamType === "dash") ? info.streamType : undefined,
           audios: info.audios?.map((a) => ({ name: a.name, url: a.url })), headers: info.headers, providerId: info.providerId, voice: info.voice,
         }))
         .catch(handleOnError)
         .finally(() => setActionLoading(false));
     } else {
+      // Torrents always fetch files list first to know what they contain
       setClickedStream(stream);
       ExtensionRegistry.sendSandboxRequest<{ episodes: StreamEpisode[]; tmdbSeasonsCount: number }>(activeSource.pluginId, "STREAM_SOURCE_GET_EPISODES", { stream, context })
-        .then((res) => setEpisodeSelectorData({
-          title: stream.title || "Выбор серии", episodes: (res.episodes || []).map(mapEpisode),
-          tmdbSeasonsCount: res.tmdbSeasonsCount || currentMedia?.numberOfSeasons || 1,
-        }))
+        .then((res) => {
+          const eps = res.episodes || [];
+          if (eps.length === 1) {
+            // Exactly 1 video file in the torrent: play it immediately
+            const singleEp = mapEpisode(eps[0]);
+            return ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(activeSource.pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", { stream, episode: singleEp, context })
+              .then((info) => {
+                playVideo({
+                  streamUrl: info.streamUrl, title: info.title || currentMedia?.title || "", mediaType: mediaType as "movie" | "tv", id: mediaId,
+                  season: mediaType === "tv" ? singleEp.season : undefined, episode: mediaType === "tv" ? singleEp.episode : undefined,
+                  streamHash: info.torrentHash, streamType: (info.streamType === "m3u8" || info.streamType === "mp4" || info.streamType === "dash") ? info.streamType : undefined,
+                  audios: info.audios?.map((a) => ({ name: a.name, url: a.url })), headers: info.headers, providerId: info.providerId, voice: info.voice,
+                });
+                setClickedStream(null);
+              });
+          } else {
+            // Multiple files: show files list selector popup
+            setEpisodeSelectorData({
+              title: stream.title || (mediaType === "movie" ? "Выбор файла" : "Выбор серии"),
+              episodes: eps.map(mapEpisode),
+              tmdbSeasonsCount: res.tmdbSeasonsCount || currentMedia?.numberOfSeasons || 1,
+            });
+          }
+        })
         .catch(handleOnError)
         .finally(() => setActionLoading(false));
     }
-  }, [activeSource, mediaType, context, mediaId, currentMedia, playVideo, handleOnError]);
+  }, [activeSource, mediaType, context, mediaId, currentMedia, playVideo, handleOnError, season, episode]);
 
   const handlePlayEpisode = useCallback((ep: GenericEpisodeItem) => {
     if (!activeSource || !clickedStream) return;
@@ -174,8 +198,8 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
         }
 
         playVideo({
-          streamUrl: info.streamUrl, title: info.title || currentMedia?.title || "", mediaType: "tv", id: mediaId,
-          season: ep.season, episode: ep.episode, streamHash: info.torrentHash,
+          streamUrl: info.streamUrl, title: info.title || currentMedia?.title || "", mediaType: mediaType as "movie" | "tv", id: mediaId,
+          season: mediaType === "tv" ? ep.season : undefined, episode: mediaType === "tv" ? ep.episode : undefined, streamHash: info.torrentHash,
           streamType: (info.streamType === "m3u8" || info.streamType === "mp4" || info.streamType === "dash") ? info.streamType : undefined,
           audios: info.audios?.map((a) => ({ name: a.name, url: a.url })), headers: info.headers, providerId: info.providerId, voice: info.voice,
           playlist,
@@ -184,7 +208,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
       })
       .catch(handleOnError)
       .finally(() => setActionLoading(false));
-  }, [activeSource, clickedStream, context, currentMedia, mediaId, playVideo, handleOnError]);
+  }, [activeSource, clickedStream, context, currentMedia, mediaId, playVideo, handleOnError, mediaType]);
 
   const handleStartEditing = useCallback(() => {
     if (!activeSource || !clickedStream) return;
@@ -197,8 +221,10 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
 
   const handleApplyOverride = useCallback((seasonNum: number, epNum: number) => {
     if (!activeSource || !clickedStream) return;
+    // Convert 1-based episode number to zero-based offset
+    const offset = Math.max(0, epNum - 1);
     setIsSaving(true);
-    ExtensionRegistry.sendSandboxRequest<void>(activeSource.pluginId, "STREAM_SOURCE_SAVE_OVERRIDE", { stream: clickedStream, context, seasonNum, episodeOffset: epNum })
+    ExtensionRegistry.sendSandboxRequest<void>(activeSource.pluginId, "STREAM_SOURCE_SAVE_OVERRIDE", { stream: clickedStream, context, seasonNum, episodeOffset: offset })
       .then(() => ExtensionRegistry.sendSandboxRequest<{ episodes: StreamEpisode[]; tmdbSeasonsCount: number }>(activeSource.pluginId, "STREAM_SOURCE_GET_EPISODES", { stream: clickedStream, context }))
       .then((res) => setEpisodeSelectorData({
         title: clickedStream.title || "Выбор серии", episodes: (res.episodes || []).map(mapEpisode),

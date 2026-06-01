@@ -247,14 +247,14 @@ class ExtensionRegistryManager {
     let finalTimeoutMs = timeoutMs;
     if (finalTimeoutMs === undefined) {
       if (action === "STREAM_SOURCE_SEARCH") {
-        finalTimeoutMs = 10000;
+        finalTimeoutMs = 60000;
       } else if (
         action === "STREAM_SOURCE_GET_EPISODES" ||
         action === "STREAM_SOURCE_GET_SEASONS" ||
         action === "STREAM_SOURCE_SAVE_OVERRIDE" ||
         action === "STREAM_SOURCE_GET_PLAYBACK_INFO"
       ) {
-        finalTimeoutMs = 5000;
+        finalTimeoutMs = 15000;
       } else {
         finalTimeoutMs = 5000;
       }

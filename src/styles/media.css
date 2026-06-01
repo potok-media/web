@@ -249,15 +249,15 @@
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .carousel-row {
-    --cards-per-row: 4;
+    --cards-per-row: 3.2;
   }
 }
 
-@media (max-width: 500px) {
+@media (max-width: 480px) {
   .carousel-row {
-    --cards-per-row: 3;
+    --cards-per-row: 2.2;
   }
 }
 
@@ -460,12 +460,14 @@
   -webkit-backface-visibility: hidden;
 }
 
-.media-card:hover .media-poster-wrap {
-  transform: translateY(-4px) scale(1.03);
-  box-shadow: 
-    0 10px 24px rgba(0, 0, 0, 0.45),
-    0 0 16px var(--accent-semi);
-  z-index: 10;
+@media (hover: hover) {
+  .media-card:hover .media-poster-wrap {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 
+      0 10px 24px rgba(0, 0, 0, 0.45),
+      0 0 16px var(--accent-semi);
+    z-index: 10;
+  }
 }
 
 .media-poster {
@@ -2828,3 +2830,654 @@
   display: flex;
   flex-direction: column;
 }
+
+@media (max-width: 768px) {
+  /* Details grid below 768px */
+  .details-content-container {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+    gap: var(--space-xs);
+    align-items: flex-start;
+    justify-content: flex-end;
+    text-align: left;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Sidebar poster */
+  .details-poster-sidebar,
+  .details-main-info {
+    display: contents;
+  }
+
+  /* Hero banner & content */
+  .immersive-hero-container {
+    height: auto !important;
+    min-height: 0 !important;
+    margin-bottom: var(--space-m) !important;
+  }
+
+  .immersive-hero-content {
+    position: relative !important;
+    height: auto !important;
+    align-items: stretch !important;
+    padding: var(--space-m) !important;
+    padding-top: 40dvh !important; /* Cinematic space at the top to expose backdrop faces */
+    padding-bottom: 48px !important;
+  }
+
+  .immersive-hero-overlay {
+    background: linear-gradient(
+      to top,
+      var(--bg-window) 0%,
+      rgba(13, 14, 18, 0.95) 30%,
+      rgba(13, 14, 18, 0.5) 65%,
+      transparent 100%
+    );
+  }
+
+  /* 1. Logo / title fallback - top zone */
+  .details-logo-container,
+  .details-title-fallback {
+    order: 1;
+    align-self: flex-start;
+    margin-bottom: 2px;
+  }
+  
+  .details-logo-container {
+    height: 55px;
+    max-width: 220px;
+    justify-content: flex-start;
+    margin-bottom: 4px;
+  }
+
+  .details-title-fallback {
+    font-size: 1.75rem;
+    text-align: left;
+    margin: 0 0 4px 0;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    width: 100%;
+  }
+
+  /* 2. Original title / subtitles */
+  .details-subtitles {
+    order: 2;
+    font-size: 0.875rem;
+    margin: 0 0 2px 0;
+    align-self: flex-start;
+    text-align: left;
+    color: var(--text-secondary);
+  }
+
+  /* 3. Textual metadata */
+  .details-hero-metadata {
+    order: 3;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 4px;
+    align-self: flex-start;
+    text-align: left;
+  }
+  
+  .details-studio-logo {
+    height: 12px;
+    margin-right: 2px;
+  }
+
+  /* 4. Ratings КП & IMDb */
+  .details-rating-container {
+    order: 4;
+    display: flex;
+    gap: 8px;
+    margin-bottom: var(--space-s);
+    align-self: flex-start;
+  }
+
+  .details-rating-badge {
+    padding: 3px 7px;
+    font-size: 0.72rem;
+    border-radius: 6px;
+  }
+
+  /* 5. Description synopsis */
+  .details-overview-text {
+    order: 5;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.7);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0 0 var(--space-m) 0;
+    text-align: left;
+    max-width: 100%;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
+
+  /* 6. Action buttons block */
+  .details-actions-container {
+    order: 6;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    margin-top: 2px;
+  }
+
+  .btn-watch-primary,
+  .potok-btn.btn-watch-primary,
+  .btn-watch-online,
+  .potok-btn.btn-watch-online {
+    height: 42px;
+    padding: 10px 18px;
+    font-size: 0.875rem;
+    border-radius: 12px;
+    font-weight: 700;
+    width: 100%;
+  }
+
+  /* 7. Social buttons row - stretching 100% width in 3 columns */
+  .details-actions-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 10px !important;
+    width: 100% !important;
+    margin-top: 2px !important;
+  }
+
+  .action-btn-circle {
+    width: 100% !important;
+    height: 42px !important;
+    border-radius: 12px !important; /* Rounded rectangle matching play buttons */
+    flex: none !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .action-btn-circle:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    transform: none !important;
+  }
+
+  .action-btn-circle.active {
+    background: var(--accent-dim) !important;
+    border-color: var(--accent-semi) !important;
+    color: var(--accent) !important;
+  }
+
+  .details-episode-title {
+    order: 2.5;
+    font-size: 1.15rem;
+    text-align: left;
+    margin: var(--space-xxs) 0;
+    align-self: flex-start;
+  }
+
+  .details-reset-episode-btn {
+    order: 7;
+    margin-top: var(--space-xs);
+    align-self: flex-start;
+  }
+
+  .hero-content {
+    width: 100%;
+  }
+
+  .hero-logo {
+    max-width: 220px;
+    max-height: 55px;
+  }
+
+  .hero-overview {
+    -webkit-line-clamp: 2;
+  }
+
+  .hero-dots {
+    position: absolute !important;
+    bottom: 16px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    margin: 0 !important;
+    justify-content: center !important;
+    z-index: 10 !important;
+  }
+
+  /* Catalog grid */
+  .library-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  /* Torrent stream selection page mobile overrides */
+  .streams-page-layout {
+    position: relative !important;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .streams-page-sidebar {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    overflow: visible !important;
+    z-index: 20 !important;
+    display: block !important;
+  }
+
+  .streams-sidebar-back-btn {
+    position: absolute !important;
+    top: 26px !important;
+    left: 16px !important;
+    width: 38px !important;
+    height: 38px !important;
+    flex: 0 0 38px !important;
+    border-radius: 50% !important;
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    color: var(--text-primary) !important;
+    z-index: 30 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Hide all redundant, overflowing text items on mobile to yield a perfect header bar */
+  .streams-sidebar-title,
+  .streams-sidebar-subtitle,
+  .streams-sidebar-badges,
+  .streams-sidebar-poster,
+  .streams-sidebar-overview {
+    display: none !important;
+  }
+
+  .streams-sidebar-title {
+    font-size: 1.15rem;
+    margin: 0 0 2px 0;
+  }
+
+  .streams-sidebar-subtitle {
+    margin: 0 0 6px 0;
+  }
+
+  .streams-sidebar-badges {
+    margin-bottom: 0;
+  }
+
+  .streams-page-content {
+    height: auto;
+    flex-grow: 1;
+    width: 100%;
+    padding: var(--space-m);
+    overflow: hidden;
+  }
+
+  .streams-results-header {
+    padding-left: 44px !important;
+    min-height: 48px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  .streams-results-list {
+    padding-bottom: calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom, 0px) + var(--space-m));
+  }
+
+  /* Responsive styles for stream results page mobile viewports */
+  .streams-scroll-area {
+    padding: 10px !important;
+  }
+
+  .stream-size-badge-fixed {
+    flex-shrink: 0;
+    align-self: flex-start;
+  }
+
+  .stream-title-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+  }
+
+  .stream-stat-item .stat-icon {
+    display: inline !important;
+  }
+
+  .stream-stat-item .stat-icon.green {
+    color: #4cd964 !important;
+    margin-right: 2px !important;
+  }
+
+  .stream-stat-item .stat-icon.grey {
+    color: #8e8e93 !important;
+    margin-right: 2px !important;
+  }
+
+  .stream-stat-item .stat-label {
+    display: none !important;
+  }
+
+  .stream-footer-row {
+    font-size: 0.8rem;
+    gap: 8px;
+  }
+
+  /* --------------------------------------------------------------------------
+     Mobile Episode Selector Popup Adaptations
+     -------------------------------------------------------------------------- */
+  .modal-container {
+    width: 95vw !important;
+    height: 85vh !important;
+    max-height: 90dvh !important;
+    border-radius: var(--radius-m) !important;
+  }
+
+  .modal-header {
+    padding: var(--space-s) var(--space-m) !important;
+    min-height: 54px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Completely hide the huge wrapped torrent/stream title and subtitle as requested by user */
+  .modal-title-custom-size,
+  .modal-subtitle-text {
+    display: none !important;
+  }
+
+  /* Keep the back arrow button and close the text-group */
+  .modal-title-row {
+    flex: 0 0 auto !important;
+    gap: 8px !important;
+  }
+
+  .modal-title-text-group {
+    flex: 0 0 auto !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Make tv progress container more compact or hide it */
+  .tv-progress-container {
+    display: none !important;
+  }
+
+  /* Ensure the header buttons on the right sit beautifully in a single line */
+  .modal-header-actions-row {
+    gap: var(--space-xs) !important;
+  }
+
+  .modal-header-actions-row .close-btn,
+  .modal-header-actions-row .edit-btn,
+  .popover-trigger-btn {
+    padding: 6px 12px !important;
+    font-size: 0.78rem !important;
+    border-radius: var(--radius-s) !important;
+    height: 34px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: bold !important;
+    box-sizing: border-box !important;
+  }
+
+  .modal-close-btn {
+    width: 36px !important;
+    height: 36px !important;
+    flex: 0 0 36px !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Scale down the giant 240px thumbnails to fit within mobile rows nicely */
+  .file-card-row {
+    gap: var(--space-m) !important;
+    padding: 10px 14px !important;
+  }
+
+  .file-card-banner {
+    width: 140px !important;
+    height: 79px !important; /* 16:9 scaled ratio */
+  }
+
+  .file-card-bg-number {
+    font-size: 2.6rem !important;
+    top: -6px !important;
+    left: 6px !important;
+  }
+
+  .file-card-info-panel {
+    gap: 4px !important;
+  }
+
+  .file-card-title {
+    font-size: 0.93rem !important;
+    white-space: normal !important; /* Allow wrapping up to 2 lines for episode names */
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .file-card-subtitle {
+    font-size: 0.78rem !important;
+  }
+
+  .file-card-details-panel {
+    align-items: flex-end !important;
+    gap: 4px !important;
+    margin-right: 0 !important;
+  }
+
+  .file-card-size {
+    font-size: 0.65rem !important;
+  }
+
+  .file-card-ext-badge {
+    font-size: 0.58rem !important;
+    padding: 1px 4px !important;
+  }
+
+  /* Hide the desktop style overlay play button on mobile, as the whole card row is clickable */
+  .file-card-play-btn {
+    display: none !important;
+  }
+}
+
+/* Base styles for scroll area and stats item (for both desktop and mobile) */
+.streams-scroll-area {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.stream-stat-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stream-stat-item .stat-icon {
+  display: none;
+}
+
+.stream-stat-item .stat-label {
+  display: inline;
+}
+
+@media (max-width: 600px) {
+  .filter-btn-text {
+    display: none !important;
+  }
+
+  /* Hide the trailing dropdown chevrons when text is hidden, making them perfect single-icon squares */
+  .filter-btn-text + svg {
+    display: none !important;
+  }
+
+  /* Optimize trigger buttons to be perfect compact squares on mobile */
+  .filter-btn-trigger,
+  .filter-btn-trigger-relative {
+    padding: 0 !important;
+    width: 38px !important;
+    height: 38px !important;
+    flex: 0 0 38px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+  }
+}
+
+.library-mobile-tabs-container {
+  display: none;
+}
+
+.settings-mobile-tabs-bar {
+  display: none;
+}
+
+/* Library and Settings Page Horizontal Scroll tabs styles on mobile */
+@media (max-width: 768px) {
+  /* Library Category Selector Tabs */
+  .library-mobile-tabs-container {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    padding: 0.5rem 0;
+    margin-bottom: var(--space-m);
+    position: relative;
+  }
+  
+  .library-mobile-tabs-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: var(--space-xl);
+    background: linear-gradient(to left, var(--bg-window) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .library-mobile-tabs-scroll {
+    display: flex;
+    gap: var(--space-s);
+    overflow-x: auto;
+    padding: 0 var(--space-m);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .library-mobile-tabs-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .library-mobile-tab-chip {
+    flex-shrink: 0;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .library-mobile-tab-chip.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(125, 211, 252, 0.25);
+  }
+
+  /* Settings Section Selector Tabs */
+  .settings-mobile-tabs-bar {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    padding: 0.25rem 0;
+    margin-bottom: var(--space-l);
+    position: relative;
+  }
+
+  .settings-mobile-tabs-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 2rem;
+    background: linear-gradient(to left, var(--bg-window) 0%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .settings-mobile-tabs-scroll {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0 0.25rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .settings-mobile-tabs-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .settings-tab-chip {
+    flex-shrink: 0;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-m);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .settings-tab-chip.active {
+    background: var(--accent-dim);
+    color: var(--text-primary);
+    border-color: var(--accent);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+}
+

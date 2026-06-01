@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { LogOut, RefreshCw, Popcorn } from "lucide-react";
+import { LogOut, RefreshCw, Popcorn, Settings } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ExtensionSlot } from "../components/common/ExtensionSlot";
 import { Storage } from "../utils/StorageService";
 import { AuthApiClient } from "../network/AuthApiClient";
 import { useHUD } from "../context/HUDContext";
@@ -145,7 +147,12 @@ export const ProfilePage: React.FC = () => {
     <div className="profile-container">
       <div className="profile-header-wrap">
         <div>
-          <h1 className="profile-hero-title">Профиль</h1>
+          <div className="profile-title-row">
+            <h1 className="profile-hero-title">Профиль</h1>
+            <Link to="/settings" className="profile-mobile-settings-btn" title="Настройки">
+              <Settings size={20} />
+            </Link>
+          </div>
           <span className="profile-subtitle">
             Управление аккаунтами и синхронизацией
           </span>
@@ -169,20 +176,56 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       {syncStrategy !== "none" && syncStrategy !== "localDevice" && (
-        <div className="profile-dropdown-wrap">
-          <div className="strategy-dropdown-container">
-            <span>Синхронизация:</span>
-            <select
-              value={syncStrategy}
-              onChange={(e) => selectStrategy(e.target.value)}
-              className="strategy-dropdown-select"
-            >
-              <option value="none">Не выбрано</option>
-              <option value="trakt">Trakt.tv</option>
-              <option value="server">Сервер Potok</option>
-            </select>
+        <>
+          {/* Desktop sync select dropdown */}
+          <div className="profile-dropdown-wrap desktop-only">
+            <div className="strategy-dropdown-container">
+              <span>Синхронизация:</span>
+              <select
+                value={syncStrategy}
+                onChange={(e) => selectStrategy(e.target.value)}
+                className="strategy-dropdown-select"
+              >
+                <option value="none">Не выбрано</option>
+                <option value="trakt">Trakt.tv</option>
+                <option value="server">Сервер Potok</option>
+              </select>
+            </div>
           </div>
-        </div>
+
+          {/* Mobile premium strategy segmented chips */}
+          <div className="profile-dropdown-wrap mobile-only">
+            <div className="strategy-chips-container">
+              <span className="strategy-chips-label">Синхронизация:</span>
+              <div className="strategy-segmented-chips">
+                <button
+                  type="button"
+                  onClick={() => selectStrategy("none")}
+                  className={`strategy-chip-btn ${syncStrategy === "none" ? "active" : ""}`}
+                >
+                  Выкл
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    selectStrategy("trakt");
+                    if (!traktToken) startTraktAuth();
+                  }}
+                  className={`strategy-chip-btn ${syncStrategy === "trakt" ? "active" : ""}`}
+                >
+                  Trakt.tv
+                </button>
+                <button
+                  type="button"
+                  onClick={() => selectStrategy("server")}
+                  className={`strategy-chip-btn ${syncStrategy === "server" ? "active" : ""}`}
+                >
+                  Сервер Potok
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       {syncStrategy === "localDevice" && (
@@ -240,6 +283,14 @@ export const ProfilePage: React.FC = () => {
       )}
 
       {syncStrategy === "server" && <ServerSyncActiveView />}
+
+      <div className="profile-mobile-extensions-section">
+        <h2 className="profile-extensions-heading">Ваши расширения и инструменты</h2>
+        <p className="profile-extensions-subheading">Быстрый доступ к установленным плагинам</p>
+        <div className="profile-extensions-grid-wrapper">
+          <ExtensionSlot name="sidebar-menu" props={{ isCollapsed: false }} />
+        </div>
+      </div>
     </div>
   );
 };

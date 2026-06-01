@@ -31,7 +31,7 @@ export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(
         </div>
 
         {(stream.sizeLabel || stream.sizeBytes) && (
-          <span className="stream-size-badge">
+          <span className="stream-size-badge stream-size-badge-fixed">
             {stream.sizeLabel || formatBytes(stream.sizeBytes)}
           </span>
         )}
@@ -50,11 +50,15 @@ export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(
             </span>
           ) : (
             <>
-              <span>
-                Раздают: <span className="stream-peer-num">{stream.seeders ?? 0}</span>
+              <span className="stream-stat-item seeds" title="Раздают (Сиды)">
+                <span className="stat-label">Раздают:</span>
+                <span className="stat-icon green">▲</span>
+                <span className="stream-peer-num">{stream.seeders ?? 0}</span>
               </span>
-              <span>
-                Скачивают: <span className="stream-peer-num">{stream.leechers ?? 0}</span>
+              <span className="stream-stat-item peers" title="Скачивают (Пиры)">
+                <span className="stat-label">Скачивают:</span>
+                <span className="stat-icon grey">▼</span>
+                <span className="stream-peer-num">{stream.leechers ?? 0}</span>
               </span>
             </>
           )}

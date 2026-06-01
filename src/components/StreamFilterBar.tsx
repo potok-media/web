@@ -55,7 +55,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
           onClick={onRefresh}
         >
           <RotateCw size={14} />
-          <span>Обновить</span>
+          <span className="filter-btn-text">Обновить</span>
         </button>
 
         {/* Sorting Dropdown */}
@@ -72,7 +72,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
               {sortOption === "publishDateDesc" && <Calendar size={14} />}
               {sortOption === "sizeDesc" && <ArrowUpCircle size={14} />}
               {sortOption === "sizeAsc" && <ArrowDownCircle size={14} />}
-              <span>{SORT_OPTIONS[sortOption]}</span>
+              <span className="filter-btn-text">{SORT_OPTIONS[sortOption]}</span>
               <ChevronDown size={14} />
             </button>
 
@@ -115,7 +115,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
             }}
           >
             <Filter size={14} />
-            <span>Фильтры</span>
+            <span className="filter-btn-text">Фильтры</span>
             <ChevronDown size={14} />
             {(qualityFilter !== "all" || activeTracker !== "all") && (
               <span className="filter-badge-dot" />

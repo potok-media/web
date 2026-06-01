@@ -235,6 +235,49 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   });
   const [metadataDuration, setMetadataDuration] = useState(0);
 
+  // Derived torrent/file metadata
+  const streamHash = useMemo(() => {
+    let hash = playback.streamHash;
+    if (!hash) {
+      const hashMatch = playback.streamUrl.match(/\/stream\/([a-f0-9]{40})/i);
+      if (hashMatch) {
+        hash = hashMatch[1];
+      } else {
+        try {
+          const parsed = new URL(playback.streamUrl);
+          hash = parsed.searchParams.get("link") || "";
+        } catch {
+          const match = playback.streamUrl.match(/[?&]link=([a-f0-9]{40})/i);
+          if (match) hash = match[1];
+        }
+      }
+    }
+    return hash ? hash.toLowerCase() : "";
+  }, [playback.streamUrl, playback.streamHash]);
+
+  const fileIndex = useMemo(() => {
+    let fileId = "";
+    const pathMatch = playback.streamUrl.match(/\/stream\/[a-f0-9]+\/(\d+)/i);
+    if (pathMatch) {
+      fileId = pathMatch[1];
+    } else {
+      try {
+        const parsed = new URL(playback.streamUrl);
+        fileId = parsed.searchParams.get("index") || "";
+      } catch {
+        const match = playback.streamUrl.match(/[?&]index=(\d+)/i);
+        if (match) fileId = match[1];
+      }
+    }
+    return fileId;
+  }, [playback.streamUrl]);
+
+  // Torrent P2P loading states
+  const [torrentPeers, setTorrentPeers] = useState<number | null>(null);
+  const [torrentDownloadSpeed, setTorrentDownloadSpeed] = useState<number | null>(null);
+  const [isMetadataFetched, setIsMetadataFetched] = useState(false);
+  const [hasPositivePeersTime, setHasPositivePeersTime] = useState<number | null>(null);
+
   const [seekOffset, setSeekOffset] = useState(() => {
     const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
     const savedResume = localStorage.getItem(resumeKey);
@@ -335,49 +378,22 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     setSubtitleTracks([]);
     setCurrentSubtitleTrack(-1);
 
-    let fileId = "";
-    const pathMatch = playback.streamUrl.match(/\/stream\/[a-f0-9]+\/(\d+)/i);
-    if (pathMatch) {
-      fileId = pathMatch[1];
-    } else {
-      try {
-        const parsed = new URL(playback.streamUrl);
-        fileId = parsed.searchParams.get("index") || "";
-      } catch {
-        const match = playback.streamUrl.match(/[?&]index=(\d+)/i);
-        if (match) fileId = match[1];
-      }
-    }
-
-    let streamHash = playback.streamHash;
-    if (!streamHash) {
-      const hashMatch = playback.streamUrl.match(/\/stream\/([a-f0-9]{40})/i);
-      if (hashMatch) {
-        streamHash = hashMatch[1];
-      } else {
-        try {
-          const parsed = new URL(playback.streamUrl);
-          streamHash = parsed.searchParams.get("link") || "";
-        } catch {
-          const match = playback.streamUrl.match(/[?&]link=([a-f0-9]{40})/i);
-          if (match) streamHash = match[1];
-        }
-      }
-    }
-
-    if (!fileId || !streamHash) {
+    if (!fileIndex || !streamHash) {
       setIsMetadataLoading(false);
       return;
     }
 
     let isMounted = true;
     setIsMetadataLoading(true);
+    setIsMetadataFetched(false);
     
     (async () => {
+      let fetchedSuccessfully = false;
       try {
-        const metadata = await ApiClient.getStreamMetadata(streamHash, fileId);
+        const metadata = await ApiClient.getStreamMetadata(streamHash, fileIndex);
         if (!isMounted) return;
         if (metadata && metadata.success) {
+          fetchedSuccessfully = true;
           if (metadata.duration > 0) setMetadataDuration(metadata.duration);
 
           const torrentAudioTracks = metadata.tracks
@@ -394,7 +410,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
             .filter((t) => t.type === "subtitle")
             .map((t) => {
               const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
-              const srcUrl = `${cleanBase}/stream/${streamHash.toLowerCase()}/${fileId}/subtitles/${t.relIndex}`;
+              const srcUrl = `${cleanBase}/stream/${streamHash.toLowerCase()}/${fileIndex}/subtitles/${t.relIndex}`;
               return {
                 id: `${t.relIndex}_${t.title}`,
                 label: t.title,
@@ -403,6 +419,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
               };
             });
           setInjectedSubtitles(tracksToInject);
+          setIsMetadataFetched(true);
           
           setTimeout(() => {
             if (isMounted) syncNativeTextTracks();
@@ -412,7 +429,9 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         console.warn("Failed to load stream metadata:", err);
       } finally {
         if (isMounted) {
-          setIsMetadataLoading(false);
+          if (!fetchedSuccessfully) {
+            setIsMetadataLoading(false);
+          }
         }
       }
     })();
@@ -420,7 +439,107 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     return () => {
       isMounted = false;
     };
-  }, [playback.streamUrl, playback.streamHash, syncNativeTextTracks]);
+  }, [streamHash, fileIndex, syncNativeTextTracks]);
+
+
+
+  // Torrent status polling interval during metadata loading phase
+  useEffect(() => {
+    if (!streamHash || !isMetadataLoading) {
+      setTorrentPeers(null);
+      setTorrentDownloadSpeed(null);
+      setHasPositivePeersTime(null);
+      return;
+    }
+
+    const hash = streamHash.toLowerCase();
+    const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
+    const statusUrl = `${cleanBase}/api/tor` + `rent/status/${hash}`;
+
+    let isMounted = true;
+
+    const pollStatus = async () => {
+      try {
+        const res = await fetch(statusUrl, { mode: "cors" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!isMounted) return;
+
+        const peersCount = typeof data.peers === "number" ? data.peers : 0;
+        const speed = typeof data.downloadSpeed === "number" ? data.downloadSpeed : 0;
+
+        setTorrentPeers(peersCount);
+        setTorrentDownloadSpeed(speed);
+
+        if (peersCount > 0) {
+          setHasPositivePeersTime(prev => prev ?? Date.now());
+        } else {
+          setHasPositivePeersTime(null);
+        }
+      } catch (err) {
+        console.warn("[WebMediaPlayer] Torrent status poll failed:", err);
+      }
+    };
+
+    pollStatus(); // Poll immediately
+    const interval = setInterval(pollStatus, 2000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [streamHash, isMetadataLoading]);
+
+  // Compute active loading phase state representation
+  const loadingState = useMemo(() => {
+    if (!isMetadataLoading) return null;
+
+    const isStreamServer = playback.streamUrl.includes("/stream/") || !!playback.streamHash;
+    if (!isStreamServer) {
+      return {
+        title: "Инициализация и буферизация...",
+        subtitle: "Загрузка медиа-потока",
+        step: 4
+      };
+    }
+
+    // Phase 1: DHT search / zero peers
+    if (torrentPeers === null || torrentPeers === 0) {
+      return {
+        title: "Поиск раздающих...",
+        subtitle: "Поиск активных пиров в сети P2P (DHT)",
+        step: 1
+      };
+    }
+
+    // Phase 2: Downloading headers / positive peers
+    const isProbing = isMetadataFetched || (hasPositivePeersTime !== null && (Date.now() - hasPositivePeersTime > 3000));
+    
+    if (!isProbing) {
+      const speedMb = torrentDownloadSpeed !== null ? (torrentDownloadSpeed / 1024 / 1024).toFixed(1) : "0.0";
+      return {
+        title: "Подготовка видео-потока...",
+        subtitle: `Скачивание заголовков файла • Пиры: ${torrentPeers} • Скорость: ${speedMb} МБ/с`,
+        step: 2
+      };
+    }
+
+    // Phase 3: Running ffprobe metadata lookup
+    if (!isMetadataFetched) {
+      return {
+        title: "Настройка аудио и видео...",
+        subtitle: "Анализ медиа-контейнера и дорожек (ffprobe)",
+        step: 3
+      };
+    }
+
+    // Phase 4: Hls/Video loading data
+    return {
+      title: "Инициализация и буферизация...",
+      subtitle: "Запуск плеера и наполнение буфера воспроизведения",
+      step: 4
+    };
+  }, [isMetadataLoading, playback.streamUrl, playback.streamHash, torrentPeers, torrentDownloadSpeed, isMetadataFetched, hasPositivePeersTime]);
 
   // Гарантированная синхронизация режима субтитров с React-состоянием
   useEffect(() => {
@@ -809,6 +928,9 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       .catch((err) => {
         console.error("[WebMediaPlayer] Diagnostics HEAD fetch failed:", err);
         setPlayerError("Не удалось загрузить видео-поток.");
+      })
+      .finally(() => {
+        setIsMetadataLoading(false);
       });
   };
 
@@ -1076,42 +1198,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   // Hooks integration
   const { introRange, outroRange } = useTimecodes(playback.id, playback.season, playback.episode, playback.mediaType === "tv", displayDuration);
 
-  // Determine streamHash and fileIndex for hover thumbnails preview
-  const fileIndex = useMemo(() => {
-    let fileId = "";
-    const pathMatch = playback.streamUrl.match(/\/stream\/[a-f0-9]+\/(\d+)/i);
-    if (pathMatch) {
-      fileId = pathMatch[1];
-    } else {
-      try {
-        const parsed = new URL(playback.streamUrl);
-        fileId = parsed.searchParams.get("index") || "";
-      } catch {
-        const match = playback.streamUrl.match(/[?&]index=(\d+)/i);
-        if (match) fileId = match[1];
-      }
-    }
-    return fileId;
-  }, [playback.streamUrl]);
-
-  const streamHash = useMemo(() => {
-    let hash = playback.streamHash;
-    if (!hash) {
-      const hashMatch = playback.streamUrl.match(/\/stream\/([a-f0-9]{40})/i);
-      if (hashMatch) {
-        hash = hashMatch[1];
-      } else {
-        try {
-          const parsed = new URL(playback.streamUrl);
-          hash = parsed.searchParams.get("link") || "";
-        } catch {
-          const match = playback.streamUrl.match(/[?&]link=([a-f0-9]{40})/i);
-          if (match) hash = match[1];
-        }
-      }
-    }
-    return hash;
-  }, [playback.streamUrl, playback.streamHash]);
+  // Note: fileIndex and streamHash have been hoisted to the top of the component
 
   if (isClosed) return null;
 
@@ -1122,32 +1209,48 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       onMouseMove={handleUserActivity}
       onClick={() => { handleUserActivity(); setShowAudioMenu(false); setShowSubtitleMenu(false); setShowQualityMenu(false); setShowPlaylistMenu(false); }}
     >
-      {isMetadataLoading && (
+      {isMetadataLoading && loadingState && (
         <div className="player-loading-overlay" onClick={(e) => e.stopPropagation()}>
-          <div className="player-loading-spinner-container">
-            <div className="player-loading-spinner" />
-            <div className="player-loading-spinner-inner" />
+          <div className="player-loading-card">
+            <div className="player-loading-spinner-container">
+              <div className="player-loading-spinner" />
+              <div className="player-loading-spinner-inner" />
+            </div>
+            
+            <h3 className="player-loading-title">{loadingState.title}</h3>
+            <p className="player-loading-subtitle">{loadingState.subtitle}</p>
+
+            {/* Premium Step Progress Tracker */}
+            <div className="player-loading-steps">
+              {[
+                { step: 1, label: "Поиск раздающих" },
+                { step: 2, label: "Заголовки" },
+                { step: 3, label: "Анализ медиа" },
+                { step: 4, label: "Буферизация" }
+              ].map((s) => {
+                const isActive = loadingState.step === s.step;
+                const isCompleted = loadingState.step > s.step;
+                return (
+                  <div 
+                    key={s.step} 
+                    className={`player-loading-step-item ${isActive ? "active" : ""} ${isCompleted ? "completed" : ""}`}
+                  >
+                    <div className="step-dot">
+                      {isCompleted ? "✓" : s.step}
+                    </div>
+                    <span className="step-label">{s.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <button 
+              className="player-loading-cancel-btn" 
+              onClick={handleClose}
+            >
+              Отмена
+            </button>
           </div>
-          <h3 className="player-loading-title">Анализ видео-файла...</h3>
-          <p className="player-loading-subtitle">Пожалуйста, подождите, мы определяем параметры потока</p>
-          <button 
-            className="error-close-btn" 
-            style={{ 
-              marginTop: "24px", 
-              background: "rgba(255, 255, 255, 0.08)", 
-              border: "1px solid rgba(255, 255, 255, 0.12)",
-              color: "#fff",
-              padding: "10px 24px",
-              borderRadius: "8px",
-              fontSize: "0.85rem",
-              fontWeight: 500,
-              cursor: "pointer",
-              transition: "all 0.2s ease"
-            }}
-            onClick={handleClose}
-          >
-            Отмена
-          </button>
         </div>
       )}
 
@@ -1258,6 +1361,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         streamUrl={playback.streamUrl}
         streamHash={playback.streamHash || ""}
         duration={displayDuration}
+        onClose={() => setShowStats(false)}
       />
 
       <PlayerControls

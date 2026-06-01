@@ -1,5 +1,5 @@
 import React from "react";
-import { Gauge } from "lucide-react";
+import { Gauge, X } from "lucide-react";
 import type Hls from "hls.js";
 import { usePlayerStats } from "../../hooks/usePlayerStats";
 
@@ -11,6 +11,7 @@ interface PlayerStatsHUDProps {
   streamUrl: string;
   streamHash: string;
   duration: number;
+  onClose?: () => void;
 }
 
 export const PlayerStatsHUD: React.FC<PlayerStatsHUDProps> = ({
@@ -21,6 +22,7 @@ export const PlayerStatsHUD: React.FC<PlayerStatsHUDProps> = ({
   streamUrl,
   streamHash,
   duration,
+  onClose,
 }) => {
   const [bufferSec, setBufferSec] = React.useState(0);
 
@@ -63,8 +65,19 @@ export const PlayerStatsHUD: React.FC<PlayerStatsHUDProps> = ({
   return (
     <div className="player-stats-widget" onClick={(e) => e.stopPropagation()}>
       <div className="stats-header">
-        <Gauge size={16} />
-        <span>Статистика сети</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Gauge size={16} />
+          <span>Статистика сети</span>
+        </div>
+        {onClose && (
+          <button 
+            className="stats-close-btn" 
+            onClick={(e) => { e.stopPropagation(); onClose(); }}
+            title="Закрыть"
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
       <div className="stats-grid">
         <div className="stats-row">

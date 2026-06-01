@@ -1010,5 +1010,22 @@ input:checked + .potok-slider:before {
   margin: 0;
 }
 
+@media (max-width: 768px) {
+  .potok-hstack {
+    flex-direction: column;
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .potok-card {
+    width: 100%;
+  }
+
+  .potok-btn {
+    height: 44px;
+    box-sizing: border-box;
+  }
+}
+
 
 

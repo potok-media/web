@@ -16,7 +16,7 @@ body {
   overscroll-behavior: none;
   user-select: none;
   -webkit-user-select: none;
-  height: 100vh;
+  height: 100dvh;
   width: 100vw;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -45,6 +45,11 @@ body {
 a, button {
   cursor: pointer;
   transition: all var(--timing-hover);
+}
+
+a, button, [role="button"], .media-card {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 /* App Shell utilities */
