@@ -277,4 +277,46 @@
   font-weight: bold;
 }
 
+/* Dynamic Extension Button Styling matching .sidebar-nav-item exactly */
+.potok-btn-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  padding: 10px 14px;
+  border-radius: var(--radius-m);
+  font: var(--font-body-bold);
+  color: var(--text-secondary);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.potok-btn-sidebar-item:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-high);
+}
+
+.potok-btn-sidebar-item.active {
+  color: var(--text-accent, white);
+  background: var(--accent);
+}
+
+/* Collapsed sidebar support for dynamic sidebar button contributions */
+.app-container.sidebar-collapsed .potok-btn-sidebar-item {
+  justify-content: center;
+  padding: 10px 0;
+  border-radius: var(--radius-m);
+  width: 44px;
+  height: 44px;
+  margin: 0 auto;
+}
+
+.app-container.sidebar-collapsed .potok-btn-sidebar-item span {
+  display: none;
+}
+
 

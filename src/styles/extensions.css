@@ -26,6 +26,8 @@
 }
 
 .potok-card {
+  position: relative;
+  z-index: 1;
   background: var(--color-surface, rgba(255, 255, 255, 0.08));
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-m, 12px);
@@ -38,9 +40,18 @@
   transition: border-color 0.15s ease-in-out, background-color 0.15s ease-in-out;
 }
 
-.potok-card:hover {
+.potok-card.potok-card-interactive {
+  cursor: pointer;
+}
+
+.potok-card.potok-card-interactive:hover {
   border-color: rgba(255, 255, 255, 0.18);
   background-color: rgba(255, 255, 255, 0.1);
+  z-index: 2;
+}
+
+.potok-card:focus-within {
+  z-index: 10;
 }
 
 
@@ -368,4 +379,259 @@ input:checked + .potok-slider:before {
   font: var(--font-caption-bold);
   font-family: monospace;
   color: var(--text-tertiary);
+}
+
+/* --- High-fidelity Markdown & Terminal Box Styling --- */
+
+.potok-markdown-body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: var(--spacing-m, 16px);
+  margin-bottom: var(--spacing-m, 16px);
+}
+
+.potok-markdown-body h1,
+.potok-markdown-body h2,
+.potok-markdown-body h3,
+.potok-markdown-body h4 {
+  color: #ffffff;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.potok-markdown-body h1 { font-size: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.3rem; }
+.potok-markdown-body h2 { font-size: 1.25rem; }
+.potok-markdown-body h3 { font-size: 1.1rem; }
+.potok-markdown-body h4 { font-size: 1rem; }
+
+.potok-markdown-body p {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.potok-markdown-body ul,
+.potok-markdown-body ol {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  padding-left: 20px;
+}
+
+.potok-markdown-body li {
+  margin-bottom: 0.4rem;
+}
+
+.potok-markdown-body code {
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 0.85em;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  color: #ff7875;
+}
+
+.potok-markdown-body pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+}
+
+/* macOS Terminal Box */
+.potok-terminal-container {
+  display: flex;
+  flex-direction: column;
+  background: rgba(18, 18, 24, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  margin: 1.2rem 0;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.potok-terminal-header {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 16px;
+  background: rgba(30, 30, 40, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+}
+
+.potok-terminal-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.potok-terminal-dots .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.potok-terminal-dots .dot.red { background: #ff5f56; }
+.potok-terminal-dots .dot.yellow { background: #ffbd2e; }
+.potok-terminal-dots .dot.green { background: #27c93f; }
+
+.potok-terminal-lang {
+  font-family: Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  margin-left: 20px;
+  text-transform: uppercase;
+}
+
+.potok-terminal-copy-btn {
+  margin-left: auto;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.potok-terminal-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.potok-terminal-copy-btn:active {
+  transform: scale(0.95);
+}
+
+.potok-terminal-body {
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  padding: 16px 0;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.potok-terminal-line-numbers {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding-left: 16px;
+  padding-right: 16px;
+  color: rgba(255, 255, 255, 0.25);
+  user-select: none;
+  text-align: right;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.potok-terminal-line-numbers span {
+  display: block;
+  height: 1.5em;
+}
+
+.potok-terminal-pre {
+  margin: 0;
+  padding: 0 16px;
+  flex-grow: 1;
+  overflow: visible;
+}
+
+.potok-terminal-pre code {
+  font-family: inherit;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Prism syntax highlight Tomorrow Night / One Dark colors */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #5c6370;
+  font-style: italic;
+}
+
+.token.punctuation {
+  color: #abb2bf;
+}
+
+.token.selector,
+.token.tag,
+.token.heading,
+.token.subheading {
+  color: #e06c75;
+}
+
+.token.property,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.attr-name,
+.token.deleted {
+  color: #d19a66;
+}
+
+.token.string,
+.token.char,
+.token.attr-value,
+.token.built-in,
+.token.inserted {
+  color: #98c379;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: #56b6c2;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: #c678dd;
+}
+
+.token.function,
+.token.class-name {
+  color: #61afef;
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: #e5c07b;
+}
+
+.token.important,
+.token.bold {
+  font-weight: bold;
+}
+.token.italic {
+  font-style: italic;
+}
+
+/* Update Center Animations */
+@keyframes potok-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: potok-spin 4s linear infinite;
+}
+.animate-spin {
+  animation: potok-spin 1s linear infinite;
 }

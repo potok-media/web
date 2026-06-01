@@ -58,6 +58,7 @@ export function getSDKRuntimeString(): string {
           Card: () => new CardBuilder(),
           Heading: (t) => new HeadingBuilder(t),
           Text: (t) => new TextBuilder(t),
+          Markdown: (content) => new MarkdownBuilder(content),
           Badge: (t) => new BadgeBuilder(t),
           Divider: () => new DividerBuilder(),
           Spacer: () => new SpacerBuilder(),
@@ -67,7 +68,19 @@ export function getSDKRuntimeString(): string {
           Select: (n) => new SelectBuilder(n),
           StreamSkeletonList: () => new StreamSkeletonListBuilder(),
           StreamRowComponent: () => new StreamRowComponentBuilder(),
-          StreamList: () => new StreamListBuilder()
+          StreamList: () => new StreamListBuilder(),
+          MediaCard: () => new MediaCardBuilder(),
+          HeroSpotlight: () => new HeroSpotlightBuilder(),
+          LoadingSpinner: () => new LoadingSpinnerBuilder(),
+          SeasonEpisodes: () => new SeasonEpisodesBuilder(),
+          MediaCast: () => new MediaCastBuilder(),
+          MediaOverview: () => new MediaOverviewBuilder(),
+          MediaRow: () => new MediaRowBuilder(),
+          MediaPlayer: () => new MediaPlayerBuilder(),
+          ProfileSelector: () => new ProfileSelectorBuilder(),
+          SearchBar: () => new SearchBarBuilder(),
+          StreamFilterBar: () => new StreamFilterBarBuilder(),
+          EpisodeSelectorPopup: () => new EpisodeSelectorPopupBuilder()
         },
         render(root, slotId) {
           const scopeId = slotId || "default";

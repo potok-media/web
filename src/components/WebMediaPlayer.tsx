@@ -176,7 +176,7 @@ const SkipOutroButton: React.FC<SkipOutroButtonProps> = ({
 
 interface WebMediaPlayerProps {
   playback: ActivePlayback;
-  onClose: () => void;
+  onClose?: () => void;
   isNetworkOffline?: boolean;
 }
 
@@ -193,6 +193,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const { playVideo } = usePlayback();
 
   // States
+  const [isClosed, setIsClosed] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [srcResetCounter, setSrcResetCounter] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -201,6 +202,15 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [showStats, setShowStats] = useState(false);
+
+  useEffect(() => {
+    setIsClosed(false);
+  }, [playback.streamUrl]);
+
+  const handleClose = useCallback(() => {
+    setIsClosed(true);
+    onClose?.();
+  }, [onClose]);
 
   // Subtitle/Track States
   const [audioTracks, setAudioTracks] = useState<{ id: number; name: string }[]>([]);
@@ -826,7 +836,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         if (document.fullscreenElement) {
           document.exitFullscreen().catch(() => {});
         } else {
-          onClose();
+          handleClose();
         }
       }
     };
@@ -834,7 +844,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [seekOffset, onClose, handleUserActivity]);
+  }, [seekOffset, handleClose, handleUserActivity]);
 
   // Derived timeline state parameters
   const displayDuration = metadataDuration > 0 ? metadataDuration : (duration || 100);
@@ -1103,6 +1113,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     return hash;
   }, [playback.streamUrl, playback.streamHash]);
 
+  if (isClosed) return null;
+
   return (
     <div 
       ref={overlayRef}
@@ -1132,7 +1144,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
               cursor: "pointer",
               transition: "all 0.2s ease"
             }}
-            onClick={onClose}
+            onClick={handleClose}
           >
             Отмена
           </button>
@@ -1182,7 +1194,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
             >
               Обновить поток
             </button>
-            <button className="error-close-btn" onClick={onClose}>Закрыть плеер</button>
+            <button className="error-close-btn" onClick={handleClose}>Закрыть плеер</button>
           </div>
         </div>
       )}
@@ -1192,7 +1204,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         mediaType={playback.mediaType}
         season={playback.season}
         episode={playback.episode}
-        onClose={onClose}
+        onClose={handleClose}
         visible={controlsVisible}
       />
 

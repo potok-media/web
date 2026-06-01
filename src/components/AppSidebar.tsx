@@ -5,6 +5,7 @@ import { useConnectionHealth, useAuth } from "../context/AppSettingsContext";
 import { useHUD } from "../context/HUDContext";
 import SidebarStatus from "./SidebarStatus";
 import SidebarSearch from "./SidebarSearch";
+import { ExtensionSlot } from "./common/ExtensionSlot";
 import "../styles/sidebar.css";
 
 interface AppSidebarProps {
@@ -170,6 +171,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle })
             <Settings size={18} />
             <span>Настройки</span>
           </NavLink>
+          <ExtensionSlot name="sidebar-menu" props={{ isCollapsed }} />
         </div>
       </nav>
 

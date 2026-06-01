@@ -91,8 +91,9 @@ export const SDK_COMPONENTS_CODE = `
   class ButtonBuilder extends UIComponent {
     constructor(t) { super("Button"); this._text = t; this._variant = 'secondary'; }
     variant(v) { this._variant = v; return this; }
+    icon(v) { this._icon = v; return this; }
     onClick(cb) { this._onClick = cb; return this; }
-    getProps() { return { text: this._text, variant: this._variant }; }
+    getProps() { return { text: this._text, variant: this._variant, icon: this._icon }; }
     compile() {
       const json = super.compile();
       if (this._onClick) {
@@ -153,5 +154,11 @@ export const SDK_COMPONENTS_CODE = `
       }
       return json;
     }
+  }
+
+  class MarkdownBuilder extends UIComponent {
+    constructor(content) { super("Markdown"); this._content = content; }
+    content(v) { this._content = v; return this; }
+    getProps() { return { content: this._content }; }
   }
 `;

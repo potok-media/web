@@ -10,9 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/prismjs": "^1.26.6",
     "artplayer": "^5.4.0",
     "hls.js": "^1.6.16",
     "lucide-react": "^1.16.0",
+    "marked": "^18.0.4",
+    "prismjs": "^1.30.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.15.1"

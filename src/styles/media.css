@@ -691,81 +691,89 @@
   width: 100%;
 }
 
-.btn-watch-primary {
-  width: 100%;
-  background-color: var(--text-primary);
-  color: var(--bg-window);
-  border: none;
-  padding: 14px 20px;
-  border-radius: var(--radius-m);
-  font: var(--font-body-bold);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  text-decoration: none;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
-  transition: all var(--timing-hover) cubic-bezier(0.25, 0.46, 0.45, 0.94);
+.btn-watch-primary,
+.potok-btn.btn-watch-primary {
+  width: 100% !important;
+  background-color: var(--text-primary) !important;
+  color: var(--bg-window) !important;
+  border: none !important;
+  padding: 14px 20px !important;
+  border-radius: var(--radius-m) !important;
+  font: var(--font-body-bold) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2) !important;
+  transition: all var(--timing-hover) cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
 }
 
-.btn-watch-primary:hover:not(.disabled) {
-  transform: translateY(-2px);
-  background-color: white;
-  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
+.btn-watch-primary:hover:not(.disabled),
+.potok-btn.btn-watch-primary:hover:not(.disabled) {
+  transform: translateY(-2px) !important;
+  background-color: white !important;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15) !important;
 }
 
-.btn-watch-primary:active:not(.disabled) {
-  transform: translateY(0);
+.btn-watch-primary:active:not(.disabled),
+.potok-btn.btn-watch-primary:active:not(.disabled) {
+  transform: translateY(0) !important;
 }
 
-.btn-watch-primary.disabled {
-  background-color: var(--bg-surface-high);
-  color: var(--text-secondary);
-  opacity: 0.4;
-  cursor: not-allowed;
-  box-shadow: none;
+.btn-watch-primary.disabled,
+.potok-btn.btn-watch-primary.disabled {
+  background-color: var(--bg-surface-high) !important;
+  color: var(--text-secondary) !important;
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
 }
 
-.btn-watch-online {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  color: var(--text-primary);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 14px 20px;
-  border-radius: var(--radius-m);
-  font: var(--font-body-bold);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all var(--timing-hover) cubic-bezier(0.25, 0.46, 0.45, 0.94);
+.btn-watch-online,
+.potok-btn.btn-watch-online {
+  width: 100% !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding: 14px 20px !important;
+  border-radius: var(--radius-m) !important;
+  font: var(--font-body-bold) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: all var(--timing-hover) cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
 }
 
-.btn-watch-online::before {
-  content: "";
-  display: inline-block;
-  width: 0;
-  height: 0;
-  border-top: 6px solid transparent;
-  border-bottom: 6px solid transparent;
-  border-left: 10px solid currentColor;
-  margin-right: 2px;
+.btn-watch-online::before,
+.potok-btn.btn-watch-online::before {
+  content: "" !important;
+  display: inline-block !important;
+  width: 0 !important;
+  height: 0 !important;
+  border-top: 6px solid transparent !important;
+  border-bottom: 6px solid transparent !important;
+  border-left: 10px solid currentColor !important;
+  margin-right: 2px !important;
 }
 
-.btn-watch-online:hover {
-  transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.05);
+.btn-watch-online:hover,
+.potok-btn.btn-watch-online:hover {
+  transform: translateY(-2px) !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.05) !important;
 }
 
-.btn-watch-online:active {
-  transform: translateY(0);
+.btn-watch-online:active,
+.potok-btn.btn-watch-online:active {
+  transform: translateY(0) !important;
 }
 
 .details-actions-row {

@@ -37,12 +37,64 @@ export interface UIComponentSchema {
     showFilters?: boolean;
     emptyText?: string;
     nounPlurals?: string[];
+    item?: any;
+    items?: any[];
+
+    // New props for the 10 host components
+    message?: string;
+    fullscreen?: boolean;
+    mediaId?: number;
+    numberOfSeasons?: number;
+    cast?: any[];
+    media?: any;
+    selectedEpisode?: any;
+    playback?: any;
+    isNetworkOffline?: boolean;
+    connectionProfiles?: any[];
+    activeProfileID?: string | null;
+    isSettingsLocked?: boolean;
+    countLabel?: string;
+    trackers?: any[];
+    sortOption?: string;
+    showSort?: boolean;
+    isOpen?: boolean;
+    seasonsLoading?: boolean;
+    backdropSrc?: string;
+    seasons?: any[];
+    qualityFilter?: string;
+    activeTracker?: string;
+    episodes?: any[];
+    isSaving?: boolean;
+    tmdbSeasonsCount?: number;
+    posterSrc?: string;
+    mediaType?: string;
+    content?: string;
   };
   children?: UIComponentSchema[];
   events?: {
     onClick?: string;
     onChange?: string;
     onSelectStream?: string;
+    onPlay?: string;
+    onDetails?: string;
+
+    // New events for the 10 host components
+    onEpisodeClick?: string;
+    onResetEpisode?: string;
+    onCardClick?: string;
+    onSeeAllClick?: string;
+    onClose?: string;
+    onSelectProfile?: string;
+    onStartEdit?: string;
+    onDeleteProfile?: string;
+    onStartAdd?: string;
+    onClear?: string;
+    onRefresh?: string;
+    onQualityChange?: string;
+    onTrackerChange?: string;
+    onSortChange?: string;
+    onApplyOverride?: string;
+    onStartEditing?: string;
   };
 }
 

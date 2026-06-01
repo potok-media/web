@@ -7,7 +7,6 @@ import { useMediaDetails } from "../hooks/useMediaDetails";
 import { SeasonEpisodesSection } from "../components/SeasonEpisodesSection";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { ExtensionSlot } from "../components/common/ExtensionSlot";
-import { DynamicBlock } from "../components/common/DynamicBlock";
 import { MediaOverviewSection } from "../components/MediaOverviewSection";
 import type { TvEpisode, MediaCard } from "../network/ApiTypes";
 import "../styles/media.css";
@@ -103,52 +102,45 @@ export const MediaDetailsPage: React.FC = () => {
               )}
 
               <div className="details-actions-container">
-                <DynamicBlock
-                  name="media-details-actions"
-                  contextProps={{ mediaId, tmdbId, mediaType, selectedEpisode, media }}
-                >
-                  {/* Dynamically Rendered Plugin Extension Slot for Media Actions (Plugins contribute their watch buttons here) */}
-                  <ExtensionSlot
-                    id="media-actions"
-                    name="media-actions"
-                    props={{
-                      mediaId,
-                      tmdbId,
-                      mediaType,
-                      season: selectedEpisode?.seasonNumber,
-                      episode: selectedEpisode?.episode.episodeNumber,
-                      title: media.title,
-                      originalTitle: media.originalTitle
-                    }}
-                  />
+                {/* Dynamically Rendered Plugin Extension Slot for Media Actions (Plugins contribute their watch buttons here) */}
+                <ExtensionSlot
+                  id="media-actions"
+                  name="media-actions"
+                  props={{
+                    mediaId,
+                    tmdbId,
+                    mediaType,
+                    title: media.title,
+                    originalTitle: media.originalTitle
+                  }}
+                />
 
-                  {/* Social and Watchlist row */}
-                  <div id="social-actions-row" className="details-actions-row">
-                    <button
-                      className={`action-btn-circle ${isWatched ? "active" : ""}`}
-                      onClick={toggleWatched}
-                      title={isWatched ? "Удалить из истории просмотра" : "Отметить просмотренным"}
-                    >
-                      <Eye size={18} />
-                    </button>
+                {/* Social and Watchlist row */}
+                <div id="social-actions-row" className="details-actions-row">
+                  <button
+                    className={`action-btn-circle ${isWatched ? "active" : ""}`}
+                    onClick={toggleWatched}
+                    title={isWatched ? "Удалить из истории просмотра" : "Отметить просмотренным"}
+                  >
+                    <Eye size={18} />
+                  </button>
 
-                    <button
-                      className={`action-btn-circle ${inWatchlist ? "active" : ""}`}
-                      onClick={toggleWatchlist}
-                      title={inWatchlist ? "Удалить из списка ожидания" : "В список ожидания"}
-                    >
-                      <Bookmark size={18} fill={inWatchlist ? "var(--accent)" : "none"} />
-                    </button>
+                  <button
+                    className={`action-btn-circle ${inWatchlist ? "active" : ""}`}
+                    onClick={toggleWatchlist}
+                    title={inWatchlist ? "Удалить из списка ожидания" : "В список ожидания"}
+                  >
+                    <Bookmark size={18} fill={inWatchlist ? "var(--accent)" : "none"} />
+                  </button>
 
-                    <button
-                      className={`action-btn-circle ${isFavorite ? "active" : ""}`}
-                      onClick={toggleFavorite}
-                      title={isFavorite ? "Удалить из избранного" : "Добавить в избранное"}
-                    >
-                      <Star size={18} fill={isFavorite ? "var(--accent)" : "none"} />
-                    </button>
-                  </div>
-                </DynamicBlock>
+                  <button
+                    className={`action-btn-circle ${isFavorite ? "active" : ""}`}
+                    onClick={toggleFavorite}
+                    title={isFavorite ? "Удалить из избранного" : "Добавить в избранное"}
+                  >
+                    <Star size={18} fill={isFavorite ? "var(--accent)" : "none"} />
+                  </button>
+                </div>
               </div>
             </div>
 

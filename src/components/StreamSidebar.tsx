@@ -11,8 +11,6 @@ interface StreamSidebarProps {
 
 export const StreamSidebar: React.FC<StreamSidebarProps> = React.memo(({
   media,
-  season,
-  episode,
   onBack,
 }) => {
   return (
@@ -48,12 +46,6 @@ export const StreamSidebar: React.FC<StreamSidebarProps> = React.memo(({
           <span className="media-glass-pill age-pill">{media.ageRating}</span>
         )}
       </div>
-
-      {media.mediaType === "tv" && season && (
-        <span className="media-glass-pill active-episode-badge">
-          Сезон {season}, Серия {episode}
-        </span>
-      )}
 
       {media.overview && (
         <div className="streams-sidebar-overview">
