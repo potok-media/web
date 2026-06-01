@@ -1,4 +1,5 @@
 import { logger } from "../logger";
+import { ApiClient } from "../../network/ApiClient";
 
 interface QueuedRequest {
   requestId: string;
@@ -68,16 +69,21 @@ class HttpProxyThrottleManager {
               finalUrl = `${absoluteGateway}${url}`;
             }
 
+            const mergedHeaders = {
+              ...(url.startsWith("/api/") ? (ApiClient.headers as any) : {}),
+              ...headers
+            };
+
             const fetchOptions: RequestInit = { 
               method, 
-              headers,
+              headers: mergedHeaders,
               signal: controller.signal
             };
             if (body) {
               fetchOptions.body = typeof body === "string" ? body : JSON.stringify(body);
-              if (!headers || !headers["Content-Type"]) {
+              if (!mergedHeaders || !mergedHeaders["Content-Type"]) {
                 fetchOptions.headers = {
-                  ...headers,
+                  ...mergedHeaders,
                   "Content-Type": "application/json"
                 };
               }
