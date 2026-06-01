@@ -73,8 +73,6 @@ docker compose up -d
 | Переменная | Описание | Значение по умолчанию |
 |---|---|---|
 | `VITE_DEFAULT_BFF_URL` | Адрес шлюза Potok Gateway (BFF) по умолчанию | `http://localhost:5000` |
-| `VITE_DEFAULT_TORRENT_URL` | Адрес TorrentGo по умолчанию | `http://localhost:5282` |
-| `VITE_DEFAULT_SEARCH_URL` | Адрес поисковика трекеров по умолчанию | `http://localhost:6000` |
 | `VITE_BLOCK_SETTINGS_INPUT` | Блокировка изменения настроек подключения (режим "только для чтения") | `false` |
 
 > [!IMPORTANT]

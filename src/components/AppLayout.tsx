@@ -8,6 +8,7 @@ import { WebMediaPlayer } from "./WebMediaPlayer";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { OfflineOverlay } from "./OfflineOverlay";
 import { FocusTrap } from "./FocusTrap";
+import { PluginSandbox } from "./common/PluginSandbox";
 import "../styles/layout.css";
 
 export const AppLayout: React.FC = () => {
@@ -116,6 +117,8 @@ export const AppLayout: React.FC = () => {
       >
         <Outlet />
       </main>
+
+      <PluginSandbox />
 
       {activePlayback && (
         <ErrorBoundary fallback={(error, resetError) => (
