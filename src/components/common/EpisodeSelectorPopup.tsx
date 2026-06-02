@@ -373,7 +373,10 @@ const EpisodeOverridePicker: React.FC<EpisodeOverridePickerProps> = React.memo((
   if (seasonsLoading) {
     return (
       <div className="picker-loading-container">
-        <div className="spinner picker-loading-spinner-wrap" />
+        <div className="premium-spinner" style={{ marginBottom: "16px" }}>
+          <div className="spinner-outer" />
+          <div className="spinner-inner" />
+        </div>
         <span className="picker-loading-label">Загрузка серий с TMDB...</span>
       </div>
     );
@@ -622,7 +625,10 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
           {isSaving && (
             <div className="saving-overlay">
               <div className="saving-content">
-                <div className="spinner" />
+                <div className="premium-spinner" style={{ marginBottom: "12px" }}>
+                  <div className="spinner-outer" />
+                  <div className="spinner-inner" />
+                </div>
                 <span>Сохранение смещения...</span>
               </div>
             </div>

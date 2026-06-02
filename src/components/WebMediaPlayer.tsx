@@ -443,9 +443,9 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
 
 
-  // Torrent status polling interval during metadata loading phase
+  // Torrent status polling interval during metadata loading phase and active playback
   useEffect(() => {
-    if (!streamHash || !isMetadataLoading) {
+    if (!streamHash) {
       setTorrentPeers(null);
       setTorrentDownloadSpeed(null);
       setHasPositivePeersTime(null);
@@ -482,7 +482,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     };
 
     pollStatus(); // Poll immediately
-    const interval = setInterval(pollStatus, 2000);
+    const pollInterval = isMetadataLoading ? 2000 : 10000;
+    const interval = setInterval(pollStatus, pollInterval);
 
     return () => {
       isMounted = false;

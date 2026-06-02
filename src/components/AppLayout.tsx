@@ -17,10 +17,10 @@ export const AppLayout: React.FC = () => {
   const mainContentRef = React.useRef<HTMLDivElement>(null);
   const scrollPositions = React.useRef<Record<string, number>>({});
 
-  const [isMobile, setIsMobile] = React.useState(() => window.innerWidth < 768);
+  const [isMobile, setIsMobile] = React.useState(() => window.innerWidth <= 768);
 
   React.useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
     const handleTabletChange = (e: MediaQueryListEvent) => {
       setIsMobile(e.matches);
     };

@@ -119,7 +119,10 @@ export const MediaStreamsPage: React.FC = () => {
       {actionLoading && (
         <div className="saving-overlay" style={{ position: "fixed", background: "rgba(20, 20, 25, 0.5)", backdropFilter: "blur(4px)" }}>
           <div className="saving-content">
-            <div className="spinner" />
+            <div className="premium-spinner">
+              <div className="spinner-outer" />
+              <div className="spinner-inner" />
+            </div>
             <span style={{ marginTop: "12px", fontSize: "0.95rem", color: "#fff", fontWeight: 500 }}>
               Получение информации...
             </span>

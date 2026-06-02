@@ -105,7 +105,7 @@
   border: 3px solid var(--bg-surface-highest);
   border-top: 3px solid var(--accent);
   border-radius: var(--radius-full);
-  animation: spin 1s linear repeat-forever;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
@@ -170,7 +170,7 @@
   display: none;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   .app-container {
     flex-direction: column;
     height: 100vh;

@@ -65,6 +65,19 @@
     padding: var(--space-s);
     border-radius: var(--radius-m);
   }
+  .settings-input, .settings-select {
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    min-height: 44px;
+  }
+  .settings-tab-chip {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.9rem;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+  }
 }
 
 /* Glassmorphic Sidebar (Pushed Left) */

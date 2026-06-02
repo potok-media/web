@@ -295,6 +295,66 @@
   margin: 0;
 }
 
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin-top: var(--space-s);
+}
+
+.search-page-input {
+  width: 100%;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0 44px 0 44px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.search-page-input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent-semi);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.search-input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+.search-input-clear-btn {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.search-input-clear-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+
 .library-content-area {
   width: 100%;
 }
@@ -2864,6 +2924,19 @@
     padding: var(--space-m) !important;
     padding-top: 40dvh !important; /* Cinematic space at the top to expose backdrop faces */
     padding-bottom: 48px !important;
+  }
+
+  /* Specific overrides for Details page to minimize gap to episode selection */
+  .details-layout .immersive-hero-container {
+    margin-bottom: var(--space-s) !important;
+  }
+  .details-layout .immersive-hero-content {
+    padding-bottom: var(--space-m) !important; /* Reduced from 48px to 16px to minimize gap */
+  }
+
+  .details-bottom-sections {
+    margin-top: 0 !important; /* Pull sections closer to the hero */
+    gap: var(--space-xl) !important;
   }
 
   .immersive-hero-overlay {

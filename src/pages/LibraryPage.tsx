@@ -3,30 +3,31 @@ import { useParams, useLocation, Link, useNavigate } from "react-router-dom";
 import { 
   Film, 
   Search as SearchIcon, 
-  AlertTriangle
+  AlertTriangle,
+  X
 } from "lucide-react";
 import { useLibraryPage } from "../hooks/useLibraryPage";
 import { MediaCardComponent } from "../components/MediaCardComponent";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { CATEGORY_MAP, DYNAMIC_CATEGORY_TITLES } from "./LibraryConfig";
 import "../styles/media.css";
-
+ 
 export const LibraryPage: React.FC = () => {
   const { collectionType: routeType } = useParams<{ collectionType: string }>();
   const location = useLocation();
   const navigate = useNavigate();
-
+ 
   const isSearchPage = location.pathname === "/search";
   const collectionType = isSearchPage ? "search" : (routeType || "");
-
+ 
   const params = new URLSearchParams(location.search);
   const initialQuery = params.get("q") || params.get("query") || "";
-
+ 
   const isDynamicCategory = collectionType.includes(".");
   const categoryTitle = isDynamicCategory 
     ? (DYNAMIC_CATEGORY_TITLES[collectionType] || "Категория")
     : (CATEGORY_MAP[collectionType]?.title || "Категория");
-
+ 
   const category = CATEGORY_MAP[collectionType] || (isDynamicCategory ? {
     title: categoryTitle,
     endpoint: collectionType,
@@ -34,10 +35,11 @@ export const LibraryPage: React.FC = () => {
     emptyText: "Ничего не найдено",
     emptySub: "В этой категории пока нет элементов"
   } : null);
-
+ 
   const {
     items,
     query,
+    setQuery,
     loading,
     error,
     refetch,
@@ -115,6 +117,37 @@ export const LibraryPage: React.FC = () => {
       return (
         <header className="library-header">
           <h1 className="library-large-title">Поиск</h1>
+          <div className="search-input-wrapper">
+            <SearchIcon size={18} className="search-input-icon" />
+            <input
+              type="text"
+              className="search-page-input"
+              placeholder="Поиск фильмов и сериалов..."
+              value={query}
+              onChange={(e) => {
+                const val = e.target.value;
+                setQuery(val);
+                if (val.trim()) {
+                  navigate(`/search?q=${encodeURIComponent(val.trim())}`, { replace: true });
+                } else {
+                  navigate("/search", { replace: true });
+                }
+              }}
+            />
+            {query && (
+              <button 
+                type="button" 
+                className="search-input-clear-btn" 
+                onClick={() => {
+                  setQuery("");
+                  navigate("/search", { replace: true });
+                }}
+                title="Очистить"
+              >
+                <X size={18} />
+              </button>
+            )}
+          </div>
           {query.trim() && (
             <p className="library-metadata-count">Найдено элементов: {items.length}</p>
           )}
