@@ -3427,10 +3427,10 @@
   /* Library Category Selector Tabs */
   .library-mobile-tabs-container {
     display: block;
-    width: 100%;
+    width: auto;
     overflow: hidden;
     padding: 0.5rem 0;
-    margin-bottom: var(--space-m);
+    margin: 0 calc(-1 * var(--space-m)) var(--space-m) calc(-1 * var(--space-m));
     position: relative;
   }
   
@@ -3482,10 +3482,10 @@
   /* Settings Section Selector Tabs */
   .settings-mobile-tabs-bar {
     display: block;
-    width: 100%;
+    width: auto;
     overflow: hidden;
     padding: 0.25rem 0;
-    margin-bottom: var(--space-l);
+    margin: 0 calc(-1 * var(--space-m)) var(--space-l) calc(-1 * var(--space-m));
     position: relative;
   }
 
@@ -3504,7 +3504,7 @@
     display: flex;
     gap: 0.5rem;
     overflow-x: auto;
-    padding: 0 0.25rem;
+    padding: 0 var(--space-m);
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }

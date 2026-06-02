@@ -14,7 +14,7 @@ export const UpdateBanner: React.FC<UpdateBannerProps> = ({
 
   return (
     <div className="potok-update-banner">
-      <div className="potok-update-banner-text-wrap" style={{ flexDirection: "row", alignItems: "center", gap: "12px", flex: 1 }}>
+      <div className="potok-update-banner-header">
         <div className="potok-update-banner-icon-box">
           <RotateCw size={16} className="animate-spin-slow" />
         </div>

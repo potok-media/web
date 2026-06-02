@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Sliders, Puzzle, Globe } from "lucide-react";
+import { Sliders, Puzzle, Globe, Terminal } from "lucide-react";
 import { useSettings } from "../context/AppSettingsContext";
 import GeneralSettings from "../components/settings/GeneralSettings";
 import ProfilesSettings from "../components/settings/ProfilesSettings";
 import ExtensionsManager from "../components/ExtensionsManager";
+import ConsoleManager from "../components/settings/ConsoleManager";
 import DeclarativeSettings from "../components/settings/DeclarativeSettings";
 import { ExtensionSlot } from "../components/common/ExtensionSlot";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import type { RegisteredExtension } from "../network/SDKTypes";
 import "../styles/settings.css";
+import "../styles/console.css";
 
 export const SettingsPage: React.FC = () => {
   const {
@@ -89,6 +91,12 @@ export const SettingsPage: React.FC = () => {
             >
               Расширения
             </button>
+            <button
+              className={`settings-tab-chip ${activeTab === "console" ? "active" : ""}`}
+              onClick={() => setActiveTab("console")}
+            >
+              Консоль
+            </button>
             
             {slotContributions.map((c) => (
               <button
@@ -142,6 +150,13 @@ export const SettingsPage: React.FC = () => {
             <Puzzle size={16} />
             <span>Расширения</span>
           </button>
+          <button
+            className={`sidebar-nav-item ${activeTab === "console" ? "active" : ""}`}
+            onClick={() => setActiveTab("console")}
+          >
+            <Terminal size={16} />
+            <span>Консоль</span>
+          </button>
 
           {(slotContributions.length > 0 || configExtensions.length > 0) && (
             <>
@@ -183,6 +198,7 @@ export const SettingsPage: React.FC = () => {
           )}
           {activeTab === "profiles" && <ProfilesSettings />}
           {activeTab === "extensions" && <ExtensionsManager />}
+          {activeTab === "console" && <ConsoleManager />}
           {slotContributions.some((c) => c.contribution.id === activeTab) && (
             <ExtensionSlot name="settings-tabs" />
           )}

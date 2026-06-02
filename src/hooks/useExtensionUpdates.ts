@@ -82,8 +82,14 @@ export const useExtensionUpdates = () => {
     showHUD("success", "Расширение успешно удалено");
   }, [showHUD]);
 
-  const checkForUpdates = useCallback(async () => {
+  const checkForUpdates = useCallback(async (force = false) => {
     try {
+      const lastCheck = Storage.get<number>("potok_extensions_last_check", 0);
+      const COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes
+      if (!force && Date.now() - lastCheck < COOLDOWN_MS) {
+        return;
+      }
+
       const list = Storage.get<RegisteredExtension[]>("potok_extensions", []);
       if (list.length === 0) return;
 
@@ -113,6 +119,8 @@ export const useExtensionUpdates = () => {
           // Ignore background fetch errors / timeouts
         }
       }
+      
+      Storage.set("potok_extensions_last_check", Date.now());
 
       if (updates.length > 0) {
         setAvailableUpdates(updates);
@@ -210,12 +218,10 @@ export const useExtensionUpdates = () => {
   }, [availableUpdates, triggerSingleUpdate]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      loadExtensions();
-      checkForUpdates();
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [loadExtensions, checkForUpdates]);
+    loadExtensions();
+    checkForUpdates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     extensions,

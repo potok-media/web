@@ -13,7 +13,7 @@ export const HUDProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [hud, setHud] = useState<{ type: HUDType; message: string } | null>(null);
   const timeoutRef = useRef<any>(null);
 
-  const show = (type: HUDType, message: string, durationMs = 3000) => {
+  const show = React.useCallback((type: HUDType, message: string, durationMs = 3000) => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -21,7 +21,7 @@ export const HUDProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     timeoutRef.current = setTimeout(() => {
       setHud(null);
     }, durationMs);
-  };
+  }, []);
 
   return (
     <HUDContext.Provider value={{ show }}>

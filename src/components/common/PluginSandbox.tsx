@@ -21,6 +21,37 @@ export const PluginSandbox: React.FC = () => {
   const shuttingDownRefs = useRef<Set<string>>(new Set());
   const iframeRefs = useRef<Map<string, HTMLIFrameElement>>(new Map());
   const [iframeSrcDocs, setIframeSrcDocs] = useState<Record<string, string>>({});
+  const [iframeSrcs, setIframeSrcs] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const newSrcs: Record<string, string> = {};
+    Object.entries(iframeSrcDocs).forEach(([id, html]) => {
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      newSrcs[id] = url;
+    });
+
+    setIframeSrcs((prev) => {
+      Object.values(prev).forEach((url) => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (e) {
+          logger.error("[PluginSandbox] Revoking old URL failed:", e);
+        }
+      });
+      return newSrcs;
+    });
+
+    return () => {
+      Object.values(newSrcs).forEach((url) => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (e) {
+          logger.error("[PluginSandbox] Cleanup revoke failed:", e);
+        }
+      });
+    };
+  }, [iframeSrcDocs]);
 
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || connectionProfiles[0] || null;
 
@@ -382,7 +413,7 @@ export const PluginSandbox: React.FC = () => {
             }
           }}
           sandbox="allow-scripts"
-          srcDoc={iframeSrcDocs[ext.id] || ""}
+          src={iframeSrcs[ext.id] || ""}
         />
       ))}
     </div>

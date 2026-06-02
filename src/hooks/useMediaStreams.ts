@@ -140,12 +140,25 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
     if (stream.kind !== "torrent") {
       // Normal online balancers directly fetch playback info and play
       ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(activeSource.pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", { stream, context })
-        .then((info) => playVideo({
-          streamUrl: info.streamUrl, title: info.title || currentMedia?.title || "", mediaType: mediaType as "movie" | "tv", id: mediaId,
-          season: mediaType === "tv" ? season : undefined, episode: mediaType === "tv" ? episode : undefined,
-          streamHash: info.torrentHash, streamType: (info.streamType === "m3u8" || info.streamType === "mp4" || info.streamType === "dash") ? info.streamType : undefined,
-          audios: info.audios?.map((a) => ({ name: a.name, url: a.url })), headers: info.headers, providerId: info.providerId, voice: info.voice,
-        }))
+        .then((info) => {
+          if (!info) {
+            throw new Error("Не удалось получить информацию о воспроизведении: пустой ответ от плагина");
+          }
+          playVideo({
+            streamUrl: info.streamUrl,
+            title: info.title || currentMedia?.title || "",
+            mediaType: mediaType as "movie" | "tv",
+            id: mediaId,
+            season: mediaType === "tv" ? season : undefined,
+            episode: mediaType === "tv" ? episode : undefined,
+            streamHash: info.torrentHash,
+            streamType: (info.streamType === "m3u8" || info.streamType === "mp4" || info.streamType === "dash") ? info.streamType : undefined,
+            audios: info.audios?.map((a) => ({ name: a.name, url: a.url })),
+            headers: info.headers,
+            providerId: info.providerId,
+            voice: info.voice,
+          });
+        })
         .catch(handleOnError)
         .finally(() => setActionLoading(false));
     } else {
@@ -159,11 +172,22 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
             const singleEp = mapEpisode(eps[0]);
             return ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(activeSource.pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", { stream, episode: singleEp, context })
               .then((info) => {
+                if (!info) {
+                  throw new Error("Не удалось получить информацию о воспроизведении: пустой ответ от плагина");
+                }
                 playVideo({
-                  streamUrl: info.streamUrl, title: info.title || currentMedia?.title || "", mediaType: mediaType as "movie" | "tv", id: mediaId,
-                  season: mediaType === "tv" ? singleEp.season : undefined, episode: mediaType === "tv" ? singleEp.episode : undefined,
-                  streamHash: info.torrentHash, streamType: (info.streamType === "m3u8" || info.streamType === "mp4" || info.streamType === "dash") ? info.streamType : undefined,
-                  audios: info.audios?.map((a) => ({ name: a.name, url: a.url })), headers: info.headers, providerId: info.providerId, voice: info.voice,
+                  streamUrl: info.streamUrl,
+                  title: info.title || currentMedia?.title || "",
+                  mediaType: mediaType as "movie" | "tv",
+                  id: mediaId,
+                  season: mediaType === "tv" ? singleEp.season : undefined,
+                  episode: mediaType === "tv" ? singleEp.episode : undefined,
+                  streamHash: info.torrentHash,
+                  streamType: (info.streamType === "m3u8" || info.streamType === "mp4" || info.streamType === "dash") ? info.streamType : undefined,
+                  audios: info.audios?.map((a) => ({ name: a.name, url: a.url })),
+                  headers: info.headers,
+                  providerId: info.providerId,
+                  voice: info.voice,
                 });
                 setClickedStream(null);
               });
@@ -197,11 +221,22 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
           (window as any).potok_playlist_override = null;
         }
 
+        if (!info) {
+          throw new Error("Не удалось получить информацию о воспроизведении: пустой ответ от плагина");
+        }
         playVideo({
-          streamUrl: info.streamUrl, title: info.title || currentMedia?.title || "", mediaType: mediaType as "movie" | "tv", id: mediaId,
-          season: mediaType === "tv" ? ep.season : undefined, episode: mediaType === "tv" ? ep.episode : undefined, streamHash: info.torrentHash,
+          streamUrl: info.streamUrl,
+          title: info.title || currentMedia?.title || "",
+          mediaType: mediaType as "movie" | "tv",
+          id: mediaId,
+          season: mediaType === "tv" ? ep.season : undefined,
+          episode: mediaType === "tv" ? ep.episode : undefined,
+          streamHash: info.torrentHash,
           streamType: (info.streamType === "m3u8" || info.streamType === "mp4" || info.streamType === "dash") ? info.streamType : undefined,
-          audios: info.audios?.map((a) => ({ name: a.name, url: a.url })), headers: info.headers, providerId: info.providerId, voice: info.voice,
+          audios: info.audios?.map((a) => ({ name: a.name, url: a.url })),
+          headers: info.headers,
+          providerId: info.providerId,
+          voice: info.voice,
           playlist,
           playlistIndex
         });
