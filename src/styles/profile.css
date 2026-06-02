@@ -1189,3 +1189,58 @@
     padding: 0.5rem 1rem;
   }
 }
+
+/* Extra mobile UX optimizations for Profile page */
+@media (max-width: 560px) {
+  .profile-user-card-trakt {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-m);
+    padding: var(--space-m);
+  }
+
+  .profile-user-details {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-s);
+  }
+
+  .profile-avatar-trakt,
+  .profile-avatar-trakt-placeholder {
+    margin: 0 auto;
+  }
+
+  .trakt-logout-btn {
+    width: 100%;
+    text-align: center;
+    padding: 0.625rem var(--space-m);
+  }
+
+  .strategy-chips-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-xs);
+  }
+
+  .strategy-segmented-chips {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .strategy-chip-btn {
+    font-size: 0.75rem;
+    padding: 8px 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-s);
+  }
+
+  .profile-stat-card {
+    padding: 1rem;
+  }
+}

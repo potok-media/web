@@ -197,29 +197,31 @@ export const ExtensionsManager: React.FC = () => {
                       </div>
                     </label>
 
-                    <button
-                      className="potok-btn potok-btn-ghost potok-extension-btn-check-update"
-                      onClick={() => handleCheckSingleUpdate(ext.id, ext.url)}
-                      title="Проверить наличие обновлений"
-                    >
-                      <RotateCw size={16} />
-                    </button>
+                    <div className="potok-extension-actions-row">
+                      <button
+                        className="potok-btn potok-btn-ghost potok-extension-btn-check-update"
+                        onClick={() => handleCheckSingleUpdate(ext.id, ext.url)}
+                        title="Проверить наличие обновлений"
+                      >
+                        <RotateCw size={16} />
+                      </button>
 
-                    <button
-                      className="potok-btn potok-btn-ghost potok-extension-btn-view-manifest"
-                      onClick={() => setActiveManifest(ext.manifest)}
-                      title="Просмотреть манифест"
-                    >
-                      <FileCode size={16} />
-                    </button>
+                      <button
+                        className="potok-btn potok-btn-ghost potok-extension-btn-view-manifest"
+                        onClick={() => setActiveManifest(ext.manifest)}
+                        title="Просмотреть манифест"
+                      >
+                        <FileCode size={16} />
+                      </button>
 
-                    <button
-                      className="potok-btn potok-btn-ghost potok-extension-btn-delete"
-                      onClick={() => handleDelete(ext.id)}
-                      title="Удалить расширение"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                      <button
+                        className="potok-btn potok-btn-ghost potok-extension-btn-delete"
+                        onClick={() => handleDelete(ext.id)}
+                        title="Удалить расширение"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -965,6 +965,13 @@ input:checked + .potok-slider:before {
   gap: 12px;
 }
 
+.potok-extension-actions-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
 .potok-extension-toggle-wrap {
   width: auto;
   gap: 8px;
@@ -1011,10 +1018,33 @@ input:checked + .potok-slider:before {
 }
 
 @media (max-width: 768px) {
-  .potok-hstack {
+  .potok-extension-card-layout {
     flex-direction: column;
-    width: 100%;
     align-items: stretch;
+    gap: 16px;
+  }
+
+  .potok-extension-controls-row {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 12px;
+    gap: 12px;
+  }
+
+  .potok-extension-toggle-wrap {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .potok-extension-actions-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    justify-content: flex-start;
+    width: 100%;
   }
 
   .potok-card {
