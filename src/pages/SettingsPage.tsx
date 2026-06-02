@@ -22,15 +22,6 @@ export const SettingsPage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<string>("general");
   const [, setTick] = useState(0);
-  const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
-
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const isMobile = windowWidth < 768;
 
   // Setup extensions state from localStorage and keep it in sync
   const [extensions, setExtensions] = useState<RegisteredExtension[]>(() => {
@@ -78,109 +69,106 @@ export const SettingsPage: React.FC = () => {
   return (
     <div className="settings-page-container">
       <div className="settings-container">
-        {isMobile ? (
-          <div className="settings-mobile-tabs-bar">
-            <div className="settings-mobile-tabs-scroll">
+        <div className="settings-mobile-tabs-bar">
+          <div className="settings-mobile-tabs-scroll">
+            <button
+              className={`settings-tab-chip ${activeTab === "general" ? "active" : ""}`}
+              onClick={() => setActiveTab("general")}
+            >
+              Основные
+            </button>
+            <button
+              className={`settings-tab-chip ${activeTab === "profiles" ? "active" : ""}`}
+              onClick={() => setActiveTab("profiles")}
+            >
+              Подключения
+            </button>
+            <button
+              className={`settings-tab-chip ${activeTab === "extensions" ? "active" : ""}`}
+              onClick={() => setActiveTab("extensions")}
+            >
+              Расширения
+            </button>
+            
+            {slotContributions.map((c) => (
               <button
-                className={`settings-tab-chip ${activeTab === "general" ? "active" : ""}`}
-                onClick={() => setActiveTab("general")}
+                key={c.contribution.id}
+                className={`settings-tab-chip ${activeTab === c.contribution.id ? "active" : ""}`}
+                onClick={() => setActiveTab(c.contribution.id)}
               >
-                Основные
+                {c.contribution.title || c.contribution.id}
               </button>
+            ))}
+
+            {configExtensions.map((ext) => (
               <button
-                className={`settings-tab-chip ${activeTab === "profiles" ? "active" : ""}`}
-                onClick={() => setActiveTab("profiles")}
+                key={`config-${ext.id}`}
+                className={`settings-tab-chip ${activeTab === `config-${ext.id}` ? "active" : ""}`}
+                onClick={() => setActiveTab(`config-${ext.id}`)}
               >
-                Подключения
+                {ext.manifest.name || ext.id}
               </button>
-              <button
-                className={`settings-tab-chip ${activeTab === "extensions" ? "active" : ""}`}
-                onClick={() => setActiveTab("extensions")}
-              >
-                Расширения
-              </button>
-              
-              {/* Active plugins tabs */}
+            ))}
+          </div>
+        </div>
+
+        <aside className="settings-sidebar">
+          <div className="sidebar-brand">
+            <h1 className="sidebar-brand-title">Настройки</h1>
+            <p className="sidebar-brand-desc">Панель управления</p>
+          </div>
+          <div className="sidebar-divider" />
+          <div className="sidebar-section-title">Приложение</div>
+          <button
+            className={`sidebar-nav-item ${activeTab === "general" ? "active" : ""}`}
+            onClick={() => setActiveTab("general")}
+          >
+            <Sliders size={16} />
+            <span>Основные</span>
+          </button>
+          <button
+            className={`sidebar-nav-item ${activeTab === "profiles" ? "active" : ""}`}
+            onClick={() => setActiveTab("profiles")}
+          >
+            <Globe size={16} />
+            <span>Профили подключения</span>
+          </button>
+
+          <div className="sidebar-section-title">Интеграции</div>
+          <button
+            className={`sidebar-nav-item ${activeTab === "extensions" ? "active" : ""}`}
+            onClick={() => setActiveTab("extensions")}
+          >
+            <Puzzle size={16} />
+            <span>Расширения</span>
+          </button>
+
+          {(slotContributions.length > 0 || configExtensions.length > 0) && (
+            <>
+              <div className="sidebar-section-title">Плагины</div>
               {slotContributions.map((c) => (
                 <button
                   key={c.contribution.id}
-                  className={`settings-tab-chip ${activeTab === c.contribution.id ? "active" : ""}`}
+                  className={`sidebar-nav-item ${activeTab === c.contribution.id ? "active" : ""}`}
                   onClick={() => setActiveTab(c.contribution.id)}
                 >
-                  {c.contribution.title || c.contribution.id}
+                  <Puzzle size={16} />
+                  <span>{c.contribution.title || c.contribution.id}</span>
                 </button>
               ))}
-
               {configExtensions.map((ext) => (
                 <button
                   key={`config-${ext.id}`}
-                  className={`settings-tab-chip ${activeTab === `config-${ext.id}` ? "active" : ""}`}
+                  className={`sidebar-nav-item ${activeTab === `config-${ext.id}` ? "active" : ""}`}
                   onClick={() => setActiveTab(`config-${ext.id}`)}
                 >
-                  {ext.manifest.name || ext.id}
+                  <Puzzle size={16} />
+                  <span>{ext.manifest.name || ext.id}</span>
                 </button>
               ))}
-            </div>
-          </div>
-        ) : (
-          <aside className="settings-sidebar">
-            <div className="sidebar-brand">
-              <h1 className="sidebar-brand-title">Настройки</h1>
-              <p className="sidebar-brand-desc">Панель управления</p>
-            </div>
-            <div className="sidebar-divider" />
-            <div className="sidebar-section-title">Приложение</div>
-            <button
-              className={`sidebar-nav-item ${activeTab === "general" ? "active" : ""}`}
-              onClick={() => setActiveTab("general")}
-            >
-              <Sliders size={16} />
-              <span>Основные</span>
-            </button>
-            <button
-              className={`sidebar-nav-item ${activeTab === "profiles" ? "active" : ""}`}
-              onClick={() => setActiveTab("profiles")}
-            >
-              <Globe size={16} />
-              <span>Профили подключения</span>
-            </button>
-
-            <div className="sidebar-section-title">Интеграции</div>
-            <button
-              className={`sidebar-nav-item ${activeTab === "extensions" ? "active" : ""}`}
-              onClick={() => setActiveTab("extensions")}
-            >
-              <Puzzle size={16} />
-              <span>Расширения</span>
-            </button>
-
-            {(slotContributions.length > 0 || configExtensions.length > 0) && (
-              <>
-                <div className="sidebar-section-title">Плагины</div>
-                {slotContributions.map((c) => (
-                  <button
-                    key={c.contribution.id}
-                    className={`sidebar-nav-item ${activeTab === c.contribution.id ? "active" : ""}`}
-                    onClick={() => setActiveTab(c.contribution.id)}
-                  >
-                    <Puzzle size={16} />
-                    <span>{c.contribution.title || c.contribution.id}</span>
-                  </button>
-                ))}
-                {configExtensions.map((ext) => (
-                  <button
-                    key={`config-${ext.id}`}
-                    className={`sidebar-nav-item ${activeTab === `config-${ext.id}` ? "active" : ""}`}
-                    onClick={() => setActiveTab(`config-${ext.id}`)}
-                  >
-                    <Puzzle size={16} />
-                    <span>{ext.manifest.name || ext.id}</span>
-                  </button>
-                ))}
-              </>
-            )}
-          </aside>
-        )}
+            </>
+          )}
+        </aside>
 
         <main className="settings-main-content">
           {activeTab === "general" && (

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Save, Eye, EyeOff, Sliders } from "lucide-react";
 import type { RegisteredExtension } from "../../network/SDKTypes";
 import { useHUD } from "../../context/HUDContext";
+import { ApiClient } from "../../network/ApiClient";
 
 interface DeclarativeSettingsProps {
   ext: RegisteredExtension;
@@ -72,6 +73,17 @@ export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.mem
       const value = settings[key] !== undefined ? settings[key] : config[key].default;
       localStorage.setItem(localStorageKey, String(value));
     });
+
+    if (ext.id === "potok-torrents") {
+      ApiClient.invalidateCache();
+    }
+
+    window.dispatchEvent(
+      new CustomEvent("potok_plugin_settings_updated", {
+        detail: { pluginId: ext.id }
+      })
+    );
+
     showHUD("success", "Настройки плагина успешно сохранены");
   };
 

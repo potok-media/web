@@ -87,6 +87,39 @@ export const PluginSandbox: React.FC = () => {
     };
   }, [showHUD]);
 
+  useEffect(() => {
+    const handleSettingsUpdated = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const { pluginId } = customEvent.detail;
+      logger.log(`[PluginSandbox] Settings updated for ${pluginId}, hot-reloading iframe...`);
+      
+      const ext = activeExtensions.find(x => x.id === pluginId);
+      if (ext) {
+        if (pluginId === "potok-torrents") {
+          ApiClient.invalidateCache();
+        }
+        
+        // Force unregister and clear previous sandbox info in ExtensionRegistry
+        ExtensionRegistry.unregisterSandbox(pluginId);
+        
+        // Regenerate srcDoc with new scoped localStorage configuration
+        setIframeSrcDocs((prev) => ({
+          ...prev,
+          [pluginId]: createIframeHtml(
+            ext,
+            activeProfile,
+            getScopedLocalStorage(pluginId),
+            window.location.origin
+          ),
+        }));
+      }
+    };
+    window.addEventListener("potok_plugin_settings_updated", handleSettingsUpdated);
+    return () => {
+      window.removeEventListener("potok_plugin_settings_updated", handleSettingsUpdated);
+    };
+  }, [activeExtensions, activeProfile]);
+
   // Propagate profile updates dynamically to running sandboxes
   useEffect(() => {
     if (!activeProfile) return;

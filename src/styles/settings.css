@@ -14,22 +14,21 @@
 /* Two-Pane Layout Container (Centered on screen) */
 .settings-container {
   display: grid;
-  grid-template-columns: 17.5rem 42rem 17.5rem; /* Increased content block width to 42rem */
+  grid-template-columns: 17.5rem 1fr;
+  max-width: 60rem;
+  margin: var(--space-m) auto 0 auto;
   gap: var(--space-xl);
-  justify-content: center;
   width: 100%;
-  margin-top: var(--space-m);
 }
 
 .settings-sidebar-spacer {
-  width: 17.5rem;
-  pointer-events: none;
-  visibility: hidden;
+  display: none !important;
 }
 
 @media (max-width: 82rem) {
   .settings-container {
-    grid-template-columns: 17.5rem 42rem;
+    grid-template-columns: 17.5rem 1fr;
+    max-width: 100%;
   }
   .settings-sidebar-spacer {
     display: none;
@@ -42,6 +41,12 @@
     gap: var(--space-l);
     width: 100%;
     max-width: 100%;
+  }
+  .settings-sidebar {
+    display: none !important;
+  }
+  .settings-mobile-tabs-bar {
+    display: block !important;
   }
   .settings-page-container {
     padding: var(--space-m);
