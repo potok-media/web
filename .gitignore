@@ -79,3 +79,6 @@ Desktop.ini
 *.swo
 *.tmp
 *.bak
+
+# 🎨 Generated Assets
+public/assets/icons/

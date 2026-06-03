@@ -249,6 +249,27 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
           case "home": IconComponent = <Home size={18} />; break;
           case "user": IconComponent = <User size={18} />; break;
           case "settings": IconComponent = <Settings size={18} />; break;
+          default: {
+            const iconUrl = `/assets/icons/${iconName}.svg`;
+            IconComponent = (
+              <span
+                style={{
+                  display: "inline-block",
+                  width: "18px",
+                  height: "18px",
+                  backgroundColor: "currentColor",
+                  maskImage: `url(${iconUrl})`,
+                  WebkitMaskImage: `url(${iconUrl})`,
+                  maskSize: "contain",
+                  maskRepeat: "no-repeat",
+                  maskPosition: "center",
+                  WebkitMaskPosition: "center",
+                  flexShrink: 0
+                }}
+              />
+            );
+            break;
+          }
         }
       }
 

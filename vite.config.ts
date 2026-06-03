@@ -1,6 +1,7 @@
 import { defineConfig, build } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
+import { cpSync } from 'fs'
 
 function vitePotokSdkPlugin() {
   return {
@@ -14,6 +15,16 @@ function vitePotokSdkPlugin() {
         console.log('[vite-plugin-potok-sdk] SDK compiled successfully.');
       } catch (err) {
         console.error('[vite-plugin-potok-sdk] SDK compilation failed:', err);
+      }
+
+      console.log('[vite-plugin-potok-sdk] Copying Lucide static icons...');
+      try {
+        const lucideStaticDir = resolve(__dirname, 'node_modules/lucide-static/icons');
+        const destDir = resolve(__dirname, 'public/assets/icons');
+        cpSync(lucideStaticDir, destDir, { recursive: true });
+        console.log('[vite-plugin-potok-sdk] Lucide static icons copied successfully.');
+      } catch (err) {
+        console.error('[vite-plugin-potok-sdk] Failed to copy lucide-static icons:', err);
       }
     },
     configureServer(server: any) {
