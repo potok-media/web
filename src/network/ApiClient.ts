@@ -84,11 +84,13 @@ export class ApiClient {
   private static _cachedBaseURL?: string;
   private static _cachedSearchEngineURL?: string;
   private static _cachedPlayerServerURL?: string;
+  private static mediaDetailsCache = new Map<string, MediaCard>();
 
   public static invalidateCache(): void {
     this._cachedBaseURL = undefined;
     this._cachedSearchEngineURL = undefined;
     this._cachedPlayerServerURL = undefined;
+    this.mediaDetailsCache.clear();
   }
 
   public static get baseURL(): string {
@@ -260,11 +262,21 @@ export class ApiClient {
     return this.handleResponse<MediaCard[]>(res, "Search failed");
   }
 
+  public static getCachedMediaDetails(mediaType: string, id: number): MediaCard | null {
+    return this.mediaDetailsCache.get(`${mediaType}:${id}`) || null;
+  }
+
   public static async fetchMediaDetails(mediaType: string, id: number): Promise<MediaCard> {
+    const cacheKey = `${mediaType}:${id}`;
+    if (this.mediaDetailsCache.has(cacheKey)) {
+      return this.mediaDetailsCache.get(cacheKey)!;
+    }
     const res = await fetch(`${this.baseURL}/api/media/detail/${mediaType}/${id}`, {
       headers: this.headers,
     });
-    return this.handleResponse<MediaCard>(res, "Failed to fetch details");
+    const details = await this.handleResponse<MediaCard>(res, "Failed to fetch details");
+    this.mediaDetailsCache.set(cacheKey, details);
+    return details;
   }
 
   public static async fetchTvSeason(tvId: number, seasonNumber: number, options?: RequestInit): Promise<TvSeason> {

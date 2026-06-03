@@ -11,7 +11,7 @@ import { handleHttpProxyRequest } from "../../utils/extensions/httpProxyHelper";
 import { handleShowEpisodeSelector } from "../../utils/extensions/episodeSelectorHelper";
 
 export const PluginSandbox: React.FC = () => {
-  const { connectionProfiles, activeProfileID, playVideo, activePlayback } = useAppSettings();
+  const { connectionProfiles, activeProfileID, playVideo, activePlayback, setAccentTheme } = useAppSettings();
   const { show: showHUD } = useHUD();
   const navigate = useNavigate();
   const [activeExtensions, setActiveExtensions] = useState<RegisteredExtension[]>([]);
@@ -248,6 +248,35 @@ export const PluginSandbox: React.FC = () => {
       const { action, payload } = msg;
 
       switch (action) {
+        case "REGISTER_THEMES": {
+          const themesList: any[] = Array.isArray(payload) ? payload : (payload?.themes || []);
+          let styleTag = document.getElementById("potok-plugin-custom-themes") as HTMLStyleElement;
+          if (!styleTag) {
+            styleTag = document.createElement("style");
+            styleTag.id = "potok-plugin-custom-themes";
+            document.head.appendChild(styleTag);
+          }
+
+          const customThemesMap = (window as any).__potok_custom_themes || new Map();
+          (window as any).__potok_custom_themes = customThemesMap;
+
+          themesList.forEach((theme: any) => {
+            if (theme && theme.id && theme.variables) {
+              customThemesMap.set(theme.id, theme);
+            }
+          });
+
+          let cssContent = "";
+          customThemesMap.forEach((theme: any) => {
+            const rules = Object.entries(theme.variables || {})
+              .map(([key, val]) => `  ${key}: ${val};`)
+              .join("\n");
+            cssContent += `html[data-theme="${theme.id}"] {\n${rules}\n}\n`;
+          });
+
+          styleTag.textContent = cssContent;
+          break;
+        }
         case "SHUTDOWN_ACK":
           triggerPhysicalRemoval(pluginId);
           break;
@@ -273,6 +302,11 @@ export const PluginSandbox: React.FC = () => {
         case "SHOW_HUD":
           if (!permissions.includes("ui-notifications")) break;
           showHUD(payload.type, payload.message);
+          break;
+        case "SET_ACCENT_THEME":
+          if (payload && typeof payload.themeId === "string") {
+            setAccentTheme(payload.themeId);
+          }
           break;
         case "PLAY_VIDEO": {
           const playbackPayload = { ...payload };

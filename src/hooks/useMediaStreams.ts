@@ -52,8 +52,20 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
   const [seasonsLoading, setSeasonsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const [mediaDetails, setMediaDetails] = useState<MediaCard | null>(initialMedia || null);
-  const [loadingMediaDetails, setLoadingMediaDetails] = useState(!initialMedia);
+  const [mediaDetails, setMediaDetails] = useState<MediaCard | null>(() => {
+    if (initialMedia) return initialMedia;
+    if (mediaType && mediaId) {
+      return ApiClient.getCachedMediaDetails(mediaType, mediaId);
+    }
+    return null;
+  });
+  const [loadingMediaDetails, setLoadingMediaDetails] = useState(() => {
+    if (initialMedia) return false;
+    if (mediaType && mediaId && ApiClient.getCachedMediaDetails(mediaType, mediaId)) {
+      return false;
+    }
+    return true;
+  });
 
   const handleOnError = useCallback((err: unknown) => {
     logger.error(err);
@@ -63,6 +75,12 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
   useEffect(() => {
     if (initialMedia) return setMediaDetails(initialMedia);
     if (!mediaType || !mediaId) return;
+    const cached = ApiClient.getCachedMediaDetails(mediaType, mediaId);
+    if (cached) {
+      setMediaDetails(cached);
+      setLoadingMediaDetails(false);
+      return;
+    }
     setLoadingMediaDetails(true);
     ApiClient.fetchMediaDetails(mediaType, mediaId)
       .then(setMediaDetails)
@@ -145,17 +163,37 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
   const activeSource = useMemo(() => sources.find((s) => s.id === activeTab), [sources, activeTab]);
 
   const [streams, setStreams] = useState<RawStreamPayload[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const resultsCache = useRef<Map<string, RawStreamPayload[]>>(new Map());
   const activeRequestIdRef = useRef<string>("");
 
+  // Sync state and show loader instantly when tab/source changes to prevent layout flashing
+  useEffect(() => {
+    if (activeTab) {
+      const cached = resultsCache.current.get(activeTab);
+      if (cached) {
+        setStreams(cached);
+        setLoading(false);
+      } else {
+        setStreams([]);
+        setLoading(true);
+      }
+    } else if (sources.length === 0 && !loadingMediaDetails) {
+      setLoading(false);
+    }
+  }, [activeTab, sources.length, loadingMediaDetails]);
+
   useEffect(() => {
     if (!mediaTitle || !activeTab || !activeSource) return;
     const cached = resultsCache.current.get(activeTab);
-    if (cached) return setStreams(cached);
+    if (cached) {
+      setStreams(cached);
+      setLoading(false);
+      return;
+    }
 
     const reqId = Math.random().toString(36).substring(7);
     activeRequestIdRef.current = reqId;

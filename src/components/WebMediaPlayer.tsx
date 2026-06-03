@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import Hls from "hls.js";
 import { ChevronRight, AlertTriangle } from "lucide-react";
 import { ApiClient } from "../network/ApiClient";
@@ -192,6 +193,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const isMountedRef = useRef<boolean>(true);
   const autoRefreshCountRef = useRef<number>(0);
   const { playVideo } = usePlayback();
+  const toastTriggeredRef = useRef<boolean>(false);
 
   // States
   const [isClosed, setIsClosed] = useState(false);
@@ -205,31 +207,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const [showStats, setShowStats] = useState(false);
   const [showResumeToast, setShowResumeToast] = useState(false);
   const [resumeTime, setResumeTime] = useState(0);
-
-  useEffect(() => {
-    const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
-    const savedResume = localStorage.getItem(resumeKey);
-    if (savedResume) {
-      const parsed = Number(savedResume);
-      if (!isNaN(parsed) && parsed > 15) {
-        setResumeTime(parsed);
-        setShowResumeToast(true);
-        const timer = setTimeout(() => {
-          setShowResumeToast(false);
-        }, 4000);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [playback.id, playback.season, playback.episode]);
-
-  useEffect(() => {
-    setIsClosed(false);
-  }, [playback.streamUrl]);
-
-  const handleClose = useCallback(() => {
-    setIsClosed(true);
-    onClose?.();
-  }, [onClose]);
 
   // Subtitle/Track States
   const [audioTracks, setAudioTracks] = useState<{ id: number; name: string }[]>([]);
@@ -253,6 +230,74 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     return playback.streamUrl.includes("/stream/") || !!playback.streamHash;
   });
   const [metadataDuration, setMetadataDuration] = useState(0);
+
+  // Torrent P2P loading states
+  const [torrentPeers, setTorrentPeers] = useState<number | null>(null);
+  const [torrentDownloadSpeed, setTorrentDownloadSpeed] = useState<number | null>(null);
+  const [isMetadataFetched, setIsMetadataFetched] = useState(false);
+  const [hasPositivePeersTime, setHasPositivePeersTime] = useState<number | null>(null);
+
+  const [seekOffset, setSeekOffset] = useState(() => {
+    let startPos = 0;
+    const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
+    const savedResume = localStorage.getItem(resumeKey);
+    if (savedResume) {
+      const parsed = Number(savedResume);
+      if (!isNaN(parsed) && parsed > 0) startPos = parsed;
+    } else {
+      try {
+        const startParam = new URL(playback.streamUrl).searchParams.get("start");
+        if (startParam) startPos = Number(startParam);
+      } catch {
+        const match = playback.streamUrl.match(/[?&]start=(\d+)/i);
+        if (match) startPos = Number(match[1]);
+      }
+    }
+
+    const normalizedUrl = normalizeStreamUrlToPath(playback.streamUrl);
+    const isStreamServer = normalizedUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
+    const ext = getFileExtension(normalizedUrl);
+    const isNonNative = ext ? !["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "m4a", "mpd"].includes(ext) : false;
+    const needsRemux = isStreamServer && isNonNative;
+
+    return needsRemux ? startPos : 0;
+  });
+
+  // Reset toast trigger when switching episodes/movies
+  useEffect(() => {
+    toastTriggeredRef.current = false;
+    setShowResumeToast(false);
+  }, [playback.id, playback.season, playback.episode]);
+
+  // Show resume playback toast after metadata and buffering overlays are gone
+  useEffect(() => {
+    if (isMetadataLoading) return;
+    if (toastTriggeredRef.current) return;
+
+    const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
+    const savedResume = localStorage.getItem(resumeKey);
+    if (savedResume) {
+      const parsed = Number(savedResume);
+      if (!isNaN(parsed) && parsed > 15) {
+        setResumeTime(parsed);
+        setShowResumeToast(true);
+        toastTriggeredRef.current = true;
+        const timer = setTimeout(() => {
+          setShowResumeToast(false);
+        }, 5000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isMetadataLoading, playback.id, playback.season, playback.episode]);
+
+  useEffect(() => {
+    setIsClosed(false);
+  }, [playback.streamUrl]);
+
+  const handleClose = useCallback(() => {
+    setIsClosed(true);
+    onClose?.();
+  }, [onClose]);
 
   // Derived torrent/file metadata
   const streamHash = useMemo(() => {
@@ -290,28 +335,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     }
     return fileId;
   }, [playback.streamUrl]);
-
-  // Torrent P2P loading states
-  const [torrentPeers, setTorrentPeers] = useState<number | null>(null);
-  const [torrentDownloadSpeed, setTorrentDownloadSpeed] = useState<number | null>(null);
-  const [isMetadataFetched, setIsMetadataFetched] = useState(false);
-  const [hasPositivePeersTime, setHasPositivePeersTime] = useState<number | null>(null);
-
-  const [seekOffset, setSeekOffset] = useState(() => {
-    const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
-    const savedResume = localStorage.getItem(resumeKey);
-    if (savedResume) {
-      const parsed = Number(savedResume);
-      if (!isNaN(parsed) && parsed > 0) return parsed;
-    }
-    try {
-      const startParam = new URL(playback.streamUrl).searchParams.get("start");
-      return startParam ? Number(startParam) : 0;
-    } catch {
-      const match = playback.streamUrl.match(/[?&]start=(\d+)/i);
-      return match ? Number(match[1]) : 0;
-    }
-  });
 
   const seekOffsetRef = useRef(seekOffset);
   useEffect(() => {
@@ -548,7 +571,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     if (!isMetadataFetched) {
       return {
         title: "Настройка аудио и видео...",
-        subtitle: "Анализ медиа-контейнера и дорожек (ffprobe)",
+        subtitle: "Анализ медиа-контейнера и дорожек",
         step: 3
       };
     }
@@ -734,6 +757,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         audio: currentAudioTrack !== -1 ? currentAudioTrack.toString() : ""
       });
     }
+    setSeekOffset(needsRemux ? startPos : 0);
 
     const proxiedUrl = getProxyUrl(finalStreamUrl);
     const isM3u8 = finalStreamUrl.includes(".m3u8");
@@ -1214,14 +1238,16 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   // Hooks integration
   const { introRange, outroRange } = useTimecodes(playback.id, playback.season, playback.episode, playback.mediaType === "tv", displayDuration);
 
+  const trackerPlayback = useMemo(() => ({
+    id: playback.id,
+    mediaType: playback.mediaType,
+    season: playback.season,
+    episode: playback.episode,
+  }), [playback.id, playback.mediaType, playback.season, playback.episode]);
+
   usePlaybackTracker({
     videoRef,
-    playback: {
-      id: playback.id,
-      mediaType: playback.mediaType,
-      season: playback.season,
-      episode: playback.episode,
-    },
+    playback: trackerPlayback,
     seekOffset,
     isActive: isPlaying,
   });
@@ -1239,7 +1265,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
   if (isClosed) return null;
 
-  return (
+  return createPortal(
     <div 
       ref={overlayRef}
       className={`web-player-overlay ${!controlsVisible ? "controls-hidden" : ""}`}
@@ -1459,6 +1485,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         streamHash={streamHash}
         fileIndex={fileIndex}
       />
-    </div>
+    </div>,
+    document.body
   );
 };

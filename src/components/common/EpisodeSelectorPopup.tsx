@@ -46,7 +46,7 @@ const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
   
   let displaySubtitle = "";
   if (mediaType === "tv") {
-    displaySubtitle = `Сезон ${episodeItem.season} • Серия ${episodeItem.episode}`;
+    displaySubtitle = `Сезон ${episodeItem.season}`;
     if (episodeItem.airDate) {
       try {
         const airDateStr = new Date(episodeItem.airDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" });

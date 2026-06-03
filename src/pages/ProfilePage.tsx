@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { LogOut, RefreshCw, Popcorn, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ExtensionSlot } from "../components/common/ExtensionSlot";
-import { Storage } from "../utils/StorageService";
 import { AuthApiClient } from "../network/AuthApiClient";
 import { useHUD } from "../context/HUDContext";
 import { useAuth } from "../context/AppSettingsContext";
@@ -16,9 +15,16 @@ import "../styles/profile.css";
 
 export const ProfilePage: React.FC = () => {
   const { show: showHUD } = useHUD();
-  const { potokToken, potokUser, login, logout } = useAuth();
-  const [syncStrategy, setSyncStrategy] = useState<string>(() => Storage.get("syncStrategy", "none"));
-  const [traktToken, setTraktToken] = useState<string | null>(() => Storage.get("traktAccessToken", null));
+  const {
+    potokToken,
+    potokUser,
+    login,
+    logout,
+    syncStrategy,
+    traktToken,
+    setSyncStrategy,
+    setTraktToken
+  } = useAuth();
 
   const [traktProfile, setTraktProfile] = useState<TraktProfile | null>(null);
   const [deviceCode, setDeviceCode] = useState<DeviceCodeResponse | null>(null);
@@ -28,15 +34,12 @@ export const ProfilePage: React.FC = () => {
 
   const handlePotokLogout = () => {
     logout();
-    setSyncStrategy("none");
-    setTraktToken(null);
     setTraktProfile(null);
     setDeviceCode(null);
     showHUD("info", "Вы вышли из аккаунта");
   };
 
   const selectStrategy = async (strategy: string) => {
-    Storage.set("syncStrategy", strategy);
     setSyncStrategy(strategy);
     if (potokToken) {
       try {
@@ -63,7 +66,6 @@ export const ProfilePage: React.FC = () => {
     try {
       const data = await AuthApiClient.getTraktToken(codeVal);
       if (data.access_token) {
-        Storage.set("traktAccessToken", data.access_token);
         setTraktToken(data.access_token);
         setDeviceCode(null);
         showHUD("success", "Trakt.tv подключен!");
@@ -92,7 +94,6 @@ export const ProfilePage: React.FC = () => {
     try {
       await AuthApiClient.traktLogout();
     } catch {}
-    Storage.remove("traktAccessToken");
     setTraktToken(null);
     setTraktProfile(null);
     showHUD("info", "Trakt.tv отключен");
@@ -127,16 +128,6 @@ export const ProfilePage: React.FC = () => {
     return (
       <div className="profile-auth-screen-container">
         <PotokAuthView onSuccess={(data) => {
-          Storage.set("potokToken", data.token);
-          Storage.set("potokUser", data.user);
-          Storage.set("syncStrategy", data.user.syncStrategy);
-          if (data.user.traktAccessToken) {
-            Storage.set("traktAccessToken", data.user.traktAccessToken);
-          } else {
-            Storage.remove("traktAccessToken");
-          }
-          setSyncStrategy(data.user.syncStrategy);
-          setTraktToken(data.user.traktAccessToken || null);
           login(data.token, data.user);
         }} />
       </div>

@@ -43,6 +43,7 @@ export interface MediaCard {
   cast?: CastMember[];
   kpId?: string;
   imdbId?: string;
+  airDateTime?: string;
 }
 
 export interface WatchProgress {
@@ -148,7 +149,14 @@ export interface InfuseSaveRequest {
 
 export interface TraktSyncRequest {
   movies: { ids: { tmdb: number } }[];
-  shows: { ids: { tmdb: number } }[];
+  shows: {
+    ids: { tmdb: number };
+    seasons?: {
+      number: number;
+      episodes: { number: number }[];
+    }[];
+  }[];
+  episodes?: { ids: { tmdb: number } }[];
 }
 
 export interface CastMember {

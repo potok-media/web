@@ -92,9 +92,9 @@
 .potok-text {
   font-size: 0.95rem;
 }
-.potok-text-primary { color: rgba(255, 255, 255, 0.95); }
-.potok-text-secondary { color: rgba(255, 255, 255, 0.6); }
-.potok-text-hint { color: rgba(255, 255, 255, 0.4); font-size: 0.8rem; }
+.potok-text-primary { color: var(--text-primary); }
+.potok-text-secondary { color: var(--text-secondary); }
+.potok-text-hint { color: var(--text-tertiary); font-size: 0.8rem; }
 .potok-text-error { color: #ff4d4f; }
 .potok-text-success { color: #52c41a; }
 .potok-text-bold { font-weight: 600; }
@@ -889,208 +889,746 @@ input:checked + .potok-slider:before {
   cursor: not-allowed;
 }
 
-/* Extensions Manager Component Styles */
+/* ==========================================================================
+   Potok Premium Extensions Manager Styles
+   ========================================================================== */
+
 .potok-extensions-manager-container {
-  gap: 20px;
+  gap: 24px;
 }
 
-.potok-extensions-install-form {
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.potok-extensions-list {
+/* 1. Header Statistics Dashboard */
+.extensions-stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
-  margin-top: 12px;
+  width: 100%;
 }
 
-.potok-extensions-empty-card {
+.stat-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
   align-items: center;
-  padding: 30px;
+  gap: 16px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow: hidden;
 }
 
-.potok-extensions-empty-icon {
-  opacity: 0.5;
-  margin-bottom: 8px;
+.stat-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
-.potok-extension-card-no-margin {
+.stat-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.stat-card.has-updates {
+  border-color: rgba(255, 159, 10, 0.3);
+}
+
+.stat-card.has-updates:hover {
+  box-shadow: 0 12px 30px rgba(255, 159, 10, 0.08), 0 0 0 1px rgba(255, 159, 10, 0.2);
+}
+
+.stat-card-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-card-icon-wrapper.total {
+  background: rgba(0, 122, 255, 0.12);
+  color: #007aff;
+  border: 1px solid rgba(0, 122, 255, 0.2);
+}
+
+.stat-card-icon-wrapper.active {
+  background: rgba(52, 199, 89, 0.12);
+  color: #34c759;
+  border: 1px solid rgba(52, 199, 89, 0.2);
+}
+
+.stat-card-icon-wrapper.updates {
+  background: rgba(255, 159, 10, 0.12);
+  color: #ff9f0a;
+  border: 1px solid rgba(255, 159, 10, 0.2);
+}
+
+.stat-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-card-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.stat-card-label {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* 2. Control Bar & Filters */
+.extensions-control-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  padding: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.extensions-search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 0 14px;
+  flex-grow: 1;
+  height: 44px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.extensions-search-bar:focus-within {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(0, 122, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+}
+
+.extensions-search-bar .search-icon {
+  color: rgba(255, 255, 255, 0.35);
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.extensions-search-bar .search-input {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 0.95rem;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+
+.extensions-search-bar .search-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.extensions-search-bar .search-clear-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: color 0.15s;
+}
+
+.extensions-search-bar .search-clear-btn:hover {
+  color: #fff;
+}
+
+.filter-chips-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-chip {
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-chip:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.filter-chip.active {
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.2), rgba(0, 122, 255, 0.1));
+  color: #fff;
+  border-color: rgba(0, 122, 255, 0.45);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+}
+
+.filter-chip .chip-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 1px 6px;
+  border-radius: 9999px;
+  margin-left: 4px;
+}
+
+.filter-chip.active .chip-count {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+/* Category Filter specific label */
+.category-filter-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.35);
+  margin-right: 8px;
+}
+
+/* 3. Install Extension Form Panel */
+.extensions-actions-header {
+  margin-top: 8px;
+  width: 100%;
+}
+
+.install-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px !important;
+  font-size: 0.85rem !important;
+  border-radius: 10px !important;
+}
+
+.install-extension-panel {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+.install-extension-form {
+  gap: 12px;
+  width: 100%;
+  align-items: center;
+}
+
+.install-help-text {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
   margin: 0;
+  line-height: 1.4;
 }
 
-.potok-extension-card-layout {
+/* 4. Premium Cards Styles */
+.potok-extensions-grid {
+  width: 100%;
+}
+
+.potok-extension-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.potok-extension-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 50%, rgba(0, 122, 255, 0.04) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.potok-extension-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.3);
+}
+
+.potok-extension-card:hover::before {
+  opacity: 1;
+}
+
+.potok-extension-card.has-pending-update {
+  border-color: rgba(255, 159, 10, 0.25);
+  box-shadow: 0 4px 20px rgba(255, 159, 10, 0.03);
+}
+
+.card-top-row {
+  display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: flex-start;
   width: 100%;
 }
 
-.potok-extension-details-col {
-  gap: 4px;
+.card-main-info {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 14px;
   flex: 1;
   min-width: 0;
 }
 
-.potok-extension-title-row {
+.extension-card-icon-container {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.potok-extension-name {
-  color: var(--text-primary, #fff);
-  font-size: 1.1rem;
-}
-
-.potok-extension-description {
-  font-size: 0.85rem;
-}
-
-.potok-extension-id-row {
-  font-size: 0.75rem;
-  margin-top: 4px;
-  user-select: text;
-}
-
-.potok-extension-id-val {
-  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
-  user-select: text;
-}
-
-.potok-extension-url-row {
-  align-items: center;
-  gap: 8px;
-  margin-top: 4px;
-  min-width: 0;
-  width: 100%;
-}
-
-.potok-extension-path-label {
-  font-size: 0.75rem;
+  justify-content: center;
   flex-shrink: 0;
+  transition: all 0.3s ease;
 }
 
-.potok-extension-controls-row {
-  align-items: center;
-  gap: 12px;
+.potok-extension-card:hover .extension-card-icon-container {
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
-.potok-extension-actions-row {
+/* Card Icon Themes */
+.ext-icon.play-theme { color: #ff453a; }
+.ext-icon.search-theme { color: #ff9f0a; }
+.ext-icon.globe-theme { color: #5e5ce6; }
+.ext-icon.db-theme { color: #30d158; }
+.ext-icon.bell-theme { color: #bf5af2; }
+.ext-icon.theme-theme { color: #ff375f; }
+.ext-icon.default-theme { color: #0a84ff; }
+
+.card-titles {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.card-name-row {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 12px;
-}
-
-.potok-extension-toggle-wrap {
-  width: auto;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
-.potok-extension-toggle-label {
+.card-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-version-badge {
+  font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 500;
+}
+
+.card-description {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 6px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-controls {
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+/* Custom toggles */
+.card-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.card-toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider-round {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: .2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 24px;
+}
+
+.slider-round:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .slider-round {
+  background-color: #30d158;
+  border-color: rgba(48, 209, 88, 0.2);
+}
+
+input:checked + .slider-round:before {
+  transform: translateX(20px);
+}
+
+/* Source Badges */
+.source-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+}
+
+.source-badge.github {
+  background: rgba(240, 246, 252, 0.08);
+  color: #c9d1d9;
+  border-color: rgba(240, 246, 252, 0.15);
+}
+
+.source-badge.jsdelivr {
+  background: rgba(255, 68, 68, 0.08);
+  color: #ff6b6b;
+  border-color: rgba(255, 68, 68, 0.15);
+}
+
+.source-badge.localhost {
+  background: rgba(48, 209, 88, 0.08);
+  color: #30d158;
+  border-color: rgba(48, 209, 88, 0.15);
+}
+
+.source-badge.weburl {
+  background: rgba(10, 132, 255, 0.08);
+  color: #0a84ff;
+  border-color: rgba(10, 132, 255, 0.15);
+}
+
+/* Category Badges */
+.category-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.category-badge.cat-sources {
+  background: rgba(94, 92, 230, 0.12);
+  color: #9896f2;
+  border-color: rgba(94, 92, 230, 0.25);
+}
+
+.category-badge.cat-catalogs {
+  background: rgba(48, 209, 88, 0.12);
+  color: #63e6be;
+  border-color: rgba(48, 209, 88, 0.25);
+}
+
+.category-badge.cat-players {
+  background: rgba(255, 69, 58, 0.12);
+  color: #ff9f9f;
+  border-color: rgba(255, 69, 58, 0.25);
+}
+
+.category-badge.cat-visual {
+  background: rgba(255, 159, 10, 0.12);
+  color: #ffd60a;
+  border-color: rgba(255, 159, 10, 0.25);
+}
+
+.category-badge.cat-other {
+  background: rgba(142, 142, 147, 0.12);
+  color: #aeaeae;
+  border-color: rgba(142, 142, 147, 0.25);
+}
+
+/* Bottom Card Row */
+.card-bottom-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 14px;
+  margin-top: auto;
+  gap: 16px;
+}
+
+.card-meta-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.card-id-text {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.35);
+  font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-permissions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.card-permission-badge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.card-actions-group {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.card-action-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.card-action-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.card-action-btn.delete-btn:hover {
+  background: rgba(255, 69, 58, 0.15);
+  border-color: rgba(255, 69, 58, 0.3);
+  color: #ff453a;
+}
+
+.card-action-btn.check-update-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+}
+
+.card-action-btn.view-details-btn:hover {
+  background: rgba(10, 132, 255, 0.15);
+  border-color: rgba(10, 132, 255, 0.3);
+  color: #0a84ff;
+}
+
+/* Card Update Alert Banner */
+.card-update-alert {
+  background: rgba(255, 159, 10, 0.07);
+  border: 1px solid rgba(255, 159, 10, 0.2);
+  border-radius: 10px;
+  padding: 8px 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.update-alert-text {
   font-size: 0.8rem;
+  color: #ff9f0a;
+  font-weight: 500;
 }
 
-.potok-extension-btn-check-update {
-  padding: 8px;
+.update-alert-btn {
+  background: #ff9f0a;
+  color: #000;
+  border: none;
   border-radius: 6px;
-  color: var(--color-accent-blue, #38bdf8);
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.potok-extension-btn-view-manifest {
-  padding: 8px;
-  border-radius: 6px;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+.update-alert-btn:hover:not(:disabled) {
+  background: #e08400;
 }
 
-.potok-extension-btn-delete {
-  padding: 8px;
-  border-radius: 6px;
-  color: var(--color-error, #ff4d4f);
+.update-alert-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-/* ExtensionPage Component Styles */
-.extension-page-wrapper {
-  padding: 30px;
-  overflow-y: auto;
-  height: 100%;
+/* Animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.extension-page-header {
-  margin-bottom: 24px;
-}
-
-.extension-page-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--text-primary, #fff);
-  margin: 0;
+.animate-slide-down {
+  animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @media (max-width: 768px) {
-  .potok-extension-card-layout {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
+  .potok-extension-card {
+    padding: 16px;
   }
 
-  .potok-extension-controls-row {
+  .card-top-row {
     flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    padding-top: 12px;
     gap: 12px;
   }
 
-  .potok-extension-toggle-wrap {
-    width: 100% !important;
-    justify-content: space-between !important;
+  .card-controls {
+    align-self: flex-end;
+    margin-left: 0;
   }
 
-  .potok-extension-actions-row {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 12px;
-    justify-content: flex-start;
-    width: 100%;
-  }
-
-  .potok-extension-actions-row button {
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    padding: 0 !important;
-  }
-
-  .potok-card {
-    width: 100%;
-  }
-
-  .potok-btn {
-    height: 44px;
-    box-sizing: border-box;
-  }
-
-  .potok-update-banner {
+  .card-bottom-row {
     flex-direction: column;
     align-items: stretch;
     gap: 14px;
-    padding: 14px 16px;
   }
 
-  .potok-update-banner-header {
-    flex: none;
-    width: 100%;
+  .card-actions-group {
+    justify-content: flex-end;
   }
 
-  .potok-update-banner-btn {
+  .extensions-control-bar {
+    padding: 12px;
+  }
+
+  .extensions-search-bar {
     width: 100%;
-    text-align: center;
-    padding: 10px 14px;
-    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  .filter-chips-container {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .filter-chip {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  .install-extension-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .install-extension-form button {
+    width: 100%;
+    height: 40px;
   }
 }
 

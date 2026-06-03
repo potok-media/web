@@ -90,7 +90,15 @@ export class SyncApiClient {
     } else if (this.syncStrategy === "trakt") {
       const payload = {
         movies: mediaType === "movie" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
-        shows: mediaType === "tv" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
+        shows: (mediaType === "tv" && seasonNumber !== undefined && episodeNumber !== undefined)
+          ? [{
+              ids: { tmdb: Number(tmdbId) },
+              seasons: [{
+                number: seasonNumber,
+                episodes: [{ number: episodeNumber }]
+              }]
+            }]
+          : (mediaType === "tv" ? [{ ids: { tmdb: Number(tmdbId) } }] : []),
         episodes: mediaType === "episode" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
       };
       await ApiClient.syncTraktAction("history", payload);
@@ -118,7 +126,15 @@ export class SyncApiClient {
     } else if (this.syncStrategy === "trakt") {
       const payload = {
         movies: mediaType === "movie" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
-        shows: mediaType === "tv" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
+        shows: (mediaType === "tv" && seasonNumber !== undefined && episodeNumber !== undefined)
+          ? [{
+              ids: { tmdb: Number(tmdbId) },
+              seasons: [{
+                number: seasonNumber,
+                episodes: [{ number: episodeNumber }]
+              }]
+            }]
+          : (mediaType === "tv" ? [{ ids: { tmdb: Number(tmdbId) } }] : []),
         episodes: mediaType === "episode" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
       };
       await ApiClient.syncTraktAction("history/remove", payload);

@@ -200,6 +200,21 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       );
     }
 
+    case "StatusRow": {
+      const componentProps = schema.props;
+      const rawStatus = componentProps.status || "offline";
+      const statusClass = rawStatus === "success" ? "online" : rawStatus;
+      return (
+        <div key={id} id={id} className="sidebar-status-row" style={baseStyle}>
+          <span className={`sidebar-status-dot ${statusClass}`} />
+          <span className="sidebar-status-label">{componentProps.label}</span>
+          {componentProps.value && (
+            <span className="sidebar-status-latency">{componentProps.value}</span>
+          )}
+        </div>
+      );
+    }
+
     case "Divider": {
       return <hr key={id} className="potok-divider" style={baseStyle} />;
     }

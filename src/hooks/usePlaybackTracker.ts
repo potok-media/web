@@ -29,14 +29,20 @@ export function usePlaybackTracker({
 }: UsePlaybackTrackerParams) {
   const lastSavedTimeRef = useRef<number>(0);
   const syncIntervalRef = useRef<any>(null);
+  const { id, mediaType, season, episode } = playback;
+
+  // Reset last saved time when media ID / episode changes
+  useEffect(() => {
+    lastSavedTimeRef.current = 0;
+  }, [id, season, episode]);
 
   const getStorageKeys = useCallback(() => {
-    const s = playback.season ?? 0;
-    const e = playback.episode ?? 0;
-    const progressKey = `potok_progress:${playback.id}:${s}:${e}`;
-    const resumeKey = `potok_playback_resume:${playback.id}:${s}:${e}`;
+    const s = season ?? 0;
+    const e = episode ?? 0;
+    const progressKey = `potok_progress:${id}:${s}:${e}`;
+    const resumeKey = `potok_playback_resume:${id}:${s}:${e}`;
     return { progressKey, resumeKey };
-  }, [playback]);
+  }, [id, season, episode]);
 
   const saveProgress = useCallback((
     currentTime: number,
@@ -79,16 +85,16 @@ export function usePlaybackTracker({
       const strategy = Storage.get<string>("syncStrategy", "none");
       if (strategy === "server" || strategy === "trakt") {
         SyncApiClient.saveSyncProgress(
-          playback.id.toString(),
-          playback.mediaType,
-          playback.season,
-          playback.episode,
+          id.toString(),
+          mediaType,
+          season,
+          episode,
           Math.floor(actualTime),
           Math.floor(duration)
         ).catch((err) => console.error("[Sync] Failed to save progress:", err));
       }
     }
-  }, [playback, seekOffset, getStorageKeys]);
+  }, [id, mediaType, season, episode, seekOffset, getStorageKeys]);
 
   const handleManualSave = useCallback(() => {
     const video = videoRef.current;
@@ -150,10 +156,10 @@ export function usePlaybackTracker({
       const strategy = Storage.get<string>("syncStrategy", "none");
       if (strategy === "server" || strategy === "trakt") {
         SyncApiClient.saveSyncProgress(
-          playback.id.toString(),
-          playback.mediaType,
-          playback.season,
-          playback.episode,
+          id.toString(),
+          mediaType,
+          season,
+          episode,
           Math.floor(video.duration),
           Math.floor(video.duration)
         ).catch((err) => console.error("[Sync] Failed to mark completed on ended:", err));
@@ -181,7 +187,7 @@ export function usePlaybackTracker({
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("pagehide", handleBeforeUnload);
     };
-  }, [videoRef, saveProgress, getStorageKeys, playback]);
+  }, [videoRef, saveProgress, getStorageKeys, id, mediaType, season, episode]);
 
   return {
     saveProgress: handleManualSave

@@ -580,7 +580,7 @@
   background: rgba(10, 10, 15, 0.95);
   backdrop-filter: var(--blur-glass);
   -webkit-backdrop-filter: var(--blur-glass);
-  z-index: 9999;
+  z-index: 300;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -685,7 +685,7 @@
   background: radial-gradient(circle at center, rgba(16, 16, 24, 0.8) 0%, rgba(6, 6, 8, 0.95) 100%);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
-  z-index: 10000;
+  z-index: 200;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1114,7 +1114,8 @@
 .player-resume-toast {
   position: absolute;
   bottom: 120px; /* Stay above player controls */
-  left: 40px;
+  left: 50%;
+  transform: translate(-50%, 0);
   z-index: 100;
   display: flex;
   align-items: center;
@@ -1162,11 +1163,11 @@
 @keyframes slide-in {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translate(-50%, 20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate(-50%, 0);
   }
 }
 

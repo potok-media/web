@@ -45,19 +45,10 @@ export const ConsoleManager: React.FC = () => {
     });
   }, [logs, activeFilter, searchQuery]);
 
-  // Auto-scroll to bottom when new logs arrive, if already scrolled near bottom
+  // Auto-scroll to bottom when console mounts or logs/filters change
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const threshold = 100; // px
-    const isNearBottom =
-      container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
-
-    if (isNearBottom) {
-      consoleEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [filteredLogs]);
+    consoleEndRef.current?.scrollIntoView({ behavior: "auto" });
+  }, [activeFilter, searchQuery, filteredLogs.length]);
 
   const handleClear = () => {
     logger.clearHistory();

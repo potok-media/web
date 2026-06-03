@@ -2605,6 +2605,20 @@ var PotokSDK = (function(exports) {
 					state
 				}
 			}, getHostOrigin());
+		},
+		setAccentTheme(themeId) {
+			window.parent.postMessage({
+				source: "potok-plugin-sdk",
+				action: "SET_ACCENT_THEME",
+				payload: { themeId }
+			}, getHostOrigin());
+		},
+		registerThemes(themes) {
+			window.parent.postMessage({
+				source: "potok-plugin-sdk",
+				action: "REGISTER_THEMES",
+				payload: { themes }
+			}, getHostOrigin());
 		}
 	};
 	function registerPlugin(meta) {

@@ -210,6 +210,12 @@ export const ui = {
   },
   navigateTo(to: string, state?: any) {
     window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'NAVIGATE', payload: { to, state } }, getHostOrigin());
+  },
+  setAccentTheme(themeId: string) {
+    window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'SET_ACCENT_THEME', payload: { themeId } }, getHostOrigin());
+  },
+  registerThemes(themes: any[]) {
+    window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_THEMES', payload: { themes } }, getHostOrigin());
   }
 };
 

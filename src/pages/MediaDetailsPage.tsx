@@ -111,7 +111,8 @@ export const MediaDetailsPage: React.FC = () => {
                     tmdbId,
                     mediaType,
                     title: media.title,
-                    originalTitle: media.originalTitle
+                    originalTitle: media.originalTitle,
+                    media
                   }}
                 />
 

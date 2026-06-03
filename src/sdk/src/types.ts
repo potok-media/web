@@ -608,10 +608,11 @@ export interface SelectedEpisodeType {
 export interface ExtensionManifest {
   id: string;
   name: string;
-  version: string;
+  version?: string;
   description?: string;
   author?: string;
   entrypoint: string;
+  category?: string;
   permissions?: string[];
   slots?: {
     slotName: string;

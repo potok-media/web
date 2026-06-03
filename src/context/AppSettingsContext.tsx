@@ -314,9 +314,13 @@ export interface AuthContextType {
   potokToken: string | null;
   potokUser: PotokUser | null;
   multiUserMode: boolean;
+  syncStrategy: string;
+  traktToken: string | null;
   login: (token: string, user: PotokUser) => void;
   logout: () => void;
   setMultiUserMode: React.Dispatch<React.SetStateAction<boolean>>;
+  setSyncStrategy: (strategy: string) => void;
+  setTraktToken: (token: string | null) => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -331,20 +335,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [multiUserMode, setMultiUserMode] = useState<boolean>(() =>
     Storage.get<boolean>("multiUserMode", false)
   );
+  const [syncStrategy, setSyncStrategyState] = useState<string>(() =>
+    Storage.get<string>("syncStrategy", "none")
+  );
+  const [traktToken, setTraktTokenState] = useState<string | null>(() =>
+    Storage.get<string | null>("traktAccessToken", null)
+  );
+
+  const setSyncStrategy = useCallback((strategy: string) => {
+    Storage.set("syncStrategy", strategy);
+    setSyncStrategyState(strategy);
+  }, []);
+
+  const setTraktToken = useCallback((token: string | null) => {
+    if (token) {
+      Storage.set("traktAccessToken", token);
+    } else {
+      Storage.remove("traktAccessToken");
+    }
+    setTraktTokenState(token);
+  }, []);
 
   const login = useCallback((token: string, user: PotokUser) => {
     Storage.set("potokToken", token);
     Storage.set("potokUser", user);
-    if (user.syncStrategy) {
-      Storage.set("syncStrategy", user.syncStrategy);
-    }
-    if (user.traktAccessToken) {
-      Storage.set("traktAccessToken", user.traktAccessToken);
+    const strategy = user.syncStrategy || "none";
+    const tToken = user.traktAccessToken || null;
+    Storage.set("syncStrategy", strategy);
+    if (tToken) {
+      Storage.set("traktAccessToken", tToken);
     } else {
       Storage.remove("traktAccessToken");
     }
     setPotokToken(token);
     setPotokUser(user);
+    setSyncStrategyState(strategy);
+    setTraktTokenState(tToken);
   }, []);
 
   const logout = useCallback(() => {
@@ -356,6 +382,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPotokToken(null);
     setPotokUser(null);
     setMultiUserMode(false);
+    setSyncStrategyState("none");
+    setTraktTokenState(null);
   }, []);
 
   useEffect(() => {
@@ -364,14 +392,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .then((user) => {
           Storage.set("potokUser", user);
           setPotokUser(user);
-          if (user.syncStrategy) {
-            Storage.set("syncStrategy", user.syncStrategy);
-          }
-          if (user.traktAccessToken) {
-            Storage.set("traktAccessToken", user.traktAccessToken);
+          const strategy = user.syncStrategy || "none";
+          const tToken = user.traktAccessToken || null;
+          Storage.set("syncStrategy", strategy);
+          if (tToken) {
+            Storage.set("traktAccessToken", tToken);
           } else {
             Storage.remove("traktAccessToken");
           }
+          setSyncStrategyState(strategy);
+          setTraktTokenState(tToken);
         })
         .catch((err) => {
           logger.error("Failed to fetch current user profile:", err);
@@ -386,10 +416,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     potokToken,
     potokUser,
     multiUserMode,
+    syncStrategy,
+    traktToken,
     login,
     logout,
     setMultiUserMode,
-  }), [potokToken, potokUser, multiUserMode, login, logout]);
+    setSyncStrategy,
+    setTraktToken,
+  }), [
+    potokToken,
+    potokUser,
+    multiUserMode,
+    syncStrategy,
+    traktToken,
+    login,
+    logout,
+    setMultiUserMode,
+    setSyncStrategy,
+    setTraktToken,
+  ]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

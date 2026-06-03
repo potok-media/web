@@ -1,136 +1,265 @@
-import React, { useState } from "react";
-import { Clock } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Clock, AlertCircle, RefreshCw, BookmarkCheck, Star } from "lucide-react";
+import { useCalendarData } from "../hooks/useCalendarData";
+import type { MediaCard } from "../network/ApiTypes";
 import "../styles/media.css";
 
-interface CalendarEpisode {
-  id: string;
-  showTitle: string;
-  episodeTitle: string;
-  episodeNumber: string;
-  airTime: string;
-  posterSrc?: string;
-  overview?: string;
-}
+const CalendarSkeleton: React.FC = () => (
+  <div className="calendar-list" aria-hidden="true">
+    {[1, 2, 3].map((i) => (
+      <div key={i} className="calendar-skeleton-row">
+        <div className="calendar-skeleton-poster skeleton-pulse" />
+        <div className="calendar-skeleton-info">
+          <div className="calendar-skeleton-title skeleton-pulse" />
+          <div className="calendar-skeleton-sub skeleton-pulse" />
+          <div className="calendar-skeleton-desc skeleton-pulse" />
+        </div>
+        <div className="calendar-skeleton-time skeleton-pulse" />
+      </div>
+    ))}
+  </div>
+);
 
 export const CalendarPage: React.FC = () => {
-  const days = [
+  const navigate = useNavigate();
+  const { items, loading, error, refetch, isTraktConnected } = useCalendarData();
+  const [activeFilter, setActiveFilter] = useState<"all" | "today" | "tomorrow" | "this-week">("all");
+
+  const filterChips = [
+    { key: "all", label: "Все релизы" },
     { key: "today", label: "Сегодня" },
     { key: "tomorrow", label: "Завтра" },
     { key: "this-week", label: "На этой неделе" }
-  ];
-  const [activeDay, setActiveDay] = useState("today");
+  ] as const;
 
-  // Mock scheduled data mirroring Trakt schedule list
-  const scheduleData: Record<string, CalendarEpisode[]> = {
-    today: [
-      {
-        id: "1",
-        showTitle: "Атака титанов",
-        episodeTitle: "Финал: Часть 3",
-        episodeNumber: "Сезон 4, Эпизод 29",
-        airTime: "18:00 (МСК)",
-        posterSrc: "https://image.tmdb.org/t/p/w500/hE5Yv5nsEcrDghjB1hU3X5w1tBs.jpg",
-        overview: "Решающая битва человечества против титанов достигает своего апогея."
-      },
-      {
-        id: "2",
-        showTitle: "Клинок, рассекающий демонов",
-        episodeTitle: "Тренировка столпов",
-        episodeNumber: "Сезон 4, Эпизод 3",
-        airTime: "21:30 (МСК)",
-        posterSrc: "https://image.tmdb.org/t/p/w500/u3bZgnGQ9U0s3CWe7Pj246BhCc0.jpg",
-        overview: "Танджиро отправляется к Столпу Камня для изнурительной подготовки."
+  const filteredItems = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const endOfWeek = new Date(today);
+    endOfWeek.setDate(endOfWeek.getDate() + 7);
+
+    return items.filter((item) => {
+      if (!item.airDateTime) {
+        return activeFilter === "all";
       }
-    ],
-    tomorrow: [
-      {
-        id: "3",
-        showTitle: "Пацаны",
-        episodeTitle: "Департамент грязных дел",
-        episodeNumber: "Сезон 4, Эпизод 1",
-        airTime: "09:00 (МСК)",
-        posterSrc: "https://image.tmdb.org/t/p/w500/7irp2Bt7FU97n568oV24TTr5LIe.jpg",
-        overview: "Мир на грани краха. Виктория Ньюман близка к Овальному кабинету как никогда."
+      const airDate = new Date(item.airDateTime);
+      airDate.setHours(0, 0, 0, 0);
+
+      if (activeFilter === "today") {
+        return airDate.getTime() === today.getTime();
       }
-    ],
-    "this-week": [
-      {
-        id: "4",
-        showTitle: "Дом Дракона",
-        episodeTitle: "Сын за сына",
-        episodeNumber: "Сезон 2, Эпизод 1",
-        airTime: "Понедельник, 04:00",
-        posterSrc: "https://image.tmdb.org/t/p/w500/1XS1nmg9J2114VvQQUsj567tOZI.jpg",
-        overview: "Вестерос стоит на пороге кровавой гражданской войны между Зелеными и Черными."
+      if (activeFilter === "tomorrow") {
+        return airDate.getTime() === tomorrow.getTime();
       }
-    ]
+      if (activeFilter === "this-week") {
+        return airDate.getTime() >= today.getTime() && airDate.getTime() <= endOfWeek.getTime();
+      }
+      return true; // "all"
+    });
+  }, [items, activeFilter]);
+
+  // Group items by release date for clean presentation
+  const groupedGroups = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const groups: Record<string, MediaCard[]> = {};
+
+    filteredItems.forEach((item) => {
+      let groupTitle = "Даты уточняются";
+      if (item.airDateTime) {
+        const date = new Date(item.airDateTime);
+        date.setHours(0, 0, 0, 0);
+
+        if (date.getTime() === today.getTime()) {
+          groupTitle = "Сегодня";
+        } else if (date.getTime() === tomorrow.getTime()) {
+          groupTitle = "Завтра";
+        } else {
+          // Localized date: e.g. "Среда, 3 июня"
+          groupTitle = date.toLocaleDateString("ru-RU", {
+            weekday: "long",
+            day: "numeric",
+            month: "long"
+          });
+          // Capitalize first letter
+          groupTitle = groupTitle.charAt(0).toUpperCase() + groupTitle.slice(1);
+        }
+      }
+
+      if (!groups[groupTitle]) {
+        groups[groupTitle] = [];
+      }
+      groups[groupTitle].push(item);
+    });
+
+    return Object.entries(groups).map(([title, items]) => ({
+      title,
+      items
+    }));
+  }, [filteredItems]);
+
+  const formatReleaseTime = (dateTimeStr?: string) => {
+    if (!dateTimeStr) return "Скоро";
+    try {
+      const date = new Date(dateTimeStr);
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      return `${hours}:${minutes}`;
+    } catch {
+      return "Скоро";
+    }
   };
 
-  const episodes = scheduleData[activeDay] || [];
-
   return (
-    <div className="calendar-container">
+    <main className="calendar-container">
       <header className="calendar-header">
         <h1 className="calendar-title">Календарь релизов</h1>
         <p className="calendar-description">
-          Расписание выхода новых серий ваших сериалов на основе данных Trakt.tv.
+          Расписание выхода новых серий {isTraktConnected ? "ваших сериалов из" : "популярных сериалов на основе данных"} Trakt.tv.
         </p>
       </header>
 
-      {/* Days Tabs selector */}
-      <div className="tabs-header calendar-tabs">
-        {days.map((d) => (
-          <button
-            key={d.key}
-            className={`tab-btn ${activeDay === d.key ? "active" : ""}`}
-            onClick={() => setActiveDay(d.key)}
+      {/* Trakt connection prompt for guest users */}
+      {!isTraktConnected && (
+        <div className="calendar-trakt-banner">
+          <div className="calendar-trakt-banner-content">
+            <BookmarkCheck size={20} className="calendar-trakt-banner-icon" />
+            <div className="calendar-trakt-banner-text-col">
+              <span className="calendar-trakt-banner-title">Синхронизируйте личное расписание</span>
+              <span className="calendar-trakt-banner-desc">
+                Подключите ваш аккаунт Trakt.tv в профиле, чтобы видеть точное расписание серий только для сериалов из ваших закладок и истории.
+              </span>
+            </div>
+          </div>
+          <button 
+            className="calendar-trakt-banner-btn"
+            onClick={() => navigate("/profile")}
+            aria-label="Перейти в профиль для подключения Trakt.tv"
           >
-            {d.label}
+            Подключить Trakt.tv
+          </button>
+        </div>
+      )}
+
+      {/* Filter Chips (Material Design 3 style) */}
+      <nav className="tabs-header calendar-tabs" aria-label="Фильтры календаря по дням">
+        {filterChips.map((chip) => (
+          <button
+            key={chip.key}
+            className={`tab-btn ${activeFilter === chip.key ? "active" : ""}`}
+            onClick={() => setActiveFilter(chip.key)}
+            aria-current={activeFilter === chip.key ? "page" : undefined}
+          >
+            {chip.label}
           </button>
         ))}
-      </div>
+      </nav>
 
-      {/* Timeline List */}
-      <div className="calendar-list">
-        {episodes.map((ep) => (
-          <div key={ep.id} className="stream-row calendar-row">
-            {/* Poster image preview */}
-            <div className="calendar-poster-wrap">
-              <img
-                src={ep.posterSrc}
-                alt={ep.showTitle}
-                className="calendar-poster-img"
-              />
-            </div>
-
-            {/* Episode detail info */}
-            <div className="calendar-info-col">
-              <span className="calendar-show-title">{ep.showTitle}</span>
-              <span className="calendar-episode-title">
-                {ep.episodeNumber}: "{ep.episodeTitle}"
-              </span>
-              {ep.overview && (
-                <p className="calendar-episode-overview">
-                  {ep.overview}
-                </p>
-              )}
-            </div>
-
-            {/* Time release tag */}
-            <div className="calendar-time-tag">
-              <Clock size={14} className="calendar-time-icon" />
-              <span>{ep.airTime}</span>
-            </div>
+      {/* Error state */}
+      {error && (
+        <div className="calendar-empty" role="alert" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
+          <AlertCircle size={40} className="calendar-time-icon" style={{ color: "var(--error)" }} />
+          <div>
+            <h2 style={{ fontSize: "1.1rem", fontWeight: 600, color: "var(--text-primary)", marginBottom: "4px" }}>
+              Ошибка загрузки расписания
+            </h2>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", margin: 0 }}>{error}</p>
           </div>
-        ))}
+          <button 
+            className="calendar-trakt-banner-btn" 
+            onClick={refetch}
+            style={{ display: "inline-flex", alignItems: "center", gap: "8px", marginTop: "8px" }}
+          >
+            <RefreshCw size={14} />
+            Повторить попытку
+          </button>
+        </div>
+      )}
 
-        {episodes.length === 0 && (
-          <div className="calendar-empty">
-            Нет запланированных релизов на этот период.
-          </div>
-        )}
-      </div>
-    </div>
+      {/* Loading Skeletons */}
+      {loading && <CalendarSkeleton />}
+
+      {/* Chronological release feed */}
+      {!loading && !error && (
+        <div className="calendar-list">
+          {groupedGroups.map((group) => (
+            <section key={group.title} className="calendar-group-section" aria-labelledby={`group-title-${group.title}`}>
+              <h2 id={`group-title-${group.title}`} className="calendar-group-title">
+                {group.title}
+              </h2>
+              <div className="calendar-group-rows">
+                {group.items.map((item) => {
+                  const rating = item.kpRating || item.tmdbRating || item.imdbRating;
+                  return (
+                    <Link
+                      key={`${item.id}-${item.nextEpisodeSeason ?? 0}-${item.nextEpisodeNumber ?? 0}-${item.airDateTime ?? ''}`}
+                      to={`/media/tv/${item.id}`}
+                      className="calendar-row"
+                      aria-label={`${item.title}. ${item.nextEpisodeSeason && item.nextEpisodeNumber ? `Сезон ${item.nextEpisodeSeason}, Серия ${item.nextEpisodeNumber}` : "Новая серия"}. Дата выхода: ${formatReleaseTime(item.airDateTime)}.`}
+                    >
+                      {/* Fixed sized poster wrap with aspect-ratio to prevent layout shift */}
+                      <div className="calendar-poster-wrap">
+                        <img
+                          src={item.posterSrc || "https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?auto=format&fit=crop&w=160&h=240"}
+                          alt={item.title}
+                          className="calendar-poster-img"
+                          loading="lazy"
+                        />
+                      </div>
+
+                      {/* Episode detailing */}
+                      <div className="calendar-info-col">
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                          <span className="calendar-show-title">{item.title}</span>
+                          {rating && (
+                            <span className="media-glass-pill rating-pill" style={{ display: "inline-flex", alignItems: "center", gap: "3px", padding: "2px 6px", height: "auto", fontSize: "0.75rem" }}>
+                              <Star size={10} fill="var(--warning)" stroke="var(--warning)" />
+                              <span>{rating.toFixed(1)}</span>
+                            </span>
+                          )}
+                        </div>
+                        <span className="calendar-episode-title">
+                          {item.nextEpisodeSeason && item.nextEpisodeNumber
+                            ? `Сезон ${item.nextEpisodeSeason}, Серия ${item.nextEpisodeNumber}`
+                            : "Новая серия"}
+                          {item.nextEpisodeTitle ? ` — «${item.nextEpisodeTitle}»` : ""}
+                        </span>
+                        {item.overview && (
+                          <p className="calendar-episode-overview">
+                            {item.overview}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Localized release time tag */}
+                      <div className="calendar-time-tag">
+                        <Clock size={14} className="calendar-time-icon" />
+                        <span>{formatReleaseTime(item.airDateTime)}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+
+          {groupedGroups.length === 0 && (
+            <div className="calendar-empty" role="status">
+              Нет запланированных релизов на выбранный период.
+            </div>
+          )}
+        </div>
+      )}
+    </main>
   );
 };
 
