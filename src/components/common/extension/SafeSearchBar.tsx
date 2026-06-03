@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Search, X } from "lucide-react";
-import type { UIComponentSchema } from "../../../network/SDKTypes";
+import type { SearchBarSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 
 interface SafeSearchBarProps {
-  schema: UIComponentSchema;
+  schema: SearchBarSchema;
   pluginId: string;
   baseStyle: React.CSSProperties;
 }

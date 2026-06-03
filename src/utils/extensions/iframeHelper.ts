@@ -1,4 +1,4 @@
-import { getSDKRuntimeString } from "./SDKRuntime";
+import potokSdkRaw from "../../../public/sdk/potok-sdk.js?raw";
 
 export const normalizeUrl = (url: string): string => {
   let clean = url.trim();
@@ -49,6 +49,10 @@ export const createIframeHtml = (
         }
       </script>
       <base href="${baseUrl}">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
+      <script>
+        require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+      </script>
       <script>
         window.PotokInitialState = {
           pluginId: ${JSON.stringify(ext.id)},
@@ -59,7 +63,7 @@ export const createIframeHtml = (
         };
       </script>
       <script>
-        (${getSDKRuntimeString()})();
+        ${potokSdkRaw}
       </script>
     </head>
     <body>

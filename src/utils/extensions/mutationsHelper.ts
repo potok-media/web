@@ -1,4 +1,4 @@
-import type { ElementMutation, UIComponentSchema } from "../../network/SDKTypes";
+import type { ElementMutation, UIComponentSchema } from "@potok/sdk-types";
 
 export class BlockMutationsManager {
   private blockMutations = new Map<

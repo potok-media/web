@@ -19,7 +19,14 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Path mappings */
+    "baseUrl": ".",
+    "paths": {
+      "@potok/sdk-types": ["./src/sdk/src/types.ts"]
+    },
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src"]
 }

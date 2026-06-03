@@ -1,8 +1,8 @@
 import React from "react";
 import type {
   UIComponentSchema,
-  SelectedEpisodeType,
-} from "../../../network/SDKTypes";
+  SDKSelectedEpisodeType as SelectedEpisodeType,
+} from "@potok/sdk-types";
 import type {
   MediaCard as ApiMediaCard,
   TvEpisode,
@@ -20,6 +20,7 @@ import { MediaOverviewSection } from "../../MediaOverviewSection";
 import MediaRow from "../../MediaRow";
 import { WebMediaPlayer } from "../../WebMediaPlayer";
 import EpisodeSelectorPopup from "../EpisodeSelectorPopup";
+import { EpisodeCard } from "../../EpisodeCard";
 
 interface HostMediaComponentsRendererProps {
   schema: UIComponentSchema;
@@ -32,10 +33,11 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
   pluginId,
   baseStyle,
 }) => {
-  const { type, id, props: componentProps, events } = schema;
+  const { id, events } = schema;
 
-  switch (type) {
+  switch (schema.type) {
     case "MediaCard": {
+      const componentProps = schema.props;
       const handleMediaCardClick = (item: ApiMediaCard) => {
         if (events?.onClick) {
           ExtensionRegistry.triggerUIEvent(pluginId, events.onClick, item);
@@ -45,7 +47,7 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
       return (
         <div key={id} style={{ width: "160px", ...baseStyle }}>
           <MediaCardComponent
-            item={componentProps.item}
+            item={componentProps.item as ApiMediaCard}
             onClick={handleMediaCardClick}
           />
         </div>
@@ -53,6 +55,7 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
     }
 
     case "HeroSpotlight": {
+      const componentProps = schema.props;
       const handleDetails = (item: HeroItem) => {
         if (events?.onDetails) {
           ExtensionRegistry.triggerUIEvent(pluginId, events.onDetails, item.card);
@@ -90,7 +93,9 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
       );
     }
 
+    case "EpisodesSection":
     case "SeasonEpisodes": {
+      const componentProps = schema.props;
       const { mediaId, numberOfSeasons } = componentProps;
       const handleEpisodeClick = (episode: TvEpisode, seasonNumber: number) => {
         if (events?.onEpisodeClick) {
@@ -108,6 +113,7 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
     }
 
     case "MediaCast": {
+      const componentProps = schema.props;
       const { cast } = componentProps;
       return (
         <MediaCastSection
@@ -118,6 +124,7 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
     }
 
     case "MediaOverview": {
+      const componentProps = schema.props;
       const { media, selectedEpisode } = componentProps;
       const handleSetSelectedEpisode = (val: SelectedEpisodeType | null) => {
         if (val === null && events?.onResetEpisode) {
@@ -128,14 +135,15 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
       return (
         <MediaOverviewSection
           key={id}
-          media={media}
-          selectedEpisode={selectedEpisode || null}
+          media={media as ApiMediaCard}
+          selectedEpisode={(selectedEpisode as any) || null}
           setSelectedEpisode={handleSetSelectedEpisode}
         />
       );
     }
 
     case "MediaRow": {
+      const componentProps = schema.props;
       const { title, items } = componentProps;
       const rowId = componentProps.name || schema.id;
       const handleCardClick = (item: ApiMediaCard) => {
@@ -153,7 +161,7 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
           key={id}
           id={rowId}
           title={title || ""}
-          items={items || []}
+          items={(items || []) as unknown as ApiMediaCard[]}
           onCardClick={handleCardClick}
           onSeeAllClick={events?.onSeeAllClick ? handleSeeAllClick : undefined}
         />
@@ -161,6 +169,7 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
     }
 
     case "MediaPlayer": {
+      const componentProps = schema.props;
       const { playback, isNetworkOffline } = componentProps;
       if (!playback) return null;
 
@@ -188,7 +197,9 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
       );
     }
 
+    case "EpisodeSelector":
     case "EpisodeSelectorPopup": {
+      const componentProps = schema.props;
       const { isOpen, title, subtitle, episodes, backdropSrc, seasonsLoading, seasons } = componentProps;
       const handleClose = () => {
         if (events?.onClose) {
@@ -237,6 +248,25 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
           seasonsLoading={seasonsLoading}
           seasons={seasons}
         />
+      );
+    }
+
+    case "EpisodeCard": {
+      const componentProps = schema.props;
+      const { episode } = componentProps;
+      const handleEpisodeClick = () => {
+        if (events?.onClick) {
+          ExtensionRegistry.triggerUIEvent(pluginId, events.onClick, episode);
+        }
+      };
+      if (!episode) return null;
+      return (
+        <div key={id} style={{ width: "280px", ...baseStyle }}>
+          <EpisodeCard
+            episode={episode as any}
+            onClick={handleEpisodeClick}
+          />
+        </div>
       );
     }
 

@@ -1,22 +1,40 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSeasonEpisodes } from "../hooks/useSeasonEpisodes";
 import { useHUD } from "../context/HUDContext";
 import type { TvEpisode } from "../network/ApiTypes";
+import { EpisodeCard } from "./EpisodeCard";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Grid } from "./common/Grid";
 
 interface SeasonEpisodesSectionProps {
   mediaId: number;
   numberOfSeasons: number;
   onEpisodeClick: (episode: TvEpisode, seasonNumber: number) => void;
+  selectedEpisode?: { episode: TvEpisode; seasonNumber: number } | null;
 }
 
 export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   mediaId,
   numberOfSeasons,
   onEpisodeClick,
+  selectedEpisode,
 }) => {
   const [activeSeason, setActiveSeason] = useState<number>(1);
   const { episodes, loading, error } = useSeasonEpisodes(mediaId, activeSeason);
   const { show: showHUD } = useHUD();
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScrollLimits = useCallback(() => {
+    const container = scrollRef.current;
+    if (container) {
+      const { scrollLeft, scrollWidth, clientWidth } = container;
+      setCanScrollLeft(scrollLeft > 2);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 2);
+    }
+  }, []);
 
   // Reset active season back to 1 when mediaId changes to prevent loading incorrect seasons for a new show
   useEffect(() => {
@@ -28,6 +46,32 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
       showHUD("error", error);
     }
   }, [error, showHUD]);
+
+  useEffect(() => {
+    if (episodes.length > 0) {
+      const timeoutId = setTimeout(checkScrollLimits, 150);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setCanScrollLeft(false);
+      setCanScrollRight(false);
+    }
+  }, [episodes, checkScrollLimits]);
+
+  useEffect(() => {
+    window.addEventListener("resize", checkScrollLimits);
+    return () => window.removeEventListener("resize", checkScrollLimits);
+  }, [checkScrollLimits]);
+
+  const handleScroll = (direction: "left" | "right") => {
+    const container = scrollRef.current;
+    if (container) {
+      const scrollAmount = container.clientWidth * 0.75;
+      container.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
 
   if (numberOfSeasons <= 0) return null;
 
@@ -48,12 +92,11 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
 
       {loading ? (
         // Bulletproof Skeleton prevents Cumulative Layout Shift (CLS)
-        <div 
+        <Grid 
+          minWidth="280px" 
+          gap="16px" 
           className="season-episodes-skeleton-grid" 
           style={{ 
-            display: "grid", 
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", 
-            gap: "16px", 
             minHeight: "220px",
             marginTop: "16px"
           }}
@@ -71,39 +114,45 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
               }} 
             />
           ))}
-        </div>
+        </Grid>
       ) : episodes.length > 0 ? (
-        <div className="episodes-grid">
-          {episodes.map((ep) => (
-            <div
-              key={ep.id}
-              className="episode-card"
-              onClick={() => onEpisodeClick(ep, activeSeason)}
-              tabIndex={0}
-              role="button"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onEpisodeClick(ep, activeSeason);
-                }
-              }}
+        <div className="episodes-carousel-wrapper">
+          {canScrollLeft && (
+            <button
+              type="button"
+              className="carousel-nav-btn left"
+              onClick={() => handleScroll("left")}
+              aria-label="Прокрутить назад"
             >
-              <div className="episode-still-wrap">
-                <img
-                  src={ep.stillPath || "https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?auto=format&fit=crop&w=280&h=157"}
-                  alt={ep.name}
-                  className="episode-still"
-                  loading="lazy"
-                />
-              </div>
-              <div className="episode-info">
-                <span className="episode-number-title">
-                  Серия {ep.episodeNumber}: {ep.name}
-                </span>
-                {ep.overview && <p className="episode-overview">{ep.overview}</p>}
-              </div>
-            </div>
-          ))}
+              <ChevronLeft size={20} />
+            </button>
+          )}
+
+          <div
+            className="episodes-scroll-container"
+            ref={scrollRef}
+            onScroll={checkScrollLimits}
+          >
+            {episodes.map((ep) => (
+              <EpisodeCard
+                key={ep.id}
+                episode={ep}
+                onClick={() => onEpisodeClick(ep, activeSeason)}
+                isActive={selectedEpisode?.episode.id === ep.id}
+              />
+            ))}
+          </div>
+
+          {canScrollRight && (
+            <button
+              type="button"
+              className="carousel-nav-btn right"
+              onClick={() => handleScroll("right")}
+              aria-label="Прокрутить вперед"
+            >
+              <ChevronRight size={20} />
+            </button>
+          )}
         </div>
       ) : (
         <div className="season-episodes-empty">

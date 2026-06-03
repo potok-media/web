@@ -8,7 +8,7 @@ import ConsoleManager from "../components/settings/ConsoleManager";
 import DeclarativeSettings from "../components/settings/DeclarativeSettings";
 import { ExtensionSlot } from "../components/common/ExtensionSlot";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
-import type { RegisteredExtension } from "../network/SDKTypes";
+import type { RegisteredExtension } from "@potok/sdk-types";
 import "../styles/settings.css";
 import "../styles/console.css";
 
@@ -121,37 +121,37 @@ export const SettingsPage: React.FC = () => {
         </div>
 
         <aside className="settings-sidebar">
-          <div className="sidebar-brand">
-            <h1 className="sidebar-brand-title">Настройки</h1>
-            <p className="sidebar-brand-desc">Панель управления</p>
+          <div className="settings-brand">
+            <h1 className="settings-brand-title">Настройки</h1>
+            <p className="settings-brand-desc">Панель управления</p>
           </div>
-          <div className="sidebar-divider" />
-          <div className="sidebar-section-title">Приложение</div>
+          <div className="settings-divider" />
+          <div className="settings-section-title">Приложение</div>
           <button
-            className={`sidebar-nav-item ${activeTab === "general" ? "active" : ""}`}
+            className={`settings-nav-item ${activeTab === "general" ? "active" : ""}`}
             onClick={() => setActiveTab("general")}
           >
             <Sliders size={16} />
             <span>Основные</span>
           </button>
           <button
-            className={`sidebar-nav-item ${activeTab === "profiles" ? "active" : ""}`}
+            className={`settings-nav-item ${activeTab === "profiles" ? "active" : ""}`}
             onClick={() => setActiveTab("profiles")}
           >
             <Globe size={16} />
             <span>Профили подключения</span>
           </button>
 
-          <div className="sidebar-section-title">Интеграции</div>
+          <div className="settings-section-title">Интеграции</div>
           <button
-            className={`sidebar-nav-item ${activeTab === "extensions" ? "active" : ""}`}
+            className={`settings-nav-item ${activeTab === "extensions" ? "active" : ""}`}
             onClick={() => setActiveTab("extensions")}
           >
             <Puzzle size={16} />
             <span>Расширения</span>
           </button>
           <button
-            className={`sidebar-nav-item ${activeTab === "console" ? "active" : ""}`}
+            className={`settings-nav-item ${activeTab === "console" ? "active" : ""}`}
             onClick={() => setActiveTab("console")}
           >
             <Terminal size={16} />
@@ -160,11 +160,11 @@ export const SettingsPage: React.FC = () => {
 
           {(slotContributions.length > 0 || configExtensions.length > 0) && (
             <>
-              <div className="sidebar-section-title">Плагины</div>
+              <div className="settings-section-title">Плагины</div>
               {slotContributions.map((c) => (
                 <button
                   key={c.contribution.id}
-                  className={`sidebar-nav-item ${activeTab === c.contribution.id ? "active" : ""}`}
+                  className={`settings-nav-item ${activeTab === c.contribution.id ? "active" : ""}`}
                   onClick={() => setActiveTab(c.contribution.id)}
                 >
                   <Puzzle size={16} />
@@ -174,7 +174,7 @@ export const SettingsPage: React.FC = () => {
               {configExtensions.map((ext) => (
                 <button
                   key={`config-${ext.id}`}
-                  className={`sidebar-nav-item ${activeTab === `config-${ext.id}` ? "active" : ""}`}
+                  className={`settings-nav-item ${activeTab === `config-${ext.id}` ? "active" : ""}`}
                   onClick={() => setActiveTab(`config-${ext.id}`)}
                 >
                   <Puzzle size={16} />

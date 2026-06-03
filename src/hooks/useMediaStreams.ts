@@ -5,8 +5,11 @@ import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import type { GenericEpisodeItem } from "../components/common/EpisodeSelectorPopup";
 import { ApiClient } from "../network/ApiClient";
 import type { MediaCard } from "../network/ApiTypes";
-import type { RawStreamPayload, StreamEpisode, PlaybackInfo } from "../network/SDKTypes";
+import type { RawStreamPayload, StreamEpisode, PlaybackInfo } from "@potok/sdk-types";
 import { logger } from "../utils/logger";
+import { SyncApiClient, type UserHistoryEntry } from "../network/SyncApiClient";
+import { Storage } from "../utils/StorageService";
+import type { PlaybackProgress } from "./usePlaybackTracker";
 
 const mapEpisode = (ep: StreamEpisode): GenericEpisodeItem => ({
   id: ep.id, season: ep.season, episode: ep.episode, title: ep.title,
@@ -32,6 +35,19 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
     title: string; episodes: GenericEpisodeItem[]; tmdbSeasonsCount: number;
   } | null>(null);
 
+  const [remoteHistory, setRemoteHistory] = useState<UserHistoryEntry[]>([]);
+
+  useEffect(() => {
+    const strategy = Storage.get<string>("syncStrategy", "none");
+    if (strategy === "server" || strategy === "trakt") {
+      SyncApiClient.fetchSyncHistory()
+        .then((history) => {
+          if (history) setRemoteHistory(history);
+        })
+        .catch((err) => logger.error("[useMediaStreams] Failed to load sync history:", err));
+    }
+  }, [mediaId]);
+
   const [seasons, setSeasons] = useState<Record<string, unknown>[]>([]);
   const [seasonsLoading, setSeasonsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -55,6 +71,53 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
   }, [mediaType, mediaId, initialMedia, handleOnError]);
 
   const currentMedia = mediaDetails || null;
+
+  const mapEpisodesWithWatched = useCallback((epsList: StreamEpisode[]): GenericEpisodeItem[] => {
+    return (epsList || []).map((ep) => {
+      const mapped = mapEpisode(ep);
+      const sNum = mapped.season;
+      const epNum = mapped.episode;
+
+      let isWatched = false;
+
+      // Only evaluate watched state if season and episode numbers are parsed
+      if (sNum !== undefined && epNum !== undefined) {
+        // 1. Media Details progress check (loaded directly from server payload - primary cloud source)
+        if (currentMedia && String(currentMedia.id) === String(mediaId) && currentMedia.progress?.watchedEpisodes) {
+          isWatched = currentMedia.progress.watchedEpisodes.some(
+            (we) => Number(we.season) === Number(sNum) && Number(we.number) === Number(epNum)
+          );
+        }
+
+        // 2. Remote check (server history API - backup cloud source)
+        if (!isWatched) {
+          const entry = remoteHistory.find(
+            (h) =>
+              String(h.tmdbId) === String(mediaId) &&
+              Number(h.seasonNumber) === Number(sNum) &&
+              Number(h.episodeNumber) === Number(epNum)
+          );
+          if (entry) {
+            isWatched = entry.progressSeconds >= entry.durationSeconds ||
+              (entry.durationSeconds > 0 && entry.progressSeconds / entry.durationSeconds >= 0.90);
+          }
+        }
+
+        // 3. Local check (local-first offline backup)
+        if (!isWatched) {
+          const progressKey = `potok_progress:${mediaId}:${sNum}:${epNum}`;
+          const localProgress = Storage.get<PlaybackProgress | null>(progressKey, null);
+          isWatched = localProgress?.isCompleted === true;
+          if (!isWatched && localProgress && localProgress.durationSeconds > 0) {
+            isWatched = localProgress.progressSeconds / localProgress.durationSeconds >= 0.90;
+          }
+        }
+      }
+
+      return { ...mapped, isWatched };
+    });
+  }, [mediaId, remoteHistory, currentMedia]);
+
   const mediaTitle = currentMedia?.title;
   const mediaImdbId = currentMedia?.imdbId;
 
@@ -137,7 +200,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
     if (!activeSource) return;
     setActionLoading(true);
 
-    if (stream.kind !== "torrent") {
+    if (mediaType === "movie" && stream.kind !== "torrent") {
       // Normal online balancers directly fetch playback info and play
       ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(activeSource.pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", { stream, context })
         .then((info) => {
@@ -147,10 +210,10 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
           playVideo({
             streamUrl: info.streamUrl,
             title: info.title || currentMedia?.title || "",
-            mediaType: mediaType as "movie" | "tv",
+            mediaType: "movie",
             id: mediaId,
-            season: mediaType === "tv" ? season : undefined,
-            episode: mediaType === "tv" ? episode : undefined,
+            season: undefined,
+            episode: undefined,
             streamHash: info.torrentHash,
             streamType: (info.streamType === "m3u8" || info.streamType === "mp4" || info.streamType === "dash") ? info.streamType : undefined,
             audios: info.audios?.map((a) => ({ name: a.name, url: a.url })),
@@ -195,7 +258,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
             // Multiple files: show files list selector popup
             setEpisodeSelectorData({
               title: stream.title || (mediaType === "movie" ? "Выбор файла" : "Выбор серии"),
-              episodes: eps.map(mapEpisode),
+              episodes: mapEpisodesWithWatched(eps),
               tmdbSeasonsCount: res.tmdbSeasonsCount || currentMedia?.numberOfSeasons || 1,
             });
           }
@@ -203,7 +266,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
         .catch(handleOnError)
         .finally(() => setActionLoading(false));
     }
-  }, [activeSource, mediaType, context, mediaId, currentMedia, playVideo, handleOnError, season, episode]);
+  }, [activeSource, mediaType, context, mediaId, currentMedia, playVideo, handleOnError, season, episode, mapEpisodesWithWatched]);
 
   const handlePlayEpisode = useCallback((ep: GenericEpisodeItem) => {
     if (!activeSource || !clickedStream) return;
@@ -262,12 +325,12 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
     ExtensionRegistry.sendSandboxRequest<void>(activeSource.pluginId, "STREAM_SOURCE_SAVE_OVERRIDE", { stream: clickedStream, context, seasonNum, episodeOffset: offset })
       .then(() => ExtensionRegistry.sendSandboxRequest<{ episodes: StreamEpisode[]; tmdbSeasonsCount: number }>(activeSource.pluginId, "STREAM_SOURCE_GET_EPISODES", { stream: clickedStream, context }))
       .then((res) => setEpisodeSelectorData({
-        title: clickedStream.title || "Выбор серии", episodes: (res.episodes || []).map(mapEpisode),
+        title: clickedStream.title || "Выбор серии", episodes: mapEpisodesWithWatched(res.episodes || []),
         tmdbSeasonsCount: res.tmdbSeasonsCount || currentMedia?.numberOfSeasons || 1,
       }))
       .catch(handleOnError)
       .finally(() => setIsSaving(false));
-  }, [activeSource, clickedStream, context, currentMedia, handleOnError]);
+  }, [activeSource, clickedStream, context, currentMedia, handleOnError, mapEpisodesWithWatched]);
 
   return {
     loadingMediaDetails, currentMedia, sources, activeTab, setActiveTab, streams, loading, error, handleRefresh,

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import type { UIComponentSchema } from "../../../network/SDKTypes";
+import type { InputSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 
 interface SafeInputProps {
-  schema: UIComponentSchema;
+  schema: InputSchema;
   pluginId: string;
   baseStyle: React.CSSProperties;
 }
@@ -16,7 +16,7 @@ export const SafeInput: React.FC<SafeInputProps> = ({ schema, pluginId, baseStyl
     setLocalValue(componentProps.value || "");
   }, [componentProps.value]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const val = e.target.value;
     setLocalValue(val); // Update local state synchronously for smooth 120fps typing
     if (events?.onChange) {
@@ -24,17 +24,29 @@ export const SafeInput: React.FC<SafeInputProps> = ({ schema, pluginId, baseStyl
     }
   };
 
+  const isTextArea = componentProps.inputType === "textarea";
+
   return (
     <div key={id} className="potok-input-group" style={baseStyle}>
       {componentProps.label && <label className="potok-label">{componentProps.label}</label>}
-      <input
-        className="potok-input"
-        type={componentProps.inputType || "text"}
-        placeholder={componentProps.placeholder}
-        value={localValue}
-        disabled={componentProps.disabled}
-        onChange={handleInputChange}
-      />
+      {isTextArea ? (
+        <textarea
+          className="potok-input potok-textarea"
+          placeholder={componentProps.placeholder}
+          value={localValue}
+          disabled={componentProps.disabled}
+          onChange={handleInputChange}
+        />
+      ) : (
+        <input
+          className="potok-input"
+          type={componentProps.inputType || "text"}
+          placeholder={componentProps.placeholder}
+          value={localValue}
+          disabled={componentProps.disabled}
+          onChange={handleInputChange}
+        />
+      )}
     </div>
   );
 };

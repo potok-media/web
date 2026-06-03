@@ -99,15 +99,15 @@
   flex-shrink: 0;
 }
 
-/* Sidebar Brand Header */
-.sidebar-brand {
+/* Settings Brand Header */
+.settings-brand {
   padding: var(--space-s) 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
 }
 
-.sidebar-brand-title {
+.settings-brand-title {
   font-size: 1.35rem;
   font-weight: 800;
   color: var(--text-primary);
@@ -115,34 +115,35 @@
   letter-spacing: -0.02em;
 }
 
-.sidebar-brand-desc {
+.settings-brand-desc {
   font-size: 0.8rem;
   color: var(--text-secondary);
   margin: 0;
 }
 
-.sidebar-divider {
+.settings-divider {
   height: 0.0625rem;
   background-color: rgba(255, 255, 255, 0.06);
   margin: 0.75rem;
 }
 
-.sidebar-section-title {
+.settings-section-title {
+  font: var(--font-caption-bold);
   font-size: 0.75rem;
-  font-weight: 700;
   text-transform: uppercase;
   color: var(--text-secondary);
+  opacity: 0.8;
   letter-spacing: 0.05em;
   padding: 0.5rem 0.75rem;
   margin-top: 0.75rem;
   margin-bottom: 0.25rem;
 }
 
-.sidebar-section-title:first-of-type {
+.settings-section-title:first-of-type {
   margin-top: 0.25rem;
 }
 
-.sidebar-nav-item {
+.settings-nav-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -159,12 +160,12 @@
   width: 100%;
 }
 
-.sidebar-nav-item:hover {
+.settings-nav-item:hover {
   background-color: var(--bg-surface-high);
   color: var(--text-primary);
 }
 
-.sidebar-nav-item.active {
+.settings-nav-item.active {
   background-color: var(--accent-dim);
   color: var(--text-primary);
   border-left: 0.1875rem solid var(--accent);
@@ -172,12 +173,12 @@
   box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
 }
 
-.sidebar-nav-item svg {
+.settings-nav-item svg {
   flex-shrink: 0;
   opacity: 0.8;
 }
 
-.sidebar-nav-item.active svg {
+.settings-nav-item.active svg {
   color: var(--accent);
   opacity: 1;
 }

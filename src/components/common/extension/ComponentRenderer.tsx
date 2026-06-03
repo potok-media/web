@@ -1,7 +1,7 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
 import { Puzzle, Terminal, Sliders, Play, Bookmark, Star, Clock, Home, User, Settings } from "lucide-react";
-import type { UIComponentSchema } from "../../../network/SDKTypes";
+import type { UIComponentSchema } from "@potok/sdk-types";
 
 // Import modular components
 import { SafeInput } from "./SafeInput";
@@ -9,9 +9,11 @@ import { SafeToggle } from "./SafeToggle";
 import { SafeSelect } from "./SafeSelect";
 import { SafeSearchBar } from "./SafeSearchBar";
 import { SafeMarkdown } from "./SafeMarkdown";
+import { SafeCodeEditor } from "./SafeCodeEditor";
 import { HostMediaComponentsRenderer } from "./HostMediaComponentsRenderer";
 import { HostCommonComponentsRenderer } from "./HostCommonComponentsRenderer";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
+import { Grid } from "../Grid";
 
 interface ComponentRendererProps {
   schema: UIComponentSchema;
@@ -21,16 +23,20 @@ interface ComponentRendererProps {
 const HOST_MEDIA_TYPES = new Set([
   "MediaCard",
   "HeroSpotlight",
+  "EpisodesSection",
   "SeasonEpisodes",
   "MediaCast",
   "MediaOverview",
   "MediaRow",
   "MediaPlayer",
-  "EpisodeSelectorPopup"
+  "EpisodeSelector",
+  "EpisodeSelectorPopup",
+  "EpisodeCard"
 ]);
 
 const HOST_COMMON_TYPES = new Set([
   "StreamSkeletonList",
+  "StreamRow",
   "StreamRowComponent",
   "StreamList",
   "LoadingSpinner",
@@ -40,20 +46,31 @@ const HOST_COMMON_TYPES = new Set([
 
 export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pluginId }) => {
   if (!schema || !schema.type) return null;
-  const { type, id, props: componentProps, children, events } = schema;
+  const { type, id, children, events } = schema;
+
+  const normalizedType =
+    type === "StreamRowComponent" ? "StreamRow" :
+    type === "EpisodeSelectorPopup" ? "EpisodeSelector" :
+    type === "SeasonEpisodes" ? "EpisodesSection" :
+    type;
+
+  const normalizedSchema = {
+    ...schema,
+    type: normalizedType
+  } as any;
 
   const baseStyle: React.CSSProperties = {};
-  if (componentProps.width !== undefined) baseStyle.width = componentProps.width;
-  if (componentProps.height !== undefined) baseStyle.height = componentProps.height;
-  if (componentProps.flex !== undefined) baseStyle.flex = componentProps.flex;
-  if (componentProps.visible === false) return null;
+  if (schema.props.width !== undefined) baseStyle.width = schema.props.width;
+  if (schema.props.height !== undefined) baseStyle.height = schema.props.height;
+  if (schema.props.flex !== undefined) baseStyle.flex = schema.props.flex;
+  if (schema.props.visible === false) return null;
 
-  if (HOST_MEDIA_TYPES.has(type)) {
-    return <HostMediaComponentsRenderer schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
+  if (HOST_MEDIA_TYPES.has(normalizedType)) {
+    return <HostMediaComponentsRenderer schema={normalizedSchema} pluginId={pluginId} baseStyle={baseStyle} />;
   }
 
-  if (HOST_COMMON_TYPES.has(type)) {
-    return <HostCommonComponentsRenderer schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
+  if (HOST_COMMON_TYPES.has(normalizedType)) {
+    return <HostCommonComponentsRenderer schema={normalizedSchema} pluginId={pluginId} baseStyle={baseStyle} />;
   }
 
   const handleClick = () => {
@@ -62,8 +79,9 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
     }
   };
 
-  switch (type) {
+  switch (schema.type) {
     case "VStack": {
+      const componentProps = schema.props;
       const inlineStyle: React.CSSProperties = {
         ...baseStyle,
         gap: componentProps.spacing !== undefined ? `${componentProps.spacing}px` : undefined,
@@ -75,7 +93,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
           : componentProps.justifyContent,
       };
       return (
-        <div key={id} className="potok-vstack" style={inlineStyle}>
+        <div key={id} id={id} className="potok-vstack" style={inlineStyle}>
           {children?.map((child) => (
             <ComponentRenderer key={child.id} schema={child} pluginId={pluginId} />
           ))}
@@ -84,6 +102,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
     }
 
     case "HStack": {
+      const componentProps = schema.props;
       const inlineStyle: React.CSSProperties = {
         ...baseStyle,
         gap: componentProps.spacing !== undefined ? `${componentProps.spacing}px` : undefined,
@@ -95,7 +114,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
           : componentProps.justifyContent,
       };
       return (
-        <div key={id} className="potok-hstack" style={inlineStyle}>
+        <div key={id} id={id} className="potok-hstack" style={inlineStyle}>
           {children?.map((child) => (
             <ComponentRenderer key={child.id} schema={child} pluginId={pluginId} />
           ))}
@@ -103,11 +122,28 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       );
     }
 
+    case "Grid": {
+      const componentProps = schema.props;
+      return (
+        <Grid
+          key={id}
+          minWidth={componentProps.minWidth || "180px"}
+          gap={componentProps.gap}
+          style={baseStyle}
+        >
+          {children?.map((child) => (
+            <ComponentRenderer key={child.id} schema={child} pluginId={pluginId} />
+          ))}
+        </Grid>
+      );
+    }
+
     case "Card": {
+      const componentProps = schema.props;
       const isInteractive = !!events?.onClick;
       const cardClass = `potok-card ${isInteractive ? "potok-card-interactive" : ""}`;
       return (
-        <div key={id} className={cardClass} style={baseStyle} onClick={isInteractive ? handleClick : undefined}>
+        <div key={id} id={id} className={cardClass} style={baseStyle} onClick={isInteractive ? handleClick : undefined}>
           {(componentProps.title || componentProps.subtitle) && (
             <div className="potok-card-header">
               {componentProps.title && <h3 className="potok-card-title">{componentProps.title}</h3>}
@@ -124,6 +160,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
     }
 
     case "Markdown": {
+      const componentProps = schema.props;
       return (
         <SafeMarkdown
           key={id}
@@ -133,6 +170,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
     }
 
     case "Heading": {
+      const componentProps = schema.props;
       const Level = `h${componentProps.level || 1}` as "h1" | "h2" | "h3" | "h4";
       return (
         <Level key={id} className={`potok-heading potok-heading-${componentProps.level || 1}`} style={baseStyle}>
@@ -142,6 +180,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
     }
 
     case "Text": {
+      const componentProps = schema.props;
       const textClass = `potok-text potok-text-${componentProps.variant || "primary"} potok-text-${componentProps.size || "md"} ${
         componentProps.bold ? "potok-text-bold" : ""
       }`;
@@ -153,6 +192,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
     }
 
     case "Badge": {
+      const componentProps = schema.props;
       return (
         <span key={id} className={`potok-badge potok-badge-${componentProps.color || "info"}`} style={baseStyle}>
           {componentProps.text}
@@ -169,6 +209,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
     }
 
     case "Button": {
+      const componentProps = schema.props;
       const variant = componentProps.variant || "secondary";
       const isSidebarItem = variant === "sidebar-item";
       
@@ -206,6 +247,10 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
 
     case "Input": {
       return <SafeInput key={id} schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
+    }
+
+    case "CodeEditor": {
+      return <SafeCodeEditor key={id} schema={schema as any} pluginId={pluginId} baseStyle={baseStyle} />;
     }
 
     case "Toggle": {

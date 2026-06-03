@@ -1,4 +1,5 @@
 import React from "react";
+import { Grid } from "./common/Grid";
 
 interface CastMember {
   profileSrc?: string;
@@ -20,7 +21,7 @@ export const MediaCastSection: React.FC<MediaCastSectionProps> = React.memo(({ c
   return (
     <div className="details-fullwidth-section">
       <h2 className="carousel-title details-section-title">Актерский состав</h2>
-      <div className="cast-crew-grid">
+      <Grid minWidth="110px" gap="var(--space-s)" className="cast-grid">
         {cast.slice(0, 10).map((c, i) => (
           <div key={i} className="cast-member-card">
             <div className="cast-photo-wrap">
@@ -34,7 +35,7 @@ export const MediaCastSection: React.FC<MediaCastSectionProps> = React.memo(({ c
             <span className="cast-role">{c.character || c.Character || c.role || ""}</span>
           </div>
         ))}
-      </div>
+      </Grid>
     </div>
   );
 });

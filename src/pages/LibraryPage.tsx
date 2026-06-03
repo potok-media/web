@@ -10,6 +10,7 @@ import { useLibraryPage } from "../hooks/useLibraryPage";
 import { MediaCardComponent } from "../components/MediaCardComponent";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { CATEGORY_MAP, DYNAMIC_CATEGORY_TITLES } from "./LibraryConfig";
+import { Grid } from "../components/common/Grid";
 import "../styles/media.css";
  
 export const LibraryPage: React.FC = () => {
@@ -209,14 +210,14 @@ export const LibraryPage: React.FC = () => {
     if (items.length > 0) {
       return (
         <>
-          <div className="library-grid">
+          <Grid minWidth="170px" className="library-grid">
             {items.map((item) => (
               <MediaCardComponent
                 key={item.id}
                 item={item}
               />
             ))}
-          </div>
+          </Grid>
 
           {hasMore && (
             <div className="library-pagination-wrapper">

@@ -235,7 +235,7 @@
   margin-top: 4px;
 }
 
-.app-container.sidebar-collapsed .sidebar-nav-item {
+.app-container.sidebar-collapsed .sidebar .sidebar-nav-item {
   justify-content: center;
   padding: 10px 0;
   border-radius: var(--radius-m);
@@ -244,24 +244,24 @@
   margin: 0 auto;
 }
 
-.app-container.sidebar-collapsed .sidebar-nav-item span {
+.app-container.sidebar-collapsed .sidebar .sidebar-nav-item span {
   display: none;
 }
 
-.app-container.sidebar-collapsed .sidebar-section-title {
+.app-container.sidebar-collapsed .sidebar .sidebar-section-title {
   display: none;
 }
 
-.app-container.sidebar-collapsed .sidebar-status-row {
+.app-container.sidebar-collapsed .sidebar .sidebar-status-row {
   justify-content: center;
 }
 
-.app-container.sidebar-collapsed .sidebar-status-label,
-.app-container.sidebar-collapsed .sidebar-status-latency {
+.app-container.sidebar-collapsed .sidebar .sidebar-status-label,
+.app-container.sidebar-collapsed .sidebar .sidebar-status-latency {
   display: none;
 }
 
-.app-container.sidebar-collapsed .sidebar-footer {
+.app-container.sidebar-collapsed .sidebar .sidebar-footer {
   align-items: center;
 }
 
@@ -314,7 +314,7 @@
 }
 
 /* Collapsed sidebar support for dynamic sidebar button contributions */
-.app-container.sidebar-collapsed .potok-btn-sidebar-item {
+.app-container.sidebar-collapsed .sidebar .potok-btn-sidebar-item {
   justify-content: center;
   padding: 10px 0;
   border-radius: var(--radius-m);
@@ -324,7 +324,7 @@
   border-left: none;
 }
 
-.app-container.sidebar-collapsed .potok-btn-sidebar-item span {
+.app-container.sidebar-collapsed .sidebar .potok-btn-sidebar-item span {
   display: none;
 }
 

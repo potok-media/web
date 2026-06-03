@@ -160,6 +160,7 @@ export const MediaDetailsPage: React.FC = () => {
             <SeasonEpisodesSection
               mediaId={media.id}
               numberOfSeasons={media.numberOfSeasons}
+              selectedEpisode={selectedEpisode}
               onEpisodeClick={(ep, seasonNum) => {
                 setSelectedEpisode({ episode: ep, seasonNumber: seasonNum });
               }}

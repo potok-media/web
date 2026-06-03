@@ -1,4 +1,4 @@
-import type { RawStreamPayload } from "../../network/SDKTypes";
+import type { RawStreamPayload } from "@potok/sdk-types";
 
 const getQualityScore = (quality?: string): number => {
   if (!quality) return 0;

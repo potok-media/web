@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ExtensionRegistry } from "../../utils/extensions/ExtensionRegistry";
 import { ErrorBoundary } from "../ErrorBoundary";
 import { ComponentRenderer } from "./extension/ComponentRenderer";
+import type { UIComponentSchema as SDKUIComponentSchema } from "@potok/sdk-types";
 import "../../styles/extensions.css";
 
 interface ExtensionSlotProps {
@@ -84,7 +85,7 @@ export const ExtensionSlot: React.FC<ExtensionSlotProps> = ({ id, contributionId
           }
           return (
             <div key={c.contribution.id} className="potok-extension-contribution">
-              <ComponentRenderer schema={renderResponse.layout} pluginId={c.pluginId} />
+              <ComponentRenderer schema={renderResponse.layout as unknown as SDKUIComponentSchema} pluginId={c.pluginId} />
             </div>
           );
         })}

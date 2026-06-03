@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Plus, Trash2, ShieldAlert, Copy, FileCode, RotateCw } from "lucide-react";
-import type { RegisteredExtension, ExtensionManifest } from "../network/SDKTypes";
+import type { RegisteredExtension, ExtensionManifest } from "@potok/sdk-types";
 import { useHUD } from "../context/HUDContext";
 import { ManifestViewerModal } from "./settings/ManifestViewerModal";
 import { ConsentModal } from "./settings/ConsentModal";
@@ -10,6 +10,7 @@ import { ApiClient } from "../network/ApiClient";
 import UpdateBanner from "./extensions/UpdateBanner";
 import UpdateCenterModal from "./extensions/UpdateCenterModal";
 import { Storage } from "../utils/StorageService";
+import { Grid } from "./common/Grid";
 
 export const ExtensionsManager: React.FC = () => {
   const { show: showHUD } = useHUD();
@@ -141,7 +142,7 @@ export const ExtensionsManager: React.FC = () => {
           <span>Установленные расширения</span>
         </h2>
 
-        <div className="potok-vstack potok-extensions-list">
+        <Grid minWidth="320px" gap="var(--space-m)" className="potok-extensions-grid">
           {extensions.length === 0 ? (
             <div className="potok-card potok-extensions-empty-card">
               <ShieldAlert size={32} className="potok-extensions-empty-icon" />
@@ -227,7 +228,7 @@ export const ExtensionsManager: React.FC = () => {
               </div>
             ))
           )}
-        </div>
+        </Grid>
       </section>
 
       <UpdateCenterModal

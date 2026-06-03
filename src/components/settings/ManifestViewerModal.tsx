@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { X, Copy, Check } from "lucide-react";
-import type { ExtensionManifest } from "../../network/SDKTypes";
+import type { ExtensionManifest } from "@potok/sdk-types";
 import { useHUD } from "../../context/HUDContext";
 
 interface Props {

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppSettings } from "../../context/AppSettingsContext";
 import { useHUD } from "../../context/HUDContext";
 import { ExtensionRegistry } from "../../utils/extensions/ExtensionRegistry";
-import type { RegisteredExtension } from "../../network/SDKTypes";
+import type { RegisteredExtension } from "@potok/sdk-types";
 import { logger } from "../../utils/logger";
 import { ApiClient } from "../../network/ApiClient";
 import { createIframeHtml } from "../../utils/extensions/iframeHelper";
@@ -21,37 +21,7 @@ export const PluginSandbox: React.FC = () => {
   const shuttingDownRefs = useRef<Set<string>>(new Set());
   const iframeRefs = useRef<Map<string, HTMLIFrameElement>>(new Map());
   const [iframeSrcDocs, setIframeSrcDocs] = useState<Record<string, string>>({});
-  const [iframeSrcs, setIframeSrcs] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    const newSrcs: Record<string, string> = {};
-    Object.entries(iframeSrcDocs).forEach(([id, html]) => {
-      const blob = new Blob([html], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      newSrcs[id] = url;
-    });
-
-    setIframeSrcs((prev) => {
-      Object.values(prev).forEach((url) => {
-        try {
-          URL.revokeObjectURL(url);
-        } catch (e) {
-          logger.error("[PluginSandbox] Revoking old URL failed:", e);
-        }
-      });
-      return newSrcs;
-    });
-
-    return () => {
-      Object.values(newSrcs).forEach((url) => {
-        try {
-          URL.revokeObjectURL(url);
-        } catch (e) {
-          logger.error("[PluginSandbox] Cleanup revoke failed:", e);
-        }
-      });
-    };
-  }, [iframeSrcDocs]);
 
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || connectionProfiles[0] || null;
 
@@ -413,7 +383,7 @@ export const PluginSandbox: React.FC = () => {
             }
           }}
           sandbox="allow-scripts"
-          src={iframeSrcs[ext.id] || ""}
+          srcDoc={iframeSrcDocs[ext.id] || ""}
         />
       ))}
     </div>

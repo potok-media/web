@@ -2,7 +2,7 @@ import { Storage } from "../utils/StorageService";
 import { SyncApiClient } from "./SyncApiClient";
 import { ApiError } from "./ApiTypes";
 import { getEnv } from "../utils/EnvService";
-import type { ExtensionManifest } from "./SDKTypes";
+import type { ExtensionManifest } from "@potok/sdk-types";
 import type {
   ServiceInfo,
   ServiceStatus,

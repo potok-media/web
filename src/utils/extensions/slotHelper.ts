@@ -1,4 +1,4 @@
-import type { SlotContribution, UIComponentSchema } from "../../network/SDKTypes";
+import type { SlotContribution, UIComponentSchema } from "@potok/sdk-types";
 
 export class SlotManager {
   private contributions = new Map<string, { contribution: SlotContribution; pluginId: string }>();

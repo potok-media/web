@@ -8,6 +8,7 @@ import { PlayerStatsHUD } from "./player/PlayerStatsHUD";
 import { PlayerControls } from "./player/PlayerControls";
 import { loadExternalSubtitle } from "../utils/SubtitleHelper";
 import { useTimecodes } from "../hooks/useTimecodes";
+import { usePlaybackTracker } from "../hooks/usePlaybackTracker";
 
 // Helper to extract file extension from stream URL dynamically
 const getFileExtension = (url: string): string => {
@@ -202,6 +203,24 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [showStats, setShowStats] = useState(false);
+  const [showResumeToast, setShowResumeToast] = useState(false);
+  const [resumeTime, setResumeTime] = useState(0);
+
+  useEffect(() => {
+    const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
+    const savedResume = localStorage.getItem(resumeKey);
+    if (savedResume) {
+      const parsed = Number(savedResume);
+      if (!isNaN(parsed) && parsed > 15) {
+        setResumeTime(parsed);
+        setShowResumeToast(true);
+        const timer = setTimeout(() => {
+          setShowResumeToast(false);
+        }, 4000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [playback.id, playback.season, playback.episode]);
 
   useEffect(() => {
     setIsClosed(false);
@@ -849,10 +868,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   const handlePlaying = () => {
     setIsPlaying(true);
     setIsMetadataLoading(false);
-    
-    // Clear resume key from localStorage upon actual playback start to survive Strict Mode double mount
-    const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
-    localStorage.removeItem(resumeKey);
   };
 
   const handleCanPlay = () => {
@@ -869,7 +884,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       season: item.season,
       episode: item.episode,
       title: `${item.title} - S${item.season}E${item.episode}`,
-      audios: item.audios,
+      audios: item?.audios,
       voice: item.voice,
       playlistIndex: index
     });
@@ -1199,6 +1214,27 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   // Hooks integration
   const { introRange, outroRange } = useTimecodes(playback.id, playback.season, playback.episode, playback.mediaType === "tv", displayDuration);
 
+  usePlaybackTracker({
+    videoRef,
+    playback: {
+      id: playback.id,
+      mediaType: playback.mediaType,
+      season: playback.season,
+      episode: playback.episode,
+    },
+    seekOffset,
+    isActive: isPlaying,
+  });
+
+  const formatTime = (seconds: number): string => {
+    if (isNaN(seconds) || seconds === Infinity || seconds <= 0) return "00:00";
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+  };
+
   // Note: fileIndex and streamHash have been hoisted to the top of the component
 
   if (isClosed) return null;
@@ -1210,6 +1246,24 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       onMouseMove={handleUserActivity}
       onClick={() => { handleUserActivity(); setShowAudioMenu(false); setShowSubtitleMenu(false); setShowQualityMenu(false); setShowPlaylistMenu(false); }}
     >
+      {showResumeToast && (
+        <div className="player-resume-toast" onClick={(e) => e.stopPropagation()}>
+          <span className="player-resume-toast-text">
+            Продолжено с {formatTime(resumeTime)}
+          </span>
+          <div className="player-resume-toast-divider" />
+          <button 
+            className="player-resume-toast-btn"
+            onClick={() => {
+              handleSeek(0);
+              setShowResumeToast(false);
+            }}
+          >
+            Начать сначала
+          </button>
+        </div>
+      )}
+
       {isMetadataLoading && loadingState && (
         <div className="player-loading-overlay" onClick={(e) => e.stopPropagation()}>
           <div className="player-loading-card">

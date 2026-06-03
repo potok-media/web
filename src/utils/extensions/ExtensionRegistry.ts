@@ -8,7 +8,7 @@ import type {
   RawStreamPayload,
   StreamSearchQuery,
   ElementMutation
-} from "../../network/SDKTypes";
+} from "@potok/sdk-types";
 import { BlockMutationsManager } from "./mutationsHelper";
 import { SettlementManager } from "./settlementHelper";
 import { LegacyLookupSearchManager } from "./legacyLookupHelper";

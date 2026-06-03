@@ -1,9 +1,9 @@
 import React from "react";
 import type {
   UIComponentSchema,
-  RawStreamPayload,
-} from "../../../network/SDKTypes";
-import type { ConnectionProfile } from "../../../network/ApiTypes";
+  SDKRawStreamPayload as RawStreamPayload,
+} from "@potok/sdk-types";
+import type { ConnectionProfile as ApiConnectionProfile } from "../../../network/ApiTypes";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import { useHUD } from "../../../context/HUDContext";
 
@@ -25,14 +25,16 @@ export const HostCommonComponentsRenderer: React.FC<HostCommonComponentsRenderer
   pluginId,
 }) => {
   const hud = useHUD();
-  const { type, id, props: componentProps, events } = schema;
+  const { id, events } = schema;
 
-  switch (type) {
+  switch (schema.type) {
     case "StreamSkeletonList": {
       return <StreamSkeletonList key={id} />;
     }
 
+    case "StreamRow":
     case "StreamRowComponent": {
+      const componentProps = schema.props;
       const handleStreamClick = () => {
         if (events?.onClick && componentProps.stream) {
           ExtensionRegistry.triggerUIEvent(pluginId, events.onClick, componentProps.stream);
@@ -49,6 +51,7 @@ export const HostCommonComponentsRenderer: React.FC<HostCommonComponentsRenderer
     }
 
     case "StreamList": {
+      const componentProps = schema.props;
       const { streams, loading, showFilters, emptyText, nounPlurals } = componentProps;
       const handleSelectStream = (streamPayload: RawStreamPayload) => {
         const selectEvent = events?.onSelectStream;
@@ -70,6 +73,7 @@ export const HostCommonComponentsRenderer: React.FC<HostCommonComponentsRenderer
     }
 
     case "LoadingSpinner": {
+      const componentProps = schema.props;
       const { message, fullscreen, height } = componentProps;
       return (
         <LoadingSpinner
@@ -82,13 +86,14 @@ export const HostCommonComponentsRenderer: React.FC<HostCommonComponentsRenderer
     }
 
     case "ProfileSelector": {
+      const componentProps = schema.props;
       const { connectionProfiles, activeProfileID, isSettingsLocked } = componentProps;
       const handleSelectProfile = (pId: string) => {
         if (events?.onSelectProfile) {
           ExtensionRegistry.triggerUIEvent(pluginId, events.onSelectProfile, pId);
         }
       };
-      const handleStartEdit = (prof: ConnectionProfile) => {
+      const handleStartEdit = (prof: ApiConnectionProfile) => {
         if (events?.onStartEdit) {
           ExtensionRegistry.triggerUIEvent(pluginId, events.onStartEdit, prof);
         }
@@ -106,7 +111,7 @@ export const HostCommonComponentsRenderer: React.FC<HostCommonComponentsRenderer
       return (
         <ProfileSelector
           key={id}
-          connectionProfiles={connectionProfiles || []}
+          connectionProfiles={(connectionProfiles || []) as ApiConnectionProfile[]}
           activeProfileID={activeProfileID || null}
           isSettingsLocked={isSettingsLocked}
           onSelectProfile={handleSelectProfile}
@@ -119,6 +124,7 @@ export const HostCommonComponentsRenderer: React.FC<HostCommonComponentsRenderer
     }
 
     case "StreamFilterBar": {
+      const componentProps = schema.props;
       const { countLabel, qualityFilter, activeTracker, trackers, showSort, sortOption } = componentProps;
       const handleRefresh = () => {
         if (events?.onRefresh) {

@@ -1,7 +1,7 @@
 import React from "react";
 import { RotateCw, X } from "lucide-react";
 import type { UpdateItem } from "../../hooks/useExtensionUpdates";
-import type { ExtensionManifest } from "../../network/SDKTypes";
+import type { ExtensionManifest } from "@potok/sdk-types";
 
 interface UpdateCenterModalProps {
   isOpen: boolean;

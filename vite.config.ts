@@ -1,9 +1,64 @@
-import { defineConfig } from 'vite'
+import { defineConfig, build } from 'vite'
 import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
+
+function vitePotokSdkPlugin() {
+  return {
+    name: 'vite-plugin-potok-sdk',
+    async buildStart() {
+      console.log('[vite-plugin-potok-sdk] Compiling SDK...');
+      try {
+        await build({
+          configFile: resolve(__dirname, 'src/sdk/vite.config.ts'),
+        });
+        console.log('[vite-plugin-potok-sdk] SDK compiled successfully.');
+      } catch (err) {
+        console.error('[vite-plugin-potok-sdk] SDK compilation failed:', err);
+      }
+    },
+    configureServer(server: any) {
+      const sdkDir = resolve(__dirname, 'src/sdk');
+      server.watcher.add(sdkDir);
+      server.watcher.on('change', async (file: string) => {
+        if (file.startsWith(sdkDir)) {
+          console.log(`[vite-plugin-potok-sdk] Change detected in SDK: ${file}, rebuilding...`);
+          try {
+            await build({
+              configFile: resolve(__dirname, 'src/sdk/vite.config.ts'),
+            });
+            console.log('[vite-plugin-potok-sdk] SDK rebuilt successfully.');
+            
+            const rawSdkModule = server.moduleGraph.getModuleById(resolve(__dirname, 'public/sdk/potok-sdk.js?raw'));
+            const sdkModule = server.moduleGraph.getModuleById(resolve(__dirname, 'public/sdk/potok-sdk.js'));
+            
+            if (rawSdkModule) {
+              server.moduleGraph.invalidateModule(rawSdkModule);
+            }
+            if (sdkModule) {
+              server.moduleGraph.invalidateModule(sdkModule);
+            }
+            
+            server.ws.send({
+              type: 'full-reload',
+              path: '*'
+            });
+          } catch (err) {
+            console.error('[vite-plugin-potok-sdk] SDK build failed:', err);
+          }
+        }
+      });
+    }
+  };
+}
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), vitePotokSdkPlugin()],
+  resolve: {
+    alias: {
+      '@potok/sdk-types': resolve(__dirname, './src/sdk/src/types.ts')
+    }
+  },
   build: {
     rollupOptions: {
       output: {
@@ -19,3 +74,4 @@ export default defineConfig({
     }
   }
 })
+

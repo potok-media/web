@@ -1,4 +1,4 @@
-import type { LookupQuery, StreamResult, RawStreamPayload, StreamSearchQuery } from "../../network/SDKTypes";
+import type { LookupQuery, StreamResult, RawStreamPayload, StreamSearchQuery } from "@potok/sdk-types";
 import { processSearchResults } from "./searchHelpers";
 import { logger } from "../logger";
 

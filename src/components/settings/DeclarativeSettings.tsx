@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Save, Eye, EyeOff, Sliders } from "lucide-react";
-import type { RegisteredExtension } from "../../network/SDKTypes";
+import type { RegisteredExtension } from "@potok/sdk-types";
 import { useHUD } from "../../context/HUDContext";
 import { ApiClient } from "../../network/ApiClient";
+
 
 interface DeclarativeSettingsProps {
   ext: RegisteredExtension;
@@ -110,95 +111,97 @@ export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.mem
         </h2>
 
         <form onSubmit={handleSave} className="settings-form-wrapper" style={{ display: "flex", flexDirection: "column", gap: "var(--space-m)" }}>
-          {Object.keys(config).map((key) => {
-            const item = config[key];
-            const val = settings[key];
+          <div className="declarative-form-fields" style={{ display: "flex", flexDirection: "column", gap: "var(--space-s)" }}>
+            {Object.keys(config).map((key) => {
+              const item = config[key];
+              const val = settings[key];
 
-            if (item.dependsOn) {
-              const depValue = settings[item.dependsOn];
-              if (!depValue) {
-                return null;
+              if (item.dependsOn) {
+                const depValue = settings[item.dependsOn];
+                if (!depValue) {
+                  return null;
+                }
               }
-            }
 
-            if (item.type === "boolean") {
-              const checkedVal = val !== undefined ? !!val : !!item.default;
-              return (
-                <div key={key} className="settings-form-group settings-preference-group">
-                  <div className="settings-auth-checkbox-row">
-                    <input
-                      type="checkbox"
-                      id={`config-${ext.id}-${key}`}
-                      checked={checkedVal}
-                      onChange={(e) => handleChange(key, e.target.checked)}
-                      className="cursor-pointer"
-                    />
-                    <label htmlFor={`config-${ext.id}-${key}`} className="settings-label settings-auth-checkbox-label">
+              if (item.type === "boolean") {
+                const checkedVal = val !== undefined ? !!val : !!item.default;
+                return (
+                  <div key={key} className="settings-form-group settings-preference-group">
+                    <div className="settings-auth-checkbox-row">
+                      <input
+                        type="checkbox"
+                        id={`config-${ext.id}-${key}`}
+                        checked={checkedVal}
+                        onChange={(e) => handleChange(key, e.target.checked)}
+                        className="cursor-pointer"
+                      />
+                      <label htmlFor={`config-${ext.id}-${key}`} className="settings-label settings-auth-checkbox-label">
+                        {item.label || key}
+                      </label>
+                    </div>
+                  </div>
+                );
+              }
+
+              if (item.type === "number") {
+                const numVal = val !== undefined ? Number(val) : Number(item.default);
+                return (
+                  <div key={key} className="settings-form-group">
+                    <label htmlFor={`config-${ext.id}-${key}`} className="settings-label">
                       {item.label || key}
                     </label>
+                    <input
+                      type="number"
+                      id={`config-${ext.id}-${key}`}
+                      className="settings-input"
+                      value={isNaN(numVal) ? "" : numVal}
+                      onChange={(e) => handleChange(key, e.target.value === "" ? "" : Number(e.target.value))}
+                    />
                   </div>
-                </div>
-              );
-            }
+                );
+              }
 
-            if (item.type === "number") {
-              const numVal = val !== undefined ? Number(val) : Number(item.default);
+              // String or password input
+              const strVal = val !== undefined ? String(val) : String(item.default);
+              const isPassword = isPasswordInput(key, item.label || "");
+
               return (
                 <div key={key} className="settings-form-group">
                   <label htmlFor={`config-${ext.id}-${key}`} className="settings-label">
                     {item.label || key}
                   </label>
-                  <input
-                    type="number"
-                    id={`config-${ext.id}-${key}`}
-                    className="settings-input"
-                    value={isNaN(numVal) ? "" : numVal}
-                    onChange={(e) => handleChange(key, e.target.value === "" ? "" : Number(e.target.value))}
-                  />
-                </div>
-              );
-            }
-
-            // String or password input
-            const strVal = val !== undefined ? String(val) : String(item.default);
-            const isPassword = isPasswordInput(key, item.label || "");
-
-            return (
-              <div key={key} className="settings-form-group">
-                <label htmlFor={`config-${ext.id}-${key}`} className="settings-label">
-                  {item.label || key}
-                </label>
-                {isPassword ? (
-                  <div style={{ display: "flex", gap: "0.5rem", width: "100%", maxWidth: "30rem", alignItems: "center" }}>
+                  {isPassword ? (
+                    <div style={{ display: "flex", gap: "0.5rem", width: "100%", maxWidth: "30rem", alignItems: "center" }}>
+                      <input
+                        type={showPassword[key] ? "text" : "password"}
+                        id={`config-${ext.id}-${key}`}
+                        className="settings-input"
+                        value={strVal}
+                        onChange={(e) => handleChange(key, e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleTogglePassword(key)}
+                        className="profile-btn"
+                        title={showPassword[key] ? "Скрыть" : "Показать"}
+                        style={{ flexShrink: 0 }}
+                      >
+                        {showPassword[key] ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  ) : (
                     <input
-                      type={showPassword[key] ? "text" : "password"}
+                      type="text"
                       id={`config-${ext.id}-${key}`}
                       className="settings-input"
                       value={strVal}
                       onChange={(e) => handleChange(key, e.target.value)}
                     />
-                    <button
-                      type="button"
-                      onClick={() => handleTogglePassword(key)}
-                      className="profile-btn"
-                      title={showPassword[key] ? "Скрыть" : "Показать"}
-                      style={{ flexShrink: 0 }}
-                    >
-                      {showPassword[key] ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                ) : (
-                  <input
-                    type="text"
-                    id={`config-${ext.id}-${key}`}
-                    className="settings-input"
-                    value={strVal}
-                    onChange={(e) => handleChange(key, e.target.value)}
-                  />
-                )}
-              </div>
-            );
-          })}
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
           <div className="settings-form-buttons-row">
             <button type="submit" className="settings-btn-primary cursor-pointer btn-gap-s">

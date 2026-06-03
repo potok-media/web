@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { ShieldAlert } from "lucide-react";
-import type { RawStreamPayload } from "../../network/SDKTypes";
+import type { RawStreamPayload } from "@potok/sdk-types";
 import type { StreamUIItem } from "../../network/ApiTypes";
 import { StreamFilterBar } from "../StreamFilterBar";
 import StreamRowComponent from "../StreamRowComponent";

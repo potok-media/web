@@ -1,0 +1,189 @@
+import { useEffect, useRef, useCallback } from "react";
+import { Storage } from "../utils/StorageService";
+import { SyncApiClient } from "../network/SyncApiClient";
+
+export interface PlaybackProgress {
+  progressSeconds: number;
+  durationSeconds: number;
+  lastWatchedAt: string;
+  isCompleted: boolean;
+}
+
+interface UsePlaybackTrackerParams {
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  playback: {
+    id: number;
+    mediaType: string;
+    season?: number;
+    episode?: number;
+  };
+  seekOffset: number;
+  isActive: boolean;
+}
+
+export function usePlaybackTracker({
+  videoRef,
+  playback,
+  seekOffset,
+  isActive,
+}: UsePlaybackTrackerParams) {
+  const lastSavedTimeRef = useRef<number>(0);
+  const syncIntervalRef = useRef<any>(null);
+
+  const getStorageKeys = useCallback(() => {
+    const s = playback.season ?? 0;
+    const e = playback.episode ?? 0;
+    const progressKey = `potok_progress:${playback.id}:${s}:${e}`;
+    const resumeKey = `potok_playback_resume:${playback.id}:${s}:${e}`;
+    return { progressKey, resumeKey };
+  }, [playback]);
+
+  const saveProgress = useCallback((
+    currentTime: number,
+    duration: number,
+    forceRemote: boolean = false
+  ) => {
+    if (duration <= 0) return;
+
+    const actualTime = seekOffset > 0 ? (seekOffset + currentTime) : currentTime;
+    
+    // Порог начала (менее 15 секунд или 2% от длительности не сохраняем)
+    if (actualTime < 15 || actualTime / duration < 0.02) {
+      return;
+    }
+
+    const isCompleted = actualTime / duration > 0.90;
+    const { progressKey, resumeKey } = getStorageKeys();
+
+    // 1. Локальное сохранение (Local-first)
+    const progressData: PlaybackProgress = {
+      progressSeconds: Math.floor(actualTime),
+      durationSeconds: Math.floor(duration),
+      lastWatchedAt: new Date().toISOString(),
+      isCompleted,
+    };
+    Storage.set(progressKey, progressData);
+
+    // Сохраняем таймкод для возобновления в плеере
+    if (!isCompleted) {
+      localStorage.setItem(resumeKey, Math.floor(actualTime).toString());
+    } else {
+      localStorage.removeItem(resumeKey);
+    }
+
+    // 2. Внешняя синхронизация (Throttled или Forced)
+    const timeSinceLastSync = Math.abs(actualTime - lastSavedTimeRef.current);
+    if (forceRemote || timeSinceLastSync >= 10 || isCompleted) {
+      lastSavedTimeRef.current = actualTime;
+      
+      const strategy = Storage.get<string>("syncStrategy", "none");
+      if (strategy === "server" || strategy === "trakt") {
+        SyncApiClient.saveSyncProgress(
+          playback.id.toString(),
+          playback.mediaType,
+          playback.season,
+          playback.episode,
+          Math.floor(actualTime),
+          Math.floor(duration)
+        ).catch((err) => console.error("[Sync] Failed to save progress:", err));
+      }
+    }
+  }, [playback, seekOffset, getStorageKeys]);
+
+  const handleManualSave = useCallback(() => {
+    const video = videoRef.current;
+    if (video) {
+      saveProgress(video.currentTime, video.duration, true);
+    }
+  }, [videoRef, saveProgress]);
+
+  // Запуск интервала отслеживания во время активного воспроизведения
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !isActive) {
+      if (syncIntervalRef.current) {
+        clearInterval(syncIntervalRef.current);
+        syncIntervalRef.current = null;
+      }
+      return;
+    }
+
+    // Интервал раз в 5 секунд для проверки изменения времени
+    syncIntervalRef.current = setInterval(() => {
+      if (video && !video.paused) {
+        saveProgress(video.currentTime, video.duration, false);
+      }
+    }, 5000);
+
+    return () => {
+      if (syncIntervalRef.current) {
+        clearInterval(syncIntervalRef.current);
+        syncIntervalRef.current = null;
+      }
+    };
+  }, [videoRef, isActive, saveProgress]);
+
+  // Слушатели событий жизненного цикла видео и вкладки браузера
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handlePause = () => {
+      saveProgress(video.currentTime, video.duration, true);
+    };
+
+    const handleEnded = () => {
+      const { resumeKey } = getStorageKeys();
+      localStorage.removeItem(resumeKey);
+      
+      // Помечаем локально как завершенное
+      const { progressKey } = getStorageKeys();
+      const progressData: PlaybackProgress = {
+        progressSeconds: Math.floor(video.duration),
+        durationSeconds: Math.floor(video.duration),
+        lastWatchedAt: new Date().toISOString(),
+        isCompleted: true,
+      };
+      Storage.set(progressKey, progressData);
+
+      // Удаляем с бэкенда/Trakt прогресс (переходит в статус полностью просмотрено)
+      const strategy = Storage.get<string>("syncStrategy", "none");
+      if (strategy === "server" || strategy === "trakt") {
+        SyncApiClient.saveSyncProgress(
+          playback.id.toString(),
+          playback.mediaType,
+          playback.season,
+          playback.episode,
+          Math.floor(video.duration),
+          Math.floor(video.duration)
+        ).catch((err) => console.error("[Sync] Failed to mark completed on ended:", err));
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      saveProgress(video.currentTime, video.duration, true);
+    };
+
+    const handleSeeked = () => {
+      saveProgress(video.currentTime, video.duration, true);
+    };
+
+    video.addEventListener("pause", handlePause);
+    video.addEventListener("ended", handleEnded);
+    video.addEventListener("seeked", handleSeeked);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("pagehide", handleBeforeUnload);
+
+    return () => {
+      video.removeEventListener("pause", handlePause);
+      video.removeEventListener("ended", handleEnded);
+      video.removeEventListener("seeked", handleSeeked);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("pagehide", handleBeforeUnload);
+    };
+  }, [videoRef, saveProgress, getStorageKeys, playback]);
+
+  return {
+    saveProgress: handleManualSave
+  };
+}

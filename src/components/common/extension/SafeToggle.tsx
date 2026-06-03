@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import type { UIComponentSchema } from "../../../network/SDKTypes";
+import type { ToggleSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 
 interface SafeToggleProps {
-  schema: UIComponentSchema;
+  schema: ToggleSchema;
   pluginId: string;
   baseStyle: React.CSSProperties;
 }

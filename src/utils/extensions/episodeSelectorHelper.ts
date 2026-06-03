@@ -46,5 +46,18 @@ export function handleShowEpisodeSelector(payload: any, source: any) {
     };
   }
 
+  if (payload.onCloseCallbackId) {
+    detail.onClose = () => {
+      source.postMessage({
+        source: "potok-host",
+        action: "TRIGGER_UI_EVENT",
+        payload: {
+          callbackId: payload.onCloseCallbackId,
+          eventData: {}
+        }
+      }, "*");
+    };
+  }
+
   window.dispatchEvent(new CustomEvent("potok:show-episode-selector", { detail }));
 }

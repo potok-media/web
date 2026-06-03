@@ -1,6 +1,6 @@
 .hud-container {
   position: fixed;
-  top: 24px;
+  top: calc(16px + env(safe-area-inset-top, 0px));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -74,12 +74,12 @@
 /* Animations */
 @keyframes hud-slide-in {
   0% {
-    top: -50px;
+    top: calc(-50px + env(safe-area-inset-top, 0px));
     opacity: 0;
     transform: translateX(-50%) scale(0.9);
   }
   100% {
-    top: 24px;
+    top: calc(16px + env(safe-area-inset-top, 0px));
     opacity: 1;
     transform: translateX(-50%) scale(1);
   }

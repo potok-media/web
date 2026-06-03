@@ -36,13 +36,31 @@ export class SyncApiClient {
       });
       if (!res.ok) throw new Error(`Failed to fetch Trakt history (Status ${res.status})`);
       const cards = await res.json() as MediaCard[];
-      return cards.map((c) => ({
-        tmdbId: c.id.toString(),
-        mediaType: c.mediaType,
-        progressSeconds: c.progress?.percentage || 0,
-        durationSeconds: 100,
-        lastWatchedAt: new Date().toISOString(),
-      }));
+      const entries: UserHistoryEntry[] = [];
+      for (const c of cards) {
+        if (c.progress?.watchedEpisodes && c.progress.watchedEpisodes.length > 0) {
+          for (const ep of c.progress.watchedEpisodes) {
+            entries.push({
+              tmdbId: c.id.toString(),
+              mediaType: "tv",
+              seasonNumber: ep.season,
+              episodeNumber: ep.number,
+              progressSeconds: 100,
+              durationSeconds: 100,
+              lastWatchedAt: new Date().toISOString(),
+            });
+          }
+        }
+        // Also add the show card itself for general progress check
+        entries.push({
+          tmdbId: c.id.toString(),
+          mediaType: c.mediaType,
+          progressSeconds: c.progress?.percentage || 0,
+          durationSeconds: 100,
+          lastWatchedAt: new Date().toISOString(),
+        });
+      }
+      return entries;
     }
     return [];
   }

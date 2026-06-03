@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Play, CheckCircle2, ArrowLeft, Pencil, ListVideo, MoreHorizontal } from "lucide-react";
+import { Play, Check, CheckCircle2, ArrowLeft, Pencil, ListVideo, MoreHorizontal } from "lucide-react";
 
 export interface GenericEpisodeItem {
   id: string;
@@ -127,7 +127,7 @@ const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
       <div className="file-card-details-panel">
         {episodeItem.isWatched && (
           <div className="file-card-watched-badge">
-            <CheckCircle2 size={11} fill="var(--accent)" stroke="var(--accent-dim)" />
+            <Check size={12} strokeWidth={3} />
             <span>Просмотрено</span>
           </div>
         )}

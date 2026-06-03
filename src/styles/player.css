@@ -1110,3 +1110,88 @@
   }
 }
 
+/* Resume Toast HUD (Apple HIG + Glassmorphism style) */
+.player-resume-toast {
+  position: absolute;
+  bottom: 120px; /* Stay above player controls */
+  left: 40px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  border-radius: var(--radius-m);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--shadow-l);
+  animation: slide-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.player-resume-toast-text {
+  font-family: var(--font-family);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-body-bold);
+  color: var(--text-primary);
+}
+
+.player-resume-toast-divider {
+  width: 1px;
+  height: 16px;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.player-resume-toast-btn {
+  font-family: var(--font-family);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-body-bold);
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color var(--timing-hover), opacity var(--timing-hover);
+}
+
+.player-resume-toast-btn:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .player-resume-toast {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 95px) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100% - 32px) !important;
+    max-width: 360px !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+    animation: slide-in-mobile 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  }
+}
+
+@keyframes slide-in-mobile {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px) !important;
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) !important;
+  }
+}
+
+

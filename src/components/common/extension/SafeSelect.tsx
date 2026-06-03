@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, Check } from "lucide-react";
-import type { UIComponentSchema } from "../../../network/SDKTypes";
+import type { SelectSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 
 interface SafeSelectProps {
-  schema: UIComponentSchema;
+  schema: SelectSchema;
   pluginId: string;
   baseStyle: React.CSSProperties;
 }

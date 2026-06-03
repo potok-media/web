@@ -1042,27 +1042,76 @@
   background-color: var(--accent);
 }
 
-.episodes-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+.episodes-carousel-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.episodes-scroll-container {
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  scroll-behavior: smooth;
   gap: var(--space-m);
+  width: 100%;
+  padding: var(--space-xs) 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.episodes-scroll-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.carousel-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(20, 20, 25, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.carousel-nav-btn:hover {
+  background: var(--bg-surface-high);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 8px 32px var(--accent-dim), 0 0 0 1px var(--accent);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.carousel-nav-btn.left {
+  left: -20px;
+}
+
+.carousel-nav-btn.right {
+  right: -20px;
 }
 
 .episode-card {
-  background-color: var(--bg-surface);
-  border-radius: var(--radius-m);
-  border: var(--glass-border);
-  overflow: hidden;
+  flex: 0 0 280px; /* Prevent card shrinking inside flex row */
+  background-color: transparent;
+  border: none;
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
   cursor: pointer;
   transition: all var(--timing-hover);
-}
-
-.episode-card:hover {
-  background-color: var(--bg-surface-high);
-  border-color: var(--accent-dim);
+  outline: none;
 }
 
 .episode-still-wrap {
@@ -1070,6 +1119,10 @@
   width: 100%;
   aspect-ratio: 16/9;
   background-color: var(--bg-surface-high);
+  border-radius: var(--radius-m);
+  border: 1.5px solid transparent;
+  overflow: hidden;
+  transition: border-color var(--timing-hover), transform var(--timing-hover);
 }
 
 .episode-still {
@@ -1078,11 +1131,20 @@
   object-fit: cover;
 }
 
+.episode-card:hover .episode-still-wrap {
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.episode-card:focus-visible .episode-still-wrap,
+.episode-card.active .episode-still-wrap {
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
 .episode-info {
-  padding: var(--space-s);
+  padding: 6px 0 0 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .episode-number-title {
@@ -1092,17 +1154,16 @@
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.episode-overview {
+.episode-air-date {
   font: var(--font-caption);
-  color: var(--text-secondary);
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  color: var(--text-tertiary);
+  font-size: 12px;
 }
+
 
 
 
@@ -1971,14 +2032,18 @@
 .file-card-watched-badge {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   background-color: var(--accent-dim);
   color: var(--accent);
-  font-size: 0.625rem;
-  font-weight: bold;
-  padding: 3px 8px;
-  border-radius: var(--radius-s);
-  border: 1px solid var(--accent-semi);
+  font-family: var(--font-family);
+  font-size: 0.6875rem; /* ~11px */
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid HSLA(var(--accent-h), var(--accent-s), var(--accent-l), 0.35);
+  box-shadow: 0 0 10px HSLA(var(--accent-h), var(--accent-s), var(--accent-l), 0.1);
+  letter-spacing: 0.015em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .file-card-size {
@@ -3546,6 +3611,27 @@
   .calendar-time-tag {
     align-self: flex-start !important;
     margin-top: var(--space-xs) !important;
+  }
+
+  .carousel-nav-btn {
+    display: none !important;
+  }
+  
+  .episodes-scroll-container {
+    scroll-snap-type: x mandatory;
+    gap: var(--space-s);
+    padding-right: var(--space-m);
+  }
+  
+  .episode-card {
+    flex: 0 0 220px;
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 480px) {
+  .episode-card {
+    flex: 0 0 180px;
   }
 }
 
