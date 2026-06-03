@@ -9,7 +9,6 @@ import { AuthApiClient } from "../network/AuthApiClient";
 import { getEnv } from "../utils/EnvService";
 import { logger } from "../utils/logger";
 import { useSystemWake } from "../hooks/useSystemWake";
-import { shouldBypassWebPlayer, formatNativePlaybackUrl } from "../utils/playbackHelper";
 
 export type ConnectionState = "checking" | "connected" | "offline" | "setupRequired";
 
@@ -724,19 +723,6 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const errorMsg = err instanceof Error ? err.message : String(err);
         showHUD("error", "Ошибка Infuse: " + errorMsg);
       }
-    } else if (shouldBypassWebPlayer()) {
-      try {
-        const nativeUrl = formatNativePlaybackUrl(
-          playback.streamUrl,
-          playback.streamHash,
-          (playback as any).torrentHash
-        );
-        window.location.href = nativeUrl;
-        showHUD("success", "Открываем в нативном плеере...");
-      } catch (err: unknown) {
-        const errorMsg = err instanceof Error ? err.message : String(err);
-        showHUD("error", "Ошибка открытия: " + errorMsg);
-      }
     } else {
       setActivePlayback(playback);
     }
@@ -764,7 +750,11 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     stopVideo,
   ]);
 
-  return <PlaybackContext.Provider value={value}>{children}</PlaybackContext.Provider>;
+  return (
+    <PlaybackContext.Provider value={value}>
+      {children}
+    </PlaybackContext.Provider>
+  );
 };
 
 export const usePlayback = () => {
