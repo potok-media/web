@@ -703,6 +703,10 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [activePlayback, setActivePlayback] = useState<ActivePlayback | null>(null);
 
   const playVideo = useCallback((playback: ActivePlayback) => {
+    const isIOS = typeof window !== "undefined" && 
+      (/iPad|iPhone|iPod/.test(navigator.userAgent) || 
+       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+
     if (defaultPlayer === "infuse") {
       try {
         let streamUrl = playback.streamUrl;
@@ -722,6 +726,49 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       } catch (err: unknown) {
         const errorMsg = err instanceof Error ? err.message : String(err);
         showHUD("error", "Ошибка Infuse: " + errorMsg);
+      }
+    } else if (isIOS) {
+      try {
+        let streamUrl = playback.streamUrl;
+
+        // Bypassing our WebMediaPlayer.tsx for native iOS/iPadOS playback.
+        // Check if stream requires remuxing (e.g. is non-native format on torrent-go/BFF)
+        const isStreamServer = streamUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
+        let isNonNative = false;
+        try {
+          const cleanUrl = streamUrl.split("?")[0];
+          const ext = cleanUrl.slice(cleanUrl.lastIndexOf(".") + 1).toLowerCase();
+          if (ext && !["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "m4a", "mpd"].includes(ext)) {
+            isNonNative = true;
+          }
+        } catch {}
+
+        if (isStreamServer && isNonNative) {
+          try {
+            const urlObj = new URL(streamUrl);
+            urlObj.searchParams.set("remux", "true");
+            streamUrl = urlObj.toString();
+          } catch {
+            const separator = streamUrl.includes("?") ? "&" : "?";
+            streamUrl = `${streamUrl}${separator}remux=true`;
+          }
+        }
+
+        if (streamUrl.startsWith("/")) {
+          if (streamUrl.startsWith("/api/")) {
+            const base = ApiClient.baseURL.replace(/\/+$/, "");
+            streamUrl = `${base}${streamUrl}`;
+          } else {
+            const base = window.location.origin.replace(/\/+$/, "");
+            streamUrl = `${base}${streamUrl}`;
+          }
+        }
+
+        window.location.href = streamUrl;
+        showHUD("success", "Открываем в нативном плеере...");
+      } catch (err: unknown) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        showHUD("error", "Ошибка открытия: " + errorMsg);
       }
     } else {
       setActivePlayback(playback);
