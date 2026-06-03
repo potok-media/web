@@ -28,8 +28,8 @@
 .potok-card {
   position: relative;
   z-index: 1;
-  background: var(--color-surface, rgba(255, 255, 255, 0.08));
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
   border-radius: var(--radius-m, 12px);
   backdrop-filter: var(--blur-glass, blur(20px));
   padding: var(--spacing-m, 16px);
@@ -45,8 +45,8 @@
 }
 
 .potok-card.potok-card-interactive:hover {
-  border-color: rgba(255, 255, 255, 0.18);
-  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-semi);
+  background-color: var(--bg-surface-highest);
   z-index: 2;
 }
 
@@ -62,13 +62,13 @@
 .potok-card-title {
   font-size: 1.15rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .potok-card-subtitle {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   margin: 4px 0 0 0;
 }
 
@@ -80,7 +80,7 @@
 
 /* Typography */
 .potok-heading {
-  color: #fff;
+  color: var(--text-primary);
   font-weight: 700;
   margin: 0 0 8px 0;
 }
@@ -122,7 +122,7 @@
 /* Dividers & Spacers */
 .potok-divider {
   border: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: var(--glass-border);
   margin: 12px 0;
   width: 100%;
 }
@@ -144,7 +144,7 @@
   border: none;
   transition: all 0.2s ease-in-out;
   outline: none;
-  color: #fff;
+  color: var(--text-accent, #fff);
   width: fit-content;
 }
 
@@ -157,11 +157,11 @@
 }
 
 .potok-btn-secondary {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
 }
 .potok-btn-secondary:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--bg-surface-highest);
 }
 
 .potok-btn-danger {
@@ -175,7 +175,7 @@
   background: transparent;
 }
 .potok-btn-ghost:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-surface-high);
 }
 
 .potok-btn:disabled {
@@ -194,15 +194,15 @@
 .potok-label {
   font-size: 0.85rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-secondary);
 }
 
 .potok-input {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
   border-radius: 8px;
   padding: 10px 14px;
-  color: #fff;
+  color: var(--text-primary);
   font-size: 0.95rem;
   outline: none;
   transition: border-color 0.2s ease-in-out;
@@ -214,9 +214,9 @@
 }
 
 .potok-select {
-  background: var(--bg-surface-high, rgba(255, 255, 255, 0.08)) !important;
-  border: var(--glass-border, 1px solid rgba(255, 255, 255, 0.1)) !important;
-  color: var(--text-primary, #fff) !important;
+  background: var(--bg-surface-high) !important;
+  border: var(--glass-border) !important;
+  color: var(--text-primary) !important;
   padding: 10px 18px !important;
   border-radius: var(--radius-m, 12px) !important;
   backdrop-filter: var(--blur-glass, blur(20px)) !important;
@@ -228,14 +228,14 @@
 }
 
 .potok-select:hover:not(:disabled) {
-  background: var(--bg-surface-highest, rgba(255, 255, 255, 0.15)) !important;
+  background: var(--bg-surface-highest) !important;
   transform: translateY(-2px);
 }
 
 .potok-btn-secondary {
-  background: var(--bg-surface-high, rgba(255, 255, 255, 0.08)) !important;
-  border: var(--glass-border, 1px solid rgba(255, 255, 255, 0.1)) !important;
-  color: var(--text-primary, #fff) !important;
+  background: var(--bg-surface-high) !important;
+  border: var(--glass-border) !important;
+  color: var(--text-primary) !important;
   padding: 10px 18px !important;
   border-radius: var(--radius-m, 12px) !important;
   backdrop-filter: var(--blur-glass, blur(20px)) !important;
@@ -244,7 +244,7 @@
 }
 
 .potok-btn-secondary:hover:not(:disabled) {
-  background: var(--bg-surface-highest, rgba(255, 255, 255, 0.15)) !important;
+  background: var(--bg-surface-highest) !important;
   transform: translateY(-2px);
 }
 
@@ -265,7 +265,7 @@
 
 .potok-toggle-desc {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-tertiary);
 }
 
 .potok-switch {
@@ -288,7 +288,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--bg-surface-highest);
   transition: .2s;
   border-radius: 24px;
 }
@@ -387,7 +387,7 @@ input:checked + .potok-slider:before {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 0.95rem;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text-secondary);
   margin-top: var(--spacing-m, 16px);
   margin-bottom: var(--spacing-m, 16px);
   user-select: text;
@@ -398,13 +398,13 @@ input:checked + .potok-slider:before {
 .potok-markdown-body h2,
 .potok-markdown-body h3,
 .potok-markdown-body h4 {
-  color: #ffffff;
+  color: var(--text-primary);
   font-weight: 600;
   margin-top: 1.5rem;
   margin-bottom: 0.8rem;
 }
 
-.potok-markdown-body h1 { font-size: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.3rem; }
+.potok-markdown-body h1 { font-size: 1.5rem; border-bottom: var(--glass-border); padding-bottom: 0.3rem; }
 .potok-markdown-body h2 { font-size: 1.25rem; }
 .potok-markdown-body h3 { font-size: 1.1rem; }
 .potok-markdown-body h4 { font-size: 1rem; }
@@ -428,7 +428,7 @@ input:checked + .potok-slider:before {
 .potok-markdown-body code {
   font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
   font-size: 0.85em;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-surface-high);
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
   color: #ff7875;
@@ -446,7 +446,7 @@ input:checked + .potok-slider:before {
   display: flex;
   flex-direction: column;
   background: rgba(18, 18, 24, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: var(--glass-border);
   border-radius: 12px;
   margin: 1.2rem 0;
   overflow: hidden;
@@ -461,7 +461,7 @@ input:checked + .potok-slider:before {
   height: 38px;
   padding: 0 16px;
   background: rgba(30, 30, 40, 0.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: var(--glass-border);
   position: relative;
 }
 
@@ -486,29 +486,29 @@ input:checked + .potok-slider:before {
   font-family: Menlo, Monaco, Consolas, monospace;
   font-size: 0.75rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-tertiary);
   margin-left: 20px;
   text-transform: uppercase;
 }
 
 .potok-terminal-copy-btn {
   margin-left: auto;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
   border-radius: 6px;
   padding: 4px 10px;
   font-size: 0.75rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.15s ease;
   outline: none;
 }
 
 .potok-terminal-copy-btn:hover {
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--bg-surface-highest);
+  color: var(--text-primary);
+  border-color: var(--accent);
 }
 
 .potok-terminal-copy-btn:active {
@@ -532,10 +532,10 @@ input:checked + .potok-slider:before {
   align-items: flex-end;
   padding-left: 16px;
   padding-right: 16px;
-  color: rgba(255, 255, 255, 0.25);
+  color: var(--text-tertiary);
   user-select: none;
   text-align: right;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: var(--glass-border);
 }
 
 .potok-terminal-line-numbers span {
@@ -554,7 +554,7 @@ input:checked + .potok-slider:before {
 
 .potok-terminal-pre code {
   font-family: inherit;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
 }
 
 /* Prism syntax highlight Tomorrow Night / One Dark colors */
@@ -686,14 +686,14 @@ input:checked + .potok-slider:before {
 }
 
 .potok-update-banner-title {
-  color: #fff;
+  color: var(--text-primary);
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
 .potok-update-banner-subtitle {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   font-size: 0.8rem;
   white-space: normal;
   word-break: break-word;
@@ -734,9 +734,9 @@ input:checked + .potok-slider:before {
 .potok-update-modal-dialog {
   width: 520px;
   max-width: 90%;
-  background: rgba(20, 20, 23, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
+  box-shadow: var(--shadow-l);
   border-radius: 16px;
   overflow: hidden;
   display: flex;
@@ -746,7 +746,7 @@ input:checked + .potok-slider:before {
 
 .potok-update-modal-header {
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: var(--glass-border);
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -761,7 +761,7 @@ input:checked + .potok-slider:before {
 }
 
 .potok-update-modal-title {
-  color: #fff;
+  color: var(--text-primary);
   font-size: 1.05rem;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -770,7 +770,7 @@ input:checked + .potok-slider:before {
 .potok-update-modal-close-btn {
   padding: 6px;
   border-radius: 6px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   border: none;
@@ -780,7 +780,7 @@ input:checked + .potok-slider:before {
 }
 
 .potok-update-modal-close-btn:hover {
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .potok-update-modal-body {
@@ -793,8 +793,8 @@ input:checked + .potok-slider:before {
 }
 
 .potok-update-modal-item {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-surface-highest);
+  border: var(--glass-border);
   border-radius: 10px;
   padding: 12px 16px;
   display: flex;
@@ -813,7 +813,7 @@ input:checked + .potok-slider:before {
 }
 
 .potok-update-modal-item-name {
-  color: #fff;
+  color: var(--text-primary);
   font-size: 0.9rem;
   font-weight: 600;
 }
@@ -853,19 +853,19 @@ input:checked + .potok-slider:before {
 }
 
 .potok-update-modal-btn-update:disabled {
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
+  background: var(--bg-surface-high);
+  color: var(--text-tertiary);
   cursor: not-allowed;
 }
 
 .potok-update-modal-footer {
   padding: 14px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: var(--glass-border);
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
   gap: 10px;
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--bg-surface-high);
 }
 
 .potok-update-modal-btn-all {
@@ -907,8 +907,8 @@ input:checked + .potok-slider:before {
 
 .stat-card {
   position: relative;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
   border-radius: 16px;
   padding: 20px;
   display: flex;
@@ -926,7 +926,7 @@ input:checked + .potok-slider:before {
   inset: 0;
   border-radius: 16px;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  background: linear-gradient(135deg, var(--text-tertiary), transparent);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -934,8 +934,8 @@ input:checked + .potok-slider:before {
 }
 
 .stat-card:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--bg-surface-highest);
+  border-color: var(--accent-semi);
   transform: translateY(-2px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
@@ -985,14 +985,14 @@ input:checked + .potok-slider:before {
 .stat-card-value {
   font-size: 1.8rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   line-height: 1;
   letter-spacing: -0.02em;
 }
 
 .stat-card-label {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-tertiary);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1004,8 +1004,8 @@ input:checked + .potok-slider:before {
   flex-direction: column;
   gap: 16px;
   width: 100%;
-  background: rgba(255, 255, 255, 0.01);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--bg-surface);
+  border: var(--glass-border);
   border-radius: 16px;
   padding: 16px;
   backdrop-filter: blur(10px);
@@ -1015,8 +1015,8 @@ input:checked + .potok-slider:before {
   position: relative;
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
   border-radius: 12px;
   padding: 0 14px;
   flex-grow: 1;
@@ -1025,13 +1025,13 @@ input:checked + .potok-slider:before {
 }
 
 .extensions-search-bar:focus-within {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(0, 122, 255, 0.5);
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+  background: var(--bg-surface-highest);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
 }
 
 .extensions-search-bar .search-icon {
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--text-tertiary);
   margin-right: 10px;
   flex-shrink: 0;
 }
@@ -1039,7 +1039,7 @@ input:checked + .potok-slider:before {
 .extensions-search-bar .search-input {
   background: transparent;
   border: none;
-  color: #fff;
+  color: var(--text-primary);
   font-size: 0.95rem;
   width: 100%;
   height: 100%;
@@ -1047,13 +1047,13 @@ input:checked + .potok-slider:before {
 }
 
 .extensions-search-bar .search-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-tertiary);
 }
 
 .extensions-search-bar .search-clear-btn {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1063,7 +1063,7 @@ input:checked + .potok-slider:before {
 }
 
 .extensions-search-bar .search-clear-btn:hover {
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .filter-chips-container {
@@ -1078,9 +1078,9 @@ input:checked + .potok-slider:before {
   border-radius: 9999px;
   font-size: 0.85rem;
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.6);
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -1089,31 +1089,31 @@ input:checked + .potok-slider:before {
 }
 
 .filter-chip:hover {
-  background: rgba(255, 255, 255, 0.07);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--bg-surface-highest);
+  color: var(--text-primary);
+  border-color: var(--accent-semi);
 }
 
 .filter-chip.active {
-  background: linear-gradient(135deg, rgba(0, 122, 255, 0.2), rgba(0, 122, 255, 0.1));
-  color: #fff;
-  border-color: rgba(0, 122, 255, 0.45);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px var(--accent-dim);
 }
 
 .filter-chip .chip-count {
   font-size: 0.75rem;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
+  background: var(--bg-surface-highest);
+  color: var(--text-secondary);
   padding: 1px 6px;
   border-radius: 9999px;
   margin-left: 4px;
 }
 
 .filter-chip.active .chip-count {
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
+  background: var(--accent);
+  color: var(--text-accent);
 }
 
 /* Category Filter specific label */
@@ -1122,7 +1122,7 @@ input:checked + .potok-slider:before {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--text-tertiary);
   margin-right: 8px;
 }
 
@@ -1142,8 +1142,8 @@ input:checked + .potok-slider:before {
 }
 
 .install-extension-panel {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
   border-radius: 16px;
   padding: 20px;
   display: flex;
@@ -1161,7 +1161,7 @@ input:checked + .potok-slider:before {
 
 .install-help-text {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-tertiary);
   margin: 0;
   line-height: 1.4;
 }
@@ -1173,8 +1173,8 @@ input:checked + .potok-slider:before {
 
 .potok-extension-card {
   position: relative;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
   border-radius: 16px;
   padding: 20px;
   display: flex;
@@ -1191,7 +1191,7 @@ input:checked + .potok-slider:before {
   inset: 0;
   border-radius: 16px;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 50%, rgba(0, 122, 255, 0.04) 100%);
+  background: linear-gradient(135deg, var(--text-tertiary) 0%, transparent 50%, var(--accent-semi) 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -1202,8 +1202,8 @@ input:checked + .potok-slider:before {
 
 .potok-extension-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--accent-semi);
+  background: var(--bg-surface-highest);
   box-shadow: 0 16px 35px rgba(0, 0, 0, 0.3);
 }
 
@@ -1237,8 +1237,8 @@ input:checked + .potok-slider:before {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1248,8 +1248,8 @@ input:checked + .potok-slider:before {
 
 .potok-extension-card:hover .extension-card-icon-container {
   transform: scale(1.05);
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: var(--bg-surface-highest);
+  border-color: var(--accent-semi);
 }
 
 /* Card Icon Themes */
@@ -1279,7 +1279,7 @@ input:checked + .potok-slider:before {
 .card-name {
   font-size: 1.05rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1287,17 +1287,17 @@ input:checked + .potok-slider:before {
 
 .card-version-badge {
   font-size: 0.75rem;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
+  background: var(--bg-surface-high);
+  color: var(--text-secondary);
   padding: 2px 6px;
   border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: var(--glass-border);
   font-weight: 500;
 }
 
 .card-description {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--text-secondary);
   margin-top: 6px;
   line-height: 1.4;
   display: -webkit-box;
@@ -1329,8 +1329,8 @@ input:checked + .potok-slider:before {
   position: absolute;
   cursor: pointer;
   inset: 0;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--bg-surface-highest);
+  border: var(--glass-border);
   transition: .2s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 24px;
 }
@@ -1437,7 +1437,7 @@ input:checked + .slider-round:before {
   flex-direction: row;
   justify-content: space-between;
   align-items: flex-end;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: var(--glass-border);
   padding-top: 14px;
   margin-top: auto;
   gap: 16px;
@@ -1452,7 +1452,7 @@ input:checked + .slider-round:before {
 
 .card-id-text {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--text-tertiary);
   font-family: monospace;
   white-space: nowrap;
   overflow: hidden;
@@ -1470,9 +1470,9 @@ input:checked + .slider-round:before {
   font-weight: 500;
   padding: 1px 5px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-surface-highest);
+  color: var(--text-secondary);
+  border: var(--glass-border);
 }
 
 .card-actions-group {
@@ -1483,23 +1483,23 @@ input:checked + .slider-round:before {
 }
 
 .card-action-btn {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
   border-radius: 8px;
   width: 32px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .card-action-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  background: var(--bg-surface-highest);
+  border-color: var(--accent-semi);
+  color: var(--text-primary);
   transform: translateY(-1px);
 }
 

@@ -314,8 +314,8 @@ export const ExtensionsManager: React.FC = () => {
         </div>
 
         {/* Category Filters Chips */}
-        <div className="filter-chips-container category-filter-chips" style={{ borderTop: "1px solid rgba(255, 255, 255, 0.04)", paddingTop: "12px", width: "100%" }}>
-          <span className="category-filter-label" style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", fontWeight: 500, marginRight: "8px", display: "inline-flex", alignItems: "center" }}>
+        <div className="filter-chips-container category-filter-chips" style={{ borderTop: "var(--glass-border)", paddingTop: "12px", width: "100%" }}>
+          <span className="category-filter-label" style={{ fontSize: "0.8rem", color: "var(--text-tertiary)", fontWeight: 500, marginRight: "8px", display: "inline-flex", alignItems: "center" }}>
             Категория:
           </span>
           <button
@@ -344,7 +344,7 @@ export const ExtensionsManager: React.FC = () => {
       <Grid minWidth="340px" gap="var(--space-m)" className="potok-extensions-grid" style={{ marginTop: "16px" }}>
         {filteredExtensions.length === 0 ? (
           <div className="potok-card potok-extensions-empty-card" style={{ gridColumn: "1 / -1", minHeight: "200px", justifyContent: "center" }}>
-            <ShieldAlert size={36} className="potok-extensions-empty-icon" style={{ color: "rgba(255,255,255,0.3)" }} />
+            <ShieldAlert size={36} className="potok-extensions-empty-icon" style={{ color: "var(--text-tertiary)" }} />
             <span className="potok-text potok-text-secondary" style={{ fontSize: "1rem", marginTop: "8px" }}>
               {extensions.length === 0 ? "У вас еще нет установленных расширений" : "Нет расширений, соответствующих выбранным критериям"}
             </span>
@@ -457,7 +457,7 @@ export const ExtensionsManager: React.FC = () => {
             </div>
 
             <div className="manifest-modal-body" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div className="potok-hstack" style={{ gap: "8px", borderBottom: "1px solid rgba(255, 255, 255, 0.06)", paddingBottom: "12px" }}>
+              <div className="potok-hstack" style={{ gap: "8px", borderBottom: "var(--glass-border)", paddingBottom: "12px" }}>
                 <button
                   className={`potok-btn ${drawerTab === "details" ? "potok-btn-primary" : "potok-btn-secondary"}`}
                   style={{ fontSize: "0.85rem", padding: "6px 16px" }}
@@ -478,48 +478,48 @@ export const ExtensionsManager: React.FC = () => {
                 <div className="potok-vstack" style={{ gap: "20px" }}>
                   {drawerExtension.manifest.description && (
                     <div className="potok-vstack" style={{ gap: "6px" }}>
-                      <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", fontWeight: 700, letterSpacing: "0.05em" }}>Описание</span>
-                      <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "8px", padding: "12px 14px", fontSize: "0.9rem", lineHeight: "1.5", color: "var(--text-primary)" }}>
+                      <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--text-tertiary)", fontWeight: 700, letterSpacing: "0.05em" }}>Описание</span>
+                      <div style={{ background: "var(--bg-surface-high)", border: "var(--glass-border)", borderRadius: "8px", padding: "12px 14px", fontSize: "0.9rem", lineHeight: "1.5", color: "var(--text-primary)" }}>
                         {drawerExtension.manifest.description}
                       </div>
                     </div>
                   )}
 
                   <div className="potok-vstack" style={{ gap: "10px" }}>
-                    <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", fontWeight: 700, letterSpacing: "0.05em" }}>Сведения</span>
-                    <div style={{ display: "grid", gridTemplateColumns: "130px 1fr", gap: "12px 16px", fontSize: "0.9rem", color: "var(--text-secondary)", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "8px", padding: "14px" }}>
-                      <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>Категория</span>
+                    <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--text-tertiary)", fontWeight: 700, letterSpacing: "0.05em" }}>Сведения</span>
+                    <div style={{ display: "grid", gridTemplateColumns: "130px 1fr", gap: "12px 16px", fontSize: "0.9rem", color: "var(--text-secondary)", background: "var(--bg-surface-high)", border: "var(--glass-border)", borderRadius: "8px", padding: "14px" }}>
+                      <span style={{ color: "var(--text-tertiary)", fontWeight: 500 }}>Категория</span>
                       <span>{renderCategoryBadge(drawerExtension.manifest)}</span>
 
                       {drawerExtension.manifest.author && (
                         <>
-                          <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>Автор</span>
+                          <span style={{ color: "var(--text-tertiary)", fontWeight: 500 }}>Автор</span>
                           <span style={{ color: "var(--text-primary)" }}>{drawerExtension.manifest.author}</span>
                         </>
                       )}
 
-                      <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>URL источника</span>
+                      <span style={{ color: "var(--text-tertiary)", fontWeight: 500 }}>URL источника</span>
                       <span className="selectable-text" style={{ wordBreak: "break-all", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "6px" }}>
                         {drawerExtension.url}
                         <button
                           className="copy-btn-inline"
                           onClick={() => handleCopyLink(drawerExtension.url)}
-                          style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", display: "inline-flex" }}
+                          style={{ background: "transparent", border: "none", color: "var(--text-tertiary)", cursor: "pointer", display: "inline-flex" }}
                           title="Копировать URL"
                         >
                           <Copy size={12} />
                         </button>
                       </span>
 
-                      <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>Точка входа</span>
-                      <span style={{ fontFamily: "monospace", fontSize: "0.85rem", color: "#38bdf8" }}>{drawerExtension.manifest.entrypoint}</span>
+                      <span style={{ color: "var(--text-tertiary)", fontWeight: 500 }}>Точка входа</span>
+                      <span style={{ fontFamily: "monospace", fontSize: "0.85rem", color: "var(--accent)" }}>{drawerExtension.manifest.entrypoint}</span>
 
-                      <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>Статус</span>
+                      <span style={{ color: "var(--text-tertiary)", fontWeight: 500 }}>Статус</span>
                       <span>
                         {drawerExtension.enabled ? (
                           <span className="potok-badge potok-badge-success">Активно</span>
                         ) : (
-                          <span className="potok-badge" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.1)" }}>Отключено</span>
+                          <span className="potok-badge" style={{ background: "var(--bg-surface-highest)", color: "var(--text-secondary)", border: "var(--glass-border)" }}>Отключено</span>
                         )}
                       </span>
                     </div>
@@ -527,22 +527,22 @@ export const ExtensionsManager: React.FC = () => {
 
                   {drawerExtension.manifest.permissions && drawerExtension.manifest.permissions.length > 0 && (
                     <div className="potok-vstack" style={{ gap: "8px" }}>
-                      <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", fontWeight: 700, letterSpacing: "0.05em" }}>Разрешения</span>
+                      <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--text-tertiary)", fontWeight: 700, letterSpacing: "0.05em" }}>Разрешения</span>
                       <div className="potok-vstack" style={{ gap: "10px" }}>
                         {drawerExtension.manifest.permissions.map((perm) => (
                           <div
                             key={perm}
                             style={{
-                              background: "rgba(255, 255, 255, 0.02)",
-                              border: "1px solid rgba(255, 255, 255, 0.05)",
+                              background: "var(--bg-surface-high)",
+                              border: "var(--glass-border)",
                               borderRadius: "8px",
                               padding: "10px 12px",
                             }}
                           >
-                            <div style={{ fontWeight: 600, color: "#fff", fontSize: "0.85rem", marginBottom: "4px" }}>
+                            <div style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: "0.85rem", marginBottom: "4px" }}>
                               {perm}
                             </div>
-                            <div style={{ fontSize: "0.8rem", color: "rgba(255, 255, 255, 0.5)", lineHeight: "1.4" }}>
+                            <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", lineHeight: "1.4" }}>
                               {PERMISSION_DESCRIPTIONS[perm] || `Запрос специального доступа: ${perm}`}
                             </div>
                           </div>
@@ -553,14 +553,14 @@ export const ExtensionsManager: React.FC = () => {
 
                   {drawerExtension.manifest.slots && drawerExtension.manifest.slots.length > 0 && (
                     <div className="potok-vstack" style={{ gap: "8px" }}>
-                      <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", fontWeight: 700, letterSpacing: "0.05em" }}>Интеграционные слоты (Встраивание)</span>
+                      <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--text-tertiary)", fontWeight: 700, letterSpacing: "0.05em" }}>Интеграционные слоты (Встраивание)</span>
                       <div className="potok-vstack" style={{ gap: "8px" }}>
                         {drawerExtension.manifest.slots.map((slot) => (
                           <div
                             key={slot.id}
                             style={{
-                              background: "rgba(0, 122, 255, 0.05)",
-                              border: "1px solid rgba(0, 122, 255, 0.15)",
+                              background: "var(--accent-dim)",
+                              border: "1px solid var(--accent-semi)",
                               borderRadius: "8px",
                               padding: "8px 12px",
                               display: "flex",
@@ -569,14 +569,14 @@ export const ExtensionsManager: React.FC = () => {
                             }}
                           >
                             <div>
-                              <div style={{ fontWeight: 500, color: "#fff", fontSize: "0.85rem" }}>
+                              <div style={{ fontWeight: 500, color: "var(--text-primary)", fontSize: "0.85rem" }}>
                                 {slot.title}
                               </div>
-                              <div style={{ fontSize: "0.75rem", color: "rgba(255, 255, 255, 0.4)" }}>
-                                Слот: <code style={{ color: "#38bdf8", padding: "1px 4px", fontSize: "0.75rem", background: "rgba(0,0,0,0.2)" }}>{slot.slotName}</code>
+                              <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                                Слот: <code style={{ color: "var(--accent)", padding: "1px 4px", fontSize: "0.75rem", background: "var(--bg-surface-high)" }}>{slot.slotName}</code>
                               </div>
                             </div>
-                            <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>ID: {slot.id}</span>
+                            <span style={{ fontSize: "0.75rem", color: "var(--text-tertiary)" }}>ID: {slot.id}</span>
                           </div>
                         ))}
                       </div>

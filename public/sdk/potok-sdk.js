@@ -717,6 +717,14 @@ var PotokSDK = (function(exports) {
        */
       onBlockContextUpdate(cb: Function): () => void;
       /**
+       * Установка темы оформления.
+       */
+      setAccentTheme(themeId: string): void;
+      /**
+       * Регистрация динамических тем.
+       */
+      registerThemes(themes: any[]): void;
+      /**
        * Перечень строителей (builders) UI-компонентов.
        */
       components: {

@@ -67,6 +67,37 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
   const selectedOption = componentProps.options?.find((opt) => opt.value === localSelected) 
     || componentProps.options?.[0];
 
+  const getThemeColorPreview = (value: string) => {
+    const themeColors: Record<string, { bg: string; accent: string }> = {
+      nordicFrost: { bg: "#0f1218", accent: "#add8e6" },
+      amberGold: { bg: "#120e0a", accent: "#e5a00d" },
+      sageMuted: { bg: "#0f110f", accent: "#b4c8b4" },
+      graphite: { bg: "#0f0f10", accent: "#ffffff" },
+      system: { bg: "#0f0f12", accent: "#007aff" },
+      lightClassic: { bg: "#f4f4f6", accent: "#007aff" },
+      pastelPeach: { bg: "#fdf5ef", accent: "#ee7755" },
+      softMint: { bg: "#f4faf7", accent: "#2dbd82" },
+    };
+
+    const colors = themeColors[value];
+    if (!colors) return null;
+
+    return (
+      <span 
+        style={{
+          display: "inline-block",
+          width: "12px",
+          height: "12px",
+          borderRadius: "50%",
+          background: `linear-gradient(135deg, ${colors.accent} 50%, ${colors.bg} 50%)`,
+          border: "1px solid var(--text-tertiary)",
+          marginRight: "8px",
+          flexShrink: 0
+        }}
+      />
+    );
+  };
+
   return (
     <div key={id} className="potok-input-group filter-popover-wrapper" style={{ ...baseStyle, position: "relative" }}>
       {componentProps.label && <label className="potok-label" style={{ marginBottom: "6px" }}>{componentProps.label}</label>}
@@ -88,7 +119,10 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
         disabled={componentProps.disabled}
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span>{selectedOption ? selectedOption.label : "Выбрать..."}</span>
+        <span style={{ display: "flex", alignItems: "center" }}>
+          {selectedOption && getThemeColorPreview(selectedOption.value)}
+          <span>{selectedOption ? selectedOption.label : "Выбрать..."}</span>
+        </span>
         <ChevronDown size={14} style={{ opacity: 0.7 }} />
       </button>
 
@@ -130,7 +164,10 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
                 }}
                 onClick={() => handleSelectOption(opt.value)}
               >
-                <span>{opt.label}</span>
+                <span style={{ display: "flex", alignItems: "center" }}>
+                  {getThemeColorPreview(opt.value)}
+                  <span>{opt.label}</span>
+                </span>
                 {localSelected === opt.value && <Check size={14} className="filter-popover-check" />}
               </div>
             ))}

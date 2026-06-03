@@ -267,7 +267,9 @@ export const PluginSandbox: React.FC = () => {
           });
 
           let cssContent = "";
+          const serializableThemes: any[] = [];
           customThemesMap.forEach((theme: any) => {
+            serializableThemes.push(theme);
             const rules = Object.entries(theme.variables || {})
               .map(([key, val]) => `  ${key}: ${val};`)
               .join("\n");
@@ -275,6 +277,11 @@ export const PluginSandbox: React.FC = () => {
           });
 
           styleTag.textContent = cssContent;
+          try {
+            localStorage.setItem("potok_custom_themes", JSON.stringify(serializableThemes));
+          } catch (e) {
+            console.error("[PluginSandbox] Failed to cache custom themes:", e);
+          }
           break;
         }
         case "SHUTDOWN_ACK":

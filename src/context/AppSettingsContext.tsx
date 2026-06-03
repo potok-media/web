@@ -193,6 +193,36 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const isSettingsLocked = hostConfig.locked;
 
   useEffect(() => {
+    // Inject cached custom themes from localStorage immediately to avoid FOUC
+    try {
+      const cached = localStorage.getItem("potok_custom_themes");
+      if (cached) {
+        const themesList = JSON.parse(cached);
+        if (Array.isArray(themesList)) {
+          let styleTag = document.getElementById("potok-plugin-custom-themes") as HTMLStyleElement;
+          if (!styleTag) {
+            styleTag = document.createElement("style");
+            styleTag.id = "potok-plugin-custom-themes";
+            document.head.appendChild(styleTag);
+          }
+          let cssContent = "";
+          themesList.forEach((theme: any) => {
+            if (theme && theme.id && theme.variables) {
+              const rules = Object.entries(theme.variables)
+                .map(([key, val]) => `  ${key}: ${val};`)
+                .join("\n");
+              cssContent += `html[data-theme="${theme.id}"] {\n${rules}\n}\n`;
+            }
+          });
+          styleTag.textContent = cssContent;
+        }
+      }
+    } catch (e) {
+      console.error("[AppSettingsContext] Failed to load cached custom themes:", e);
+    }
+  }, []);
+
+  useEffect(() => {
     document.documentElement.setAttribute("data-theme", accentTheme);
   }, [accentTheme]);
 
