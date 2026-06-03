@@ -186,7 +186,7 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
             <video
               src={nativeUrl}
               controls
-              autoPlay
+              preload="metadata"
               style={{
                 width: "100%",
                 height: "100%",
