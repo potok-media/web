@@ -705,17 +705,19 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const playVideo = useCallback((playback: ActivePlayback) => {
     if (defaultPlayer === "infuse") {
       try {
-        const encodedUrl = encodeURIComponent(playback.streamUrl);
-        const triggerUrl = `infuse://x-callback-url/play?url=${encodedUrl}`;
-        const iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        iframe.src = triggerUrl;
-        document.body.appendChild(iframe);
-        setTimeout(() => {
-          if (iframe.parentNode) {
-            document.body.removeChild(iframe);
+        let streamUrl = playback.streamUrl;
+        if (streamUrl.startsWith("/")) {
+          if (streamUrl.startsWith("/api/")) {
+            const base = ApiClient.baseURL.replace(/\/+$/, "");
+            streamUrl = `${base}${streamUrl}`;
+          } else {
+            const base = window.location.origin.replace(/\/+$/, "");
+            streamUrl = `${base}${streamUrl}`;
           }
-        }, 100);
+        }
+        const encodedUrl = encodeURIComponent(streamUrl);
+        const triggerUrl = `infuse://x-callback-url/play?url=${encodedUrl}`;
+        window.location.href = triggerUrl;
         showHUD("success", "Открываем в Infuse!");
       } catch (err: unknown) {
         const errorMsg = err instanceof Error ? err.message : String(err);
