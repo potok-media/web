@@ -113,6 +113,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     let migrated = false;
     const cleanProfiles = raw.map((p: LegacyProfile): ConnectionProfile => {
       const copy = { ...p };
+      if (copy.id === "default-profile" && !copy.gatewayURL && hostConfig.bff) {
+        copy.gatewayURL = hostConfig.bff;
+        migrated = true;
+      }
       if ("torrServerURL" in copy && copy.torrServerURL) {
         if (!copy.playerServerURL) {
           copy.playerServerURL = copy.torrServerURL;
@@ -178,7 +182,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
 
   const [activeProfileID, setActiveProfileID] = useState<string | null>(() => 
-    Storage.get<string | null>("activeProfileID", hostConfig.locked ? defaultProfiles[0].id : null)
+    Storage.get<string | null>("activeProfileID", hostConfig.bff ? defaultProfiles[0].id : null)
   );
   const [accentTheme, _setAccentTheme] = useState<string>(() => 
     Storage.get<string>("accentTheme", "nordicFrost")
