@@ -81,21 +81,29 @@ export const AppLayout: React.FC = () => {
 
   const nativeVideoRef = React.useRef<HTMLVideoElement>(null);
 
-  // iOS native player: listen for fullscreen exit & video end to close the overlay.
-  // No autoplay or programmatic fullscreen — the user taps the native play button,
-  // and iOS Safari automatically opens its built-in fullscreen player (because playsinline is omitted).
   React.useEffect(() => {
     const video = nativeVideoRef.current;
     if (!video) return;
 
-    const handleExit = () => stopVideo();
+    video.removeAttribute("playsinline");
+    video.removeAttribute("webkit-playsinline");
 
-    video.addEventListener("webkitendfullscreen", handleExit);
-    video.addEventListener("ended", handleExit);
+    video.addEventListener("webkitendfullscreen", stopVideo);
+    video.addEventListener("ended", stopVideo);
+
+    video.play()
+      .then(() => {
+        if ((video as any).webkitEnterFullScreen) {
+          (video as any).webkitEnterFullScreen();
+        }
+      })
+      .catch((err) => {
+        console.warn("[AppLayout] Autoplay blocked, waiting for native play gesture:", err);
+      });
 
     return () => {
-      video.removeEventListener("webkitendfullscreen", handleExit);
-      video.removeEventListener("ended", handleExit);
+      video.removeEventListener("webkitendfullscreen", stopVideo);
+      video.removeEventListener("ended", stopVideo);
     };
   }, [activePlayback, stopVideo]);
 
@@ -170,67 +178,25 @@ export const AppLayout: React.FC = () => {
 
        {activePlayback && (
         shouldBypassWebPlayer() ? (
-          <div style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9999,
-            backgroundColor: "#000",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-          }}>
-            {/* Close button */}
-            <button
-              onClick={stopVideo}
-              style={{
-                position: "absolute",
-                top: "env(safe-area-inset-top, 12px)",
-                right: 16,
-                zIndex: 10,
-                background: "rgba(255,255,255,0.15)",
-                border: "none",
-                borderRadius: "50%",
-                width: 36,
-                height: 36,
-                color: "#fff",
-                fontSize: "1.2rem",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginTop: 12,
-              }}
-              aria-label="Закрыть"
-            >✕</button>
-            <video
-              ref={nativeVideoRef}
-              src={formatNativePlaybackUrl(
-                activePlayback.streamUrl,
-                activePlayback.streamHash,
-                (activePlayback as any).torrentHash
-              )}
-              controls
-              preload="metadata"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-                backgroundColor: "#000",
-              }}
-            />
-            <p style={{
-              position: "absolute",
-              bottom: "max(env(safe-area-inset-bottom, 24px), 24px)",
-              color: "rgba(255,255,255,0.5)",
-              fontSize: "0.8rem",
-              margin: 0,
-              textAlign: "center",
-              pointerEvents: "none",
-            }}>
-              Нажмите ▶ для воспроизведения
-            </p>
-          </div>
+          <video
+            ref={nativeVideoRef}
+            src={formatNativePlaybackUrl(
+              activePlayback.streamUrl,
+              activePlayback.streamHash,
+              (activePlayback as any).torrentHash
+            )}
+            controls
+            autoPlay
+            style={{
+              position: "fixed",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              backgroundColor: "#000",
+              objectFit: "contain",
+              zIndex: 9999,
+            }}
+          />
         ) : (
           <ErrorBoundary fallback={(error, resetError) => (
             <div style={{
