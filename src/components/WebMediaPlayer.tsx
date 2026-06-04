@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import Hls from "hls.js";
-import { ChevronRight, AlertTriangle, Play } from "lucide-react";
+import { ChevronRight, AlertTriangle } from "lucide-react";
 import { ApiClient } from "../network/ApiClient";
 import { usePlayback, type ActivePlayback } from "../context/AppSettingsContext";
 import { PlayerTopBar } from "./player/PlayerTopBar";
@@ -198,7 +198,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   // States
   const [isClosed, setIsClosed] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isAutoplayBlocked, setIsAutoplayBlocked] = useState(false);
   const [srcResetCounter, setSrcResetCounter] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
@@ -352,11 +351,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
   // Helper to route external CDN streams through high-performance C# BFF stream proxy
   const getProxyUrl = useCallback((targetUrl: string) => {
     if (!targetUrl) return targetUrl;
-    const isApple = /Macintosh|MacIntel|iPad|iPhone|iPod/i.test(navigator.userAgent || "") ||
-                    (typeof navigator.platform === "string" && /Mac|iPad|iPhone|iPod/i.test(navigator.platform));
-    if (isApple && targetUrl.includes(".m3u8")) {
-      return targetUrl;
-    }
     const apiTKey = "/api/tor" + "rent";
     if (targetUrl.includes("localhost") || targetUrl.includes("127.0.0.1") || targetUrl.includes(apiTKey) || targetUrl.includes("/stream/")) {
       return targetUrl;
@@ -418,33 +412,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     }
     setSubtitleTracks(tracks);
     setCurrentSubtitleTrack(activeIdx);
-  }, []);
-
-  const syncNativeAudioTracks = useCallback(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    
-    if ("audioTracks" in video && (video as any).audioTracks) {
-      const nativeTracks = (video as any).audioTracks;
-      const tracks: { id: number; name: string }[] = [];
-      let activeIdx = -1;
-      
-      for (let i = 0; i < nativeTracks.length; i++) {
-        const track = nativeTracks[i];
-        tracks.push({
-          id: i,
-          name: track.label || track.language || `Дорожка ${i + 1}`,
-        });
-        if (track.enabled) {
-          activeIdx = i;
-        }
-      }
-      
-      if (tracks.length > 0) {
-        setAudioTracks(tracks);
-        setCurrentAudioTrack(activeIdx);
-      }
-    }
   }, []);
 
   // Sync with host metadata endpoint for custom Hls.js/torrent duration parameters
@@ -721,45 +688,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
     subtitleObjectUrls.clear();
   }, []);
 
-  const attemptPlay = useCallback((onSuccess?: () => void) => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    video.play()
-      .then(() => {
-        setIsAutoplayBlocked(false);
-        onSuccess?.();
-      })
-      .catch((err) => {
-        console.warn("[WebMediaPlayer] Play blocked, attempting muted autoplay:", err);
-        video.muted = true;
-        video.play()
-          .then(() => {
-            setIsAutoplayBlocked(false);
-            onSuccess?.();
-          })
-          .catch((mutedErr) => {
-            console.error("[WebMediaPlayer] Muted autoplay also blocked:", mutedErr);
-            setIsAutoplayBlocked(true);
-          });
-      });
-  }, []);
-
-  const handleClearAutoplayBlock = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    const video = videoRef.current;
-    if (video) {
-      video.muted = false;
-      video.play()
-        .then(() => {
-          setIsAutoplayBlocked(false);
-        })
-        .catch((err) => {
-          console.error("[WebMediaPlayer] Manual play failed after autoplay block:", err);
-        });
-    }
-  }, []);
-
   const handleRefreshStream = useCallback(() => {
     const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
     const video = videoRef.current;
@@ -833,17 +761,12 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
 
     const proxiedUrl = getProxyUrl(finalStreamUrl);
     const isM3u8 = finalStreamUrl.includes(".m3u8");
-    const isApple = /Macintosh|MacIntel|iPad|iPhone|iPod/i.test(navigator.userAgent || "") ||
-                    (typeof navigator.platform === "string" && /Mac|iPad|iPhone|iPod/i.test(navigator.platform));
 
     setPlayerError(null);
 
     if (isM3u8) {
       video.crossOrigin = "anonymous";
-      
-      const useNativeHls = isApple && video.canPlayType("application/vnd.apple.mpegurl");
-
-      if (!useNativeHls && Hls.isSupported()) {
+      if (Hls.isSupported()) {
         const hls = new Hls({ maxBufferLength: 30, maxMaxBufferLength: 60 });
         hlsRef.current = hls;
 
@@ -882,7 +805,10 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
           updateAudioTracks();
           updateQualityLevels();
-          attemptPlay();
+          video.play().catch(() => {
+            video.muted = true;
+            video.play().catch((err) => console.error("Autoplay failed:", err));
+          });
         });
 
         hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, updateAudioTracks);
@@ -928,27 +854,36 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = proxiedUrl;
         setSrcResetCounter(p => p + 1);
-        attemptPlay(() => {
+        video.play().then(() => {
           if (startPos > 0) {
             video.currentTime = startPos;
           }
-        });
+        }).catch(() => {});
       }
     } else {
       video.setAttribute("crossorigin", "anonymous");
       video.src = proxiedUrl;
       setSrcResetCounter(p => p + 1);
-      attemptPlay(() => {
+      video.play().then(() => {
+        // If it's a remuxed stream, the server already seeked, so browser currentTime 0 is correct.
+        // Otherwise, seek to startPos natively.
         if (startPos > 0 && !needsRemux) {
           video.currentTime = startPos;
         }
+      }).catch(() => {
+        video.muted = true;
+        video.play().then(() => {
+          if (startPos > 0 && !needsRemux) {
+            video.currentTime = startPos;
+          }
+        }).catch((err) => console.error("Autoplay failed:", err));
       });
     }
 
     return () => {
       cleanupActiveResources();
     };
-  }, [playback.streamUrl, cleanupActiveResources, getProxyUrl, syncNativeTextTracks, attemptPlay]);
+  }, [playback.streamUrl, cleanupActiveResources, getProxyUrl, syncNativeTextTracks]);
 
   // Video Native Event Handlers
   const handlePlay = () => setIsPlaying(true);
@@ -1086,19 +1021,9 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       return;
     }
 
-    const video = videoRef.current;
-    if (video && "audioTracks" in video && (video as any).audioTracks && (video as any).audioTracks.length > 0) {
-      const nativeTracks = (video as any).audioTracks;
-      for (let i = 0; i < nativeTracks.length; i++) {
-        nativeTracks[i].enabled = (i === id);
-      }
-      setCurrentAudioTrack(id);
-      setShowAudioMenu(false);
-      return;
-    }
-
     const normalizedUrl = normalizeStreamUrlToPath(playback.streamUrl);
     const isStreamServer = normalizedUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
+    const video = videoRef.current;
     const time = video ? (seekOffset > 0 ? seekOffset + video.currentTime : video.currentTime) : 0;
 
     let newUrl = "";
@@ -1347,20 +1272,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
       onMouseMove={handleUserActivity}
       onClick={() => { handleUserActivity(); setShowAudioMenu(false); setShowSubtitleMenu(false); setShowQualityMenu(false); setShowPlaylistMenu(false); }}
     >
-      {isAutoplayBlocked && (
-        <div className="player-autoplay-blocked-overlay" onClick={handleClearAutoplayBlock}>
-          <div className="autoplay-blocked-card" onClick={(e) => e.stopPropagation()}>
-            <button className="autoplay-blocked-button" onClick={handleClearAutoplayBlock}>
-              <Play size={36} fill="currentColor" style={{ transform: "translateX(2px)" }} />
-            </button>
-            <h3 className="autoplay-blocked-title">Автовоспроизведение отключено</h3>
-            <p className="autoplay-blocked-subtitle">
-              Нажмите на кнопку, чтобы начать воспроизведение потока.
-            </p>
-          </div>
-        </div>
-      )}
-
       {showResumeToast && (
         <div className="player-resume-toast" onClick={(e) => e.stopPropagation()}>
           <span className="player-resume-toast-text">
@@ -1437,7 +1348,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({ playback, onClos
           onVolumeChange={handleVolumeChange}
           onError={handleVideoError}
           onEnded={handleEnded}
-          onLoadedMetadata={syncNativeAudioTracks}
           autoPlay
           style={{ width: "100%", height: "100%", objectFit: "contain" }}
         >
