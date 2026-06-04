@@ -68,8 +68,7 @@ export const createIframeHtml = (
     </head>
     <body>
       <script type="module">
-        const entryUrl = new URL("./${ext.manifest.entrypoint}?v=${ext.manifest.version || Date.now()}", document.baseURI).href;
-        import(entryUrl).catch(err => {
+        import("./${ext.manifest.entrypoint}?v=${ext.manifest.version || Date.now()}").catch(err => {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'SCRIPT_CRASH',

@@ -38,7 +38,6 @@
     gap: var(--space-l);
     width: 100%;
     max-width: 100%;
-    margin: var(--space-m) auto 0 auto;
   }
   .settings-sidebar {
     display: none !important;
@@ -63,12 +62,6 @@
 @media (max-width: 768px) {
   .settings-page-container {
     padding: var(--space-s);
-  }
-  .settings-container {
-    margin: var(--space-s) auto 0 auto;
-  }
-  .settings-mobile-tabs-bar {
-    margin: 0 calc(-1 * var(--space-s)) var(--space-l) calc(-1 * var(--space-s)) !important;
   }
   .settings-main-content {
     padding: var(--space-s);
