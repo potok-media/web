@@ -11,7 +11,6 @@ import type {
 import type { GenericEpisodeItem } from "../EpisodeSelectorPopup";
 import type { ActivePlayback } from "../../../context/AppSettingsContext";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
-import { shouldBypassWebPlayer, formatNativePlaybackUrl } from "../../../utils/playbackHelper";
 
 import MediaCardComponent from "../../MediaCardComponent";
 import HeroSpotlight from "../../HeroSpotlight";
@@ -173,24 +172,6 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
       const componentProps = schema.props;
       const { playback, isNetworkOffline } = componentProps;
       if (!playback) return null;
-
-      if (shouldBypassWebPlayer()) {
-        const nativeUrl = formatNativePlaybackUrl(
-          playback.streamUrl,
-          (playback as any).torrentHash,
-          (playback as any).streamHash
-        );
-
-        if (typeof window !== "undefined") {
-          window.location.href = nativeUrl;
-        }
-
-        return (
-          <div style={{ color: "#fff", padding: "20px", textAlign: "center" }}>
-            Открываем в нативном плеере...
-          </div>
-        );
-      }
 
       const activePlayback: ActivePlayback = {
         streamUrl: playback.streamUrl,
