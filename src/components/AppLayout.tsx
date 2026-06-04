@@ -10,7 +10,6 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { OfflineOverlay } from "./OfflineOverlay";
 import { FocusTrap } from "./FocusTrap";
 import { PluginSandbox } from "./common/PluginSandbox";
-import { shouldBypassWebPlayer, formatNativePlaybackUrl } from "../utils/playbackHelper";
 import "../styles/layout.css";
 
 export const AppLayout: React.FC = () => {
@@ -78,34 +77,6 @@ export const AppLayout: React.FC = () => {
     activePlayback,
     stopVideo,
   } = usePlayback();
-
-  const nativeVideoRef = React.useRef<HTMLVideoElement>(null);
-
-  React.useEffect(() => {
-    const video = nativeVideoRef.current;
-    if (!video) return;
-
-    video.removeAttribute("playsinline");
-    video.removeAttribute("webkit-playsinline");
-
-    video.addEventListener("webkitendfullscreen", stopVideo);
-    video.addEventListener("ended", stopVideo);
-
-    video.play()
-      .then(() => {
-        if ((video as any).webkitEnterFullScreen) {
-          (video as any).webkitEnterFullScreen();
-        }
-      })
-      .catch((err) => {
-        console.warn("[AppLayout] Autoplay blocked, waiting for native play gesture:", err);
-      });
-
-    return () => {
-      video.removeEventListener("webkitendfullscreen", stopVideo);
-      video.removeEventListener("ended", stopVideo);
-    };
-  }, [activePlayback, stopVideo]);
 
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
   const [inputUrl, setInputUrl] = React.useState(
@@ -176,90 +147,68 @@ export const AppLayout: React.FC = () => {
 
       {isMobile && <MobileBottomNavigation />}
 
-       {activePlayback && (
-        shouldBypassWebPlayer() ? (
-          <video
-            ref={nativeVideoRef}
-            src={formatNativePlaybackUrl(
-              activePlayback.streamUrl,
-              activePlayback.streamHash,
-              (activePlayback as any).torrentHash
-            )}
-            controls
-            autoPlay
-            style={{
-              position: "fixed",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              backgroundColor: "#000",
-              objectFit: "contain",
-              zIndex: 9999,
-            }}
-          />
-        ) : (
-          <ErrorBoundary fallback={(error, resetError) => (
-            <div style={{
-              position: "fixed",
-              bottom: "20px",
-              right: "20px",
-              zIndex: 9999,
-              width: "350px",
-              padding: "1rem",
-              background: "rgba(20, 20, 20, 0.95)",
-              backdropFilter: "blur(25px)",
-              borderRadius: "12px",
-              border: "1px solid var(--error, #ef4444)",
-              color: "#fff",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.5)"
-            }}>
-              <h4 style={{ color: "var(--error, #ef4444)", margin: "0 0 0.5rem 0" }}>Ошибка плеера</h4>
-              <p style={{ fontSize: "0.85rem", opacity: 0.8, margin: "0 0 1rem 0" }}>
-                {error.message || "Не удалось воспроизвести видео."}
-              </p>
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button
-                  onClick={resetError}
-                  style={{
-                    flex: 1,
-                    padding: "0.4rem",
-                    background: "var(--error, #ef4444)",
-                    border: "none",
-                    borderRadius: "4px",
-                    color: "#fff",
-                    cursor: "pointer",
-                    fontSize: "0.85rem",
-                    fontWeight: 600
-                  }}
-                >
-                  Повторить
-                </button>
-                <button
-                  onClick={stopVideo}
-                  style={{
-                    flex: 1,
-                    padding: "0.4rem",
-                    background: "rgba(255,255,255,0.1)",
-                    border: "none",
-                    borderRadius: "4px",
-                    color: "#fff",
-                    cursor: "pointer",
-                    fontSize: "0.85rem"
-                  }}
-                >
-                  Закрыть
-                </button>
-              </div>
+      {activePlayback && (
+        <ErrorBoundary fallback={(error, resetError) => (
+          <div style={{
+            position: "fixed",
+            bottom: "20px",
+            right: "20px",
+            zIndex: 9999,
+            width: "350px",
+            padding: "1rem",
+            background: "rgba(20, 20, 20, 0.95)",
+            backdropFilter: "blur(25px)",
+            borderRadius: "12px",
+            border: "1px solid var(--error, #ef4444)",
+            color: "#fff",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.5)"
+          }}>
+            <h4 style={{ color: "var(--error, #ef4444)", margin: "0 0 0.5rem 0" }}>Ошибка плеера</h4>
+            <p style={{ fontSize: "0.85rem", opacity: 0.8, margin: "0 0 1rem 0" }}>
+              {error.message || "Не удалось воспроизвести видео."}
+            </p>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button
+                onClick={resetError}
+                style={{
+                  flex: 1,
+                  padding: "0.4rem",
+                  background: "var(--error, #ef4444)",
+                  border: "none",
+                  borderRadius: "4px",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontSize: "0.85rem",
+                  fontWeight: 600
+                }}
+              >
+                Повторить
+              </button>
+              <button
+                onClick={stopVideo}
+                style={{
+                  flex: 1,
+                  padding: "0.4rem",
+                  background: "rgba(255,255,255,0.1)",
+                  border: "none",
+                  borderRadius: "4px",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontSize: "0.85rem"
+                }}
+              >
+                Закрыть
+              </button>
             </div>
-          )}>
-            <WebMediaPlayer
-              key={`${activePlayback.id}-${activePlayback.season || 0}-${activePlayback.episode || 0}-${activePlayback.streamUrl}`}
-              playback={activePlayback}
-              onClose={stopVideo}
-              isNetworkOffline={connectionState === "offline"}
-            />
-          </ErrorBoundary>
-        )
+          </div>
+        )}>
+          <WebMediaPlayer
+            key={`${activePlayback.id}-${activePlayback.season || 0}-${activePlayback.episode || 0}-${activePlayback.streamUrl}`}
+            playback={activePlayback}
+            onClose={stopVideo}
+            isNetworkOffline={connectionState === "offline"}
+          />
+        </ErrorBoundary>
       )}
 
       {connectionState !== "connected" && ReactDOM.createPortal(

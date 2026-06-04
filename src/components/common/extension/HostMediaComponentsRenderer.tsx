@@ -20,8 +20,8 @@ import MediaCastSection from "../../MediaCastSection";
 import { MediaOverviewSection } from "../../MediaOverviewSection";
 import MediaRow from "../../MediaRow";
 import { WebMediaPlayer } from "../../WebMediaPlayer";
-import { EpisodeCard } from "../../EpisodeCard";
 import EpisodeSelectorPopup from "../EpisodeSelectorPopup";
+import { EpisodeCard } from "../../EpisodeCard";
 
 interface HostMediaComponentsRendererProps {
   schema: UIComponentSchema;
@@ -181,19 +181,13 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
           (playback as any).streamHash
         );
 
+        if (typeof window !== "undefined") {
+          window.location.href = nativeUrl;
+        }
+
         return (
-          <div style={{ position: "relative", width: "100%", height: "100%", background: "#000", borderRadius: "12px", overflow: "hidden" }}>
-            <video
-              src={nativeUrl}
-              controls
-              autoPlay
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-                backgroundColor: "#000",
-              }}
-            />
+          <div style={{ color: "#fff", padding: "20px", textAlign: "center" }}>
+            Открываем в нативном плеере...
           </div>
         );
       }
