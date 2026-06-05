@@ -38,7 +38,7 @@ export const TimelinePreviewTooltip: React.FC<TimelinePreviewTooltipProps> = ({
     // Debounce image request by 25ms
     timeoutRef.current = setTimeout(() => {
       const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
-      const newUrl = `${cleanBase}/api/torrent/thumbnail/${streamHash}/${fileIndex}?time=${roundedTime}`;
+      const newUrl = `${cleanBase}/api/torrents/${streamHash}/files/${fileIndex}/thumbnail?time=${roundedTime}`;
       
       setImageUrl((prev) => {
         if (prev === newUrl) return prev;

@@ -370,8 +370,7 @@ export class ApiClient {
   public static async getStreamMetadata(hash: string, fileId: string | number): Promise<ClientMetadata | null> {
     try {
       const cleanBase = this.playerServerURL.replace(/\/+$/, "");
-      const metaPath = "/api/tor" + "rent/metadata/";
-      const res = await fetch(`${cleanBase}${metaPath}${hash.toLowerCase()}/${fileId}`);
+      const res = await fetch(`${cleanBase}/api/torrents/${hash.toLowerCase()}/files/${fileId}/metadata`);
       if (!res.ok) return null;
       return res.json();
     } catch {
