@@ -210,7 +210,7 @@ export class MediaSearchProviderBuilder {
   }
 
   onSearch(cb: CallbackFunction): this {
-    const callbackId = CallbackRegistry.register(cb);
+    const callbackId = CallbackRegistry.register(cb, undefined, true);
     const hostOrigin = (window as any).PotokInitialState?.hostOrigin || "*";
     window.parent.postMessage({
       source: 'potok-plugin-sdk',
@@ -479,6 +479,7 @@ export class MediaRowBuilder extends UIComponent {
   }
 
   override id(v: string): this {
+    super.id(v);
     this._rowId = v;
     return this;
   }
@@ -951,10 +952,10 @@ export const streamsSpace = {
 
 export function initDeclarativeStreamListeners(): void {
   window.addEventListener('message', async (e) => {
+    const hostOrigin = (window as any).PotokInitialState?.hostOrigin || "*";
+    if (hostOrigin !== "*" && e.origin !== hostOrigin) return;
     const msg = e.data;
     if (!msg || msg.source !== 'potok-host') return;
-
-    const hostOrigin = (window as any).PotokInitialState?.hostOrigin || "*";
 
     if (msg.action === 'STREAM_SOURCE_SEARCH') {
       const { requestId, query, sourceId } = msg.payload;

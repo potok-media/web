@@ -231,6 +231,8 @@ export function registerSource(cfg: any) {
 export function registerSlotContribution(cfg: any) {
   window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_SLOT_CONTRIBUTION', payload: { slotName: cfg.slotName, id: cfg.id } }, getHostOrigin());
   window.addEventListener('message', async (e) => {
+    const hostOrigin = getHostOrigin();
+    if (hostOrigin !== "*" && e.origin !== hostOrigin) return;
     const msg = e.data;
     if (msg && msg.source === 'potok-host' && msg.action === 'RENDER_SLOT' && msg.payload.slotId === cfg.id) {
       const res = cfg.render(msg.payload.props);
@@ -274,6 +276,8 @@ export function initPotokSDK(): void {
   initDeclarativeStreamListeners();
 
   window.addEventListener('message', async (e) => {
+    const expectedOrigin = getHostOrigin();
+    if (expectedOrigin !== "*" && e.origin !== expectedOrigin) return;
     const msg = e.data;
     if (!msg || msg.source !== 'potok-host') return;
 

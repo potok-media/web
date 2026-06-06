@@ -2,6 +2,13 @@ export type ObservableState<T> = T & {
   $subscribe: (fn: () => void) => () => void;
 };
 
+function isPlainObjectOrArray(val: any): boolean {
+  if (val === null || typeof val !== 'object') return false;
+  if (Array.isArray(val)) return true;
+  const proto = Object.getPrototypeOf(val);
+  return proto === Object.prototype || proto === null;
+}
+
 export function createState<T extends object>(init: T): ObservableState<T> {
   const listeners = new Set<() => void>();
   let pendingNotification = false;
@@ -25,7 +32,7 @@ export function createState<T extends object>(init: T): ObservableState<T> {
   const cache = new WeakMap<any, any>();
 
   function createDeepProxy(val: any, onNotify: () => void): any {
-    if (val === null || typeof val !== 'object') {
+    if (!isPlainObjectOrArray(val)) {
       return val;
     }
     if (cache.has(val)) {

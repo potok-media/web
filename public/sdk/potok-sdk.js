@@ -12,20 +12,22 @@ var PotokSDK = (function(exports) {
 				CallbackRegistry.cleanup();
 			}, 3e4);
 		}
-		static register(cb, stableId) {
+		static register(cb, stableId, persistent = false) {
 			this.cleanup();
 			const id = stableId ? `stable_${stableId}` : "cb_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now();
 			const slotId = this.activeSlotId || "global";
+			const isPersistent = persistent || slotId === "global";
 			this.callbacks.set(id, {
 				cb,
 				slotId,
-				createdAt: Date.now()
+				createdAt: Date.now(),
+				persistent: isPersistent
 			});
 			this.activeRenderCallbacks.add(id);
 			if (this.callbacks.size > this.MAX_CALLBACKS) {
 				let oldestKey = null;
 				let oldestTime = Infinity;
-				for (const [k, v] of this.callbacks.entries()) if (v.createdAt < oldestTime) {
+				for (const [k, v] of this.callbacks.entries()) if (!v.persistent && v.createdAt < oldestTime) {
 					oldestTime = v.createdAt;
 					oldestKey = k;
 				}
@@ -36,7 +38,7 @@ var PotokSDK = (function(exports) {
 		static get(id) {
 			const entry = this.callbacks.get(id);
 			if (!entry) return void 0;
-			if (Date.now() - entry.createdAt > this.TTL) {
+			if (!entry.persistent && Date.now() - entry.createdAt > this.TTL) {
 				this.callbacks.delete(id);
 				return;
 			}
@@ -48,7 +50,7 @@ var PotokSDK = (function(exports) {
 		static trigger(id, data) {
 			const entry = this.callbacks.get(id);
 			if (entry) {
-				if (Date.now() - entry.createdAt > this.TTL) {
+				if (!entry.persistent && Date.now() - entry.createdAt > this.TTL) {
 					this.callbacks.delete(id);
 					return;
 				}
@@ -69,7 +71,7 @@ var PotokSDK = (function(exports) {
 		}
 		static cleanup() {
 			const now = Date.now();
-			for (const [k, v] of this.callbacks.entries()) if (now - v.createdAt > this.TTL) this.callbacks.delete(k);
+			for (const [k, v] of this.callbacks.entries()) if (!v.persistent && now - v.createdAt > this.TTL) this.callbacks.delete(k);
 		}
 	};
 	var CallbackScope = class {
@@ -1572,7 +1574,7 @@ var PotokSDK = (function(exports) {
 			return this;
 		}
 		onSearch(cb) {
-			const callbackId = CallbackRegistry.register(cb);
+			const callbackId = CallbackRegistry.register(cb, void 0, true);
 			const hostOrigin = window.PotokInitialState?.hostOrigin || "*";
 			window.parent.postMessage({
 				source: "potok-plugin-sdk",
@@ -1803,6 +1805,7 @@ var PotokSDK = (function(exports) {
 			this._items = [];
 		}
 		id(v) {
+			super.id(v);
 			this._rowId = v;
 			return this;
 		}
@@ -2203,9 +2206,10 @@ var PotokSDK = (function(exports) {
 	} };
 	function initDeclarativeStreamListeners() {
 		window.addEventListener("message", async (e) => {
+			const hostOrigin = window.PotokInitialState?.hostOrigin || "*";
+			if (hostOrigin !== "*" && e.origin !== hostOrigin) return;
 			const msg = e.data;
 			if (!msg || msg.source !== "potok-host") return;
-			const hostOrigin = window.PotokInitialState?.hostOrigin || "*";
 			if (msg.action === "STREAM_SOURCE_SEARCH") {
 				const { requestId, query, sourceId } = msg.payload;
 				const source = sourceId && registeredStreamSources.get(sourceId) || Array.from(registeredStreamSources.values())[0];
@@ -2403,6 +2407,12 @@ var PotokSDK = (function(exports) {
 	}
 	//#endregion
 	//#region src/sdk/src/core/state.ts
+	function isPlainObjectOrArray(val) {
+		if (val === null || typeof val !== "object") return false;
+		if (Array.isArray(val)) return true;
+		const proto = Object.getPrototypeOf(val);
+		return proto === Object.prototype || proto === null;
+	}
 	function createState(init) {
 		const listeners = /* @__PURE__ */ new Set();
 		let pendingNotification = false;
@@ -2423,7 +2433,7 @@ var PotokSDK = (function(exports) {
 		};
 		const cache = /* @__PURE__ */ new WeakMap();
 		function createDeepProxy(val, onNotify) {
-			if (val === null || typeof val !== "object") return val;
+			if (!isPlainObjectOrArray(val)) return val;
 			if (cache.has(val)) return cache.get(val);
 			const proxy = new Proxy(val, {
 				get(target, key, receiver) {
@@ -2658,6 +2668,8 @@ var PotokSDK = (function(exports) {
 			}
 		}, getHostOrigin());
 		window.addEventListener("message", async (e) => {
+			const hostOrigin = getHostOrigin();
+			if (hostOrigin !== "*" && e.origin !== hostOrigin) return;
 			const msg = e.data;
 			if (msg && msg.source === "potok-host" && msg.action === "RENDER_SLOT" && msg.payload.slotId === cfg.id) {
 				const res = cfg.render(msg.payload.props);
@@ -2695,6 +2707,8 @@ var PotokSDK = (function(exports) {
 		LocalStorageBridge.init(initialState.localStorage);
 		initDeclarativeStreamListeners();
 		window.addEventListener("message", async (e) => {
+			const expectedOrigin = getHostOrigin();
+			if (expectedOrigin !== "*" && e.origin !== expectedOrigin) return;
 			const msg = e.data;
 			if (!msg || msg.source !== "potok-host") return;
 			if (msg.action === "TRIGGER_UI_EVENT") CallbackRegistry.trigger(msg.payload.callbackId, msg.payload.eventData);

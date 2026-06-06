@@ -4,6 +4,7 @@ export interface CallbackEntry {
   cb: CallbackFunction;
   slotId: string;
   createdAt: number;
+  persistent?: boolean;
 }
 
 export class CallbackRegistry {
@@ -20,11 +21,13 @@ export class CallbackRegistry {
     }, 30000);
   }
 
-  static register(cb: CallbackFunction, stableId?: string): string {
+  static register(cb: CallbackFunction, stableId?: string, persistent = false): string {
     this.cleanup();
     const id = stableId ? `stable_${stableId}` : "cb_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now();
     const slotId = this.activeSlotId || "global";
-    this.callbacks.set(id, { cb, slotId, createdAt: Date.now() });
+    const isPersistent = persistent || slotId === "global";
+    
+    this.callbacks.set(id, { cb, slotId, createdAt: Date.now(), persistent: isPersistent });
     this.activeRenderCallbacks.add(id);
 
     // Enforce max callback limit to prevent leaks under heavy load
@@ -32,7 +35,7 @@ export class CallbackRegistry {
       let oldestKey: string | null = null;
       let oldestTime = Infinity;
       for (const [k, v] of this.callbacks.entries()) {
-        if (v.createdAt < oldestTime) {
+        if (!v.persistent && v.createdAt < oldestTime) {
           oldestTime = v.createdAt;
           oldestKey = k;
         }
@@ -47,7 +50,7 @@ export class CallbackRegistry {
   static get(id: string): CallbackFunction | undefined {
     const entry = this.callbacks.get(id);
     if (!entry) return undefined;
-    if (Date.now() - entry.createdAt > this.TTL) {
+    if (!entry.persistent && Date.now() - entry.createdAt > this.TTL) {
       this.callbacks.delete(id);
       return undefined;
     }
@@ -61,7 +64,7 @@ export class CallbackRegistry {
   static trigger(id: string, data: any): void {
     const entry = this.callbacks.get(id);
     if (entry) {
-      if (Date.now() - entry.createdAt > this.TTL) {
+      if (!entry.persistent && Date.now() - entry.createdAt > this.TTL) {
         this.callbacks.delete(id);
         return;
       }
@@ -97,7 +100,7 @@ export class CallbackRegistry {
   static cleanup(): void {
     const now = Date.now();
     for (const [k, v] of this.callbacks.entries()) {
-      if (now - v.createdAt > this.TTL) {
+      if (!v.persistent && now - v.createdAt > this.TTL) {
         this.callbacks.delete(k);
       }
     }
