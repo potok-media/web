@@ -30,6 +30,11 @@ export const WikiRightSidebar: React.FC<WikiRightSidebarProps> = ({
           {item.text}
         </div>
       ))}
+
+      <a href="https://github.com/itdoginfo/potok-plugin-sdk" target="_blank" rel="noreferrer" className="toc-edit-link">
+        <ExternalLink size={12} />
+        <span>Редактировать документацию</span>
+      </a>
     </aside>
   );
 };
