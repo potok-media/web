@@ -24,6 +24,12 @@ export const GlobalSlotPortalHost: React.FC = () => {
   const location = useLocation();
   const [activeElements, setActiveElements] = useState<Record<string, Element>>({});
   const [, setTick] = useState(0);
+  const lastRenderedRef = React.useRef<Record<string, string>>({});
+
+  // Reset cache on page change to allow re-rendering slots on the new page
+  useEffect(() => {
+    lastRenderedRef.current = {};
+  }, [location.key]);
 
   // Re-run scan when registry triggers updates (e.g. plugins registering contributions)
   useEffect(() => {
@@ -54,7 +60,12 @@ export const GlobalSlotPortalHost: React.FC = () => {
           const contributions = ExtensionRegistry.getSlotContributions(slotName);
           contributions.forEach((c) => {
             if (!contribIdAttr || c.contribution.id === contribIdAttr) {
-              ExtensionRegistry.triggerSlotRender(c.contribution.id, props);
+              const cacheKey = `${c.contribution.id}:${contribIdAttr || ""}`;
+              const propsStr = propsAttr || "{}";
+              if (lastRenderedRef.current[cacheKey] !== propsStr) {
+                lastRenderedRef.current[cacheKey] = propsStr;
+                ExtensionRegistry.triggerSlotRender(c.contribution.id, props);
+              }
             }
           });
         }

@@ -18,10 +18,12 @@ export const SettingsPage: React.FC = () => {
     defaultPlayer,
     uiFontScale,
     developerMode,
+    disableHttpProxy,
     setAccentTheme,
     setDefaultPlayer,
     setUiFontScale,
     setDeveloperMode,
+    setDisableHttpProxy,
   } = useSettings();
 
   const [activeTab, setActiveTab] = useState<string>("general");
@@ -215,6 +217,8 @@ export const SettingsPage: React.FC = () => {
               setUiFontScale={setUiFontScale}
               developerMode={developerMode}
               setDeveloperMode={setDeveloperMode}
+              disableHttpProxy={disableHttpProxy}
+              setDisableHttpProxy={setDisableHttpProxy}
             />
           )}
           {activeTab === "profiles" && <ProfilesSettings />}

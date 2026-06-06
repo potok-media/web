@@ -1,5 +1,6 @@
 import { logger } from "../logger";
 import { ApiClient } from "../../network/ApiClient";
+import { Storage } from "../StorageService";
 
 interface QueuedRequest {
   requestId: string;
@@ -56,7 +57,16 @@ class HttpProxyThrottleManager {
 
           try {
             let finalUrl = url;
-            if (url.startsWith("/api/")) {
+            const isProxy = url.startsWith("/api/proxy?url=");
+            const shouldBypass = Storage.get<boolean>("disableHttpProxy", true);
+
+            if (isProxy && shouldBypass) {
+              const searchParams = new URLSearchParams(url.slice(url.indexOf("?") + 1));
+              const rawUrl = searchParams.get("url");
+              if (rawUrl) {
+                finalUrl = rawUrl;
+              }
+            } else if (url.startsWith("/api/")) {
               const gatewayBase = activeProfile?.gatewayURL 
                 ? (activeProfile.gatewayURL.endsWith("/") ? activeProfile.gatewayURL.slice(0, -1) : activeProfile.gatewayURL)
                 : "";
@@ -70,7 +80,7 @@ class HttpProxyThrottleManager {
             }
 
             const mergedHeaders = {
-              ...(url.startsWith("/api/") ? (ApiClient.headers as any) : {}),
+              ...((url.startsWith("/api/") && !(isProxy && shouldBypass)) ? (ApiClient.headers as any) : {}),
               ...headers
             };
 

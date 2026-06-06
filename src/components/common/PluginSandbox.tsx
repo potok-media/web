@@ -241,7 +241,12 @@ export const PluginSandbox: React.FC = () => {
           break;
         }
       }
-      if (!pluginId) return;
+      if (!pluginId) {
+        console.warn("[PluginSandbox] Received message from untracked iframe/source:", msg);
+        return;
+      }
+
+      console.log(`[PluginSandbox] Received message from plugin "${pluginId}":`, msg);
 
       const ext = activeExtensions.find((e) => e.id === pluginId);
       const permissions = ext?.manifest.permissions || [];

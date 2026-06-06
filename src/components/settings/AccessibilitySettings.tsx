@@ -7,6 +7,8 @@ interface AccessibilitySettingsProps {
   setUiFontScale: (scale: number) => void;
   developerMode: boolean;
   setDeveloperMode: (val: boolean) => void;
+  disableHttpProxy: boolean;
+  setDisableHttpProxy: (val: boolean) => void;
 }
 
 export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React.memo(({
@@ -14,6 +16,8 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
   setUiFontScale,
   developerMode,
   setDeveloperMode,
+  disableHttpProxy,
+  setDisableHttpProxy,
 }) => {
   return (
     <div className="settings-pane">
@@ -45,6 +49,18 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
               type="checkbox"
               checked={developerMode}
               onChange={(e) => setDeveloperMode(e.target.checked)}
+            />
+            <span className="potok-slider" />
+          </label>
+        </div>
+
+        <div className="potok-toggle-group" style={{ marginTop: "var(--space-l)", maxWidth: "30rem", width: "100%" }}>
+          <span className="settings-label" style={{ margin: 0 }}>Прямые запросы</span>
+          <label className="potok-switch" style={{ flexShrink: 0 }}>
+            <input
+              type="checkbox"
+              checked={disableHttpProxy}
+              onChange={(e) => setDisableHttpProxy(e.target.checked)}
             />
             <span className="potok-slider" />
           </label>

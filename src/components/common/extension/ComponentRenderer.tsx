@@ -274,8 +274,23 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
         }
       }
 
+      const debugClick = () => {
+        console.log("[ComponentRenderer] Button Clicked!", {
+          text: componentProps.text,
+          pluginId,
+          events: schema.events,
+          schema
+        });
+        if (schema.events?.onClick) {
+          console.log("[ComponentRenderer] Dispatching onClick:", schema.events.onClick);
+          ExtensionRegistry.triggerUIEvent(pluginId, schema.events.onClick, {});
+        } else {
+          console.warn("[ComponentRenderer] No onClick event registered in events schema!");
+        }
+      };
+
       return (
-        <button key={id} className={btnClass} disabled={componentProps.disabled} onClick={handleClick} style={baseStyle}>
+        <button key={id} className={btnClass} disabled={componentProps.disabled} onClick={debugClick} style={baseStyle}>
           {IconComponent}
           <span>{componentProps.text}</span>
         </button>

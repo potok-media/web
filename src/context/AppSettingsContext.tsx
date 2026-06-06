@@ -53,6 +53,7 @@ export interface SettingsContextType {
   uiFontScale: number;
   isSettingsLocked: boolean;
   developerMode: boolean;
+  disableHttpProxy: boolean;
   selectProfile: (id: string) => void;
   addProfile: (profile: Omit<ConnectionProfile, "id">) => void;
   deleteProfile: (id: string) => void;
@@ -61,6 +62,7 @@ export interface SettingsContextType {
   setDefaultPlayer: (player: string) => void;
   setUiFontScale: (scale: number) => void;
   setDeveloperMode: (val: boolean) => void;
+  setDisableHttpProxy: (val: boolean) => void;
 }
 
 export const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -198,6 +200,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [developerMode, _setDeveloperMode] = useState<boolean>(() => 
     Storage.get<boolean>("developerMode", false)
   );
+  const [disableHttpProxy, _setDisableHttpProxy] = useState<boolean>(() => 
+    Storage.get<boolean>("disableHttpProxy", true)
+  );
 
   const isSettingsLocked = hostConfig.locked;
 
@@ -312,6 +317,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     _setDeveloperMode(val);
   }, []);
 
+  const setDisableHttpProxy = useCallback((val: boolean) => {
+    Storage.set("disableHttpProxy", val);
+    _setDisableHttpProxy(val);
+  }, []);
+
   const value = useMemo(() => ({
     connectionProfiles,
     activeProfileID,
@@ -320,6 +330,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     uiFontScale,
     isSettingsLocked,
     developerMode,
+    disableHttpProxy,
     selectProfile,
     addProfile,
     deleteProfile,
@@ -328,6 +339,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setDefaultPlayer,
     setUiFontScale,
     setDeveloperMode,
+    setDisableHttpProxy,
   }), [
     connectionProfiles,
     activeProfileID,
@@ -336,6 +348,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     uiFontScale,
     isSettingsLocked,
     developerMode,
+    disableHttpProxy,
     selectProfile,
     addProfile,
     deleteProfile,
@@ -344,6 +357,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setDefaultPlayer,
     setUiFontScale,
     setDeveloperMode,
+    setDisableHttpProxy,
   ]);
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
