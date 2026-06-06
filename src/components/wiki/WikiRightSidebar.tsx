@@ -31,7 +31,7 @@ export const WikiRightSidebar: React.FC<WikiRightSidebarProps> = ({
         </div>
       ))}
 
-      <a href="https://github.com/itdoginfo/potok-plugin-sdk" target="_blank" rel="noreferrer" className="toc-edit-link">
+      <a href="https://github.com/potok-media/potok-plugin-sdk" target="_blank" rel="noreferrer" className="toc-edit-link">
         <ExternalLink size={12} />
         <span>Редактировать документацию</span>
       </a>
