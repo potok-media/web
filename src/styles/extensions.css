@@ -1633,5 +1633,26 @@ input:checked + .slider-round:before {
   }
 }
 
+/* Force emulated screens (sandbox previews) to always render in dark mode colors even when the parent wiki theme is light */
+.potok-page-emu {
+  --bg-primary: #0c1017;
+  --bg-secondary: #0f141c;
+  --bg-active: rgba(255, 255, 255, 0.08);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --text-primary: HSL(0, 0%, 96%);
+  --text-secondary: HSL(0, 0%, 75%);
+  --text-tertiary: HSL(0, 0%, 55%);
+  --text-muted: HSL(0, 0%, 55%);
+  --bg-surface: HSL(240, 5%, 13%);
+  --bg-surface-high: HSL(240, 5%, 17%);
+  --bg-surface-highest: HSL(240, 4%, 23%);
+  --glass-border: 1px solid RGBA(255, 255, 255, 0.08);
+  --glass-bg: RGBA(15, 15, 20, 0.65);
+  --accent-color: HSL(200, 85%, 55%);
+  --accent-hover: HSL(200, 85%, 47%);
+  --color-accent: HSL(200, 85%, 55%);
+  --accent: HSL(200, 85%, 55%);
+}
+
 
 

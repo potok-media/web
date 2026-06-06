@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { LogOut, RefreshCw, Popcorn, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
-import { ExtensionSlot } from "../components/common/ExtensionSlot";
 import { AuthApiClient } from "../network/AuthApiClient";
 import { useHUD } from "../context/HUDContext";
 import { useAuth } from "../context/AppSettingsContext";
@@ -279,7 +278,9 @@ export const ProfilePage: React.FC = () => {
         <h2 className="profile-extensions-heading">Ваши расширения и инструменты</h2>
         <p className="profile-extensions-subheading">Быстрый доступ к установленным плагинам</p>
         <div className="profile-extensions-grid-wrapper">
-          <ExtensionSlot name="sidebar-menu" props={{ isCollapsed: false }} />
+          <div id="sidebar-menu-home-slot" data-props={JSON.stringify({ isCollapsed: false })} style={{ marginBottom: "8px" }} />
+          <div id="sidebar-menu-library-slot" data-props={JSON.stringify({ isCollapsed: false })} style={{ marginBottom: "8px" }} />
+          <div id="sidebar-menu-slot" data-props={JSON.stringify({ isCollapsed: false })} />
         </div>
       </div>
     </div>

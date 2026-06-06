@@ -6,8 +6,8 @@ import { useHUD } from "../context/HUDContext";
 import { useMediaDetails } from "../hooks/useMediaDetails";
 import { SeasonEpisodesSection } from "../components/SeasonEpisodesSection";
 import { LoadingSpinner } from "../components/LoadingSpinner";
-import { ExtensionSlot } from "../components/common/ExtensionSlot";
 import { MediaOverviewSection } from "../components/MediaOverviewSection";
+import { MediaCastSection } from "../components/MediaCastSection";
 import type { TvEpisode, MediaCard } from "../network/ApiTypes";
 import "../styles/media.css";
 
@@ -103,17 +103,16 @@ export const MediaDetailsPage: React.FC = () => {
 
               <div className="details-actions-container">
                 {/* Dynamically Rendered Plugin Extension Slot for Media Actions (Plugins contribute their watch buttons here) */}
-                <ExtensionSlot
-                  id="media-actions"
-                  name="media-actions"
-                  props={{
+                <div
+                  id="media-actions-slot"
+                  data-props={JSON.stringify({
                     mediaId,
                     tmdbId,
                     mediaType,
                     title: media.title,
                     originalTitle: media.originalTitle,
                     media
-                  }}
+                  })}
                 />
 
                 {/* Social and Watchlist row */}
@@ -170,24 +169,7 @@ export const MediaDetailsPage: React.FC = () => {
         )}
 
         {cast.length > 0 && (
-          <div className="details-fullwidth-section">
-            <h2 className="carousel-title details-section-title">Актерский состав</h2>
-            <div className="cast-crew-grid">
-              {cast.slice(0, 10).map((c, i) => (
-                <div key={i} className="cast-member-card">
-                  <div className="cast-photo-wrap">
-                    <img
-                      src={c.profileSrc || c.ProfileSrc || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=64&h=64"}
-                      alt={c.name || c.Name}
-                      className="cast-photo"
-                    />
-                  </div>
-                  <span className="cast-name">{c.name || c.Name}</span>
-                  <span className="cast-role">{c.character || c.Character || c.role}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <MediaCastSection cast={cast} />
         )}
       </div>
     </div>

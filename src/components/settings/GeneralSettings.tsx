@@ -1,15 +1,12 @@
 import React from "react";
 import { Sliders } from "lucide-react";
 import { ExtensionRegistry } from "../../utils/extensions/ExtensionRegistry";
-import { ExtensionSlot } from "../common/ExtensionSlot";
 
 interface GeneralSettingsProps {
   accentTheme: string;
   setAccentTheme: (theme: string) => void;
   defaultPlayer: string | null;
   setDefaultPlayer: (player: string) => void;
-  uiFontScale: number;
-  setUiFontScale: (scale: number) => void;
 }
 
 export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
@@ -17,8 +14,6 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
   setAccentTheme,
   defaultPlayer,
   setDefaultPlayer,
-  uiFontScale,
-  setUiFontScale,
 }) => {
   const isApple = typeof window !== "undefined" && 
     (/Mac|iPad|iPhone|iPod/.test(navigator.userAgent) || 
@@ -57,7 +52,10 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
         </h2>
         
         {hasAccentContribution ? (
-          <ExtensionSlot name="settings-color-accent" props={{ accentTheme }} />
+          <div
+            id="settings-color-accent-slot"
+            data-props={JSON.stringify({ accentTheme })}
+          />
         ) : (
           <div className="settings-form-group">
             <label className="settings-label">Цветовой акцент</label>
@@ -85,21 +83,6 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
           >
             <option value="native">Встроенный веб-плеер</option>
             {isApple && <option value="infuse">Infuse</option>}
-          </select>
-        </div>
-
-        <div className="settings-form-group settings-preference-group">
-          <label className="settings-label">Масштаб интерфейса</label>
-          <select
-            className="settings-select"
-            value={uiFontScale.toFixed(1)}
-            onChange={(e) => setUiFontScale(parseFloat(e.target.value))}
-          >
-            <option value="0.8">Мелкий (80%)</option>
-            <option value="0.9">Компактный (90%)</option>
-            <option value="1.0">Стандартный (100%)</option>
-            <option value="1.1">Увеличенный (110%)</option>
-            <option value="1.2">Крупный (120%)</option>
           </select>
         </div>
       </section>

@@ -1,8 +1,5 @@
 import React from "react";
 
-
-import { ExtensionSlot } from "./common/ExtensionSlot";
-
 interface SidebarStatusProps {
   isConnected: boolean;
   bffLatencyMs: number;
@@ -34,7 +31,7 @@ export const SidebarStatus: React.FC<SidebarStatusProps> = React.memo(({ isConne
           </span>
         </div>
 
-        <ExtensionSlot name="sidebar-status" />
+        <div id="sidebar-status-slot" />
       </div>
     </div>
   );

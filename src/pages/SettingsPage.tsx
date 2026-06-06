@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Sliders, Puzzle, Globe, Terminal } from "lucide-react";
+import { Sliders, Puzzle, Globe, Terminal, Eye } from "lucide-react";
 import { useSettings } from "../context/AppSettingsContext";
 import GeneralSettings from "../components/settings/GeneralSettings";
 import ProfilesSettings from "../components/settings/ProfilesSettings";
 import ExtensionsManager from "../components/ExtensionsManager";
 import ConsoleManager from "../components/settings/ConsoleManager";
 import DeclarativeSettings from "../components/settings/DeclarativeSettings";
-import { ExtensionSlot } from "../components/common/ExtensionSlot";
+import AccessibilitySettings from "../components/settings/AccessibilitySettings";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import type { RegisteredExtension } from "@potok/sdk-types";
 import "../styles/settings.css";
@@ -17,9 +17,11 @@ export const SettingsPage: React.FC = () => {
     accentTheme,
     defaultPlayer,
     uiFontScale,
+    developerMode,
     setAccentTheme,
     setDefaultPlayer,
     setUiFontScale,
+    setDeveloperMode,
   } = useSettings();
 
   const [activeTab, setActiveTab] = useState<string>("general");
@@ -86,6 +88,12 @@ export const SettingsPage: React.FC = () => {
               Подключения
             </button>
             <button
+              className={`settings-tab-chip ${activeTab === "accessibility" ? "active" : ""}`}
+              onClick={() => setActiveTab("accessibility")}
+            >
+              Спец. возможности
+            </button>
+            <button
               className={`settings-tab-chip ${activeTab === "extensions" ? "active" : ""}`}
               onClick={() => setActiveTab("extensions")}
             >
@@ -141,6 +149,13 @@ export const SettingsPage: React.FC = () => {
             <Globe size={16} />
             <span>Профили подключения</span>
           </button>
+          <button
+            className={`settings-nav-item ${activeTab === "accessibility" ? "active" : ""}`}
+            onClick={() => setActiveTab("accessibility")}
+          >
+            <Eye size={16} />
+            <span>Специальные возможности</span>
+          </button>
 
           <div className="settings-section-title">Интеграции</div>
           <button
@@ -192,15 +207,21 @@ export const SettingsPage: React.FC = () => {
               setAccentTheme={setAccentTheme}
               defaultPlayer={defaultPlayer}
               setDefaultPlayer={setDefaultPlayer}
+            />
+          )}
+          {activeTab === "accessibility" && (
+            <AccessibilitySettings
               uiFontScale={uiFontScale}
               setUiFontScale={setUiFontScale}
+              developerMode={developerMode}
+              setDeveloperMode={setDeveloperMode}
             />
           )}
           {activeTab === "profiles" && <ProfilesSettings />}
           {activeTab === "extensions" && <ExtensionsManager />}
           {activeTab === "console" && <ConsoleManager />}
           {slotContributions.some((c) => c.contribution.id === activeTab) && (
-            <ExtensionSlot name="settings-tabs" />
+            <div id="settings-tabs-slot" data-contribution-id={activeTab} />
           )}
           {configExtensions.map((ext) => (
             activeTab === `config-${ext.id}` && (

@@ -1,6 +1,5 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { ExtensionSlot } from "../components/common/ExtensionSlot";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 
 export const ExtensionPage: React.FC = () => {
@@ -19,7 +18,7 @@ export const ExtensionPage: React.FC = () => {
         </h1>
       </header>
       
-      <ExtensionSlot name="extension-page" contributionId={tab} />
+      <div id="extension-page-slot" data-contribution-id={tab} />
     </div>
   );
 };

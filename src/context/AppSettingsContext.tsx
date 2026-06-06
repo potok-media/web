@@ -52,6 +52,7 @@ export interface SettingsContextType {
   defaultPlayer: string;
   uiFontScale: number;
   isSettingsLocked: boolean;
+  developerMode: boolean;
   selectProfile: (id: string) => void;
   addProfile: (profile: Omit<ConnectionProfile, "id">) => void;
   deleteProfile: (id: string) => void;
@@ -59,6 +60,7 @@ export interface SettingsContextType {
   setAccentTheme: (theme: string) => void;
   setDefaultPlayer: (player: string) => void;
   setUiFontScale: (scale: number) => void;
+  setDeveloperMode: (val: boolean) => void;
 }
 
 export const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -193,6 +195,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [uiFontScale, _setUiFontScale] = useState<number>(() => 
     Storage.get<number>("uiFontScale", 1.0)
   );
+  const [developerMode, _setDeveloperMode] = useState<boolean>(() => 
+    Storage.get<boolean>("developerMode", false)
+  );
 
   const isSettingsLocked = hostConfig.locked;
 
@@ -302,6 +307,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     _setUiFontScale(scale);
   }, []);
 
+  const setDeveloperMode = useCallback((val: boolean) => {
+    Storage.set("developerMode", val);
+    _setDeveloperMode(val);
+  }, []);
+
   const value = useMemo(() => ({
     connectionProfiles,
     activeProfileID,
@@ -309,6 +319,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     defaultPlayer,
     uiFontScale,
     isSettingsLocked,
+    developerMode,
     selectProfile,
     addProfile,
     deleteProfile,
@@ -316,6 +327,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setAccentTheme,
     setDefaultPlayer,
     setUiFontScale,
+    setDeveloperMode,
   }), [
     connectionProfiles,
     activeProfileID,
@@ -323,6 +335,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     defaultPlayer,
     uiFontScale,
     isSettingsLocked,
+    developerMode,
     selectProfile,
     addProfile,
     deleteProfile,
@@ -330,6 +343,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setAccentTheme,
     setDefaultPlayer,
     setUiFontScale,
+    setDeveloperMode,
   ]);
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

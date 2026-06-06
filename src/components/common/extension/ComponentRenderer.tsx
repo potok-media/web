@@ -2,6 +2,7 @@ import React from "react";
 import { useLocation } from "react-router-dom";
 import { Puzzle, Terminal, Sliders, Play, Bookmark, Star, Clock, Home, User, Settings } from "lucide-react";
 import type { UIComponentSchema } from "@potok/sdk-types";
+import "../../../styles/extensions.css";
 
 // Import modular components
 import { SafeInput } from "./SafeInput";

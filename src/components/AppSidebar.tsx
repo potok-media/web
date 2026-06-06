@@ -5,7 +5,6 @@ import { useConnectionHealth, useAuth } from "../context/AppSettingsContext";
 import { useHUD } from "../context/HUDContext";
 import SidebarStatus from "./SidebarStatus";
 import SidebarSearch from "./SidebarSearch";
-import { ExtensionSlot } from "./common/ExtensionSlot";
 import "../styles/sidebar.css";
 
 interface AppSidebarProps {
@@ -120,6 +119,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle })
             <Home size={18} />
             <span>Главная</span>
           </NavLink>
+          <div id="sidebar-menu-home-slot" data-props={JSON.stringify({ isCollapsed })} />
         </div>
 
         <div className="sidebar-section">
@@ -164,6 +164,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle })
             <Clock size={18} />
             <span>История</span>
           </NavLink>
+          <div id="sidebar-menu-library-slot" data-props={JSON.stringify({ isCollapsed })} />
         </div>
 
         <div className="sidebar-section">
@@ -171,7 +172,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle })
             <Settings size={18} />
             <span>Настройки</span>
           </NavLink>
-          <ExtensionSlot name="sidebar-menu" props={{ isCollapsed }} />
+          <div id="sidebar-menu-slot" data-props={JSON.stringify({ isCollapsed })} />
         </div>
       </nav>
 

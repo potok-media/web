@@ -14,6 +14,7 @@ import { SettlementManager } from "./settlementHelper";
 import { LegacyLookupSearchManager } from "./legacyLookupHelper";
 import { SlotManager } from "./slotHelper";
 import { logger } from "../logger";
+import { CallbackRegistry } from "../../sdk/src/core/registry";
 
 type RegistryListener = () => void;
 
@@ -162,6 +163,14 @@ class ExtensionRegistryManager {
   }
 
   triggerUIEvent(pluginId: string, callbackId: string, eventData: any) {
+    if (pluginId === "hot-injected-plugin") {
+      CallbackRegistry.trigger(callbackId, eventData);
+      return;
+    }
+    if (pluginId === "potok-sandbox-plugin" && (window as any).PotokSandboxTriggerUIEvent) {
+      (window as any).PotokSandboxTriggerUIEvent(callbackId, eventData);
+      return;
+    }
     this.slotManager.triggerUIEvent(pluginId, callbackId, eventData);
   }
 
@@ -285,6 +294,10 @@ class ExtensionRegistryManager {
         "*"
       );
     });
+  }
+
+  triggerListeners() {
+    this.notify();
   }
 
   handleSandboxResponse(requestId: string, data: any, error: string | null) {
