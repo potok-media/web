@@ -487,6 +487,107 @@ export const SDK_TYPINGS = `
   }
 
   /**
+   * Строка статуса (StatusRow) для отображения индикатора, метки и опционального значения.
+   */
+  interface StatusRowBuilder extends UIComponent {
+    /**
+     * Устанавливает статус индикатора ('online' | 'offline' | 'success' | 'warning' | 'error').
+     */
+    status(v: 'online' | 'offline' | 'success' | 'warning' | 'error' | string): this;
+    /**
+     * Устанавливает правое текстовое значение (например, пинг или задержка).
+     */
+    value(v: string): this;
+  }
+
+  /**
+   * Скелетон загрузки раздач (StreamSkeletonList) для отображения плейсхолдеров.
+   */
+  interface StreamSkeletonListBuilder extends UIComponent {}
+
+  /**
+   * Список торрент-раздач (StreamList) со встроенным фильтром и сортировкой.
+   */
+  interface StreamListBuilder extends UIComponent {
+    /**
+     * Список элементов раздач.
+     */
+    streams(v: any[]): this;
+    /**
+     * Статус загрузки.
+     */
+    loading(v: boolean): this;
+    /**
+     * Показывать ли панель фильтров.
+     */
+    showFilters(v: boolean): this;
+    /**
+     * Текст при отсутствии раздач.
+     */
+    emptyText(v: string): this;
+    /**
+     * Склонения существительного для количества раздач (например, ['раздача', 'раздачи', 'раздач']).
+     */
+    nounPlurals(v: string[]): this;
+    /**
+     * Коллбек при выборе раздачи для воспроизведения.
+     */
+    onSelectStream(cb: (stream: any) => void): this;
+  }
+
+  /**
+   * Селектор и менеджер профилей подключения (ProfileSelector).
+   */
+  interface ProfileSelectorBuilder extends UIComponent {
+    /**
+     * Список доступных профилей.
+     */
+    connectionProfiles(v: any[]): this;
+    /**
+     * ID активного профиля.
+     */
+    activeProfileID(v: string | null): this;
+    /**
+     * Блокировка редактирования настроек.
+     */
+    isSettingsLocked(v: boolean): this;
+    /**
+     * Коллбек при выборе профиля.
+     */
+    onSelectProfile(cb: (profileId: string) => void): this;
+    /**
+     * Коллбек при начале редактирования профиля.
+     */
+    onStartEdit(cb: (profile: any) => void): this;
+    /**
+     * Коллбек при удалении профиля.
+     */
+    onDeleteProfile(cb: (profileId: string) => void): this;
+    /**
+     * Коллбек при создании нового профиля.
+     */
+    onStartAdd(cb: () => void): this;
+  }
+
+  /**
+   * Конструктор провайдера поиска медиафайлов.
+   */
+  interface MediaSearchProviderBuilder {
+    /**
+     * Иконка поискового провайдера.
+     */
+    icon(url: string): this;
+    /**
+     * Коллбек, вызываемый при выполнении поиска.
+     */
+    onSearch(cb: (query: string) => Promise<any[]>): this;
+    /**
+     * Регистрирует коллбек поиска (синоним onSearch).
+     */
+    register(cb: (query: string) => Promise<any[]>): this;
+  }
+
+  /**
    * Глобальный объект управления Potok SDK.
    */
   interface PotokSDKInstance {
@@ -558,6 +659,7 @@ export const SDK_TYPINGS = `
         Text(text: string): TextBuilder;
         Markdown(content: string): MarkdownBuilder;
         Badge(text: string): BadgeBuilder;
+        StatusRow(label: string): StatusRowBuilder;
         Divider(): DividerBuilder;
         Spacer(): SpacerBuilder;
         Button(text: string): ButtonBuilder;
@@ -566,15 +668,18 @@ export const SDK_TYPINGS = `
         Select(name: string): SelectBuilder;
         SearchBar(name: string): SearchBarBuilder;
         CodeEditor(name: string): CodeEditorBuilder;
+        StreamSkeletonList(): StreamSkeletonListBuilder;
         StreamFilterBar(): StreamFilterBarBuilder;
         MediaPlayer(): MediaPlayerBuilder;
         EpisodesSection(): EpisodesSectionBuilder;
         EpisodeSelector(): EpisodeSelectorBuilder;
         StreamRow(): StreamRowBuilder;
+        StreamList(): StreamListBuilder;
         MediaCast(): MediaCastBuilder;
         MediaOverview(): MediaOverviewBuilder;
         MediaRow(): MediaRowBuilder;
         LoadingSpinner(): LoadingSpinnerBuilder;
+        ProfileSelector(): ProfileSelectorBuilder;
         EpisodeCard(): EpisodeCardBuilder;
       }
     };
@@ -604,7 +709,7 @@ export const SDK_TYPINGS = `
      * Поиск и провайдеры медиаданных.
      */
     media: {
-      searchProvider(id: string, name: string): any;
+      searchProvider(id: string, name: string): MediaSearchProviderBuilder;
     };
     /**
      * Регистрирует плагин в системе.
@@ -634,6 +739,7 @@ export const SDK_TYPINGS = `
   declare const Text: (text: string) => TextBuilder;
   declare const Markdown: (content: string) => MarkdownBuilder;
   declare const Badge: (text: string) => BadgeBuilder;
+  declare const StatusRow: (label: string) => StatusRowBuilder;
   declare const Divider: () => DividerBuilder;
   declare const Spacer: () => SpacerBuilder;
   declare const Button: (text: string) => ButtonBuilder;
@@ -642,14 +748,17 @@ export const SDK_TYPINGS = `
   declare const Select: (name: string) => SelectBuilder;
   declare const SearchBar: (name: string) => SearchBarBuilder;
   declare const CodeEditor: (name: string) => CodeEditorBuilder;
+  declare const StreamSkeletonList: () => StreamSkeletonListBuilder;
   declare const StreamFilterBar: () => StreamFilterBarBuilder;
   declare const MediaPlayer: () => MediaPlayerBuilder;
   declare const EpisodesSection: () => EpisodesSectionBuilder;
   declare const EpisodeSelector: () => EpisodeSelectorBuilder;
   declare const StreamRow: () => StreamRowBuilder;
+  declare const StreamList: () => StreamListBuilder;
   declare const MediaCast: () => MediaCastBuilder;
   declare const MediaOverview: () => MediaOverviewBuilder;
   declare const MediaRow: () => MediaRowBuilder;
   declare const LoadingSpinner: () => LoadingSpinnerBuilder;
+  declare const ProfileSelector: () => ProfileSelectorBuilder;
   declare const EpisodeCard: () => EpisodeCardBuilder;
 `;
