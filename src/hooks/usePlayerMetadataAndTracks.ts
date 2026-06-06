@@ -18,6 +18,8 @@ export function usePlayerMetadataAndTracks(
   });
   const [metadataDuration, setMetadataDuration] = useState(0);
   const [isMetadataFetched, setIsMetadataFetched] = useState(false);
+  const [localIntroRange, setLocalIntroRange] = useState<{ start: number; end: number } | null>(null);
+  const [localOutroRange, setLocalOutroRange] = useState<{ start: number; end: number } | null>(null);
 
   // Sync Native Text Tracks
   const syncNativeTextTracks = useCallback((video: HTMLVideoElement | null) => {
@@ -67,6 +69,8 @@ export function usePlayerMetadataAndTracks(
     setInjectedSubtitles([]);
     setSubtitleTracks([]);
     setCurrentSubtitleTrack(-1);
+    setLocalIntroRange(null);
+    setLocalOutroRange(null);
 
     if (!fileIndex || !streamHash) {
       setIsMetadataLoading(false);
@@ -85,6 +89,13 @@ export function usePlayerMetadataAndTracks(
         if (metadata && metadata.success) {
           fetchedSuccessfully = true;
           if (metadata.duration > 0) setMetadataDuration(metadata.duration);
+
+          if (typeof metadata.introStart === "number" && typeof metadata.introEnd === "number" && metadata.introEnd > metadata.introStart) {
+            setLocalIntroRange({ start: metadata.introStart, end: metadata.introEnd });
+          }
+          if (typeof metadata.outroStart === "number" && typeof metadata.outroEnd === "number" && metadata.outroEnd > metadata.outroStart) {
+            setLocalOutroRange({ start: metadata.outroStart, end: metadata.outroEnd });
+          }
 
           const torrentAudioTracks = metadata.tracks
             .filter((t) => t.type === "audio")
@@ -143,5 +154,7 @@ export function usePlayerMetadataAndTracks(
     isMetadataFetched,
     setIsMetadataFetched,
     syncNativeTextTracks,
+    localIntroRange,
+    localOutroRange,
   };
 }

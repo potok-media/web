@@ -67,7 +67,7 @@ export const TrackSelectorDropdown: React.FC<TrackSelectorDropdownProps> = ({
             <div 
               className={`dropdown-menu-item ${currentItemId === -1 ? "selected" : ""}`}
               onClick={() => onSelect(-1)}
-              style={{ height: `${ITEM_HEIGHT}px`, boxSizing: "border-box" }}
+              style={{ minHeight: `${ITEM_HEIGHT}px`, height: "auto", boxSizing: "border-box" }}
             >
               {disableOptionLabel}
             </div>
@@ -87,7 +87,7 @@ export const TrackSelectorDropdown: React.FC<TrackSelectorDropdownProps> = ({
                 key={track.id}
                 className={`dropdown-menu-item ${currentItemId === track.id ? "selected" : ""}`}
                 onClick={() => onSelect(track.id)}
-                style={{ height: `${ITEM_HEIGHT}px`, boxSizing: "border-box" }}
+                style={{ minHeight: `${ITEM_HEIGHT}px`, height: "auto", boxSizing: "border-box" }}
               >
                 {track.name}
               </div>
@@ -99,7 +99,7 @@ export const TrackSelectorDropdown: React.FC<TrackSelectorDropdownProps> = ({
               <div className="dropdown-divider" />
               <label 
                 className="dropdown-menu-item upload-btn-wrapper"
-                style={{ height: `${ITEM_HEIGHT}px`, boxSizing: "border-box" }}
+                style={{ minHeight: `${ITEM_HEIGHT}px`, height: "auto", boxSizing: "border-box" }}
               >
                 <input 
                   type="file" 

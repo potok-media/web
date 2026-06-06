@@ -19,6 +19,7 @@ interface UsePlaybackTrackerParams {
   };
   seekOffset: number;
   isActive: boolean;
+  duration: number;
 }
 
 export function usePlaybackTracker({
@@ -26,6 +27,7 @@ export function usePlaybackTracker({
   playback,
   seekOffset,
   isActive,
+  duration,
 }: UsePlaybackTrackerParams) {
   const lastSavedTimeRef = useRef<number>(0);
   const syncIntervalRef = useRef<any>(null);
@@ -46,25 +48,25 @@ export function usePlaybackTracker({
 
   const saveProgress = useCallback((
     currentTime: number,
-    duration: number,
+    durationVal: number,
     forceRemote: boolean = false
   ) => {
-    if (duration <= 0) return;
+    if (durationVal <= 0) return;
 
     const actualTime = seekOffset > 0 ? (seekOffset + currentTime) : currentTime;
     
     // Порог начала (менее 15 секунд или 2% от длительности не сохраняем)
-    if (actualTime < 15 || actualTime / duration < 0.02) {
+    if (actualTime < 15 || actualTime / durationVal < 0.02) {
       return;
     }
 
-    const isCompleted = actualTime / duration > 0.90;
+    const isCompleted = actualTime / durationVal > 0.90;
     const { progressKey, resumeKey } = getStorageKeys();
 
     // 1. Локальное сохранение (Local-first)
     const progressData: PlaybackProgress = {
       progressSeconds: Math.floor(actualTime),
-      durationSeconds: Math.floor(duration),
+      durationSeconds: Math.floor(durationVal),
       lastWatchedAt: new Date().toISOString(),
       isCompleted,
     };
@@ -90,7 +92,7 @@ export function usePlaybackTracker({
           season,
           episode,
           Math.floor(actualTime),
-          Math.floor(duration)
+          Math.floor(durationVal)
         ).catch((err) => console.error("[Sync] Failed to save progress:", err));
       }
     }
@@ -99,9 +101,9 @@ export function usePlaybackTracker({
   const handleManualSave = useCallback(() => {
     const video = videoRef.current;
     if (video) {
-      saveProgress(video.currentTime, video.duration, true);
+      saveProgress(video.currentTime, duration, true);
     }
-  }, [videoRef, saveProgress]);
+  }, [videoRef, saveProgress, duration]);
 
   // Запуск интервала отслеживания во время активного воспроизведения
   useEffect(() => {
@@ -117,7 +119,7 @@ export function usePlaybackTracker({
     // Интервал раз в 5 секунд для проверки изменения времени
     syncIntervalRef.current = setInterval(() => {
       if (video && !video.paused) {
-        saveProgress(video.currentTime, video.duration, false);
+        saveProgress(video.currentTime, duration, false);
       }
     }, 5000);
 
@@ -127,7 +129,7 @@ export function usePlaybackTracker({
         syncIntervalRef.current = null;
       }
     };
-  }, [videoRef, isActive, saveProgress]);
+  }, [videoRef, isActive, saveProgress, duration]);
 
   // Слушатели событий жизненного цикла видео и вкладки браузера
   useEffect(() => {
@@ -135,7 +137,7 @@ export function usePlaybackTracker({
     if (!video) return;
 
     const handlePause = () => {
-      saveProgress(video.currentTime, video.duration, true);
+      saveProgress(video.currentTime, duration, true);
     };
 
     const handleEnded = () => {
@@ -145,8 +147,8 @@ export function usePlaybackTracker({
       // Помечаем локально как завершенное
       const { progressKey } = getStorageKeys();
       const progressData: PlaybackProgress = {
-        progressSeconds: Math.floor(video.duration),
-        durationSeconds: Math.floor(video.duration),
+        progressSeconds: Math.floor(duration),
+        durationSeconds: Math.floor(duration),
         lastWatchedAt: new Date().toISOString(),
         isCompleted: true,
       };
@@ -160,18 +162,18 @@ export function usePlaybackTracker({
           mediaType,
           season,
           episode,
-          Math.floor(video.duration),
-          Math.floor(video.duration)
+          Math.floor(duration),
+          Math.floor(duration)
         ).catch((err) => console.error("[Sync] Failed to mark completed on ended:", err));
       }
     };
 
     const handleBeforeUnload = () => {
-      saveProgress(video.currentTime, video.duration, true);
+      saveProgress(video.currentTime, duration, true);
     };
 
     const handleSeeked = () => {
-      saveProgress(video.currentTime, video.duration, true);
+      saveProgress(video.currentTime, duration, true);
     };
 
     video.addEventListener("pause", handlePause);
@@ -187,7 +189,7 @@ export function usePlaybackTracker({
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("pagehide", handleBeforeUnload);
     };
-  }, [videoRef, saveProgress, getStorageKeys, id, mediaType, season, episode]);
+  }, [videoRef, saveProgress, getStorageKeys, id, mediaType, season, episode, duration]);
 
   return {
     saveProgress: handleManualSave

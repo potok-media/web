@@ -17,6 +17,7 @@ import {
   updateStreamUrlParams,
   normalizeStreamUrlToPath,
   getProxyUrl,
+  getHlsStreamUrl,
 } from "../utils/playerHelpers";
 
 // Components
@@ -117,6 +118,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     metadataDuration,
     isMetadataFetched,
     syncNativeTextTracks,
+    localIntroRange,
+    localOutroRange,
   } = usePlayerMetadataAndTracks(streamHash, fileIndex, playback.streamUrl, playback.audios);
 
   // Hook: Torrent metadata parsing & download speed tracker
@@ -143,28 +146,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     toggleFullscreen,
   } = usePlayerFullscreen(overlayRef);
 
-  const [seekOffset, setSeekOffset] = useState(() => {
-    let startPos = 0;
-    const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
-    const savedResume = localStorage.getItem(resumeKey);
-    if (savedResume) {
-      const parsed = Number(savedResume);
-      if (!isNaN(parsed) && parsed > 0) startPos = parsed;
-    } else {
-      try {
-        const startParam = new URL(playback.streamUrl).searchParams.get("start");
-        if (startParam) startPos = Number(startParam);
-      } catch {
-        const match = playback.streamUrl.match(/[?&]start=(\d+)/i);
-        if (match) startPos = Number(match[1]);
-      }
-    }
-    const normalizedUrl = normalizeStreamUrlToPath(playback.streamUrl);
-    const isStreamServer = normalizedUrl.includes("/stream") || normalizedUrl.includes("/torrents/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
-    const ext = getFileExtension(normalizedUrl);
-    const isNonNative = ext ? !["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "m4a", "mpd"].includes(ext) : false;
-    return isStreamServer && isNonNative ? startPos : 0;
-  });
+  const [seekOffset, setSeekOffset] = useState(0);
 
   const seekOffsetRef = useRef(seekOffset);
   useEffect(() => {
@@ -318,7 +300,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     let newUrl = "";
     if (isStreamServer) {
       setSeekOffset(time);
-      newUrl = updateStreamUrlParams(normalizedUrl, { remux: "true", start: Math.floor(time).toString(), audio: id !== -1 ? id.toString() : "" });
+      newUrl = getHlsStreamUrl(normalizedUrl);
+      newUrl = updateStreamUrlParams(newUrl, { start: Math.floor(time).toString(), audio: id !== -1 ? id.toString() : "0" });
     } else {
       setSeekOffset(0);
       newUrl = playback.audios && playback.audios[id] ? playback.audios[id].url : playback.streamUrl;
@@ -344,7 +327,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     const needsRemux = isStreamServer && (isNonNative || (audioTracks.length > 0 && currentAudioTrack !== audioTracks[0].id));
     if (needsRemux) {
       setSeekOffset(time);
-      const newUrl = updateStreamUrlParams(normalizedUrl, { remux: "true", start: Math.floor(time).toString(), audio: currentAudioTrack !== -1 ? currentAudioTrack.toString() : "" });
+      let newUrl = getHlsStreamUrl(normalizedUrl);
+      newUrl = updateStreamUrlParams(newUrl, { start: Math.floor(time).toString(), audio: currentAudioTrack !== -1 ? currentAudioTrack.toString() : "0" });
       video.pause();
       video.src = getProxyUrl(newUrl, ApiClient.baseURL, playback.headers);
       video.play().then(() => syncNativeTextTracks(video)).catch(() => {});
@@ -403,13 +387,16 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     return [{ id: -1, name: autoLabel }, ...rawLevels.map((l) => ({ id: l.id, name: l.height ? `${l.height}p` : `Качество ${l.id + 1}` }))];
   }, [rawLevels, hlsActiveLevel]);
 
-  const { introRange, outroRange } = useTimecodes(playback.id, playback.season, playback.episode, playback.mediaType === "tv", displayDuration);
+  const { introRange: remoteIntro, outroRange: remoteOutro } = useTimecodes(playback.id, playback.season, playback.episode, playback.mediaType === "tv", displayDuration);
+  const introRange = localIntroRange || remoteIntro;
+  const outroRange = localOutroRange || remoteOutro;
   
   usePlaybackTracker({
     videoRef,
     playback: useMemo(() => ({ id: playback.id, mediaType: playback.mediaType, season: playback.season, episode: playback.episode }), [playback.id, playback.mediaType, playback.season, playback.episode]),
     seekOffset,
     isActive: isPlaying,
+    duration: displayDuration,
   });
 
   const loadingState = useMemo(() => {

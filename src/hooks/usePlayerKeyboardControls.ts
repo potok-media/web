@@ -17,6 +17,15 @@ export function usePlayerKeyboardControls({
 }: KeyboardControlsParams) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement;
+      if (activeEl && (
+        activeEl.tagName === "INPUT" ||
+        activeEl.tagName === "TEXTAREA" ||
+        activeEl.getAttribute("contenteditable") === "true"
+      )) {
+        return;
+      }
+
       const video = videoRef.current;
       if (!video) return;
 

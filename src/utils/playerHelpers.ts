@@ -54,6 +54,22 @@ export const normalizeStreamUrlToPath = (url: string): string => {
   return url;
 };
 
+export const getHlsStreamUrl = (url: string): string => {
+  if (!url) return url;
+  try {
+    const parsed = new URL(url);
+    const pathMatch = parsed.pathname.match(/\/(?:stream|torrents)\/([a-f0-9]{40})(?:\/files)?\/(\d+)/i);
+    if (pathMatch) {
+      const hash = pathMatch[1].toLowerCase();
+      const fileIndex = pathMatch[2];
+      return `${parsed.origin}/api/torrents/${hash}/files/${fileIndex}/stream`;
+    }
+  } catch {
+    // Ignore URL parsing errors
+  }
+  return url;
+};
+
 export const formatTime = (seconds: number): string => {
   if (isNaN(seconds) || seconds === Infinity || seconds <= 0) return "00:00";
   const h = Math.floor(seconds / 3600);

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Hls from "hls.js";
-import { getFileExtension, updateStreamUrlParams, normalizeStreamUrlToPath, getProxyUrl } from "../utils/playerHelpers";
+import { getFileExtension, updateStreamUrlParams, normalizeStreamUrlToPath, getProxyUrl, getHlsStreamUrl } from "../utils/playerHelpers";
 import { ApiClient } from "../network/ApiClient";
 import type { ActivePlayback } from "../context/AppSettingsContext";
 
@@ -59,9 +59,6 @@ export function useHlsPlayer({
     if (video) {
       try {
         video.pause();
-        video.src = "";
-        video.removeAttribute("src");
-        video.load();
       } catch (e) {
         console.error("[useHlsPlayer] Video teardown error:", e);
       }
@@ -95,14 +92,14 @@ export function useHlsPlayer({
     const isStreamServer = normalizedUrl.includes("/stream") || normalizedUrl.includes("/torrents/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
     const ext = getFileExtension(normalizedUrl);
     const isNonNative = ext ? !["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "m4a", "mpd"].includes(ext) : false;
-    const needsRemux = isStreamServer && isNonNative;
+    const needsRemux = isStreamServer && (isNonNative || (currentAudioTrack !== -1 && currentAudioTrack > 0));
 
     let finalStreamUrl = normalizedUrl;
     if (needsRemux) {
-      finalStreamUrl = updateStreamUrlParams(normalizedUrl, {
-        remux: "true",
+      finalStreamUrl = getHlsStreamUrl(normalizedUrl);
+      finalStreamUrl = updateStreamUrlParams(finalStreamUrl, {
         start: Math.floor(startPos).toString(),
-        audio: currentAudioTrack !== -1 ? currentAudioTrack.toString() : ""
+        audio: currentAudioTrack !== -1 ? currentAudioTrack.toString() : "0"
       });
     }
     setSeekOffset(needsRemux ? startPos : 0);

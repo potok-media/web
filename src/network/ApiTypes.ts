@@ -205,6 +205,10 @@ export interface ClientMetadata {
   success: boolean;
   duration: number;
   tracks: ClientTrack[];
+  introStart?: number;
+  introEnd?: number;
+  outroStart?: number;
+  outroEnd?: number;
 }
 
 export type PatchOp = "add" | "replace" | "remove";

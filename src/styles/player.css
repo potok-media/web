@@ -496,7 +496,9 @@
   position: absolute;
   bottom: 48px;
   right: -20px;
-  width: 180px;
+  min-width: 180px;
+  max-width: 340px;
+  width: max-content;
   background: #18181c;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-m);
