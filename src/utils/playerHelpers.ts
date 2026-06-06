@@ -1,3 +1,5 @@
+import { Storage } from "./StorageService";
+
 export const getFileExtension = (url: string): string => {
   if (!url) return "";
   try {
@@ -81,6 +83,12 @@ export const formatTime = (seconds: number): string => {
 
 export const getProxyUrl = (targetUrl: string, gatewayBase: string, headers?: Record<string, string>) => {
   if (!targetUrl) return targetUrl;
+  
+  const shouldBypass = Storage.get<boolean>("disableHttpProxy", true);
+  if (shouldBypass) {
+    return targetUrl;
+  }
+
   const apiTKey = "/api/torrents";
   const apiTKeyLegacy = "/api/torrent";
   if (targetUrl.includes("localhost") || targetUrl.includes("127.0.0.1") || targetUrl.includes(apiTKey) || targetUrl.includes(apiTKeyLegacy) || targetUrl.includes("/stream/")) {
