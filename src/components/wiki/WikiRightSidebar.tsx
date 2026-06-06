@@ -1,5 +1,4 @@
 import React from "react";
-import { ExternalLink } from "lucide-react";
 import { PAGES } from "../../pages/wiki/wikiData";
 
 interface WikiRightSidebarProps {
@@ -30,11 +29,6 @@ export const WikiRightSidebar: React.FC<WikiRightSidebarProps> = ({
           {item.text}
         </div>
       ))}
-
-      <a href="https://github.com/potok-media/potok-plugin-sdk" target="_blank" rel="noreferrer" className="toc-edit-link">
-        <ExternalLink size={12} />
-        <span>Редактировать документацию</span>
-      </a>
     </aside>
   );
 };
