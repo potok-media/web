@@ -734,6 +734,10 @@
   width: 100%;
 }
 
+#media-actions-slot {
+  gap: 8px !important;
+}
+
 .btn-watch-primary,
 .potok-btn.btn-watch-primary {
   width: 100% !important;

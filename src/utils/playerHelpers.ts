@@ -62,7 +62,7 @@ export const getHlsStreamUrl = (url: string): string => {
     if (pathMatch) {
       const hash = pathMatch[1].toLowerCase();
       const fileIndex = pathMatch[2];
-      return `${parsed.origin}/api/torrents/${hash}/files/${fileIndex}/stream`;
+      return `${parsed.origin}/api/torrents/${hash}/files/${fileIndex}/hls/master.m3u8`;
     }
   } catch {
     // Ignore URL parsing errors

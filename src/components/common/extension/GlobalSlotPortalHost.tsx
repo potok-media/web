@@ -43,6 +43,10 @@ export const GlobalSlotPortalHost: React.FC = () => {
         if (el) {
           elementsMap[slotName] = el;
           
+          if (!el.classList.contains("potok-extension-slot")) {
+            el.classList.add("potok-extension-slot");
+          }
+          
           // Trigger slot render with the element's dynamic props if present
           const propsAttr = el.getAttribute("data-props");
           const props = propsAttr ? JSON.parse(propsAttr) : {};
