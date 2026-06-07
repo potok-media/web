@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
-import Hls from "hls.js";
 import { AlertTriangle } from "lucide-react";
 import { ApiClient } from "../network/ApiClient";
 import { usePlayback, type ActivePlayback } from "../context/AppSettingsContext";
@@ -13,11 +12,9 @@ import { usePlaybackTracker } from "../hooks/usePlaybackTracker";
 
 // Helpers & Utilities
 import {
-  getFileExtension,
-  updateStreamUrlParams,
-  normalizeStreamUrlToPath,
   getProxyUrl,
-  getHlsStreamUrl,
+  normalizeStreamUrlToPath,
+  updateStreamUrlParams,
 } from "../utils/playerHelpers";
 
 // Components
@@ -183,7 +180,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     rawLevels,
     hlsActiveLevel,
     currentQualityLevel,
-    setCurrentQualityLevel,
   } = useHlsPlayer({
     videoRef,
     playback,
@@ -194,6 +190,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     setSeekOffset,
     setPlayerError,
     handleRefreshStream,
+    setIsMetadataLoading,
   });
 
   // Hotkeys custom hook listener
@@ -286,32 +283,35 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
 
   // Helper seeks, switches and uploads
   const switchAudio = (id: number) => {
-    const h = hlsRef.current;
-    if (h && h.audioTracks && h.audioTracks.length > 1) {
-      h.audioTrack = id;
-      setCurrentAudioTrack(id);
-      setShowAudioMenu(false);
-      return;
-    }
-    const normalizedUrl = normalizeStreamUrlToPath(playback.streamUrl);
-    const isStreamServer = normalizedUrl.includes("/stream/") || !!playback.streamHash;
     const video = videoRef.current;
+    if (!video) return;
+
+    const normalizedUrl = normalizeStreamUrlToPath(playback.streamUrl);
+    const isStreamServer = normalizedUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
     const time = video ? (seekOffset > 0 ? seekOffset + video.currentTime : video.currentTime) : 0;
+
     let newUrl = "";
     if (isStreamServer) {
       setSeekOffset(time);
-      newUrl = getHlsStreamUrl(normalizedUrl);
-      newUrl = updateStreamUrlParams(newUrl, { start: Math.floor(time).toString(), audio: id !== -1 ? id.toString() : "0" });
+      newUrl = updateStreamUrlParams(normalizedUrl, {
+        remux: "true",
+        start: Math.floor(time).toString(),
+        audio: id !== -1 ? id.toString() : "0"
+      });
     } else {
       setSeekOffset(0);
       newUrl = playback.audios && playback.audios[id] ? playback.audios[id].url : playback.streamUrl;
     }
+
     if (video) {
       video.pause();
-      if (!newUrl.includes(".m3u8") && hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
       video.src = getProxyUrl(newUrl, ApiClient.baseURL, playback.headers);
-      video.play().then(() => { if (!isStreamServer) video.currentTime = time; syncNativeTextTracks(video); }).catch(() => {});
+      video.play().then(() => {
+        if (!isStreamServer) video.currentTime = time;
+        syncNativeTextTracks(video);
+      }).catch(() => {});
     }
+
     setCurrentAudioTrack(id);
     setShowAudioMenu(false);
   };
@@ -319,44 +319,21 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   const handleSeek = (time: number) => {
     const video = videoRef.current;
     if (!video) return;
+
     const normalizedUrl = normalizeStreamUrlToPath(playback.streamUrl);
-    const isStreamServer = normalizedUrl.includes("/stream/") || !!playback.streamHash;
-    const ext = getFileExtension(normalizedUrl);
-    const isNonNative = ext ? !["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "m4a", "mpd"].includes(ext) : false;
-    const needsRemux = isStreamServer && (isNonNative || (audioTracks.length > 0 && currentAudioTrack !== audioTracks[0].id));
-    if (needsRemux) {
-      // For torrent remux streams: restart FFmpeg from the new position.
-      // Can't seek within existing HLS segments — they're generated progressively.
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-        hlsRef.current = null;
-      }
+    const isStreamServer = normalizedUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
+
+    if (isStreamServer) {
       setSeekOffset(time);
-      let newUrl = getHlsStreamUrl(normalizedUrl);
-      newUrl = updateStreamUrlParams(newUrl, { start: Math.floor(time).toString(), audio: currentAudioTrack !== -1 ? currentAudioTrack.toString() : "0" });
+      let newUrl = updateStreamUrlParams(normalizedUrl, {
+        remux: "true",
+        start: Math.floor(time).toString(),
+        audio: currentAudioTrack !== -1 ? currentAudioTrack.toString() : "0"
+      });
       const proxiedUrl = getProxyUrl(newUrl, ApiClient.baseURL, playback.headers);
       video.pause();
-      if (Hls.isSupported()) {
-        const hls = new Hls({ maxBufferLength: 30, maxMaxBufferLength: 60 });
-        hls.loadSource(proxiedUrl);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          video.play().then(() => syncNativeTextTracks(video)).catch(() => {});
-        });
-        hls.on(Hls.Events.ERROR, (_, data) => {
-          if (data.fatal) {
-            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
-            else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
-          }
-        });
-        hlsRef.current = hls;
-      } else {
-        video.src = proxiedUrl;
-        video.play().then(() => syncNativeTextTracks(video)).catch(() => {});
-      }
-    } else if (hlsRef.current) {
-      // Non-torrent HLS (external m3u8 with all segments available): seek directly
-      video.currentTime = time;
+      video.src = proxiedUrl;
+      video.play().then(() => syncNativeTextTracks(video)).catch(() => {});
     } else {
       setSeekOffset(0);
       video.currentTime = time;
@@ -366,26 +343,15 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   const switchSubtitle = (id: number) => {
     const video = videoRef.current;
     if (video) {
-      for (let i = 0; i < video.textTracks.length; i++) video.textTracks[i].mode = i === id ? "showing" : "disabled";
+      for (let i = 0; i < video.textTracks.length; i++) {
+        video.textTracks[i].mode = i === id ? "showing" : "disabled";
+      }
     }
-    if (hlsRef.current) hlsRef.current.subtitleTrack = id;
     setCurrentSubtitleTrack(id);
     setShowSubtitleMenu(false);
   };
 
-  const switchQuality = (id: number) => {
-    const video = videoRef.current;
-    const h = hlsRef.current;
-    if (video && h) {
-      const playingState = !video.paused;
-      const time = video.currentTime;
-      video.pause();
-      h.currentLevel = id;
-      h.nextLevel = id;
-      try { h.trigger(Hls.Events.BUFFER_FLUSHING, { startOffset: 0, endOffset: Infinity, type: "video" }); } catch {}
-      setTimeout(() => { video.currentTime = time; if (playingState) video.play().catch(() => {}); }, 100);
-      setCurrentQualityLevel(id);
-    }
+  const switchQuality = (_id: number) => {
     setShowQualityMenu(false);
   };
 
@@ -407,6 +373,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   const displayDuration = metadataDuration > 0 ? metadataDuration : (duration || 100);
 
   const displayQualityLevels = useMemo(() => {
+    if (rawLevels.length === 0) return [];
     const activeLevel = hlsActiveLevel >= 0 ? rawLevels.find(l => l.id === hlsActiveLevel) : null;
     const autoLabel = activeLevel?.height ? `Авто (${activeLevel.height}p)` : "Авто";
     return [{ id: -1, name: autoLabel }, ...rawLevels.map((l) => ({ id: l.id, name: l.height ? `${l.height}p` : `Качество ${l.id + 1}` }))];
@@ -472,7 +439,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
             kind="subtitles"
             label={track.label}
             srcLang={track.srclang}
-            src={track.src}
+            src={currentSubtitleTrack === index ? track.src : ""}
             default={currentSubtitleTrack === index}
           />
         ))}

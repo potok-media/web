@@ -54,6 +54,7 @@ export interface SettingsContextType {
   isSettingsLocked: boolean;
   developerMode: boolean;
   disableHttpProxy: boolean;
+  directPlay: boolean;
   selectProfile: (id: string) => void;
   addProfile: (profile: Omit<ConnectionProfile, "id">) => void;
   deleteProfile: (id: string) => void;
@@ -63,6 +64,7 @@ export interface SettingsContextType {
   setUiFontScale: (scale: number) => void;
   setDeveloperMode: (val: boolean) => void;
   setDisableHttpProxy: (val: boolean) => void;
+  setDirectPlay: (val: boolean) => void;
 }
 
 export const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -203,6 +205,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [disableHttpProxy, _setDisableHttpProxy] = useState<boolean>(() => 
     Storage.get<boolean>("disableHttpProxy", true)
   );
+  const [directPlay, _setDirectPlay] = useState<boolean>(() => 
+    Storage.get<boolean>("directPlay", true)
+  );
 
   const isSettingsLocked = hostConfig.locked;
 
@@ -322,6 +327,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     _setDisableHttpProxy(val);
   }, []);
 
+  const setDirectPlay = useCallback((val: boolean) => {
+    Storage.set("directPlay", val);
+    _setDirectPlay(val);
+  }, []);
+
   const value = useMemo(() => ({
     connectionProfiles,
     activeProfileID,
@@ -331,6 +341,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     isSettingsLocked,
     developerMode,
     disableHttpProxy,
+    directPlay,
     selectProfile,
     addProfile,
     deleteProfile,
@@ -340,6 +351,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setUiFontScale,
     setDeveloperMode,
     setDisableHttpProxy,
+    setDirectPlay,
   }), [
     connectionProfiles,
     activeProfileID,
@@ -349,6 +361,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     isSettingsLocked,
     developerMode,
     disableHttpProxy,
+    directPlay,
     selectProfile,
     addProfile,
     deleteProfile,
@@ -358,6 +371,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setUiFontScale,
     setDeveloperMode,
     setDisableHttpProxy,
+    setDirectPlay,
   ]);
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
