@@ -26,15 +26,16 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({ videoRef, initialDurat
       const display = displayRef.current;
       if (!display) return;
       
-      const tAbsolute = seekOffset + video.currentTime;
-      const currentTime = formatTime(tAbsolute);
+      // Always prefer initialDuration (from metadata) over video.duration
+      // because video.duration in live/event HLS can be inaccurate
       const videoDuration = video.duration;
-      
-      const isRemux = seekOffset > 0 || (videoDuration > 0 && videoDuration < 60 && initialDuration > 120);
-      const durationVal = isRemux || isNaN(videoDuration) || videoDuration === Infinity || videoDuration <= 0
+      const durationVal = initialDuration > 0
         ? initialDuration
-        : videoDuration;
-        
+        : (isNaN(videoDuration) || videoDuration === Infinity || videoDuration <= 0 ? 0 : videoDuration);
+
+      const tAbsolute = seekOffset + video.currentTime;
+      const clampedTime = durationVal > 0 ? Math.min(tAbsolute, durationVal) : tAbsolute;
+      const currentTime = formatTime(clampedTime);
       const duration = formatTime(durationVal);
         
       display.textContent = `${currentTime} / ${duration}`;

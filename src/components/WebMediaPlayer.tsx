@@ -319,19 +319,44 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   const handleSeek = (time: number) => {
     const video = videoRef.current;
     if (!video) return;
-    if (hlsRef.current) { video.currentTime = time; return; }
     const normalizedUrl = normalizeStreamUrlToPath(playback.streamUrl);
     const isStreamServer = normalizedUrl.includes("/stream/") || !!playback.streamHash;
     const ext = getFileExtension(normalizedUrl);
     const isNonNative = ext ? !["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "m4a", "mpd"].includes(ext) : false;
     const needsRemux = isStreamServer && (isNonNative || (audioTracks.length > 0 && currentAudioTrack !== audioTracks[0].id));
     if (needsRemux) {
+      // For torrent remux streams: restart FFmpeg from the new position.
+      // Can't seek within existing HLS segments — they're generated progressively.
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
       setSeekOffset(time);
       let newUrl = getHlsStreamUrl(normalizedUrl);
       newUrl = updateStreamUrlParams(newUrl, { start: Math.floor(time).toString(), audio: currentAudioTrack !== -1 ? currentAudioTrack.toString() : "0" });
+      const proxiedUrl = getProxyUrl(newUrl, ApiClient.baseURL, playback.headers);
       video.pause();
-      video.src = getProxyUrl(newUrl, ApiClient.baseURL, playback.headers);
-      video.play().then(() => syncNativeTextTracks(video)).catch(() => {});
+      if (Hls.isSupported()) {
+        const hls = new Hls({ maxBufferLength: 30, maxMaxBufferLength: 60 });
+        hls.loadSource(proxiedUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play().then(() => syncNativeTextTracks(video)).catch(() => {});
+        });
+        hls.on(Hls.Events.ERROR, (_, data) => {
+          if (data.fatal) {
+            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
+            else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+          }
+        });
+        hlsRef.current = hls;
+      } else {
+        video.src = proxiedUrl;
+        video.play().then(() => syncNativeTextTracks(video)).catch(() => {});
+      }
+    } else if (hlsRef.current) {
+      // Non-torrent HLS (external m3u8 with all segments available): seek directly
+      video.currentTime = time;
     } else {
       setSeekOffset(0);
       video.currentTime = time;

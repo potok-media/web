@@ -31,13 +31,12 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
       if (!slider) return;
 
       const videoDuration = video.duration;
-      const isRemux = seekOffset > 0 || (videoDuration > 0 && videoDuration < 60 && initialDuration > 120);
-      const duration = isRemux || isNaN(videoDuration) || videoDuration === Infinity || videoDuration <= 0
+      const duration = initialDuration > 0
         ? initialDuration
-        : videoDuration;
+        : (isNaN(videoDuration) || videoDuration === Infinity || videoDuration <= 0 ? 0 : videoDuration);
 
-      const tAbsolute = seekOffset + video.currentTime;
-      const pct = (tAbsolute / duration) * 100;
+      const tAbsolute = Math.min(seekOffset + video.currentTime, duration > 0 ? duration : Infinity);
+      const pct = duration > 0 ? (tAbsolute / duration) * 100 : 0;
 
       slider.max = duration.toString();
       slider.value = tAbsolute.toString();
@@ -49,10 +48,9 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
       if (!slider) return;
 
       const videoDuration = video.duration;
-      const isRemux = seekOffset > 0 || (videoDuration > 0 && videoDuration < 60 && initialDuration > 120);
-      const duration = isRemux || isNaN(videoDuration) || videoDuration === Infinity || videoDuration <= 0
+      const duration = initialDuration > 0
         ? initialDuration
-        : videoDuration;
+        : (isNaN(videoDuration) || videoDuration === Infinity || videoDuration <= 0 ? 0 : videoDuration);
 
       const buffered = video.buffered;
       let bufferEnd = 0;
@@ -88,11 +86,10 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
     isDraggingRef.current = true;
     const val = parseFloat(e.target.value);
     const videoDuration = videoRef.current?.duration;
-    const isRemux = seekOffset > 0 || (videoDuration && videoDuration > 0 && videoDuration < 60 && initialDuration > 120);
-    const duration = isRemux || isNaN(videoDuration || NaN) || videoDuration === Infinity || !videoDuration
+    const duration = initialDuration > 0
       ? initialDuration
-      : videoDuration;
-    e.target.style.setProperty("--timeline-progress", `${(val / duration) * 100}%`);
+      : (isNaN(videoDuration || NaN) || videoDuration === Infinity || !videoDuration ? 0 : videoDuration);
+    if (duration > 0) e.target.style.setProperty("--timeline-progress", `${(val / duration) * 100}%`);
   };
 
   const handleSliderRelease = (e: React.SyntheticEvent<HTMLInputElement>) => {
@@ -119,10 +116,9 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
 
     const video = videoRef.current;
     const videoDuration = video ? video.duration : 0;
-    const isRemux = seekOffset > 0 || (videoDuration > 0 && videoDuration < 60 && initialDuration > 120);
-    const duration = isRemux || isNaN(videoDuration) || videoDuration === Infinity || videoDuration <= 0
+    const duration = initialDuration > 0
       ? initialDuration
-      : videoDuration;
+      : (isNaN(videoDuration) || videoDuration === Infinity || videoDuration <= 0 ? 0 : videoDuration);
 
     const pct = clampedX / width;
     const time = pct * duration;
