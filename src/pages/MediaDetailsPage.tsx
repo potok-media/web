@@ -168,6 +168,19 @@ export const MediaDetailsPage: React.FC = () => {
           </div>
         )}
 
+        {/* Dynamically Rendered Plugin Extension Slot for Details Bottom Content */}
+        <div
+          id="details-bottom-slot"
+          data-props={JSON.stringify({
+            mediaId,
+            tmdbId,
+            mediaType,
+            title: media.title,
+            originalTitle: media.originalTitle,
+            media
+          })}
+        />
+
         {cast.length > 0 && (
           <MediaCastSection cast={cast} />
         )}

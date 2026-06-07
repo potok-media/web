@@ -16,6 +16,16 @@ import { HostCommonComponentsRenderer } from "./HostCommonComponentsRenderer";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import { Grid } from "../Grid";
 
+const formatSpacingValue = (val: any): string | undefined => {
+  if (val === undefined || val === null) return undefined;
+  if (typeof val === "number") return `${val}px`;
+  if (typeof val === "string") return val;
+  if (Array.isArray(val)) {
+    return val.map((v) => (typeof v === "number" ? `${v}px` : v)).join(" ");
+  }
+  return undefined;
+};
+
 interface ComponentRendererProps {
   schema: UIComponentSchema;
   pluginId: string;
@@ -64,6 +74,12 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
   if (schema.props.width !== undefined) baseStyle.width = schema.props.width;
   if (schema.props.height !== undefined) baseStyle.height = schema.props.height;
   if (schema.props.flex !== undefined) baseStyle.flex = schema.props.flex;
+  if (schema.props.padding !== undefined) {
+    baseStyle.padding = formatSpacingValue(schema.props.padding);
+  }
+  if (schema.props.margin !== undefined) {
+    baseStyle.margin = formatSpacingValue(schema.props.margin);
+  }
   if (schema.props.visible === false) return null;
 
   if (HOST_MEDIA_TYPES.has(normalizedType)) {

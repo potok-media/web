@@ -665,6 +665,7 @@ export interface SlotContribution {
   slotName: string;
   id: string;
   title?: string;
+  hideHeader?: boolean;
 }
 
 export interface SlotRenderResponse {

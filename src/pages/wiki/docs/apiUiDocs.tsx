@@ -88,11 +88,147 @@ ui.navigateTo("/library", { filter: "watchlist" });`}
       <p className="doc-body-text">
         Для интеграции в жизненный цикл хост-приложения используются глобальные функции SDK:
       </p>
+      
+      <div className="doc-table-wrapper" style={{ marginTop: "1rem" }}>
+        <table className="doc-table">
+          <thead>
+            <tr>
+              <th>Функция API</th>
+              <th>Описание</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>registerPlugin(meta)</code></td>
+              <td>Регистрирует базовые метаданные плагина (уникальный <code>id</code>, отображаемое имя <code>name</code> и версию). Должна вызываться первой при загрузке скрипта.</td>
+            </tr>
+            <tr>
+              <td><code>registerSource(config)</code></td>
+              <td>Регистрирует плагин как поисковый провайдер (источник медиа-потоков). Хост обращается к зарегистрированному источнику при поиске видеофайлов.</td>
+            </tr>
+            <tr>
+              <td><code>registerSlotContribution(config)</code></td>
+              <td>Регистрирует графический вклад в указанный интерфейсный слот (например, в кнопки действий или под описание медиафайла).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 className="doc-section-h3" style={{ marginTop: "1.5rem" }} id="register-slot-docs">Детальное описание <code>registerSlotContribution</code></h3>
+      <p className="doc-body-text">
+        Эта функция позволяет плагину динамически внедрять собственный интерфейс в предопределенные области приложения. Хост вызывает рендер-функцию плагина при монтировании соответствующего экрана и отрисовывает возвращаемый макет.
+      </p>
+      
+      <p className="doc-body-text">
+        Аргумент <code>config</code> представляет собой объект со следующими параметрами:
+      </p>
       <ul className="doc-bullet-list">
-        <li><code>registerPlugin(meta)</code> — регистрирует базовые метаданные плагина.</li>
-        <li><code>registerSource(config)</code> — регистрирует плагин как поисковый провайдер (источник медиа). Хост будет вызывать функцию <code>lookup</code> плагина при поиске раздач.</li>
-        <li><code>registerSlotContribution(config)</code> — привязывает рендер-функцию плагина к определенному интерфейсному слоту (например, <code>media-actions</code>).</li>
+        <li><code>id</code> (string, обязательное) — Уникальный идентификатор вклада в рамках плагина (должен соответствовать <code>id</code> из массива <code>slots</code> в манифесте).</li>
+        <li><code>slotName</code> (string, обязательное) — Целевая точка встраивания (например, <code>"media-actions"</code>, <code>"details-bottom"</code>, <code>"extension-page"</code>).</li>
+        <li><code>render(props)</code> (function, обязательное) — Функция, возвращающая UI. Принимает <code>props</code> (данные текущего контекста хоста, например, информацию о просматриваемом фильме) и должна возвращать объект:
+          <ul className="doc-bullet-list" style={{ marginTop: "4px", paddingLeft: "1.2rem" }}>
+            <li><code>label</code> (string) — Название/подпись для вклада.</li>
+            <li><code>icon</code> (string, опционально) — Имя иконки Lucide.</li>
+            <li><code>layout</code> (UIComponent) — Дерево UI компонентов (создается с помощью билдеров <code>Card()</code>, <code>VStack()</code>, <code>Button()</code> и т.д.).</li>
+          </ul>
+        </li>
       </ul>
+
+      <h3 className="doc-section-h3" style={{ marginTop: "1.5rem" }}>Пример простого плагина (Easy Plugin)</h3>
+      <p className="doc-body-text">
+        Ниже приведена структура и файлы минимального рабочего расширения, которое добавляет кастомную кнопку запуска трейлера и информационный блок на страницу деталей фильма:
+      </p>
+
+      <h4 style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: "0.95rem", margin: "1rem 0 0.5rem 0" }}>1. Структура папки плагина:</h4>
+      <CodeBlock
+        language="text"
+        code={`my-easy-plugin/
+├── manifest.json   # Метаданные и объявление слотов
+└── index.js        # Исполняемый JS код плагина`}
+      />
+
+      <h4 style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: "0.95rem", margin: "1rem 0 0.5rem 0" }}>2. Файл <code>manifest.json</code>:</h4>
+      <CodeBlock
+        language="json"
+        code={`{
+  "id": "my-easy-plugin",
+  "name": "Простой Просмотрщик",
+  "version": "1.0.0",
+  "description": "Добавляет кнопку просмотра трейлера и блок в деталях",
+  "permissions": ["ui-notifications"],
+  "slots": [
+    {
+      "id": "trailer-action-button",
+      "slotName": "media-actions",
+      "title": "Кнопка Трейлера"
+    },
+    {
+      "id": "extra-details-info",
+      "slotName": "details-bottom",
+      "title": "Блок Информации"
+    }
+  ]
+}`}
+      />
+
+      <h4 style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: "0.95rem", margin: "1rem 0 0.5rem 0" }}>3. Файл <code>index.js</code>:</h4>
+      <CodeBlock
+        language="javascript"
+        code={`import { PotokSDK } from 'potok-sdk';
+
+// А. Регистрируем плагин в системе
+PotokSDK.registerPlugin({
+  id: "my-easy-plugin",
+  name: "Простой Просмотрщик"
+});
+
+// Б. Внедряем кнопку в слот действий "media-actions"
+PotokSDK.registerSlotContribution({
+  id: "trailer-action-button",
+  slotName: "media-actions",
+  render(props) {
+    const { Button } = PotokSDK.ui.components;
+    return {
+      label: "Смотреть Трейлер",
+      layout: Button("Смотреть Трейлер")
+        .variant("primary")
+        .onClick(() => {
+          // Запуск встроенного плеера хоста с тестовым видео
+          PotokSDK.ui.playVideo({
+            title: \`Трейлер к \${props.title}\`,
+            streamUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+          });
+        })
+    };
+  }
+});
+
+// В. Внедряем информационную карточку в слот под описанием "details-bottom"
+PotokSDK.registerSlotContribution({
+  id: "extra-details-info",
+  slotName: "details-bottom",
+  render(props) {
+    const { Card, VStack, Text, Badge, HStack } = PotokSDK.ui.components;
+    return {
+      label: "Дополнительно",
+      layout: Card()
+        .title("Рекомендовано плагином")
+        .subtitle(\`Кинопоиск ID: \${props.mediaId}\`)
+        .child(
+          VStack()
+            .spacing(8)
+            .child(Text(\`Вы просматриваете страницу "\${props.title}". Этот блок встроил кастомный плагин.\`).variant("secondary"))
+            .child(
+              HStack()
+                .spacing(6)
+                .child(Badge("Качество 1080p").color("success"))
+                .child(Badge("Лицензия").color("info"))
+            )
+        )
+    };
+  }
+});`}
+      />
 
       <button className="doc-sandbox-btn" onClick={() => openInSandbox(`// Пример вызова системного плеера и селекторов
 const { ui } = PotokSDK;

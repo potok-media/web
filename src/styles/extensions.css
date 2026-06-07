@@ -3,7 +3,7 @@
 .potok-extension-slot {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-s, 12px);
   width: 100%;
 }
 
@@ -13,16 +13,42 @@
   flex-direction: column;
 }
 
+#details-bottom-slot {
+  margin-top: var(--space-l, 24px);
+  margin-bottom: var(--space-l, 24px);
+}
+
+/* Extension page wrapper spacing to prevent viewport edge touching */
+.extension-page-container {
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-l);
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100%;
+}
+
+@media (max-width: 768px) {
+  .extension-page-container {
+    padding: var(--space-m);
+    gap: var(--space-s);
+    padding-bottom: calc(var(--space-m) + var(--mobile-bottom-nav-height, 60px));
+  }
+}
+
 .potok-vstack {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  gap: var(--space-s, 12px);
 }
 
 .potok-hstack {
   display: flex;
   flex-direction: row;
   box-sizing: border-box;
+  gap: var(--space-s, 12px);
 }
 
 .potok-card {
@@ -32,8 +58,8 @@
   border: var(--glass-border);
   border-radius: var(--radius-m, 12px);
   backdrop-filter: var(--blur-glass, blur(20px));
-  padding: var(--spacing-m, 16px);
-  margin-bottom: var(--spacing-m, 16px);
+  padding: var(--space-m, 16px);
+  margin-bottom: var(--space-m, 16px);
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -56,7 +82,7 @@
 
 
 .potok-card-header {
-  margin-bottom: var(--spacing-s, 8px);
+  margin-bottom: var(--space-s, 8px);
 }
 
 .potok-card-title {
@@ -389,8 +415,8 @@ input:checked + .potok-slider:before {
   font-size: 0.95rem;
   line-height: 1.6;
   color: var(--text-secondary);
-  margin-top: var(--spacing-m, 16px);
-  margin-bottom: var(--spacing-m, 16px);
+  margin-top: var(--space-m, 16px);
+  margin-bottom: var(--space-m, 16px);
   user-select: text;
   -webkit-user-select: text;
 }
