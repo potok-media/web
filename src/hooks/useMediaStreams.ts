@@ -31,6 +31,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
   const { playVideo } = usePlayback();
 
   const [clickedStream, setClickedStream] = useState<RawStreamPayload | null>(null);
+  const shouldForceNextSearchRef = useRef(false);
   const [episodeSelectorData, setEpisodeSelectorData] = useState<{
     title: string; episodes: GenericEpisodeItem[]; tmdbSeasonsCount: number;
   } | null>(null);
@@ -195,13 +196,16 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
       return;
     }
 
+    const isForce = shouldForceNextSearchRef.current;
+    shouldForceNextSearchRef.current = false;
+
     const reqId = Math.random().toString(36).substring(7);
     activeRequestIdRef.current = reqId;
     setLoading(true);
     setError(null);
 
     ExtensionRegistry.sendSandboxRequest<RawStreamPayload[]>(activeSource.pluginId, "STREAM_SOURCE_SEARCH", {
-      query: { title: mediaTitle, imdbId: mediaImdbId, tmdbId: mediaId, type: mediaType as "movie" | "tv", season, episode },
+      query: { title: mediaTitle, imdbId: mediaImdbId, tmdbId: mediaId, type: mediaType as "movie" | "tv", season, episode, forceSearch: isForce },
     })
       .then((results) => {
         if (activeRequestIdRef.current !== reqId) return;
@@ -222,6 +226,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
   const handleRefresh = useCallback(() => {
     if (activeTab) {
       resultsCache.current.delete(activeTab);
+      shouldForceNextSearchRef.current = true;
       setRefreshTrigger((prev) => prev + 1);
     }
   }, [activeTab]);
