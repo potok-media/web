@@ -7,6 +7,8 @@ export const ManifestDoc = {
   toc: [
     { id: "fields", text: "Обязательные и опциональные поля" },
     { id: "permissions", text: "Управление правами доступа" },
+    { id: "slots-section", text: "Слоты интерфейса (Slots)" },
+    { id: "config-section", text: "Конфигурация плагина (Config)" },
     { id: "manifest-example", text: "Полный пример" }
   ],
   render: () => {
@@ -27,7 +29,12 @@ export const ManifestDoc = {
     {
       "id": "torrents-media-actions",
       "slotName": "media-actions",
-      "title": "Смотреть торренты"
+      "title": "Смотреть"
+    },
+    {
+      "id": "torrents-sidebar-status",
+      "slotName": "sidebar-status",
+      "title": "Статус Торрентов"
     }
   ],
   "config": {
@@ -35,6 +42,11 @@ export const ManifestDoc = {
       "type": "string",
       "default": "https://torrent.potok.rip",
       "label": "Адрес TorrentGo"
+    },
+    "searchEngineURL": {
+      "type": "string",
+      "default": "https://search.potok.rip",
+      "label": "Адрес SearchEngine"
     }
   }
 }`;
@@ -88,7 +100,7 @@ export const ManifestDoc = {
             <tr>
               <td><code>category</code></td>
               <td>string (optional)</td>
-              <td>Категория расширения (например: <code>sources</code> для источников медиа, <code>visual</code> для тем оформления, <code>other</code> для прочего).</td>
+              <td>Категория расширения: <code>sources</code> для источников медиа, <code>visual</code> для тем оформления, <code>other</code> для прочего.</td>
             </tr>
             <tr>
               <td><code>permissions</code></td>
@@ -118,6 +130,93 @@ export const ManifestDoc = {
           <li><code>ui-notifications</code> — открывает доступ к системным уведомлениям и HUD-подсказкам (например, <code>ui.showHUD()</code>).</li>
         </ul>
 
+        <h2 className="doc-section-h2" id="slots-section">Слоты интерфейса (Slots)</h2>
+        <p className="doc-body-text">
+          Каждый элемент массива <code>slots</code> описывает точку встраивания плагина в интерфейс хоста. Поддерживаются следующие значения для поля <code>slotName</code>:
+        </p>
+        <table className="doc-table">
+          <thead>
+            <tr>
+              <th>Слот (slotName)</th>
+              <th>Описание</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>sidebar-menu</code></td>
+              <td>Верхняя секция меню боковой панели (самый верхний уровень навигации).</td>
+            </tr>
+            <tr>
+              <td><code>sidebar-menu-home</code></td>
+              <td>Дополнительные пункты меню рядом с разделом «Главная».</td>
+            </tr>
+            <tr>
+              <td><code>sidebar-menu-library</code></td>
+              <td>Дополнительные пункты меню в разделе «Медиатека».</td>
+            </tr>
+            <tr>
+              <td><code>sidebar-status</code></td>
+              <td>Нижняя часть боковой панели (для отображения статуса/сервисных кнопок).</td>
+            </tr>
+            <tr>
+              <td><code>media-actions</code></td>
+              <td>Блок действий на странице фильма или сериала (например, кнопки запуска просмотра).</td>
+            </tr>
+            <tr>
+              <td><code>details-bottom</code></td>
+              <td>Панель под основной информацией о медиафайле в деталях.</td>
+            </tr>
+            <tr>
+              <td><code>settings-color-accent</code></td>
+              <td>Слот настроек для управления цветовой палитрой и оформлениями.</td>
+            </tr>
+            <tr>
+              <td><code>settings-tabs</code></td>
+              <td>Добавление кастомных вкладок в панель настроек хост-приложения.</td>
+            </tr>
+            <tr>
+              <td><code>extension-page</code></td>
+              <td>Страница расширения, открывающаяся во весь экран.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 className="doc-section-h2" id="config-section">Конфигурация плагина (Config)</h2>
+        <p className="doc-body-text">
+          Поле <code>config</code> позволяет объявлять настройки плагина, которые автоматически отрисуются хостом в панели настроек. Объект <code>config</code> состоит из пар <code>ключ: описание_параметра</code>, где описание параметра имеет следующую структуру:
+        </p>
+        <table className="doc-table">
+          <thead>
+            <tr>
+              <th>Поле свойства</th>
+              <th>Тип</th>
+              <th>Описание</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>type</code></td>
+              <td>string (required)</td>
+              <td>Тип значения настройки. Поддерживаемые типы: <code>"string"</code>, <code>"boolean"</code>, <code>"number"</code>.</td>
+            </tr>
+            <tr>
+              <td><code>default</code></td>
+              <td>any (required)</td>
+              <td>Значение по умолчанию для настройки. Тип должен соответствовать указанному в поле <code>type</code>.</td>
+            </tr>
+            <tr>
+              <td><code>label</code></td>
+              <td>string (required)</td>
+              <td>Текстовая метка (заголовок), которая будет отображаться пользователю в панели настроек.</td>
+            </tr>
+            <tr>
+              <td><code>dependsOn</code></td>
+              <td>string (optional)</td>
+              <td>Имя другого параметра из <code>config</code>, от включения или значения которого зависит видимость текущей настройки.</td>
+            </tr>
+          </tbody>
+        </table>
+
         <h2 className="doc-section-h2" id="manifest-example">Пример файла manifest.json</h2>
         <CodeBlock language="json" code={manifestCode} />
       </div>
@@ -130,19 +229,21 @@ export const StateDoc = {
   category: "API",
   toc: [
     { id: "state-api", text: "createState API" },
-    { id: "subscription", text: "Подписка на обновления" },
+    { id: "subscription", text: "Подписка и отписка" },
+    { id: "deep-reactivity", text: "Глубокая реактивность" },
+    { id: "batching", text: "Пакетные обновления (Batching)" },
     { id: "reactive-example", text: "Интерактивный пример" }
   ],
   render: (openInSandbox: (code: string) => void) => (
     <div>
       <h1 className="wiki-doc-title" id="state-api">Управление состоянием</h1>
       <p className="doc-body-text">
-        Для динамического обновления интерфейса SDK предоставляет функцию <code>createState</code>. Она оборачивает переданный объект в Proxy, перехватывающий любые мутации полей и уведомняющий подписчиков.
+        Для динамического обновления интерфейса SDK предоставляет функцию <code>createState</code>. Она оборачивает переданный объект в Proxy, перехватывающий любые мутации полей и уведомляющий подписчиков.
       </p>
 
-      <h2 className="doc-section-h2" id="subscription">Метод $subscribe</h2>
+      <h2 className="doc-section-h2" id="subscription">Подписка и отписка</h2>
       <p className="doc-body-text">
-        Реактивное состояние имеет встроенный метод подписки <code>$subscribe(callback)</code>. Обычно в качестве коллбека передается функция рендеринга плагина:
+        Реактивное состояние имеет встроенный метод подписки <code>$subscribe(callback)</code>. Обычно в качестве коллбека передается функция рендеринга плагина. Метод <code>$subscribe</code> возвращает функцию отписки (unsubscribe), вызов которой удаляет слушатель и предотвращает утечки памяти:
       </p>
       
       <CodeBlock 
@@ -153,12 +254,63 @@ function render() {
   ui.render(Text(state.title));
 }
 
-state.$subscribe(render); // Авторендер при любых изменениях state`}
+// Подписываемся на изменения:
+const unsubscribe = state.$subscribe(render);
+
+// Вызываем для первоначального отображения:
+render();
+
+// Когда подписка больше не нужна (например, при выгрузке плагина):
+// unsubscribe();`}
+      />
+
+      <h2 className="doc-section-h2" id="deep-reactivity">Глубокая реактивность</h2>
+      <p className="doc-body-text">
+        Рантайм отслеживает изменения на любой глубине вложенности. При обращении к свойствам-объектам они динамически оборачиваются в прокси, что позволяет реактивно реагировать на изменение глубоких ключей и модификации массивов:
+      </p>
+
+      <CodeBlock 
+        language="javascript"
+        code={`const state = createState({
+  user: {
+    profile: { name: "Алексей" }
+  },
+  genres: ["Экшен", "Драма"]
+});
+
+// 1. Изменение глубоко вложенного свойства (автоматически вызовет рендер)
+state.user.profile.name = "Иван";
+
+// 2. Модификация массивов (добавление, удаление, сортировка)
+state.genres.push("Комедия");
+state.genres.splice(0, 1);`}
+      />
+
+      <h2 className="doc-section-h2" id="batching">Пакетные обновления (Batching)</h2>
+      <p className="doc-body-text">
+        Для оптимизации производительности вызовы подписчиков группируются с использованием очереди микрозадач (через <code>Promise.resolve()</code>). Это предотвращает множественные перерисовки интерфейса при синхронном изменении нескольких полей подряд:
+      </p>
+
+      <CodeBlock 
+        language="javascript"
+        code={`const state = createState({ count: 0, lastAction: "none" });
+
+state.$subscribe(() => {
+  console.log("Рендер вызван!");
+});
+
+// Синхронное изменение нескольких свойств:
+state.count++;
+state.lastAction = "increment";
+state.count += 5;
+
+// В консоли отобразится ровно ОДИН вывод "Рендер вызван!", 
+// так как все обновления объединились в один такт.`}
       />
 
       <h2 className="doc-section-h2" id="reactive-example">Код реактивного счетчика</h2>
       <p className="doc-body-text">
-        При изменении состояния через события компонентов, рантайм мгновенно перекомпилирует схему:
+        В песочнице вы можете интерактивно протестировать работу реактивности на примере этого счетчика:
       </p>
       
       <CodeBlock 

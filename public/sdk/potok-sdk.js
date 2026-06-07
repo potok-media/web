@@ -1066,16 +1066,71 @@ var PotokSDK = (function(exports) {
 	};
 	//#endregion
 	//#region src/sdk/src/components/common.ts
+	/**
+	* VStack (Вертикальный стек)
+	* 
+	* Контейнер, который выстраивает дочерние компоненты вертикально друг под другом.
+	* 
+	* @example
+	* // Вертикальный стек
+	* const { ui } = PotokSDK;
+	* 
+	* ui.render(
+	*   VStack()
+	*     .spacing(20)
+	*     .alignItems("center")
+	*     .child(Heading("Заголовок"))
+	*     .child(Text("Параграф текста под заголовком."))
+	*     .child(Button("Ок"))
+	* );
+	*/
 	var VStackBuilder = class extends LayoutComponent {
 		constructor() {
 			super("VStack");
 		}
 	};
+	/**
+	* HStack (Горизонтальный стек)
+	* 
+	* Контейнер, который выстраивает дочерние компоненты горизонтально слева направо.
+	* 
+	* @example
+	* // Горизонтальный стек
+	* const { ui } = PotokSDK;
+	* 
+	* ui.render(
+	*   HStack()
+	*     .spacing(15)
+	*     .justifyContent("between")
+	*     .alignItems("center")
+	*     .child(Text("Элемент 1"))
+	*     .child(Text("Элемент 2"))
+	*     .child(Button("Кнопка"))
+	* );
+	*/
 	var HStackBuilder = class extends LayoutComponent {
 		constructor() {
 			super("HStack");
 		}
 	};
+	/**
+	* Grid (Сетка)
+	* 
+	* Контейнер, который отрисовывает адаптивную сетку ячеек с фиксированной минимальной шириной колонки.
+	* 
+	* @example
+	* // Адаптивная сетка
+	* const { ui } = PotokSDK;
+	* 
+	* ui.render(
+	*   Grid()
+	*     .minWidth("8rem")
+	*     .gap("1rem")
+	*     .child(Card().title("Карточка 1").child(Text("Текст")))
+	*     .child(Card().title("Карточка 2").child(Text("Текст")))
+	*     .child(Card().title("Карточка 3").child(Text("Текст")))
+	* );
+	*/
 	var GridBuilder = class extends LayoutComponent {
 		_minWidth;
 		_gap;
@@ -1084,10 +1139,22 @@ var PotokSDK = (function(exports) {
 			this._minWidth = "180px";
 			this._gap = "var(--space-m)";
 		}
+		/**
+		* Минимально допустимая ширина одной колонки сетки (например, '12rem').
+		*
+		* @param v Значение метода
+		* @default '180px'
+		*/
 		minWidth(v) {
 			this._minWidth = v;
 			return this;
 		}
+		/**
+		* Зазор/отступ между ячейками сетки (например, '1rem').
+		*
+		* @param v Значение метода
+		* @default 'var(--space-m)'
+		*/
 		gap(v) {
 			this._gap = v;
 			return this;
@@ -1100,6 +1167,22 @@ var PotokSDK = (function(exports) {
 			};
 		}
 	};
+	/**
+	* Card (Стеклянная карточка)
+	* 
+	* Панель-карточка с границами, размытием и эффектом матового стекла (glassmorphism). Используется для визуальной группировки логических блоков.
+	* 
+	* @example
+	* // Карточка
+	* const { ui } = PotokSDK;
+	* 
+	* ui.render(
+	*   Card()
+	*     .title("Основные сведения")
+	*     .subtitle("Дополнительная информация")
+	*     .child(Text("Внутри карточки находится этот текст."))
+	* );
+	*/
 	var CardBuilder = class extends UIComponent {
 		_title;
 		_subtitle;
@@ -1107,14 +1190,29 @@ var PotokSDK = (function(exports) {
 		constructor() {
 			super("Card");
 		}
+		/**
+		* Заголовок карточки, выводимый в её верхней части.
+		*
+		* @param v Значение метода
+		*/
 		title(v) {
 			this._title = v;
 			return this;
 		}
+		/**
+		* Подзаголовок карточки, выводимый мелким приглушенным шрифтом.
+		*
+		* @param v Значение метода
+		*/
 		subtitle(v) {
 			this._subtitle = v;
 			return this;
 		}
+		/**
+		* Вкладывает один дочерний компонент внутрь тела карточки.
+		*
+		* @param v Значение метода
+		*/
 		child(elm) {
 			this._child = elm;
 			return this;
@@ -1139,6 +1237,24 @@ var PotokSDK = (function(exports) {
 			return json;
 		}
 	};
+	/**
+	* Heading (Заголовок)
+	* 
+	* Компонент для вывода крупных структурированных заголовков разного уровня (аналог тегов h1-h4).
+	* 
+	* @example
+	* // Заголовки
+	* const { ui } = PotokSDK;
+	* 
+	* ui.render(
+	*   VStack()
+	*     .spacing(12)
+	*     .child(Heading("Главный заголовок H1").level(1))
+	*     .child(Heading("Подзаголовок уровня H2").level(2))
+	*     .child(Heading("Раздел H3").level(3))
+	*     .child(Heading("Мелкий заголовок H4").level(4))
+	* );
+	*/
 	var HeadingBuilder = class extends UIComponent {
 		_text;
 		_level;
@@ -1147,6 +1263,12 @@ var PotokSDK = (function(exports) {
 			this._text = t;
 			this._level = 1;
 		}
+		/**
+		* Определяет размер и важность заголовка (1 — самый большой, 4 — самый маленький).
+		*
+		* @param v Значение метода
+		* @default 1
+		*/
 		level(v) {
 			this._level = v;
 			return this;
@@ -1158,6 +1280,25 @@ var PotokSDK = (function(exports) {
 			};
 		}
 	};
+	/**
+	* Text (Обычный текст)
+	* 
+	* Основной текстовый элемент для вывода описаний, подписей, ошибок или любого другого неструктурированного контента.
+	* 
+	* @example
+	* // Оформление текстов
+	* const { ui } = PotokSDK;
+	* 
+	* ui.render(
+	*   VStack()
+	*     .spacing(10)
+	*     .child(Text("Это стандартный основной текст (primary).").variant("primary"))
+	*     .child(Text("Это второстепенный текст описания (secondary).").variant("secondary").size("sm"))
+	*     .child(Text("Успешная операция завершена (success).").variant("success").bold(true))
+	*     .child(Text("Внимание! Требуется действие (warning).").variant("warning"))
+	*     .child(Text("Критическая ошибка приложения (error).").variant("error").size("lg").bold(true))
+	* );
+	*/
 	var TextBuilder = class extends UIComponent {
 		_text;
 		_variant;
@@ -1170,14 +1311,32 @@ var PotokSDK = (function(exports) {
 			this._size = "md";
 			this._bold = false;
 		}
+		/**
+		* Цветовой вариант текста (тема). Обычный, приглушенный серый, зеленый, желтый или красный соответственно.
+		*
+		* @param v Значение метода
+		* @default 'primary'
+		*/
 		variant(v) {
 			this._variant = v;
 			return this;
 		}
+		/**
+		* Задает размер шрифта текста.
+		*
+		* @param v Значение метода
+		* @default 'md'
+		*/
 		size(v) {
 			this._size = v;
 			return this;
 		}
+		/**
+		* Делает начертание шрифта жирным при значении true.
+		*
+		* @param v Значение метода
+		* @default false
+		*/
 		bold(v) {
 			this._bold = v;
 			return this;
@@ -1191,6 +1350,24 @@ var PotokSDK = (function(exports) {
 			};
 		}
 	};
+	/**
+	* Badge (Бейдж)
+	* 
+	* Компактная закругленная метка с цветным фоном. Подходит для вывода качества видео, статусов подписки, меток «Новинка» и других тегов.
+	* 
+	* @example
+	* // Бейджи
+	* const { ui } = PotokSDK;
+	* 
+	* ui.render(
+	*   HStack()
+	*     .spacing(8)
+	*     .child(Badge("FullHD").color("info"))
+	*     .child(Badge("Новое").color("success"))
+	*     .child(Badge("Популярное").color("warning"))
+	*     .child(Badge("18+").color("error"))
+	* );
+	*/
 	var BadgeBuilder = class extends UIComponent {
 		_text;
 		_color;
@@ -1199,6 +1376,12 @@ var PotokSDK = (function(exports) {
 			this._text = t;
 			this._color = "info";
 		}
+		/**
+		* Цветовая схема заливки бейджа.
+		*
+		* @param v Значение метода
+		* @default 'info'
+		*/
 		color(v) {
 			this._color = v;
 			return this;
@@ -1210,6 +1393,27 @@ var PotokSDK = (function(exports) {
 			};
 		}
 	};
+	/**
+	* StatusRow (Строка статуса)
+	* 
+	* Компонент для отображения состояния внешних систем или соединений с цветным индикатором (точкой) и текстовым значением.
+	* 
+	* @example
+	* // Строки статуса
+	* const { ui } = PotokSDK;
+	* 
+	* ui.render(
+	*   Card()
+	*     .title("Состояние системы")
+	*     .child(
+	*       VStack()
+	*         .spacing(8)
+	*         .child(StatusRow("Основной сервер (BFF)").status("success").value("Активен (18ms)"))
+	*         .child(StatusRow("Локальный прокси-сервер").status("warning").value("Таймаут (450ms)"))
+	*         .child(StatusRow("Резервное зеркало").status("offline").value("Недоступно"))
+	*     )
+	* );
+	*/
 	var StatusRowBuilder = class extends UIComponent {
 		_label;
 		_status;
@@ -1218,10 +1422,20 @@ var PotokSDK = (function(exports) {
 			super("StatusRow");
 			this._label = label;
 		}
+		/**
+		* Состояние статуса (меняет цвет точки: зеленый/желтый/серый соответственно).
+		*
+		* @param v Значение метода
+		*/
 		status(v) {
 			this._status = v;
 			return this;
 		}
+		/**
+		* Текстовое значение, выравниваемое по правому краю строки (например, '24 ms' или 'v1.2.0').
+		*
+		* @param v Значение метода
+		*/
 		value(v) {
 			this._value = v;
 			return this;
@@ -1234,6 +1448,23 @@ var PotokSDK = (function(exports) {
 			};
 		}
 	};
+	/**
+	* Divider (Разделитель)
+	* 
+	* Горизонтальная тонкая линия-разделитель для визуального отделения блоков контента или строк в списках.
+	* 
+	* @example
+	* // Разделитель
+	* const { ui } = PotokSDK;
+	* 
+	* ui.render(
+	*   VStack()
+	*     .spacing(12)
+	*     .child(Text("Текст сверху"))
+	*     .child(Divider())
+	*     .child(Text("Текст снизу"))
+	* );
+	*/
 	var DividerBuilder = class extends UIComponent {
 		constructor() {
 			super("Divider");
@@ -1242,6 +1473,22 @@ var PotokSDK = (function(exports) {
 			return {};
 		}
 	};
+	/**
+	* Spacer (Распорка)
+	* 
+	* Пустой упругий элемент (распорка), заполняющий все доступное свободное пространство во флекс-контейнере. Полезен внутри HStack или VStack для прижатия элементов к краям.
+	* 
+	* @example
+	* // Распорка
+	* const { ui } = PotokSDK;
+	* 
+	* ui.render(
+	*   HStack()
+	*     .child(Text("Левая сторона"))
+	*     .child(Spacer())
+	*     .child(Text("Правая сторона"))
+	* );
+	*/
 	var SpacerBuilder = class extends UIComponent {
 		constructor() {
 			super("Spacer");
@@ -1250,6 +1497,27 @@ var PotokSDK = (function(exports) {
 			return {};
 		}
 	};
+	/**
+	* Button (Кнопка)
+	* 
+	* Интерактивный элемент интерфейса для выполнения различных действий, запуска воспроизведения или переходов по страницам.
+	* 
+	* @example
+	* // Кнопки управления
+	* const { ui } = PotokSDK;
+	* 
+	* ui.render(
+	*   Card()
+	*     .title("Управление плеером")
+	*     .child(
+	*       HStack()
+	*         .spacing(10)
+	*         .child(Button("Смотреть").variant("primary").icon("play").onClick(() => ui.showHUD("success", "Воспроизведение...")))
+	*         .child(Button("Настройки").variant("secondary").icon("settings").onClick(() => ui.showHUD("info", "Открываем настройки...")))
+	*         .child(Button("Удалить").variant("danger").icon("trash").onClick(() => ui.showHUD("error", "Элемент удален")))
+	*     )
+	* );
+	*/
 	var ButtonBuilder = class extends UIComponent {
 		_text;
 		_variant;
@@ -1260,14 +1528,30 @@ var PotokSDK = (function(exports) {
 			this._text = t;
 			this._variant = "secondary";
 		}
+		/**
+		* Визуальный стиль кнопки (основной цвет акцента, нейтральный серый, красный предупреждающий, прозрачный фон или стиль элемента бокового меню).
+		*
+		* @param v Значение метода
+		* @default 'secondary'
+		*/
 		variant(v) {
 			this._variant = v;
 			return this;
 		}
+		/**
+		* Имя иконки из коллекции Lucide (например, 'play', 'settings', 'trash'). Иконка отрисовывается перед текстом.
+		*
+		* @param v Значение метода
+		*/
 		icon(v) {
 			this._icon = v;
 			return this;
 		}
+		/**
+		* Коллбек-функция обратного вызова, срабатывающая при клике на кнопку.
+		*
+		* @param v Значение метода
+		*/
 		onClick(cb) {
 			this._onClick = cb;
 			return this;
@@ -1288,6 +1572,36 @@ var PotokSDK = (function(exports) {
 			return json;
 		}
 	};
+	/**
+	* Input (Поле ввода)
+	* 
+	* Текстовое поле ввода для заполнения данных форм, адресов серверов, ключей авторизации или фильтров.
+	* 
+	* @example
+	* // Ввод данных формы
+	* const { ui, createState } = PotokSDK;
+	* 
+	* const state = createState({ username: "" });
+	* 
+	* function draw() {
+	*   ui.render(
+	*     Card()
+	*       .title("Авторизация")
+	*       .child(
+	*         VStack()
+	*           .spacing(12)
+	*           .child(
+	*             Input("login")
+	*               .label("Имя пользователя")
+	*               .placeholder("Введите email")
+	*               .value(state.username)
+	*               .onChange((v) => state.username = v)
+	*           )
+	*       )
+	*   );
+	* }
+	* state.$subscribe(draw); draw();
+	*/
 	var InputBuilder = class extends UIComponent {
 		_name;
 		_inputType;
@@ -1302,28 +1616,57 @@ var PotokSDK = (function(exports) {
 			this._inputType = "text";
 			this._value = "";
 		}
+		/**
+		* Заголовок (ярлык), отображаемый непосредственно над полем ввода.
+		*
+		* @param v Значение метода
+		*/
 		label(v) {
 			this._label = v;
 			return this;
 		}
+		/**
+		* Текст подсказки, отображаемый внутри пустого поля ввода.
+		*
+		* @param v Значение метода
+		*/
 		placeholder(v) {
 			this._placeholder = v;
 			return this;
 		}
+		/**
+		* Задает тип вводимых данных. Изменяет поведение поля и маскирует ввод для 'password'.
+		*
+		* @param v Значение метода
+		* @default 'text'
+		*/
 		inputType(v) {
 			this._inputType = v;
 			return this;
 		}
 		/**
-		* @deprecated Use inputType instead
+		* Устаревший (deprecated) синоним для inputType.
+		*
+		* @param v Значение метода
 		*/
 		type(v) {
 			return this.inputType(v);
 		}
+		/**
+		* Текущее текстовое значение поля.
+		*
+		* @param v Значение метода
+		* @default ''
+		*/
 		value(v) {
 			this._value = v;
 			return this;
 		}
+		/**
+		* Обработчик ввода текста, вызываемый при каждом изменении значения.
+		*
+		* @param v Значение метода
+		*/
 		onChange(cb) {
 			this._onChange = cb;
 			return this;
@@ -1346,6 +1689,30 @@ var PotokSDK = (function(exports) {
 			return json;
 		}
 	};
+	/**
+	* Toggle (Переключатель)
+	* 
+	* Интерактивный переключатель (чекбокс/свитч) для активации/деактивации булевых параметров конфигурации.
+	* 
+	* @example
+	* // Переключатель настроек
+	* const { ui, createState } = PotokSDK;
+	* const state = createState({ autoplay: false });
+	* 
+	* function draw() {
+	*   ui.render(
+	*     Toggle("autoplay-toggle")
+	*       .label("Автовоспроизведение")
+	*       .description("Воспроизводить следующую серию автоматически")
+	*       .value(state.autoplay)
+	*       .onChange((v) => {
+	*         state.autoplay = v;
+	*         ui.showHUD("info", "Автовоспроизведение: " + (v ? "ВКЛ" : "ВЫКЛ"));
+	*       })
+	*   );
+	* }
+	* state.$subscribe(draw); draw();
+	*/
 	var ToggleBuilder = class extends UIComponent {
 		_name;
 		_checked;
@@ -1358,24 +1725,47 @@ var PotokSDK = (function(exports) {
 			this._name = n;
 			this._checked = false;
 		}
+		/**
+		* Текстовый ярлык, отображаемый справа от переключателя.
+		*
+		* @param v Значение метода
+		*/
 		label(v) {
 			this._label = v;
 			return this;
 		}
+		/**
+		* Дополнительное описание (текст мелким шрифтом), отображаемое под меткой переключателя.
+		*
+		* @param v Значение метода
+		*/
 		description(v) {
 			this._description = v;
 			return this;
 		}
+		/**
+		* Текущее булево состояние переключателя (true / false).
+		*
+		* @param v Значение метода
+		* @default false
+		*/
 		value(v) {
 			this._checked = v;
 			return this;
 		}
 		/**
-		* @deprecated Use value instead
+		* Устаревший (deprecated) синоним для value.
+		*
+		* @param v Значение метода
 		*/
 		checked(v) {
 			return this.value(v);
 		}
+		/**
+		* Обработчик клика, возвращающий новое булево состояние свитча.
+		*
+		* @param v Значение метода
+		*/
 		onChange(cb) {
 			this._onChange = cb;
 			return this;
@@ -1397,6 +1787,33 @@ var PotokSDK = (function(exports) {
 			return json;
 		}
 	};
+	/**
+	* Select (Выпадающий список)
+	* 
+	* Компонент выпадающего списка (Dropdown) для выбора одного текстового значения из предопределенного массива вариантов.
+	* 
+	* @example
+	* // Выпадающий список локализации
+	* const { ui, createState } = PotokSDK;
+	* const state = createState({ lang: "ru" });
+	* 
+	* function draw() {
+	*   ui.render(
+	*     Select("lang-select")
+	*       .label("Язык интерфейса")
+	*       .options([
+	*         { label: "Русский язык", value: "ru" },
+	*         { label: "English", value: "en" }
+	*       ])
+	*       .value(state.lang)
+	*       .onChange((v) => {
+	*         state.lang = v;
+	*         ui.showHUD("success", "Установлен язык: " + v);
+	*       })
+	*   );
+	* }
+	* state.$subscribe(draw); draw();
+	*/
 	var SelectBuilder = class extends UIComponent {
 		_name;
 		_options;
@@ -1410,24 +1827,48 @@ var PotokSDK = (function(exports) {
 			this._options = [];
 			this._selected = "";
 		}
+		/**
+		* Заголовок списка, выводимый над полем выбора.
+		*
+		* @param v Значение метода
+		*/
 		label(v) {
 			this._label = v;
 			return this;
 		}
+		/**
+		* Массив доступных элементов списка. Каждый элемент должен иметь отображаемое имя (label) и программное значение (value).
+		*
+		* @param v Значение метода
+		* @default []
+		*/
 		options(opts) {
 			this._options = opts;
 			return this;
 		}
+		/**
+		* Текущее выбранное значение (соответствующее полю value выбранной опции).
+		*
+		* @param v Значение метода
+		* @default ''
+		*/
 		value(v) {
 			this._selected = v;
 			return this;
 		}
 		/**
-		* @deprecated Use value instead
+		* Устаревший (deprecated) синоним для value.
+		*
+		* @param v Значение метода
 		*/
 		selected(v) {
 			return this.value(v);
 		}
+		/**
+		* Вызывается при выборе нового элемента из списка. Передает выбранное значение (value).
+		*
+		* @param v Значение метода
+		*/
 		onChange(cb) {
 			this._onChange = cb;
 			return this;
@@ -1449,6 +1890,30 @@ var PotokSDK = (function(exports) {
 			return json;
 		}
 	};
+	/**
+	* CodeEditor (Редактор кода)
+	* 
+	* Встроенный полнофункциональный редактор кода на базе Monaco. Поддерживает подсветку синтаксиса, автодополнение, номера строк и форматирование кода.
+	* 
+	* @example
+	* // Редактор кода Monaco
+	* const { ui, createState } = PotokSDK;
+	* const state = createState({ code: "console.log('Привет, мир!');" });
+	* 
+	* function draw() {
+	*   ui.render(
+	*     VStack()
+	*       .spacing(12)
+	*       .child(
+	*         CodeEditor("js-editor")
+	*           .label("Редактор скриптов")
+	*           .value(state.code)
+	*           .onChange((v) => state.code = v)
+	*       )
+	*   );
+	* }
+	* state.$subscribe(draw); draw();
+	*/
 	var CodeEditorBuilder = class extends UIComponent {
 		_name;
 		_value;
@@ -1461,18 +1926,40 @@ var PotokSDK = (function(exports) {
 			this._name = n;
 			this._value = "";
 		}
+		/**
+		* Заголовок-подпись над контейнером редактора.
+		*
+		* @param v Значение метода
+		*/
 		label(v) {
 			this._label = v;
 			return this;
 		}
+		/**
+		* Исходный или текущий текст в редакторе.
+		*
+		* @param v Значение метода
+		* @default ''
+		*/
 		value(v) {
 			this._value = v;
 			return this;
 		}
+		/**
+		* Флаг блокировки редактирования. При true редактор переходит в режим просмотра.
+		*
+		* @param v Значение метода
+		* @default false
+		*/
 		readOnly(v) {
 			this._readOnly = v;
 			return this;
 		}
+		/**
+		* Срабатывает при любом изменении исходного кода в окне редактора.
+		*
+		* @param v Значение метода
+		*/
 		onChange(cb) {
 			this._onChange = cb;
 			return this;
@@ -1494,12 +1981,43 @@ var PotokSDK = (function(exports) {
 			return json;
 		}
 	};
+	/**
+	* Markdown (Рендеринг разметки)
+	* 
+	* Компонент для форматированного вывода текста с поддержкой списков, жирного шрифта, таблиц и гиперссылок. Безопасно парсит Markdown разметку, исключая XSS-уязвимости.
+	* 
+	* @example
+	* // Рендеринг Markdown
+	* const { ui } = PotokSDK;
+	* 
+	* const markdownContent = `# Описание плагина
+	* Этот плагин позволяет осуществлять быстрый поиск фильмов по открытым базам.
+	* 
+	* ## Возможности
+	* * Просмотр постеров в высоком качестве
+	* * Быстрая фильтрация по раздачам
+	* * Интеграция с VLC-плеером
+	* `;
+	* 
+	* ui.render(
+	*   Card()
+	*     .title("Справка")
+	*     .child(
+	*       Markdown(markdownContent)
+	*     )
+	* );
+	*/
 	var MarkdownBuilder = class extends UIComponent {
 		_content;
 		constructor(content) {
 			super("Markdown");
 			this._content = content;
 		}
+		/**
+		* Задает или динамически обновляет текстовое содержимое Markdown разметки. Позволяет перезаписать текст после вызова конструктора.
+		*
+		* @param v Значение метода
+		*/
 		content(v) {
 			this._content = v;
 			return this;
@@ -1510,6 +2028,26 @@ var PotokSDK = (function(exports) {
 	};
 	//#endregion
 	//#region src/sdk/src/components/media.ts
+	/**
+	* StreamSkeletonList (Плейсхолдер поиска)
+	* 
+	* Вспомогательный компонент, отображающий красивую анимированную скелетную заглушку (мерцающие строки) во время ожидания парсинга раздач по торрент-трекерам.
+	* 
+	* @example
+	* // Скелетная загрузка
+	* const { ui } = PotokSDK;
+	* 
+	* ui.render(
+	*   Card()
+	*     .title("Поиск на раздачах...")
+	*     .child(
+	*       VStack()
+	*         .spacing(12)
+	*         .child(Text("Ищем подходящие раздачи...").variant("secondary"))
+	*         .child(StreamSkeletonList())
+	*     )
+	* );
+	*/
 	var StreamSkeletonListBuilder = class extends UIComponent {
 		constructor() {
 			super("StreamSkeletonList");
@@ -1518,16 +2056,52 @@ var PotokSDK = (function(exports) {
 			return {};
 		}
 	};
+	/**
+	* StreamRow (Строка раздачи)
+	* 
+	* Строковый элемент списка торрентов. Отображает название раздачи, размер файла, имя торрент-трекера, качество видео, а также число сидов/пиров с цветовой подсветкой.
+	* 
+	* @example
+	* // Отдельная раздача
+	* const { ui } = PotokSDK;
+	* 
+	* const streamData = {
+	*   title: "Интерстеллар (2014) BDRip [1080p]",
+	*   size: "14.5 GB",
+	*   seeds: 120,
+	*   peers: 15,
+	*   quality: "1080p",
+	*   tracker: "Rutracker"
+	* };
+	* 
+	* ui.render(
+	*   StreamRow()
+	*     .stream(streamData)
+	*     .onClick((s) => {
+	*       ui.showHUD("success", "Запуск: " + s.title);
+	*     })
+	* );
+	*/
 	var StreamRowBuilder = class extends UIComponent {
 		_stream;
 		_onClick;
 		constructor(type = "StreamRow") {
 			super(type);
 		}
+		/**
+		* Метаданные потока раздачи. Должен содержать: title, size, seeds, peers, quality, tracker.
+		*
+		* @param v Значение метода
+		*/
 		stream(v) {
 			this._stream = v;
 			return this;
 		}
+		/**
+		* Обработчик клика по строительным раздачам для запуска воспроизведения.
+		*
+		* @param v Значение метода
+		*/
 		onClick(cb) {
 			this._onClick = cb;
 			return this;
@@ -1552,6 +2126,30 @@ var PotokSDK = (function(exports) {
 			super("StreamRowComponent");
 		}
 	};
+	/**
+	* MediaCard (Карточка фильма)
+	* 
+	* Вертикальная карточка медиаресурса. Отображает постер, рейтинг (Кинопоиск/IMDb) и накладывает название и год выпуска при наведении курсора.
+	* 
+	* @example
+	* // Карточка медиа
+	* const { ui } = PotokSDK;
+	* 
+	* const movie = {
+	*   title: "Интерстеллар",
+	*   posterUrl: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg",
+	*   year: 2014,
+	*   rating: 8.6
+	* };
+	* 
+	* ui.render(
+	*   MediaCard()
+	*     .item(movie)
+	*     .onClick((item) => {
+	*       ui.showHUD("success", "Вы выбрали: " + item.title);
+	*     })
+	* );
+	*/
 	var MediaCardBuilder = class extends UIComponent {
 		_item;
 		_onClick;
@@ -1559,10 +2157,20 @@ var PotokSDK = (function(exports) {
 			super("MediaCard");
 			this._item = {};
 		}
+		/**
+		* Объект с метаданными фильма (title, posterUrl, year, rating).
+		*
+		* @param v Значение метода
+		*/
 		item(v) {
 			this._item = v;
 			return this;
 		}
+		/**
+		* Коллбек-обработчик клика по карточке. Передает объект медиа.
+		*
+		* @param v Значение метода
+		*/
 		onClick(cb) {
 			this._onClick = cb;
 			return this;
@@ -1579,6 +2187,28 @@ var PotokSDK = (function(exports) {
 			return json;
 		}
 	};
+	/**
+	* HeroSpotlight (Промо-баннер)
+	* 
+	* Огромный рекламный промо-баннер для главной страницы плагина. Выводит фоновое изображение (арт) высокого разрешения, заголовок, описание и предоставляет интерактивные кнопки «Смотреть» и «Подробнее».
+	* 
+	* @example
+	* // Промо баннер
+	* const { ui } = PotokSDK;
+	* 
+	* const promo = {
+	*   title: "Бегущий по лезвию 2049",
+	*   overview: "В новый век репликанты выполняют самую грязную работу...",
+	*   backdropUrl: "https://image.tmdb.org/t/p/original/il8gr7YStcrui1EM2crk14G4HjL.jpg"
+	* };
+	* 
+	* ui.render(
+	*   HeroSpotlight()
+	*     .items([promo])
+	*     .onPlay((item) => ui.showHUD("success", "Смотрим " + item.title))
+	*     .onDetails((item) => ui.showHUD("info", "Открываем " + item.title))
+	* );
+	*/
 	var HeroSpotlightBuilder = class extends UIComponent {
 		_items;
 		_onPlay;
@@ -1587,14 +2217,29 @@ var PotokSDK = (function(exports) {
 			super("HeroSpotlight");
 			this._items = [];
 		}
+		/**
+		* Массив медиа-элементов для слайдера баннера (title, overview, backdropUrl).
+		*
+		* @param v Значение метода
+		*/
 		items(v) {
 			this._items = v;
 			return this;
 		}
+		/**
+		* Обработчик клика по главной кнопке «Смотреть». Возвращает активный объект слайда.
+		*
+		* @param v Значение метода
+		*/
 		onPlay(cb) {
 			this._onPlay = cb;
 			return this;
 		}
+		/**
+		* Обработчик клика по дополнительной кнопке «Подробнее».
+		*
+		* @param v Значение метода
+		*/
 		onDetails(cb) {
 			this._onDetails = cb;
 			return this;
@@ -1615,6 +2260,37 @@ var PotokSDK = (function(exports) {
 			return json;
 		}
 	};
+	/**
+	* StreamList (Список потоков)
+	* 
+	* Готовый список раздач с интегрированной панелью фильтрации по качеству видео и весу файлов. Включает индикатор загрузки и заглушку пустого списка.
+	* 
+	* @example
+	* // Список раздач с фильтрацией
+	* const { ui } = PotokSDK;
+	* 
+	* const streams = [
+	*   {
+	*     title: "Интерстеллар (2014) BDRip [1080p]",
+	*     size: "14.5 GB",
+	*     seeds: 120,
+	*     peers: 15,
+	*     quality: "1080p",
+	*     tracker: "Rutracker"
+	*   }
+	* ];
+	* 
+	* ui.render(
+	*   StreamList()
+	*     .streams(streams)
+	*     .showFilters(true)
+	*     .emptyText("Потоки не найдены")
+	*     .nounPlurals(["раздача", "раздачи", "раздач"])
+	*     .onSelectStream((stream) => {
+	*       ui.showHUD("success", "Выбран стрим: " + stream.title);
+	*     })
+	* );
+	*/
 	var StreamListBuilder = class extends UIComponent {
 		_streams;
 		_loading;
@@ -1628,26 +2304,60 @@ var PotokSDK = (function(exports) {
 			this._loading = false;
 			this._showFilters = false;
 		}
+		/**
+		* Массив раздач для рендеринга. Каждая раздача должна соответствовать параметрам StreamRow.
+		*
+		* @param v Значение метода
+		* @default []
+		*/
 		streams(v) {
 			this._streams = v;
 			return this;
 		}
+		/**
+		* При true переводит список в состояние загрузки и отображает мерцающие плейсхолдеры.
+		*
+		* @param v Значение метода
+		* @default false
+		*/
 		loading(v) {
 			this._loading = v;
 			return this;
 		}
+		/**
+		* Управляет отображением панели быстрой фильтрации по качеству и трекерам.
+		*
+		* @param v Значение метода
+		* @default false
+		*/
 		showFilters(v) {
 			this._showFilters = v;
 			return this;
 		}
+		/**
+		* Сообщение, отображаемое на экране при отсутствии элементов.
+		*
+		* @param v Значение метода
+		* @default 'Раздачи не найдены'
+		*/
 		emptyText(v) {
 			this._emptyText = v;
 			return this;
 		}
+		/**
+		* Массив из трех склонений для правильного вывода числительных раздач (например, ['раздача', 'раздачи', 'раздач']).
+		*
+		* @param v Значение метода
+		*/
 		nounPlurals(v) {
 			this._nounPlurals = v;
 			return this;
 		}
+		/**
+		* Коллбек-функция, вызываемая при выборе потока. Передает выбранный объект стрима.
+		*
+		* @param v Значение метода
+		*/
 		onSelectStream(cb) {
 			this._onSelectStream = cb;
 			return this;
@@ -1787,16 +2497,42 @@ var PotokSDK = (function(exports) {
 			}, hostOrigin);
 		}
 	};
+	/**
+	* LoadingSpinner (Анимированный спиннер)
+	* 
+	* Круговой анимированный индикатор загрузки для индикации длительного ожидания ответов сети, парсинга торрентов или отрисовки UI.
+	* 
+	* @example
+	* // Спиннер загрузки
+	* const { ui } = PotokSDK;
+	* 
+	* ui.render(
+	*   LoadingSpinner()
+	*     .message("Пожалуйста, подождите...")
+	*     .fullscreen(true)
+	* );
+	*/
 	var LoadingSpinnerBuilder = class extends UIComponent {
 		_message;
 		_fullscreen;
 		constructor() {
 			super("LoadingSpinner");
 		}
+		/**
+		* Отображает поясняющий текст ожидания непосредственно под спиннером.
+		*
+		* @param v Значение метода
+		*/
 		message(v) {
 			this._message = v;
 			return this;
 		}
+		/**
+		* При true растягивает оверлей спиннера на весь экран поверх остальных элементов, блокируя интерфейс.
+		*
+		* @param v Значение метода
+		* @default false
+		*/
 		fullscreen(v) {
 			this._fullscreen = v;
 			return this;
@@ -1813,6 +2549,24 @@ var PotokSDK = (function(exports) {
 			};
 		}
 	};
+	/**
+	* EpisodesSection (Каталог серий)
+	* 
+	* Автономный блок сериала. Он запрашивает эпизоды из API шлюза по идентификатору, разделяет их на вкладки сезонов и отрисовывает в виде сетки эпизодов.
+	* 
+	* @example
+	* // Сетка эпизодов сериала
+	* const { ui } = PotokSDK;
+	* 
+	* ui.render(
+	*   EpisodesSection()
+	*     .mediaId("1399")
+	*     .numberOfSeasons(8)
+	*     .onEpisodeClick((ep) => {
+	*       ui.showHUD("success", "Выбран эпизод " + ep.episodeNumber);
+	*     })
+	* );
+	*/
 	var EpisodesSectionBuilder = class extends UIComponent {
 		_mediaId;
 		_numberOfSeasons;
@@ -1820,14 +2574,29 @@ var PotokSDK = (function(exports) {
 		constructor(type = "EpisodesSection") {
 			super(type);
 		}
+		/**
+		* Уникальный идентификатор сериала в базе данных медиа.
+		*
+		* @param v Значение метода
+		*/
 		mediaId(v) {
 			this._mediaId = v;
 			return this;
 		}
+		/**
+		* Общее число сезонов сериала для отрисовки вкладок переключения.
+		*
+		* @param v Значение метода
+		*/
 		numberOfSeasons(v) {
 			this._numberOfSeasons = v;
 			return this;
 		}
+		/**
+		* Коллбек при клике по конкретному эпизоду. Передает объект с параметрами серии.
+		*
+		* @param v Значение метода
+		*/
 		onEpisodeClick(cb) {
 			this._onEpisodeClick = cb;
 			return this;
@@ -1855,12 +2624,40 @@ var PotokSDK = (function(exports) {
 			super("SeasonEpisodes");
 		}
 	};
+	/**
+	* MediaCast (Актерский состав)
+	* 
+	* Горизонтальный ряд с карточками создателей фильма или актерского состава. Выводит круглые фотографии (аватары), реальные имена актеров и названия их ролей.
+	* 
+	* @example
+	* // Актерский состав
+	* const { ui } = PotokSDK;
+	* 
+	* const actors = [
+	*   {
+	*     name: "Мэттью Макконахи",
+	*     character: "Купер",
+	*     profilePath: "https://image.tmdb.org/t/p/w185/wD6U1N7Caw58tO43fT245U62y4a.jpg"
+	*   }
+	* ];
+	* 
+	* ui.render(
+	*   MediaCast()
+	*     .cast(actors)
+	* );
+	*/
 	var MediaCastBuilder = class extends UIComponent {
 		_cast;
 		constructor() {
 			super("MediaCast");
 			this._cast = [];
 		}
+		/**
+		* Массив объектов актеров (name, character, profilePath).
+		*
+		* @param v Значение метода
+		* @default []
+		*/
 		cast(v) {
 			this._cast = v;
 			return this;
@@ -1869,6 +2666,30 @@ var PotokSDK = (function(exports) {
 			return { cast: this._cast };
 		}
 	};
+	/**
+	* MediaOverview (Обзор медиаресурса)
+	* 
+	* Большая интерактивная панель описания фильма или сериала. Отображает постер, оригинальное название, описание, год производства, страну, рейтинг, жанры и список создателей.
+	* 
+	* @example
+	* // Описание фильма
+	* const { ui } = PotokSDK;
+	* 
+	* const movieData = {
+	*   title: "Интерстеллар",
+	*   overview: "Наше время на Земле подошло к концу, группа исследователей предпринимает путешествие в космос...",
+	*   posterUrl: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg",
+	*   rating: 8.6,
+	*   genres: ["Научная фантастика", "Драма"],
+	*   year: 2014,
+	*   country: "США"
+	* };
+	* 
+	* ui.render(
+	*   MediaOverview()
+	*     .media(movieData)
+	* );
+	*/
 	var MediaOverviewBuilder = class extends UIComponent {
 		_media;
 		_selectedEpisode;
@@ -1876,14 +2697,29 @@ var PotokSDK = (function(exports) {
 		constructor() {
 			super("MediaOverview");
 		}
+		/**
+		* Детальные метаданные фильма/сериала (title, overview, posterUrl, rating, genres, year, country).
+		*
+		* @param v Значение метода
+		*/
 		media(v) {
 			this._media = v;
 			return this;
 		}
+		/**
+		* Объект текущей выбранной серии для отображения информации о серии вместо описания всего сезона (если это сериал).
+		*
+		* @param v Значение метода
+		*/
 		selectedEpisode(v) {
 			this._selectedEpisode = v;
 			return this;
 		}
+		/**
+		* Коллбек сброса выбранной серии обратно к деталям всего сезона (клик по кнопке «Вернуться к описанию»).
+		*
+		* @param v Значение метода
+		*/
 		onResetEpisode(cb) {
 			this._onResetEpisode = cb;
 			return this;
@@ -1903,6 +2739,34 @@ var PotokSDK = (function(exports) {
 			return json;
 		}
 	};
+	/**
+	* MediaRow (Горизонтальный ряд)
+	* 
+	* Карусель с горизонтальной прокруткой для отображения списка карточек MediaCard. Снабжена общим заголовком и кнопкой «Показать все».
+	* 
+	* @example
+	* // Карусель медиа
+	* const { ui } = PotokSDK;
+	* 
+	* const movie = {
+	*   title: "Интерстеллар",
+	*   posterUrl: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg",
+	*   year: 2014,
+	*   rating: 8.6
+	* };
+	* 
+	* ui.render(
+	*   MediaRow()
+	*     .title("Рекомендуемые фильмы")
+	*     .items([movie, movie, movie])
+	*     .onCardClick((item) => {
+	*       ui.showHUD("info", "Клик: " + item.title);
+	*     })
+	*     .onSeeAllClick(() => {
+	*       ui.showHUD("success", "Показать все!");
+	*     })
+	* );
+	*/
 	var MediaRowBuilder = class extends UIComponent {
 		_rowId;
 		_title;
@@ -1918,18 +2782,39 @@ var PotokSDK = (function(exports) {
 			this._rowId = v;
 			return this;
 		}
+		/**
+		* Заголовок для секции ряда (например, 'Сейчас смотрят').
+		*
+		* @param v Значение метода
+		*/
 		title(v) {
 			this._title = v;
 			return this;
 		}
+		/**
+		* Массив объектов фильмов для отображения в ряду в виде карточек.
+		*
+		* @param v Значение метода
+		* @default []
+		*/
 		items(v) {
 			this._items = v;
 			return this;
 		}
+		/**
+		* Коллбек при клике на любую карточку фильма в ряду.
+		*
+		* @param v Значение метода
+		*/
 		onCardClick(cb) {
 			this._onCardClick = cb;
 			return this;
 		}
+		/**
+		* Коллбек при клике на кнопку «Показать все» / «Смотреть все».
+		*
+		* @param v Значение метода
+		*/
 		onSeeAllClick(cb) {
 			this._onSeeAllClick = cb;
 			return this;
@@ -1954,16 +2839,49 @@ var PotokSDK = (function(exports) {
 			return json;
 		}
 	};
+	/**
+	* MediaPlayer (Видеоплеер)
+	* 
+	* Встроенный HTML5-видеоплеер с поддержкой форматов HLS (.m3u8), Dash (.mpd) и обычных MP4-файлов. Предоставляет полноценное управление воспроизведением, субтитрами и звуковыми дорожками.
+	* 
+	* @example
+	* // Встроенный плеер
+	* const { ui } = PotokSDK;
+	* 
+	* ui.render(
+	*   MediaPlayer()
+	*     .playback({
+	*       title: "Мультитрековое тестовое видео",
+	*       streamUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+	*       audios: [
+	*         { name: "Русский дубляж", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
+	*         { name: "Английский оригинал", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" }
+	*       ]
+	*     })
+	*     .height(400)
+	* );
+	*/
 	var MediaPlayerBuilder = class extends UIComponent {
 		_playback;
 		_isNetworkOffline;
 		constructor() {
 			super("MediaPlayer");
 		}
+		/**
+		* Метаданные воспроизводимого потока. Должен содержать: title, streamUrl, position (sec), headers (http), audios ({name, url}[]) для альтернативных дорожек.
+		*
+		* @param v Значение метода
+		*/
 		playback(v) {
 			this._playback = v;
 			return this;
 		}
+		/**
+		* Управляет оффлайн-режимом. При значении true останавливает проигрывание и выводит ошибку сети.
+		*
+		* @param v Значение метода
+		* @default false
+		*/
 		isNetworkOffline(v) {
 			this._isNetworkOffline = v;
 			return this;
@@ -1975,6 +2893,28 @@ var PotokSDK = (function(exports) {
 			};
 		}
 	};
+	/**
+	* ProfileSelector (Селектор профилей)
+	* 
+	* Компонент управления профилями соединений (серверами) для переключения адресов шлюзов Potok Gateway с пингом статуса, добавлением, удалением и редактированием серверов.
+	* 
+	* @example
+	* // Менеджер серверов
+	* const { ui } = PotokSDK;
+	* 
+	* const profiles = [
+	*   { id: "p1", gatewayURL: "http://localhost:5000", name: "Локальный шлюз" }
+	* ];
+	* 
+	* ui.render(
+	*   ProfileSelector()
+	*     .connectionProfiles(profiles)
+	*     .activeProfileID("p1")
+	*     .onSelectProfile((p) => {
+	*       ui.showHUD("success", "Выбран профиль: " + p.name);
+	*     })
+	* );
+	*/
 	var ProfileSelectorBuilder = class extends UIComponent {
 		_connectionProfiles;
 		_activeProfileID;
@@ -1987,30 +2927,67 @@ var PotokSDK = (function(exports) {
 			super("ProfileSelector");
 			this._connectionProfiles = [];
 		}
+		/**
+		* Массив доступных серверов/профилей (id, name, gatewayURL).
+		*
+		* @param v Значение метода
+		* @default []
+		*/
 		connectionProfiles(v) {
 			this._connectionProfiles = v;
 			return this;
 		}
+		/**
+		* Идентификатор текущего выбранного/активного профиля подключения.
+		*
+		* @param v Значение метода
+		*/
 		activeProfileID(v) {
 			this._activeProfileID = v;
 			return this;
 		}
+		/**
+		* При true блокирует кнопки создания, редактирования и удаления профилей.
+		*
+		* @param v Значение метода
+		* @default false
+		*/
 		isSettingsLocked(v) {
 			this._isSettingsLocked = v;
 			return this;
 		}
+		/**
+		* Коллбек при переключении/клике по профилю. Передает объект выбранного профиля.
+		*
+		* @param v Значение метода
+		*/
 		onSelectProfile(cb) {
 			this._onSelectProfile = cb;
 			return this;
 		}
+		/**
+		* Коллбек при клике на иконку «Карандаш» для изменения адреса или имени профиля.
+		*
+		* @param v Значение метода
+		*/
 		onStartEdit(cb) {
 			this._onStartEdit = cb;
 			return this;
 		}
+		/**
+		* Коллбек при клике на удаление профиля («Корзина»).
+		*
+		* @param v Значение метода
+		*/
 		onDeleteProfile(cb) {
 			this._onDeleteProfile = cb;
 			return this;
 		}
+		/**
+		* Коллбек при клике по кнопке создания нового подключения («Добавить сервер»).
+		*
+		* @param v Значение метода
+		*/
 		onStartAdd(cb) {
 			this._onStartAdd = cb;
 			return this;
@@ -2043,6 +3020,31 @@ var PotokSDK = (function(exports) {
 			return json;
 		}
 	};
+	/**
+	* SearchBar (Панель поиска)
+	* 
+	* Специализированная поисковая строка со встроенной иконкой лупы и кнопкой быстрой очистки поля ввода. Отлично подходит для создания систем поиска контента.
+	* 
+	* @example
+	* // Строка поиска
+	* const { ui, createState } = PotokSDK;
+	* const state = createState({ query: "" });
+	* 
+	* function draw() {
+	*   ui.render(
+	*     VStack()
+	*       .spacing(12)
+	*       .child(
+	*         SearchBar()
+	*           .value(state.query)
+	*           .placeholder("Введите название...")
+	*           .onChange((v) => state.query = v)
+	*           .onClear(() => state.query = "")
+	*       )
+	*   );
+	* }
+	* state.$subscribe(draw); draw();
+	*/
 	var SearchBarBuilder = class extends UIComponent {
 		_value;
 		_placeholder;
@@ -2051,18 +3053,40 @@ var PotokSDK = (function(exports) {
 		constructor() {
 			super("SearchBar");
 		}
+		/**
+		* Текущий текст в поисковой строке.
+		*
+		* @param v Значение метода
+		* @default ''
+		*/
 		value(v) {
 			this._value = v;
 			return this;
 		}
+		/**
+		* Подсказка ввода внутри поисковой строки.
+		*
+		* @param v Значение метода
+		* @default 'Поиск...'
+		*/
 		placeholder(v) {
 			this._placeholder = v;
 			return this;
 		}
+		/**
+		* Коллбек при изменении текста поискового запроса пользователем.
+		*
+		* @param v Значение метода
+		*/
 		onChange(cb) {
 			this._onChange = cb;
 			return this;
 		}
+		/**
+		* Коллбек при клике на иконку «Крестик» для сброса поисковой строки.
+		*
+		* @param v Значение метода
+		*/
 		onClear(cb) {
 			this._onClear = cb;
 			return this;
@@ -2086,6 +3110,30 @@ var PotokSDK = (function(exports) {
 			return json;
 		}
 	};
+	/**
+	* StreamFilterBar (Панель сортировки)
+	* 
+	* Готовая панель управления сортировкой и фильтрацией найденных раздач. Позволяет быстро переключать качество видео, выбирать трекер и сортировать раздачи (по весу, по сидерам).
+	* 
+	* @example
+	* // Панель фильтров
+	* const { ui, createState } = PotokSDK;
+	* const state = createState({ sort: "seeds" });
+	* 
+	* function draw() {
+	*   ui.render(
+	*     StreamFilterBar()
+	*       .countLabel("Всего найдено: 8 торрентов")
+	*       .trackers(["Rutracker", "Kinozal"])
+	*       .sortOption(state.sort)
+	*       .onSortChange((s) => {
+	*         state.sort = s;
+	*         ui.showHUD("success", "Сортировка: " + s);
+	*       })
+	*   );
+	* }
+	* state.$subscribe(draw); draw();
+	*/
 	var StreamFilterBarBuilder = class extends UIComponent {
 		_countLabel;
 		_qualityFilter;
@@ -2101,42 +3149,94 @@ var PotokSDK = (function(exports) {
 			super("StreamFilterBar");
 			this._trackers = [];
 		}
+		/**
+		* Текстовая строка с количеством найденных раздач (выводится слева).
+		*
+		* @param v Значение метода
+		*/
 		countLabel(v) {
 			this._countLabel = v;
 			return this;
 		}
+		/**
+		* Устанавливает текущее выбранное качество для фильтрации (например, '1080p').
+		*
+		* @param v Значение метода
+		*/
 		qualityFilter(v) {
 			this._qualityFilter = v;
 			return this;
 		}
+		/**
+		* Устанавливает активный выбранный трекер для фильтрации.
+		*
+		* @param v Значение метода
+		*/
 		activeTracker(v) {
 			this._activeTracker = v;
 			return this;
 		}
+		/**
+		* Массив названий трекеров для отображения в фильтре по источникам.
+		*
+		* @param v Значение метода
+		* @default []
+		*/
 		trackers(v) {
 			this._trackers = v;
 			return this;
 		}
+		/**
+		* Включает или выключает отображение выпадающего списка сортировки в правой части панели.
+		*
+		* @param v Значение метода
+		* @default true
+		*/
 		showSort(v) {
 			this._showSort = v;
 			return this;
 		}
+		/**
+		* Текущий активный вариант сортировки (например, 'seeds' или 'size').
+		*
+		* @param v Значение метода
+		*/
 		sortOption(v) {
 			this._sortOption = v;
 			return this;
 		}
+		/**
+		* Коллбек при клике на кнопку «Обновить поиск».
+		*
+		* @param v Значение метода
+		*/
 		onRefresh(cb) {
 			this._onRefresh = cb;
 			return this;
 		}
+		/**
+		* Коллбек смены выбранного разрешения видео.
+		*
+		* @param v Значение метода
+		*/
 		onQualityChange(cb) {
 			this._onQualityChange = cb;
 			return this;
 		}
+		/**
+		* Коллбек смены активного трекера.
+		*
+		* @param v Значение метода
+		*/
 		onTrackerChange(cb) {
 			this._onTrackerChange = cb;
 			return this;
 		}
+		/**
+		* Коллбек при изменении порядка сортировки раздач.
+		*
+		* @param v Значение метода
+		*/
 		onSortChange(cb) {
 			this._onSortChange = cb;
 			return this;
@@ -2172,6 +3272,43 @@ var PotokSDK = (function(exports) {
 			return json;
 		}
 	};
+	/**
+	* EpisodeSelector (Модальный выбор серий)
+	* 
+	* Встроенный модальный селектор для детального выбора серий и сезонов сериала с прокруткой и фоновым постером.
+	* 
+	* @example
+	* // Модальный селектор
+	* const { ui, createState } = PotokSDK;
+	* const state = createState({ open: false });
+	* 
+	* const mockEp = {
+	*   episodeNumber: 1,
+	*   seasonNumber: 1,
+	*   name: "Зима близко",
+	*   stillPath: "https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg"
+	* };
+	* 
+	* function draw() {
+	*   ui.render(
+	*     VStack()
+	*       .child(Button("Выбрать серию").onClick(() => state.open = true))
+	*       .child(
+	*         EpisodeSelector()
+	*           .isOpen(state.open)
+	*           .title("Игра Престолов")
+	*           .seasons([{ id: 1, seasonNumber: 1, name: "Сезон 1" }])
+	*           .episodes([mockEp])
+	*           .onClose(() => state.open = false)
+	*           .onPlay((ep) => {
+	*             state.open = false;
+	*             ui.showHUD("success", "Запускаем: " + ep.name);
+	*           })
+	*       )
+	*   );
+	* }
+	* state.$subscribe(draw); draw();
+	*/
 	var EpisodeSelectorBuilder = class extends UIComponent {
 		_isOpen;
 		_title;
@@ -2189,46 +3326,105 @@ var PotokSDK = (function(exports) {
 			this._episodes = [];
 			this._seasons = [];
 		}
+		/**
+		* Управляет видимостью модального окна.
+		*
+		* @param v Значение метода
+		* @default false
+		*/
 		isOpen(v) {
 			this._isOpen = v;
 			return this;
 		}
+		/**
+		* Главный заголовок модального окна (название сериала).
+		*
+		* @param v Значение метода
+		*/
 		title(v) {
 			this._title = v;
 			return this;
 		}
+		/**
+		* Подзаголовок (описание).
+		*
+		* @param v Значение метода
+		*/
 		subtitle(v) {
 			this._subtitle = v;
 			return this;
 		}
+		/**
+		* Массив серий выбранного в данный момент сезона.
+		*
+		* @param v Значение метода
+		* @default []
+		*/
 		episodes(v) {
 			this._episodes = v;
 			return this;
 		}
+		/**
+		* Ссылка на фоновое промо-изображение.
+		*
+		* @param v Значение метода
+		*/
 		backdropSrc(v) {
 			this._backdropSrc = v;
 			return this;
 		}
+		/**
+		* Состояние загрузки списков серий (при true отображает спиннер загрузки).
+		*
+		* @param v Значение метода
+		* @default false
+		*/
 		seasonsLoading(v) {
 			this._seasonsLoading = v;
 			return this;
 		}
+		/**
+		* Массив доступных сезонов для отображения во вкладках.
+		*
+		* @param v Значение метода
+		* @default []
+		*/
 		seasons(v) {
 			this._seasons = v;
 			return this;
 		}
+		/**
+		* Коллбек, срабатывающий при закрытии модального окна.
+		*
+		* @param v Значение метода
+		*/
 		onClose(cb) {
 			this._onClose = cb;
 			return this;
 		}
+		/**
+		* Коллбек при клике на воспроизведение серии в селекторе.
+		*
+		* @param v Значение метода
+		*/
 		onPlay(cb) {
 			this._onPlay = cb;
 			return this;
 		}
+		/**
+		* Коллбек при переопределении параметров серии.
+		*
+		* @param v Значение метода
+		*/
 		onApplyOverride(cb) {
 			this._onApplyOverride = cb;
 			return this;
 		}
+		/**
+		* Коллбек в начале редактирования серий.
+		*
+		* @param v Значение метода
+		*/
 		onStartEditing(cb) {
 			this._onStartEditing = cb;
 			return this;
@@ -2273,16 +3469,51 @@ var PotokSDK = (function(exports) {
 			super("EpisodeSelectorPopup");
 		}
 	};
+	/**
+	* EpisodeCard (Карточка серии)
+	* 
+	* Компонент отображения отдельной серии сериала. Выводит превью (кадр), номер эпизода, название и текстовое описание серии.
+	* 
+	* @example
+	* // Карточка эпизода
+	* const { ui } = PotokSDK;
+	* 
+	* const epData = {
+	*   episodeNumber: 1,
+	*   seasonNumber: 1,
+	*   name: "Зима Близко",
+	*   overview: "Лорд Эддард Старк принимает короля Роберта в своем замке Винтерфелл...",
+	*   stillPath: "https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg"
+	* };
+	* 
+	* ui.render(
+	*   EpisodeCard()
+	*     .episode(epData)
+	*     .onClick((ep) => {
+	*       ui.showHUD("success", "Выбрана серия " + ep.episodeNumber);
+	*     })
+	* );
+	*/
 	var EpisodeCardBuilder = class extends UIComponent {
 		_episode;
 		_onClick;
 		constructor() {
 			super("EpisodeCard");
 		}
+		/**
+		* Объект с описанием серии (episodeNumber, seasonNumber, name, overview, stillPath).
+		*
+		* @param v Значение метода
+		*/
 		episode(v) {
 			this._episode = v;
 			return this;
 		}
+		/**
+		* Обработчик клика по карточке серии. Передает выбранный объект серии.
+		*
+		* @param v Значение метода
+		*/
 		onClick(cb) {
 			this._onClick = cb;
 			return this;

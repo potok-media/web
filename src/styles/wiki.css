@@ -139,6 +139,8 @@
   overflow-y: auto;
   background: var(--bg-secondary);
   padding: var(--space-m);
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 /* Left Column Navigation */
@@ -243,6 +245,8 @@
   background: var(--bg-primary);
   height: 100%;
   overflow-y: auto;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .wiki-breadcrumbs {

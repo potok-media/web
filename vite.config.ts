@@ -2,11 +2,19 @@ import { defineConfig, build } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import { cpSync } from 'fs'
+import { execSync } from 'child_process'
 
 function vitePotokSdkPlugin() {
   return {
     name: 'vite-plugin-potok-sdk',
     async buildStart() {
+      console.log('[vite-plugin-potok-sdk] Generating SDK documentation...');
+      try {
+        execSync('node scripts/document-sdk.js', { stdio: 'inherit' });
+      } catch (err) {
+        console.error('[vite-plugin-potok-sdk] Failed to generate documentation:', err);
+      }
+
       console.log('[vite-plugin-potok-sdk] Compiling SDK...');
       try {
         await build({
@@ -34,6 +42,9 @@ function vitePotokSdkPlugin() {
         if (file.startsWith(sdkDir)) {
           console.log(`[vite-plugin-potok-sdk] Change detected in SDK: ${file}, rebuilding...`);
           try {
+            console.log('[vite-plugin-potok-sdk] Re-generating SDK documentation...');
+            execSync('node scripts/document-sdk.js', { stdio: 'inherit' });
+
             await build({
               configFile: resolve(__dirname, 'src/sdk/vite.config.ts'),
             });

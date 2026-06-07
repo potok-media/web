@@ -2,6 +2,26 @@ import { UIComponent } from "./base";
 import { CallbackRegistry, type CallbackFunction } from "../core/registry";
 
 
+/**
+ * StreamSkeletonList (Плейсхолдер поиска)
+ * 
+ * Вспомогательный компонент, отображающий красивую анимированную скелетную заглушку (мерцающие строки) во время ожидания парсинга раздач по торрент-трекерам.
+ * 
+ * @example
+ * // Скелетная загрузка
+ * const { ui } = PotokSDK;
+ * 
+ * ui.render(
+ *   Card()
+ *     .title("Поиск на раздачах...")
+ *     .child(
+ *       VStack()
+ *         .spacing(12)
+ *         .child(Text("Ищем подходящие раздачи...").variant("secondary"))
+ *         .child(StreamSkeletonList())
+ *     )
+ * );
+ */
 export class StreamSkeletonListBuilder extends UIComponent {
   constructor() {
     super("StreamSkeletonList");
@@ -12,6 +32,32 @@ export class StreamSkeletonListBuilder extends UIComponent {
   }
 }
 
+/**
+ * StreamRow (Строка раздачи)
+ * 
+ * Строковый элемент списка торрентов. Отображает название раздачи, размер файла, имя торрент-трекера, качество видео, а также число сидов/пиров с цветовой подсветкой.
+ * 
+ * @example
+ * // Отдельная раздача
+ * const { ui } = PotokSDK;
+ * 
+ * const streamData = {
+ *   title: "Интерстеллар (2014) BDRip [1080p]",
+ *   size: "14.5 GB",
+ *   seeds: 120,
+ *   peers: 15,
+ *   quality: "1080p",
+ *   tracker: "Rutracker"
+ * };
+ * 
+ * ui.render(
+ *   StreamRow()
+ *     .stream(streamData)
+ *     .onClick((s) => {
+ *       ui.showHUD("success", "Запуск: " + s.title);
+ *     })
+ * );
+ */
 export class StreamRowBuilder extends UIComponent {
   private _stream: any;
   private _onClick?: CallbackFunction;
@@ -20,11 +66,21 @@ export class StreamRowBuilder extends UIComponent {
     super(type);
   }
 
+  /**
+   * Метаданные потока раздачи. Должен содержать: title, size, seeds, peers, quality, tracker.
+   *
+   * @param v Значение метода
+   */
   stream(v: any): this {
     this._stream = v;
     return this;
   }
 
+  /**
+   * Обработчик клика по строительным раздачам для запуска воспроизведения.
+   *
+   * @param v Значение метода
+   */
   onClick(cb: CallbackFunction): this {
     this._onClick = cb;
     return this;
@@ -53,6 +109,30 @@ export class StreamRowComponentBuilder extends StreamRowBuilder {
   }
 }
 
+/**
+ * MediaCard (Карточка фильма)
+ * 
+ * Вертикальная карточка медиаресурса. Отображает постер, рейтинг (Кинопоиск/IMDb) и накладывает название и год выпуска при наведении курсора.
+ * 
+ * @example
+ * // Карточка медиа
+ * const { ui } = PotokSDK;
+ * 
+ * const movie = {
+ *   title: "Интерстеллар",
+ *   posterUrl: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg",
+ *   year: 2014,
+ *   rating: 8.6
+ * };
+ * 
+ * ui.render(
+ *   MediaCard()
+ *     .item(movie)
+ *     .onClick((item) => {
+ *       ui.showHUD("success", "Вы выбрали: " + item.title);
+ *     })
+ * );
+ */
 export class MediaCardBuilder extends UIComponent {
   private _item: any;
   private _onClick?: CallbackFunction;
@@ -62,11 +142,21 @@ export class MediaCardBuilder extends UIComponent {
     this._item = {};
   }
 
+  /**
+   * Объект с метаданными фильма (title, posterUrl, year, rating).
+   *
+   * @param v Значение метода
+   */
   item(v: any): this {
     this._item = v;
     return this;
   }
 
+  /**
+   * Коллбек-обработчик клика по карточке. Передает объект медиа.
+   *
+   * @param v Значение метода
+   */
   onClick(cb: CallbackFunction): this {
     this._onClick = cb;
     return this;
@@ -86,6 +176,28 @@ export class MediaCardBuilder extends UIComponent {
   }
 }
 
+/**
+ * HeroSpotlight (Промо-баннер)
+ * 
+ * Огромный рекламный промо-баннер для главной страницы плагина. Выводит фоновое изображение (арт) высокого разрешения, заголовок, описание и предоставляет интерактивные кнопки «Смотреть» и «Подробнее».
+ * 
+ * @example
+ * // Промо баннер
+ * const { ui } = PotokSDK;
+ * 
+ * const promo = {
+ *   title: "Бегущий по лезвию 2049",
+ *   overview: "В новый век репликанты выполняют самую грязную работу...",
+ *   backdropUrl: "https://image.tmdb.org/t/p/original/il8gr7YStcrui1EM2crk14G4HjL.jpg"
+ * };
+ * 
+ * ui.render(
+ *   HeroSpotlight()
+ *     .items([promo])
+ *     .onPlay((item) => ui.showHUD("success", "Смотрим " + item.title))
+ *     .onDetails((item) => ui.showHUD("info", "Открываем " + item.title))
+ * );
+ */
 export class HeroSpotlightBuilder extends UIComponent {
   private _items: any[];
   private _onPlay?: CallbackFunction;
@@ -96,16 +208,31 @@ export class HeroSpotlightBuilder extends UIComponent {
     this._items = [];
   }
 
+  /**
+   * Массив медиа-элементов для слайдера баннера (title, overview, backdropUrl).
+   *
+   * @param v Значение метода
+   */
   items(v: any[]): this {
     this._items = v;
     return this;
   }
 
+  /**
+   * Обработчик клика по главной кнопке «Смотреть». Возвращает активный объект слайда.
+   *
+   * @param v Значение метода
+   */
   onPlay(cb: CallbackFunction): this {
     this._onPlay = cb;
     return this;
   }
 
+  /**
+   * Обработчик клика по дополнительной кнопке «Подробнее».
+   *
+   * @param v Значение метода
+   */
   onDetails(cb: CallbackFunction): this {
     this._onDetails = cb;
     return this;
@@ -129,6 +256,37 @@ export class HeroSpotlightBuilder extends UIComponent {
   }
 }
 
+/**
+ * StreamList (Список потоков)
+ * 
+ * Готовый список раздач с интегрированной панелью фильтрации по качеству видео и весу файлов. Включает индикатор загрузки и заглушку пустого списка.
+ * 
+ * @example
+ * // Список раздач с фильтрацией
+ * const { ui } = PotokSDK;
+ * 
+ * const streams = [
+ *   {
+ *     title: "Интерстеллар (2014) BDRip [1080p]",
+ *     size: "14.5 GB",
+ *     seeds: 120,
+ *     peers: 15,
+ *     quality: "1080p",
+ *     tracker: "Rutracker"
+ *   }
+ * ];
+ * 
+ * ui.render(
+ *   StreamList()
+ *     .streams(streams)
+ *     .showFilters(true)
+ *     .emptyText("Потоки не найдены")
+ *     .nounPlurals(["раздача", "раздачи", "раздач"])
+ *     .onSelectStream((stream) => {
+ *       ui.showHUD("success", "Выбран стрим: " + stream.title);
+ *     })
+ * );
+ */
 export class StreamListBuilder extends UIComponent {
   private _streams: any[];
   private _loading: boolean;
@@ -144,31 +302,65 @@ export class StreamListBuilder extends UIComponent {
     this._showFilters = false;
   }
 
+  /**
+   * Массив раздач для рендеринга. Каждая раздача должна соответствовать параметрам StreamRow.
+   *
+   * @param v Значение метода
+   * @default []
+   */
   streams(v: any[]): this {
     this._streams = v;
     return this;
   }
 
+  /**
+   * При true переводит список в состояние загрузки и отображает мерцающие плейсхолдеры.
+   *
+   * @param v Значение метода
+   * @default false
+   */
   loading(v: boolean): this {
     this._loading = v;
     return this;
   }
 
+  /**
+   * Управляет отображением панели быстрой фильтрации по качеству и трекерам.
+   *
+   * @param v Значение метода
+   * @default false
+   */
   showFilters(v: boolean): this {
     this._showFilters = v;
     return this;
   }
 
+  /**
+   * Сообщение, отображаемое на экране при отсутствии элементов.
+   *
+   * @param v Значение метода
+   * @default 'Раздачи не найдены'
+   */
   emptyText(v: string): this {
     this._emptyText = v;
     return this;
   }
 
+  /**
+   * Массив из трех склонений для правильного вывода числительных раздач (например, ['раздача', 'раздачи', 'раздач']).
+   *
+   * @param v Значение метода
+   */
   nounPlurals(v: string[]): this {
     this._nounPlurals = v;
     return this;
   }
 
+  /**
+   * Коллбек-функция, вызываемая при выборе потока. Передает выбранный объект стрима.
+   *
+   * @param v Значение метода
+   */
   onSelectStream(cb: CallbackFunction): this {
     this._onSelectStream = cb;
     return this;
@@ -323,6 +515,21 @@ export class BlockMutationBuilder {
   }
 }
 
+/**
+ * LoadingSpinner (Анимированный спиннер)
+ * 
+ * Круговой анимированный индикатор загрузки для индикации длительного ожидания ответов сети, парсинга торрентов или отрисовки UI.
+ * 
+ * @example
+ * // Спиннер загрузки
+ * const { ui } = PotokSDK;
+ * 
+ * ui.render(
+ *   LoadingSpinner()
+ *     .message("Пожалуйста, подождите...")
+ *     .fullscreen(true)
+ * );
+ */
 export class LoadingSpinnerBuilder extends UIComponent {
   private _message?: string;
   private _fullscreen?: boolean;
@@ -331,11 +538,22 @@ export class LoadingSpinnerBuilder extends UIComponent {
     super("LoadingSpinner");
   }
 
+  /**
+   * Отображает поясняющий текст ожидания непосредственно под спиннером.
+   *
+   * @param v Значение метода
+   */
   message(v: string): this {
     this._message = v;
     return this;
   }
 
+  /**
+   * При true растягивает оверлей спиннера на весь экран поверх остальных элементов, блокируя интерфейс.
+   *
+   * @param v Значение метода
+   * @default false
+   */
   fullscreen(v: boolean): this {
     this._fullscreen = v;
     return this;
@@ -355,6 +573,24 @@ export class LoadingSpinnerBuilder extends UIComponent {
   }
 }
 
+/**
+ * EpisodesSection (Каталог серий)
+ * 
+ * Автономный блок сериала. Он запрашивает эпизоды из API шлюза по идентификатору, разделяет их на вкладки сезонов и отрисовывает в виде сетки эпизодов.
+ * 
+ * @example
+ * // Сетка эпизодов сериала
+ * const { ui } = PotokSDK;
+ * 
+ * ui.render(
+ *   EpisodesSection()
+ *     .mediaId("1399")
+ *     .numberOfSeasons(8)
+ *     .onEpisodeClick((ep) => {
+ *       ui.showHUD("success", "Выбран эпизод " + ep.episodeNumber);
+ *     })
+ * );
+ */
 export class EpisodesSectionBuilder extends UIComponent {
   private _mediaId?: number | string;
   private _numberOfSeasons?: number;
@@ -364,16 +600,31 @@ export class EpisodesSectionBuilder extends UIComponent {
     super(type);
   }
 
+  /**
+   * Уникальный идентификатор сериала в базе данных медиа.
+   *
+   * @param v Значение метода
+   */
   mediaId(v: number | string): this {
     this._mediaId = v;
     return this;
   }
 
+  /**
+   * Общее число сезонов сериала для отрисовки вкладок переключения.
+   *
+   * @param v Значение метода
+   */
   numberOfSeasons(v: number): this {
     this._numberOfSeasons = v;
     return this;
   }
 
+  /**
+   * Коллбек при клике по конкретному эпизоду. Передает объект с параметрами серии.
+   *
+   * @param v Значение метода
+   */
   onEpisodeClick(cb: CallbackFunction): this {
     this._onEpisodeClick = cb;
     return this;
@@ -405,6 +656,28 @@ export class SeasonEpisodesBuilder extends EpisodesSectionBuilder {
   }
 }
 
+/**
+ * MediaCast (Актерский состав)
+ * 
+ * Горизонтальный ряд с карточками создателей фильма или актерского состава. Выводит круглые фотографии (аватары), реальные имена актеров и названия их ролей.
+ * 
+ * @example
+ * // Актерский состав
+ * const { ui } = PotokSDK;
+ * 
+ * const actors = [
+ *   {
+ *     name: "Мэттью Макконахи",
+ *     character: "Купер",
+ *     profilePath: "https://image.tmdb.org/t/p/w185/wD6U1N7Caw58tO43fT245U62y4a.jpg"
+ *   }
+ * ];
+ * 
+ * ui.render(
+ *   MediaCast()
+ *     .cast(actors)
+ * );
+ */
 export class MediaCastBuilder extends UIComponent {
   private _cast: any[];
 
@@ -413,6 +686,12 @@ export class MediaCastBuilder extends UIComponent {
     this._cast = [];
   }
 
+  /**
+   * Массив объектов актеров (name, character, profilePath).
+   *
+   * @param v Значение метода
+   * @default []
+   */
   cast(v: any[]): this {
     this._cast = v;
     return this;
@@ -425,6 +704,30 @@ export class MediaCastBuilder extends UIComponent {
   }
 }
 
+/**
+ * MediaOverview (Обзор медиаресурса)
+ * 
+ * Большая интерактивная панель описания фильма или сериала. Отображает постер, оригинальное название, описание, год производства, страну, рейтинг, жанры и список создателей.
+ * 
+ * @example
+ * // Описание фильма
+ * const { ui } = PotokSDK;
+ * 
+ * const movieData = {
+ *   title: "Интерстеллар",
+ *   overview: "Наше время на Земле подошло к концу, группа исследователей предпринимает путешествие в космос...",
+ *   posterUrl: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg",
+ *   rating: 8.6,
+ *   genres: ["Научная фантастика", "Драма"],
+ *   year: 2014,
+ *   country: "США"
+ * };
+ * 
+ * ui.render(
+ *   MediaOverview()
+ *     .media(movieData)
+ * );
+ */
 export class MediaOverviewBuilder extends UIComponent {
   private _media: any;
   private _selectedEpisode: any;
@@ -434,16 +737,31 @@ export class MediaOverviewBuilder extends UIComponent {
     super("MediaOverview");
   }
 
+  /**
+   * Детальные метаданные фильма/сериала (title, overview, posterUrl, rating, genres, year, country).
+   *
+   * @param v Значение метода
+   */
   media(v: any): this {
     this._media = v;
     return this;
   }
 
+  /**
+   * Объект текущей выбранной серии для отображения информации о серии вместо описания всего сезона (если это сериал).
+   *
+   * @param v Значение метода
+   */
   selectedEpisode(v: any): this {
     this._selectedEpisode = v;
     return this;
   }
 
+  /**
+   * Коллбек сброса выбранной серии обратно к деталям всего сезона (клик по кнопке «Вернуться к описанию»).
+   *
+   * @param v Значение метода
+   */
   onResetEpisode(cb: CallbackFunction): this {
     this._onResetEpisode = cb;
     return this;
@@ -466,6 +784,34 @@ export class MediaOverviewBuilder extends UIComponent {
   }
 }
 
+/**
+ * MediaRow (Горизонтальный ряд)
+ * 
+ * Карусель с горизонтальной прокруткой для отображения списка карточек MediaCard. Снабжена общим заголовком и кнопкой «Показать все».
+ * 
+ * @example
+ * // Карусель медиа
+ * const { ui } = PotokSDK;
+ * 
+ * const movie = {
+ *   title: "Интерстеллар",
+ *   posterUrl: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg",
+ *   year: 2014,
+ *   rating: 8.6
+ * };
+ * 
+ * ui.render(
+ *   MediaRow()
+ *     .title("Рекомендуемые фильмы")
+ *     .items([movie, movie, movie])
+ *     .onCardClick((item) => {
+ *       ui.showHUD("info", "Клик: " + item.title);
+ *     })
+ *     .onSeeAllClick(() => {
+ *       ui.showHUD("success", "Показать все!");
+ *     })
+ * );
+ */
 export class MediaRowBuilder extends UIComponent {
   private _rowId?: string;
   private _title?: string;
@@ -484,21 +830,42 @@ export class MediaRowBuilder extends UIComponent {
     return this;
   }
 
+  /**
+   * Заголовок для секции ряда (например, 'Сейчас смотрят').
+   *
+   * @param v Значение метода
+   */
   title(v: string): this {
     this._title = v;
     return this;
   }
 
+  /**
+   * Массив объектов фильмов для отображения в ряду в виде карточек.
+   *
+   * @param v Значение метода
+   * @default []
+   */
   items(v: any[]): this {
     this._items = v;
     return this;
   }
 
+  /**
+   * Коллбек при клике на любую карточку фильма в ряду.
+   *
+   * @param v Значение метода
+   */
   onCardClick(cb: CallbackFunction): this {
     this._onCardClick = cb;
     return this;
   }
 
+  /**
+   * Коллбек при клике на кнопку «Показать все» / «Смотреть все».
+   *
+   * @param v Значение метода
+   */
   onSeeAllClick(cb: CallbackFunction): this {
     this._onSeeAllClick = cb;
     return this;
@@ -526,6 +893,28 @@ export class MediaRowBuilder extends UIComponent {
   }
 }
 
+/**
+ * MediaPlayer (Видеоплеер)
+ * 
+ * Встроенный HTML5-видеоплеер с поддержкой форматов HLS (.m3u8), Dash (.mpd) и обычных MP4-файлов. Предоставляет полноценное управление воспроизведением, субтитрами и звуковыми дорожками.
+ * 
+ * @example
+ * // Встроенный плеер
+ * const { ui } = PotokSDK;
+ * 
+ * ui.render(
+ *   MediaPlayer()
+ *     .playback({
+ *       title: "Мультитрековое тестовое видео",
+ *       streamUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+ *       audios: [
+ *         { name: "Русский дубляж", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
+ *         { name: "Английский оригинал", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" }
+ *       ]
+ *     })
+ *     .height(400)
+ * );
+ */
 export class MediaPlayerBuilder extends UIComponent {
   private _playback: any;
   private _isNetworkOffline?: boolean;
@@ -534,11 +923,22 @@ export class MediaPlayerBuilder extends UIComponent {
     super("MediaPlayer");
   }
 
+  /**
+   * Метаданные воспроизводимого потока. Должен содержать: title, streamUrl, position (sec), headers (http), audios ({name, url}[]) для альтернативных дорожек.
+   *
+   * @param v Значение метода
+   */
   playback(v: any): this {
     this._playback = v;
     return this;
   }
 
+  /**
+   * Управляет оффлайн-режимом. При значении true останавливает проигрывание и выводит ошибку сети.
+   *
+   * @param v Значение метода
+   * @default false
+   */
   isNetworkOffline(v: boolean): this {
     this._isNetworkOffline = v;
     return this;
@@ -552,6 +952,28 @@ export class MediaPlayerBuilder extends UIComponent {
   }
 }
 
+/**
+ * ProfileSelector (Селектор профилей)
+ * 
+ * Компонент управления профилями соединений (серверами) для переключения адресов шлюзов Potok Gateway с пингом статуса, добавлением, удалением и редактированием серверов.
+ * 
+ * @example
+ * // Менеджер серверов
+ * const { ui } = PotokSDK;
+ * 
+ * const profiles = [
+ *   { id: "p1", gatewayURL: "http://localhost:5000", name: "Локальный шлюз" }
+ * ];
+ * 
+ * ui.render(
+ *   ProfileSelector()
+ *     .connectionProfiles(profiles)
+ *     .activeProfileID("p1")
+ *     .onSelectProfile((p) => {
+ *       ui.showHUD("success", "Выбран профиль: " + p.name);
+ *     })
+ * );
+ */
 export class ProfileSelectorBuilder extends UIComponent {
   private _connectionProfiles: any[];
   private _activeProfileID?: string | null;
@@ -566,36 +988,73 @@ export class ProfileSelectorBuilder extends UIComponent {
     this._connectionProfiles = [];
   }
 
+  /**
+   * Массив доступных серверов/профилей (id, name, gatewayURL).
+   *
+   * @param v Значение метода
+   * @default []
+   */
   connectionProfiles(v: any[]): this {
     this._connectionProfiles = v;
     return this;
   }
 
+  /**
+   * Идентификатор текущего выбранного/активного профиля подключения.
+   *
+   * @param v Значение метода
+   */
   activeProfileID(v: string | null): this {
     this._activeProfileID = v;
     return this;
   }
 
+  /**
+   * При true блокирует кнопки создания, редактирования и удаления профилей.
+   *
+   * @param v Значение метода
+   * @default false
+   */
   isSettingsLocked(v: boolean): this {
     this._isSettingsLocked = v;
     return this;
   }
 
+  /**
+   * Коллбек при переключении/клике по профилю. Передает объект выбранного профиля.
+   *
+   * @param v Значение метода
+   */
   onSelectProfile(cb: CallbackFunction): this {
     this._onSelectProfile = cb;
     return this;
   }
 
+  /**
+   * Коллбек при клике на иконку «Карандаш» для изменения адреса или имени профиля.
+   *
+   * @param v Значение метода
+   */
   onStartEdit(cb: CallbackFunction): this {
     this._onStartEdit = cb;
     return this;
   }
 
+  /**
+   * Коллбек при клике на удаление профиля («Корзина»).
+   *
+   * @param v Значение метода
+   */
   onDeleteProfile(cb: CallbackFunction): this {
     this._onDeleteProfile = cb;
     return this;
   }
 
+  /**
+   * Коллбек при клике по кнопке создания нового подключения («Добавить сервер»).
+   *
+   * @param v Значение метода
+   */
   onStartAdd(cb: CallbackFunction): this {
     this._onStartAdd = cb;
     return this;
@@ -631,6 +1090,31 @@ export class ProfileSelectorBuilder extends UIComponent {
   }
 }
 
+/**
+ * SearchBar (Панель поиска)
+ * 
+ * Специализированная поисковая строка со встроенной иконкой лупы и кнопкой быстрой очистки поля ввода. Отлично подходит для создания систем поиска контента.
+ * 
+ * @example
+ * // Строка поиска
+ * const { ui, createState } = PotokSDK;
+ * const state = createState({ query: "" });
+ * 
+ * function draw() {
+ *   ui.render(
+ *     VStack()
+ *       .spacing(12)
+ *       .child(
+ *         SearchBar()
+ *           .value(state.query)
+ *           .placeholder("Введите название...")
+ *           .onChange((v) => state.query = v)
+ *           .onClear(() => state.query = "")
+ *       )
+ *   );
+ * }
+ * state.$subscribe(draw); draw();
+ */
 export class SearchBarBuilder extends UIComponent {
   private _value?: string;
   private _placeholder?: string;
@@ -641,21 +1125,43 @@ export class SearchBarBuilder extends UIComponent {
     super("SearchBar");
   }
 
+  /**
+   * Текущий текст в поисковой строке.
+   *
+   * @param v Значение метода
+   * @default ''
+   */
   value(v: string): this {
     this._value = v;
     return this;
   }
 
+  /**
+   * Подсказка ввода внутри поисковой строки.
+   *
+   * @param v Значение метода
+   * @default 'Поиск...'
+   */
   placeholder(v: string): this {
     this._placeholder = v;
     return this;
   }
 
+  /**
+   * Коллбек при изменении текста поискового запроса пользователем.
+   *
+   * @param v Значение метода
+   */
   onChange(cb: CallbackFunction): this {
     this._onChange = cb;
     return this;
   }
 
+  /**
+   * Коллбек при клике на иконку «Крестик» для сброса поисковой строки.
+   *
+   * @param v Значение метода
+   */
   onClear(cb: CallbackFunction): this {
     this._onClear = cb;
     return this;
@@ -682,6 +1188,30 @@ export class SearchBarBuilder extends UIComponent {
   }
 }
 
+/**
+ * StreamFilterBar (Панель сортировки)
+ * 
+ * Готовая панель управления сортировкой и фильтрацией найденных раздач. Позволяет быстро переключать качество видео, выбирать трекер и сортировать раздачи (по весу, по сидерам).
+ * 
+ * @example
+ * // Панель фильтров
+ * const { ui, createState } = PotokSDK;
+ * const state = createState({ sort: "seeds" });
+ * 
+ * function draw() {
+ *   ui.render(
+ *     StreamFilterBar()
+ *       .countLabel("Всего найдено: 8 торрентов")
+ *       .trackers(["Rutracker", "Kinozal"])
+ *       .sortOption(state.sort)
+ *       .onSortChange((s) => {
+ *         state.sort = s;
+ *         ui.showHUD("success", "Сортировка: " + s);
+ *       })
+ *   );
+ * }
+ * state.$subscribe(draw); draw();
+ */
 export class StreamFilterBarBuilder extends UIComponent {
   private _countLabel?: string;
   private _qualityFilter?: string;
@@ -699,51 +1229,103 @@ export class StreamFilterBarBuilder extends UIComponent {
     this._trackers = [];
   }
 
+  /**
+   * Текстовая строка с количеством найденных раздач (выводится слева).
+   *
+   * @param v Значение метода
+   */
   countLabel(v: string): this {
     this._countLabel = v;
     return this;
   }
 
+  /**
+   * Устанавливает текущее выбранное качество для фильтрации (например, '1080p').
+   *
+   * @param v Значение метода
+   */
   qualityFilter(v: string): this {
     this._qualityFilter = v;
     return this;
   }
 
+  /**
+   * Устанавливает активный выбранный трекер для фильтрации.
+   *
+   * @param v Значение метода
+   */
   activeTracker(v: string): this {
     this._activeTracker = v;
     return this;
   }
 
+  /**
+   * Массив названий трекеров для отображения в фильтре по источникам.
+   *
+   * @param v Значение метода
+   * @default []
+   */
   trackers(v: string[]): this {
     this._trackers = v;
     return this;
   }
 
+  /**
+   * Включает или выключает отображение выпадающего списка сортировки в правой части панели.
+   *
+   * @param v Значение метода
+   * @default true
+   */
   showSort(v: boolean): this {
     this._showSort = v;
     return this;
   }
 
+  /**
+   * Текущий активный вариант сортировки (например, 'seeds' или 'size').
+   *
+   * @param v Значение метода
+   */
   sortOption(v: string): this {
     this._sortOption = v;
     return this;
   }
 
+  /**
+   * Коллбек при клике на кнопку «Обновить поиск».
+   *
+   * @param v Значение метода
+   */
   onRefresh(cb: CallbackFunction): this {
     this._onRefresh = cb;
     return this;
   }
 
+  /**
+   * Коллбек смены выбранного разрешения видео.
+   *
+   * @param v Значение метода
+   */
   onQualityChange(cb: CallbackFunction): this {
     this._onQualityChange = cb;
     return this;
   }
 
+  /**
+   * Коллбек смены активного трекера.
+   *
+   * @param v Значение метода
+   */
   onTrackerChange(cb: CallbackFunction): this {
     this._onTrackerChange = cb;
     return this;
   }
 
+  /**
+   * Коллбек при изменении порядка сортировки раздач.
+   *
+   * @param v Значение метода
+   */
   onSortChange(cb: CallbackFunction): this {
     this._onSortChange = cb;
     return this;
@@ -782,6 +1364,43 @@ export class StreamFilterBarBuilder extends UIComponent {
   }
 }
 
+/**
+ * EpisodeSelector (Модальный выбор серий)
+ * 
+ * Встроенный модальный селектор для детального выбора серий и сезонов сериала с прокруткой и фоновым постером.
+ * 
+ * @example
+ * // Модальный селектор
+ * const { ui, createState } = PotokSDK;
+ * const state = createState({ open: false });
+ * 
+ * const mockEp = {
+ *   episodeNumber: 1,
+ *   seasonNumber: 1,
+ *   name: "Зима близко",
+ *   stillPath: "https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg"
+ * };
+ * 
+ * function draw() {
+ *   ui.render(
+ *     VStack()
+ *       .child(Button("Выбрать серию").onClick(() => state.open = true))
+ *       .child(
+ *         EpisodeSelector()
+ *           .isOpen(state.open)
+ *           .title("Игра Престолов")
+ *           .seasons([{ id: 1, seasonNumber: 1, name: "Сезон 1" }])
+ *           .episodes([mockEp])
+ *           .onClose(() => state.open = false)
+ *           .onPlay((ep) => {
+ *             state.open = false;
+ *             ui.showHUD("success", "Запускаем: " + ep.name);
+ *           })
+ *       )
+ *   );
+ * }
+ * state.$subscribe(draw); draw();
+ */
 export class EpisodeSelectorBuilder extends UIComponent {
   private _isOpen?: boolean;
   private _title?: string;
@@ -801,56 +1420,115 @@ export class EpisodeSelectorBuilder extends UIComponent {
     this._seasons = [];
   }
 
+  /**
+   * Управляет видимостью модального окна.
+   *
+   * @param v Значение метода
+   * @default false
+   */
   isOpen(v: boolean): this {
     this._isOpen = v;
     return this;
   }
 
+  /**
+   * Главный заголовок модального окна (название сериала).
+   *
+   * @param v Значение метода
+   */
   title(v: string): this {
     this._title = v;
     return this;
   }
 
+  /**
+   * Подзаголовок (описание).
+   *
+   * @param v Значение метода
+   */
   subtitle(v: string): this {
     this._subtitle = v;
     return this;
   }
 
+  /**
+   * Массив серий выбранного в данный момент сезона.
+   *
+   * @param v Значение метода
+   * @default []
+   */
   episodes(v: any[]): this {
     this._episodes = v;
     return this;
   }
 
+  /**
+   * Ссылка на фоновое промо-изображение.
+   *
+   * @param v Значение метода
+   */
   backdropSrc(v: string): this {
     this._backdropSrc = v;
     return this;
   }
 
+  /**
+   * Состояние загрузки списков серий (при true отображает спиннер загрузки).
+   *
+   * @param v Значение метода
+   * @default false
+   */
   seasonsLoading(v: boolean): this {
     this._seasonsLoading = v;
     return this;
   }
 
+  /**
+   * Массив доступных сезонов для отображения во вкладках.
+   *
+   * @param v Значение метода
+   * @default []
+   */
   seasons(v: any[]): this {
     this._seasons = v;
     return this;
   }
 
+  /**
+   * Коллбек, срабатывающий при закрытии модального окна.
+   *
+   * @param v Значение метода
+   */
   onClose(cb: CallbackFunction): this {
     this._onClose = cb;
     return this;
   }
 
+  /**
+   * Коллбек при клике на воспроизведение серии в селекторе.
+   *
+   * @param v Значение метода
+   */
   onPlay(cb: CallbackFunction): this {
     this._onPlay = cb;
     return this;
   }
 
+  /**
+   * Коллбек при переопределении параметров серии.
+   *
+   * @param v Значение метода
+   */
   onApplyOverride(cb: CallbackFunction): this {
     this._onApplyOverride = cb;
     return this;
   }
 
+  /**
+   * Коллбек в начале редактирования серий.
+   *
+   * @param v Значение метода
+   */
   onStartEditing(cb: CallbackFunction): this {
     this._onStartEditing = cb;
     return this;
@@ -899,6 +1577,31 @@ export class EpisodeSelectorPopupBuilder extends EpisodeSelectorBuilder {
   }
 }
 
+/**
+ * EpisodeCard (Карточка серии)
+ * 
+ * Компонент отображения отдельной серии сериала. Выводит превью (кадр), номер эпизода, название и текстовое описание серии.
+ * 
+ * @example
+ * // Карточка эпизода
+ * const { ui } = PotokSDK;
+ * 
+ * const epData = {
+ *   episodeNumber: 1,
+ *   seasonNumber: 1,
+ *   name: "Зима Близко",
+ *   overview: "Лорд Эддард Старк принимает короля Роберта в своем замке Винтерфелл...",
+ *   stillPath: "https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg"
+ * };
+ * 
+ * ui.render(
+ *   EpisodeCard()
+ *     .episode(epData)
+ *     .onClick((ep) => {
+ *       ui.showHUD("success", "Выбрана серия " + ep.episodeNumber);
+ *     })
+ * );
+ */
 export class EpisodeCardBuilder extends UIComponent {
   private _episode: any;
   private _onClick?: CallbackFunction;
@@ -907,11 +1610,21 @@ export class EpisodeCardBuilder extends UIComponent {
     super("EpisodeCard");
   }
 
+  /**
+   * Объект с описанием серии (episodeNumber, seasonNumber, name, overview, stillPath).
+   *
+   * @param v Значение метода
+   */
   episode(v: any): this {
     this._episode = v;
     return this;
   }
 
+  /**
+   * Обработчик клика по карточке серии. Передает выбранный объект серии.
+   *
+   * @param v Значение метода
+   */
   onClick(cb: CallbackFunction): this {
     this._onClick = cb;
     return this;

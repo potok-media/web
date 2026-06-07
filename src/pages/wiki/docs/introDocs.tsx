@@ -113,9 +113,31 @@ export const InstallDoc = {
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=potok;Username=potok;Password=potok_password
       - Gateway__TmdbApiKey=ВАШ_TMDB_API_KEY
       - Gateway__DefaultSearchEngineUrl=http://potok-searchengine:6000
+      - Gateway__DefaultTorrServerUrl=http://potok-torrentgo:5282
       - Gateway__MultiUserMode=false
-    depends_on:
-      - potok-searchengine
+      - Gateway__JwtSecret=ВАШ_СЕКРЕТНЫЙ_КЛЮЧ_JWT_МИН_32_СИМВОЛА
+
+  # 🌊 Стриминговый движок BitTorrent (TorrentGo)
+  potok-torrentgo:
+    image: ghcr.io/potok-media/potok-torrentgo:latest
+    container_name: potok-torrentgo
+    restart: unless-stopped
+    ports:
+      - "\${TORRENTGO_PORT:-5282}:\${TORRENTGO_PORT:-5282}"
+      # ------------------------------------------------------------------------
+      # Входящие BitTorrent подключения (DHT/Peer listen port)
+      # ------------------------------------------------------------------------
+      # - "55123:55123/udp"
+      #
+      # 💡 ПРИМЕЧАНИЕ ДЛЯ ТЕХ, КТО ЗА NAT / TAILSCALE:
+      # Если ваш сервер находится за NAT без проброса портов или подключен через Tailscale,
+      # входящие UDP-подключения из внешней сети BitTorrent не смогут дойти напрямую до контейнера.
+      # В таком случае этот маппинг бесполезен и должен быть ЗАКОММЕНТИРОВАН.
+      # Клиент TorrentGo автоматически перейдет в режим исходящих соединений (outbound-only),
+      # чего абсолютно достаточно для стабильного скачивания и стриминга медиафайлов.
+      # ------------------------------------------------------------------------
+    environment:
+      - PORT=\${TORRENTGO_PORT:-5282}
 
   # 💻 Веб-клиент Potok (Frontend + Wiki)
   potok-web:
@@ -185,7 +207,7 @@ server {
       <div>
         <h1 className="wiki-doc-title" id="compose">Развертывание Potok 2.0</h1>
         <p className="doc-body-text">
-          Полный стек Potok состоит из 4 контейнеров: базы данных, поискового движка по торрент-трекерам, API шлюза (BFF) и веб-интерфейса.
+          Полный стек Potok состоит из 5 контейнеров: базы данных, поискового движка по торрент-трекерам, стримингового движка BitTorrent (TorrentGo), API шлюза (BFF) и веб-интерфейса.
         </p>
 
         <h2 className="doc-section-h2">Файл docker-compose.yml</h2>
@@ -214,15 +236,28 @@ server {
             </tr>
           </thead>
           <tbody>
+            {/* --- КЛИЕНТЫ --- */}
+            <tr>
+              <td><code>VITE_DEFAULT_BFF_URL</code></td>
+              <td>web</td>
+              <td>Публичный URL-адрес шлюза <code>potok-gateway</code> для обращений клиента из браузера.</td>
+            </tr>
+            <tr>
+              <td><code>VITE_BLOCK_SETTINGS_INPUT</code></td>
+              <td>web</td>
+              <td>Если установлено в <code>true</code>, пользователи не смогут менять URL шлюза вручную.</td>
+            </tr>
+
+            {/* --- BFF (Gateway / Шлюз) --- */}
             <tr>
               <td><code>Gateway__TmdbApiKey</code></td>
               <td>gateway</td>
               <td>Ключ API TheMovieDB для загрузки метаданных фильмов и сериалов.</td>
             </tr>
             <tr>
-              <td><code>VITE_DEFAULT_BFF_URL</code></td>
-              <td>web</td>
-              <td>Публичный URL-адрес шлюза <code>potok-gateway</code> для обращений клиента из браузера.</td>
+              <td><code>Gateway__JwtSecret</code></td>
+              <td>gateway</td>
+              <td>Секретный ключ JWT (минимум 32 символа) для шифрования и подписи токенов авторизации в многопользовательском режиме.</td>
             </tr>
             <tr>
               <td><code>Gateway__MultiUserMode</code></td>
@@ -230,9 +265,26 @@ server {
               <td>Включение многопользовательского режима с авторизацией (true/false).</td>
             </tr>
             <tr>
-              <td><code>VITE_BLOCK_SETTINGS_INPUT</code></td>
-              <td>web</td>
-              <td>Если установлено в <code>true</code>, пользователи не смогут менять URL шлюза вручную.</td>
+              <td><code>Gateway__DefaultSearchEngineUrl</code></td>
+              <td>gateway</td>
+              <td>Внутренний или внешний URL-адрес поискового движка по трекерам (по умолчанию <code>http://potok-searchengine:6000</code>).</td>
+            </tr>
+            <tr>
+              <td><code>Gateway__DefaultTorrServerUrl</code></td>
+              <td>gateway</td>
+              <td>Внутренний или внешний URL-адрес торрент-движка TorrentGo (по умолчанию <code>http://potok-torrentgo:5282</code>).</td>
+            </tr>
+
+            {/* --- ОСТАЛЬНЫЕ --- */}
+            <tr>
+              <td><code>ConnectionStrings__DefaultConnection</code></td>
+              <td>gateway, searchengine</td>
+              <td>Строка подключения к базе данных PostgreSQL.</td>
+            </tr>
+            <tr>
+              <td><code>TORRENTGO_PORT</code></td>
+              <td>torrentgo</td>
+              <td>Порт для стримингового движка TorrentGo (по умолчанию 5282).</td>
             </tr>
           </tbody>
         </table>

@@ -72,7 +72,16 @@ export const SandboxPanel: React.FC<SandboxPanelProps> = ({
               {editorLoaded && <span style={{ color: "var(--accent-color)", fontWeight: "bold" }}>CONNECTED</span>}
             </div>
             {editorError && <div style={{ padding: "var(--space-m)", color: "var(--error)" }}>{editorError}</div>}
-            <div ref={containerRef} style={{ height: "25rem" }} />
+            <div 
+              ref={containerRef} 
+              style={{ 
+                height: "25rem", 
+                resize: "vertical", 
+                overflow: "hidden", 
+                minHeight: "15rem", 
+                borderBottom: "1px solid rgba(255, 255, 255, 0.05)" 
+              }} 
+            />
           </div>
 
           <div className="sb-logs-panel">

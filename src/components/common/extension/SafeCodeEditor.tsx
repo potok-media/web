@@ -168,9 +168,11 @@ export const SafeCodeEditor: React.FC<SafeCodeEditorProps> = ({ schema, pluginId
         style={{ 
           position: "relative",
           flex: 1, 
-          minHeight: baseStyle.height || "200px", 
-          borderRadius: "8px", 
+          height: baseStyle.height || "200px", 
+          minHeight: "120px", 
+          resize: "vertical", 
           overflow: "hidden", 
+          borderRadius: "8px", 
           border: "1px solid rgba(255, 255, 255, 0.12)",
           backgroundColor: "#1e1e1e"
         }}
@@ -236,7 +238,7 @@ export const SafeCodeEditor: React.FC<SafeCodeEditorProps> = ({ schema, pluginId
             {loadError}
           </div>
         )}
-        <div ref={containerRef} style={{ width: "100%", height: "100%", minHeight: baseStyle.height || "200px" }} />
+        <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
       </div>
     </div>
   );

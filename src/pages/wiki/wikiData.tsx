@@ -3,12 +3,8 @@ import { IntroDoc, InstallDoc } from "./docs/introDocs";
 import { ManifestDoc, StateDoc } from "./docs/apiCoreDocs";
 import { HttpDoc, StorageDoc } from "./docs/apiClientDocs";
 import { UiMethodsDoc } from "./docs/apiUiDocs";
-import { LayoutComponentsDoc, CardComponentsDoc } from "./docs/uiBaseDocs";
-import { TextComponentsDoc, StatusComponentsDoc } from "./docs/uiTextDocs";
-import { InputComponentsDoc, SelectEditorComponentsDoc } from "./docs/uiInputDocs";
-import { MediaCardsComponentsDoc, HeroLoadingComponentsDoc, EpisodeComponentsDoc } from "./docs/uiMediaDocs";
-import { CastOverviewComponentsDoc, StreamRowListComponentsDoc } from "./docs/uiMediaDetailsDocs";
-import { SearchFilterComponentsDoc, PlayerProfileSelectorDoc } from "./docs/uiSystemDocs";
+
+import { createComponentDoc } from "./docs/ComponentDocRenderer";
 
 export const INITIAL_SANDBOX_CODE = `// Potok Plugin SDK Sandbox
 // Создайте свой интерактивный плагин прямо здесь!
@@ -101,26 +97,60 @@ export const PAGES: Record<string, {
   toc: { id: string; text: string }[];
   render: (openInSandbox: (code: string) => void) => React.ReactNode;
 }> = {
+  // Введение
   intro: IntroDoc,
   install: InstallDoc,
+  
+  // API методы
   manifest: ManifestDoc,
   state: StateDoc,
   http: HttpDoc,
   storage: StorageDoc,
   "ui-methods": UiMethodsDoc,
-  "layout-components": LayoutComponentsDoc,
-  "card-components": CardComponentsDoc,
-  "text-components": TextComponentsDoc,
-  "status-components": StatusComponentsDoc,
-  "input-components": InputComponentsDoc,
-  "select-editor-components": SelectEditorComponentsDoc,
-  "media-cards-components": MediaCardsComponentsDoc,
-  "hero-loading-components": HeroLoadingComponentsDoc,
-  "episode-components": EpisodeComponentsDoc,
-  "cast-overview-components": CastOverviewComponentsDoc,
-  "stream-row-list-components": StreamRowListComponentsDoc,
-  "search-filter-components": SearchFilterComponentsDoc,
-  "player-profile-selector": PlayerProfileSelectorDoc,
+  
+  // UI: Контейнеры (Разметка и Сетки)
+  "vstack-doc": createComponentDoc("VStack", "UI: Контейнеры"),
+  "hstack-doc": createComponentDoc("HStack", "UI: Контейнеры"),
+  "grid-doc": createComponentDoc("Grid", "UI: Контейнеры"),
+  "card-doc": createComponentDoc("Card", "UI: Контейнеры"),
+  "divider-doc": createComponentDoc("Divider", "UI: Контейнеры"),
+  "spacer-doc": createComponentDoc("Spacer", "UI: Контейнеры"),
+  
+  // UI: Текст и Инфо
+  "heading-doc": createComponentDoc("Heading", "UI: Текст и Инфо"),
+  "text-doc": createComponentDoc("Text", "UI: Текст и Инфо"),
+  "badge-doc": createComponentDoc("Badge", "UI: Текст и Инфо"),
+  "statusrow-doc": createComponentDoc("StatusRow", "UI: Текст и Инфо"),
+  "markdown-doc": createComponentDoc("Markdown", "UI: Текст и Инфо"),
+  
+  // UI: Формы и Ввод
+  "button-doc": createComponentDoc("Button", "UI: Формы и Ввод"),
+  "input-doc": createComponentDoc("Input", "UI: Формы и Ввод"),
+  "toggle-doc": createComponentDoc("Toggle", "UI: Формы и Ввод"),
+  "select-doc": createComponentDoc("Select", "UI: Формы и Ввод"),
+  "codeeditor-doc": createComponentDoc("CodeEditor", "UI: Формы и Ввод"),
+  
+  // UI: Медиа компоненты
+  "mediacard-doc": createComponentDoc("MediaCard", "UI: Медиа"),
+  "mediarow-doc": createComponentDoc("MediaRow", "UI: Медиа"),
+  "herospotlight-doc": createComponentDoc("HeroSpotlight", "UI: Медиа"),
+  "loadingspinner-doc": createComponentDoc("LoadingSpinner", "UI: Медиа"),
+  "episodessection-doc": createComponentDoc("EpisodesSection", "UI: Медиа"),
+  "episodecard-doc": createComponentDoc("EpisodeCard", "UI: Медиа"),
+  "episodeselector-doc": createComponentDoc("EpisodeSelector", "UI: Медиа"),
+  
+  // UI: Плееры и Потоки
+  "mediacast-doc": createComponentDoc("MediaCast", "UI: Рендеринг и Стриминг"),
+  "mediaoverview-doc": createComponentDoc("MediaOverview", "UI: Рендеринг и Стриминг"),
+  "streamrow-doc": createComponentDoc("StreamRow", "UI: Рендеринг и Стриминг"),
+  "streamlist-doc": createComponentDoc("StreamList", "UI: Рендеринг и Стриминг"),
+  "streamskeletonlist-doc": createComponentDoc("StreamSkeletonList", "UI: Рендеринг и Стриминг"),
+  "mediaplayer-doc": createComponentDoc("MediaPlayer", "UI: Рендеринг и Стриминг"),
+  "profileselector-doc": createComponentDoc("ProfileSelector", "UI: Рендеринг и Стриминг"),
+  "searchbar-doc": createComponentDoc("SearchBar", "UI: Рендеринг и Стриминг"),
+  "streamfilterbar-doc": createComponentDoc("StreamFilterBar", "UI: Рендеринг и Стриминг"),
+  
+  // Разработка
   sandbox: {
     title: "Интерактивная песочница",
     category: "Песочница",
