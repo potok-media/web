@@ -56,7 +56,8 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
       let bufferEnd = 0;
 
       for (let i = 0; i < buffered.length; i++) {
-        if (video.currentTime >= buffered.start(i) && video.currentTime <= buffered.end(i)) {
+        // Add a 0.5s tolerance to start check to handle minor precision offsets
+        if (video.currentTime >= buffered.start(i) - 0.5 && video.currentTime <= buffered.end(i)) {
           bufferEnd = buffered.end(i);
           break;
         }
@@ -65,7 +66,13 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
       slider.style.setProperty("--buffer-progress", `${pct}%`);
     };
 
-    video.addEventListener("timeupdate", updateSlider);
+    // Update both slider and buffer on timeupdate to keep them in sync
+    const handleTimeUpdate = () => {
+      updateSlider();
+      updateBuffer();
+    };
+
+    video.addEventListener("timeupdate", handleTimeUpdate);
     video.addEventListener("progress", updateBuffer);
     video.addEventListener("durationchange", () => {
       updateSlider();
@@ -77,7 +84,7 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
     updateBuffer();
 
     return () => {
-      video.removeEventListener("timeupdate", updateSlider);
+      video.removeEventListener("timeupdate", handleTimeUpdate);
       video.removeEventListener("progress", updateBuffer);
     };
   }, [videoRef, initialDuration, seekOffset]);

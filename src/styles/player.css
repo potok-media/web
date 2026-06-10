@@ -317,8 +317,8 @@
   background: linear-gradient(to right, 
     var(--accent) 0%, 
     var(--accent) var(--timeline-progress, 0%), 
-    rgba(255, 255, 255, 0.2) var(--timeline-progress, 0%), 
-    rgba(255, 255, 255, 0.2) var(--buffer-progress, 0%), 
+    rgba(255, 255, 255, 0.35) var(--timeline-progress, 0%), 
+    rgba(255, 255, 255, 0.35) var(--buffer-progress, 0%), 
     rgba(255, 255, 255, 0.1) var(--buffer-progress, 0%), 
     rgba(255, 255, 255, 0.1) 100%);
 }

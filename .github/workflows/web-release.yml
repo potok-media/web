@@ -45,7 +45,14 @@ jobs:
       - name: Calculate and bump version in package.json
         id: get_version
         run: |
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          # Fetch all tags from remote repository to have correct tag history
+          git fetch --tags --force
+          
+          # Get latest tag matching "web-v*" or fallback to "web-v0.0.0"
+          LATEST_TAG=$(git describe --tags --abbrev=0 --match "web-v*" 2>/dev/null || echo "web-v0.0.0")
+          echo "Latest Git Tag: $LATEST_TAG"
+          
+          CURRENT_VERSION="${LATEST_TAG#web-v}"
           IS_BETA="${{ github.event.inputs.is_beta }}"
           BUMP="${{ github.event.inputs.bump_type }}"
           
@@ -103,7 +110,7 @@ jobs:
             echo "PRERELEASE=false" >> $GITHUB_ENV
           fi
           
-          # Update version in package.json
+          # Update version in package.json (no commit, just for building within docker context)
           node -e "
           const fs = require('fs');
           const pkg = JSON.parse(fs.readFileSync('./package.json'));
@@ -111,7 +118,7 @@ jobs:
           fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
           
-          # Update version in package-lock.json if it exists
+          # Update version in package-lock.json if it exists (no commit)
           if [ -f package-lock.json ]; then
             node -e "
             const fs = require('fs');
@@ -127,12 +134,12 @@ jobs:
           echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
           echo "Bumping package.json to version $NEW_VERSION"
 
-      - name: Commit version bump
+      - name: Push Git Tag
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git commit -am "Bump web version to ${{ env.new_version }}"
-          git push
+          git tag "web-v${{ env.new_version }}"
+          git push origin "web-v${{ env.new_version }}"
 
       # Set up Buildx runner
       - name: Set up Docker Buildx
