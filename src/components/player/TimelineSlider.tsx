@@ -62,7 +62,7 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
           break;
         }
       }
-      const pct = ((seekOffset + bufferEnd) / duration) * 100;
+      const pct = duration > 0 ? ((seekOffset + bufferEnd) / duration) * 100 : 0;
       slider.style.setProperty("--buffer-progress", `${pct}%`);
     };
 
