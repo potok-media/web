@@ -241,7 +241,7 @@ export const SDK_TYPINGS = `
   }
 
   /**
-   * Выпадающий список (Select) для выбора одного значения.
+   * Выпадающий список (Select) для выбора одного или нескольких значений.
    */
   interface SelectBuilder extends UIComponent {
     /**
@@ -249,21 +249,45 @@ export const SDK_TYPINGS = `
      */
     label(v: string): this;
     /**
-     * Список доступных опций.
+     * Список доступных опций. Опции могут содержать текстовое значение и код, а также выступать в роли разделителей (type: 'divider') или заголовков категорий (type: 'header').
      */
-    options(v: { value: string; label: string }[]): this;
+    options(v: { value?: string; label?: string; type?: "item" | "header" | "divider" }[]): this;
     /**
-     * Выбранное значение.
+     * Выбранное значение или массив выбранных значений при множественном выборе.
      */
-    value(v: string): this;
+    value(v: string | string[]): this;
     /**
      * Блокирует выбор.
      */
     disabled(v: boolean): this;
     /**
-     * Коллбек при смене выбранного элемента.
+     * Коллбек при смене выбранного элемента (или элементов).
      */
-    onChange(cb: (val: string) => void): this;
+    onChange(cb: (val: any) => void): this;
+    /**
+     * Визуальный стиль отображения селектора ('default' или 'glass').
+     */
+    variant(v: "default" | "glass"): this;
+    /**
+     * Иконка из библиотеки Lucide для отображения внутри кнопки (только для variant: 'glass').
+     */
+    icon(v: string): this;
+    /**
+     * Определяет, закрывать ли меню при выборе элемента.
+     */
+    closeOnSelect(v: boolean): this;
+    /**
+     * Включает режим множественного выбора.
+     */
+    multiple(v: boolean): this;
+    /**
+     * Текст кнопки сброса параметров внизу поповера (если задан, кнопка сброса будет отображаться).
+     */
+    resetLabel(v: string): this;
+    /**
+     * Значение, устанавливаемое при нажатии на кнопку сброса параметров.
+     */
+    resetValue(v: string | string[]): this;
   }
 
   /**

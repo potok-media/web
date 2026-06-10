@@ -180,6 +180,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     rawLevels,
     hlsActiveLevel,
     currentQualityLevel,
+    setCurrentQualityLevel,
   } = useHlsPlayer({
     videoRef,
     playback,
@@ -351,7 +352,11 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     setShowSubtitleMenu(false);
   };
 
-  const switchQuality = (_id: number) => {
+  const switchQuality = (id: number) => {
+    if (hlsRef.current) {
+      hlsRef.current.currentLevel = id;
+      setCurrentQualityLevel(id);
+    }
     setShowQualityMenu(false);
   };
 

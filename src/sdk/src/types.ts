@@ -318,8 +318,14 @@ export interface SelectSchema extends BaseSchema {
   type: "Select";
   props: SDKBaseComponentProps & {
     label?: string;
-    selected?: string;
-    options?: { label: string; value: string }[];
+    selected?: string | string[];
+    options?: { label?: string; value?: string; type?: "item" | "header" | "divider" }[];
+    variant?: "default" | "glass";
+    icon?: string;
+    closeOnSelect?: boolean;
+    multiple?: boolean;
+    resetLabel?: string;
+    resetValue?: string | string[];
     disabled?: boolean;
   };
   events?: BaseSchema["events"] & {

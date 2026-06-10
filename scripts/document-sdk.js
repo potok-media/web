@@ -398,23 +398,34 @@ state.$subscribe(draw); draw();`,
   },
   Select: {
     title: "Select (Выпадающий список)",
-    description: "Компонент выпадающего списка (Dropdown) для выбора одного текстового значения из предопределенного массива вариантов.",
-    example: `// Выпадающий список локализации
+    description: "Компонент выпадающего списка (Dropdown) для выбора одного текстового значения из предопределенного массива вариантов. Поддерживает группировку элементов по категориям при помощи разделителей и заголовков.",
+    example: `// Настройки фильтрации с категориями и множественным выбором
 const { ui, createState } = PotokSDK;
-const state = createState({ lang: "ru" });
+const state = createState({ activeFilters: ["1080p", "dub"] });
 
 function draw() {
   ui.render(
-    Select("lang-select")
-      .label("Язык интерфейса")
+    Select("filter-select")
+      .variant("glass")
+      .icon("Filter")
+      .multiple(true)
+      .closeOnSelect(false)
+      .resetLabel("Сбросить всё")
+      .resetValue([])
       .options([
-        { label: "Русский язык", value: "ru" },
-        { label: "English", value: "en" }
+        { type: "header", label: "Разрешение" },
+        { value: "2160p", label: "4K (2160p)" },
+        { value: "1080p", label: "Full HD (1080p)" },
+        { value: "720p", label: "HD (720p)" },
+        { type: "divider" },
+        { type: "header", label: "Озвучка" },
+        { value: "dub", label: "Дубляж" },
+        { value: "sub", label: "Субтитры" }
       ])
-      .value(state.lang)
-      .onChange((v) => {
-        state.lang = v;
-        ui.showHUD("success", "Установлен язык: " + v);
+      .value(state.activeFilters)
+      .onChange((newVals) => {
+        state.activeFilters = newVals;
+        ui.showHUD("success", "Выбрано: " + newVals.join(", "));
       })
   );
 }
@@ -425,22 +436,50 @@ state.$subscribe(draw); draw();`,
         description: "Заголовок списка, выводимый над полем выбора."
       },
       options: {
-        argument: "{ label: string, value: string }[]",
-        description: "Массив доступных элементов списка. Каждый элемент должен иметь отображаемое имя (label) и программное значение (value).",
+        argument: "{ value?: string, label?: string, type?: string }[]",
+        description: "Массив доступных элементов списка. Опции могут содержать текстовое значение и код, а также выступать в роли разделителей ({ type: 'divider' }) или заголовков категорий ({ type: 'header', label: 'Текст' }).",
         default: "[]"
       },
       value: {
-        argument: "string",
-        description: "Текущее выбранное значение (соответствующее полю value выбранной опции).",
+        argument: "string | string[]",
+        description: "Текущее выбранное значение или массив выбранных значений при множественном выборе (multiple).",
         default: "''"
       },
       selected: {
-        argument: "string",
+        argument: "string | string[]",
         description: "Устаревший (deprecated) синоним для value."
       },
       onChange: {
         argument: "CallbackFunction",
-        description: "Вызывается при выборе нового элемента из списка. Передает выбранное значение (value)."
+        description: "Вызывается при выборе нового элемента или элементов из списка. Передает выбранное значение или массив значений при множественном выборе (multiple)."
+      },
+      variant: {
+        argument: "'default' | 'glass'",
+        description: "Визуальный стиль выпадающего списка. 'default' — стандартное поле формы, 'glass' — стильная полупрозрачная кнопка с размытием (аналогичная кнопкам в верхней панели фильтров).",
+        default: "'default'"
+      },
+      icon: {
+        argument: "string",
+        description: "Имя иконки из библиотеки Lucide для отображения внутри кнопки слева (применяется только если variant: 'glass', например: 'Flame', 'Settings', 'Filter')."
+      },
+      closeOnSelect: {
+        argument: "boolean",
+        description: "Определяет, закрывать ли меню при выборе элемента. По умолчанию true для обычного выбора и false при множественном выборе (multiple).",
+        default: "true"
+      },
+      multiple: {
+        argument: "boolean",
+        description: "Включает режим множественного выбора. Выбранные значения возвращаются в виде массива, а клики по опциям переключают их активность без автоматического закрытия меню.",
+        default: "false"
+      },
+      resetLabel: {
+        argument: "string",
+        description: "Текст кнопки сброса параметров внизу поповера (если задан, кнопка сброса будет отображаться)."
+      },
+      resetValue: {
+        argument: "string | string[]",
+        description: "Значение, устанавливаемое при нажатии на кнопку сброса параметров (например, пустой массив [] для множественного выбора).",
+        default: "''"
       }
     }
   },

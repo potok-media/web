@@ -25,7 +25,7 @@ export const PlayerResumeToast: React.FC<PlayerResumeToastProps> = ({
           onClose();
         }}
       >
-        Начать сначала
+        Начать с начала
       </button>
     </div>
   );

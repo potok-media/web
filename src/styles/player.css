@@ -340,6 +340,11 @@
   cursor: pointer;
   transition: transform 0.1s ease;
   margin-top: -3px; /* Centers 12px thumb on a 6px track: (6/2) - (12/2) = -3px */
+  transform: scaleY(1.49); /* Counteract parent's scaleY(0.67) */
+}
+
+.player-timeline-slider:hover::-webkit-slider-thumb {
+  transform: scaleY(1); /* Parent has scaleY(1), so no counteract needed */
 }
 
 .player-timeline-slider::-webkit-slider-thumb:hover {
@@ -355,6 +360,11 @@
   border: 2px solid var(--accent);
   cursor: pointer;
   transition: transform 0.1s ease;
+  transform: scaleY(1.49); /* Counteract parent's scaleY(0.67) */
+}
+
+.player-timeline-slider:hover::-moz-range-thumb {
+  transform: scaleY(1);
 }
 
 .player-timeline-slider::-moz-range-thumb:hover {

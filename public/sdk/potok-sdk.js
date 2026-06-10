@@ -421,7 +421,7 @@ var PotokSDK = (function(exports) {
   }
 
   /**
-   * Выпадающий список (Select) для выбора одного значения.
+   * Выпадающий список (Select) для выбора одного или нескольких значений.
    */
   interface SelectBuilder extends UIComponent {
     /**
@@ -429,21 +429,45 @@ var PotokSDK = (function(exports) {
      */
     label(v: string): this;
     /**
-     * Список доступных опций.
+     * Список доступных опций. Опции могут содержать текстовое значение и код, а также выступать в роли разделителей (type: 'divider') или заголовков категорий (type: 'header').
      */
-    options(v: { value: string; label: string }[]): this;
+    options(v: { value?: string; label?: string; type?: "item" | "header" | "divider" }[]): this;
     /**
-     * Выбранное значение.
+     * Выбранное значение или массив выбранных значений при множественном выборе.
      */
-    value(v: string): this;
+    value(v: string | string[]): this;
     /**
      * Блокирует выбор.
      */
     disabled(v: boolean): this;
     /**
-     * Коллбек при смене выбранного элемента.
+     * Коллбек при смене выбранного элемента (или элементов).
      */
-    onChange(cb: (val: string) => void): this;
+    onChange(cb: (val: any) => void): this;
+    /**
+     * Визуальный стиль отображения селектора ('default' или 'glass').
+     */
+    variant(v: "default" | "glass"): this;
+    /**
+     * Иконка из библиотеки Lucide для отображения внутри кнопки (только для variant: 'glass').
+     */
+    icon(v: string): this;
+    /**
+     * Определяет, закрывать ли меню при выборе элемента.
+     */
+    closeOnSelect(v: boolean): this;
+    /**
+     * Включает режим множественного выбора.
+     */
+    multiple(v: boolean): this;
+    /**
+     * Текст кнопки сброса параметров внизу поповера (если задан, кнопка сброса будет отображаться).
+     */
+    resetLabel(v: string): this;
+    /**
+     * Значение, устанавливаемое при нажатии на кнопку сброса параметров.
+     */
+    resetValue(v: string | string[]): this;
   }
 
   /**
@@ -1790,25 +1814,36 @@ var PotokSDK = (function(exports) {
 	/**
 	* Select (Выпадающий список)
 	* 
-	* Компонент выпадающего списка (Dropdown) для выбора одного текстового значения из предопределенного массива вариантов.
+	* Компонент выпадающего списка (Dropdown) для выбора одного текстового значения из предопределенного массива вариантов. Поддерживает группировку элементов по категориям при помощи разделителей и заголовков.
 	* 
 	* @example
-	* // Выпадающий список локализации
+	* // Настройки фильтрации с категориями и множественным выбором
 	* const { ui, createState } = PotokSDK;
-	* const state = createState({ lang: "ru" });
+	* const state = createState({ activeFilters: ["1080p", "dub"] });
 	* 
 	* function draw() {
 	*   ui.render(
-	*     Select("lang-select")
-	*       .label("Язык интерфейса")
+	*     Select("filter-select")
+	*       .variant("glass")
+	*       .icon("Filter")
+	*       .multiple(true)
+	*       .closeOnSelect(false)
+	*       .resetLabel("Сбросить всё")
+	*       .resetValue([])
 	*       .options([
-	*         { label: "Русский язык", value: "ru" },
-	*         { label: "English", value: "en" }
+	*         { type: "header", label: "Разрешение" },
+	*         { value: "2160p", label: "4K (2160p)" },
+	*         { value: "1080p", label: "Full HD (1080p)" },
+	*         { value: "720p", label: "HD (720p)" },
+	*         { type: "divider" },
+	*         { type: "header", label: "Озвучка" },
+	*         { value: "dub", label: "Дубляж" },
+	*         { value: "sub", label: "Субтитры" }
 	*       ])
-	*       .value(state.lang)
-	*       .onChange((v) => {
-	*         state.lang = v;
-	*         ui.showHUD("success", "Установлен язык: " + v);
+	*       .value(state.activeFilters)
+	*       .onChange((newVals) => {
+	*         state.activeFilters = newVals;
+	*         ui.showHUD("success", "Выбрано: " + newVals.join(", "));
 	*       })
 	*   );
 	* }
@@ -1820,6 +1855,12 @@ var PotokSDK = (function(exports) {
 		_selected;
 		_label;
 		_onChange;
+		_variant;
+		_icon;
+		_closeOnSelect;
+		_resetLabel;
+		_resetValue;
+		_multiple;
 		constructor(n) {
 			super("Select");
 			this.id(n);
@@ -1837,7 +1878,7 @@ var PotokSDK = (function(exports) {
 			return this;
 		}
 		/**
-		* Массив доступных элементов списка. Каждый элемент должен иметь отображаемое имя (label) и программное значение (value).
+		* Массив доступных элементов списка. Опции могут содержать текстовое значение и код, а также выступать в роли разделителей ({ type: 'divider' }) или заголовков категорий ({ type: 'header', label: 'Текст' }).
 		*
 		* @param v Значение метода
 		* @default []
@@ -1847,7 +1888,7 @@ var PotokSDK = (function(exports) {
 			return this;
 		}
 		/**
-		* Текущее выбранное значение (соответствующее полю value выбранной опции).
+		* Текущее выбранное значение или массив выбранных значений при множественном выборе (multiple).
 		*
 		* @param v Значение метода
 		* @default ''
@@ -1865,7 +1906,7 @@ var PotokSDK = (function(exports) {
 			return this.value(v);
 		}
 		/**
-		* Вызывается при выборе нового элемента из списка. Передает выбранное значение (value).
+		* Вызывается при выборе нового элемента или элементов из списка. Передает выбранное значение или массив значений при множественном выборе (multiple).
 		*
 		* @param v Значение метода
 		*/
@@ -1873,12 +1914,76 @@ var PotokSDK = (function(exports) {
 			this._onChange = cb;
 			return this;
 		}
+		/**
+		* Визуальный стиль выпадающего списка. 'default' — стандартное поле формы, 'glass' — стильная полупрозрачная кнопка с размытием (аналогичная кнопкам в верхней панели фильтров).
+		*
+		* @param v Значение метода
+		* @default 'default'
+		*/
+		variant(v) {
+			this._variant = v;
+			return this;
+		}
+		/**
+		* Имя иконки из библиотеки Lucide для отображения внутри кнопки слева (применяется только если variant: 'glass', например: 'Flame', 'Settings', 'Filter').
+		*
+		* @param v Значение метода
+		*/
+		icon(v) {
+			this._icon = v;
+			return this;
+		}
+		/**
+		* Определяет, закрывать ли меню при выборе элемента. По умолчанию true для обычного выбора и false при множественном выборе (multiple).
+		*
+		* @param v Значение метода
+		* @default true
+		*/
+		closeOnSelect(v) {
+			this._closeOnSelect = v;
+			return this;
+		}
+		/**
+		* Включает режим множественного выбора. Выбранные значения возвращаются в виде массива, а клики по опциям переключают их активность без автоматического закрытия меню.
+		*
+		* @param v Значение метода
+		* @default false
+		*/
+		multiple(v) {
+			this._multiple = v;
+			return this;
+		}
+		/**
+		* Текст кнопки сброса параметров внизу поповера (если задан, кнопка сброса будет отображаться).
+		*
+		* @param v Значение метода
+		*/
+		resetLabel(v) {
+			this._resetLabel = v;
+			return this;
+		}
+		/**
+		* Значение, устанавливаемое при нажатии на кнопку сброса параметров (например, пустой массив [] для множественного выбора).
+		*
+		* @param v Значение метода
+		* @default ''
+		*/
+		resetValue(v) {
+			this._resetValue = v;
+			return this;
+		}
 		getProps() {
 			return {
 				name: this._name,
 				label: this._label,
 				options: this._options,
-				selected: this._selected
+				selected: this._selected,
+				variant: this._variant,
+				icon: this._icon,
+				closeOnSelect: this._closeOnSelect,
+				multiple: this._multiple,
+				resetLabel: this._resetLabel,
+				resetValue: this._resetValue
 			};
 		}
 		compile(path = "root") {

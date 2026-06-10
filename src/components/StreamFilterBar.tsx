@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { RotateCw, Flame, Calendar, ArrowUpCircle, ArrowDownCircle, ChevronDown, Check, Filter } from "lucide-react";
 
 interface StreamFilterBarProps {
@@ -42,6 +43,56 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
   const [sortOpen, setSortOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
+  const sortTriggerRef = useRef<HTMLButtonElement>(null);
+  const filterTriggerRef = useRef<HTMLButtonElement>(null);
+
+  const [sortCoords, setSortCoords] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
+  const [filterCoords, setFilterCoords] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
+
+  const updateSortCoords = () => {
+    if (sortTriggerRef.current) {
+      const rect = sortTriggerRef.current.getBoundingClientRect();
+      setSortCoords({
+        top: rect.bottom,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  };
+
+  const updateFilterCoords = () => {
+    if (filterTriggerRef.current) {
+      const rect = filterTriggerRef.current.getBoundingClientRect();
+      setFilterCoords({
+        top: rect.bottom,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (sortOpen) {
+      updateSortCoords();
+      window.addEventListener("resize", updateSortCoords);
+      window.addEventListener("scroll", updateSortCoords, true);
+    }
+    return () => {
+      window.removeEventListener("resize", updateSortCoords);
+      window.removeEventListener("scroll", updateSortCoords, true);
+    };
+  }, [sortOpen]);
+
+  useEffect(() => {
+    if (filterOpen) {
+      updateFilterCoords();
+      window.addEventListener("resize", updateFilterCoords);
+      window.addEventListener("scroll", updateFilterCoords, true);
+    }
+    return () => {
+      window.removeEventListener("resize", updateFilterCoords);
+      window.removeEventListener("scroll", updateFilterCoords, true);
+    };
+  }, [filterOpen]);
+
   return (
     <header className="streams-results-header" id={id}>
       <div className="streams-results-count">
@@ -62,6 +113,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
         {showSort && setSortOption && (
           <div className="filter-popover-wrapper">
             <button
+              ref={sortTriggerRef}
               className="btn-glass filter-btn-trigger"
               onClick={() => {
                 setSortOpen(!sortOpen);
@@ -76,10 +128,23 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
               <ChevronDown size={14} />
             </button>
 
-            {sortOpen && (
+            {sortOpen && createPortal(
               <>
-                <div className="filter-popover-overlay" onClick={() => setSortOpen(false)} />
-                <div className="filter-popover filter-popover-menu-sort">
+                <div 
+                  className="filter-popover-overlay" 
+                  style={{ position: "fixed", inset: 0, zIndex: 999998 }}
+                  onClick={() => setSortOpen(false)} 
+                />
+                <div 
+                  className="filter-popover filter-popover-menu-sort"
+                  style={{
+                    position: "fixed",
+                    top: `${sortCoords.top}px`,
+                    right: `${sortCoords.right}px`,
+                    zIndex: 999999,
+                    marginTop: "6px",
+                  }}
+                >
                   {Object.entries(SORT_OPTIONS).map(([key, label]) => (
                     <div
                       key={key}
@@ -100,7 +165,8 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                     </div>
                   ))}
                 </div>
-              </>
+              </>,
+              document.body
             )}
           </div>
         )}
@@ -108,6 +174,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
         {/* Filters Dropdown */}
         <div className="filter-popover-wrapper">
           <button
+            ref={filterTriggerRef}
             className="btn-glass filter-btn-trigger-relative"
             onClick={() => {
               setFilterOpen(!filterOpen);
@@ -122,10 +189,23 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
             )}
           </button>
 
-          {filterOpen && (
+          {filterOpen && createPortal(
             <>
-              <div className="filter-popover-overlay" onClick={() => setFilterOpen(false)} />
-              <div className="filter-popover filter-popover-menu-filter">
+              <div 
+                className="filter-popover-overlay" 
+                style={{ position: "fixed", inset: 0, zIndex: 999998 }}
+                onClick={() => setFilterOpen(false)} 
+              />
+              <div 
+                className="filter-popover filter-popover-menu-filter"
+                style={{
+                  position: "fixed",
+                  top: `${filterCoords.top}px`,
+                  right: `${filterCoords.right}px`,
+                  zIndex: 999999,
+                  marginTop: "6px",
+                }}
+              >
                 <div className="filter-section-title">Качество</div>
                 <div className="filter-popover-column">
                   {["all", "2160p", "1080p", "720p", "480p"].map((q) => (
@@ -183,7 +263,8 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                   </>
                 )}
               </div>
-            </>
+            </>,
+            document.body
           )}
         </div>
       </div>

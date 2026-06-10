@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import Hls from "hls.js";
 import { getFileExtension, normalizeStreamUrlToPath, getProxyUrl, updateStreamUrlParams } from "../utils/playerHelpers";
 import { ApiClient } from "../network/ApiClient";
 import { type ActivePlayback } from "../context/AppSettingsContext";
@@ -28,13 +29,12 @@ export function useHlsPlayer({
   handleRefreshStream,
   setIsMetadataLoading,
 }: HlsPlayerParams) {
-  // Keeping refs and states to match the previous interface to prevent compilation errors
-  const hlsRef = useRef<any>(null);
+  const hlsRef = useRef<Hls | null>(null);
   const playerSessionRef = useRef<number>(0);
   const autoRefreshCountRef = useRef<number>(0);
   const [srcResetCounter, setSrcResetCounter] = useState(0);
 
-  // Quality levels state (mocked/unused since Hls is removed)
+  // Quality levels state
   const [rawLevels, setRawLevels] = useState<{ id: number; height?: number }[]>([]);
   const [hlsActiveLevel, setHlsActiveLevel] = useState(-1);
   const [currentQualityLevel, setCurrentQualityLevel] = useState(-1);
@@ -56,6 +56,14 @@ export function useHlsPlayer({
       } catch (e) {
         console.error("[useHlsPlayer] Video teardown error:", e);
       }
+    }
+    if (hlsRef.current) {
+      try {
+        hlsRef.current.destroy();
+      } catch (e) {
+        console.error("[useHlsPlayer] Hls destroy error:", e);
+      }
+      hlsRef.current = null;
     }
   }, [videoRef]);
 
@@ -115,30 +123,108 @@ export function useHlsPlayer({
     const gatewayBase = ApiClient.baseURL;
     const proxiedUrl = getProxyUrl(finalStreamUrl, gatewayBase, playback.headers);
 
-    video.setAttribute("crossorigin", "anonymous");
-    video.src = proxiedUrl;
-    setSrcResetCounter((p) => p + 1);
+    const isM3U8 = normalizedUrl.includes(".m3u8") || normalizedUrl.includes("/hls/");
 
-    const handleLoadedMetadata = () => {
-      if (playerSessionRef.current !== sessionId) return;
-      if (!isStreamServer && startPos > 0) {
-        video.currentTime = startPos;
-      }
-      setIsMetadataLoading(false);
-      syncNativeTextTracks(video);
-    };
+    if (isM3U8 && Hls.isSupported()) {
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true,
+        startPosition: startPos > 0 ? startPos : -1,
+      });
+      hlsRef.current = hls;
 
-    video.addEventListener("loadedmetadata", handleLoadedMetadata);
+      hls.loadSource(proxiedUrl);
+      hls.attachMedia(video);
 
-    video.play().catch(() => {
-      video.muted = true;
-      video.play().catch((err) => console.error("[useHlsPlayer] Autoplay failed:", err));
-    });
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        if (playerSessionRef.current !== sessionId) return;
 
-    return () => {
-      video.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      cleanupActiveResources();
-    };
+        // Set quality levels
+        const levels = hls.levels.map((lvl, index) => ({
+          id: index,
+          height: lvl.height,
+        }));
+        setRawLevels(levels);
+        setCurrentQualityLevel(hls.currentLevel);
+        setHlsActiveLevel(hls.currentLevel);
+
+        // Set HLS audio tracks
+        if (hls.audioTracks && hls.audioTracks.length > 0) {
+          const tracks = hls.audioTracks.map((t) => ({
+            id: t.id,
+            name: t.name || t.lang || `Дорожка ${t.id + 1}`,
+            lang: t.lang,
+          }));
+          _setAudioTracks(tracks);
+          
+          if (currentAudioTrack !== -1) {
+            hls.audioTrack = currentAudioTrack;
+          }
+        }
+
+        setIsMetadataLoading(false);
+        syncNativeTextTracks(video);
+      });
+
+      hls.on(Hls.Events.LEVEL_SWITCHED, (_event, data) => {
+        if (playerSessionRef.current !== sessionId) return;
+        setCurrentQualityLevel(data.level);
+        setHlsActiveLevel(data.level);
+      });
+
+      hls.on(Hls.Events.ERROR, (_event, data) => {
+        if (playerSessionRef.current !== sessionId) return;
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              console.warn("[useHlsPlayer] Hls network error, retrying...", data);
+              hls.startLoad();
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              console.warn("[useHlsPlayer] Hls media error, recovering...", data);
+              hls.recoverMediaError();
+              break;
+            default:
+              console.error("[useHlsPlayer] Fatal Hls error:", data);
+              setPlayerError("Ошибка при воспроизведении HLS потока.");
+              setIsMetadataLoading(false);
+              break;
+          }
+        }
+      });
+
+      return () => {
+        hls.destroy();
+        hlsRef.current = null;
+        cleanupActiveResources();
+      };
+    } else {
+      // Native progressive / native HLS (e.g. Safari)
+      video.setAttribute("crossorigin", "anonymous");
+      video.src = proxiedUrl;
+      setSrcResetCounter((p) => p + 1);
+
+      const handleLoadedMetadata = () => {
+        if (playerSessionRef.current !== sessionId) return;
+        if (!isStreamServer && startPos > 0) {
+          video.currentTime = startPos;
+        }
+        setIsMetadataLoading(false);
+        syncNativeTextTracks(video);
+      };
+
+      video.addEventListener("loadedmetadata", handleLoadedMetadata);
+
+      video.play().catch(() => {
+        video.muted = true;
+        video.play().catch((err) => console.error("[useHlsPlayer] Autoplay failed:", err));
+      });
+
+      return () => {
+        video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+        cleanupActiveResources();
+      };
+    }
   }, [playback.streamUrl, currentAudioTrack, cleanupActiveResources, syncNativeTextTracks, setPlayerError, setIsMetadataLoading, setSeekOffset]);
 
   return {

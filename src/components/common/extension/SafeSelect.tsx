@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, Check } from "lucide-react";
+import * as Lucide from "lucide-react";
 import type { SelectSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
+
+const { ChevronDown, Check } = Lucide;
 
 interface SafeSelectProps {
   schema: SelectSchema;
@@ -12,7 +14,29 @@ interface SafeSelectProps {
 
 export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseStyle }) => {
   const { id, props: componentProps, events } = schema;
-  const [localSelected, setLocalSelected] = useState(componentProps.selected || "");
+  
+  const getInitialSelected = () => {
+    const propSel = componentProps.selected;
+    if (componentProps.multiple) {
+      if (Array.isArray(propSel)) return propSel;
+      if (typeof propSel === "string") {
+        if (!propSel) return [];
+        try {
+          const parsed = JSON.parse(propSel);
+          if (Array.isArray(parsed)) return parsed;
+        } catch {
+          return propSel.split(",").map(s => s.trim()).filter(Boolean);
+        }
+        return [propSel];
+      }
+      return [];
+    } else {
+      if (Array.isArray(propSel)) return propSel[0] || "";
+      return propSel || "";
+    }
+  };
+
+  const [localSelected, setLocalSelected] = useState<string | string[]>(getInitialSelected);
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [coords, setCoords] = useState<{
@@ -23,8 +47,8 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
   }>({ top: 0, left: 0, width: 0, openUpward: false });
 
   useEffect(() => {
-    setLocalSelected(componentProps.selected || "");
-  }, [componentProps.selected]);
+    setLocalSelected(getInitialSelected());
+  }, [componentProps.selected, componentProps.multiple]);
 
   const updateCoords = () => {
     if (triggerRef.current) {
@@ -46,7 +70,6 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
   useEffect(() => {
     if (isOpen) {
       updateCoords();
-      // Пересчитываем координаты при изменении размеров экрана или при скролле
       window.addEventListener("resize", updateCoords);
       window.addEventListener("scroll", updateCoords, true);
     }
@@ -56,16 +79,97 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
     };
   }, [isOpen]);
 
+  const isSelected = (val: string) => {
+    if (Array.isArray(localSelected)) {
+      return localSelected.includes(val);
+    }
+    return localSelected === val;
+  };
+
   const handleSelectOption = (val: string) => {
-    setLocalSelected(val);
-    setIsOpen(false);
-    if (events?.onChange) {
-      ExtensionRegistry.triggerUIEvent(pluginId, events.onChange, val);
+    if (componentProps.multiple) {
+      let newSelection: string[];
+      const currentList = Array.isArray(localSelected) ? localSelected : [];
+      if (currentList.includes(val)) {
+        newSelection = currentList.filter(v => v !== val);
+      } else {
+        newSelection = [...currentList, val];
+      }
+      setLocalSelected(newSelection);
+      
+      const defaultClose = false;
+      const shouldClose = componentProps.closeOnSelect !== undefined ? componentProps.closeOnSelect : defaultClose;
+      if (shouldClose) {
+        setIsOpen(false);
+      }
+      if (events?.onChange) {
+        ExtensionRegistry.triggerUIEvent(pluginId, events.onChange, newSelection);
+      }
+    } else {
+      setLocalSelected(val);
+      const defaultClose = true;
+      const shouldClose = componentProps.closeOnSelect !== undefined ? componentProps.closeOnSelect : defaultClose;
+      if (shouldClose) {
+        setIsOpen(false);
+      }
+      if (events?.onChange) {
+        ExtensionRegistry.triggerUIEvent(pluginId, events.onChange, val);
+      }
     }
   };
 
-  const selectedOption = componentProps.options?.find((opt) => opt.value === localSelected) 
-    || componentProps.options?.[0];
+  const isResetActive = () => {
+    if (componentProps.multiple) {
+      const currentList = Array.isArray(localSelected) ? localSelected : [];
+      return currentList.length > 0;
+    } else {
+      return localSelected !== (componentProps.resetValue || "");
+    }
+  };
+
+  const handleReset = () => {
+    let rVal: any = "";
+    if (componentProps.multiple) {
+      if (Array.isArray(componentProps.resetValue)) {
+        rVal = componentProps.resetValue;
+      } else if (typeof componentProps.resetValue === "string") {
+        try {
+          const parsed = JSON.parse(componentProps.resetValue);
+          if (Array.isArray(parsed)) rVal = parsed;
+          else rVal = componentProps.resetValue ? [componentProps.resetValue] : [];
+        } catch {
+          rVal = componentProps.resetValue ? componentProps.resetValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+        }
+      } else {
+        rVal = [];
+      }
+    } else {
+      rVal = componentProps.resetValue || "";
+    }
+    setLocalSelected(rVal);
+    setIsOpen(false);
+    if (events?.onChange) {
+      ExtensionRegistry.triggerUIEvent(pluginId, events.onChange, rVal);
+    }
+  };
+
+  const getTriggerLabel = () => {
+    if (componentProps.multiple) {
+      const currentList = Array.isArray(localSelected) ? localSelected : [];
+      const selectedOptions = componentProps.options?.filter((opt) => opt.value && currentList.includes(opt.value)) || [];
+      if (selectedOptions.length > 0) {
+        if (selectedOptions.length > 2) {
+          return `Выбрано: ${selectedOptions.length}`;
+        }
+        return selectedOptions.map(o => o.label).join(", ");
+      }
+      return componentProps.label || "Выбрать...";
+    } else {
+      const selectedOption = componentProps.options?.find((opt) => opt.value === localSelected) 
+        || componentProps.options?.[0];
+      return selectedOption ? selectedOption.label || "" : "Выбрать...";
+    }
+  };
 
   const getThemeColorPreview = (value: string) => {
     const themeColors: Record<string, { bg: string; accent: string }> = {
@@ -98,34 +202,48 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
     );
   };
 
+  const isGlass = componentProps.variant === "glass";
+  const IconComponent = componentProps.icon ? (Lucide as any)[componentProps.icon] : null;
+
+  const isPopoverAlignRight = isGlass && (coords.left + 200 > window.innerWidth);
+
   return (
     <div key={id} className="potok-input-group filter-popover-wrapper" style={{ ...baseStyle, position: "relative" }}>
-      {componentProps.label && <label className="potok-label" style={{ marginBottom: "6px" }}>{componentProps.label}</label>}
+      {!isGlass && componentProps.label && <label className="potok-label" style={{ marginBottom: "6px" }}>{componentProps.label}</label>}
       <button
         ref={triggerRef}
         type="button"
-        className="btn-glass filter-btn-trigger"
-        style={{ 
+        className={isGlass ? "btn-glass filter-btn-trigger-relative" : "potok-select"}
+        style={isGlass ? {
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          padding: "10px 16px",
+          borderRadius: "10px",
+          cursor: "pointer",
+        } : { 
           width: "100%", 
+          display: "flex",
+          alignItems: "center",
           justifyContent: "space-between", 
-          padding: "10px 18px", 
-          borderRadius: "12px",
-          font: "inherit",
-          fontSize: "0.9rem",
-          fontWeight: 600,
-          border: "var(--glass-border)",
-          background: "var(--bg-surface-high)"
         }}
         disabled={componentProps.disabled}
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span style={{ display: "flex", alignItems: "center" }}>
-          {selectedOption && getThemeColorPreview(selectedOption.value)}
-          <span>{selectedOption ? selectedOption.label : "Выбрать..."}</span>
+        <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          {IconComponent && <IconComponent size={14} />}
+          {componentProps.multiple && Array.isArray(localSelected) && localSelected.length === 1 && getThemeColorPreview(localSelected[0])}
+          {!componentProps.multiple && typeof localSelected === "string" && getThemeColorPreview(localSelected)}
+          <span className={isGlass ? "filter-btn-text" : ""}>
+            {getTriggerLabel()}
+          </span>
         </span>
-        <ChevronDown size={14} style={{ opacity: 0.7 }} />
+        <ChevronDown size={14} style={isGlass ? undefined : { opacity: 0.7 }} />
+        {isGlass && isResetActive() && (
+          <span className="filter-badge-dot" />
+        )}
       </button>
-
+ 
       {isOpen && createPortal(
         <>
           <div 
@@ -138,8 +256,10 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
             style={{ 
               position: "fixed", 
               top: `${coords.top}px`, 
-              left: `${coords.left}px`, 
-              width: `${coords.width}px`,
+              left: isPopoverAlignRight ? undefined : `${coords.left}px`, 
+              right: isPopoverAlignRight ? `${window.innerWidth - (coords.left + coords.width)}px` : undefined,
+              width: isGlass ? "auto" : `${coords.width}px`,
+              minWidth: isGlass ? "200px" : undefined,
               zIndex: 999999, 
               marginTop: coords.openUpward ? "-6px" : "6px",
               transform: coords.openUpward ? "translateY(-100%)" : "none",
@@ -149,28 +269,45 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
               animation: "fadeIn 0.15s ease-out"
             }}
           >
-            {componentProps.options?.map((opt) => (
-              <div
-                key={opt.value}
-                className={`popover-item ${localSelected === opt.value ? "active" : ""}`}
-                style={{ 
-                  display: "flex", 
-                  justifyContent: "space-between", 
-                  alignItems: "center", 
-                  padding: "10px 16px", 
-                  cursor: "pointer",
-                  fontSize: "0.8125rem",
-                  color: localSelected === opt.value ? "var(--text-primary)" : "var(--text-secondary)"
-                }}
-                onClick={() => handleSelectOption(opt.value)}
-              >
-                <span style={{ display: "flex", alignItems: "center" }}>
-                  {getThemeColorPreview(opt.value)}
-                  <span>{opt.label}</span>
-                </span>
-                {localSelected === opt.value && <Check size={14} className="filter-popover-check" />}
-              </div>
-            ))}
+            {componentProps.options?.map((opt, index) => {
+              if (opt.type === "header") {
+                return (
+                  <div key={`header-${index}`} className="filter-section-title">
+                    {opt.label}
+                  </div>
+                );
+              }
+              if (opt.type === "divider") {
+                return (
+                  <div key={`divider-${index}`} className="filter-popover-divider" />
+                );
+              }
+              const active = isSelected(opt.value || "");
+              return (
+                <div
+                  key={opt.value || `item-${index}`}
+                  className={`popover-item ${active ? "active" : ""}`}
+                  onClick={() => handleSelectOption(opt.value || "")}
+                >
+                  <span style={{ display: "flex", alignItems: "center" }}>
+                    {opt.value && getThemeColorPreview(opt.value)}
+                    <span>{opt.label}</span>
+                  </span>
+                  {active && <Check size={14} className="filter-popover-check" />}
+                </div>
+              );
+            })}
+            {componentProps.resetLabel && isResetActive() && (
+              <>
+                <div className="filter-popover-divider" />
+                <button
+                  className="popover-reset-btn"
+                  onClick={handleReset}
+                >
+                  {componentProps.resetLabel}
+                </button>
+              </>
+            )}
           </div>
         </>,
         document.body
