@@ -255,8 +255,11 @@ export class ApiClient {
     return this.populateProgressPercentage(json) as T;
   }
 
-  public static async fetchHomeFeed(): Promise<HomeResponse> {
-    const res = await fetch(`${this.baseURL}/api/media/home?language=ru`, {
+  public static async fetchHomeFeed(cursor?: string | null, posterSize = "w342", backdropSize = "w1280"): Promise<HomeResponse> {
+    const url = cursor
+      ? `${this.baseURL}/api/media/home?cursor=${encodeURIComponent(cursor)}&posterSize=${encodeURIComponent(posterSize)}&backdropSize=${encodeURIComponent(backdropSize)}&language=ru`
+      : `${this.baseURL}/api/media/home?posterSize=${encodeURIComponent(posterSize)}&backdropSize=${encodeURIComponent(backdropSize)}&language=ru`;
+    const res = await fetch(url, {
       headers: this.headers,
     });
     return this.handleResponse<HomeResponse>(res, "Failed to fetch home feed");

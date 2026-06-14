@@ -111,46 +111,60 @@ export const smoothScrollTo = (element: HTMLElement, targetValue: number, isVert
   anim.frameId = requestAnimationFrame(animateScroll);
 };
 
+const getRelativeOffset = (element: HTMLElement, parent: HTMLElement) => {
+  let left = 0;
+  let top = 0;
+  let curr: HTMLElement | null = element;
+  
+  while (curr && curr !== parent && parent.contains(curr)) {
+    left += curr.offsetLeft;
+    top += curr.offsetTop;
+    curr = curr.offsetParent as HTMLElement | null;
+  }
+  
+  return { left, top };
+};
+
+let lastFocusedRow: HTMLElement | null = null;
+
 const scrollIntoView = (element: HTMLElement) => {
   if (!element) return;
 
   // 1. Horizontal scroll (e.g. carousels)
   const horizontalParent = element.closest(".carousel-row, .episodes-scroll-container") as HTMLElement;
   if (horizontalParent) {
-    const parentRect = horizontalParent.getBoundingClientRect();
-    const elementRect = element.getBoundingClientRect();
+    const { left } = getRelativeOffset(element, horizontalParent);
     
     // Center element horizontally in parent
-    const targetScrollLeft = horizontalParent.scrollLeft + (elementRect.left - parentRect.left) - (parentRect.width / 2) + (elementRect.width / 2);
-    smoothScrollTo(horizontalParent, targetScrollLeft, false);
+    const targetScrollLeft = left - (horizontalParent.clientWidth / 2) + (element.offsetWidth / 2);
+    smoothScrollTo(horizontalParent, targetScrollLeft, false, 85);
   }
 
   // 2. Vertical scroll (e.g. main content)
+  // Skip vertical scroll adjustment if we are scrolling horizontally within the SAME row
+  if (horizontalParent) {
+    if (horizontalParent === lastFocusedRow) {
+      return;
+    }
+    lastFocusedRow = horizontalParent;
+  } else {
+    lastFocusedRow = null;
+  }
+
   const verticalParent = element.closest(".main-content") as HTMLElement;
   if (verticalParent) {
-    const parentRect = verticalParent.getBoundingClientRect();
-    const elementRect = element.getBoundingClientRect();
+    const { top } = getRelativeOffset(element, verticalParent);
     
-    // Define vertical scroll boundaries (200px padding from top and bottom)
-    const topThreshold = 200; // px from top of main-content
-    const bottomThreshold = parentRect.height - 200; // px from bottom of main-content
+    // Center the active element (row/card) vertically in main-content viewport
+    const targetScrollTop = top - (verticalParent.clientHeight / 2) + (element.offsetHeight / 2);
     
-    const elementTopInParent = elementRect.top - parentRect.top;
-    const elementBottomInParent = elementRect.bottom - parentRect.top;
-    
-    let targetScrollTop = verticalParent.scrollTop;
-    
-    if (elementTopInParent < topThreshold) {
-      // Scroll up to bring it into view at the top threshold
-      targetScrollTop = verticalParent.scrollTop + (elementTopInParent - topThreshold);
-    } else if (elementBottomInParent > bottomThreshold) {
-      // Scroll down to bring it into view at the bottom threshold
-      targetScrollTop = verticalParent.scrollTop + (elementBottomInParent - bottomThreshold);
-    }
+    // Clamp the targetScrollTop to the maximum possible scroll bounds to prevent fights with browser clamping
+    const maxScrollTop = Math.max(0, verticalParent.scrollHeight - verticalParent.clientHeight);
+    const clampedTargetScrollTop = Math.max(0, Math.min(targetScrollTop, maxScrollTop));
     
     // Only scroll if there is a meaningful change to prevent micro-adjustments
-    if (Math.abs(targetScrollTop - verticalParent.scrollTop) > 1) {
-      smoothScrollTo(verticalParent, targetScrollTop, true);
+    if (Math.abs(clampedTargetScrollTop - verticalParent.scrollTop) > 1) {
+      smoothScrollTo(verticalParent, clampedTargetScrollTop, true, 85);
     }
   }
 };
@@ -178,29 +192,67 @@ export const Focusable: React.FC<FocusableProps> = ({ children, disabled, ...con
 };
 
 // 2. Focus Context Zone Container (Focus Key Grouping)
-interface FocusableContainerProps extends React.HTMLAttributes<HTMLDivElement> {
+interface FocusableContainerProps
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "onFocus" | "onBlur">,
+    UseFocusableConfig {
   focusKey: string;
   children: React.ReactNode;
 }
 
-export const FocusableContainer: React.FC<FocusableContainerProps> = ({
+export const FocusableContainer = React.forwardRef<HTMLDivElement, FocusableContainerProps>(({
   focusKey,
   children,
   ...props
-}) => {
+}, forwardedRef) => {
+  const {
+    trackChildren,
+    saveLastFocusedChild,
+    autoRestoreFocus,
+    isFocusBoundary,
+    preferredChildFocusKey,
+    focusable,
+    onFocus,
+    onBlur,
+    onArrowPress,
+    onEnterPress,
+    ...htmlProps
+  } = props as any;
+
   const { ref } = useFocusable({
     focusKey,
-    isFocusBoundary: false
+    trackChildren,
+    saveLastFocusedChild,
+    autoRestoreFocus,
+    isFocusBoundary: isFocusBoundary !== undefined ? isFocusBoundary : false,
+    preferredChildFocusKey,
+    focusable,
+    onFocus,
+    onBlur,
+    onArrowPress,
+    onEnterPress
   });
+
+  const setRefs = useCallback((node: HTMLDivElement | null) => {
+    (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+    if (forwardedRef) {
+      if (typeof forwardedRef === "function") {
+        forwardedRef(node);
+      } else {
+        (forwardedRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      }
+    }
+  }, [ref, forwardedRef]);
 
   return (
     <FocusContext.Provider value={focusKey}>
-      <div ref={ref} {...props}>
+      <div ref={setRefs} {...htmlProps}>
         {children}
       </div>
     </FocusContext.Provider>
   );
-};
+});
+
+FocusableContainer.displayName = "FocusableContainer";
 
 // 3. Reusable Focusable Button
 interface FocusableButtonProps

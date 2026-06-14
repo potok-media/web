@@ -72,6 +72,7 @@ export interface HomeResponse {
     title: string;
     items: MediaCard[];
   }[];
+  nextCursor?: string | null;
 }
 
 

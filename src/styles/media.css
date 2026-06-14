@@ -4194,4 +4194,46 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
+/* ==========================================================================
+   More Card (Ещё) Styles
+   ========================================================================== */
+
+.more-card-poster {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.more-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-secondary);
+  gap: var(--space-xs);
+  box-sizing: border-box;
+  transition: background 0.2s, color 0.2s;
+}
+
+.more-card:hover .more-card-content,
+.more-card.focused .more-card-content {
+  background: var(--bg-surface-highest);
+  color: var(--accent);
+}
+
+.more-card-icon {
+  transition: transform 0.2s;
+}
+
+.more-card:hover .more-card-icon,
+.more-card.focused .more-card-icon {
+  transform: translateX(4px);
+}
+
+.more-card-text {
+  font: var(--font-body-bold);
+  font-size: 0.95rem;
+}
+
 

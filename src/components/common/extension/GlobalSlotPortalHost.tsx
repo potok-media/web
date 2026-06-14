@@ -87,8 +87,14 @@ export const GlobalSlotPortalHost: React.FC = () => {
 
     scanDOM();
 
+    let timeoutId: any = null;
     const observer = new MutationObserver(() => {
-      scanDOM();
+      // Throttle DOM scans to once per animation frame to prevent rendering stutters
+      if (timeoutId) return;
+      timeoutId = requestAnimationFrame(() => {
+        scanDOM();
+        timeoutId = null;
+      });
     });
 
     observer.observe(document.body, {
@@ -98,7 +104,12 @@ export const GlobalSlotPortalHost: React.FC = () => {
       attributeFilter: ["data-props", "data-contribution-id"],
     });
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (timeoutId) {
+        cancelAnimationFrame(timeoutId);
+      }
+    };
   }, [activeElements, location.key]);
 
   return (

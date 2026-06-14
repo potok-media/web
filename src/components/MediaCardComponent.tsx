@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Star } from "lucide-react";
 import { FilmOff } from "./common/FilmOff";
@@ -11,28 +11,16 @@ interface MediaCardComponentProps {
   onClick?: (item: MediaCard) => void;
   style?: React.CSSProperties;
   delay?: number;
+  focusKey?: string;
 }
 
-export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(({ item, onClick, style }) => {
+export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(({ item, onClick, style, focusKey }) => {
   usePerformanceTrack("MediaCardComponent");
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const cardRef = useRef<HTMLAnchorElement>(null);
 
-  useEffect(() => {
-    // If there is no poster, mark image as loaded immediately so we can show card structure
-    if (!item.posterSrc) {
-      setIsImageLoaded(true);
-    }
-  }, [item.posterSrc]);
-
-  const handleImageLoad = () => {
-    setIsImageLoaded(true);
-  };
-
   const handleImageError = () => {
     setHasError(true);
-    setIsImageLoaded(true); // Fallback to reveal card frame if download fails
   };
 
   const getEpisodeInfo = () => {
@@ -53,7 +41,7 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
   const showProgress = item.progress && item.progress.percentage > 0;
 
   const handleCardClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+    if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && e.altKey === false) {
       if (onClick) {
         e.preventDefault();
         onClick(item);
@@ -63,6 +51,7 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
 
   return (
     <Focusable
+      focusKey={focusKey}
       onEnterPress={() => {
         if (onClick) {
           onClick(item);
@@ -92,10 +81,12 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
                   alt={item.title}
                   loading="lazy"
                   decoding="async"
-                  onLoad={handleImageLoad}
+                  onLoad={(e) => {
+                    e.currentTarget.style.opacity = "1";
+                  }}
                   onError={handleImageError}
                   style={{
-                    opacity: isImageLoaded ? 1 : 0,
+                    opacity: 0,
                     transition: "opacity 0.2s ease-in-out"
                   }}
                 />

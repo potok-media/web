@@ -17,14 +17,13 @@
 .overlay-btn.focused,
 .action-btn-circle.focused,
 button.focused,
-a.focused {
+a.focused:not(.media-card):not(.carousel-title-link):not(.sidebar-nav-item) {
   background-color: var(--accent) !important;
   color: var(--text-accent, #ffffff) !important;
   box-shadow: 
     0 0 0 3px var(--bg-window),
     0 0 0 5px var(--accent) !important; /* Flat solid outline, no expensive GPU blur shadow */
   transform: translateY(-2px) scale(1.03) !important;
-  z-index: 10 !important;
 }
 
 /* Keep icon colors white inside focused buttons */
@@ -77,11 +76,18 @@ textarea.focused,
    Focused Cards System (Media & Episode Cards)
    ========================================================================== */
 
+/* TV Low Mode style constraints - replace expensive blurry box-shadows with simple solid borders */
+body.is-tv .media-poster-wrap,
+body.is-tv .episode-still-wrap {
+  box-shadow: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
 /* Focused Media Cards (Outline on wrapper, scale up) */
 body.is-tv .media-card.focused .media-poster-wrap {
   transform: scale(1.04) !important;
-  box-shadow: 0 0 0 2.5px var(--accent) !important;
-  z-index: 10 !important;
+  box-shadow: 0 0 0 1px var(--accent) !important;
+  border-color: transparent !important;
 }
 
 body.is-tv .media-card.focused .media-card-title {
@@ -91,9 +97,9 @@ body.is-tv .media-card.focused .media-card-title {
 
 /* Focused Episode Cards */
 body.is-tv .episode-card.focused .episode-still-wrap {
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 2.5px var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent) !important;
   transform: scale(1.03) !important;
+  border-color: transparent !important;
 }
 
 body.is-tv .episode-card.focused .episode-number-title {
@@ -107,16 +113,21 @@ body.is-tv .episode-card.focused .episode-number-title {
 /* Disable browser's native smooth scroll to make D-pad navigation instant and snappy */
 body.is-tv,
 body.is-tv .carousel-row,
-body.is-tv .episodes-scroll-container,
+body.is-tv .episodes-scroll-container {
+  scroll-behavior: auto !important;
+}
+
 body.is-tv .main-content {
   scroll-behavior: auto !important;
+  padding-bottom: 180px !important;
 }
 
 /* Snappy focus transition (100ms) for elements that actively receive focus */
 body.is-tv .focused,
+body.is-tv a.focused:not(.media-card):not(.carousel-title-link):not(.sidebar-nav-item),
 body.is-tv .media-card.focused .media-poster-wrap,
 body.is-tv .episode-card.focused .episode-still-wrap {
-  transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+  transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
 }
 
 /* GPU acceleration layer promotion on focused elements */
@@ -125,8 +136,9 @@ body.is-tv .episode-card.focused .episode-still-wrap {
   will-change: transform;
 }
 
-/* Disable expensive backdrop blurs on TVs (often cause severe GPU lag/crashing) */
+/* Disable expensive backdrop blurs and blurry text shadows on TVs (often cause severe GPU lag/crashing) */
 body.is-tv * {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+  text-shadow: none !important;
 }

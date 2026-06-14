@@ -107,7 +107,8 @@ export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { show: showHUD } = useHUD();
 
-  const { feed, loading, refetch } = useHomeFeed((msg) => showHUD("error", msg));
+  const { feed, loading, refetch, loadMore, hasMore, loadingMore } = useHomeFeed((msg) => showHUD("error", msg));
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const [visibleRowsCount, setVisibleRowsCount] = useState<number>(() => {
     return PlatformManager.isTV() ? 1 : (feed ? feed.rows.length : 0);
@@ -133,6 +134,34 @@ export const HomePage: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [feed, visibleRowsCount]);
+
+  useEffect(() => {
+    if (!hasMore || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          loadMore();
+        }
+      },
+      {
+        rootMargin: "300px", // Trigger fetch early before reaching the absolute bottom
+        threshold: 0,
+      }
+    );
+
+    const currentSentinel = sentinelRef.current;
+    if (currentSentinel) {
+      observer.observe(currentSentinel);
+    }
+
+    return () => {
+      if (currentSentinel) {
+        observer.unobserve(currentSentinel);
+      }
+      observer.disconnect();
+    };
+  }, [hasMore, loadingMore, loadMore]);
 
   const handleCardClick = useCallback((item: MediaCard) => {
     navigate(`/media/${item.mediaType}/${item.id}`);
@@ -176,6 +205,18 @@ export const HomePage: React.FC = () => {
           />
         </VirtualRow>
       ))}
+
+      {/* Sentinel for pagination */}
+      {hasMore && (
+        <div ref={sentinelRef} className="home-feed-sentinel" style={{ height: "20px" }} />
+      )}
+
+      {/* Inline loading indicator */}
+      {loadingMore && (
+        <div className="home-page-loading-more" style={{ display: "flex", justifyContent: "center", padding: "20px" }}>
+          <LoadingSpinner />
+        </div>
+      )}
     </div>
   );
 };

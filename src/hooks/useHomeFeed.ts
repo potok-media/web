@@ -16,16 +16,24 @@ export function useHomeFeed(onError: (msg: string) => void) {
     return profileFeedCache[profileKey] || null;
   });
   const [loading, setLoading] = useState(() => !profileFeedCache[profileKey]);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null | undefined>(() => {
+    return profileFeedCache[profileKey]?.nextCursor;
+  });
 
   const onErrorRef = useRef(onError);
   useEffect(() => {
     onErrorRef.current = onError;
   }, [onError]);
 
+  useEffect(() => {
+    setNextCursor(feed?.nextCursor);
+  }, [feed]);
+
   const fetchFeed = useCallback(async (showLoading = !profileFeedCache[profileKey]) => {
     try {
       if (showLoading) setLoading(true);
-      const data = await ApiClient.fetchHomeFeed();
+      const data = await ApiClient.fetchHomeFeed(null, "w342", "w1280");
 
       const isFeedEqual = (a: HomeResponse | null, b: HomeResponse | null): boolean => {
         if (a === b) return true;
@@ -56,6 +64,34 @@ export function useHomeFeed(onError: (msg: string) => void) {
     }
   }, [profileKey, logout]);
 
+  const loadMore = useCallback(async () => {
+    if (!nextCursor || loadingMore) return;
+    try {
+      setLoadingMore(true);
+      const nextData = await ApiClient.fetchHomeFeed(nextCursor, "w342", "w1280");
+      
+      setFeed((prev) => {
+        if (!prev) return nextData;
+        
+        // Prevent duplicate rows from being added
+        const existingIds = new Set(prev.rows.map((r) => r.id));
+        const newRows = nextData.rows.filter((r) => !existingIds.has(r.id));
+        
+        const updatedFeed = {
+          ...prev,
+          rows: [...prev.rows, ...newRows],
+          nextCursor: nextData.nextCursor,
+        };
+        profileFeedCache[profileKey] = updatedFeed;
+        return updatedFeed;
+      });
+    } catch (err) {
+      onErrorRef.current(err instanceof Error ? err.message : "Не удалось дозагрузить ряды");
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [nextCursor, loadingMore, profileKey]);
+
   useEffect(() => {
     setFeed(profileFeedCache[profileKey] || null);
     setLoading(!profileFeedCache[profileKey]);
@@ -66,5 +102,8 @@ export function useHomeFeed(onError: (msg: string) => void) {
     feed,
     loading,
     refetch: () => fetchFeed(true),
+    loadMore,
+    hasMore: !!nextCursor,
+    loadingMore,
   };
 }
