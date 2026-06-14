@@ -6,6 +6,7 @@ import HeroSpotlight from "../components/HeroSpotlight";
 import MediaRow from "../components/MediaRow";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import type { MediaCard } from "../network/ApiTypes";
+import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 import "../styles/media.css";
 
 const ErrorView: React.FC<{ error: string; onRetry: () => void }> = ({ error, onRetry }) => (
@@ -16,6 +17,7 @@ const ErrorView: React.FC<{ error: string; onRetry: () => void }> = ({ error, on
 );
 
 export const HomePage: React.FC = () => {
+  usePerformanceTrack("HomePage");
   const navigate = useNavigate();
   const { show: showHUD } = useHUD();
 

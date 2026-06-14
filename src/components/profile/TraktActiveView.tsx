@@ -1,5 +1,6 @@
 import React from "react";
 import { User, Film, Tv, Clock, Award } from "lucide-react";
+import { FocusableButton } from "../common/TVNavigation";
 
 interface TraktActiveViewProps {
   traktProfile: {
@@ -76,12 +77,12 @@ export const TraktActiveView: React.FC<TraktActiveViewProps> = ({ traktProfile, 
             </p>
           </div>
         </div>
-        <button
+        <FocusableButton
           onClick={onLogout}
           className="trakt-logout-btn"
         >
           Отключить
-        </button>
+        </FocusableButton>
       </div>
 
       <div className="profile-stats-grid">

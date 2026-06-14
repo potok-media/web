@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import * as Lucide from "lucide-react";
 import type { SelectSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
+import { FocusableButton } from "../TVNavigation";
 
 const { ChevronDown, Check } = Lucide;
 
@@ -210,7 +211,7 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
   return (
     <div key={id} className="potok-input-group filter-popover-wrapper" style={{ ...baseStyle, position: "relative" }}>
       {!isGlass && componentProps.label && <label className="potok-label" style={{ marginBottom: "6px" }}>{componentProps.label}</label>}
-      <button
+      <FocusableButton
         ref={triggerRef}
         type="button"
         className={isGlass ? "btn-glass filter-btn-trigger-relative" : "potok-select"}
@@ -242,7 +243,7 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
         {isGlass && isResetActive() && (
           <span className="filter-badge-dot" />
         )}
-      </button>
+      </FocusableButton>
  
       {isOpen && createPortal(
         <>
@@ -284,28 +285,30 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
               }
               const active = isSelected(opt.value || "");
               return (
-                <div
+                <FocusableButton
                   key={opt.value || `item-${index}`}
                   className={`popover-item ${active ? "active" : ""}`}
                   onClick={() => handleSelectOption(opt.value || "")}
+                  style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
                 >
                   <span style={{ display: "flex", alignItems: "center" }}>
                     {opt.value && getThemeColorPreview(opt.value)}
                     <span>{opt.label}</span>
                   </span>
                   {active && <Check size={14} className="filter-popover-check" />}
-                </div>
+                </FocusableButton>
               );
             })}
             {componentProps.resetLabel && isResetActive() && (
               <>
                 <div className="filter-popover-divider" />
-                <button
+                <FocusableButton
                   className="popover-reset-btn"
                   onClick={handleReset}
+                  style={{ width: "100%" }}
                 >
                   {componentProps.resetLabel}
-                </button>
+                </FocusableButton>
               </>
             )}
           </div>

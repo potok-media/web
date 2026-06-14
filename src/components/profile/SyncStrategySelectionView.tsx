@@ -1,5 +1,6 @@
 import React from "react";
 import { Popcorn, Server, ChevronRight } from "lucide-react";
+import { FocusableButton } from "../common/TVNavigation";
 
 interface SyncStrategySelectionViewProps {
   onSelectStrategy: (strategy: string) => void;
@@ -22,7 +23,7 @@ export const SyncStrategySelectionView: React.FC<SyncStrategySelectionViewProps>
       </div>
 
       <div className="strategy-options-list">
-        <button
+        <FocusableButton
           onClick={() => {
             onSelectStrategy("trakt");
             onStartTraktAuth();
@@ -39,9 +40,9 @@ export const SyncStrategySelectionView: React.FC<SyncStrategySelectionViewProps>
             </span>
           </div>
           <ChevronRight size={12} className="card-arrow strategy-option-arrow" />
-        </button>
+        </FocusableButton>
 
-        <button
+        <FocusableButton
           onClick={() => onSelectStrategy("server")}
           className="strategy-option-card server"
         >
@@ -55,7 +56,7 @@ export const SyncStrategySelectionView: React.FC<SyncStrategySelectionViewProps>
             </span>
           </div>
           <ChevronRight size={12} className="card-arrow strategy-option-arrow" />
-        </button>
+        </FocusableButton>
       </div>
     </div>
   );

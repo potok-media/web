@@ -1,6 +1,7 @@
 import React from "react";
 import { Plus, Trash2, Settings as SettingsIcon } from "lucide-react";
 import type { ConnectionProfile } from "../network/ApiTypes";
+import { Focusable, FocusableButton } from "./common/TVNavigation";
 
 interface ProfileSelectorProps {
   connectionProfiles: ConnectionProfile[];
@@ -42,41 +43,51 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = React.memo(({
 
       <div className="profiles-list">
         {connectionProfiles.map((p) => (
-          <div
+          <Focusable
             key={p.id}
-            className={`profile-card ${p.id === activeProfileID ? "active" : ""}`}
-            onClick={() => {
+            onEnterPress={() => {
               onSelectProfile(p.id);
               onStartEdit(p);
             }}
           >
-            <div className="profile-card-info">
-              <span className="profile-card-name">{p.name}</span>
-              <span className="profile-card-url">{p.gatewayURL}</span>
-            </div>
-            {!isSettingsLocked && (
-              <div className="profile-actions">
-                <button
-                  className="profile-btn delete"
-                  onClick={(e) => handleDeleteClick(e, p.id)}
-                  title="Удалить профиль"
-                >
-                  <Trash2 size={16} />
-                </button>
+            {({ ref, focused }) => (
+              <div
+                ref={ref}
+                className={`profile-card ${p.id === activeProfileID ? "active" : ""} ${focused ? "focused" : ""}`}
+                onClick={() => {
+                  onSelectProfile(p.id);
+                  onStartEdit(p);
+                }}
+              >
+                <div className="profile-card-info">
+                  <span className="profile-card-name">{p.name}</span>
+                  <span className="profile-card-url">{p.gatewayURL}</span>
+                </div>
+                {!isSettingsLocked && (
+                  <div className="profile-actions">
+                    <FocusableButton
+                      className="profile-btn delete"
+                      onClick={(e) => handleDeleteClick(e, p.id)}
+                      title="Удалить профиль"
+                    >
+                      <Trash2 size={16} />
+                    </FocusableButton>
+                  </div>
+                )}
               </div>
             )}
-          </div>
+          </Focusable>
         ))}
       </div>
 
       {!isSettingsLocked && (
-        <button
+        <FocusableButton
           className="settings-btn-primary settings-add-profile-btn"
           onClick={onStartAdd}
         >
           <Plus size={16} />
           <span>Добавить профиль</span>
-        </button>
+        </FocusableButton>
       )}
     </section>
   );

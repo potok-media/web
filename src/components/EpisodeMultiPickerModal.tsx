@@ -3,6 +3,7 @@ import { X, Check, Loader2 } from "lucide-react";
 import { FilmOff } from "./common/FilmOff";
 import { ApiClient } from "../network/ApiClient";
 import type { TvEpisode } from "../network/ApiTypes";
+import { FocusableButton } from "./common/TVNavigation";
 
 interface EpisodeMultiPickerModalProps {
   isOpen: boolean;
@@ -192,30 +193,30 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
           
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <div style={{ display: "flex", gap: "8px" }}>
-              <button 
+              <FocusableButton 
                 className="potok-badge potok-badge-secondary" 
                 style={{ cursor: "pointer", border: "none", padding: "8px 16px", borderRadius: "8px", fontSize: "0.8rem", background: "rgba(255,255,255,0.08)", color: "#fff", fontWeight: 600 }}
                 onClick={selectAll} 
                 disabled={loading || saving}
               >
                 Выбрать все
-              </button>
-              <button 
+              </FocusableButton>
+              <FocusableButton 
                 className="potok-badge potok-badge-secondary" 
                 style={{ cursor: "pointer", border: "none", padding: "8px 16px", borderRadius: "8px", fontSize: "0.8rem", background: "rgba(255,255,255,0.08)", color: "#fff", fontWeight: 600 }}
                 onClick={deselectAll} 
                 disabled={loading || saving}
               >
                 Снять все
-              </button>
+              </FocusableButton>
             </div>
-            <button 
+            <FocusableButton 
               style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", display: "flex", padding: "6px" }}
               onClick={onClose} 
               aria-label="Закрыть"
             >
               <X size={20} />
-            </button>
+            </FocusableButton>
           </div>
         </div>
 
@@ -237,13 +238,13 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 255, 255, 0.05)", paddingBottom: "8px", marginBottom: "16px" }}>
                       <h3 className="season-section-title" style={{ margin: 0 }}>Сезон {s.seasonNumber}</h3>
                       {s.episodes.length > 0 && (
-                        <button
+                        <FocusableButton
                           style={{ background: "none", border: "none", color: "var(--accent)", fontSize: "0.85rem", fontWeight: 700, cursor: "pointer" }}
                           onClick={() => toggleSeason(s.seasonNumber, s.episodes)}
                           disabled={saving}
                         >
                           {isAllSeasonSelected ? "Снять сезон" : "Выбрать сезон"}
-                        </button>
+                        </FocusableButton>
                       )}
                     </div>
 
@@ -253,7 +254,7 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
                           (item) => item.season === s.seasonNumber && item.number === ep.episodeNumber
                         );
                         return (
-                          <button
+                          <FocusableButton
                             key={ep.id}
                             className={`episode-picker-card ${isWatched ? "checked" : ""}`}
                             onClick={() => !saving && toggleEpisode(s.seasonNumber, ep.episodeNumber)}
@@ -307,7 +308,7 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
                                 </span>
                               )}
                             </div>
-                          </button>
+                          </FocusableButton>
                         );
                       })}
                     </div>
@@ -338,21 +339,21 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
             </span>
           </div>
           <div style={{ display: "flex", gap: "12px" }}>
-            <button 
+            <FocusableButton 
               style={{ background: "rgba(255,255,255,0.08)", border: "none", padding: "12px 24px", borderRadius: "8px", color: "#fff", fontWeight: 600, cursor: "pointer" }}
               onClick={onClose} 
               disabled={saving}
             >
               Отмена
-            </button>
-            <button
+            </FocusableButton>
+            <FocusableButton
               className="close-btn"
               style={{ background: "var(--accent)", color: "#000", border: "none", padding: "12px 28px", borderRadius: "8px", fontWeight: 700, cursor: "pointer" }}
               onClick={handleSave}
               disabled={loading || saving}
             >
               {saving ? "Сохранение..." : "Сохранить"}
-            </button>
+            </FocusableButton>
           </div>
         </div>
 

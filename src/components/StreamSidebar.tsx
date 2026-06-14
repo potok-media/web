@@ -1,6 +1,7 @@
 import React from "react";
 import { ArrowLeft, Star } from "lucide-react";
 import type { MediaCard } from "../network/ApiClient";
+import { FocusableButton } from "./common/TVNavigation";
 
 interface StreamSidebarProps {
   media: MediaCard;
@@ -15,13 +16,13 @@ export const StreamSidebar: React.FC<StreamSidebarProps> = React.memo(({
 }) => {
   return (
     <aside className="streams-page-sidebar">
-      <button 
+      <FocusableButton 
         className="streams-sidebar-back-btn" 
         onClick={onBack} 
         title="Назад"
       >
         <ArrowLeft size={18} />
-      </button>
+      </FocusableButton>
 
       <div className="streams-sidebar-poster">
         <img src={media.posterSrc || ""} alt={media.title} />

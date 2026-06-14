@@ -15,6 +15,8 @@ import { PluginSandbox } from "./common/PluginSandbox";
 import * as uiComponents from "../sdk/src/components/common";
 import * as mediaComponents from "../sdk/src/components/media";
 import { SDK_TYPINGS } from "../sdk/src/sdkTypings";
+import { PlatformManager } from "../utils/PlatformManager";
+import { DiagnosticsOverlay } from "./common/DiagnosticsOverlay";
 import "../styles/layout.css";
 
 export const AppLayout: React.FC = () => {
@@ -315,6 +317,42 @@ return Card()
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
+  React.useEffect(() => {
+    const handleBackPressed = (e: Event) => {
+      if (e.defaultPrevented) return;
+
+      const isHome = location.pathname === "/";
+      if (isHome) {
+        PlatformManager.exitApp();
+      } else {
+        navigate(-1);
+      }
+    };
+
+    window.addEventListener("potok-back-pressed", handleBackPressed);
+    return () => {
+      window.removeEventListener("potok-back-pressed", handleBackPressed);
+    };
+  }, [location.pathname, navigate]);
+
+  React.useEffect(() => {
+    if (!PlatformManager.isTV()) return;
+
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && target.closest(".sidebar")) {
+        setIsSidebarCollapsed(false);
+      } else {
+        setIsSidebarCollapsed(true);
+      }
+    };
+
+    document.addEventListener("focusin", handleFocusIn);
+    return () => {
+      document.removeEventListener("focusin", handleFocusIn);
+    };
+  }, []);
+
   const {
     activePlayback,
     playVideo,
@@ -408,7 +446,11 @@ return Card()
   }
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(() => {
-    return localStorage.getItem("isSidebarCollapsed") === "true";
+    if (PlatformManager.isTV()) {
+      return true;
+    }
+    const saved = localStorage.getItem("isSidebarCollapsed");
+    return saved === null ? false : saved === "true";
   });
 
   const toggleSidebar = () => {
@@ -461,6 +503,7 @@ return Card()
       </main>
 
       <PluginSandbox />
+      <DiagnosticsOverlay />
 
       {isMobile && <MobileBottomNavigation />}
 

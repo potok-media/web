@@ -1,5 +1,6 @@
 import React from "react";
 import { Save, Play, Info } from "lucide-react";
+import { FocusableButton, FocusableInput } from "./common/TVNavigation";
 
 interface ProfileEditorFormProps {
   isAdding: boolean;
@@ -40,7 +41,7 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
         <form onSubmit={onSave} className="settings-form-wrapper" style={{ display: "flex", flexDirection: "column", gap: "var(--space-m)" }}>
           <div className="settings-form-group">
             <label className="settings-label">Название профиля</label>
-            <input
+            <FocusableInput
               className="settings-input"
               type="text"
               placeholder="Основной сервер"
@@ -53,7 +54,7 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
 
           <div className="settings-form-group">
             <label className="settings-label">Адрес Potok Gateway (BFF)</label>
-            <input
+            <FocusableInput
               className="settings-input"
               type="text"
               placeholder="Адрес до BFF-шлюза"
@@ -66,18 +67,18 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
 
           {!isSettingsLocked && (
             <div className="settings-form-buttons-row" style={{ marginTop: "var(--space-s)" }}>
-              <button type="submit" className="settings-btn-primary cursor-pointer btn-gap-s">
+              <FocusableButton type="submit" className="settings-btn-primary cursor-pointer btn-gap-s">
                 <Save size={16} />
                 <span>{isAdding ? "Создать профиль" : "Сохранить изменения"}</span>
-              </button>
+              </FocusableButton>
               {isAdding && (
-                <button
+                <FocusableButton
                   type="button"
                   className="settings-btn-primary settings-form-btn-cancel"
                   onClick={onCancel}
                 >
                   Отмена
-                </button>
+                </FocusableButton>
               )}
             </div>
           )}

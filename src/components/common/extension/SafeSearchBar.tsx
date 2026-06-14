@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Search, X } from "lucide-react";
 import type { SearchBarSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
+import { FocusableButton, FocusableInput } from "../TVNavigation";
 
 interface SafeSearchBarProps {
   schema: SearchBarSchema;
@@ -36,7 +37,7 @@ export const SafeSearchBar: React.FC<SafeSearchBarProps> = ({ schema, pluginId, 
     <div key={id} className="sidebar-search-form" style={{ ...baseStyle, width: "100%", margin: 0 }}>
       <div className="sidebar-search-wrap" style={{ margin: 0 }}>
         <Search size={16} className="sidebar-search-icon" />
-        <input
+        <FocusableInput
           type="text"
           placeholder={componentProps.placeholder || "Поиск..."}
           value={localVal}
@@ -45,7 +46,7 @@ export const SafeSearchBar: React.FC<SafeSearchBarProps> = ({ schema, pluginId, 
           className="sidebar-search-input"
         />
         {localVal && (
-          <button 
+          <FocusableButton 
             type="button" 
             onClick={handleClear} 
             disabled={componentProps.disabled}
@@ -53,7 +54,7 @@ export const SafeSearchBar: React.FC<SafeSearchBarProps> = ({ schema, pluginId, 
             title="Очистить"
           >
             <X size={14} />
-          </button>
+          </FocusableButton>
         )}
       </div>
     </div>

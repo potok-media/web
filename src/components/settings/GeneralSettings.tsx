@@ -1,6 +1,7 @@
 import React from "react";
 import { Sliders } from "lucide-react";
 import { ExtensionRegistry } from "../../utils/extensions/ExtensionRegistry";
+import { Focusable } from "../common/TVNavigation";
 
 interface GeneralSettingsProps {
   accentTheme: string;
@@ -61,14 +62,21 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
             <label className="settings-label">Цветовой акцент</label>
             <div className="theme-options-grid">
               {themes.map((t) => (
-                <div
+                <Focusable
                   key={t.id}
-                  className={`theme-card-option ${accentTheme === t.id ? "active" : ""}`}
-                  onClick={() => setAccentTheme(t.id)}
+                  onEnterPress={() => setAccentTheme(t.id)}
                 >
-                  <span className="theme-dot" style={{ backgroundColor: t.color }} />
-                  <span className="theme-option-name">{t.name}</span>
-                </div>
+                  {({ ref, focused }) => (
+                    <div
+                      ref={ref}
+                      className={`theme-card-option ${accentTheme === t.id ? "active" : ""} ${focused ? "focused" : ""}`}
+                      onClick={() => setAccentTheme(t.id)}
+                    >
+                      <span className="theme-dot" style={{ backgroundColor: t.color }} />
+                      <span className="theme-option-name">{t.name}</span>
+                    </div>
+                  )}
+                </Focusable>
               ))}
             </div>
           </div>
@@ -76,14 +84,19 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
 
         <div className="settings-form-group settings-preference-group">
           <label className="settings-label">Плеер по умолчанию</label>
-          <select
-            className="settings-select"
-            value={defaultPlayer || "native"}
-            onChange={(e) => setDefaultPlayer(e.target.value)}
-          >
-            <option value="native">Встроенный веб-плеер</option>
-            {isApple && <option value="infuse">Infuse</option>}
-          </select>
+          <Focusable>
+            {({ ref, focused }) => (
+              <select
+                ref={ref}
+                className={`settings-select ${focused ? "focused" : ""}`}
+                value={defaultPlayer || "native"}
+                onChange={(e) => setDefaultPlayer(e.target.value)}
+              >
+                <option value="native">Встроенный веб-плеер</option>
+                {isApple && <option value="infuse">Infuse</option>}
+              </select>
+            )}
+          </Focusable>
         </div>
       </section>
     </div>

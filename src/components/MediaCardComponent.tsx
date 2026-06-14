@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Star } from "lucide-react";
 import { FilmOff } from "./common/FilmOff";
+import { Focusable } from "./common/TVNavigation";
+import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 import type { MediaCard } from "../network/ApiClient";
 
 // Shared singleton IntersectionObserver subscription system
@@ -38,6 +40,7 @@ interface MediaCardComponentProps {
 }
 
 export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(({ item, onClick, style, delay = 0 }) => {
+  usePerformanceTrack("MediaCardComponent");
   const [isIntersecting, setIsIntersecting] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -107,71 +110,89 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
   const isVisible = isIntersecting && isImageLoaded;
 
   return (
-    <Link
-      ref={cardRef}
-      to={`/media/${item.mediaType}/${item.id}`}
-      className={`media-card ${isVisible ? "is-visible" : ""}`}
-      onClick={handleCardClick}
-      style={{
-        ...style,
-        transitionDelay: isVisible ? `${delay}ms` : "0ms"
+    <Focusable
+      onEnterPress={() => {
+        if (onClick) {
+          onClick(item);
+        } else {
+          cardRef.current?.click();
+        }
       }}
     >
-      <div className="media-poster-wrap">
-        {(isIntersecting || isImageLoaded) && (
-          (item.posterSrc && !hasError) ? (
-            <img
-              src={item.posterSrc}
-              className="media-poster"
-              alt={item.title}
-              loading="lazy"
-              decoding="async"
-              onLoad={handleImageLoad}
-              onError={handleImageError}
-            />
-          ) : (
-            <div className="media-poster-fallback-placeholder">
-              <FilmOff size={36} />
+      {({ ref: focusRef, focused }) => {
+        const setRefs = (node: HTMLAnchorElement | null) => {
+          cardRef.current = node;
+          (focusRef as React.MutableRefObject<HTMLAnchorElement | null>).current = node;
+        };
+        return (
+          <Link
+            ref={setRefs}
+            to={`/media/${item.mediaType}/${item.id}`}
+            className={`media-card ${isVisible ? "is-visible" : ""} ${focused ? "focused" : ""}`}
+            onClick={handleCardClick}
+            style={{
+              ...style,
+              transitionDelay: isVisible ? `${delay}ms` : "0ms"
+            }}
+          >
+            <div className="media-poster-wrap">
+              {(isIntersecting || isImageLoaded) && (
+                (item.posterSrc && !hasError) ? (
+                  <img
+                    src={item.posterSrc}
+                    className="media-poster"
+                    alt={item.title}
+                    loading="lazy"
+                    decoding="async"
+                    onLoad={handleImageLoad}
+                    onError={handleImageError}
+                  />
+                ) : (
+                  <div className="media-poster-fallback-placeholder">
+                    <FilmOff size={36} />
+                  </div>
+                )
+              )}
+              
+              {/* Dark bottom gradient overlay */}
+              <div className="media-card-overlay">
+                <div className="media-card-pills-row">
+                  {epInfo && (
+                    <span className="media-glass-pill episode-pill">{epInfo}</span>
+                  )}
+                  
+                  {/* Empty space filler for layout */}
+                  <div className="media-card-spacer" />
+                  
+                  {rating && (
+                    <span className="media-glass-pill rating-pill">
+                      <Star size={11} fill="var(--warning)" stroke="var(--warning)" className="rating-star-icon" />
+                      <span className="rating-value-text">{rating.toFixed(1)}</span>
+                    </span>
+                  )}
+                </div>
+                
+                {/* Frosted thin progress bar */}
+                {showProgress && (
+                  <div className="media-card-progress-container">
+                    <div 
+                      className="media-card-progress-bar" 
+                      style={{ width: `${item.progress!.percentage}%` }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
-          )
-        )}
-        
-        {/* Dark bottom gradient overlay */}
-        <div className="media-card-overlay">
-          <div className="media-card-pills-row">
-            {epInfo && (
-              <span className="media-glass-pill episode-pill">{epInfo}</span>
-            )}
             
-            {/* Empty space filler for layout */}
-            <div className="media-card-spacer" />
-            
-            {rating && (
-              <span className="media-glass-pill rating-pill">
-                <Star size={11} fill="var(--warning)" stroke="var(--warning)" className="rating-star-icon" />
-                <span className="rating-value-text">{rating.toFixed(1)}</span>
-              </span>
-            )}
-          </div>
-          
-          {/* Frosted thin progress bar */}
-          {showProgress && (
-            <div className="media-card-progress-container">
-              <div 
-                className="media-card-progress-bar" 
-                style={{ width: `${item.progress!.percentage}%` }}
-              />
+            {/* Centered title & subtitle under poster */}
+            <div className="media-card-info">
+              <h3 className="media-card-title">{item.title}</h3>
+              {item.subtitle && <p className="media-card-subtitle">{item.subtitle}</p>}
             </div>
-          )}
-        </div>
-      </div>
-      
-      {/* Centered title & subtitle under poster */}
-      <div className="media-card-info">
-        <h3 className="media-card-title">{item.title}</h3>
-        {item.subtitle && <p className="media-card-subtitle">{item.subtitle}</p>}
-      </div>
-    </Link>
+          </Link>
+        );
+      }}
+    </Focusable>
   );
 });
 

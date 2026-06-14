@@ -1,5 +1,6 @@
 @import "./styles/variables.css";
 @import "./styles/player.css";
+@import "./styles/tv.css";
 
 /* Modern Box Model Reset */
 *, *::before, *::after {

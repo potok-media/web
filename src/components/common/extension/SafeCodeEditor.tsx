@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import type { CodeEditorSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import { SDK_TYPINGS } from "../../../sdk/src/sdkTypings";
+import { Focusable } from "../TVNavigation";
 
 interface SafeCodeEditorProps {
   schema: CodeEditorSchema;
@@ -164,82 +165,92 @@ export const SafeCodeEditor: React.FC<SafeCodeEditorProps> = ({ schema, pluginId
   return (
     <div key={id} className="potok-input-group" style={{ ...baseStyle, width: "100%", display: "flex", flexDirection: "column" }}>
       {componentProps.label && <label className="potok-label">{componentProps.label}</label>}
-      <div 
-        style={{ 
-          position: "relative",
-          flex: 1, 
-          height: baseStyle.height || "200px", 
-          minHeight: "120px", 
-          resize: "vertical", 
-          overflow: "hidden", 
-          borderRadius: "8px", 
-          border: "1px solid rgba(255, 255, 255, 0.12)",
-          backgroundColor: "#1e1e1e"
-        }}
-      >
-        {!isLoaded && !loadError && (
-          <div 
-            style={{ 
-              position: "absolute", 
-              top: 0, 
-              left: 0, 
-              right: 0, 
-              bottom: 0, 
-              display: "flex", 
-              alignItems: "center", 
-              justifyContent: "center",
-              color: "rgba(255, 255, 255, 0.6)",
-              fontSize: "14px",
-              fontFamily: "var(--font-family, sans-serif)",
-              backgroundColor: "rgba(30, 30, 30, 0.8)",
-              zIndex: 10
-            }}
-          >
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-              <div 
-                style={{
-                  width: "24px",
-                  height: "24px",
-                  border: "2px solid rgba(255,255,255,0.1)",
-                  borderTopColor: "var(--color-primary, #6366f1)",
-                  borderRadius: "50%",
-                  animation: "potok-spin 1s linear infinite"
-                }}
-              />
-              <span>Loading Code Editor...</span>
+      <Focusable>
+        {({ ref: focusRef, focused }) => {
+          const setRefs = (node: HTMLDivElement | null) => {
+            (focusRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+          };
+          return (
+            <div 
+              ref={setRefs}
+              style={{ 
+                position: "relative",
+                flex: 1, 
+                height: baseStyle.height || "200px", 
+                minHeight: "120px", 
+                resize: "vertical", 
+                overflow: "hidden", 
+                borderRadius: "8px", 
+                border: focused ? "2px solid var(--accent, #6366f1)" : "1px solid rgba(255, 255, 255, 0.12)",
+                backgroundColor: "#1e1e1e"
+              }}
+            >
+              {!isLoaded && !loadError && (
+                <div 
+                  style={{ 
+                    position: "absolute", 
+                    top: 0, 
+                    left: 0, 
+                    right: 0, 
+                    bottom: 0, 
+                    display: "flex", 
+                    alignItems: "center", 
+                    justifyContent: "center",
+                    color: "rgba(255, 255, 255, 0.6)",
+                    fontSize: "14px",
+                    fontFamily: "var(--font-family, sans-serif)",
+                    backgroundColor: "rgba(30, 30, 30, 0.8)",
+                    zIndex: 10
+                  }}
+                >
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+                    <div 
+                      style={{
+                        width: "24px",
+                        height: "24px",
+                        border: "2px solid rgba(255,255,255,0.1)",
+                        borderTopColor: "var(--color-primary, #6366f1)",
+                        borderRadius: "50%",
+                        animation: "potok-spin 1s linear infinite"
+                      }}
+                    />
+                    <span>Loading Code Editor...</span>
+                  </div>
+                  <style>{`
+                    @keyframes potok-spin {
+                      0% { transform: rotate(0deg); }
+                      100% { transform: rotate(360deg); }
+                    }
+                  `}</style>
+                </div>
+              )}
+              {loadError && (
+                <div 
+                  style={{ 
+                    position: "absolute", 
+                    top: 0, 
+                    left: 0, 
+                    right: 0, 
+                    bottom: 0, 
+                    display: "flex", 
+                    alignItems: "center", 
+                    justifyContent: "center",
+                    color: "#ef4444",
+                    fontSize: "14px",
+                    fontFamily: "var(--font-family, sans-serif)",
+                    padding: "16px",
+                    textAlign: "center",
+                    zIndex: 10
+                  }}
+                >
+                  {loadError}
+                </div>
+              )}
+              <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
             </div>
-            <style>{`
-              @keyframes potok-spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-              }
-            `}</style>
-          </div>
-        )}
-        {loadError && (
-          <div 
-            style={{ 
-              position: "absolute", 
-              top: 0, 
-              left: 0, 
-              right: 0, 
-              bottom: 0, 
-              display: "flex", 
-              alignItems: "center", 
-              justifyContent: "center",
-              color: "#ef4444",
-              fontSize: "14px",
-              fontFamily: "var(--font-family, sans-serif)",
-              padding: "16px",
-              textAlign: "center",
-              zIndex: 10
-            }}
-          >
-            {loadError}
-          </div>
-        )}
-        <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
-      </div>
+          );
+        }}
+      </Focusable>
     </div>
   );
 };

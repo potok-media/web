@@ -9,6 +9,7 @@ import { AuthApiClient } from "../network/AuthApiClient";
 import { getEnv } from "../utils/EnvService";
 import { logger } from "../utils/logger";
 import { useSystemWake } from "../hooks/useSystemWake";
+import { PlatformManager } from "../utils/PlatformManager";
 
 export type ConnectionState = "checking" | "connected" | "offline" | "setupRequired";
 
@@ -821,6 +822,12 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [activePlayback, setActivePlayback] = useState<ActivePlayback | null>(null);
 
   const playVideo = useCallback((playback: ActivePlayback) => {
+    // Intercept with PlatformManager for native player shells
+    if (PlatformManager.playVideo(playback)) {
+      console.log("[PlaybackProvider] Playback handled natively by PlatformManager.");
+      return;
+    }
+
     if (defaultPlayer === "infuse") {
       try {
         const cleanedUrl = cleanStreamUrlForExternalPlayer(playback);

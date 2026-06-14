@@ -2,6 +2,8 @@ import React, { useRef, useCallback } from "react";
 import { Check } from "lucide-react";
 import { FilmOff } from "./common/FilmOff";
 import type { TvEpisode } from "../network/ApiTypes";
+import { Focusable } from "./common/TVNavigation";
+import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 
 interface EpisodeCardProps {
   episode: TvEpisode;
@@ -22,6 +24,7 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
   onToggleWatched,
   onContextMenu,
 }) => {
+  usePerformanceTrack("EpisodeCard");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPressRef = useRef(false);
 
@@ -98,17 +101,31 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
   };
 
   return (
-    <div
-      className={`episode-card ${isActive ? "active" : ""} ${isWatched ? "watched" : ""} ${isSelectMode ? "select-mode" : ""}`}
-      onClick={handleClick}
-      onTouchStart={startPress}
-      onTouchEnd={endPress}
-      onTouchMove={endPress}
-      onContextMenu={handleContextMenu}
-      tabIndex={0}
-      role="button"
-      onKeyDown={handleKeyDown}
+    <Focusable
+      onEnterPress={() => {
+        if (isSelectMode) {
+          if (onToggleWatched) onToggleWatched();
+        } else {
+          onClick();
+        }
+      }}
     >
+      {({ ref: focusRef, focused }) => {
+        const setRefs = (node: HTMLDivElement | null) => {
+          (focusRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+        };
+        return (
+          <div
+            ref={setRefs}
+            className={`episode-card ${isActive ? "active" : ""} ${isWatched ? "watched" : ""} ${isSelectMode ? "select-mode" : ""} ${focused ? "focused" : ""}`}
+            onClick={handleClick}
+            onTouchStart={startPress}
+            onTouchEnd={endPress}
+            onTouchMove={endPress}
+            onContextMenu={handleContextMenu}
+            role="button"
+            onKeyDown={handleKeyDown}
+          >
       <div className="episode-still-wrap">
         {episode.stillPath || episode.still_path ? (
           <img
@@ -147,6 +164,9 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
         )}
       </div>
     </div>
+  );
+}}
+    </Focusable>
   );
 });
 

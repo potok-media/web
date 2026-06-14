@@ -71,6 +71,12 @@
   background: var(--bg-surface-high);
 }
 
+.sidebar-nav-item.focused {
+  color: var(--text-primary);
+  background: var(--bg-surface-high);
+  border-left-color: var(--accent);
+}
+
 .sidebar-nav-item.active {
   background-color: var(--accent-dim);
   color: var(--text-primary);
@@ -222,6 +228,12 @@
 .sidebar-toggle-btn:hover {
   background-color: var(--bg-surface-high);
   color: var(--text-primary);
+}
+
+.sidebar-toggle-btn.focused {
+  background-color: var(--bg-surface-high);
+  color: var(--text-primary);
+  outline: 2px solid var(--accent);
 }
 
 .app-container.sidebar-collapsed .sidebar {

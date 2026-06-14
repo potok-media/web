@@ -4,6 +4,7 @@ import { AuthApiClient } from "../../network/AuthApiClient";
 import { useHUD } from "../../context/HUDContext";
 import { useAuth } from "../../context/AppSettingsContext";
 import type { AuthResponse } from "../../network/ApiTypes";
+import { FocusableButton, FocusableInput } from "../common/TVNavigation";
 
 interface PotokAuthViewProps {
   onSuccess: (data: AuthResponse) => void;
@@ -59,7 +60,7 @@ export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
       </div>
 
       <form onSubmit={handleSubmit} className="auth-form">
-        <input
+        <FocusableInput
           type="text"
           placeholder="Имя пользователя"
           className="auth-input"
@@ -69,7 +70,7 @@ export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
           required
         />
 
-        <input
+        <FocusableInput
           type="password"
           placeholder="Пароль"
           className="auth-input"
@@ -79,23 +80,23 @@ export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
           required
         />
 
-        <button
+        <FocusableButton
           type="submit"
           className="auth-submit-btn"
           disabled={loading}
         >
           {loading ? "Загрузка..." : isRegister ? "Зарегистрироваться" : "Войти"}
-        </button>
+        </FocusableButton>
 
         {multiUserMode && (
-          <button
+          <FocusableButton
             type="button"
             onClick={() => setIsRegister(!isRegister)}
             className="auth-toggle-btn"
             disabled={loading}
           >
             {isRegister ? "Уже есть аккаунт? Войти" : "Нет аккаунта? Зарегистрироваться"}
-          </button>
+          </FocusableButton>
         )}
       </form>
     </div>

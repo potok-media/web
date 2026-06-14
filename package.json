@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@microsoft/signalr": "^10.0.0",
+    "@noriginmedia/norigin-spatial-navigation": "^3.1.0",
     "@types/prismjs": "^1.26.6",
     "artplayer": "^5.4.0",
     "dompurify": "^3.4.7",

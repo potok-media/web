@@ -3,6 +3,7 @@ import { Save, Eye, EyeOff, Sliders } from "lucide-react";
 import type { RegisteredExtension } from "@potok/sdk-types";
 import { useHUD } from "../../context/HUDContext";
 import { ApiClient } from "../../network/ApiClient";
+import { FocusableButton, FocusableInput } from "../common/TVNavigation";
 
 
 interface DeclarativeSettingsProps {
@@ -128,7 +129,7 @@ export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.mem
                 return (
                   <div key={key} className="settings-form-group settings-preference-group">
                     <div className="settings-auth-checkbox-row">
-                      <input
+                      <FocusableInput
                         type="checkbox"
                         id={`config-${ext.id}-${key}`}
                         checked={checkedVal}
@@ -150,7 +151,7 @@ export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.mem
                     <label htmlFor={`config-${ext.id}-${key}`} className="settings-label">
                       {item.label || key}
                     </label>
-                    <input
+                    <FocusableInput
                       type="number"
                       id={`config-${ext.id}-${key}`}
                       className="settings-input"
@@ -172,14 +173,14 @@ export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.mem
                   </label>
                   {isPassword ? (
                     <div style={{ display: "flex", gap: "0.5rem", width: "100%", maxWidth: "30rem", alignItems: "center" }}>
-                      <input
+                      <FocusableInput
                         type={showPassword[key] ? "text" : "password"}
                         id={`config-${ext.id}-${key}`}
                         className="settings-input"
                         value={strVal}
                         onChange={(e) => handleChange(key, e.target.value)}
                       />
-                      <button
+                      <FocusableButton
                         type="button"
                         onClick={() => handleTogglePassword(key)}
                         className="profile-btn"
@@ -187,10 +188,10 @@ export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.mem
                         style={{ flexShrink: 0 }}
                       >
                         {showPassword[key] ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
+                      </FocusableButton>
                     </div>
                   ) : (
-                    <input
+                    <FocusableInput
                       type="text"
                       id={`config-${ext.id}-${key}`}
                       className="settings-input"
@@ -204,10 +205,10 @@ export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.mem
           </div>
 
           <div className="settings-form-buttons-row">
-            <button type="submit" className="settings-btn-primary cursor-pointer btn-gap-s">
+            <FocusableButton type="submit" className="settings-btn-primary cursor-pointer btn-gap-s">
               <Save size={16} />
               <span>Сохранить настройки</span>
-            </button>
+            </FocusableButton>
           </div>
         </form>
       </section>

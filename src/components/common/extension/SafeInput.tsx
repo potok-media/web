@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import type { InputSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
+import { Focusable } from "../TVNavigation";
 
 interface SafeInputProps {
   schema: InputSchema;
@@ -29,24 +30,39 @@ export const SafeInput: React.FC<SafeInputProps> = ({ schema, pluginId, baseStyl
   return (
     <div key={id} className="potok-input-group" style={baseStyle}>
       {componentProps.label && <label className="potok-label">{componentProps.label}</label>}
-      {isTextArea ? (
-        <textarea
-          className="potok-input potok-textarea"
-          placeholder={componentProps.placeholder}
-          value={localValue}
-          disabled={componentProps.disabled}
-          onChange={handleInputChange}
-        />
-      ) : (
-        <input
-          className="potok-input"
-          type={componentProps.inputType || "text"}
-          placeholder={componentProps.placeholder}
-          value={localValue}
-          disabled={componentProps.disabled}
-          onChange={handleInputChange}
-        />
-      )}
+      <Focusable
+        disabled={componentProps.disabled}
+        onEnterPress={() => {
+          const inputEl = document.getElementById(`input-${id}`) as HTMLInputElement | HTMLTextAreaElement | null;
+          inputEl?.focus();
+        }}
+      >
+        {({ ref, focused }) => {
+          const className = `${isTextArea ? "potok-input potok-textarea" : "potok-input"} ${focused ? "focused" : ""}`;
+          return isTextArea ? (
+            <textarea
+              ref={ref}
+              id={`input-${id}`}
+              className={className}
+              placeholder={componentProps.placeholder}
+              value={localValue}
+              disabled={componentProps.disabled}
+              onChange={handleInputChange}
+            />
+          ) : (
+            <input
+              ref={ref}
+              id={`input-${id}`}
+              className={className}
+              type={componentProps.inputType || "text"}
+              placeholder={componentProps.placeholder}
+              value={localValue}
+              disabled={componentProps.disabled}
+              onChange={handleInputChange}
+            />
+          );
+        }}
+      </Focusable>
     </div>
   );
 };

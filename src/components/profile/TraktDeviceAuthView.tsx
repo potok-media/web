@@ -1,5 +1,6 @@
 import React from "react";
 import { Key, ExternalLink, Copy, RefreshCw } from "lucide-react";
+import { Focusable, FocusableButton } from "../common/TVNavigation";
 
 interface TraktDeviceAuthViewProps {
   deviceCode: {
@@ -38,15 +39,20 @@ export const TraktDeviceAuthView: React.FC<TraktDeviceAuthViewProps> = ({
             <span className="device-auth-step-title">
               Перейдите по ссылке на вашем телефоне или ПК:
             </span>
-            <a
-              href={deviceCode.verification_url}
-              target="_blank"
-              rel="noreferrer"
-              className="device-auth-link"
-            >
-              <ExternalLink size={14} />
-              <span>{deviceCode.verification_url.replace("https://", "")}</span>
-            </a>
+            <Focusable>
+              {({ ref, focused }) => (
+                <a
+                  ref={ref}
+                  href={deviceCode.verification_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`device-auth-link ${focused ? "focused" : ""}`}
+                >
+                  <ExternalLink size={14} />
+                  <span>{deviceCode.verification_url.replace("https://", "")}</span>
+                </a>
+              )}
+            </Focusable>
           </div>
         </div>
 
@@ -62,12 +68,12 @@ export const TraktDeviceAuthView: React.FC<TraktDeviceAuthViewProps> = ({
               <span className="device-auth-code-text">
                 {deviceCode.user_code}
               </span>
-              <button
+              <FocusableButton
                 onClick={onCopyCode}
                 className="device-auth-copy-btn"
               >
                 <Copy size={14} />
-              </button>
+              </FocusableButton>
             </div>
           </div>
         </div>
@@ -80,12 +86,12 @@ export const TraktDeviceAuthView: React.FC<TraktDeviceAuthViewProps> = ({
         </span>
       </div>
 
-      <button
+      <FocusableButton
         onClick={onCancel}
         className="device-auth-cancel-btn"
       >
         Назад к выбору
-      </button>
+      </FocusableButton>
     </div>
   );
 };

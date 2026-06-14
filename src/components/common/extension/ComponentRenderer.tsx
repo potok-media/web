@@ -2,6 +2,7 @@ import React from "react";
 import { useLocation } from "react-router-dom";
 import * as Lucide from "lucide-react";
 import type { UIComponentSchema } from "@potok/sdk-types";
+import { Focusable } from "../TVNavigation";
 import "../../../styles/extensions.css";
 
 // Import modular components
@@ -167,8 +168,16 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       const componentProps = schema.props;
       const isInteractive = !!events?.onClick;
       const cardClass = `potok-card ${isInteractive ? "potok-card-interactive" : ""}`;
-      return (
-        <div key={id} id={id} className={cardClass} style={baseStyle} onClick={isInteractive ? handleClick : undefined}>
+      
+      const renderCardBody = (ref: any, focused: boolean) => (
+        <div
+          ref={ref}
+          key={id}
+          id={id}
+          className={`${cardClass} ${focused ? "focused" : ""}`}
+          style={baseStyle}
+          onClick={isInteractive ? handleClick : undefined}
+        >
           {(componentProps.title || componentProps.subtitle) && (
             <div className="potok-card-header">
               {componentProps.title && <h3 className="potok-card-title">{componentProps.title}</h3>}
@@ -182,6 +191,16 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
           </div>
         </div>
       );
+
+      if (isInteractive) {
+        return (
+          <Focusable key={id} onEnterPress={handleClick}>
+            {({ ref, focused }) => renderCardBody(ref, focused)}
+          </Focusable>
+        );
+      }
+
+      return renderCardBody(null, false);
     }
 
     case "Markdown": {
@@ -310,10 +329,24 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       };
 
       return (
-        <button key={id} className={btnClass} disabled={componentProps.disabled} onClick={debugClick} style={baseStyle}>
-          {IconComponent}
-          <span>{buttonText}</span>
-        </button>
+        <Focusable
+          key={id}
+          disabled={componentProps.disabled}
+          onEnterPress={debugClick}
+        >
+          {({ ref, focused }) => (
+            <button
+              ref={ref}
+              className={`${btnClass} ${focused ? "focused" : ""}`}
+              disabled={componentProps.disabled}
+              onClick={debugClick}
+              style={baseStyle}
+            >
+              {IconComponent}
+              <span>{buttonText}</span>
+            </button>
+          )}
+        </Focusable>
       );
     }
 

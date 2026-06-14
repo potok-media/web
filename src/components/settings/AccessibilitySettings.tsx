@@ -1,6 +1,7 @@
 import React from "react";
 import { Eye, BookOpen } from "lucide-react";
 import "../../styles/extensions.css";
+import { Focusable, FocusableButton, FocusableInput } from "../common/TVNavigation";
 
 interface AccessibilitySettingsProps {
   uiFontScale: number;
@@ -29,23 +30,28 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
 
         <div className="settings-form-group settings-preference-group">
           <label className="settings-label">Масштаб интерфейса</label>
-          <select
-            className="settings-select"
-            value={uiFontScale.toFixed(1)}
-            onChange={(e) => setUiFontScale(parseFloat(e.target.value))}
-          >
-            <option value="0.8">Мелкий (80%)</option>
-            <option value="0.9">Компактный (90%)</option>
-            <option value="1.0">Стандартный (100%)</option>
-            <option value="1.1">Увеличенный (110%)</option>
-            <option value="1.2">Крупный (120%)</option>
-          </select>
+          <Focusable>
+            {({ ref, focused }) => (
+              <select
+                ref={ref}
+                className={`settings-select ${focused ? "focused" : ""}`}
+                value={uiFontScale.toFixed(1)}
+                onChange={(e) => setUiFontScale(parseFloat(e.target.value))}
+              >
+                <option value="0.8">Мелкий (80%)</option>
+                <option value="0.9">Компактный (90%)</option>
+                <option value="1.0">Стандартный (100%)</option>
+                <option value="1.1">Увеличенный (110%)</option>
+                <option value="1.2">Крупный (120%)</option>
+              </select>
+            )}
+          </Focusable>
         </div>
 
         <div className="potok-toggle-group" style={{ marginTop: "var(--space-l)", maxWidth: "30rem", width: "100%" }}>
           <span className="settings-label" style={{ margin: 0 }}>Режим разработчика</span>
           <label className="potok-switch" style={{ flexShrink: 0 }}>
-            <input
+            <FocusableInput
               type="checkbox"
               checked={developerMode}
               onChange={(e) => setDeveloperMode(e.target.checked)}
@@ -57,7 +63,7 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
         <div className="potok-toggle-group" style={{ marginTop: "var(--space-l)", maxWidth: "30rem", width: "100%" }}>
           <span className="settings-label" style={{ margin: 0 }}>Прямые запросы</span>
           <label className="potok-switch" style={{ flexShrink: 0 }}>
-            <input
+            <FocusableInput
               type="checkbox"
               checked={disableHttpProxy}
               onChange={(e) => setDisableHttpProxy(e.target.checked)}
@@ -72,14 +78,14 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
             <span style={{ fontSize: "var(--font-size-caption, 0.75rem)", color: "var(--text-muted)", marginBottom: "8px" }}>
               Интерактивное руководство по созданию плагинов, спецификация API и песочница для отладки кода.
             </span>
-            <button
+            <FocusableButton
               onClick={() => window.open("/wiki", "_blank")}
               className="settings-btn-primary"
               style={{ alignSelf: "flex-start", padding: "0.625rem 1.25rem", display: "flex", alignItems: "center", gap: "8px" }}
             >
               <BookOpen size={16} />
               <span>Открыть Вики</span>
-            </button>
+            </FocusableButton>
           </div>
         )}
       </section>
