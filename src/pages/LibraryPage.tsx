@@ -11,11 +11,10 @@ import { MediaCardComponent } from "../components/MediaCardComponent";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { CATEGORY_MAP, DYNAMIC_CATEGORY_TITLES } from "./LibraryConfig";
 import { Grid } from "../components/common/Grid";
-import { usePerformanceTrack } from "../utils/PerformanceMonitor";
+import { PlatformManager } from "../utils/PlatformManager";
 import "../styles/media.css";
  
 export const LibraryPage: React.FC = () => {
-  usePerformanceTrack("LibraryPage");
   const { collectionType: routeType } = useParams<{ collectionType: string }>();
   const location = useLocation();
   const navigate = useNavigate();
@@ -56,11 +55,11 @@ export const LibraryPage: React.FC = () => {
     initialQuery,
   });
 
-  const [autoPageLimit, setAutoPageLimit] = useState(10);
+  const [autoPageLimit, setAutoPageLimit] = useState(() => PlatformManager.isTV() ? 3 : 10);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setAutoPageLimit(10);
+    setAutoPageLimit(PlatformManager.isTV() ? 3 : 10);
   }, [collectionType]);
 
   useEffect(() => {
@@ -227,7 +226,7 @@ export const LibraryPage: React.FC = () => {
                 <button 
                   className="load-more-btn"
                   onClick={() => {
-                    setAutoPageLimit((prev) => prev + 5);
+                    setAutoPageLimit((prev) => prev + (PlatformManager.isTV() ? 3 : 5));
                     loadNextPage();
                   }}
                   disabled={loadingMore}

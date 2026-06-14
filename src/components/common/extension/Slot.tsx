@@ -12,6 +12,21 @@ interface SlotProps {
   contributionId?: string;
 }
 
+function shallowEqual(objA: any, objB: any): boolean {
+  if (Object.is(objA, objB)) return true;
+  if (typeof objA !== 'object' || objA === null || typeof objB !== 'object' || objB === null) return false;
+  const keysA = Object.keys(objA);
+  const keysB = Object.keys(objB);
+  if (keysA.length !== keysB.length) return false;
+  for (let i = 0; i < keysA.length; i++) {
+    const key = keysA[i];
+    if (!Object.prototype.hasOwnProperty.call(objB, key) || !Object.is(objA[key], objB[key])) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export const Slot: React.FC<SlotProps> = ({ name, props = {}, className, style, contributionId }) => {
   const { isInspectorActive, setSelectedSlot } = useInspector();
   const [, setTick] = useState(0);
@@ -27,12 +42,18 @@ export const Slot: React.FC<SlotProps> = ({ name, props = {}, className, style, 
     ? contributions.filter((c) => c.contribution.id === contributionId)
     : contributions;
 
-  const propsStr = JSON.stringify(props);
+  const [memoizedProps, setMemoizedProps] = useState(props);
+  const isPropsEqual = shallowEqual(memoizedProps, props);
+  if (!isPropsEqual) {
+    setMemoizedProps(props);
+  }
+
   useEffect(() => {
+    if (filteredContributions.length === 0) return;
     filteredContributions.forEach((c) => {
       ExtensionRegistry.triggerSlotRender(c.contribution.id, props);
     });
-  }, [name, propsStr, filteredContributions.length]);
+  }, [name, filteredContributions.length, memoizedProps]);
 
   if (isInspectorActive) {
     if (filteredContributions.length === 0) {

@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useSettings } from "./AppSettingsContext";
 
+import { PlatformManager } from "../utils/PlatformManager";
+
 interface InspectorContextType {
   isInspectorActive: boolean;
   setIsInspectorActive: (active: boolean) => void;
@@ -38,6 +40,15 @@ export const InspectorProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 };
 
 export const useInspector = () => {
+  const isDesktop = typeof window !== "undefined" && !PlatformManager.isTV() && window.innerWidth > 768;
+  if (!isDesktop) {
+    return {
+      isInspectorActive: false,
+      setIsInspectorActive: () => {},
+      selectedSlot: null,
+      setSelectedSlot: () => {},
+    };
+  }
   const context = useContext(InspectorContext);
   if (!context) {
     throw new Error("useInspector must be used within an InspectorProvider");

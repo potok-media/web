@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, startTransition } from "react";
 import { ApiClient } from "../network/ApiClient";
 import { ApiError } from "../network/ApiTypes";
 import type { HomeResponse } from "../network/ApiTypes";
@@ -41,21 +41,11 @@ export function useHomeFeed(onError: (msg: string) => void) {
     const cached = profileFeedCache[profileKey] || getCachedFeed(profileKey);
     return !cached;
   });
-  
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [nextCursor, setNextCursor] = useState<string | null | undefined>(() => {
-    return (profileFeedCache[profileKey] || getCachedFeed(profileKey))?.nextCursor;
-  });
 
   const onErrorRef = useRef(onError);
-  const isLoadingMoreRef = useRef(false);
   useEffect(() => {
     onErrorRef.current = onError;
   }, [onError]);
-
-  useEffect(() => {
-    setNextCursor(feed?.nextCursor);
-  }, [feed]);
 
   const fetchFeed = useCallback(async (showLoading = false) => {
     const cached = profileFeedCache[profileKey] || getCachedFeed(profileKey);
@@ -65,7 +55,7 @@ export function useHomeFeed(onError: (msg: string) => void) {
       if (shouldShowLoading) setLoading(true);
       
       const posterSize = PlatformManager.isTV() ? "w185" : "w342";
-      const data = await ApiClient.fetchHomeFeed(null, posterSize, "w1280");
+      const data = await ApiClient.fetchHomeFeed(posterSize, "w1280");
 
       const isFeedEqual = (a: HomeResponse | null, b: HomeResponse | null): boolean => {
         if (a === b) return true;
@@ -80,7 +70,9 @@ export function useHomeFeed(onError: (msg: string) => void) {
       if (!cached || !isFeedEqual(cached, data)) {
         profileFeedCache[profileKey] = data;
         setCachedFeed(profileKey, data);
-        setFeed(data);
+        startTransition(() => {
+          setFeed(data);
+        });
       }
     } catch (err: unknown) {
       const isAuthErr =
@@ -96,41 +88,11 @@ export function useHomeFeed(onError: (msg: string) => void) {
     }
   }, [profileKey, logout]);
 
-  const loadMore = useCallback(async () => {
-    if (!nextCursor || loadingMore || isLoadingMoreRef.current) return;
-    try {
-      isLoadingMoreRef.current = true;
-      setLoadingMore(true);
-      const posterSize = PlatformManager.isTV() ? "w185" : "w342";
-      const nextData = await ApiClient.fetchHomeFeed(nextCursor, posterSize, "w1280");
-      
-      setFeed((prev) => {
-        if (!prev) return nextData;
-        
-        // Prevent duplicate rows from being added
-        const existingIds = new Set(prev.rows.map((r) => r.id));
-        const newRows = nextData.rows.filter((r) => !existingIds.has(r.id));
-        
-        const updatedFeed = {
-          ...prev,
-          rows: [...prev.rows, ...newRows],
-          nextCursor: nextData.nextCursor,
-        };
-        profileFeedCache[profileKey] = updatedFeed;
-        setCachedFeed(profileKey, updatedFeed);
-        return updatedFeed;
-      });
-    } catch (err) {
-      onErrorRef.current(err instanceof Error ? err.message : "Не удалось дозагрузить ряды");
-    } finally {
-      isLoadingMoreRef.current = false;
-      setLoadingMore(false);
-    }
-  }, [nextCursor, loadingMore, profileKey]);
-
   useEffect(() => {
     const cached = profileFeedCache[profileKey] || getCachedFeed(profileKey);
-    setFeed(cached);
+    startTransition(() => {
+      setFeed(cached);
+    });
     setLoading(!cached);
     fetchFeed();
   }, [profileKey, fetchFeed]);
@@ -139,8 +101,5 @@ export function useHomeFeed(onError: (msg: string) => void) {
     feed,
     loading,
     refetch: () => fetchFeed(true),
-    loadMore,
-    hasMore: !!nextCursor,
-    loadingMore,
   };
 }

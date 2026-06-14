@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { Star } from "lucide-react";
 import { FilmOff } from "./common/FilmOff";
 import { Focusable } from "./common/TVNavigation";
-import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 import type { MediaCard } from "../network/ApiClient";
 
 interface MediaCardComponentProps {
@@ -88,7 +87,6 @@ const areMediaCardComponentsEqual = (
 
 export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
   ({ item, onClick, onFocus, style, focusKey }) => {
-    usePerformanceTrack("MediaCardComponent");
     const [hasError, setHasError] = useState(false);
     const cardRef = useRef<HTMLAnchorElement>(null);
 
@@ -193,10 +191,8 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
                   )}
                 </div>
               </div>
-              <div className="media-card-info">
-                <h3 className="media-card-title">{item.title}</h3>
-                {item.subtitle && <p className="media-card-subtitle">{item.subtitle}</p>}
-              </div>
+              <h3 className="media-card-title">{item.title}</h3>
+              {item.subtitle && <p className="media-card-subtitle">{item.subtitle}</p>}
             </Link>
           );
         }}

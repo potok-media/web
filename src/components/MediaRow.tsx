@@ -1,9 +1,8 @@
-import React, { useRef, useMemo } from "react";
+import React, { useRef, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import type { MediaCard } from "../network/ApiTypes";
 import { MediaCardComponent, areMediaCardsEqual } from "./MediaCardComponent";
-import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 import { Focusable, FocusableContainer } from "./common/TVNavigation";
 
 interface MediaRowProps {
@@ -28,11 +27,15 @@ const areMediaRowsEqual = (prevProps: MediaRowProps, nextProps: MediaRowProps): 
 
 export const MediaRow: React.FC<MediaRowProps> = React.memo(
   ({ id, title, items, onCardClick, onSeeAllClick }) => {
-  usePerformanceTrack(`MediaRow: ${title}`);
+  const [hasBeenFocused, setHasBeenFocused] = useState(false);
   const rowRef = useRef<HTMLDivElement>(null);
 
   // Cap items at 10 to keep TV horizontal scrolling fast
   const displayItems = useMemo(() => items.slice(0, 10), [items]);
+
+  const visibleItems = useMemo(() => {
+    return hasBeenFocused ? displayItems : displayItems.slice(0, 6);
+  }, [hasBeenFocused, displayItems]);
 
   if (!items || items.length === 0) return null;
 
@@ -75,21 +78,30 @@ export const MediaRow: React.FC<MediaRowProps> = React.memo(
         saveLastFocusedChild={true}
         className="carousel-row" 
         ref={rowRef}
+        onFocus={() => {
+          setHasBeenFocused(true);
+        }}
       >
-        {displayItems.map((item, index) => (
+        {visibleItems.map((item, index) => (
           <MediaCardComponent
-            key={item.id}
+            key={`${item.mediaType || "movie"}-${item.id}`}
             item={item}
             onClick={onCardClick}
             focusKey={index === 0 ? firstCardFocusKey : undefined}
+            onFocus={() => {
+              setHasBeenFocused(true);
+            }}
           />
         ))}
 
         {/* Focusable "Show More" card at the end of the row */}
-        {id && onSeeAllClick && (
+        {hasBeenFocused && id && onSeeAllClick && (
           <Focusable
             onEnterPress={() => {
               onSeeAllClick(id, title);
+            }}
+            onFocus={() => {
+              setHasBeenFocused(true);
             }}
           >
             {({ ref: focusRef, focused }) => (

@@ -6,6 +6,7 @@ import { StreamFilterBar } from "../StreamFilterBar";
 import StreamRowComponent from "../StreamRowComponent";
 import StreamSkeletonList from "../StreamSkeletonList";
 import { getPluralForm } from "../../utils/formatters";
+import { PlatformManager } from "../../utils/PlatformManager";
 
 export interface StreamListProps {
   streams: RawStreamPayload[];
@@ -85,7 +86,7 @@ export const StreamList: React.FC<StreamListProps> = ({
     return Array.from(new Set(streams.map((s) => s.provider || (s as any).tracker).filter((p): p is string => !!p)));
   }, [streams]);
 
-  const filteredAndSortedStreams = useMemo(() => {
+  const processedStreams = useMemo(() => {
     const filtered = streams.filter((t) => {
       const provider = t.provider || (t as any).tracker || "";
       const matchesQuality = qualityFilter === "all" 
@@ -95,7 +96,7 @@ export const StreamList: React.FC<StreamListProps> = ({
       return matchesQuality && matchesTracker;
     });
 
-    return [...filtered].sort((a, b) => {
+    const sorted = [...filtered].sort((a, b) => {
       if (sortOption === "seedersDesc") {
         const seedsA = a.seeds !== undefined ? a.seeds : (a as any).seeders ?? 0;
         const seedsB = b.seeds !== undefined ? b.seeds : (b as any).seeders ?? 0;
@@ -113,7 +114,19 @@ export const StreamList: React.FC<StreamListProps> = ({
       }
       return 0;
     });
+
+    return sorted.map((stream, index) => ({
+      raw: stream,
+      ui: mapStreamToUI(stream, index)
+    }));
   }, [streams, qualityFilter, activeTracker, sortOption]);
+
+  const displayStreams = useMemo(() => {
+    if (PlatformManager.isTV() && processedStreams.length > 25) {
+      return processedStreams.slice(0, 25);
+    }
+    return processedStreams;
+  }, [processedStreams]);
 
   const handleRefreshClick = () => {
     if (onRefresh) {
@@ -125,7 +138,7 @@ export const StreamList: React.FC<StreamListProps> = ({
     <div className="stream-list-container" style={{ display: "flex", flexDirection: "column", gap: "var(--space-m)" }}>
       {showFilters && (
         <StreamFilterBar
-          countLabel={`${filteredAndSortedStreams.length} ${getPluralForm(filteredAndSortedStreams.length, nounPlurals)}`}
+          countLabel={`${processedStreams.length} ${getPluralForm(processedStreams.length, nounPlurals)}`}
           qualityFilter={qualityFilter}
           setQualityFilter={setQualityFilter}
           activeTracker={activeTracker}
@@ -143,14 +156,13 @@ export const StreamList: React.FC<StreamListProps> = ({
       <div className="streams-results-list">
         {loading ? (
           <StreamSkeletonList />
-        ) : filteredAndSortedStreams.length > 0 ? (
-          filteredAndSortedStreams.map((stream, index) => {
-            const streamUI = mapStreamToUI(stream, index);
+        ) : displayStreams.length > 0 ? (
+          displayStreams.map((item, index) => {
             return (
               <StreamRowComponent
-                key={`${streamUI.id || "stream"}-${index}`}
-                stream={streamUI}
-                onClick={() => onSelectStream(stream)}
+                key={`${item.ui.id || "stream"}-${index}`}
+                stream={item.ui}
+                onClick={() => onSelectStream(item.raw)}
               />
             );
           })

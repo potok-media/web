@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Home, Calendar, User, Settings, Play, Bookmark, Star, Clock, PanelLeft, PanelLeftClose } from "lucide-react";
 import { useAuth } from "../context/AppSettingsContext";
 import { useHUD } from "../context/HUDContext";
 import SidebarStatus from "./SidebarStatus";
 import SidebarSearch from "./SidebarSearch";
 import { Focusable, FocusableButton } from "./common/TVNavigation";
-import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 import { Slot } from "./common/extension/Slot";
 import "../styles/sidebar.css";
 
@@ -53,14 +52,15 @@ const FocusableNavLink: React.FC<FocusableNavLinkProps> = ({ to, className, onCl
 interface AppSidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
+  pathname: string;
+  search: string;
 }
 
-export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle }) => {
-  usePerformanceTrack("AppSidebar");
+export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
+  ({ isCollapsed, onToggle, pathname, search }) => {
   const { potokToken } = useAuth();
   const { show: showHUD } = useHUD();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [sidebarSearch, setSidebarSearch] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -75,16 +75,16 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle })
 
   // Sync sidebar search input with URL search param when on search page
   const queryParam = useMemo(() => {
-    return new URLSearchParams(location.search).get("q") || "";
-  }, [location.search]);
+    return new URLSearchParams(search).get("q") || "";
+  }, [search]);
 
   useEffect(() => {
-    if (location.pathname === "/search") {
+    if (pathname === "/search") {
       setSidebarSearch(queryParam);
     } else {
       setSidebarSearch("");
     }
-  }, [location.pathname, queryParam]);
+  }, [pathname, queryParam]);
 
   useEffect(() => {
     return () => {
@@ -129,10 +129,10 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle })
     }
   };
 
-
-
   return (
-    <aside className="sidebar">
+    <aside 
+      className="sidebar"
+    >
       <div className="sidebar-header">
         <FocusableButton 
           className="sidebar-toggle-btn" 
@@ -223,6 +223,14 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle })
       <SidebarStatus />
     </aside>
   );
-};
+}, (prevProps, nextProps) => {
+  const isSearchRouteTransition =
+    prevProps.pathname === "/search" ||
+    nextProps.pathname === "/search";
+  if (isSearchRouteTransition) {
+    return prevProps.isCollapsed === nextProps.isCollapsed && prevProps.onToggle === nextProps.onToggle && prevProps.pathname === nextProps.pathname && prevProps.search === nextProps.search;
+  }
+  return prevProps.isCollapsed === nextProps.isCollapsed && prevProps.onToggle === nextProps.onToggle;
+});
 
 export default AppSidebar;

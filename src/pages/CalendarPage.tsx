@@ -4,7 +4,6 @@ import { Clock, AlertCircle, RefreshCw, BookmarkCheck, Star } from "lucide-react
 import { useCalendarData } from "../hooks/useCalendarData";
 import type { MediaCard } from "../network/ApiTypes";
 import { FilmOff } from "../components/common/FilmOff";
-import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 import "../styles/media.css";
 
 const CalendarSkeleton: React.FC = () => (
@@ -24,7 +23,6 @@ const CalendarSkeleton: React.FC = () => (
 );
 
 export const CalendarPage: React.FC = () => {
-  usePerformanceTrack("CalendarPage");
   const navigate = useNavigate();
   const { items, loading, error, refetch, isTraktConnected } = useCalendarData();
   const [activeFilter, setActiveFilter] = useState<"all" | "today" | "tomorrow" | "this-week">("all");

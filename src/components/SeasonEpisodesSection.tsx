@@ -44,20 +44,32 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
+  const [visibleCount, setVisibleCount] = useState(24);
+
   const checkScrollLimits = useCallback(() => {
     const container = scrollRef.current;
     if (container) {
       const { scrollLeft, scrollWidth, clientWidth } = container;
       setCanScrollLeft(scrollLeft > 2);
       setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 2);
+
+      // Chunk load episodes if user scrolls near the end
+      if (scrollLeft + clientWidth >= scrollWidth - 200 && visibleCount < episodes.length) {
+        setVisibleCount(prev => Math.min(prev + 24, episodes.length));
+      }
     }
-  }, []);
+  }, [visibleCount, episodes.length]);
 
   // Reset active season back to 1 and reset modes when mediaId changes
   useEffect(() => {
     setActiveSeason(1);
     setContextMenu(null);
+    setVisibleCount(24);
   }, [mediaId]);
+
+  useEffect(() => {
+    setVisibleCount(24);
+  }, [activeSeason]);
 
   useEffect(() => {
     if (error) {
@@ -231,7 +243,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
             ref={scrollRef}
             onScroll={checkScrollLimits}
           >
-            {episodes.map((ep) => {
+            {episodes.slice(0, visibleCount).map((ep, idx) => {
               const watched = isEpisodeWatched(ep.episodeNumber);
               return (
                 <EpisodeCard
@@ -241,6 +253,11 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
                   isActive={selectedEpisode?.episode.id === ep.id}
                   isWatched={watched}
                   onContextMenu={(x, y) => setContextMenu({ episode: ep, x, y })}
+                  onFocus={() => {
+                    if (idx >= visibleCount - 4 && visibleCount < episodes.length) {
+                      setVisibleCount(prev => Math.min(prev + 24, episodes.length));
+                    }
+                  }}
                 />
               );
             })}

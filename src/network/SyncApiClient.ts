@@ -1,6 +1,7 @@
 import { Storage } from "../utils/StorageService";
 import { ApiClient } from "./ApiClient";
 import type { MediaCard } from "./ApiClient";
+import { DataWorkerBridge } from "../utils/worker/DataWorkerBridge";
 
 export interface UserHistoryEntry {
   tmdbId: string;
@@ -24,6 +25,9 @@ export class SyncApiClient {
   }
 
   public static async fetchSyncHistory(): Promise<UserHistoryEntry[]> {
+    if (typeof window !== "undefined") {
+      return DataWorkerBridge.request<UserHistoryEntry[]>("sync_fetchSyncHistory", []);
+    }
     if (this.syncStrategy === "server") {
       const res = await fetch(`${ApiClient.baseURL}/api/sync/history`, {
         headers: ApiClient.headers,
@@ -73,6 +77,16 @@ export class SyncApiClient {
     progressSeconds: number = 100,
     durationSeconds: number = 100
   ): Promise<void> {
+    if (typeof window !== "undefined") {
+      return DataWorkerBridge.request<void>("sync_saveSyncProgress", [
+        tmdbId,
+        mediaType,
+        seasonNumber,
+        episodeNumber,
+        progressSeconds,
+        durationSeconds,
+      ]);
+    }
     if (this.syncStrategy === "server") {
       const res = await fetch(`${ApiClient.baseURL}/api/sync/history/progress`, {
         method: "POST",
@@ -111,6 +125,14 @@ export class SyncApiClient {
     seasonNumber?: number,
     episodeNumber?: number
   ): Promise<void> {
+    if (typeof window !== "undefined") {
+      return DataWorkerBridge.request<void>("sync_removeSyncProgress", [
+        tmdbId,
+        mediaType,
+        seasonNumber,
+        episodeNumber,
+      ]);
+    }
     if (this.syncStrategy === "server") {
       const res = await fetch(`${ApiClient.baseURL}/api/sync/history/remove`, {
         method: "POST",
@@ -142,6 +164,9 @@ export class SyncApiClient {
   }
 
   public static async fetchSyncFavorites(): Promise<UserListEntry[]> {
+    if (typeof window !== "undefined") {
+      return DataWorkerBridge.request<UserListEntry[]>("sync_fetchSyncFavorites", []);
+    }
     if (this.syncStrategy === "server") {
       const res = await fetch(`${ApiClient.baseURL}/api/sync/favorites`, {
         headers: ApiClient.headers,
@@ -160,6 +185,9 @@ export class SyncApiClient {
   }
 
   public static async addSyncFavorite(tmdbId: string, mediaType: string): Promise<void> {
+    if (typeof window !== "undefined") {
+      return DataWorkerBridge.request<void>("sync_addSyncFavorite", [tmdbId, mediaType]);
+    }
     if (this.syncStrategy === "server") {
       const res = await fetch(`${ApiClient.baseURL}/api/sync/favorites/add`, {
         method: "POST",
@@ -177,6 +205,9 @@ export class SyncApiClient {
   }
 
   public static async removeSyncFavorite(tmdbId: string, mediaType: string): Promise<void> {
+    if (typeof window !== "undefined") {
+      return DataWorkerBridge.request<void>("sync_removeSyncFavorite", [tmdbId, mediaType]);
+    }
     if (this.syncStrategy === "server") {
       const res = await fetch(`${ApiClient.baseURL}/api/sync/favorites/remove`, {
         method: "POST",
@@ -194,6 +225,9 @@ export class SyncApiClient {
   }
 
   public static async fetchSyncWatchlist(): Promise<UserListEntry[]> {
+    if (typeof window !== "undefined") {
+      return DataWorkerBridge.request<UserListEntry[]>("sync_fetchSyncWatchlist", []);
+    }
     if (this.syncStrategy === "server") {
       const res = await fetch(`${ApiClient.baseURL}/api/sync/watchlist`, {
         headers: ApiClient.headers,
@@ -212,6 +246,9 @@ export class SyncApiClient {
   }
 
   public static async addSyncWatchlist(tmdbId: string, mediaType: string): Promise<void> {
+    if (typeof window !== "undefined") {
+      return DataWorkerBridge.request<void>("sync_addSyncWatchlist", [tmdbId, mediaType]);
+    }
     if (this.syncStrategy === "server") {
       const res = await fetch(`${ApiClient.baseURL}/api/sync/watchlist/add`, {
         method: "POST",
@@ -229,6 +266,9 @@ export class SyncApiClient {
   }
 
   public static async removeSyncWatchlist(tmdbId: string, mediaType: string): Promise<void> {
+    if (typeof window !== "undefined") {
+      return DataWorkerBridge.request<void>("sync_removeSyncWatchlist", [tmdbId, mediaType]);
+    }
     if (this.syncStrategy === "server") {
       const res = await fetch(`${ApiClient.baseURL}/api/sync/watchlist/remove`, {
         method: "POST",
@@ -250,6 +290,9 @@ export class SyncApiClient {
     mediaType: string,
     changes: { seasonNumber: number; episodeNumber: number; isWatched: boolean }[]
   ): Promise<void> {
+    if (typeof window !== "undefined") {
+      return DataWorkerBridge.request<void>("sync_saveSyncBulkProgress", [tmdbId, mediaType, changes]);
+    }
     if (this.syncStrategy === "server") {
       const res = await fetch(`${ApiClient.baseURL}/api/sync/history/bulk-progress`, {
         method: "POST",

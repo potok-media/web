@@ -3,7 +3,6 @@ import { Check } from "lucide-react";
 import { FilmOff } from "./common/FilmOff";
 import type { TvEpisode } from "../network/ApiTypes";
 import { Focusable } from "./common/TVNavigation";
-import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 
 interface EpisodeCardProps {
   episode: TvEpisode;
@@ -13,6 +12,7 @@ interface EpisodeCardProps {
   isSelectMode?: boolean;
   onToggleWatched?: () => void;
   onContextMenu?: (clientX: number, clientY: number) => void;
+  onFocus?: () => void;
 }
 
 export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
@@ -23,8 +23,8 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
   isSelectMode = false,
   onToggleWatched,
   onContextMenu,
+  onFocus,
 }) => {
-  usePerformanceTrack("EpisodeCard");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPressRef = useRef(false);
 
@@ -102,6 +102,7 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
 
   return (
     <Focusable
+      onFocus={onFocus}
       onEnterPress={() => {
         if (isSelectMode) {
           if (onToggleWatched) onToggleWatched();
@@ -126,46 +127,44 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
             role="button"
             onKeyDown={handleKeyDown}
           >
-      <div className="episode-still-wrap">
-        {episode.stillPath || episode.still_path ? (
-          <img
-            src={episode.stillPath || episode.still_path}
-            alt={episode.name}
-            className="episode-still"
-            loading="lazy"
-          />
-        ) : (
-          <div className="episode-still-fallback-placeholder">
-            <FilmOff size={32} />
-          </div>
-        )}
-        {isSelectMode ? (
-          <div className="episode-checkbox-overlay">
-            <div className="episode-select-checkbox">
-              {isWatched && <Check size={16} strokeWidth={3} style={{ color: "#fff" }} />}
+            <div className="episode-still-wrap">
+              {episode.stillPath || episode.still_path ? (
+                <img
+                  src={episode.stillPath || episode.still_path}
+                  alt={episode.name}
+                  className="episode-still"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="episode-still-fallback-placeholder">
+                  <FilmOff size={32} />
+                </div>
+              )}
+              {isSelectMode ? (
+                <div className="episode-checkbox-overlay">
+                  <div className="episode-select-checkbox">
+                    {isWatched && <Check size={16} strokeWidth={3} style={{ color: "#fff" }} />}
+                  </div>
+                </div>
+              ) : (
+                isWatched && (
+                  <div className="episode-watched-badge">
+                    <Check size={14} strokeWidth={3} />
+                  </div>
+                )
+              )}
             </div>
+            <span className="episode-number-title">
+              {episode.episodeNumber && episode.episodeNumber > 0 ? `${episode.episodeNumber}. ` : ""}{episode.name}
+            </span>
+            {episode.airDate && (
+              <span className="episode-air-date">
+                {formatDate(episode.airDate)}
+              </span>
+            )}
           </div>
-        ) : (
-          isWatched && (
-            <div className="episode-watched-badge">
-              <Check size={14} strokeWidth={3} />
-            </div>
-          )
-        )}
-      </div>
-      <div className="episode-info">
-        <span className="episode-number-title">
-          {episode.episodeNumber && episode.episodeNumber > 0 ? `${episode.episodeNumber}. ` : ""}{episode.name}
-        </span>
-        {episode.airDate && (
-          <span className="episode-air-date">
-            {formatDate(episode.airDate)}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}}
+        );
+      }}
     </Focusable>
   );
 });

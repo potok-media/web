@@ -1,7 +1,7 @@
 import React, { useRef, useCallback, useState, useEffect } from "react";
 import { useFocusable, FocusContext } from "@noriginmedia/norigin-spatial-navigation";
 import type { UseFocusableConfig } from "@noriginmedia/norigin-spatial-navigation";
-import { performanceMonitor } from "../../utils/PerformanceMonitor";
+
 
 // Prevent browser's native scroll on focus globally to stop layout fights with custom JS smooth scrolls
 if (typeof window !== "undefined" && typeof HTMLElement !== "undefined" && HTMLElement.prototype.focus) {
@@ -11,14 +11,6 @@ if (typeof window !== "undefined" && typeof HTMLElement !== "undefined" && HTMLE
     originalFocus.call(this, newOptions);
   };
 }
-
-// Shared RAF-debounced scroll manager with 85ms quadratic ease-out smooth scroll
-interface ScrollAnimation {
-  frameId: number;
-}
-const activeScrollAnimations = new WeakMap<HTMLElement, ScrollAnimation>();
-
-let activeScrollCount = 0;
 let isScrolling = false;
 const scrollListeners = new Set<(scrolling: boolean) => void>();
 let scrollLockTimeoutId: any = null;
@@ -37,9 +29,8 @@ const triggerScrollLock = () => {
   updateScrollState(true);
   scrollLockTimeoutId = setTimeout(() => {
     scrollLockTimeoutId = null;
-    activeScrollCount = 0;
     updateScrollState(false);
-  }, 120); // 85ms scroll duration + 35ms buffer = 120ms
+  }, 120);
 };
 
 export const useScrollLock = () => {
@@ -65,64 +56,46 @@ export const addScrollListener = (listener: (scrolling: boolean) => void) => {
 
 export const isCurrentlyScrolling = () => isScrolling;
 
+const activeScrollAnimations = new WeakMap<HTMLElement, { rId: number }>();
+
 export const smoothScrollTo = (element: HTMLElement, targetValue: number, isVertical: boolean, duration: number = 85) => {
   const startValue = isVertical ? element.scrollTop : element.scrollLeft;
   const change = targetValue - startValue;
   if (change === 0) return;
   
-  // Log scroll activity
-  const classLabel = element.className ? `.${element.className.trim().split(/\s+/).join(".")}` : element.tagName;
-  performanceMonitor.addActivity("scroll", `Scroll ${isVertical ? "vertically" : "horizontally"} on ${classLabel} to ${Math.round(targetValue)}px (duration ${duration}ms)`);
-  
   triggerScrollLock();
 
-  // Cancel any existing animation on this element to prevent fighting
-  const existing = activeScrollAnimations.get(element);
-  let wasAnimating = false;
-  if (existing) {
-    cancelAnimationFrame(existing.frameId);
-    wasAnimating = true;
+  const active = activeScrollAnimations.get(element);
+  if (active) {
+    cancelAnimationFrame(active.rId);
   }
 
-  if (!wasAnimating) {
-    activeScrollCount++;
-  }
-  
   const startTime = performance.now();
-  const anim: ScrollAnimation = { frameId: 0 };
-  activeScrollAnimations.set(element, anim);
-  
-  const animateScroll = (currentTime: number) => {
+
+  const animate = (currentTime: number) => {
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / duration, 1);
-    
-    // Quadratic ease-out curve for natural smoothness
+
+    // Easing: easeOutQuad
     const easeProgress = progress * (2 - progress);
-    const currentValue = startValue + change * easeProgress;
-    
+    const currentValue = Math.round(startValue + change * easeProgress);
+
     if (isVertical) {
       element.scrollTop = currentValue;
     } else {
       element.scrollLeft = currentValue;
     }
-    
+
     if (progress < 1) {
-      anim.frameId = requestAnimationFrame(animateScroll);
+      const rId = requestAnimationFrame(animate);
+      activeScrollAnimations.set(element, { rId });
     } else {
       activeScrollAnimations.delete(element);
-      activeScrollCount--;
-      if (activeScrollCount <= 0) {
-        activeScrollCount = 0;
-        if (scrollLockTimeoutId) {
-          clearTimeout(scrollLockTimeoutId);
-          scrollLockTimeoutId = null;
-        }
-        updateScrollState(false);
-      }
     }
   };
-  
-  anim.frameId = requestAnimationFrame(animateScroll);
+
+  const rId = requestAnimationFrame(animate);
+  activeScrollAnimations.set(element, { rId });
 };
 
 const getRelativeOffset = (element: HTMLElement, parent: HTMLElement) => {
@@ -169,9 +142,12 @@ const scrollIntoView = (element: HTMLElement) => {
   const verticalParent = element.closest(".main-content") as HTMLElement;
   if (verticalParent) {
     const { top } = getRelativeOffset(element, verticalParent);
-    
     // Center the active element (row/card) vertically in main-content viewport
-    const targetScrollTop = top - (verticalParent.clientHeight / 2) + (element.offsetHeight / 2);
+    // If element is inside the Hero Spotlight, always align scroll to 0 (top of the page)
+    const isHero = element.closest(".immersive-hero-container");
+    const targetScrollTop = isHero
+      ? 0
+      : top - (verticalParent.clientHeight / 2) + (element.offsetHeight / 2);
     
     // Clamp the targetScrollTop to the maximum possible scroll bounds to prevent fights with browser clamping
     const maxScrollTop = Math.max(0, verticalParent.scrollHeight - verticalParent.clientHeight);

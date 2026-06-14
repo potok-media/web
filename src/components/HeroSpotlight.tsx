@@ -6,7 +6,6 @@ import { SyncApiClient } from "../network/SyncApiClient";
 import { useHUD } from "../context/HUDContext";
 import { Focusable, FocusableButton } from "./common/TVNavigation";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
-import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 
 interface HeroSpotlightProps {
   items: HeroItem[];
@@ -31,7 +30,6 @@ const areHeroSpotlightsEqual = (
 };
 
 export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) => {
-  usePerformanceTrack("HeroSpotlight");
   const { items, onDetails } = props;
 
   interface SlideState {
@@ -49,6 +47,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
 
   const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
   const [watchlistStates, setWatchlistStates] = useState<Record<number, boolean>>({});
+  const [isVisible, setIsVisible] = useState(true);
 
   const heroItems = React.useMemo(() => items.slice(0, 10), [items]);
   const displayIndexToUse = displayedIndex;
@@ -83,6 +82,23 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
     });
   };
 
+  // Setup IntersectionObserver for visibility tracking
+  useEffect(() => {
+    const currentRef = containerRef.current;
+    if (!currentRef) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+    observer.observe(currentRef);
+    return () => {
+      observer.unobserve(currentRef);
+      observer.disconnect();
+    };
+  }, []);
+
   // Sync watchlist states for all items
   useEffect(() => {
     const initial: Record<number, boolean> = {};
@@ -94,14 +110,14 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
 
   // Slideshow auto-rotation timer
   useEffect(() => {
-    if (heroItems.length <= 1) return;
+    if (heroItems.length <= 1 || !isVisible) return;
 
     const interval = setInterval(() => {
       changeActiveIndex((prev) => (prev + 1) % heroItems.length);
     }, 15000); // 15 seconds slide duration
 
     return () => clearInterval(interval);
-  }, [activeIndex, heroItems.length]);
+  }, [activeIndex, heroItems.length, isVisible]);
 
   // Preload only active and next backdrop/logo images to save memory and network
   useEffect(() => {

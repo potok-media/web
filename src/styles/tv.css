@@ -110,15 +110,7 @@ body.is-tv .episode-card.focused .episode-number-title {
    Smart TV Performance & Layout Optimizations
    ========================================================================== */
 
-/* Disable browser's native smooth scroll to make D-pad navigation instant and snappy */
-body.is-tv,
-body.is-tv .carousel-row,
-body.is-tv .episodes-scroll-container {
-  scroll-behavior: auto !important;
-}
-
 body.is-tv .main-content {
-  scroll-behavior: auto !important;
   padding-bottom: 180px !important;
 }
 

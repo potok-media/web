@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, startTransition } from "react";
 import { ApiClient } from "../network/ApiClient";
 import { ApiError } from "../network/ApiTypes";
 import type { MediaCard } from "../network/ApiTypes";
@@ -99,7 +99,9 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
           } else {
             cards = await ApiClient.searchMedia(currentQuery);
           }
-          setItems(cards);
+          startTransition(() => {
+            setItems(cards);
+          });
           profileSearchResultsCache[profileKey] = cards;
           profileSearchQueryCache[profileKey] = currentQuery;
           setHasMore(false);
@@ -119,7 +121,9 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
 
           const activeCache = getCollectionCache()[collectionType] || [];
           if (forceRefetch || !getCollectionCache()[collectionType] || !isItemsEqual(activeCache, cards)) {
-            setItems(cards);
+            startTransition(() => {
+              setItems(cards);
+            });
             getCollectionCache()[collectionType] = cards;
           }
         }
@@ -152,10 +156,12 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
         setHasMore(false);
         getPaginationCache()[collectionType] = { page, hasMore: false };
       } else {
-        setItems((prev) => {
-          const combined = [...prev, ...cards];
-          getCollectionCache()[collectionType] = combined;
-          return combined;
+        startTransition(() => {
+          setItems((prev) => {
+            const combined = [...prev, ...cards];
+            getCollectionCache()[collectionType] = combined;
+            return combined;
+          });
         });
         setPage(nextPage);
         const hasMoreFlag = cards.length >= 20;
@@ -172,14 +178,18 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
   // Synchronize component state with cache when active profile or route section changes
   useEffect(() => {
     if (isSearchPage) {
-      setItems(profileSearchResultsCache[profileKey] || []);
+      startTransition(() => {
+        setItems(profileSearchResultsCache[profileKey] || []);
+      });
       setLoading(false);
       setError(null);
       setHasMore(false);
       setQuery(initialQuery || profileSearchQueryCache[profileKey] || "");
     } else {
       const cached = getCollectionCache()[collectionType];
-      setItems(cached || []);
+      startTransition(() => {
+        setItems(cached || []);
+      });
       setLoading(!cached);
       setError(null);
 

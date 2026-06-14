@@ -377,6 +377,14 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setDirectPlay,
   ]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      import("../utils/worker/DataWorkerBridge").then(({ DataWorkerBridge }) => {
+        DataWorkerBridge.syncSettings();
+      });
+    }
+  }, [activeProfileID, connectionProfiles]);
+
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 };
 
@@ -514,6 +522,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSyncStrategy,
     setTraktToken,
   ]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      import("../utils/worker/DataWorkerBridge").then(({ DataWorkerBridge }) => {
+        DataWorkerBridge.syncSettings();
+      });
+    }
+  }, [potokToken, traktToken, syncStrategy]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

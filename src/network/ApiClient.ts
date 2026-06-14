@@ -1,4 +1,5 @@
 import { Storage } from "../utils/StorageService";
+import { DataWorkerBridge } from "../utils/worker/DataWorkerBridge";
 import { SyncApiClient } from "./SyncApiClient";
 import { ApiError } from "./ApiTypes";
 import { getEnv } from "../utils/EnvService";
@@ -38,6 +39,8 @@ export type {
 
 
 export class ApiClient {
+  private static isWorker = typeof window === "undefined";
+
   private static getHostConfig() {
     const hostname = typeof window !== "undefined" ? window.location.hostname : "";
     const envBff = getEnv("VITE_DEFAULT_BFF_URL");
@@ -92,6 +95,9 @@ export class ApiClient {
     this._cachedSearchEngineURL = undefined;
     this._cachedPlayerServerURL = undefined;
     this.mediaDetailsCache.clear();
+    if (!this.isWorker) {
+      DataWorkerBridge.postToWorker({ type: "invalidate_cache" });
+    }
   }
 
   public static get baseURL(): string {
@@ -147,8 +153,14 @@ export class ApiClient {
         try {
           const tPluginId = "potok-tor" + "rents";
           const oldGoKey = "tor" + "rentGoURL";
-          const pluginScopedUrl = localStorage.getItem("potok_plugin:scoped:" + tPluginId + ":playerServerURL") 
-            || localStorage.getItem("potok_plugin:scoped:" + tPluginId + ":" + oldGoKey);
+          let pluginScopedUrl = "";
+          if (typeof localStorage !== "undefined") {
+            pluginScopedUrl = localStorage.getItem("potok_plugin:scoped:" + tPluginId + ":playerServerURL") 
+              || localStorage.getItem("potok_plugin:scoped:" + tPluginId + ":" + oldGoKey) || "";
+          } else {
+            pluginScopedUrl = Storage.get<string>("potok_plugin:scoped:" + tPluginId + ":playerServerURL", "")
+              || Storage.get<string>("potok_plugin:scoped:" + tPluginId + ":" + oldGoKey, "");
+          }
           if (pluginScopedUrl) {
             url = pluginScopedUrl;
           }
@@ -186,6 +198,9 @@ export class ApiClient {
   }
 
   public static async performHandshake(url: string): Promise<HandshakeResponse> {
+    if (!this.isWorker) {
+      return DataWorkerBridge.request<HandshakeResponse>("performHandshake", [url]);
+    }
     const absolute = this.ensureAbsoluteURL(url);
     const normalized = absolute.replace(/\/$/, "");
     const res = await fetch(`${normalized}/api/handshake`, { signal: AbortSignal.timeout(4000) });
@@ -194,6 +209,9 @@ export class ApiClient {
   }
 
   public static async pingHealth(url: string, path: string, useCors: boolean = false): Promise<ServiceInfo> {
+    if (!this.isWorker) {
+      return DataWorkerBridge.request<ServiceInfo>("pingHealth", [url, path, useCors]);
+    }
     if (!url) return { configured: false, online: false };
     let normalized = url.trim().replace(/\/$/, "");
     if (!/^https?:\/\//i.test(normalized)) {
@@ -255,10 +273,11 @@ export class ApiClient {
     return this.populateProgressPercentage(json) as T;
   }
 
-  public static async fetchHomeFeed(cursor?: string | null, posterSize = "w342", backdropSize = "w1280"): Promise<HomeResponse> {
-    const url = cursor
-      ? `${this.baseURL}/api/media/home?cursor=${encodeURIComponent(cursor)}&posterSize=${encodeURIComponent(posterSize)}&backdropSize=${encodeURIComponent(backdropSize)}&language=ru`
-      : `${this.baseURL}/api/media/home?posterSize=${encodeURIComponent(posterSize)}&backdropSize=${encodeURIComponent(backdropSize)}&language=ru`;
+  public static async fetchHomeFeed(posterSize = "w342", backdropSize = "w1280"): Promise<HomeResponse> {
+    if (!this.isWorker) {
+      return DataWorkerBridge.request<HomeResponse>("fetchHomeFeed", [posterSize, backdropSize]);
+    }
+    const url = `${this.baseURL}/api/media/home?posterSize=${encodeURIComponent(posterSize)}&backdropSize=${encodeURIComponent(backdropSize)}&language=ru`;
     const res = await fetch(url, {
       headers: this.headers,
     });
@@ -266,6 +285,9 @@ export class ApiClient {
   }
 
   public static async searchMedia(query: string): Promise<MediaCard[]> {
+    if (!this.isWorker) {
+      return DataWorkerBridge.request<MediaCard[]>("searchMedia", [query]);
+    }
     const res = await fetch(`${this.baseURL}/api/media/search?query=${encodeURIComponent(query)}`, {
       headers: this.headers,
     });
@@ -278,6 +300,14 @@ export class ApiClient {
 
   public static async fetchMediaDetails(mediaType: string, id: number): Promise<MediaCard> {
     const cacheKey = `${mediaType}:${id}`;
+    if (!this.isWorker) {
+      if (this.mediaDetailsCache.has(cacheKey)) {
+        return this.mediaDetailsCache.get(cacheKey)!;
+      }
+      const details = await DataWorkerBridge.request<MediaCard>("fetchMediaDetails", [mediaType, id]);
+      this.mediaDetailsCache.set(cacheKey, details);
+      return details;
+    }
     if (this.mediaDetailsCache.has(cacheKey)) {
       return this.mediaDetailsCache.get(cacheKey)!;
     }
@@ -290,6 +320,9 @@ export class ApiClient {
   }
 
   public static async fetchTvSeason(tvId: number, seasonNumber: number, options?: RequestInit): Promise<TvSeason> {
+    if (!this.isWorker) {
+      return DataWorkerBridge.request<TvSeason>("fetchTvSeason", [tvId, seasonNumber]);
+    }
     const res = await fetch(`${this.baseURL}/api/media/tmdb/tv/${tvId}/season/${seasonNumber}`, {
       ...options,
       headers: {
@@ -300,8 +333,10 @@ export class ApiClient {
     return this.handleResponse<TvSeason>(res, "Failed to fetch season details");
   }
 
-
   public static async saveInfuseItemAndGetStreams(request: InfuseSaveRequest): Promise<string[]> {
+    if (!this.isWorker) {
+      return DataWorkerBridge.request<string[]>("saveInfuseItemAndGetStreams", [request]);
+    }
     const res = await fetch(`${this.baseURL}/api/infuse/save`, {
       method: "POST",
       headers: this.headers,
@@ -311,6 +346,9 @@ export class ApiClient {
   }
 
   public static async syncTraktAction(path: string, request: TraktSyncRequest): Promise<void> {
+    if (!this.isWorker) {
+      return DataWorkerBridge.request<void>("syncTraktAction", [path, request]);
+    }
     const res = await fetch(`${this.baseURL}/api/trakt/sync/${path}`, {
       method: "POST",
       headers: this.headers,
@@ -323,6 +361,9 @@ export class ApiClient {
   }
 
   public static async fetchMediaRow(rowId: string, page = 1): Promise<MediaCard[]> {
+    if (!this.isWorker) {
+      return DataWorkerBridge.request<MediaCard[]>("fetchMediaRow", [rowId, page]);
+    }
     const res = await fetch(`${this.baseURL}/api/media/row/${rowId}?page=${page}`, {
       headers: this.headers,
     });
@@ -330,6 +371,9 @@ export class ApiClient {
   }
 
   public static async fetchBatchDetails(items: { tmdbId: number; mediaType: string }[]): Promise<MediaCard[]> {
+    if (!this.isWorker) {
+      return DataWorkerBridge.request<MediaCard[]>("fetchBatchDetails", [items]);
+    }
     if (items.length === 0) return [];
     const res = await fetch(`${this.baseURL}/api/media/batch`, {
       method: "POST",
@@ -340,6 +384,9 @@ export class ApiClient {
   }
 
   public static async fetchLibraryCategory(category: string): Promise<MediaCard[]> {
+    if (!this.isWorker) {
+      return DataWorkerBridge.request<MediaCard[]>("fetchLibraryCategory", [category]);
+    }
     if (category.includes(".")) {
       return this.fetchMediaRow(category);
     }
@@ -378,6 +425,9 @@ export class ApiClient {
   }
 
   public static async getStreamMetadata(hash: string, fileId: string | number): Promise<ClientMetadata | null> {
+    if (!this.isWorker) {
+      return DataWorkerBridge.request<ClientMetadata | null>("getStreamMetadata", [hash, fileId]);
+    }
     try {
       const cleanBase = this.playerServerURL.replace(/\/+$/, "");
       const res = await fetch(`${cleanBase}/api/torrents/${hash.toLowerCase()}/files/${fileId}/metadata`);
@@ -389,6 +439,9 @@ export class ApiClient {
   }
 
   public static async fetchExtensionManifest(url: string, signal?: AbortSignal): Promise<ExtensionManifest> {
+    if (!this.isWorker) {
+      return DataWorkerBridge.request<ExtensionManifest>("fetchExtensionManifest", [url]);
+    }
     const res = await fetch(url, { signal });
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}`);

@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useRef } from "react";
+import React, { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useHUD } from "../context/HUDContext";
 import { useHomeFeed } from "../hooks/useHomeFeed";
@@ -6,8 +6,6 @@ import HeroSpotlight from "../components/HeroSpotlight";
 import MediaRow from "../components/MediaRow";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import type { MediaCard } from "../network/ApiTypes";
-import { usePerformanceTrack } from "../utils/PerformanceMonitor";
-import { addScrollListener, isCurrentlyScrolling } from "../components/common/TVNavigation";
 import "../styles/media.css";
 
 const ErrorView: React.FC<{ error: string; onRetry: () => void }> = ({ error, onRetry }) => (
@@ -17,179 +15,13 @@ const ErrorView: React.FC<{ error: string; onRetry: () => void }> = ({ error, on
   </div>
 );
 
-let mountQueue: Array<() => void> = [];
-let mountTimeoutId: any = null;
-
-const processMountQueue = () => {
-  if (mountQueue.length === 0) {
-    mountTimeoutId = null;
-    return;
-  }
-  const nextTask = mountQueue.shift();
-  if (nextTask) {
-    nextTask();
-  }
-  mountTimeoutId = setTimeout(processMountQueue, 35);
-};
-
-const enqueueMount = (task: () => void) => {
-  mountQueue.push(task);
-  if (!mountTimeoutId) {
-    mountTimeoutId = setTimeout(processMountQueue, 0);
-  }
-};
-
-const VirtualRow: React.FC<{
-  children: React.ReactNode;
-  height?: string;
-}> = ({ children, height = "16.25rem" }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [hasBeenVisible, setHasBeenVisible] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const pendingVisibilityRef = useRef<boolean | null>(null);
-  const isMountedRef = useRef(true);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    // IntersectionObserver rootMargin only supports px or % units.
-    // Convert rem/em to px (assuming standard 16px root font size) for the observer buffer.
-    const parseMarginToPx = (val: string): string => {
-      try {
-        const clean = (val || "").trim().toLowerCase();
-        if (clean.endsWith("px") || clean.endsWith("%")) {
-          return clean;
-        }
-        if (clean.endsWith("rem") || clean.endsWith("em")) {
-          const parsed = parseFloat(clean);
-          return isNaN(parsed) ? "260px" : `${parsed * 16}px`;
-        }
-        const parsed = parseFloat(clean);
-        return isNaN(parsed) ? "260px" : `${parsed}px`;
-      } catch {
-        return "260px";
-      }
-    };
-
-    const margin = parseMarginToPx(height);
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const intersecting = entry.isIntersecting;
-        if (isCurrentlyScrolling()) {
-          pendingVisibilityRef.current = intersecting;
-        } else {
-          setIsVisible(intersecting);
-          if (intersecting) {
-            setHasBeenVisible(true);
-          }
-        }
-      },
-      {
-        rootMargin: `${margin} 0px ${margin} 0px`, // Buffer of 1 row top/bottom
-        threshold: 0,
-      }
-    );
-
-    const currentRef = containerRef.current;
-    if (currentRef) {
-      observer.observe(currentRef);
-    }
-
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
-      }
-      observer.disconnect();
-    };
-  }, [height]);
-
-  useEffect(() => {
-    const unsubscribe = addScrollListener((scrolling) => {
-      if (!scrolling && pendingVisibilityRef.current !== null) {
-        const targetState = pendingVisibilityRef.current;
-        pendingVisibilityRef.current = null;
-        if (targetState) {
-          enqueueMount(() => {
-            if (isMountedRef.current) {
-              setIsVisible(true);
-              setHasBeenVisible(true);
-            }
-          });
-        } else {
-          setIsVisible(false);
-        }
-      }
-    });
-    return unsubscribe;
-  }, []);
-
-  return (
-    <div
-      ref={containerRef}
-      style={{ minHeight: isVisible ? undefined : height }}
-      className="virtual-row-placeholder"
-    >
-      {hasBeenVisible ? children : null}
-    </div>
-  );
-};
-
 export const HomePage: React.FC = () => {
-  usePerformanceTrack("HomePage");
   const navigate = useNavigate();
   const { show: showHUD } = useHUD();
 
-  useEffect(() => {
-    const unsubscribe = addScrollListener((scrolling) => {
-      if (scrolling) {
-        mountQueue = [];
-        if (mountTimeoutId) {
-          clearTimeout(mountTimeoutId);
-          mountTimeoutId = null;
-        }
-      }
-    });
-    return unsubscribe;
-  }, []);
-
-  const { feed, loading, refetch, loadMore, hasMore, loadingMore } = useHomeFeed((msg) => showHUD("error", msg));
-  const sentinelRef = useRef<HTMLDivElement>(null);
 
 
-
-  useEffect(() => {
-    if (!hasMore || loadingMore) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          loadMore();
-        }
-      },
-      {
-        rootMargin: "300px", // Trigger fetch early before reaching the absolute bottom
-        threshold: 0,
-      }
-    );
-
-    const currentSentinel = sentinelRef.current;
-    if (currentSentinel) {
-      observer.observe(currentSentinel);
-    }
-
-    return () => {
-      if (currentSentinel) {
-        observer.unobserve(currentSentinel);
-      }
-      observer.disconnect();
-    };
-  }, [hasMore, loadingMore, loadMore]);
+  const { feed, loading, refetch } = useHomeFeed((msg) => showHUD("error", msg));
 
   const handleCardClick = useCallback((item: MediaCard) => {
     navigate(`/media/${item.mediaType}/${item.id}`);
@@ -223,28 +55,15 @@ export const HomePage: React.FC = () => {
       )}
 
       {feed.rows.map((row, index) => (
-        <VirtualRow key={row.id || index}>
-          <MediaRow
-            id={row.id}
-            title={row.title}
-            items={row.items}
-            onCardClick={handleCardClick}
-            onSeeAllClick={handleSeeAllClick}
-          />
-        </VirtualRow>
+        <MediaRow
+          key={row.id || index}
+          id={row.id}
+          title={row.title}
+          items={row.items}
+          onCardClick={handleCardClick}
+          onSeeAllClick={handleSeeAllClick}
+        />
       ))}
-
-      {/* Sentinel for pagination */}
-      {hasMore && (
-        <div ref={sentinelRef} className="home-feed-sentinel" style={{ height: "20px" }} />
-      )}
-
-      {/* Inline loading indicator */}
-      {loadingMore && (
-        <div className="home-page-loading-more" style={{ display: "flex", justifyContent: "center", padding: "20px" }}>
-          <LoadingSpinner />
-        </div>
-      )}
     </div>
   );
 };

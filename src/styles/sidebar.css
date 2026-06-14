@@ -10,8 +10,14 @@
   flex-direction: column;
   padding: var(--space-l) var(--space-m);
   gap: var(--space-xl);
+  overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-width: none;
   transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), min-width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), padding 0.3s ease;
+}
+
+.sidebar::-webkit-scrollbar {
+  display: none;
 }
 
 .sidebar-header {
@@ -241,6 +247,14 @@
   min-width: 78px;
   padding: var(--space-l) var(--space-xs);
   align-items: center;
+  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none !important;
+}
+
+.app-container.sidebar-collapsed .sidebar::-webkit-scrollbar {
+  display: none !important;
 }
 
 .app-container.sidebar-collapsed .sidebar-header {
@@ -269,9 +283,7 @@
 }
 
 .app-container.sidebar-collapsed .sidebar .sidebar-section-title {
-  visibility: hidden;
-  white-space: nowrap;
-  overflow: hidden;
+  display: none;
 }
 
 .app-container.sidebar-collapsed .sidebar .sidebar-status-row {

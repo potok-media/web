@@ -11,6 +11,14 @@ export class WebSocketClient {
   private connection: HubConnection | null = null;
   private rawUrl: string | null = null;
   private listeners: Record<string, Set<WSCallback>> = {};
+
+  private static bridgeDelegate: any = null;
+  public static setBridgeDelegate(delegate: any) {
+    this.bridgeDelegate = delegate;
+  }
+
+  private static processedTraceIds = new Set<string>();
+  private static lastEventTimestamps = new Map<string, number>();
   
   // Strict ConnectionState machine
   private state: ConnectionState = "DISCONNECTED";
@@ -26,11 +34,14 @@ export class WebSocketClient {
   }
 
   public get clientId(): string {
-    if (typeof window === "undefined") return "";
+    if (typeof window === "undefined") {
+      return Storage.get<string>("potok_client_id", "");
+    }
     let id = sessionStorage.getItem("potok_client_id");
     if (!id) {
       id = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36);
       sessionStorage.setItem("potok_client_id", id);
+      Storage.set("potok_client_id", id);
     }
     return id;
   }
@@ -62,6 +73,9 @@ export class WebSocketClient {
   private transitionTo(newState: ConnectionState): void {
     logger.log(`[WS] State transition: ${this.state} -> ${newState}`);
     this.state = newState;
+    if (typeof window === "undefined") {
+      self.postMessage({ type: "ws_state_change", state: newState });
+    }
   }
 
   public subscribe(event: string, callback: WSCallback): () => void {
@@ -79,6 +93,10 @@ export class WebSocketClient {
   }
 
   public startListening(rawUrl: string): void {
+    if (typeof window !== "undefined") {
+      WebSocketClient.bridgeDelegate?.postToWorker({ type: "ws_start", url: rawUrl });
+      return;
+    }
     if (!rawUrl || !rawUrl.trim()) {
       logger.log("[WS] No gateway URL provided. Stopping active listener...");
       this.stopListening();
@@ -151,6 +169,20 @@ export class WebSocketClient {
     this.connection.on("ReceiveEvent", (frame: any) => {
       try {
         if (!frame || !frame.event) return;
+        
+        if (typeof window === "undefined") {
+          if (!this.shouldProcessEvent(frame)) {
+            return;
+          }
+          const parsedPayload = typeof frame.payload === "string" ? JSON.parse(frame.payload) : frame.payload;
+          self.postMessage({
+            type: "ws_event",
+            event: frame.event,
+            payload: typeof parsedPayload === "string" ? parsedPayload : JSON.stringify(parsedPayload)
+          });
+          return;
+        }
+
         logger.log(`[WS] Event: ${frame.event} [TraceId: ${frame.traceId}]`);
         this.trigger(frame.event, typeof frame.payload === "string" ? frame.payload : JSON.stringify(frame.payload));
       } catch (err) {
@@ -223,6 +255,10 @@ export class WebSocketClient {
   }
 
   private reconnect(force = false): void {
+    if (typeof window !== "undefined") {
+      WebSocketClient.bridgeDelegate?.postToWorker({ type: "ws_online" });
+      return;
+    }
     if (this.reconnectTimeoutId) {
       clearTimeout(this.reconnectTimeoutId);
       this.reconnectTimeoutId = null;
@@ -237,6 +273,10 @@ export class WebSocketClient {
   }
 
   public async stopListening(): Promise<void> {
+    if (typeof window !== "undefined") {
+      WebSocketClient.bridgeDelegate?.postToWorker({ type: "ws_stop" });
+      return;
+    }
     if (this.reconnectTimeoutId) {
       clearTimeout(this.reconnectTimeoutId);
       this.reconnectTimeoutId = null;
@@ -258,6 +298,10 @@ export class WebSocketClient {
   }
 
   public send(event: string, payload: any): void {
+    if (typeof window !== "undefined") {
+      WebSocketClient.bridgeDelegate?.postToWorker({ type: "ws_send", event, payload });
+      return;
+    }
     if (this.connection && this.connection.state === HubConnectionState.Connected) {
       this.connection.send("SendEvent", event, payload).catch(err => {
         logger.error("[WS] Failed to send message to SignalR:", err);
@@ -275,6 +319,62 @@ export class WebSocketClient {
         logger.error(`[WS] Error executing callback for event "${event}":`, err);
       }
     });
+  }
+
+  public triggerLocalEvent(event: string, data: string): void {
+    this.trigger(event, data);
+  }
+
+  public setLocalState(state: ConnectionState): void {
+    this.state = state;
+  }
+
+  private shouldProcessEvent(frame: any): boolean {
+    if (!frame) return false;
+    
+    // 1. Deduplicate by traceId
+    if (frame.traceId) {
+      if (WebSocketClient.processedTraceIds.has(frame.traceId)) {
+        return false;
+      }
+      WebSocketClient.processedTraceIds.add(frame.traceId);
+      if (WebSocketClient.processedTraceIds.size > 200) {
+        const first = WebSocketClient.processedTraceIds.values().next().value;
+        if (first !== undefined) WebSocketClient.processedTraceIds.delete(first);
+      }
+    }
+
+    const payload = typeof frame.payload === "string" ? JSON.parse(frame.payload) : frame.payload;
+    if (!payload) return false;
+
+    // 2. Self-loop / echo prevention
+    const clientId = this.clientId;
+    if (payload.senderId && payload.senderId === clientId) {
+      return false;
+    }
+
+    // 3. Profile bleeding prevention
+    const activeID = Storage.get<string | null>("activeProfileID", null);
+    if (payload.profileId && activeID && payload.profileId !== activeID) {
+      return false;
+    }
+
+    // 4. Timestamp-based expiration checks
+    if (payload.timestamp && payload.mediaId && payload.mediaType) {
+      const eventTime = new Date(payload.timestamp).getTime();
+      const key = `${frame.event}:${payload.mediaType}:${payload.mediaId}`;
+      const lastTime = WebSocketClient.lastEventTimestamps.get(key);
+      if (lastTime !== undefined && eventTime <= lastTime) {
+        return false;
+      }
+      WebSocketClient.lastEventTimestamps.set(key, eventTime);
+      if (WebSocketClient.lastEventTimestamps.size > 200) {
+        const firstKey = WebSocketClient.lastEventTimestamps.keys().next().value;
+        if (firstKey !== undefined) WebSocketClient.lastEventTimestamps.delete(firstKey);
+      }
+    }
+
+    return true;
   }
 
   public get currentState(): ConnectionState {
