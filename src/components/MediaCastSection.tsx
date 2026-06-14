@@ -4,6 +4,7 @@ import { Grid } from "./common/Grid";
 interface CastMember {
   profileSrc?: string;
   ProfileSrc?: string;
+  imageSrc?: string;
   name?: string;
   Name?: string;
   character?: string;
@@ -26,7 +27,7 @@ export const MediaCastSection: React.FC<MediaCastSectionProps> = React.memo(({ c
           <div key={i} className="cast-member-card">
             <div className="cast-photo-wrap">
               <img
-                src={c.profileSrc || c.ProfileSrc || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=64&h=64"}
+                src={c.profileSrc || c.ProfileSrc || c.imageSrc || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=64&h=64"}
                 alt={c.name || c.Name || "Actor"}
                 className="cast-photo"
               />

@@ -29,6 +29,7 @@
   .settings-container {
     grid-template-columns: 17.5rem 1fr;
     max-width: 100%;
+    margin: var(--space-m) auto 0 auto;
   }
 }
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Star } from "lucide-react";
+import { FilmOff } from "./common/FilmOff";
 import type { MediaCard } from "../network/ApiClient";
 
 // Shared singleton IntersectionObserver subscription system
@@ -39,6 +40,7 @@ interface MediaCardComponentProps {
 export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(({ item, onClick, style, delay = 0 }) => {
   const [isIntersecting, setIsIntersecting] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const cardRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
@@ -70,6 +72,7 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
   };
 
   const handleImageError = () => {
+    setHasError(true);
     setIsImageLoaded(true); // Fallback to reveal card frame if download fails
   };
 
@@ -116,15 +119,21 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
     >
       <div className="media-poster-wrap">
         {(isIntersecting || isImageLoaded) && (
-          <img
-            src={item.posterSrc || "https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?auto=format&fit=crop&w=160&h=240"}
-            className="media-poster"
-            alt={item.title}
-            loading="lazy"
-            decoding="async"
-            onLoad={handleImageLoad}
-            onError={handleImageError}
-          />
+          (item.posterSrc && !hasError) ? (
+            <img
+              src={item.posterSrc}
+              className="media-poster"
+              alt={item.title}
+              loading="lazy"
+              decoding="async"
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+            />
+          ) : (
+            <div className="media-poster-fallback-placeholder">
+              <FilmOff size={36} />
+            </div>
+          )
         )}
         
         {/* Dark bottom gradient overlay */}

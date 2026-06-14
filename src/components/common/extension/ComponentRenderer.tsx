@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
-import { Puzzle, Terminal, Sliders, Play, Bookmark, Star, Clock, Home, User, Settings } from "lucide-react";
+import * as Lucide from "lucide-react";
 import type { UIComponentSchema } from "@potok/sdk-types";
 import "../../../styles/extensions.css";
 
@@ -24,6 +24,14 @@ const formatSpacingValue = (val: any): string | undefined => {
     return val.map((v) => (typeof v === "number" ? `${v}px` : v)).join(" ");
   }
   return undefined;
+};
+
+const toPascalCase = (str: string): string => {
+  if (!str) return "";
+  return str
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join("");
 };
 
 interface ComponentRendererProps {
@@ -249,44 +257,40 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       const isActive = isSidebarItem && location.pathname.toLowerCase() === `/extensions/${pluginId.toLowerCase()}`;
 
       const btnClass = isSidebarItem
-        ? `potok-btn-sidebar-item ${isActive ? "active" : ""}`
+        ? `sidebar-nav-item ${isActive ? "active" : ""}`
         : `potok-btn potok-btn-${variant} ${variant.startsWith("btn-") ? variant : `btn-${variant}`}`;
       
+      let buttonText = componentProps.text || "";
+      if (isSidebarItem && buttonText.length > 20) {
+        buttonText = buttonText.substring(0, 17) + "...";
+      }
+
       let IconComponent = null;
       const iconName = componentProps.icon;
       if (iconName) {
-        switch (iconName) {
-          case "puzzle": IconComponent = <Puzzle size={18} />; break;
-          case "terminal": IconComponent = <Terminal size={18} />; break;
-          case "sliders": IconComponent = <Sliders size={18} />; break;
-          case "play": IconComponent = <Play size={18} />; break;
-          case "bookmark": IconComponent = <Bookmark size={18} />; break;
-          case "star": IconComponent = <Star size={18} />; break;
-          case "clock": IconComponent = <Clock size={18} />; break;
-          case "home": IconComponent = <Home size={18} />; break;
-          case "user": IconComponent = <User size={18} />; break;
-          case "settings": IconComponent = <Settings size={18} />; break;
-          default: {
-            const iconUrl = `/assets/icons/${iconName}.svg`;
-            IconComponent = (
-              <span
-                style={{
-                  display: "inline-block",
-                  width: "18px",
-                  height: "18px",
-                  backgroundColor: "currentColor",
-                  maskImage: `url(${iconUrl})`,
-                  WebkitMaskImage: `url(${iconUrl})`,
-                  maskSize: "contain",
-                  maskRepeat: "no-repeat",
-                  maskPosition: "center",
-                  WebkitMaskPosition: "center",
-                  flexShrink: 0
-                }}
-              />
-            );
-            break;
-          }
+        const pascalName = toPascalCase(iconName);
+        const DynamIcon = (Lucide as any)[pascalName] || (Lucide as any)[iconName];
+        if (DynamIcon) {
+          IconComponent = <DynamIcon size={18} />;
+        } else {
+          const iconUrl = `/assets/icons/${iconName}.svg`;
+          IconComponent = (
+            <span
+              style={{
+                display: "inline-block",
+                width: "18px",
+                height: "18px",
+                backgroundColor: "currentColor",
+                maskImage: `url(${iconUrl})`,
+                WebkitMaskImage: `url(${iconUrl})`,
+                maskSize: "contain",
+                maskRepeat: "no-repeat",
+                maskPosition: "center",
+                WebkitMaskPosition: "center",
+                flexShrink: 0
+              }}
+            />
+          );
         }
       }
 
@@ -308,7 +312,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       return (
         <button key={id} className={btnClass} disabled={componentProps.disabled} onClick={debugClick} style={baseStyle}>
           {IconComponent}
-          <span>{componentProps.text}</span>
+          <span>{buttonText}</span>
         </button>
       );
     }

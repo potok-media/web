@@ -15,6 +15,7 @@ import {
   getProxyUrl,
   normalizeStreamUrlToPath,
   updateStreamUrlParams,
+  getFileExtension,
 } from "../utils/playerHelpers";
 
 // Components
@@ -50,8 +51,13 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   // Core Playback State
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState<number>(() => {
+    const saved = localStorage.getItem("potok_player_volume");
+    return saved !== null ? Number(saved) : 0.75;
+  });
+  const [isMuted, setIsMuted] = useState<boolean>(() => {
+    return localStorage.getItem("potok_player_muted") === "true";
+  });
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [showStats, setShowStats] = useState(false);
   const [showResumeToast, setShowResumeToast] = useState(false);
@@ -245,6 +251,15 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     setIsClosed(false);
   }, [playback.streamUrl]);
 
+  // Sync volume and muted state to native video element
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.volume = volume;
+      video.muted = isMuted;
+    }
+  }, [srcResetCounter]);
+
   const playPlaylistItem = (index: number) => {
     if (!playback.playlist || index < 0 || index >= playback.playlist.length) return;
     const item = playback.playlist[index];
@@ -288,11 +303,15 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     if (!video) return;
 
     const normalizedUrl = normalizeStreamUrlToPath(playback.streamUrl);
-    const isStreamServer = normalizedUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
+    const ext = getFileExtension(normalizedUrl);
+    const isNonNative = ext ? !["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "m4a", "mpd", "m4v"].includes(ext) : false;
+
+    const isStreamServer = normalizedUrl.includes("/stream/") || normalizedUrl.includes("/torrents/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
+    const needsRemux = isStreamServer && (isNonNative || id > 0 || playback.streamUrl.includes("remux=true") || normalizedUrl.includes("remux=true"));
     const time = video ? (seekOffset > 0 ? seekOffset + video.currentTime : video.currentTime) : 0;
 
     let newUrl = "";
-    if (isStreamServer) {
+    if (needsRemux) {
       setSeekOffset(time);
       newUrl = updateStreamUrlParams(normalizedUrl, {
         remux: "true",
@@ -302,13 +321,24 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     } else {
       setSeekOffset(0);
       newUrl = playback.audios && playback.audios[id] ? playback.audios[id].url : playback.streamUrl;
+      if (isStreamServer) {
+        try {
+          const parsed = new URL(newUrl);
+          parsed.searchParams.delete("remux");
+          parsed.searchParams.delete("start");
+          parsed.searchParams.delete("audio");
+          newUrl = parsed.toString();
+        } catch {
+          newUrl = newUrl.split("?")[0];
+        }
+      }
     }
 
     if (video) {
       video.pause();
       video.src = getProxyUrl(newUrl, ApiClient.baseURL, playback.headers);
       video.play().then(() => {
-        if (!isStreamServer) video.currentTime = time;
+        if (!needsRemux) video.currentTime = time;
         syncNativeTextTracks(video);
       }).catch(() => {});
     }
@@ -322,9 +352,13 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     if (!video) return;
 
     const normalizedUrl = normalizeStreamUrlToPath(playback.streamUrl);
-    const isStreamServer = normalizedUrl.includes("/stream/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
+    const ext = getFileExtension(normalizedUrl);
+    const isNonNative = ext ? !["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "m4a", "mpd", "m4v"].includes(ext) : false;
 
-    if (isStreamServer) {
+    const isStreamServer = normalizedUrl.includes("/stream/") || normalizedUrl.includes("/torrents/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
+    const needsRemux = isStreamServer && (isNonNative || currentAudioTrack > 0 || playback.streamUrl.includes("remux=true") || normalizedUrl.includes("remux=true"));
+
+    if (needsRemux) {
       setSeekOffset(time);
       let newUrl = updateStreamUrlParams(normalizedUrl, {
         remux: "true",
@@ -432,7 +466,13 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
         onCanPlay={() => setIsMetadataLoading(false)}
         onPause={() => setIsPlaying(false)}
         onDurationChange={(e) => setDuration(e.currentTarget.duration)}
-        onVolumeChange={(e) => { setVolume(e.currentTarget.volume); setIsMuted(e.currentTarget.muted); }}
+        onVolumeChange={(e) => {
+          const video = e.currentTarget;
+          setVolume(video.volume);
+          setIsMuted(video.muted);
+          localStorage.setItem("potok_player_volume", video.volume.toString());
+          localStorage.setItem("potok_player_muted", video.muted.toString());
+        }}
         onError={handleVideoError}
         onEnded={handleEnded}
         autoPlay

@@ -67,9 +67,9 @@ class HttpProxyThrottleManager {
                 finalUrl = rawUrl;
               }
             } else if (url.startsWith("/api/")) {
-              const gatewayBase = activeProfile?.gatewayURL 
-                ? (activeProfile.gatewayURL.endsWith("/") ? activeProfile.gatewayURL.slice(0, -1) : activeProfile.gatewayURL)
-                : "";
+              const gatewayBase = (activeProfile?.gatewayURL || ApiClient.baseURL || "")
+                .trim()
+                .replace(/\/+$/, "");
               
               let absoluteGateway = gatewayBase;
               if (absoluteGateway && !/^https?:\/\//i.test(absoluteGateway)) {

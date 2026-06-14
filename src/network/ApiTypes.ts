@@ -167,6 +167,7 @@ export interface CastMember {
   role?: string;
   profileSrc?: string;
   ProfileSrc?: string;
+  imageSrc?: string;
 }
 
 export interface AuthRequest {

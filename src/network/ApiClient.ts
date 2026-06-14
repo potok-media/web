@@ -2,6 +2,7 @@ import { Storage } from "../utils/StorageService";
 import { SyncApiClient } from "./SyncApiClient";
 import { ApiError } from "./ApiTypes";
 import { getEnv } from "../utils/EnvService";
+import { webSocketClient } from "./WebSocketClient";
 import type { ExtensionManifest } from "@potok/sdk-types";
 import type {
   ServiceInfo,
@@ -161,7 +162,13 @@ export class ApiClient {
   public static get headers(): HeadersInit {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      "X-Client-Id": webSocketClient.clientId,
     };
+    const defaultProfs = this.getDefaultProfiles();
+    const activeProfileID = Storage.get<string | null>("activeProfileID", this.isSettingsLocked ? defaultProfs[0].id : null);
+    if (activeProfileID) {
+      headers["X-Profile-Id"] = activeProfileID;
+    }
     const potokToken = Storage.get<string | null>("potokToken", null);
     if (potokToken) {
       headers["Authorization"] = `Bearer ${potokToken}`;

@@ -27,6 +27,8 @@ export interface PlaylistItem {
 export interface ActivePlayback {
   streamUrl: string;
   title: string;
+  originalTitle?: string;
+  englishTitle?: string;
   mediaType: "movie" | "tv";
   id: number;
   season?: number;
@@ -737,6 +739,80 @@ export interface PlaybackContextType {
 
 export const PlaybackContext = createContext<PlaybackContextType | undefined>(undefined);
 
+function transliterate(word: string): string {
+  const converter: Record<string, string> = {
+    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e', 'ж': 'zh', 'з': 'z',
+    'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r',
+    'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'h', 'ц': 'c', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+    'ь': '', 'ы': 'y', 'ъ': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
+    'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'E', 'Ж': 'Zh', 'З': 'Z',
+    'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N', 'О': 'O', 'П': 'P', 'Р': 'R',
+    'С': 'S', 'Т': 'T', 'У': 'U', 'Ф': 'F', 'Х': 'H', 'Ц': 'C', 'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Sch',
+    'Ь': '', 'Ы': 'Y', 'Ъ': '', 'Э': 'E', 'Ю': 'Yu', 'Я': 'Ya'
+  };
+
+  return word.split('').map(char => converter[char] !== undefined ? converter[char] : char).join('');
+}
+
+function cleanStreamUrlForExternalPlayer(playback: ActivePlayback): string {
+  let url = playback.streamUrl;
+
+  // 1. Remove all query parameters (like ?remux=true)
+  const queryIndex = url.indexOf("?");
+  if (queryIndex !== -1) {
+    url = url.substring(0, queryIndex);
+  }
+
+  // 2. Extract original filename and path base
+  const lastSlashIndex = url.lastIndexOf("/");
+  if (lastSlashIndex === -1) {
+    return url;
+  }
+
+  const basePath = url.substring(0, lastSlashIndex + 1);
+  const originalFilename = url.substring(lastSlashIndex + 1);
+
+  // Extract extension
+  const extMatch = originalFilename.match(/\.([a-zA-Z0-9]{2,5})$/);
+  const ext = extMatch ? extMatch[1] : "mp4";
+
+  // 3. Construct clean filename: {EnglishTitle}.{SnEn}.{tmdb-nnn}.{ext}
+  let englishTitle = playback.englishTitle || playback.originalTitle || playback.title || "";
+  
+  // Clean englishTitle: replace spaces and special characters with dots
+  englishTitle = transliterate(englishTitle);
+  englishTitle = englishTitle
+    .replace(/[^a-zA-Z0-9\s.\-_]/g, "") // Keep alphanumeric, spaces, dots, hyphens, underscores
+    .trim()
+    .replace(/[\s\-_]+/g, ".") // Replace spaces/hyphens/underscores with dots
+    .replace(/\.+/g, "."); // Clean double dots
+
+  // Remove leading/trailing dots
+  englishTitle = englishTitle.replace(/^\.+|\.+$/g, "");
+
+  if (!englishTitle) {
+    englishTitle = "Video";
+  }
+
+  // Format {SnEn}
+  let snEn = "";
+  if (playback.mediaType === "tv") {
+    const s = playback.season !== undefined ? playback.season : 1;
+    const e = playback.episode !== undefined ? playback.episode : 1;
+    const sStr = String(s).padStart(2, "0");
+    const eStr = String(e).padStart(2, "0");
+    snEn = `S${sStr}E${eStr}.`;
+  }
+
+  // Format {tmdb-nnn}
+  const tmdbStr = playback.id ? `{tmdb-${playback.id}}.` : "";
+
+  // Combine: {EnglishTitle}.{SnEn}.{tmdb-nnn}.{ext}
+  const cleanFilename = `${englishTitle}.${snEn}${tmdbStr}${ext}`;
+
+  return basePath + cleanFilename;
+}
+
 export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { defaultPlayer } = useSettings();
   const { potokToken } = useAuth();
@@ -747,7 +823,8 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const playVideo = useCallback((playback: ActivePlayback) => {
     if (defaultPlayer === "infuse") {
       try {
-        const encodedUrl = encodeURIComponent(playback.streamUrl);
+        const cleanedUrl = cleanStreamUrlForExternalPlayer(playback);
+        const encodedUrl = encodeURIComponent(cleanedUrl);
         const triggerUrl = `infuse://x-callback-url/play?url=${encodedUrl}`;
         const iframe = document.createElement("iframe");
         iframe.style.display = "none";

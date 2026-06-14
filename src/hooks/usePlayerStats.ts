@@ -74,8 +74,7 @@ export function usePlayerStats(
       } else if (streamHash) {
         // PlayerServer direct download speed (Bytes/sec -> MB/s)
         const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
-        const apiPath = ["/api/", "tor", "rent/status/"].join("");
-        fetch(`${cleanBase}${apiPath}${streamHash.toLowerCase()}`)
+        fetch(`${cleanBase}/api/torrents/${streamHash.toLowerCase()}`)
           .then((res) => res.json())
           .then((data) => {
             if (data && typeof data.downloadSpeed === "number") {

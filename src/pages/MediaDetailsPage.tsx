@@ -8,6 +8,7 @@ import { SeasonEpisodesSection } from "../components/SeasonEpisodesSection";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { MediaOverviewSection } from "../components/MediaOverviewSection";
 import { MediaCastSection } from "../components/MediaCastSection";
+import { EpisodeMultiPickerModal } from "../components/EpisodeMultiPickerModal";
 import type { TvEpisode, MediaCard } from "../network/ApiTypes";
 import "../styles/media.css";
 
@@ -28,6 +29,7 @@ export const MediaDetailsPage: React.FC = () => {
 
   const mediaRef = useRef<MediaCard | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<SelectedEpisodeState | null>(null);
+  const [isMultiPickerOpen, setIsMultiPickerOpen] = useState(false);
 
   const handleNavigateToStreams = useCallback((tab?: string, season?: number, episode?: number) => {
     const path = tab 
@@ -52,6 +54,9 @@ export const MediaDetailsPage: React.FC = () => {
     toggleWatchlist,
     toggleFavorite,
     toggleWatched,
+    toggleEpisodeWatched,
+    toggleSeasonWatched,
+    saveEpisodeSelection,
     refetch,
   } = useMediaDetails({
     mediaType,
@@ -164,6 +169,20 @@ export const MediaDetailsPage: React.FC = () => {
               onEpisodeClick={(ep, seasonNum) => {
                 setSelectedEpisode({ episode: ep, seasonNumber: seasonNum });
               }}
+              watchedEpisodes={media.progress?.watchedEpisodes || []}
+              toggleEpisodeWatched={toggleEpisodeWatched}
+              toggleSeasonWatched={toggleSeasonWatched}
+              onOpenMultiPicker={() => setIsMultiPickerOpen(true)}
+            />
+
+            <EpisodeMultiPickerModal
+              isOpen={isMultiPickerOpen}
+              onClose={() => setIsMultiPickerOpen(false)}
+              mediaId={media.id}
+              mediaTitle={media.title}
+              numberOfSeasons={media.numberOfSeasons}
+              initialSelected={media.progress?.watchedEpisodes || []}
+              onSave={saveEpisodeSelection}
             />
           </div>
         )}

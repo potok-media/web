@@ -1,34 +1,22 @@
+import { HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel } from "@microsoft/signalr";
 import { logger } from "../utils/logger";
+import { Storage } from "../utils/StorageService";
 
 type WSCallback = (data: string) => void;
-
-interface WSMessageFrame {
-  event: string;
-  payload: string;
-  timestamp: string;
-  version: string;
-  traceId: string;
-}
 
 export type ConnectionState = "DISCONNECTED" | "CONNECTING" | "CONNECTED" | "RECONNECTING";
 
 export class WebSocketClient {
   private static instance: WebSocketClient | null = null;
-  private socket: WebSocket | null = null;
-  private currentUrl: string | null = null;
+  private connection: HubConnection | null = null;
   private rawUrl: string | null = null;
   private listeners: Record<string, Set<WSCallback>> = {};
   
   // Strict ConnectionState machine
   private state: ConnectionState = "DISCONNECTED";
-  // Single AbortController to manage events
-  private abortController: AbortController | null = null;
-
-  // Reconnection state
+  private reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private retryCount = 0;
   private maxRetryDelay = 30000;
-  private reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  private pingIntervalId: ReturnType<typeof setInterval> | null = null;
 
   public static get shared(): WebSocketClient {
     if (!this.instance) {
@@ -37,38 +25,34 @@ export class WebSocketClient {
     return this.instance;
   }
 
+  public get clientId(): string {
+    if (typeof window === "undefined") return "";
+    let id = sessionStorage.getItem("potok_client_id");
+    if (!id) {
+      id = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36);
+      sessionStorage.setItem("potok_client_id", id);
+    }
+    return id;
+  }
+
   private constructor() {
     // Proactively listen to browser network state changes
     if (typeof window !== "undefined") {
       window.addEventListener("online", () => {
-        logger.log("[WS] Browser went online. Proactively reconnecting WebSocket...");
-        this.reconnect(true);
+        logger.log("[WS] Browser went online. Reconnecting SignalR...");
+        this.reconnect();
       });
 
       window.addEventListener("offline", () => {
-        logger.log("[WS] Browser went offline. Proactively clearing timers and closing WebSocket...");
-        if (this.reconnectTimeoutId) {
-          clearTimeout(this.reconnectTimeoutId);
-          this.reconnectTimeoutId = null;
-        }
-        this.stopPingInterval();
-        if (this.socket) {
-          try {
-            this.socket.onclose = null;
-            this.socket.close(1000, "Normal closure");
-          } catch (err) {
-            // ignore
-          }
-          this.socket = null;
-        }
-        this.transitionTo("DISCONNECTED");
+        logger.log("[WS] Browser went offline. Stopping SignalR...");
+        this.stopListening();
       });
 
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {
-          logger.log("[WS] Tab became visible. Re-validating WebSocket state...");
-          if (!this.socket || this.socket.readyState === WebSocket.CLOSED) {
-            this.reconnect(true);
+          logger.log("[WS] Tab became visible. Checking SignalR state...");
+          if (!this.connection || this.connection.state === HubConnectionState.Disconnected) {
+            this.reconnect();
           }
         }
       });
@@ -78,26 +62,6 @@ export class WebSocketClient {
   private transitionTo(newState: ConnectionState): void {
     logger.log(`[WS] State transition: ${this.state} -> ${newState}`);
     this.state = newState;
-  }
-
-  private startPingInterval(): void {
-    this.stopPingInterval();
-    this.pingIntervalId = setInterval(() => {
-      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-        try {
-          this.socket.send(JSON.stringify({ event: "ping", payload: "" }));
-        } catch (e) {
-          logger.error("[WS] Failed to send ping:", e);
-        }
-      }
-    }, 15000);
-  }
-
-  private stopPingInterval(): void {
-    if (this.pingIntervalId) {
-      clearInterval(this.pingIntervalId);
-      this.pingIntervalId = null;
-    }
   }
 
   public subscribe(event: string, callback: WSCallback): () => void {
@@ -121,105 +85,119 @@ export class WebSocketClient {
       return;
     }
     this.rawUrl = rawUrl;
-
-    // Convert HTTP schema to WS/WSS schema
-    let wsUrl = rawUrl.trim().replace(/\/$/, "");
-    if (wsUrl.startsWith("https://")) {
-      wsUrl = wsUrl.replace("https://", "wss://");
-    } else if (wsUrl.startsWith("http://")) {
-      wsUrl = wsUrl.replace("http://", "ws://");
-    } else {
-      // Fallback protocol-less address
-      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      wsUrl = `${protocol}//${wsUrl}`;
-    }
-
-    const fullUrl = `${wsUrl}/api/events`;
-
-    // Avoid duplicating exact same active socket
-    if (this.socket) {
-      if (this.currentUrl === fullUrl && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
-        return;
-      }
-      this.stopListening();
-    }
-
-    this.currentUrl = fullUrl;
     this.connect();
   }
 
-  private connect(): void {
-    if (!this.currentUrl || this.state === "CONNECTING" || this.state === "CONNECTED") return;
+  private getFullUrl(): string {
+    if (!this.rawUrl) return "";
+    
+    let wsUrl = this.rawUrl.trim().replace(/\/$/, "");
+    if (wsUrl.startsWith("//")) {
+      const cleaned = wsUrl.replace(/^\/+/, "");
+      const protocol = window.location.protocol === "https:" ? "https:" : "http:";
+      wsUrl = `${protocol}//${cleaned}`;
+    } else if (wsUrl.startsWith("wss://")) {
+      wsUrl = wsUrl.replace("wss://", "https://");
+    } else if (wsUrl.startsWith("ws://")) {
+      wsUrl = wsUrl.replace("ws://", "http://");
+    } else if (!wsUrl.startsWith("http://") && !wsUrl.startsWith("https://")) {
+      const protocol = window.location.protocol === "https:" ? "https:" : "http:";
+      wsUrl = `${protocol}//${wsUrl}`;
+    }
+
+    let fullUrl = `${wsUrl}/api/events`;
+    fullUrl = fullUrl.replace(/([^:]\/)\/+/g, "$1");
+    return fullUrl;
+  }
+
+  private async connect(): Promise<void> {
+    if (!this.rawUrl) return;
+    if (this.connection && (this.connection.state === HubConnectionState.Connected || this.connection.state === HubConnectionState.Connecting)) {
+      return;
+    }
+
     this.transitionTo("CONNECTING");
+    const fullUrl = this.getFullUrl();
 
-    logger.log(`[WS] Connecting to WebSocket at ${this.currentUrl}...`);
+    logger.log(`[WS] Connecting to SignalR Hub at: ${fullUrl}`);
 
-    if (this.socket) {
+    if (this.connection) {
       try {
-        this.socket.onclose = null;
-        this.socket.close(1000, "Normal closure");
+        await this.connection.stop();
       } catch (err) {
-        logger.error("[WS] Failed to close WebSocket before reconnecting:", err);
+        logger.error("[WS] Error stopping existing SignalR connection:", err);
       }
-      this.socket = null;
+      this.connection = null;
     }
 
-    // Clean up previous abortController if any
-    if (this.abortController) {
-      this.abortController.abort();
-    }
-    this.abortController = new AbortController();
-    const { signal } = this.abortController;
+    this.connection = new HubConnectionBuilder()
+      .withUrl(fullUrl, {
+        accessTokenFactory: () => {
+          const token = Storage.get<string | null>("potokToken", null);
+          return token || "";
+        }
+      })
+      .withAutomaticReconnect({
+        nextRetryDelayInMilliseconds: retryContext => {
+          const jitter = Math.floor(Math.random() * 1500);
+          const delay = Math.min(Math.pow(2, retryContext.previousRetryCount) * 1000, 30000) + jitter;
+          logger.log(`[WS] SignalR reconnect attempt #${retryContext.previousRetryCount + 1} in ${delay}ms...`);
+          return delay;
+        }
+      })
+      .configureLogging(LogLevel.Warning)
+      .build();
+
+    this.connection.on("ReceiveEvent", (frame: any) => {
+      try {
+        if (!frame || !frame.event) return;
+        logger.log(`[WS] Event: ${frame.event} [TraceId: ${frame.traceId}]`);
+        this.trigger(frame.event, typeof frame.payload === "string" ? frame.payload : JSON.stringify(frame.payload));
+      } catch (err) {
+        logger.error("[WS] Error processing ReceiveEvent frame:", err, frame);
+      }
+    });
+
+    this.connection.onreconnecting((error) => {
+      logger.warn("[WS] SignalR connection lost. Reconnecting...", error);
+      this.transitionTo("RECONNECTING");
+      this.trigger("offline", "");
+    });
+
+    this.connection.onreconnected((connectionId) => {
+      logger.log("[WS] SignalR connection re-established. Connection ID:", connectionId);
+      this.transitionTo("CONNECTED");
+      this.trigger("connected", "");
+    });
+
+    this.connection.onclose((error) => {
+      logger.warn("[WS] SignalR connection closed.", error);
+      this.transitionTo("DISCONNECTED");
+      this.trigger("offline", "");
+    });
 
     try {
-      const ws = new WebSocket(this.currentUrl);
-      this.socket = ws;
+      await this.connection.start();
+      logger.log("[WS] SignalR connected successfully!");
+      this.transitionTo("CONNECTED");
+      this.retryCount = 0;
+      if (this.reconnectTimeoutId) {
+        clearTimeout(this.reconnectTimeoutId);
+        this.reconnectTimeoutId = null;
+      }
+      this.trigger("connected", "");
+    } catch (err) {
+      logger.error("[WS] SignalR connection failed to start:", err);
+      this.transitionTo("DISCONNECTED");
+      this.trigger("offline", "");
+      
+      if (window.location.protocol === "https:" && fullUrl.startsWith("http://")) {
+        logger.error(
+          "[WS] SSL Mismatch: Insecure connection blocked on HTTPS origin."
+        );
+        this.trigger("error:ssl_mismatch", "SSL Mismatch: Insecure connection blocked on HTTPS page.");
+      }
 
-      ws.addEventListener("open", () => {
-        if (signal.aborted) return;
-        logger.log("[WS] WebSocket connected successfully!");
-        this.transitionTo("CONNECTED");
-        this.retryCount = 0;
-        this.trigger("connected", "");
-        this.startPingInterval();
-      }, { signal });
-
-      ws.addEventListener("message", (event: MessageEvent) => {
-        if (signal.aborted) return;
-        try {
-          const frame: WSMessageFrame = JSON.parse(event.data);
-          logger.log(`[WS] Event: ${frame.event} [TraceId: ${frame.traceId}]`);
-          this.trigger(frame.event, frame.payload);
-        } catch (err) {
-          logger.warn("[WS] Received raw frame that failed parser schema validation:", event.data, err);
-          this.trigger("message", event.data);
-        }
-      }, { signal });
-
-      ws.addEventListener("error", () => {
-        if (signal.aborted) return;
-        logger.warn("[WS] Connection encountered an error.");
-      }, { signal });
-
-      ws.addEventListener("close", (event) => {
-        if (signal.aborted) return;
-        this.socket = null;
-        this.stopPingInterval();
-        this.trigger("offline", "");
-        
-        if (event.wasClean) {
-          logger.log("[WS] Connection closed cleanly by client or host.");
-          this.transitionTo("DISCONNECTED");
-        } else {
-          logger.warn("[WS] Connection lost abruptly. Scheduling auto-reconnect...");
-          this.transitionTo("RECONNECTING");
-          this.scheduleReconnect();
-        }
-      }, { signal });
-    } catch (e) {
-      this.socket = null;
-      logger.error("[WS] Connection attempt threw synchronous exception:", e);
-      this.transitionTo("RECONNECTING");
       this.scheduleReconnect();
     }
   }
@@ -229,14 +207,14 @@ export class WebSocketClient {
       clearTimeout(this.reconnectTimeoutId);
     }
 
-    if (navigator.onLine === false) {
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
       logger.log("[WS] Network is currently down. Delaying reconnect until browser is online.");
       return;
     }
 
-    // Exponential Backoff retry delay
-    const delay = Math.min(Math.pow(2, this.retryCount) * 1000, this.maxRetryDelay);
-    logger.log(`[WS] Scheduling reconnect attempt #${this.retryCount + 1} in ${delay}ms...`);
+    const jitter = Math.floor(Math.random() * 1500);
+    const delay = Math.min(Math.pow(2, this.retryCount) * 1000, this.maxRetryDelay) + jitter;
+    logger.log(`[WS] Scheduling initial connection retry #${this.retryCount + 1} in ${delay}ms...`);
     
     this.reconnectTimeoutId = setTimeout(() => {
       this.retryCount++;
@@ -249,44 +227,44 @@ export class WebSocketClient {
       clearTimeout(this.reconnectTimeoutId);
       this.reconnectTimeoutId = null;
     }
-    
     if (force) {
       this.transitionTo("DISCONNECTED");
       this.retryCount = 0;
     }
-
     if (this.rawUrl) {
-      this.startListening(this.rawUrl);
+      this.connect();
     }
   }
 
-  public stopListening(): void {
+  public async stopListening(): Promise<void> {
     if (this.reconnectTimeoutId) {
       clearTimeout(this.reconnectTimeoutId);
       this.reconnectTimeoutId = null;
     }
-
-    this.stopPingInterval();
-
-    if (this.abortController) {
-      this.abortController.abort();
-      this.abortController = null;
-    }
-
-    if (this.socket) {
-      try {
-        this.socket.onclose = null;
-        this.socket.close(1000, "Normal closure");
-      } catch (err) {
-        logger.error("[WS] Failed to close WebSocket cleanly:", err);
-      }
-      this.socket = null;
-    }
-
-    this.currentUrl = null;
     this.retryCount = 0;
+
+    if (this.connection) {
+      const conn = this.connection;
+      this.connection = null;
+      try {
+        await conn.stop();
+      } catch (err) {
+        logger.error("[WS] Error stopping SignalR connection cleanly:", err);
+      }
+    }
     this.transitionTo("DISCONNECTED");
-    logger.log("[WS] WebSocket listener stopped completely.");
+    this.trigger("offline", "");
+    logger.log("[WS] SignalR listener stopped completely.");
+  }
+
+  public send(event: string, payload: any): void {
+    if (this.connection && this.connection.state === HubConnectionState.Connected) {
+      this.connection.send("SendEvent", event, payload).catch(err => {
+        logger.error("[WS] Failed to send message to SignalR:", err);
+      });
+    } else {
+      logger.warn("[WS] Cannot send message: SignalR is not connected.");
+    }
   }
 
   private trigger(event: string, data: string): void {

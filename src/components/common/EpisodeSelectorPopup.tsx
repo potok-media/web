@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Play, Check, CheckCircle2, ArrowLeft, Pencil, ListVideo, MoreHorizontal } from "lucide-react";
+import { FilmOff } from "./FilmOff";
 
 export interface GenericEpisodeItem {
   id: string;
@@ -412,10 +413,12 @@ const EpisodeOverridePicker: React.FC<EpisodeOverridePickerProps> = React.memo((
                           src={epStill}
                           alt={epName}
                           className="episode-card-image"
-                           loading="lazy"
+                          loading="lazy"
                         />
                       ) : (
-                        <div className="picker-card-placeholder" />
+                        <div className="episode-still-fallback-placeholder">
+                          <FilmOff size={28} />
+                        </div>
                       )}
                       <span className="episode-card-badge">{epNum}</span>
                     </div>

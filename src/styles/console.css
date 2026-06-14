@@ -215,6 +215,14 @@
   background: rgba(255, 255, 255, 0.02);
 }
 
+.log-meta {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .log-time {
   color: rgba(255, 255, 255, 0.3);
   flex-shrink: 0;
@@ -272,6 +280,18 @@
 }
 
 @media (max-width: 600px) {
+  .console-line {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding: 6px 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  }
+
+  .log-msg {
+    padding-left: 2px;
+  }
+
   .console-toolbar {
     flex-direction: column;
     align-items: stretch;

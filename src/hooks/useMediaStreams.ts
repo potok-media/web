@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useHUD } from "../context/HUDContext";
 import { usePlayback } from "../context/AppSettingsContext";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
@@ -29,12 +30,58 @@ interface UseMediaStreamsParams {
 export function useMediaStreams({ mediaType, mediaId, season, episode, initialMedia, activeTab: activeTabParam }: UseMediaStreamsParams) {
   const { show: showHUD } = useHUD();
   const { playVideo } = usePlayback();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const [clickedStream, setClickedStream] = useState<RawStreamPayload | null>(null);
   const shouldForceNextSearchRef = useRef(false);
   const [episodeSelectorData, setEpisodeSelectorData] = useState<{
     title: string; episodes: GenericEpisodeItem[]; tmdbSeasonsCount: number;
   } | null>(null);
+
+  const hasPopupParam = searchParams.get("popup") === "true";
+
+  useEffect(() => {
+    if (hasPopupParam) {
+      if (!clickedStream || !episodeSelectorData) {
+        try {
+          const savedStream = sessionStorage.getItem("potok_popup_stream");
+          const savedData = sessionStorage.getItem("potok_popup_data");
+          if (savedStream && savedData) {
+            setClickedStream(JSON.parse(savedStream));
+            setEpisodeSelectorData(JSON.parse(savedData));
+          } else {
+            setSearchParams(prev => {
+              const next = new URLSearchParams(prev);
+              next.delete("popup");
+              return next;
+            }, { replace: true });
+          }
+        } catch (e) {
+          logger.error("Failed to restore popup state from sessionStorage", e);
+        }
+      }
+    } else {
+      if (clickedStream || episodeSelectorData) {
+        setClickedStream(null);
+        setEpisodeSelectorData(null);
+        sessionStorage.removeItem("potok_popup_stream");
+        sessionStorage.removeItem("potok_popup_data");
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasPopupParam]);
+
+  const handleClosePopup = useCallback(() => {
+    if (searchParams.get("popup") === "true") {
+      navigate(-1);
+    } else {
+      setEpisodeSelectorData(null);
+      setClickedStream(null);
+      sessionStorage.removeItem("potok_popup_stream");
+      sessionStorage.removeItem("potok_popup_data");
+    }
+  }, [searchParams, navigate]);
 
   const [remoteHistory, setRemoteHistory] = useState<UserHistoryEntry[]>([]);
 
@@ -253,6 +300,8 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
           playVideo({
             streamUrl: info.streamUrl,
             title: info.title || currentMedia?.title || "",
+            originalTitle: currentMedia?.originalTitle || currentMedia?.title || "",
+            englishTitle: currentMedia?.englishTitle || "",
             mediaType: "movie",
             id: mediaId,
             season: undefined,
@@ -284,6 +333,8 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
                 playVideo({
                   streamUrl: info.streamUrl,
                   title: info.title || currentMedia?.title || "",
+                  originalTitle: currentMedia?.originalTitle || currentMedia?.title || "",
+                  englishTitle: currentMedia?.englishTitle || "",
                   mediaType: mediaType as "movie" | "tv",
                   id: mediaId,
                   season: mediaType === "tv" ? singleEp.season : undefined,
@@ -299,17 +350,26 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
               });
           } else {
             // Multiple files: show files list selector popup
-            setEpisodeSelectorData({
+            const data = {
               title: stream.title || (mediaType === "movie" ? "Выбор файла" : "Выбор серии"),
               episodes: mapEpisodesWithWatched(eps),
               tmdbSeasonsCount: res.tmdbSeasonsCount || currentMedia?.numberOfSeasons || 1,
+            };
+            sessionStorage.setItem("potok_popup_stream", JSON.stringify(stream));
+            sessionStorage.setItem("potok_popup_data", JSON.stringify(data));
+            setClickedStream(stream);
+            setEpisodeSelectorData(data);
+            setSearchParams(prev => {
+              const next = new URLSearchParams(prev);
+              next.set("popup", "true");
+              return next;
             });
           }
         })
         .catch(handleOnError)
         .finally(() => setActionLoading(false));
     }
-  }, [activeSource, mediaType, context, mediaId, currentMedia, playVideo, handleOnError, season, episode, mapEpisodesWithWatched]);
+  }, [activeSource, mediaType, context, mediaId, currentMedia, playVideo, handleOnError, season, episode, mapEpisodesWithWatched, setSearchParams]);
 
   const handlePlayEpisode = useCallback((ep: GenericEpisodeItem) => {
     if (!activeSource || !clickedStream) return;
@@ -333,6 +393,8 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
         playVideo({
           streamUrl: info.streamUrl,
           title: info.title || currentMedia?.title || "",
+          originalTitle: currentMedia?.originalTitle || currentMedia?.title || "",
+          englishTitle: currentMedia?.englishTitle || "",
           mediaType: mediaType as "movie" | "tv",
           id: mediaId,
           season: mediaType === "tv" ? ep.season : undefined,
@@ -367,10 +429,14 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
     setIsSaving(true);
     ExtensionRegistry.sendSandboxRequest<void>(activeSource.pluginId, "STREAM_SOURCE_SAVE_OVERRIDE", { stream: clickedStream, context, seasonNum, episodeOffset: offset })
       .then(() => ExtensionRegistry.sendSandboxRequest<{ episodes: StreamEpisode[]; tmdbSeasonsCount: number }>(activeSource.pluginId, "STREAM_SOURCE_GET_EPISODES", { stream: clickedStream, context }))
-      .then((res) => setEpisodeSelectorData({
-        title: clickedStream.title || "Выбор серии", episodes: mapEpisodesWithWatched(res.episodes || []),
-        tmdbSeasonsCount: res.tmdbSeasonsCount || currentMedia?.numberOfSeasons || 1,
-      }))
+      .then((res) => {
+        const data = {
+          title: clickedStream.title || "Выбор серии", episodes: mapEpisodesWithWatched(res.episodes || []),
+          tmdbSeasonsCount: res.tmdbSeasonsCount || currentMedia?.numberOfSeasons || 1,
+        };
+        sessionStorage.setItem("potok_popup_data", JSON.stringify(data));
+        setEpisodeSelectorData(data);
+      })
       .catch(handleOnError)
       .finally(() => setIsSaving(false));
   }, [activeSource, clickedStream, context, currentMedia, handleOnError, mapEpisodesWithWatched]);
@@ -379,5 +445,6 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
     loadingMediaDetails, currentMedia, sources, activeTab, setActiveTab, streams, loading, error, handleRefresh,
     handleSelectStream, clickedStream, setClickedStream, episodeSelectorData, setEpisodeSelectorData,
     handlePlayEpisode, handleStartEditing, handleApplyOverride, seasons, seasonsLoading, isSaving, actionLoading,
+    handleClosePopup,
   };
 }

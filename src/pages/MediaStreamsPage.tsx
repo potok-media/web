@@ -29,9 +29,8 @@ export const MediaStreamsPage: React.FC = () => {
     handleRefresh,
     handleSelectStream,
     clickedStream,
-    setClickedStream,
     episodeSelectorData,
-    setEpisodeSelectorData,
+    handleClosePopup,
     handlePlayEpisode,
     handleStartEditing,
     handleApplyOverride,
@@ -80,10 +79,7 @@ export const MediaStreamsPage: React.FC = () => {
     return (
       <EpisodeSelectorPopup
         isOpen={!!episodeSelectorData}
-        onClose={() => {
-          setEpisodeSelectorData(null);
-          setClickedStream(null);
-        }}
+        onClose={handleClosePopup}
         title={episodeSelectorData.title}
         episodes={episodeSelectorData.episodes}
         onPlay={handlePlayEpisode}

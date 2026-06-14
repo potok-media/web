@@ -244,4 +244,68 @@ export class SyncApiClient {
       await ApiClient.syncTraktAction("watchlist/remove", payload);
     }
   }
+
+  public static async saveSyncBulkProgress(
+    tmdbId: string,
+    mediaType: string,
+    changes: { seasonNumber: number; episodeNumber: number; isWatched: boolean }[]
+  ): Promise<void> {
+    if (this.syncStrategy === "server") {
+      const res = await fetch(`${ApiClient.baseURL}/api/sync/history/bulk-progress`, {
+        method: "POST",
+        headers: ApiClient.headers,
+        body: JSON.stringify({
+          tmdbId,
+          mediaType,
+          changes,
+        }),
+      });
+      if (!res.ok) throw new Error(`Failed to save bulk progress on server (Status ${res.status})`);
+    } else {
+      const toAdd = changes.filter(c => c.isWatched);
+      const toRemove = changes.filter(c => !c.isWatched);
+
+      if (toAdd.length > 0) {
+        const seasonMap: Record<number, number[]> = {};
+        for (const item of toAdd) {
+          if (!seasonMap[item.seasonNumber]) seasonMap[item.seasonNumber] = [];
+          seasonMap[item.seasonNumber].push(item.episodeNumber);
+        }
+        const seasons = Object.keys(seasonMap).map(Number).map(sNum => ({
+          number: sNum,
+          episodes: seasonMap[sNum].map(eNum => ({ number: eNum }))
+        }));
+        const payload = {
+          movies: [],
+          shows: [{
+            ids: { tmdb: Number(tmdbId) },
+            seasons
+          }],
+          episodes: []
+        };
+        await ApiClient.syncTraktAction("history", payload);
+      }
+
+      if (toRemove.length > 0) {
+        const seasonMap: Record<number, number[]> = {};
+        for (const item of toRemove) {
+          if (!seasonMap[item.seasonNumber]) seasonMap[item.seasonNumber] = [];
+          seasonMap[item.seasonNumber].push(item.episodeNumber);
+        }
+        const seasons = Object.keys(seasonMap).map(Number).map(sNum => ({
+          number: sNum,
+          episodes: seasonMap[sNum].map(eNum => ({ number: eNum }))
+        }));
+        const payload = {
+          movies: [],
+          shows: [{
+            ids: { tmdb: Number(tmdbId) },
+            seasons
+          }],
+          episodes: []
+        };
+        await ApiClient.syncTraktAction("history/remove", payload);
+      }
+    }
+  }
 }

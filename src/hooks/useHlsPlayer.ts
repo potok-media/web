@@ -109,7 +109,8 @@ export function useHlsPlayer({
     }
 
     let finalStreamUrl = normalizedUrl;
-    if (isStreamServer) {
+    const needsRemux = isStreamServer && (isNonNative || currentAudioTrack > 0 || playback.streamUrl.includes("remux=true") || normalizedUrl.includes("remux=true"));
+    if (needsRemux) {
       finalStreamUrl = updateStreamUrlParams(normalizedUrl, {
         remux: "true",
         start: Math.floor(startPos).toString(),
@@ -118,6 +119,17 @@ export function useHlsPlayer({
       setSeekOffset(startPos);
     } else {
       setSeekOffset(0);
+      if (isStreamServer) {
+        try {
+          const parsed = new URL(normalizedUrl);
+          parsed.searchParams.delete("remux");
+          parsed.searchParams.delete("start");
+          parsed.searchParams.delete("audio");
+          finalStreamUrl = parsed.toString();
+        } catch {
+          finalStreamUrl = normalizedUrl.split("?")[0];
+        }
+      }
     }
 
     const gatewayBase = ApiClient.baseURL;
@@ -206,7 +218,7 @@ export function useHlsPlayer({
 
       const handleLoadedMetadata = () => {
         if (playerSessionRef.current !== sessionId) return;
-        if (!isStreamServer && startPos > 0) {
+        if (startPos > 0) {
           video.currentTime = startPos;
         }
         setIsMetadataLoading(false);

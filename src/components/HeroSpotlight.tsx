@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Info, Plus, Check } from "lucide-react";
 import type { HeroItem } from "../network/ApiTypes";
@@ -21,6 +21,17 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
   const [inWatchlist, setInWatchlist] = useState(card?.isInWatchlist || false);
   const { show: showHUD } = useHUD();
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const hasFocusRef = useRef(false);
+
+  const changeActiveIndex = (newIndex: number | ((prev: number) => number)) => {
+    const hadFocus = containerRef.current?.contains(document.activeElement);
+    if (hadFocus) {
+      hasFocusRef.current = true;
+    }
+    setActiveIndex(newIndex);
+  };
+
   useEffect(() => {
     if (card) {
       setInWatchlist(card.isInWatchlist || false);
@@ -32,11 +43,21 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
     if (heroItems.length <= 1) return;
 
     const interval = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % heroItems.length);
+      changeActiveIndex((prev) => (prev + 1) % heroItems.length);
     }, 15000); // 15 seconds slide duration
 
     return () => clearInterval(interval);
   }, [activeIndex, heroItems.length]);
+
+  useEffect(() => {
+    if (hasFocusRef.current) {
+      const detailsBtn = containerRef.current?.querySelector<HTMLAnchorElement>(".btn-accent");
+      if (detailsBtn) {
+        detailsBtn.focus();
+      }
+      hasFocusRef.current = false;
+    }
+  }, [activeIndex]);
 
   const handleToggleWatchlist = async () => {
     if (!card) return;
@@ -58,7 +79,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
   if (!activeItem || !card) return null;
 
   return (
-    <div className="immersive-hero-container">
+    <div className="immersive-hero-container" ref={containerRef}>
       <section className="hero-banner" key={activeIndex}>
         {card.backdropSrc && (
           <img
@@ -118,7 +139,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
               <button
                 key={index}
                 className={`hero-dot ${index === activeIndex ? "active" : ""}`}
-                onClick={() => setActiveIndex(index)}
+                onClick={() => changeActiveIndex(index)}
                 aria-label={`Слайд ${index + 1}`}
                 title={heroItems[index].card.title}
               />

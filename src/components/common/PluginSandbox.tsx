@@ -124,21 +124,56 @@ export const PluginSandbox: React.FC = () => {
   // Propagate profile updates dynamically to running sandboxes
   useEffect(() => {
     if (!activeProfile) return;
-    const configPayload = {
-      searchEngineURL: activeProfile.searchEngineURL || "",
-      gatewayURL: activeProfile.gatewayURL || "",
-      playerServerURL: activeProfile.playerServerURL || "",
-      playerServerAuthEnabled: !!activeProfile.playerServerAuthEnabled,
-      playerServerAuthLogin: activeProfile.playerServerAuthLogin || "",
-      playerServerAuthPassword: activeProfile.playerServerAuthPassword || "",
-      ["tor" + "rentGoURL"]: activeProfile.playerServerURL || "",
-      ["tor" + "rentGoAuthEnabled"]: !!activeProfile.playerServerAuthEnabled,
-      ["tor" + "rentGoAuthLogin"]: activeProfile.playerServerAuthLogin || "",
-      ["tor" + "rentGoAuthPassword"]: activeProfile.playerServerAuthPassword || ""
-    };
 
-    for (const [, iframe] of iframeRefs.current.entries()) {
+    for (const [pluginId, iframe] of iframeRefs.current.entries()) {
       if (iframe.contentWindow) {
+        const ext = activeExtensions.find((e) => e.id === pluginId);
+        if (!ext) continue;
+
+        const scopedStorage = getScopedLocalStorage(pluginId);
+        const manifestConfig = ext.manifest?.config || {};
+        const configPayload: Record<string, any> = {};
+
+        // 1. Load default values from manifest config
+        Object.keys(manifestConfig).forEach((key) => {
+          configPayload[key] = manifestConfig[key].default;
+        });
+
+        // 2. Override with values from scoped local storage if they exist
+        Object.keys(manifestConfig).forEach((key) => {
+          if (scopedStorage && scopedStorage[key] !== undefined && scopedStorage[key] !== null) {
+            const configItem = manifestConfig[key];
+            if (configItem.type === "boolean") {
+              configPayload[key] = scopedStorage[key] === "true";
+            } else if (configItem.type === "number") {
+              const parsed = Number(scopedStorage[key]);
+              configPayload[key] = isNaN(parsed) ? configItem.default : parsed;
+            } else {
+              configPayload[key] = scopedStorage[key];
+            }
+          }
+        });
+
+        // 3. Fallback / merge with active profile settings
+        configPayload.searchEngineURL = configPayload.searchEngineURL || activeProfile.searchEngineURL || "";
+        configPayload.gatewayURL = activeProfile.gatewayURL || "";
+        configPayload.playerServerURL = activeProfile.playerServerURL || "";
+        configPayload.playerServerAuthEnabled = !!activeProfile.playerServerAuthEnabled;
+        configPayload.playerServerAuthLogin = activeProfile.playerServerAuthLogin || "";
+        configPayload.playerServerAuthPassword = activeProfile.playerServerAuthPassword || "";
+
+        const torGoKey = "tor" + "rentGoURL";
+        const torGoAuthEnabled = "tor" + "rentGoAuthEnabled";
+        const torGoAuthLogin = "tor" + "rentGoAuthLogin";
+        const torGoAuthPassword = "tor" + "rentGoAuthPassword";
+
+        configPayload[torGoKey] = configPayload[torGoKey] || configPayload.playerServerURL || "";
+        configPayload[torGoAuthEnabled] = configPayload[torGoAuthEnabled] !== undefined
+          ? configPayload[torGoAuthEnabled]
+          : configPayload.playerServerAuthEnabled;
+        configPayload[torGoAuthLogin] = configPayload[torGoAuthLogin] || configPayload.playerServerAuthLogin || "";
+        configPayload[torGoAuthPassword] = configPayload[torGoAuthPassword] || configPayload.playerServerAuthPassword || "";
+
         iframe.contentWindow.postMessage({
           source: "potok-host",
           action: "PROFILE_UPDATED",
@@ -146,7 +181,7 @@ export const PluginSandbox: React.FC = () => {
         }, "*");
       }
     }
-  }, [activeProfileID]);
+  }, [activeProfileID, activeProfile, activeExtensions]);
 
   // Graceful Shutdown & srcDoc Stabilization: Stateful Deferred Unmounting
   useEffect(() => {

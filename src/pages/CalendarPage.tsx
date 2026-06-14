@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Clock, AlertCircle, RefreshCw, BookmarkCheck, Star } from "lucide-react";
 import { useCalendarData } from "../hooks/useCalendarData";
 import type { MediaCard } from "../network/ApiTypes";
+import { FilmOff } from "../components/common/FilmOff";
 import "../styles/media.css";
 
 const CalendarSkeleton: React.FC = () => (
@@ -208,12 +209,30 @@ export const CalendarPage: React.FC = () => {
                     >
                       {/* Fixed sized poster wrap with aspect-ratio to prevent layout shift */}
                       <div className="calendar-poster-wrap">
-                        <img
-                          src={item.posterSrc || "https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?auto=format&fit=crop&w=160&h=240"}
-                          alt={item.title}
-                          className="calendar-poster-img"
-                          loading="lazy"
-                        />
+                        {item.posterSrc ? (
+                          <>
+                            <img
+                              src={item.posterSrc}
+                              alt={item.title}
+                              className="calendar-poster-img"
+                              loading="lazy"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                const placeholder = e.currentTarget.nextElementSibling;
+                                if (placeholder) {
+                                  (placeholder as HTMLElement).style.display = 'flex';
+                                }
+                              }}
+                            />
+                            <div className="media-poster-fallback-placeholder" style={{ display: 'none', height: '100%', width: '100%' }}>
+                              <FilmOff size={24} />
+                            </div>
+                          </>
+                        ) : (
+                          <div className="media-poster-fallback-placeholder" style={{ height: '100%', width: '100%' }}>
+                            <FilmOff size={24} />
+                          </div>
+                        )}
                       </div>
 
                       {/* Episode detailing */}

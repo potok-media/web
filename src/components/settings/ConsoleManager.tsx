@@ -151,11 +151,13 @@ export const ConsoleManager: React.FC = () => {
           ) : (
             filteredLogs.map((log) => (
               <div key={log.id} className={`console-line log-type-${log.type}`}>
-                <span className="log-time">[{formatTime(log.timestamp)}]</span>
-                <span className={`log-badge badge-${log.type}`}>
-                  {getLogIcon(log.type)}
-                  <span>{log.type.toUpperCase()}</span>
-                </span>
+                <div className="log-meta">
+                  <span className="log-time">[{formatTime(log.timestamp)}]</span>
+                  <span className={`log-badge badge-${log.type}`}>
+                    {getLogIcon(log.type)}
+                    <span>{log.type.toUpperCase()}</span>
+                  </span>
+                </div>
                 <span className="log-msg selectable-text">{log.message}</span>
               </div>
             ))

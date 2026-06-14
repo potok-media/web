@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useSearchParams, useNavigate } from "react-router-dom";
 import { useSettings, useConnectionHealth, usePlayback } from "../context/AppSettingsContext";
 import { useInspector } from "../context/InspectorContext";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
@@ -312,10 +312,88 @@ return Card()
     };
   }, [monacoLoaded, selectedSlot]);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
   const {
     activePlayback,
+    playVideo,
     stopVideo,
   } = usePlayback();
+
+  const hasPlayingParam = searchParams.get("playing") === "true";
+
+  // Use refs to avoid dependencies in effects causing loops/races
+  const activePlaybackRef = React.useRef(activePlayback);
+  const playVideoRef = React.useRef(playVideo);
+  const stopVideoRef = React.useRef(stopVideo);
+  const setSearchParamsRef = React.useRef(setSearchParams);
+  const hasPlayingParamRef = React.useRef(hasPlayingParam);
+
+  React.useEffect(() => {
+    activePlaybackRef.current = activePlayback;
+    playVideoRef.current = playVideo;
+    stopVideoRef.current = stopVideo;
+    setSearchParamsRef.current = setSearchParams;
+    hasPlayingParamRef.current = hasPlayingParam;
+  });
+
+  // URL -> State Synchronization
+  React.useEffect(() => {
+    if (hasPlayingParam) {
+      if (!activePlaybackRef.current) {
+        try {
+          const saved = sessionStorage.getItem("potok_last_playback");
+          if (saved) {
+            playVideoRef.current(JSON.parse(saved));
+          } else {
+            setSearchParamsRef.current(prev => {
+              const next = new URLSearchParams(prev);
+              next.delete("playing");
+              return next;
+            }, { replace: true });
+          }
+        } catch (e) {
+          console.error("Failed to restore playback state from sessionStorage", e);
+        }
+      }
+    } else {
+      if (activePlaybackRef.current) {
+        stopVideoRef.current();
+      }
+    }
+  }, [hasPlayingParam]);
+
+  // State -> URL Synchronization
+  React.useEffect(() => {
+    if (activePlayback) {
+      sessionStorage.setItem("potok_last_playback", JSON.stringify(activePlayback));
+      if (!hasPlayingParamRef.current) {
+        setSearchParamsRef.current(prev => {
+          const next = new URLSearchParams(prev);
+          next.set("playing", "true");
+          return next;
+        });
+      }
+    } else {
+      sessionStorage.removeItem("potok_last_playback");
+      if (hasPlayingParamRef.current) {
+        setSearchParamsRef.current(prev => {
+          const next = new URLSearchParams(prev);
+          next.delete("playing");
+          return next;
+        });
+      }
+    }
+  }, [activePlayback]);
+
+  const handleClosePlayer = React.useCallback(() => {
+    if (searchParams.get("playing") === "true") {
+      navigate(-1);
+    } else {
+      stopVideo();
+    }
+  }, [searchParams, navigate, stopVideo]);
 
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
   const [inputUrl, setInputUrl] = React.useState(
@@ -424,7 +502,7 @@ return Card()
                 Повторить
               </button>
               <button
-                onClick={stopVideo}
+                onClick={handleClosePlayer}
                 style={{
                   flex: 1,
                   padding: "0.4rem",
@@ -444,7 +522,7 @@ return Card()
           <WebMediaPlayer
             key={`${activePlayback.id}-${activePlayback.season || 0}-${activePlayback.episode || 0}-${activePlayback.streamUrl}`}
             playback={activePlayback}
-            onClose={stopVideo}
+            onClose={handleClosePlayer}
             isNetworkOffline={connectionState === "offline"}
           />
         </ErrorBoundary>

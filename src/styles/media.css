@@ -493,6 +493,24 @@
   -webkit-backface-visibility: hidden;
 }
 
+.media-poster-fallback-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.05) 100%);
+  background-color: var(--bg-surface-high, #121214);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary, rgba(255, 255, 255, 0.2));
+  transition: color var(--timing-hover, 0.2s), background var(--timing-hover, 0.2s);
+}
+
+.media-card:hover .media-poster-fallback-placeholder,
+.calendar-row:hover .media-poster-fallback-placeholder {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.08) 100%);
+  color: var(--text-secondary, rgba(255, 255, 255, 0.45));
+}
+
 @media (hover: hover) {
   .media-card:hover .media-poster-wrap {
     transform: translateY(-4px) scale(1.03);
@@ -1147,6 +1165,24 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.episode-still-fallback-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.05) 100%);
+  background-color: var(--bg-surface-high, #121214);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary, rgba(255, 255, 255, 0.2));
+  transition: color var(--timing-hover, 0.2s), background var(--timing-hover, 0.2s);
+}
+
+.episode-card:hover .episode-still-fallback-placeholder,
+.episode-picker-card:hover .episode-still-fallback-placeholder {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.08) 100%);
+  color: var(--text-secondary, rgba(255, 255, 255, 0.45));
 }
 
 .episode-card:hover .episode-still-wrap {
@@ -3792,6 +3828,14 @@
 }
 
 @media (max-width: 768px) {
+  .settings-mobile-tabs-bar {
+    margin: 0 calc(-1 * var(--space-s)) var(--space-l) calc(-1 * var(--space-s));
+  }
+
+  .settings-mobile-tabs-scroll {
+    padding: 0 var(--space-s);
+  }
+
   .calendar-container {
     padding: var(--space-m) !important;
     width: 100% !important;
@@ -3863,4 +3907,283 @@
     flex: 0 0 180px;
   }
 }
+
+/* ==========================================================================
+   Premium Season Selector Popovers, Progress Badges & Context Menu Styles
+   ========================================================================== */
+
+.season-selector-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: var(--space-m);
+}
+
+.season-select-wrapper,
+.season-watch-wrapper {
+  position: relative;
+}
+
+.season-select-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background var(--timing-hover), border-color var(--timing-hover), transform var(--timing-hover);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.season-select-trigger-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.season-select-trigger-btn:active {
+  transform: scale(0.97);
+}
+
+.season-watch-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 12px;
+  border-radius: 20px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--timing-hover), border-color var(--timing-hover), transform var(--timing-hover);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.season-watch-trigger-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.season-watch-trigger-btn:active {
+  transform: scale(0.97);
+}
+
+/* Popover Overlay & Dropdown Menu */
+.popover-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: transparent;
+}
+
+.season-popover-menu,
+.watch-popover-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 1000;
+  width: 220px;
+  background: rgba(20, 20, 25, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: popoverFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top left;
+}
+
+.watch-popover-menu {
+  left: auto;
+  right: 0;
+  transform-origin: top right;
+}
+
+@keyframes popoverFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.popover-header {
+  padding: 8px 12px 6px 12px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  font-weight: 700;
+  opacity: 0.6;
+}
+
+.popover-scrollable-list {
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  scrollbar-width: thin;
+}
+
+.season-popover-item,
+.watch-popover-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.season-popover-item:hover,
+.watch-popover-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.season-popover-item.active {
+  color: var(--accent);
+}
+
+.season-item-icon,
+.watch-item-icon {
+  opacity: 0.7;
+}
+
+.season-popover-item.active .season-item-icon {
+  color: var(--accent);
+  opacity: 1;
+}
+
+.season-active-check {
+  margin-left: auto;
+  color: var(--accent);
+}
+
+/* Checked badge on Episode Card */
+.episode-still-wrap {
+  position: relative;
+}
+
+.episode-watched-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--accent);
+  color: #ffffff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  z-index: 5;
+  animation: scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* Checkbox overlay mode for episodes selection */
+.episode-checkbox-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 6;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.episode-card.select-mode .episode-checkbox-overlay,
+.episode-card:hover .episode-checkbox-overlay {
+  opacity: 1;
+}
+
+.episode-select-checkbox {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.episode-card.watched .episode-select-checkbox {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+/* Card custom context menu */
+.episode-card-context-menu {
+  position: absolute;
+  z-index: 1000;
+  background: rgba(20, 20, 25, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  width: 190px;
+  animation: popoverFadeIn 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.context-menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 

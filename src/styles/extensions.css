@@ -26,7 +26,7 @@
   gap: var(--space-l);
   box-sizing: border-box;
   width: 100%;
-  min-height: 100%;
+  flex-grow: 1;
 }
 
 @media (max-width: 768px) {
