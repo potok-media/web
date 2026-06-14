@@ -8,7 +8,7 @@ import { LoadingSpinner } from "../components/LoadingSpinner";
 import type { MediaCard } from "../network/ApiTypes";
 import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 import { PlatformManager } from "../utils/PlatformManager";
-import { useScrollLock } from "../components/common/TVNavigation";
+import { addScrollListener, isCurrentlyScrolling } from "../components/common/TVNavigation";
 import "../styles/media.css";
 
 const ErrorView: React.FC<{ error: string; onRetry: () => void }> = ({ error, onRetry }) => (
@@ -18,6 +18,28 @@ const ErrorView: React.FC<{ error: string; onRetry: () => void }> = ({ error, on
   </div>
 );
 
+let mountQueue: Array<() => void> = [];
+let mountTimeoutId: any = null;
+
+const processMountQueue = () => {
+  if (mountQueue.length === 0) {
+    mountTimeoutId = null;
+    return;
+  }
+  const nextTask = mountQueue.shift();
+  if (nextTask) {
+    nextTask();
+  }
+  mountTimeoutId = setTimeout(processMountQueue, 35);
+};
+
+const enqueueMount = (task: () => void) => {
+  mountQueue.push(task);
+  if (!mountTimeoutId) {
+    mountTimeoutId = setTimeout(processMountQueue, 0);
+  }
+};
+
 const VirtualRow: React.FC<{
   children: React.ReactNode;
   height?: string;
@@ -25,8 +47,15 @@ const VirtualRow: React.FC<{
   const [isVisible, setIsVisible] = useState(false);
   const [hasBeenVisible, setHasBeenVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const scrollLocked = useScrollLock();
   const pendingVisibilityRef = useRef<boolean | null>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     // IntersectionObserver rootMargin only supports px or % units.
@@ -53,7 +82,7 @@ const VirtualRow: React.FC<{
     const observer = new IntersectionObserver(
       ([entry]) => {
         const intersecting = entry.isIntersecting;
-        if (scrollLocked) {
+        if (isCurrentlyScrolling()) {
           pendingVisibilityRef.current = intersecting;
         } else {
           setIsVisible(intersecting);
@@ -79,17 +108,27 @@ const VirtualRow: React.FC<{
       }
       observer.disconnect();
     };
-  }, [height, scrollLocked]);
+  }, [height]);
 
   useEffect(() => {
-    if (!scrollLocked && pendingVisibilityRef.current !== null) {
-      setIsVisible(pendingVisibilityRef.current);
-      if (pendingVisibilityRef.current) {
-        setHasBeenVisible(true);
+    const unsubscribe = addScrollListener((scrolling) => {
+      if (!scrolling && pendingVisibilityRef.current !== null) {
+        const targetState = pendingVisibilityRef.current;
+        pendingVisibilityRef.current = null;
+        if (targetState) {
+          enqueueMount(() => {
+            if (isMountedRef.current) {
+              setIsVisible(true);
+              setHasBeenVisible(true);
+            }
+          });
+        } else {
+          setIsVisible(false);
+        }
       }
-      pendingVisibilityRef.current = null;
-    }
-  }, [scrollLocked]);
+    });
+    return unsubscribe;
+  }, []);
 
   return (
     <div
@@ -106,6 +145,19 @@ export const HomePage: React.FC = () => {
   usePerformanceTrack("HomePage");
   const navigate = useNavigate();
   const { show: showHUD } = useHUD();
+
+  useEffect(() => {
+    const unsubscribe = addScrollListener((scrolling) => {
+      if (scrolling) {
+        mountQueue = [];
+        if (mountTimeoutId) {
+          clearTimeout(mountTimeoutId);
+          mountTimeoutId = null;
+        }
+      }
+    });
+    return unsubscribe;
+  }, []);
 
   const { feed, loading, refetch, loadMore, hasMore, loadingMore } = useHomeFeed((msg) => showHUD("error", msg));
   const sentinelRef = useRef<HTMLDivElement>(null);

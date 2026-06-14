@@ -1,6 +1,7 @@
 import React, { useRef, useCallback, useState, useEffect } from "react";
 import { useFocusable, FocusContext } from "@noriginmedia/norigin-spatial-navigation";
 import type { UseFocusableConfig } from "@noriginmedia/norigin-spatial-navigation";
+import { performanceMonitor } from "../../utils/PerformanceMonitor";
 
 // Prevent browser's native scroll on focus globally to stop layout fights with custom JS smooth scrolls
 if (typeof window !== "undefined" && typeof HTMLElement !== "undefined" && HTMLElement.prototype.focus) {
@@ -55,10 +56,23 @@ export const useScrollLock = () => {
   return locked;
 };
 
+export const addScrollListener = (listener: (scrolling: boolean) => void) => {
+  scrollListeners.add(listener);
+  return () => {
+    scrollListeners.delete(listener);
+  };
+};
+
+export const isCurrentlyScrolling = () => isScrolling;
+
 export const smoothScrollTo = (element: HTMLElement, targetValue: number, isVertical: boolean, duration: number = 85) => {
   const startValue = isVertical ? element.scrollTop : element.scrollLeft;
   const change = targetValue - startValue;
   if (change === 0) return;
+  
+  // Log scroll activity
+  const classLabel = element.className ? `.${element.className.trim().split(/\s+/).join(".")}` : element.tagName;
+  performanceMonitor.addActivity("scroll", `Scroll ${isVertical ? "vertically" : "horizontally"} on ${classLabel} to ${Math.round(targetValue)}px (duration ${duration}ms)`);
   
   triggerScrollLock();
 
@@ -126,6 +140,7 @@ const getRelativeOffset = (element: HTMLElement, parent: HTMLElement) => {
 };
 
 let lastFocusedRow: HTMLElement | null = null;
+let verticalScrollTimeoutId: any = null;
 
 const scrollIntoView = (element: HTMLElement) => {
   if (!element) return;
@@ -164,7 +179,14 @@ const scrollIntoView = (element: HTMLElement) => {
     
     // Only scroll if there is a meaningful change to prevent micro-adjustments
     if (Math.abs(clampedTargetScrollTop - verticalParent.scrollTop) > 1) {
-      smoothScrollTo(verticalParent, clampedTargetScrollTop, true, 85);
+      if (verticalScrollTimeoutId) {
+        clearTimeout(verticalScrollTimeoutId);
+      }
+      // Delay vertical scroll by 50ms to debounce rapid D-pad traversals
+      verticalScrollTimeoutId = setTimeout(() => {
+        verticalScrollTimeoutId = null;
+        smoothScrollTo(verticalParent, clampedTargetScrollTop, true, 85);
+      }, 50);
     }
   }
 };

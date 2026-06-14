@@ -10,6 +10,7 @@ import { MediaOverviewSection } from "../components/MediaOverviewSection";
 import { MediaCastSection } from "../components/MediaCastSection";
 import { EpisodeMultiPickerModal } from "../components/EpisodeMultiPickerModal";
 import type { TvEpisode, MediaCard } from "../network/ApiTypes";
+import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 import "../styles/media.css";
 
 interface SelectedEpisodeState {
@@ -18,6 +19,7 @@ interface SelectedEpisodeState {
 }
 
 export const MediaDetailsPage: React.FC = () => {
+  usePerformanceTrack("MediaDetailsPage");
   const { mediaType, id } = useParams<{ mediaType: string; id: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();

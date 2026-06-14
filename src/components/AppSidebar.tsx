@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { Home, Calendar, User, Settings, Play, Bookmark, Star, Clock, PanelLeft, PanelLeftClose } from "lucide-react";
-import { useConnectionHealth, useAuth } from "../context/AppSettingsContext";
+import { useAuth } from "../context/AppSettingsContext";
 import { useHUD } from "../context/HUDContext";
 import SidebarStatus from "./SidebarStatus";
 import SidebarSearch from "./SidebarSearch";
@@ -56,7 +56,6 @@ interface AppSidebarProps {
 
 export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle }) => {
   usePerformanceTrack("AppSidebar");
-  const { connectionState, bffLatencyMs } = useConnectionHealth();
   const { potokToken } = useAuth();
   const { show: showHUD } = useHUD();
   const navigate = useNavigate();
@@ -129,7 +128,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle })
     }
   };
 
-  const isConnected = connectionState === "connected";
+
 
   return (
     <aside className="sidebar">
@@ -220,10 +219,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle })
         </div>
       </nav>
 
-      <SidebarStatus
-        isConnected={isConnected}
-        bffLatencyMs={bffLatencyMs}
-      />
+      <SidebarStatus />
     </aside>
   );
 };

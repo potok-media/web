@@ -1,8 +1,8 @@
-import React, { useRef, useState, useEffect, useMemo } from "react";
+import React, { useRef, useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import type { MediaCard } from "../network/ApiTypes";
-import { MediaCardComponent } from "./MediaCardComponent";
+import { MediaCardComponent, areMediaCardsEqual } from "./MediaCardComponent";
 import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 import { PlatformManager } from "../utils/PlatformManager";
 import { Focusable, FocusableContainer } from "./common/TVNavigation";
@@ -15,7 +15,20 @@ interface MediaRowProps {
   onSeeAllClick?: (id: string, title: string) => void;
 }
 
-export const MediaRow: React.FC<MediaRowProps> = React.memo(({ id, title, items, onCardClick, onSeeAllClick }) => {
+const areMediaRowsEqual = (prevProps: MediaRowProps, nextProps: MediaRowProps): boolean => {
+  if (prevProps.id !== nextProps.id) return false;
+  if (prevProps.title !== nextProps.title) return false;
+  if (prevProps.items.length !== nextProps.items.length) return false;
+  for (let i = 0; i < prevProps.items.length; i++) {
+    if (!areMediaCardsEqual(prevProps.items[i], nextProps.items[i])) {
+      return false;
+    }
+  }
+  return true;
+};
+
+export const MediaRow: React.FC<MediaRowProps> = React.memo(
+  ({ id, title, items, onCardClick, onSeeAllClick }) => {
   usePerformanceTrack(`MediaRow: ${title}`);
   const rowRef = useRef<HTMLDivElement>(null);
 
@@ -33,12 +46,12 @@ export const MediaRow: React.FC<MediaRowProps> = React.memo(({ id, title, items,
     setRenderedCount(PlatformManager.isTV() ? Math.min(6, displayItems.length) : displayItems.length);
   }
 
-  useEffect(() => {
-    if (PlatformManager.isTV() && renderedCount < displayItems.length) {
-      const timer = setTimeout(() => {
-        setRenderedCount((prev) => Math.min(prev + 6, displayItems.length));
-      }, 80);
-      return () => clearTimeout(timer);
+  // Lazy-load the remaining cards when the user scrolls horizontally near the edge (index >= 4)
+  const handleCardFocus = useCallback((index: number) => {
+    if (PlatformManager.isTV() && index >= 4 && renderedCount < displayItems.length) {
+      setTimeout(() => {
+        setRenderedCount(displayItems.length);
+      }, 150);
     }
   }, [displayItems.length, renderedCount]);
 
@@ -89,6 +102,7 @@ export const MediaRow: React.FC<MediaRowProps> = React.memo(({ id, title, items,
             key={item.id}
             item={item}
             onClick={onCardClick}
+            onFocus={() => handleCardFocus(index)}
             focusKey={index === 0 ? firstCardFocusKey : undefined}
           />
         ))}
@@ -125,7 +139,7 @@ export const MediaRow: React.FC<MediaRowProps> = React.memo(({ id, title, items,
       </FocusableContainer>
     </div>
   );
-});
+}, areMediaRowsEqual);
 
 MediaRow.displayName = "MediaRow";
 export default MediaRow;

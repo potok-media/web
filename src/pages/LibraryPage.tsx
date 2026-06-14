@@ -11,9 +11,11 @@ import { MediaCardComponent } from "../components/MediaCardComponent";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { CATEGORY_MAP, DYNAMIC_CATEGORY_TITLES } from "./LibraryConfig";
 import { Grid } from "../components/common/Grid";
+import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 import "../styles/media.css";
  
 export const LibraryPage: React.FC = () => {
+  usePerformanceTrack("LibraryPage");
   const { collectionType: routeType } = useParams<{ collectionType: string }>();
   const location = useLocation();
   const navigate = useNavigate();

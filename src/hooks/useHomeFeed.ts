@@ -3,9 +3,30 @@ import { ApiClient } from "../network/ApiClient";
 import { ApiError } from "../network/ApiTypes";
 import type { HomeResponse } from "../network/ApiTypes";
 import { useSettings, useAuth } from "../context/AppSettingsContext";
+import { PlatformManager } from "../utils/PlatformManager";
 
 // In-memory feed cache mapped by profile ID to prevent profile switching data leaks!
 const profileFeedCache: Record<string, HomeResponse> = {};
+
+const getCachedFeed = (profileKey: string): HomeResponse | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const data = localStorage.getItem(`potok_cached_feed_${profileKey}`);
+    return data ? JSON.parse(data) : null;
+  } catch (e) {
+    console.error("Failed to parse cached feed from localStorage", e);
+    return null;
+  }
+};
+
+const setCachedFeed = (profileKey: string, feed: HomeResponse): void => {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(`potok_cached_feed_${profileKey}`, JSON.stringify(feed));
+  } catch (e) {
+    console.error("Failed to save feed to localStorage cache", e);
+  }
+};
 
 export function useHomeFeed(onError: (msg: string) => void) {
   const { activeProfileID } = useSettings();
@@ -13,12 +34,17 @@ export function useHomeFeed(onError: (msg: string) => void) {
   const profileKey = activeProfileID || "default";
 
   const [feed, setFeed] = useState<HomeResponse | null>(() => {
-    return profileFeedCache[profileKey] || null;
+    return profileFeedCache[profileKey] || getCachedFeed(profileKey) || null;
   });
-  const [loading, setLoading] = useState(() => !profileFeedCache[profileKey]);
+  
+  const [loading, setLoading] = useState(() => {
+    const cached = profileFeedCache[profileKey] || getCachedFeed(profileKey);
+    return !cached;
+  });
+  
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null | undefined>(() => {
-    return profileFeedCache[profileKey]?.nextCursor;
+    return (profileFeedCache[profileKey] || getCachedFeed(profileKey))?.nextCursor;
   });
 
   const onErrorRef = useRef(onError);
@@ -30,10 +56,15 @@ export function useHomeFeed(onError: (msg: string) => void) {
     setNextCursor(feed?.nextCursor);
   }, [feed]);
 
-  const fetchFeed = useCallback(async (showLoading = !profileFeedCache[profileKey]) => {
+  const fetchFeed = useCallback(async (showLoading = false) => {
+    const cached = profileFeedCache[profileKey] || getCachedFeed(profileKey);
+    const shouldShowLoading = showLoading || !cached;
+    
     try {
-      if (showLoading) setLoading(true);
-      const data = await ApiClient.fetchHomeFeed(null, "w342", "w1280");
+      if (shouldShowLoading) setLoading(true);
+      
+      const posterSize = PlatformManager.isTV() ? "w185" : "w342";
+      const data = await ApiClient.fetchHomeFeed(null, posterSize, "w1280");
 
       const isFeedEqual = (a: HomeResponse | null, b: HomeResponse | null): boolean => {
         if (a === b) return true;
@@ -45,22 +76,22 @@ export function useHomeFeed(onError: (msg: string) => void) {
         }
       };
 
-      const cached = profileFeedCache[profileKey] || null;
       if (!cached || !isFeedEqual(cached, data)) {
         profileFeedCache[profileKey] = data;
+        setCachedFeed(profileKey, data);
         setFeed(data);
       }
     } catch (err: unknown) {
       const isAuthErr =
-        (err instanceof ApiError && err.status === 401) ||
-        (err instanceof Error && (err.message.includes("401") || err.message.toLowerCase().includes("unauthorized")));
+          (err instanceof ApiError && err.status === 401) ||
+          (err instanceof Error && (err.message.includes("401") || err.message.toLowerCase().includes("unauthorized")));
       if (isAuthErr) {
         logout();
       } else {
         onErrorRef.current(err instanceof Error ? err.message : "Не удалось загрузить медиатеку");
       }
     } finally {
-      if (showLoading) setLoading(false);
+      if (shouldShowLoading) setLoading(false);
     }
   }, [profileKey, logout]);
 
@@ -68,7 +99,8 @@ export function useHomeFeed(onError: (msg: string) => void) {
     if (!nextCursor || loadingMore) return;
     try {
       setLoadingMore(true);
-      const nextData = await ApiClient.fetchHomeFeed(nextCursor, "w342", "w1280");
+      const posterSize = PlatformManager.isTV() ? "w185" : "w342";
+      const nextData = await ApiClient.fetchHomeFeed(nextCursor, posterSize, "w1280");
       
       setFeed((prev) => {
         if (!prev) return nextData;
@@ -83,6 +115,7 @@ export function useHomeFeed(onError: (msg: string) => void) {
           nextCursor: nextData.nextCursor,
         };
         profileFeedCache[profileKey] = updatedFeed;
+        setCachedFeed(profileKey, updatedFeed);
         return updatedFeed;
       });
     } catch (err) {
@@ -93,8 +126,9 @@ export function useHomeFeed(onError: (msg: string) => void) {
   }, [nextCursor, loadingMore, profileKey]);
 
   useEffect(() => {
-    setFeed(profileFeedCache[profileKey] || null);
-    setLoading(!profileFeedCache[profileKey]);
+    const cached = profileFeedCache[profileKey] || getCachedFeed(profileKey);
+    setFeed(cached);
+    setLoading(!cached);
     fetchFeed();
   }, [profileKey, fetchFeed]);
 

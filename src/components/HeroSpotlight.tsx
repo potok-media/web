@@ -14,13 +14,40 @@ interface HeroSpotlightProps {
   onDetails: (item: HeroItem) => void;
 }
 
+const areHeroSpotlightsEqual = (
+  prevProps: HeroSpotlightProps,
+  nextProps: HeroSpotlightProps
+): boolean => {
+  if (prevProps.items.length !== nextProps.items.length) return false;
+  for (let i = 0; i < prevProps.items.length; i++) {
+    const pItem = prevProps.items[i];
+    const nItem = nextProps.items[i];
+    if (pItem.id !== nItem.id) return false;
+    if (pItem.card?.id !== nItem.card?.id) return false;
+    if (pItem.card?.title !== nItem.card?.title) return false;
+    if (pItem.card?.isInWatchlist !== nItem.card?.isInWatchlist) return false;
+  }
+  return true;
+};
+
 export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) => {
   usePerformanceTrack("HeroSpotlight");
   const { items, onDetails } = props;
-  const [activeIndex, setActiveIndex] = useState(0);
+
+  interface SlideState {
+    activeIndex: number;
+    displayedIndex: number;
+    prevIndex: number | null;
+  }
+
+  const [slideState, setSlideState] = useState<SlideState>({
+    activeIndex: 0,
+    displayedIndex: 0,
+    prevIndex: null,
+  });
+  const { activeIndex, displayedIndex, prevIndex } = slideState;
+
   const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
-  const [displayedIndex, setDisplayedIndex] = useState<number>(0);
-  const [prevIndex, setPrevIndex] = useState<number | null>(null);
   const [watchlistStates, setWatchlistStates] = useState<Record<number, boolean>>({});
 
   const heroItems = React.useMemo(() => items.slice(0, 10), [items]);
@@ -35,8 +62,11 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
   if (heroItems !== prevHeroItems) {
     setPrevHeroItems(heroItems);
     setLoadedImages({});
-    setDisplayedIndex(0);
-    setPrevIndex(null);
+    setSlideState({
+      activeIndex: 0,
+      displayedIndex: 0,
+      prevIndex: null,
+    });
   }
 
   const changeActiveIndex = (newIndex: number | ((prev: number) => number)) => {
@@ -44,7 +74,13 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
     if (hadFocus) {
       hasFocusRef.current = true;
     }
-    setActiveIndex(newIndex);
+    setSlideState((prev) => {
+      const idx = typeof newIndex === "function" ? newIndex(prev.activeIndex) : newIndex;
+      return {
+        ...prev,
+        activeIndex: idx,
+      };
+    });
   };
 
   // Sync watchlist states for all items
@@ -119,12 +155,18 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
   useEffect(() => {
     if (loadedImages[activeIndex]) {
       if (displayedIndex !== activeIndex) {
-        setPrevIndex(displayedIndex);
-        setDisplayedIndex(activeIndex);
+        setSlideState((prev) => ({
+          ...prev,
+          prevIndex: prev.displayedIndex,
+          displayedIndex: prev.activeIndex,
+        }));
         
-        // Clear previous index after transition finishes (800ms)
+        // Clear previous index after transition finishes (850ms)
         const timer = setTimeout(() => {
-          setPrevIndex(null);
+          setSlideState((prev) => ({
+            ...prev,
+            prevIndex: null,
+          }));
         }, 850);
         return () => clearTimeout(timer);
       }
@@ -181,6 +223,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
               key={item.card.id || index}
               src={item.card.backdropSrc}
               className="immersive-hero-backdrop"
+              decoding="async"
               onLoad={() => {
                 setLoadedImages((prev) => {
                   if (prev[index]) return prev;
@@ -191,6 +234,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
                 opacity: isCurrent ? 1 : 0,
                 pointerEvents: "none",
                 transition: "opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                willChange: "opacity",
               }}
               alt=""
             />
@@ -217,7 +261,8 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
                   opacity: isCurrent ? 1 : 0,
                   pointerEvents: isCurrent ? "auto" : "none",
                   transition: "opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-                  zIndex: isCurrent ? 2 : 1
+                  zIndex: isCurrent ? 2 : 1,
+                  willChange: "opacity"
                 }}
               >
                 {card.logoSrc ? (
@@ -299,7 +344,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
       </section>
     </div>
   );
-});
+}, areHeroSpotlightsEqual);
 
 HeroSpotlight.displayName = "HeroSpotlight";
 export default HeroSpotlight;

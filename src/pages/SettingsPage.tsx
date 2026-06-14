@@ -9,10 +9,12 @@ import DeclarativeSettings from "../components/settings/DeclarativeSettings";
 import AccessibilitySettings from "../components/settings/AccessibilitySettings";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import type { RegisteredExtension } from "@potok/sdk-types";
+import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 import "../styles/settings.css";
 import "../styles/console.css";
 
 export const SettingsPage: React.FC = () => {
+  usePerformanceTrack("SettingsPage");
   const {
     accentTheme,
     defaultPlayer,

@@ -6,9 +6,11 @@ import { StreamSidebar } from "../components/StreamSidebar";
 import { EpisodeSelectorPopup } from "../components/common/EpisodeSelectorPopup";
 import { useMediaStreams } from "../hooks/useMediaStreams";
 import type { MediaCard } from "../network/ApiTypes";
+import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 import "../styles/media.css";
 
 export const MediaStreamsPage: React.FC = () => {
+  usePerformanceTrack("MediaStreamsPage");
   const { mediaType, id, tab } = useParams<{ mediaType: string; id: string; tab?: string }>();
   const navigate = useNavigate();
   const location = useLocation();

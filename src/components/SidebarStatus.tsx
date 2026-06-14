@@ -1,11 +1,10 @@
 import React from "react";
+import { useConnectionHealth, useConnectionLatency } from "../context/AppSettingsContext";
 
-interface SidebarStatusProps {
-  isConnected: boolean;
-  bffLatencyMs: number;
-}
-
-export const SidebarStatus: React.FC<SidebarStatusProps> = React.memo(({ isConnected, bffLatencyMs }) => {
+export const SidebarStatus: React.FC = React.memo(() => {
+  const { connectionState } = useConnectionHealth();
+  const { bffLatencyMs } = useConnectionLatency();
+  const isConnected = connectionState === "connected";
   const getStatusColor = (configured: boolean, online: boolean, latency: number) => {
     if (!configured) return "offline";
     if (!online || latency < 0) return "error";

@@ -88,7 +88,46 @@ export const GlobalSlotPortalHost: React.FC = () => {
     scanDOM();
 
     let timeoutId: any = null;
-    const observer = new MutationObserver(() => {
+    const observer = new MutationObserver((mutations) => {
+      let relatesToSlot = false;
+      const selectors = Object.values(SLOT_SELECTORS);
+      
+      for (const mutation of mutations) {
+        if (mutation.type === "attributes") {
+          const target = mutation.target as HTMLElement;
+          if (target && selectors.some(selector => target.matches?.(selector))) {
+            relatesToSlot = true;
+            break;
+          }
+        } else if (mutation.type === "childList") {
+          const checkNode = (node: Node): boolean => {
+            if (node.nodeType !== Node.ELEMENT_NODE) return false;
+            const el = node as HTMLElement;
+            return selectors.some(selector => el.matches?.(selector) || el.querySelector(selector));
+          };
+
+          const addedLen = mutation.addedNodes.length;
+          for (let i = 0; i < addedLen; i++) {
+            if (checkNode(mutation.addedNodes[i])) {
+              relatesToSlot = true;
+              break;
+            }
+          }
+          if (relatesToSlot) break;
+
+          const removedLen = mutation.removedNodes.length;
+          for (let i = 0; i < removedLen; i++) {
+            if (checkNode(mutation.removedNodes[i])) {
+              relatesToSlot = true;
+              break;
+            }
+          }
+          if (relatesToSlot) break;
+        }
+      }
+
+      if (!relatesToSlot) return;
+
       // Throttle DOM scans to once per animation frame to prevent rendering stutters
       if (timeoutId) return;
       timeoutId = requestAnimationFrame(() => {

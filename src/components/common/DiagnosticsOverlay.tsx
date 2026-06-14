@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { performanceMonitor } from "../../utils/PerformanceMonitor";
 import { PlatformManager } from "../../utils/PlatformManager";
+import type { FpsDropReport } from "../../utils/PerformanceMonitor";
 
 export const DiagnosticsOverlay: React.FC = () => {
   const [metrics, setMetrics] = useState(() => ({ ...performanceMonitor.metrics }));
   const [fps, setFps] = useState(() => performanceMonitor.getFps());
   const [longTaskCount, setLongTaskCount] = useState(0);
   const [inputLatency, setInputLatency] = useState(0);
+  const [lastDropReport, setLastDropReport] = useState<FpsDropReport | null>(() => performanceMonitor.lastFpsDropReport);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -34,6 +36,7 @@ export const DiagnosticsOverlay: React.FC = () => {
       setFps(performanceMonitor.getFps());
       setLongTaskCount(performanceMonitor.longTasks.length);
       setInputLatency(Math.round(performanceMonitor.inputLatency));
+      setLastDropReport(performanceMonitor.lastFpsDropReport);
     };
 
     performanceMonitor.addListener(handleUpdate);
@@ -84,6 +87,8 @@ export const DiagnosticsOverlay: React.FC = () => {
         right: "24px",
         zIndex: 9999999, // Ensure it floats above Monaco and everything
         width: "280px",
+        maxHeight: "90vh",
+        overflowY: "auto",
         background: "rgba(15, 15, 20, 0.92)",
         backdropFilter: "blur(20px)",
         borderRadius: "12px",
@@ -93,7 +98,7 @@ export const DiagnosticsOverlay: React.FC = () => {
         fontFamily: "system-ui, -apple-system, sans-serif",
         fontSize: "12px",
         boxShadow: "0 12px 36px rgba(0, 0, 0, 0.6)",
-        pointerEvents: "none", // Prevent capturing click focus
+        pointerEvents: "auto", // Allow user to scroll/interact with the diagnostics
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", borderBottom: "1px solid rgba(255, 255, 255, 0.1)", paddingBottom: "8px" }}>
@@ -136,6 +141,51 @@ export const DiagnosticsOverlay: React.FC = () => {
         </div>
       </div>
 
+      {/* FPS Drop Report details (MOVED TO TOP FOR HIGH VISIBILITY) */}
+      {lastDropReport && (
+        <div style={{ border: "1.5px solid rgba(248, 113, 113, 0.4)", borderRadius: "8px", padding: "10px", background: "rgba(248, 113, 113, 0.04)", marginBottom: "16px" }}>
+          <div style={{ fontWeight: "bold", color: "#f87171", textTransform: "uppercase", fontSize: "10px", marginBottom: "8px", letterSpacing: "0.5px", display: "flex", justifyContent: "space-between" }}>
+            <span>Сбой FPS ({lastDropReport.fps} кадр/с):</span>
+            <span style={{ color: "#a3e635" }}>{lastDropReport.time}</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "350px", overflowY: "auto", paddingRight: "4px" }}>
+            {lastDropReport.activities.slice().reverse().map((act, idx) => {
+              let color = "#94a3b8"; // Slate default
+              let badgeBg = "rgba(148, 163, 184, 0.1)";
+              let label = act.type.toUpperCase();
+
+              if (act.type === "longtask") {
+                color = "#f87171";
+                badgeBg = "rgba(248, 113, 113, 0.15)";
+              } else if (act.type === "render") {
+                const isHeavy = act.description.includes("ms") && parseInt(act.description.match(/\d+/)?.[0] || "0") > 16;
+                color = isHeavy ? "#fb923c" : "#a3e635";
+                badgeBg = isHeavy ? "rgba(251, 146, 60, 0.1)" : "rgba(163, 230, 53, 0.1)";
+              } else if (act.type === "api") {
+                color = "#38bdf8";
+                badgeBg = "rgba(56, 189, 248, 0.1)";
+              } else if (act.type === "route") {
+                color = "#c084fc";
+                badgeBg = "rgba(192, 132, 252, 0.1)";
+              } else if (act.type === "scroll" || act.type === "keydown") {
+                color = "#fbbf24";
+                badgeBg = "rgba(251, 191, 36, 0.1)";
+              }
+
+              return (
+                <div key={idx} style={{ fontSize: "10px", lineHeight: "1.3", borderBottom: "1px solid rgba(255, 255, 255, 0.05)", paddingBottom: "4px", display: "flex", flexDirection: "column", gap: "2px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: "8px", color: "#64748b" }}>{act.time}</span>
+                    <span style={{ fontSize: "8px", fontWeight: "bold", color, background: badgeBg, padding: "1px 4px", borderRadius: "3px" }}>{label}</span>
+                  </div>
+                  <div style={{ color: "#e2e8f0" }}>{act.description}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Platform & Long Tasks details */}
       <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "16px", padding: "8px", background: "rgba(255,255,255,0.02)", borderRadius: "6px" }}>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -151,7 +201,7 @@ export const DiagnosticsOverlay: React.FC = () => {
       </div>
 
       {/* Top Heavy components list */}
-      <div>
+      <div style={{ marginBottom: "16px" }}>
         <div style={{ fontWeight: "bold", color: "#94a3b8", textTransform: "uppercase", fontSize: "10px", marginBottom: "8px", letterSpacing: "0.5px" }}>
           Топ тяжелых компонентов:
         </div>

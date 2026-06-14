@@ -136,9 +136,62 @@ body.is-tv .episode-card.focused .episode-still-wrap {
   will-change: transform;
 }
 
-/* Disable expensive backdrop blurs and blurry text shadows on TVs (often cause severe GPU lag/crashing) */
+/* Disable expensive backdrop blurs, GPU filters, and blurry text shadows on TVs */
 body.is-tv * {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+  filter: none !important;
   text-shadow: none !important;
+}
+
+/* Disable hover effects on TVs to prevent style recalculations and layout jitter from virtual D-pad cursors */
+body.is-tv *:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Add a radial dark gradient overlay to unblurred backdrop containers on TV for contrast */
+body.is-tv .backdrop-blur-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(15, 15, 18, 0.8) 0%, rgba(15, 15, 18, 0.98) 100%) !important;
+  z-index: 1;
+}
+
+/* Force hardware accelerated layers for carousel rows on TV to speed up horizontal scrolls */
+body.is-tv .carousel-row {
+  will-change: transform;
+}
+
+/* Enable native content-visibility for offscreen grid cards in collections/search pages on TV */
+body.is-tv .library-grid .media-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 170px 270px;
+}
+
+/* Restrict all transitions in TV mode to compositor-only properties (transform and opacity) to prevent layout thrashing */
+body.is-tv * {
+  transition-property: transform, opacity !important;
+}
+
+/* Allow progress bars to animate width changes normally */
+body.is-tv .player-progress-bar,
+body.is-tv .progress-bar,
+body.is-tv .media-card-progress-bar {
+  transition-property: width, transform, opacity !important;
+}
+
+/* Isolate static component layout calculations to prevent global page reflows */
+body.is-tv .sidebar {
+  contain: layout paint;
+}
+
+body.is-tv .carousel-header {
+  contain: layout paint;
 }

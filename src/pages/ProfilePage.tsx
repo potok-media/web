@@ -10,9 +10,11 @@ import { TraktDeviceAuthView } from "../components/profile/TraktDeviceAuthView";
 import { TraktActiveView } from "../components/profile/TraktActiveView";
 import { PotokAuthView } from "../components/profile/PotokAuthView";
 import type { TraktProfile, DeviceCodeResponse } from "../network/ApiTypes";
+import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 import "../styles/profile.css";
 
 export const ProfilePage: React.FC = () => {
+  usePerformanceTrack("ProfilePage");
   const { show: showHUD } = useHUD();
   const {
     potokToken,

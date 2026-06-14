@@ -529,12 +529,16 @@ export const useAuth = () => {
 // --------------------------------------------------
 export interface ConnectionHealthContextType {
   connectionState: ConnectionState;
-  bffLatencyMs: number;
-  services: ServiceStatus;
   checkConnection: (options?: { silent?: boolean }) => Promise<void>;
 }
 
+export interface ConnectionLatencyContextType {
+  bffLatencyMs: number;
+  services: ServiceStatus;
+}
+
 export const ConnectionHealthContext = createContext<ConnectionHealthContextType | undefined>(undefined);
+export const ConnectionLatencyContext = createContext<ConnectionLatencyContextType | undefined>(undefined);
 
 export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { connectionProfiles, activeProfileID, isSettingsLocked } = useSettings();
@@ -708,24 +712,40 @@ export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> =
     };
   }, [activeProfileID, gatewayURL, checkConnection, stopPingTimer]);
 
-  const value = useMemo(() => ({
+  const healthValue = useMemo(() => ({
     connectionState,
-    bffLatencyMs,
-    services,
     checkConnection,
   }), [
     connectionState,
-    bffLatencyMs,
-    services,
     checkConnection,
   ]);
 
-  return <ConnectionHealthContext.Provider value={value}>{children}</ConnectionHealthContext.Provider>;
+  const latencyValue = useMemo(() => ({
+    bffLatencyMs,
+    services,
+  }), [
+    bffLatencyMs,
+    services,
+  ]);
+
+  return (
+    <ConnectionHealthContext.Provider value={healthValue}>
+      <ConnectionLatencyContext.Provider value={latencyValue}>
+        {children}
+      </ConnectionLatencyContext.Provider>
+    </ConnectionHealthContext.Provider>
+  );
 };
 
 export const useConnectionHealth = () => {
   const context = useContext(ConnectionHealthContext);
   if (!context) throw new Error("useConnectionHealth must be used within ConnectionHealthProvider");
+  return context;
+};
+
+export const useConnectionLatency = () => {
+  const context = useContext(ConnectionLatencyContext);
+  if (!context) throw new Error("useConnectionLatency must be used within ConnectionLatencyProvider");
   return context;
 };
 

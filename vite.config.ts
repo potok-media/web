@@ -4,6 +4,40 @@ import { resolve } from 'path'
 import { cpSync } from 'fs'
 import { execSync } from 'child_process'
 
+function potokLogMiddleware(req: any, res: any, next: any) {
+  if (req.url === '/api/potok-log' && req.method === 'POST') {
+    let body = '';
+    req.on('data', (chunk: any) => {
+      body += chunk;
+    });
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        console.warn(`\n\x1b[41m\x1b[37m[FPS DROP DETECTED]\x1b[0m \x1b[33mFPS dropped to ${data.fps} at ${data.time}\x1b[0m`);
+        console.warn('Recent activities (preceding 2s):');
+        if (data.activities && Array.isArray(data.activities)) {
+          data.activities.slice().reverse().forEach((act: any) => {
+            let color = '\x1b[36m'; // cyan
+            if (act.type === 'longtask') color = '\x1b[31m'; // red
+            else if (act.type === 'render') color = '\x1b[32m'; // green
+            else if (act.type === 'scroll' || act.type === 'keydown') color = '\x1b[33m'; // yellow
+            else if (act.type === 'route') color = '\x1b[35m'; // magenta
+            
+            console.log(`  [${act.time}] ${color}[${act.type.toUpperCase()}]\x1b[0m ${act.description}`);
+          });
+        }
+        console.warn('\n');
+      } catch (err) {
+        console.error('Failed to parse FPS drop log:', err);
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'ok' }));
+    });
+  } else {
+    next();
+  }
+}
+
 function vitePotokSdkPlugin() {
   return {
     name: 'vite-plugin-potok-sdk',
@@ -36,6 +70,8 @@ function vitePotokSdkPlugin() {
       }
     },
     configureServer(server: any) {
+      server.middlewares.use(potokLogMiddleware);
+
       const sdkDir = resolve(__dirname, 'src/sdk');
       server.watcher.add(sdkDir);
       server.watcher.on('change', async (file: string) => {
@@ -69,6 +105,9 @@ function vitePotokSdkPlugin() {
           }
         }
       });
+    },
+    configurePreviewServer(server: any) {
+      server.middlewares.use(potokLogMiddleware);
     }
   };
 }
