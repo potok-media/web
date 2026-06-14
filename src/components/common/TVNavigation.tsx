@@ -1,6 +1,7 @@
 import React, { useRef, useCallback, useState, useEffect } from "react";
 import { useFocusable, FocusContext } from "@noriginmedia/norigin-spatial-navigation";
 import type { UseFocusableConfig } from "@noriginmedia/norigin-spatial-navigation";
+import { PlatformManager } from "../../utils/PlatformManager";
 
 
 // Prevent browser's native scroll on focus globally to stop layout fights with custom JS smooth scrolls
@@ -58,7 +59,15 @@ export const isCurrentlyScrolling = () => isScrolling;
 
 const activeScrollAnimations = new WeakMap<HTMLElement, { rId: number }>();
 
-export const smoothScrollTo = (element: HTMLElement, targetValue: number, isVertical: boolean, duration: number = 85) => {
+export const smoothScrollTo = (element: HTMLElement, targetValue: number, isVertical: boolean, duration: number = 150) => {
+  if (!PlatformManager.isTV()) {
+    element.scrollTo({
+      [isVertical ? "top" : "left"]: targetValue,
+      behavior: "smooth"
+    });
+    return;
+  }
+
   const startValue = isVertical ? element.scrollTop : element.scrollLeft;
   const change = targetValue - startValue;
   if (change === 0) return;
@@ -78,7 +87,7 @@ export const smoothScrollTo = (element: HTMLElement, targetValue: number, isVert
 
     // Easing: easeOutQuad
     const easeProgress = progress * (2 - progress);
-    const currentValue = Math.round(startValue + change * easeProgress);
+    const currentValue = startValue + change * easeProgress;
 
     if (isVertical) {
       element.scrollTop = currentValue;
@@ -125,7 +134,7 @@ const scrollIntoView = (element: HTMLElement) => {
     
     // Center element horizontally in parent
     const targetScrollLeft = left - (horizontalParent.clientWidth / 2) + (element.offsetWidth / 2);
-    smoothScrollTo(horizontalParent, targetScrollLeft, false, 85);
+    smoothScrollTo(horizontalParent, targetScrollLeft, false);
   }
 
   // 2. Vertical scroll (e.g. main content)
@@ -161,7 +170,7 @@ const scrollIntoView = (element: HTMLElement) => {
       // Delay vertical scroll by 50ms to debounce rapid D-pad traversals
       verticalScrollTimeoutId = setTimeout(() => {
         verticalScrollTimeoutId = null;
-        smoothScrollTo(verticalParent, clampedTargetScrollTop, true, 85);
+        smoothScrollTo(verticalParent, clampedTargetScrollTop, true);
       }, 50);
     }
   }

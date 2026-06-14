@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useState } from "react";
+import React, { useRef, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import type { MediaCard } from "../network/ApiTypes";
@@ -27,15 +27,10 @@ const areMediaRowsEqual = (prevProps: MediaRowProps, nextProps: MediaRowProps): 
 
 export const MediaRow: React.FC<MediaRowProps> = React.memo(
   ({ id, title, items, onCardClick, onSeeAllClick }) => {
-  const [hasBeenFocused, setHasBeenFocused] = useState(false);
   const rowRef = useRef<HTMLDivElement>(null);
 
   // Cap items at 10 to keep TV horizontal scrolling fast
   const displayItems = useMemo(() => items.slice(0, 10), [items]);
-
-  const visibleItems = useMemo(() => {
-    return hasBeenFocused ? displayItems : displayItems.slice(0, 6);
-  }, [hasBeenFocused, displayItems]);
 
   if (!items || items.length === 0) return null;
 
@@ -78,37 +73,28 @@ export const MediaRow: React.FC<MediaRowProps> = React.memo(
         saveLastFocusedChild={true}
         className="carousel-row" 
         ref={rowRef}
-        onFocus={() => {
-          setHasBeenFocused(true);
-        }}
       >
-        {visibleItems.map((item, index) => (
+        {displayItems.map((item, index) => (
           <MediaCardComponent
             key={`${item.mediaType || "movie"}-${item.id}`}
             item={item}
             onClick={onCardClick}
             focusKey={index === 0 ? firstCardFocusKey : undefined}
-            onFocus={() => {
-              setHasBeenFocused(true);
-            }}
           />
         ))}
 
         {/* Focusable "Show More" card at the end of the row */}
-        {hasBeenFocused && id && onSeeAllClick && (
+        {id && onSeeAllClick && (
           <Focusable
             onEnterPress={() => {
               onSeeAllClick(id, title);
-            }}
-            onFocus={() => {
-              setHasBeenFocused(true);
             }}
           >
             {({ ref: focusRef, focused }) => (
               <Link
                 ref={focusRef}
                 to={`/library/${id}`}
-                className={`media-card more-card ${focused ? "focused" : ""}`}
+                className={`media-card more-card is-visible ${focused ? "focused" : ""}`}
                 onClick={(e) => {
                   if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && e.altKey === false) {
                     e.preventDefault();

@@ -6,6 +6,7 @@ import { SyncApiClient } from "../network/SyncApiClient";
 import { useHUD } from "../context/HUDContext";
 import { Focusable, FocusableButton } from "./common/TVNavigation";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { PlatformManager } from "../utils/PlatformManager";
 
 interface HeroSpotlightProps {
   items: HeroItem[];
@@ -190,7 +191,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
   }, [activeIndex, loadedImages, displayedIndex]);
 
   useEffect(() => {
-    if (heroItems.length > 0) {
+    if (PlatformManager.isTV() && heroItems.length > 0) {
       setFocus("HERO_DETAILS_BUTTON");
     }
   }, [heroItems.length]);

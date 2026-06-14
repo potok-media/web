@@ -221,6 +221,7 @@
   display: flex;
   gap: var(--space-m);
   overflow-x: auto;
+  scroll-behavior: smooth;
   padding: 16px var(--space-l) 24px var(--space-l);
   margin: -12px calc(-1 * var(--space-l)) -12px calc(-1 * var(--space-l));
   scrollbar-width: none;
@@ -468,8 +469,6 @@
   opacity: 0;
   transform: translateY(12px) scale(0.99);
   transition: opacity 0.1s cubic-bezier(0.16, 1, 0.3, 1), transform 0.1s cubic-bezier(0.16, 1, 0.3, 1);
-  content-visibility: auto;
-  contain-intrinsic-size: auto 260px;
 }
 
 .media-card.is-visible {
@@ -1090,6 +1089,7 @@
   display: flex;
   flex-direction: row;
   overflow-x: auto;
+  scroll-behavior: smooth;
   gap: var(--space-m);
   width: 100%;
   padding: var(--space-xs) 0;
@@ -4190,13 +4190,13 @@
 }
 
 .more-card-content {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.03);
   color: var(--text-secondary);
   gap: var(--space-xs);
   box-sizing: border-box;
@@ -4223,7 +4223,11 @@
   font-size: 0.95rem;
 }
 
-.carousel-row,
+.carousel-row {
+  will-change: scroll-position;
+  transform: translate3d(0, 0, 0);
+}
+
 .episodes-scroll-container,
 .streams-scroll-area {
   will-change: transform;

@@ -13,11 +13,12 @@
   height: 100dvh;
   overflow-y: auto;
   overflow-x: hidden;
+  scroll-behavior: smooth;
   overscroll-behavior-y: contain;
   position: relative;
   display: flex;
   flex-direction: column;
-  will-change: transform;
+  will-change: scroll-position;
   transform: translate3d(0, 0, 0);
 }
 

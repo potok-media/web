@@ -187,3 +187,10 @@ body.is-tv .sidebar {
 body.is-tv .carousel-header {
   contain: layout paint;
 }
+
+/* Disable native CSS smooth scroll in TV mode to prevent conflicts with JS animations */
+body.is-tv .main-content,
+body.is-tv .carousel-row,
+body.is-tv .episodes-scroll-container {
+  scroll-behavior: auto !important;
+}
