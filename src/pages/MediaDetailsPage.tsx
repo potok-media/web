@@ -2,6 +2,7 @@ import React, { useCallback, useRef, useState, useEffect } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { Star, Eye, Bookmark } from "lucide-react";
 import { useHUD } from "../context/HUDContext";
+import { Slot } from "../components/common/extension/Slot";
 
 import { useMediaDetails } from "../hooks/useMediaDetails";
 import { SeasonEpisodesSection } from "../components/SeasonEpisodesSection";
@@ -110,16 +111,16 @@ export const MediaDetailsPage: React.FC = () => {
 
               <div className="details-actions-container">
                 {/* Dynamically Rendered Plugin Extension Slot for Media Actions (Plugins contribute their watch buttons here) */}
-                <div
-                  id="media-actions-slot"
-                  data-props={JSON.stringify({
+                <Slot
+                  name="media-actions"
+                  props={{
                     mediaId,
                     tmdbId,
                     mediaType,
                     title: media.title,
                     originalTitle: media.originalTitle,
                     media
-                  })}
+                  }}
                 />
 
                 {/* Social and Watchlist row */}
@@ -190,16 +191,16 @@ export const MediaDetailsPage: React.FC = () => {
         )}
 
         {/* Dynamically Rendered Plugin Extension Slot for Details Bottom Content */}
-        <div
-          id="details-bottom-slot"
-          data-props={JSON.stringify({
+        <Slot
+          name="details-bottom"
+          props={{
             mediaId,
             tmdbId,
             mediaType,
             title: media.title,
             originalTitle: media.originalTitle,
             media
-          })}
+          }}
         />
 
         {cast.length > 0 && (

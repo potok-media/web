@@ -48,6 +48,7 @@ export function useHomeFeed(onError: (msg: string) => void) {
   });
 
   const onErrorRef = useRef(onError);
+  const isLoadingMoreRef = useRef(false);
   useEffect(() => {
     onErrorRef.current = onError;
   }, [onError]);
@@ -96,8 +97,9 @@ export function useHomeFeed(onError: (msg: string) => void) {
   }, [profileKey, logout]);
 
   const loadMore = useCallback(async () => {
-    if (!nextCursor || loadingMore) return;
+    if (!nextCursor || loadingMore || isLoadingMoreRef.current) return;
     try {
+      isLoadingMoreRef.current = true;
       setLoadingMore(true);
       const posterSize = PlatformManager.isTV() ? "w185" : "w342";
       const nextData = await ApiClient.fetchHomeFeed(nextCursor, posterSize, "w1280");
@@ -121,6 +123,7 @@ export function useHomeFeed(onError: (msg: string) => void) {
     } catch (err) {
       onErrorRef.current(err instanceof Error ? err.message : "Не удалось дозагрузить ряды");
     } finally {
+      isLoadingMoreRef.current = false;
       setLoadingMore(false);
     }
   }, [nextCursor, loadingMore, profileKey]);

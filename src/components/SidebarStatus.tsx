@@ -1,5 +1,6 @@
 import React from "react";
 import { useConnectionHealth, useConnectionLatency } from "../context/AppSettingsContext";
+import { Slot } from "./common/extension/Slot";
 
 export const SidebarStatus: React.FC = React.memo(() => {
   const { connectionState } = useConnectionHealth();
@@ -30,7 +31,7 @@ export const SidebarStatus: React.FC = React.memo(() => {
           </span>
         </div>
 
-        <div id="sidebar-status-slot" />
+        <Slot name="sidebar-status" />
       </div>
     </div>
   );

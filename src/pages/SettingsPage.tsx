@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Sliders, Puzzle, Globe, Terminal, Eye } from "lucide-react";
 import { useSettings } from "../context/AppSettingsContext";
+import { Slot } from "../components/common/extension/Slot";
 import GeneralSettings from "../components/settings/GeneralSettings";
 import ProfilesSettings from "../components/settings/ProfilesSettings";
 import ExtensionsManager from "../components/ExtensionsManager";
@@ -227,7 +228,7 @@ export const SettingsPage: React.FC = () => {
           {activeTab === "extensions" && <ExtensionsManager />}
           {activeTab === "console" && <ConsoleManager />}
           {slotContributions.some((c) => c.contribution.id === activeTab) && (
-            <div id="settings-tabs-slot" data-contribution-id={activeTab} />
+            <Slot name="settings-tabs" contributionId={activeTab} />
           )}
           {configExtensions.map((ext) => (
             activeTab === `config-${ext.id}` && (

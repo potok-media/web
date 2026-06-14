@@ -15,7 +15,6 @@ import { MediaDetailsPage } from "./pages/MediaDetailsPage";
 import { MediaStreamsPage } from "./pages/MediaStreamsPage";
 import { WikiPage } from "./pages/WikiPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { GlobalSlotPortalHost } from "./components/common/extension/GlobalSlotPortalHost";
 import "./index.css";
 
 export const App: React.FC = () => {
@@ -25,7 +24,6 @@ export const App: React.FC = () => {
         <AppSettingsProvider>
           <InspectorProvider>
             <BrowserRouter>
-              <GlobalSlotPortalHost />
               <ErrorBoundary>
                 <Routes>
                   <Route path="/" element={<AppLayout />}>

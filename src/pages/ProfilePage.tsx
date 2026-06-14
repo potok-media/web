@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { LogOut, RefreshCw, Popcorn, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthApiClient } from "../network/AuthApiClient";
+import { Slot } from "../components/common/extension/Slot";
 import { useHUD } from "../context/HUDContext";
 import { useAuth } from "../context/AppSettingsContext";
 import { SyncStrategySelectionView } from "../components/profile/SyncStrategySelectionView";
@@ -280,9 +281,9 @@ export const ProfilePage: React.FC = () => {
         <h2 className="profile-extensions-heading">Ваши расширения и инструменты</h2>
         <p className="profile-extensions-subheading">Быстрый доступ к установленным плагинам</p>
         <div className="profile-extensions-grid-wrapper">
-          <div id="sidebar-menu-home-slot" data-props={JSON.stringify({ isCollapsed: false })} style={{ marginBottom: "8px" }} />
-          <div id="sidebar-menu-library-slot" data-props={JSON.stringify({ isCollapsed: false })} style={{ marginBottom: "8px" }} />
-          <div id="sidebar-menu-slot" data-props={JSON.stringify({ isCollapsed: false })} />
+          <Slot name="sidebar-menu-home" props={{ isCollapsed: false }} style={{ marginBottom: "8px" }} />
+          <Slot name="sidebar-menu-library" props={{ isCollapsed: false }} style={{ marginBottom: "8px" }} />
+          <Slot name="sidebar-menu" props={{ isCollapsed: false }} />
         </div>
       </div>
     </div>

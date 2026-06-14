@@ -31,6 +31,8 @@ export const DiagnosticsOverlay: React.FC = () => {
                     
     setIsVisible(visible);
 
+    if (!visible) return;
+
     const handleUpdate = () => {
       setMetrics({ ...performanceMonitor.metrics });
       setFps(performanceMonitor.getFps());

@@ -1,10 +1,9 @@
-import React, { useRef, useState, useMemo, useCallback } from "react";
+import React, { useRef, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import type { MediaCard } from "../network/ApiTypes";
 import { MediaCardComponent, areMediaCardsEqual } from "./MediaCardComponent";
 import { usePerformanceTrack } from "../utils/PerformanceMonitor";
-import { PlatformManager } from "../utils/PlatformManager";
 import { Focusable, FocusableContainer } from "./common/TVNavigation";
 
 interface MediaRowProps {
@@ -34,26 +33,6 @@ export const MediaRow: React.FC<MediaRowProps> = React.memo(
 
   // Cap items at 10 to keep TV horizontal scrolling fast
   const displayItems = useMemo(() => items.slice(0, 10), [items]);
-
-  // Staggered card mounting in TV mode to prevent UI thread blocking
-  const [renderedCount, setRenderedCount] = useState(() => {
-    return PlatformManager.isTV() ? Math.min(6, displayItems.length) : displayItems.length;
-  });
-
-  const prevItemsRef = useRef(items);
-  if (items !== prevItemsRef.current) {
-    prevItemsRef.current = items;
-    setRenderedCount(PlatformManager.isTV() ? Math.min(6, displayItems.length) : displayItems.length);
-  }
-
-  // Lazy-load the remaining cards when the user scrolls horizontally near the edge (index >= 4)
-  const handleCardFocus = useCallback((index: number) => {
-    if (PlatformManager.isTV() && index >= 4 && renderedCount < displayItems.length) {
-      setTimeout(() => {
-        setRenderedCount(displayItems.length);
-      }, 150);
-    }
-  }, [displayItems.length, renderedCount]);
 
   if (!items || items.length === 0) return null;
 
@@ -97,18 +76,17 @@ export const MediaRow: React.FC<MediaRowProps> = React.memo(
         className="carousel-row" 
         ref={rowRef}
       >
-        {displayItems.slice(0, renderedCount).map((item, index) => (
+        {displayItems.map((item, index) => (
           <MediaCardComponent
             key={item.id}
             item={item}
             onClick={onCardClick}
-            onFocus={() => handleCardFocus(index)}
             focusKey={index === 0 ? firstCardFocusKey : undefined}
           />
         ))}
 
         {/* Focusable "Show More" card at the end of the row */}
-        {id && onSeeAllClick && renderedCount === displayItems.length && (
+        {id && onSeeAllClick && (
           <Focusable
             onEnterPress={() => {
               onSeeAllClick(id, title);

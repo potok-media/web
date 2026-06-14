@@ -2,6 +2,7 @@ import React from "react";
 import { Sliders } from "lucide-react";
 import { ExtensionRegistry } from "../../utils/extensions/ExtensionRegistry";
 import { Focusable } from "../common/TVNavigation";
+import { Slot } from "../common/extension/Slot";
 
 interface GeneralSettingsProps {
   accentTheme: string;
@@ -53,10 +54,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
         </h2>
         
         {hasAccentContribution ? (
-          <div
-            id="settings-color-accent-slot"
-            data-props={JSON.stringify({ accentTheme })}
-          />
+          <Slot name="settings-color-accent" props={{ accentTheme }} />
         ) : (
           <div className="settings-form-group">
             <label className="settings-label">Цветовой акцент</label>

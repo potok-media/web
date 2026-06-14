@@ -7,7 +7,6 @@ import MediaRow from "../components/MediaRow";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import type { MediaCard } from "../network/ApiTypes";
 import { usePerformanceTrack } from "../utils/PerformanceMonitor";
-import { PlatformManager } from "../utils/PlatformManager";
 import { addScrollListener, isCurrentlyScrolling } from "../components/common/TVNavigation";
 import "../styles/media.css";
 
@@ -162,30 +161,7 @@ export const HomePage: React.FC = () => {
   const { feed, loading, refetch, loadMore, hasMore, loadingMore } = useHomeFeed((msg) => showHUD("error", msg));
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const [visibleRowsCount, setVisibleRowsCount] = useState<number>(() => {
-    return PlatformManager.isTV() ? 1 : (feed ? feed.rows.length : 0);
-  });
 
-  useEffect(() => {
-    if (!feed) {
-      if (PlatformManager.isTV()) {
-        setVisibleRowsCount(1);
-      }
-      return;
-    }
-
-    if (!PlatformManager.isTV()) {
-      setVisibleRowsCount(feed.rows.length);
-      return;
-    }
-
-    if (visibleRowsCount < feed.rows.length) {
-      const timer = setTimeout(() => {
-        setVisibleRowsCount((prev) => Math.min(prev + 1, feed.rows.length));
-      }, 150);
-      return () => clearTimeout(timer);
-    }
-  }, [feed, visibleRowsCount]);
 
   useEffect(() => {
     if (!hasMore || loadingMore) return;
@@ -246,7 +222,7 @@ export const HomePage: React.FC = () => {
         />
       )}
 
-      {feed.rows.slice(0, visibleRowsCount).map((row, index) => (
+      {feed.rows.map((row, index) => (
         <VirtualRow key={row.id || index}>
           <MediaRow
             id={row.id}

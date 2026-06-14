@@ -7,6 +7,7 @@ import SidebarStatus from "./SidebarStatus";
 import SidebarSearch from "./SidebarSearch";
 import { Focusable, FocusableButton } from "./common/TVNavigation";
 import { usePerformanceTrack } from "../utils/PerformanceMonitor";
+import { Slot } from "./common/extension/Slot";
 import "../styles/sidebar.css";
 
 interface FocusableNavLinkProps {
@@ -162,7 +163,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle })
             <Home size={18} />
             <span>Главная</span>
           </FocusableNavLink>
-          <div id="sidebar-menu-home-slot" data-props={JSON.stringify({ isCollapsed })} />
+          <Slot name="sidebar-menu-home" props={{ isCollapsed }} />
         </div>
 
         <div className="sidebar-section">
@@ -207,7 +208,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle })
             <Clock size={18} />
             <span>История</span>
           </FocusableNavLink>
-          <div id="sidebar-menu-library-slot" data-props={JSON.stringify({ isCollapsed })} />
+          <Slot name="sidebar-menu-library" props={{ isCollapsed }} />
         </div>
 
         <div className="sidebar-section">
@@ -215,7 +216,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle })
             <Settings size={18} />
             <span>Настройки</span>
           </FocusableNavLink>
-          <div id="sidebar-menu-slot" data-props={JSON.stringify({ isCollapsed })} />
+          <Slot name="sidebar-menu" props={{ isCollapsed }} />
         </div>
       </nav>
 
