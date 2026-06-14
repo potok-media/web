@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import type { MediaCard } from "../network/ApiTypes";
 import { MediaCardComponent } from "./MediaCardComponent";
+import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 
 interface MediaRowProps {
   id?: string;
@@ -13,6 +14,7 @@ interface MediaRowProps {
 }
 
 export const MediaRow: React.FC<MediaRowProps> = React.memo(({ id, title, items, onCardClick, onSeeAllClick }) => {
+  usePerformanceTrack(`MediaRow: ${title}`);
   const rowRef = useRef<HTMLDivElement>(null);
 
   if (!items || items.length === 0) return null;

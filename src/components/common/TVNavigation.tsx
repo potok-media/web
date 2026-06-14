@@ -2,6 +2,15 @@ import React, { useRef, useCallback, useState, useEffect } from "react";
 import { useFocusable, FocusContext } from "@noriginmedia/norigin-spatial-navigation";
 import type { UseFocusableConfig } from "@noriginmedia/norigin-spatial-navigation";
 
+// Prevent browser's native scroll on focus globally to stop layout fights with custom JS smooth scrolls
+if (typeof window !== "undefined" && typeof HTMLElement !== "undefined" && HTMLElement.prototype.focus) {
+  const originalFocus = HTMLElement.prototype.focus;
+  HTMLElement.prototype.focus = function(options) {
+    const newOptions = options ? { ...options, preventScroll: true } : { preventScroll: true };
+    originalFocus.call(this, newOptions);
+  };
+}
+
 // Shared RAF-debounced scroll manager with 85ms quadratic ease-out smooth scroll
 interface ScrollAnimation {
   frameId: number;
@@ -122,9 +131,27 @@ const scrollIntoView = (element: HTMLElement) => {
     const parentRect = verticalParent.getBoundingClientRect();
     const elementRect = element.getBoundingClientRect();
     
-    // Scroll to keep element in view vertically (centered)
-    const targetScrollTop = verticalParent.scrollTop + (elementRect.top - parentRect.top) - (parentRect.height / 2) + (elementRect.height / 2);
-    smoothScrollTo(verticalParent, targetScrollTop, true);
+    // Define vertical scroll boundaries (200px padding from top and bottom)
+    const topThreshold = 200; // px from top of main-content
+    const bottomThreshold = parentRect.height - 200; // px from bottom of main-content
+    
+    const elementTopInParent = elementRect.top - parentRect.top;
+    const elementBottomInParent = elementRect.bottom - parentRect.top;
+    
+    let targetScrollTop = verticalParent.scrollTop;
+    
+    if (elementTopInParent < topThreshold) {
+      // Scroll up to bring it into view at the top threshold
+      targetScrollTop = verticalParent.scrollTop + (elementTopInParent - topThreshold);
+    } else if (elementBottomInParent > bottomThreshold) {
+      // Scroll down to bring it into view at the bottom threshold
+      targetScrollTop = verticalParent.scrollTop + (elementBottomInParent - bottomThreshold);
+    }
+    
+    // Only scroll if there is a meaningful change to prevent micro-adjustments
+    if (Math.abs(targetScrollTop - verticalParent.scrollTop) > 1) {
+      smoothScrollTo(verticalParent, targetScrollTop, true);
+    }
   }
 };
 

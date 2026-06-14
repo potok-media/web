@@ -1,33 +1,33 @@
 /* ==========================================================================
-   Smart TV Spatial Navigation - Premium Focus Styling System
+   Smart TV Spatial Navigation - Clean & Optimized Styling System
    ========================================================================== */
 
-/* Prevent default browser focus outlines */
+/* 1. Prevent default browser focus outlines */
 .focused,
 .focused *,
 *:focus {
   outline: none !important;
 }
 
-/* Focused Interactive Elements (Buttons, Anchor Links, Glass Buttons) */
+/* 2. Focused Interactive Elements (Buttons, Links, Circles) */
 .btn-accent.focused,
 .btn-glass.focused,
 .btn-watch-primary.focused,
 .potok-btn.btn-watch-primary.focused,
 .overlay-btn.focused,
 .action-btn-circle.focused,
-button.focused {
+button.focused,
+a.focused {
   background-color: var(--accent) !important;
   color: var(--text-accent, #ffffff) !important;
   box-shadow: 
     0 0 0 3px var(--bg-window),
-    0 0 0 6px var(--accent),
-    0 12px 28px rgba(0, 0, 0, 0.5) !important;
+    0 0 0 5px var(--accent) !important; /* Flat solid outline, no expensive GPU blur shadow */
   transform: translateY(-2px) scale(1.03) !important;
   z-index: 10 !important;
 }
 
-/* Keep icon colors white inside focused accent/glass buttons */
+/* Keep icon colors white inside focused buttons */
 .btn-accent.focused svg,
 .btn-glass.focused svg,
 .btn-watch-primary.focused svg,
@@ -38,7 +38,6 @@ button.focused svg {
   stroke: var(--text-accent, #ffffff) !important;
 }
 
-/* Maintain proper icon fill behavior for focused circular icons (bookmark, star) */
 .action-btn-circle.focused svg:not([fill="none"]) {
   fill: var(--text-accent, #ffffff) !important;
 }
@@ -47,7 +46,7 @@ button.focused svg {
 .hero-dot.focused {
   background-color: var(--accent) !important;
   opacity: 1 !important;
-  transform: scale(1.35) !important;
+  transform: scale(1.3) !important;
   box-shadow: 
     0 0 0 2px var(--bg-window),
     0 0 0 4px var(--accent) !important;
@@ -61,7 +60,7 @@ button.focused svg {
   box-shadow: 0 0 0 2px var(--accent-dim) !important;
 }
 
-/* Focused Input Fields (e.g. settings page, config dialogs) */
+/* Focused Input Fields */
 input.focused,
 select.focused,
 textarea.focused,
@@ -75,40 +74,22 @@ textarea.focused,
 }
 
 /* ==========================================================================
-   Smart TV Performance Optimizations (60 FPS Scrolling)
+   Focused Cards System (Media & Episode Cards)
    ========================================================================== */
 
-/* Optimization for TV browser environments */
-body.is-tv {
-  /* Disable browser smooth scroll, as TV wrappers handle coordinate scrolling better instantly */
-  scroll-behavior: auto !important;
-}
-
-/* Hardware-accelerated GPU layer promotion to prevent repaint lag on scrolling */
-body.is-tv .media-card .media-poster-wrap,
-body.is-tv .episode-card .episode-still-wrap {
-  will-change: transform;
-}
-
-/* Disable smooth scrolling on carousels horizontally for instant responsiveness */
-body.is-tv .carousel-row,
-body.is-tv .episodes-scroll-container {
-  scroll-behavior: auto !important;
-}
-
-/* Focused Media Cards (TV Specific - Thin outline around poster wrap with scale) */
+/* Focused Media Cards (Outline on wrapper, scale up) */
 body.is-tv .media-card.focused .media-poster-wrap {
   transform: scale(1.04) !important;
-  box-shadow: 0 0 0 2.5px var(--accent) !important; /* Thin 2.5px solid outline, no blur shadow */
+  box-shadow: 0 0 0 2.5px var(--accent) !important;
   z-index: 10 !important;
 }
 
 body.is-tv .media-card.focused .media-card-title {
   color: var(--accent) !important;
-  text-shadow: none !important; /* Disable expensive GPU text-shadow rendering */
+  text-shadow: none !important;
 }
 
-/* Focused Episode Cards (TV Specific - Thin outline around still wrap with scale) */
+/* Focused Episode Cards */
 body.is-tv .episode-card.focused .episode-still-wrap {
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 2.5px var(--accent) !important;
@@ -119,36 +100,33 @@ body.is-tv .episode-card.focused .episode-number-title {
   color: var(--accent) !important;
 }
 
-/* 60 FPS GPU-Accelerated Overrides for TV */
+/* ==========================================================================
+   Smart TV Performance & Layout Optimizations
+   ========================================================================== */
 
-/* 1. Restrict transitions to only hardware-accelerated properties (transform & opacity) on TV */
-body.is-tv a,
-body.is-tv button,
-body.is-tv [role="button"],
-body.is-tv .media-card,
-body.is-tv .media-poster-wrap,
-body.is-tv .episode-card,
-body.is-tv .episode-still-wrap,
-body.is-tv .sidebar-nav-item,
-body.is-tv .hero-dot,
+/* Disable browser's native smooth scroll to make D-pad navigation instant and snappy */
+body.is-tv,
 body.is-tv .carousel-row,
 body.is-tv .episodes-scroll-container,
-body.is-tv input,
-body.is-tv select,
-body.is-tv textarea {
-  transition: transform 0.085s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.085s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+body.is-tv .main-content {
+  scroll-behavior: auto !important;
 }
 
-/* 2. Remove Gaussian blur shadow on focused buttons, using only a flat outline */
-body.is-tv .btn-accent.focused,
-body.is-tv .btn-glass.focused,
-body.is-tv .btn-watch-primary.focused,
-body.is-tv .potok-btn.btn-watch-primary.focused,
-body.is-tv .overlay-btn.focused,
-body.is-tv .action-btn-circle.focused,
-body.is-tv button.focused,
-body.is-tv a.focused {
-  box-shadow: 
-    0 0 0 3px var(--bg-window),
-    0 0 0 5px var(--accent) !important; /* Flat solid outline, no blur shadow */
+/* Snappy focus transition (100ms) for elements that actively receive focus */
+body.is-tv .focused,
+body.is-tv .media-card.focused .media-poster-wrap,
+body.is-tv .episode-card.focused .episode-still-wrap {
+  transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+}
+
+/* GPU acceleration layer promotion on focused elements */
+body.is-tv .media-card.focused .media-poster-wrap,
+body.is-tv .episode-card.focused .episode-still-wrap {
+  will-change: transform;
+}
+
+/* Disable expensive backdrop blurs on TVs (often cause severe GPU lag/crashing) */
+body.is-tv * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }

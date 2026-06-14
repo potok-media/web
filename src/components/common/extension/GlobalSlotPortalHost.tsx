@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import { ComponentRenderer } from "./ComponentRenderer";
 import { useInspector } from "../../../context/InspectorContext";
+import { usePerformanceTrack } from "../../../utils/PerformanceMonitor";
 import type { UIComponentSchema } from "@potok/sdk-types";
 
 // Centralized slot registry mapping slot names to DOM CSS selectors
@@ -20,6 +21,7 @@ export const SLOT_SELECTORS: Record<string, string> = {
 };
 
 export const GlobalSlotPortalHost: React.FC = () => {
+  usePerformanceTrack("SlotPortalHost");
   const { isInspectorActive, setSelectedSlot } = useInspector();
   const location = useLocation();
   const [activeElements, setActiveElements] = useState<Record<string, Element>>({});

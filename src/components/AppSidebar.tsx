@@ -6,6 +6,7 @@ import { useHUD } from "../context/HUDContext";
 import SidebarStatus from "./SidebarStatus";
 import SidebarSearch from "./SidebarSearch";
 import { Focusable, FocusableButton } from "./common/TVNavigation";
+import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 import "../styles/sidebar.css";
 
 interface FocusableNavLinkProps {
@@ -54,6 +55,7 @@ interface AppSidebarProps {
 }
 
 export const AppSidebar: React.FC<AppSidebarProps> = ({ isCollapsed, onToggle }) => {
+  usePerformanceTrack("AppSidebar");
   const { connectionState, bffLatencyMs } = useConnectionHealth();
   const { potokToken } = useAuth();
   const { show: showHUD } = useHUD();

@@ -132,6 +132,13 @@ export const PlatformManager = {
     const platform = this.getPlatform();
     console.log(`[PlatformManager] Initializing for platform: ${platform}`);
 
+    // Set TV class on body
+    if (this.isTV()) {
+      document.body.classList.add("is-tv");
+    } else {
+      document.body.classList.remove("is-tv");
+    }
+
     // Register Tizen Back Key
     if (platform === "tizen" && window.tizen?.tvinput) {
       try {

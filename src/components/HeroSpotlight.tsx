@@ -19,16 +19,25 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
   const { items, onDetails } = props;
   const [activeIndex, setActiveIndex] = useState(0);
   const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
-  const [displayedIndex, setDisplayedIndex] = useState<number | null>(null);
+  const [displayedIndex, setDisplayedIndex] = useState<number>(0);
+  const [prevIndex, setPrevIndex] = useState<number | null>(null);
   const [watchlistStates, setWatchlistStates] = useState<Record<number, boolean>>({});
 
   const heroItems = React.useMemo(() => items.slice(0, 10), [items]);
-  const displayIndexToUse = displayedIndex !== null ? displayedIndex : activeIndex;
+  const displayIndexToUse = displayedIndex;
   const activeItem = heroItems[displayIndexToUse];
   const { show: showHUD } = useHUD();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const hasFocusRef = useRef(false);
+
+  const [prevHeroItems, setPrevHeroItems] = useState<HeroItem[]>([]);
+  if (heroItems !== prevHeroItems) {
+    setPrevHeroItems(heroItems);
+    setLoadedImages({});
+    setDisplayedIndex(0);
+    setPrevIndex(null);
+  }
 
   const changeActiveIndex = (newIndex: number | ((prev: number) => number)) => {
     const hadFocus = containerRef.current?.contains(document.activeElement);
@@ -58,14 +67,20 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
     return () => clearInterval(interval);
   }, [activeIndex, heroItems.length]);
 
-  // Preload all backdrop images and logo images of the 10 hero items on mount/change
+  // Preload only active and next backdrop/logo images to save memory and network
   useEffect(() => {
-    setLoadedImages({});
-    setDisplayedIndex(null);
+    if (heroItems.length === 0) return;
 
-    heroItems.forEach((item, index) => {
-      // Preload backdrop image
-      if (item.card?.backdropSrc) {
+    const indicesToLoad = [activeIndex];
+    if (heroItems.length > 1) {
+      indicesToLoad.push((activeIndex + 1) % heroItems.length);
+    }
+
+    indicesToLoad.forEach((index) => {
+      if (loadedImages[index]) return; // Already marked loaded
+
+      const item = heroItems[index];
+      if (item?.card?.backdropSrc) {
         const img = new Image();
         img.src = item.card.backdropSrc;
         
@@ -90,7 +105,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
       }
 
       // Preload logo image if exists
-      if (item.card?.logoSrc) {
+      if (item?.card?.logoSrc) {
         const logoImg = new Image();
         logoImg.src = item.card.logoSrc;
         if (typeof logoImg.decode === "function") {
@@ -98,14 +113,23 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
         }
       }
     });
-  }, [heroItems]);
+  }, [activeIndex, heroItems, loadedImages]);
 
   // Synchronize displayedIndex to activeIndex when the target image is loaded
   useEffect(() => {
     if (loadedImages[activeIndex]) {
-      setDisplayedIndex(activeIndex);
+      if (displayedIndex !== activeIndex) {
+        setPrevIndex(displayedIndex);
+        setDisplayedIndex(activeIndex);
+        
+        // Clear previous index after transition finishes (800ms)
+        const timer = setTimeout(() => {
+          setPrevIndex(null);
+        }, 850);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [activeIndex, loadedImages]);
+  }, [activeIndex, loadedImages, displayedIndex]);
 
   useEffect(() => {
     if (heroItems.length > 0) {
@@ -145,9 +169,13 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
   return (
     <div className="immersive-hero-container" ref={containerRef}>
       <section className="hero-banner">
-        {/* Render all 10 backdrops so they preload immediately and cross-fade smoothly */}
+        {/* Render only current and previous backdrops for transition */}
         {heroItems.map((item, index) => {
           if (!item.card?.backdropSrc) return null;
+          const isCurrent = index === displayedIndex;
+          const isPrev = index === prevIndex;
+          if (!isCurrent && !isPrev) return null;
+
           return (
             <img
               key={item.card.id || index}
@@ -160,7 +188,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
                 });
               }}
               style={{
-                opacity: index === displayedIndex ? 1 : 0,
+                opacity: isCurrent ? 1 : 0,
                 pointerEvents: "none",
                 transition: "opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
               }}
@@ -170,20 +198,22 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
         })}
         <div className="immersive-hero-overlay" />
         <div className="immersive-hero-content">
-          {/* Render all 10 content layouts absolutely positioned to overlay each other and cross-fade smoothly */}
+          {/* Render only current and previous content layouts */}
           {heroItems.map((item, index) => {
             const card = item.card;
             if (!card) return null;
             const isCurrent = index === displayedIndex;
+            const isPrev = index === prevIndex;
+            if (!isCurrent && !isPrev) return null;
 
             return (
               <div
                 key={card.id || index}
                 className="hero-content"
                 style={{
-                  position: isCurrent ? "relative" : "absolute",
-                  bottom: isCurrent ? undefined : "var(--space-m)",
-                  left: isCurrent ? undefined : "var(--space-l)",
+                  position: "absolute",
+                  bottom: "calc(var(--space-m) * 2)",
+                  left: "var(--space-l)",
                   opacity: isCurrent ? 1 : 0,
                   pointerEvents: isCurrent ? "auto" : "none",
                   transition: "opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)",

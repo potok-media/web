@@ -6,32 +6,6 @@ import { Focusable } from "./common/TVNavigation";
 import { usePerformanceTrack } from "../utils/PerformanceMonitor";
 import type { MediaCard } from "../network/ApiClient";
 
-// Shared singleton IntersectionObserver subscription system
-type ObserverCallback = (entry: IntersectionObserverEntry) => void;
-const subscribers = new WeakMap<Element, ObserverCallback>();
-
-let sharedObserver: IntersectionObserver | null = null;
-
-function getSharedObserver(): IntersectionObserver {
-  if (!sharedObserver) {
-    sharedObserver = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          const callback = subscribers.get(entry.target);
-          if (callback) {
-            callback(entry);
-          }
-        }
-      },
-      {
-        rootMargin: "160px 0px 160px 0px", // Trigger 160px early so transition finishes before viewport entry
-        threshold: 0.01,
-      }
-    );
-  }
-  return sharedObserver;
-}
-
 interface MediaCardComponentProps {
   item: MediaCard;
   onClick?: (item: MediaCard) => void;
@@ -39,9 +13,8 @@ interface MediaCardComponentProps {
   delay?: number;
 }
 
-export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(({ item, onClick, style, delay = 0 }) => {
+export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(({ item, onClick, style }) => {
   usePerformanceTrack("MediaCardComponent");
-  const [isIntersecting, setIsIntersecting] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const cardRef = useRef<HTMLAnchorElement>(null);
@@ -51,24 +24,7 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
     if (!item.posterSrc) {
       setIsImageLoaded(true);
     }
-
-    const element = cardRef.current;
-    if (!element) return;
-
-    const observer = getSharedObserver();
-
-    const callback: ObserverCallback = (entry) => {
-      setIsIntersecting(entry.isIntersecting);
-    };
-
-    subscribers.set(element, callback);
-    observer.observe(element);
-
-    return () => {
-      subscribers.delete(element);
-      observer.unobserve(element);
-    };
-  }, [item.id, item.posterSrc]);
+  }, [item.posterSrc]);
 
   const handleImageLoad = () => {
     setIsImageLoaded(true);
@@ -105,10 +61,6 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
     }
   };
 
-  // Guard reveal transition: Card only becomes visible when inside viewport AND image is fully loaded/decoded.
-  // This completely eliminates Chromium's grey flash paint glitches on scroll.
-  const isVisible = isIntersecting && isImageLoaded;
-
   return (
     <Focusable
       onEnterPress={() => {
@@ -128,42 +80,37 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
           <Link
             ref={setRefs}
             to={`/media/${item.mediaType}/${item.id}`}
-            className={`media-card ${isVisible ? "is-visible" : ""} ${focused ? "focused" : ""}`}
+            className={`media-card is-visible ${focused ? "focused" : ""}`}
             onClick={handleCardClick}
-            style={{
-              ...style,
-              transitionDelay: isVisible ? `${delay}ms` : "0ms"
-            }}
+            style={style}
           >
             <div className="media-poster-wrap">
-              {(isIntersecting || isImageLoaded) && (
-                (item.posterSrc && !hasError) ? (
-                  <img
-                    src={item.posterSrc}
-                    className="media-poster"
-                    alt={item.title}
-                    loading="lazy"
-                    decoding="async"
-                    onLoad={handleImageLoad}
-                    onError={handleImageError}
-                  />
-                ) : (
-                  <div className="media-poster-fallback-placeholder">
-                    <FilmOff size={36} />
-                  </div>
-                )
+              {item.posterSrc && !hasError ? (
+                <img
+                  src={item.posterSrc}
+                  className="media-poster"
+                  alt={item.title}
+                  loading="lazy"
+                  decoding="async"
+                  onLoad={handleImageLoad}
+                  onError={handleImageError}
+                  style={{
+                    opacity: isImageLoaded ? 1 : 0,
+                    transition: "opacity 0.2s ease-in-out"
+                  }}
+                />
+              ) : (
+                <div className="media-poster-fallback-placeholder">
+                  <FilmOff size={36} />
+                </div>
               )}
               
-              {/* Dark bottom gradient overlay */}
               <div className="media-card-overlay">
                 <div className="media-card-pills-row">
                   {epInfo && (
                     <span className="media-glass-pill episode-pill">{epInfo}</span>
                   )}
-                  
-                  {/* Empty space filler for layout */}
                   <div className="media-card-spacer" />
-                  
                   {rating && (
                     <span className="media-glass-pill rating-pill">
                       <Star size={11} fill="var(--warning)" stroke="var(--warning)" className="rating-star-icon" />
@@ -171,8 +118,6 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
                     </span>
                   )}
                 </div>
-                
-                {/* Frosted thin progress bar */}
                 {showProgress && (
                   <div className="media-card-progress-container">
                     <div 
@@ -183,8 +128,6 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
                 )}
               </div>
             </div>
-            
-            {/* Centered title & subtitle under poster */}
             <div className="media-card-info">
               <h3 className="media-card-title">{item.title}</h3>
               {item.subtitle && <p className="media-card-subtitle">{item.subtitle}</p>}
