@@ -57,11 +57,15 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
 
   const containerRef = useRef<HTMLDivElement>(null);
   const hasFocusRef = useRef(false);
+  // Tracks which slide indices have already had their images requested, so the
+  // preload effect never re-creates Image objects when loadedImages updates.
+  const requestedImagesRef = useRef<Set<number>>(new Set());
 
   const [prevHeroItems, setPrevHeroItems] = useState<HeroItem[]>([]);
   if (heroItems !== prevHeroItems) {
     setPrevHeroItems(heroItems);
     setLoadedImages({});
+    requestedImagesRef.current = new Set();
     setSlideState({
       activeIndex: 0,
       displayedIndex: 0,
@@ -120,7 +124,9 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
     return () => clearInterval(interval);
   }, [activeIndex, heroItems.length, isVisible]);
 
-  // Preload only active and next backdrop/logo images to save memory and network
+  // Preload only active and next backdrop/logo images to save memory and network.
+  // Requested indices are tracked in a ref so loadedImages updates never re-trigger
+  // this effect or re-create Image objects.
   useEffect(() => {
     if (heroItems.length === 0) return;
 
@@ -130,31 +136,27 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
     }
 
     indicesToLoad.forEach((index) => {
-      if (loadedImages[index]) return; // Already marked loaded
+      if (requestedImagesRef.current.has(index)) return;
+      requestedImagesRef.current.add(index);
 
       const item = heroItems[index];
-      if (item?.card?.backdropSrc) {
-        const img = new Image();
-        img.src = item.card.backdropSrc;
-        
-        const markLoaded = () => {
-          setLoadedImages((prev) => {
-            if (prev[index]) return prev;
-            return { ...prev, [index]: true };
-          });
-        };
-
-        img.onload = markLoaded;
-        img.onerror = markLoaded;
-
-        if (typeof img.decode === "function") {
-          img.decode().then(markLoaded).catch(markLoaded);
-        }
-      } else {
+      const markLoaded = () => {
         setLoadedImages((prev) => {
           if (prev[index]) return prev;
           return { ...prev, [index]: true };
         });
+      };
+
+      if (item?.card?.backdropSrc) {
+        const img = new Image();
+        img.src = item.card.backdropSrc;
+        img.onload = markLoaded;
+        img.onerror = markLoaded;
+        if (typeof img.decode === "function") {
+          img.decode().then(markLoaded).catch(markLoaded);
+        }
+      } else {
+        markLoaded();
       }
 
       // Preload logo image if exists
@@ -166,7 +168,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
         }
       }
     });
-  }, [activeIndex, heroItems, loadedImages]);
+  }, [activeIndex, heroItems]);
 
   // Synchronize displayedIndex to activeIndex when the target image is loaded
   useEffect(() => {
@@ -239,19 +241,13 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
             <img
               key={item.card.id || index}
               src={item.card.backdropSrc}
-              className="immersive-hero-backdrop"
+              className={`immersive-hero-backdrop ${isCurrent ? "is-current" : ""}`}
               decoding="async"
               onLoad={() => {
                 setLoadedImages((prev) => {
                   if (prev[index]) return prev;
                   return { ...prev, [index]: true };
                 });
-              }}
-              style={{
-                opacity: isCurrent ? 1 : 0,
-                pointerEvents: "none",
-                transition: "opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-                willChange: "opacity",
               }}
               alt=""
             />
@@ -270,17 +266,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
             return (
               <div
                 key={card.id || index}
-                className="hero-content"
-                style={{
-                  position: "absolute",
-                  bottom: "calc(var(--space-m) * 2)",
-                  left: "var(--space-l)",
-                  opacity: isCurrent ? 1 : 0,
-                  pointerEvents: isCurrent ? "auto" : "none",
-                  transition: "opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-                  zIndex: isCurrent ? 2 : 1,
-                  willChange: "opacity"
-                }}
+                className={`hero-content ${isCurrent ? "is-current" : ""}`}
               >
                 {card.logoSrc ? (
                   <img src={card.logoSrc} alt={card.title} className="hero-logo" decoding="async" />

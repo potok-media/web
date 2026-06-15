@@ -211,7 +211,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--timing-hover);
+  transition: var(--transition-interactive);
   margin-right: -4px;
 }
 
@@ -724,7 +724,7 @@
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  transition: all 0.3s ease;
+  transition: var(--transition-sheet);
 }
 
 .player-loading-spinner-container {
@@ -817,7 +817,7 @@
   align-items: center;
   font-size: 0.8rem;
   font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: var(--transition-sheet);
 }
 
 .player-loading-step-item.active .step-dot {
@@ -839,7 +839,7 @@
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--text-tertiary);
-  transition: all 0.3s ease;
+  transition: var(--transition-sheet);
   white-space: normal;
   text-align: center;
   max-width: 90px;
@@ -865,7 +865,7 @@
   cursor: pointer;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: var(--transition-sheet);
   margin-top: 8px;
 }
 

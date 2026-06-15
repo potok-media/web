@@ -240,7 +240,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       }
     } catch (e) {
-      console.error("[AppSettingsContext] Failed to load cached custom themes:", e);
+      logger.error("[AppSettingsContext] Failed to load cached custom themes:", e);
     }
   }, []);
 
@@ -860,7 +860,7 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const playVideo = useCallback((playback: ActivePlayback) => {
     // Intercept with PlatformManager for native player shells
     if (PlatformManager.playVideo(playback)) {
-      console.log("[PlaybackProvider] Playback handled natively by PlatformManager.");
+      logger.log("[PlaybackProvider] Playback handled natively by PlatformManager.");
       return;
     }
 

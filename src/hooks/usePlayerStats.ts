@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type React from "react";
 import type Hls from "hls.js";
 import { ApiClient } from "../network/ApiClient";
+import { logger } from "../utils/logger";
 
 interface HTMLVideoElementWithQuality extends Omit<HTMLVideoElement, 'getVideoPlaybackQuality'> {
   getVideoPlaybackQuality?: () => {
@@ -46,7 +47,7 @@ export function usePlayerStats(
           }
         }
       })
-      .catch((err) => console.warn("Failed to fetch stream file size for bitrate:", err));
+      .catch((err) => logger.warn("Failed to fetch stream file size for bitrate:", err));
 
     return () => {
       isMounted = false;

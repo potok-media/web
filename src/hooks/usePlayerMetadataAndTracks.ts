@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { ApiClient } from "../network/ApiClient";
+import { logger } from "../utils/logger";
 
 export function usePlayerMetadataAndTracks(
   streamHash: string,
@@ -122,7 +123,7 @@ export function usePlayerMetadataAndTracks(
           setIsMetadataFetched(true);
         }
       } catch (err) {
-        console.warn("Failed to load stream metadata:", err);
+        logger.warn("Failed to load stream metadata:", err);
       } finally {
         if (isMounted) {
           if (!fetchedSuccessfully) {

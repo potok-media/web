@@ -169,7 +169,7 @@
   font-weight: 500;
   cursor: pointer;
   border: none;
-  transition: all 0.2s ease-in-out;
+  transition: var(--transition-interactive);
   outline: none;
   color: var(--text-accent, #fff);
   width: fit-content;
@@ -246,9 +246,9 @@
   color: var(--text-primary) !important;
   padding: 10px 18px !important;
   border-radius: var(--radius-m, 12px) !important;
-  backdrop-filter: var(--blur-glass, blur(20px)) !important;
+  backdrop-filter: var(--blur-glass, blur(20px));
   font-weight: 600 !important;
-  transition: all 0.2s ease-in-out !important;
+  transition: var(--transition-interactive) !important;
   cursor: pointer;
   outline: none;
   box-sizing: border-box;
@@ -265,9 +265,9 @@
   color: var(--text-primary) !important;
   padding: 10px 18px !important;
   border-radius: var(--radius-m, 12px) !important;
-  backdrop-filter: var(--blur-glass, blur(20px)) !important;
+  backdrop-filter: var(--blur-glass, blur(20px));
   font-weight: 600 !important;
-  transition: all 0.2s ease-in-out !important;
+  transition: var(--transition-interactive) !important;
 }
 
 .potok-btn-secondary:hover:not(:disabled) {
@@ -528,7 +528,7 @@ input:checked + .potok-slider:before {
   font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: var(--transition-interactive);
   outline: none;
 }
 
@@ -737,7 +737,7 @@ input:checked + .potok-slider:before {
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  transition: var(--transition-interactive);
 }
 
 .potok-update-banner-btn:hover {
@@ -872,7 +872,7 @@ input:checked + .potok-slider:before {
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.15s ease;
+  transition: var(--transition-interactive);
 }
 
 .potok-update-modal-btn-update:hover:not(:disabled) {
@@ -904,7 +904,7 @@ input:checked + .potok-slider:before {
   border-radius: 8px;
   border: none;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: var(--transition-interactive);
 }
 
 .potok-update-modal-btn-all:hover:not(:disabled) {
@@ -943,7 +943,7 @@ input:checked + .potok-slider:before {
   gap: 16px;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: var(--transition-sheet);
   overflow: hidden;
 }
 
@@ -1048,7 +1048,7 @@ input:checked + .potok-slider:before {
   padding: 0 14px;
   flex-grow: 1;
   height: 44px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition-interactive);
 }
 
 .extensions-search-bar:focus-within {
@@ -1109,7 +1109,7 @@ input:checked + .potok-slider:before {
   border: var(--glass-border);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition-interactive);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1207,7 +1207,7 @@ input:checked + .potok-slider:before {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: var(--transition-sheet);
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
@@ -1270,7 +1270,7 @@ input:checked + .potok-slider:before {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all 0.3s ease;
+  transition: var(--transition-sheet);
 }
 
 .potok-extension-card:hover .extension-card-icon-container {
@@ -1520,7 +1520,7 @@ input:checked + .slider-round:before {
   justify-content: center;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition-interactive);
 }
 
 .card-action-btn:hover {
@@ -1575,7 +1575,7 @@ input:checked + .slider-round:before {
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: var(--transition-interactive);
 }
 
 .update-alert-btn:hover:not(:disabled) {

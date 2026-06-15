@@ -310,7 +310,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.15s ease-in-out;
+  transition: var(--transition-interactive);
 }
 
 .profile-btn:hover {
@@ -344,7 +344,7 @@
   border-radius: var(--radius-m);
   font: var(--font-body);
   outline: none;
-  transition: all 0.2s ease-in-out;
+  transition: var(--transition-interactive);
   max-width: 30rem;
   width: 100%;
 }
@@ -363,7 +363,7 @@
   font: var(--font-body);
   outline: none;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  transition: var(--transition-interactive);
   max-width: 30rem;
   width: 100%;
 }
@@ -534,7 +534,7 @@
   border-radius: 0.25rem;
   display: flex;
   align-items: center;
-  transition: all 0.15s;
+  transition: var(--transition-interactive);
 }
 
 .manifest-modal-close:hover {
@@ -611,7 +611,7 @@
   border-radius: 0.25rem;
   display: flex;
   align-items: center;
-  transition: all 0.15s;
+  transition: var(--transition-interactive);
 }
 
 .copy-btn-inline:hover {

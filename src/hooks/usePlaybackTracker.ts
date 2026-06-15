@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { Storage } from "../utils/StorageService";
 import { SyncApiClient } from "../network/SyncApiClient";
+import { logger } from "../utils/logger";
 
 export interface PlaybackProgress {
   progressSeconds: number;
@@ -93,7 +94,7 @@ export function usePlaybackTracker({
           episode,
           Math.floor(actualTime),
           Math.floor(durationVal)
-        ).catch((err) => console.error("[Sync] Failed to save progress:", err));
+        ).catch((err) => logger.error("[Sync] Failed to save progress:", err));
       }
     }
   }, [id, mediaType, season, episode, seekOffset, getStorageKeys]);
@@ -164,7 +165,7 @@ export function usePlaybackTracker({
           episode,
           Math.floor(duration),
           Math.floor(duration)
-        ).catch((err) => console.error("[Sync] Failed to mark completed on ended:", err));
+        ).catch((err) => logger.error("[Sync] Failed to mark completed on ended:", err));
       }
     };
 

@@ -4,6 +4,7 @@ import { ChevronRight } from "lucide-react";
 import type { MediaCard } from "../network/ApiTypes";
 import { MediaCardComponent, areMediaCardsEqual } from "./MediaCardComponent";
 import { Focusable, FocusableContainer } from "./common/TVNavigation";
+import { PlatformManager } from "../utils/PlatformManager";
 
 interface MediaRowProps {
   id?: string;
@@ -84,7 +85,7 @@ export const MediaRow: React.FC<MediaRowProps> = React.memo(
         ))}
 
         {/* Focusable "Show More" card at the end of the row */}
-        {id && onSeeAllClick && (
+        {PlatformManager.isTV() && id && onSeeAllClick && (
           <Focusable
             onEnterPress={() => {
               onSeeAllClick(id, title);

@@ -5,6 +5,8 @@ import { AuthApiClient } from "../network/AuthApiClient";
 import { Slot } from "../components/common/extension/Slot";
 import { useHUD } from "../context/HUDContext";
 import { useAuth } from "../context/AppSettingsContext";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { FocusableButton } from "../components/common/TVNavigation";
 import { SyncStrategySelectionView } from "../components/profile/SyncStrategySelectionView";
 import { ServerSyncActiveView } from "../components/profile/ServerSyncActiveView";
 import { TraktDeviceAuthView } from "../components/profile/TraktDeviceAuthView";
@@ -119,6 +121,14 @@ export const ProfilePage: React.FC = () => {
     }
   }, [syncStrategy, traktToken]);
 
+  useEffect(() => {
+    if (!potokToken) {
+      setFocus("AUTH_USERNAME_INPUT");
+    } else {
+      setFocus("PROFILE_LOGOUT_BTN");
+    }
+  }, [potokToken]);
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     showHUD("success", "Код скопирован");
@@ -160,9 +170,14 @@ export const ProfilePage: React.FC = () => {
               {syncStrategy === "trakt" ? "Облако Trakt.tv" : syncStrategy === "server" ? "Сервер Potok" : "Синхронизация отключена"}
             </div>
           </div>
-          <button onClick={handlePotokLogout} className="profile-logout-btn" title="Выйти">
+          <FocusableButton
+            focusKey="PROFILE_LOGOUT_BTN"
+            onClick={handlePotokLogout}
+            className="profile-logout-btn"
+            title="Выйти"
+          >
             <LogOut size={16} />
-          </button>
+          </FocusableButton>
         </div>
       </div>
 

@@ -22,6 +22,11 @@
   transform: translate3d(0, 0, 0);
 }
 
+/* Lock scrolling on the main content when any modal overlay is active */
+body:has(.modal-overlay, .manifest-modal-overlay, .potok-update-modal-overlay) .main-content {
+  overflow-y: hidden !important;
+}
+
 .page-container {
   padding: var(--space-xl);
   display: flex;

@@ -4,6 +4,7 @@ import type { UseFocusableConfig } from "@noriginmedia/norigin-spatial-navigatio
 import { PlatformManager } from "../../utils/PlatformManager";
 
 
+
 // Prevent browser's native scroll on focus globally to stop layout fights with custom JS smooth scrolls
 if (typeof window !== "undefined" && typeof HTMLElement !== "undefined" && HTMLElement.prototype.focus) {
   const originalFocus = HTMLElement.prototype.focus;
@@ -57,84 +58,85 @@ export const addScrollListener = (listener: (scrolling: boolean) => void) => {
 
 export const isCurrentlyScrolling = () => isScrolling;
 
-const activeScrollAnimations = new WeakMap<HTMLElement, { rId: number }>();
+export const smoothScrollTo = (element: HTMLElement, targetValue: number, isVertical: boolean) => {
+  triggerScrollLock();
 
-export const smoothScrollTo = (element: HTMLElement, targetValue: number, isVertical: boolean, duration: number = 150) => {
-  if (!PlatformManager.isTV()) {
+  const prop = isVertical ? "scrollTop" : "scrollLeft";
+  
+  try {
     element.scrollTo({
       [isVertical ? "top" : "left"]: targetValue,
       behavior: "smooth"
     });
-    return;
-  }
-
-  const startValue = isVertical ? element.scrollTop : element.scrollLeft;
-  const change = targetValue - startValue;
-  if (change === 0) return;
-  
-  triggerScrollLock();
-
-  const active = activeScrollAnimations.get(element);
-  if (active) {
-    cancelAnimationFrame(active.rId);
-  }
-
-  const startTime = performance.now();
-
-  const animate = (currentTime: number) => {
-    const elapsed = currentTime - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-
-    // Easing: easeOutQuad
-    const easeProgress = progress * (2 - progress);
-    const currentValue = startValue + change * easeProgress;
-
-    if (isVertical) {
-      element.scrollTop = currentValue;
-    } else {
-      element.scrollLeft = currentValue;
+  } catch (e) {
+    try {
+      if (isVertical) {
+        element.scrollTo(element.scrollLeft, targetValue);
+      } else {
+        element.scrollTo(targetValue, element.scrollTop);
+      }
+    } catch (err) {
+      element[prop] = targetValue;
     }
-
-    if (progress < 1) {
-      const rId = requestAnimationFrame(animate);
-      activeScrollAnimations.set(element, { rId });
-    } else {
-      activeScrollAnimations.delete(element);
-    }
-  };
-
-  const rId = requestAnimationFrame(animate);
-  activeScrollAnimations.set(element, { rId });
+  }
 };
 
 const getRelativeOffset = (element: HTMLElement, parent: HTMLElement) => {
-  let left = 0;
-  let top = 0;
-  let curr: HTMLElement | null = element;
+  const rect = element.getBoundingClientRect();
+  const parentRect = parent.getBoundingClientRect();
   
-  while (curr && curr !== parent && parent.contains(curr)) {
-    left += curr.offsetLeft;
-    top += curr.offsetTop;
-    curr = curr.offsetParent as HTMLElement | null;
-  }
-  
-  return { left, top };
+  return {
+    left: rect.left - parentRect.left + parent.scrollLeft,
+    top: rect.top - parentRect.top + parent.scrollTop
+  };
+};
+
+// Flag for modal popups to switch to native browser scroll (O(1) check, no DOM traversal)
+let useNativeScroll = false;
+
+export const setNativeScrollMode = (enabled: boolean) => {
+  useNativeScroll = enabled;
 };
 
 let lastFocusedRow: HTMLElement | null = null;
 let verticalScrollTimeoutId: any = null;
+let horizontalScrollRAF: number | null = null;
 
 const scrollIntoView = (element: HTMLElement) => {
   if (!element) return;
+  if (!PlatformManager.isTV() && !document.body.classList.contains("is-tv")) return;
+
+  // Modal popups: use native browser scroll, zero JS layout calculations
+  if (useNativeScroll) {
+    if (verticalScrollTimeoutId) {
+      clearTimeout(verticalScrollTimeoutId);
+    }
+    verticalScrollTimeoutId = setTimeout(() => {
+      verticalScrollTimeoutId = null;
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "nearest"
+      });
+    }, 50);
+    return;
+  }
 
   // 1. Horizontal scroll (e.g. carousels)
   const horizontalParent = element.closest(".carousel-row, .episodes-scroll-container") as HTMLElement;
   if (horizontalParent) {
-    const { left } = getRelativeOffset(element, horizontalParent);
-    
-    // Center element horizontally in parent
-    const targetScrollLeft = left - (horizontalParent.clientWidth / 2) + (element.offsetWidth / 2);
-    smoothScrollTo(horizontalParent, targetScrollLeft, false);
+    // Defer layout read to next frame to avoid forced reflow from .focused class change
+    if (horizontalScrollRAF) {
+      cancelAnimationFrame(horizontalScrollRAF);
+    }
+    const hTarget = element;
+    const hParent = horizontalParent;
+    horizontalScrollRAF = requestAnimationFrame(() => {
+      horizontalScrollRAF = null;
+      const { left } = getRelativeOffset(hTarget, hParent);
+      const targetScrollLeft = left - (hParent.clientWidth / 2) + (hTarget.offsetWidth / 2);
+      smoothScrollTo(hParent, targetScrollLeft, false);
+    });
   }
 
   // 2. Vertical scroll (e.g. main content)
@@ -148,31 +150,28 @@ const scrollIntoView = (element: HTMLElement) => {
     lastFocusedRow = null;
   }
 
-  const verticalParent = element.closest(".main-content") as HTMLElement;
+  const verticalParent = element.closest(".main-content, .modal-sidebar") as HTMLElement;
   if (verticalParent) {
-    const { top } = getRelativeOffset(element, verticalParent);
-    // Center the active element (row/card) vertically in main-content viewport
-    // If element is inside the Hero Spotlight, always align scroll to 0 (top of the page)
-    const isHero = element.closest(".immersive-hero-container");
-    const targetScrollTop = isHero
-      ? 0
-      : top - (verticalParent.clientHeight / 2) + (element.offsetHeight / 2);
-    
-    // Clamp the targetScrollTop to the maximum possible scroll bounds to prevent fights with browser clamping
-    const maxScrollTop = Math.max(0, verticalParent.scrollHeight - verticalParent.clientHeight);
-    const clampedTargetScrollTop = Math.max(0, Math.min(targetScrollTop, maxScrollTop));
-    
-    // Only scroll if there is a meaningful change to prevent micro-adjustments
-    if (Math.abs(clampedTargetScrollTop - verticalParent.scrollTop) > 1) {
-      if (verticalScrollTimeoutId) {
-        clearTimeout(verticalScrollTimeoutId);
-      }
-      // Delay vertical scroll by 50ms to debounce rapid D-pad traversals
-      verticalScrollTimeoutId = setTimeout(() => {
-        verticalScrollTimeoutId = null;
-        smoothScrollTo(verticalParent, clampedTargetScrollTop, true);
-      }, 50);
+    if (verticalScrollTimeoutId) {
+      clearTimeout(verticalScrollTimeoutId);
     }
+    // Defer ALL layout reads (getBoundingClientRect) into the debounced timeout
+    // to prevent forced reflow during rapid D-pad navigation
+    const vTarget = element;
+    const vParent = verticalParent;
+    verticalScrollTimeoutId = setTimeout(() => {
+      verticalScrollTimeoutId = null;
+      const { top } = getRelativeOffset(vTarget, vParent);
+      const isHero = vTarget.closest(".immersive-hero-container");
+      const targetScrollTop = isHero
+        ? 0
+        : top - (vParent.clientHeight / 2) + (vTarget.offsetHeight / 2);
+      const maxScrollTop = Math.max(0, vParent.scrollHeight - vParent.clientHeight);
+      const clampedTargetScrollTop = Math.max(0, Math.min(targetScrollTop, maxScrollTop));
+      if (Math.abs(clampedTargetScrollTop - vParent.scrollTop) > 1) {
+        smoothScrollTo(vParent, clampedTargetScrollTop, true);
+      }
+    }, 50);
   }
 };
 
@@ -274,6 +273,9 @@ export const FocusableButton = React.forwardRef<HTMLButtonElement, FocusableButt
   focusedClassName = "focused",
   onClick,
   onEnterPress,
+  style,
+  disabled,
+  title,
   ...config
 }, forwardedRef) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -286,6 +288,7 @@ export const FocusableButton = React.forwardRef<HTMLButtonElement, FocusableButt
         buttonRef.current?.click();
       }
     },
+    focusable: disabled !== undefined ? !disabled : config.focusable,
     ...config,
     onFocus: (layout, props, details) => {
       if (layout.node) {
@@ -314,6 +317,9 @@ export const FocusableButton = React.forwardRef<HTMLButtonElement, FocusableButt
       ref={setRefs}
       className={`${className} ${focused ? focusedClassName : ""}`.trim()}
       onClick={onClick}
+      style={style}
+      disabled={disabled}
+      title={title}
     >
       {children}
     </button>
@@ -335,6 +341,12 @@ export const FocusableInput = React.forwardRef<HTMLInputElement, FocusableInputP
   onFocus,
   onBlur,
   onEnterPress,
+  style,
+  disabled,
+  placeholder,
+  value,
+  onChange,
+  type,
   ...config
 }, forwardedRef) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -347,6 +359,7 @@ export const FocusableInput = React.forwardRef<HTMLInputElement, FocusableInputP
         inputRef.current?.focus();
       }
     },
+    focusable: disabled !== undefined ? !disabled : config.focusable,
     ...config,
     onFocus: (layout, props, details) => {
       if (layout.node) {
@@ -376,6 +389,12 @@ export const FocusableInput = React.forwardRef<HTMLInputElement, FocusableInputP
       className={`${className} ${focused ? focusedClassName : ""}`.trim()}
       onFocus={onFocus as any}
       onBlur={onBlur as any}
+      style={style}
+      disabled={disabled}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      type={type}
     />
   );
 });

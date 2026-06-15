@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { ShieldAlert } from "lucide-react";
 import type { RawStreamPayload } from "@potok/sdk-types";
 import type { StreamUIItem } from "../../network/ApiTypes";
@@ -128,6 +128,21 @@ export const StreamList: React.FC<StreamListProps> = ({
     return processedStreams;
   }, [processedStreams]);
 
+  // Map UI item id -> raw payload so a single stable onClick can resolve the raw
+  // stream, keeping StreamRowComponent's React.memo intact during D-pad scrolling.
+  const rawById = useMemo(() => {
+    const map = new Map<string, RawStreamPayload>();
+    displayStreams.forEach((item) => map.set(item.ui.id, item.raw));
+    return map;
+  }, [displayStreams]);
+
+  const handleSelectStream = useCallback((ui: StreamUIItem) => {
+    const raw = rawById.get(ui.id);
+    if (raw) {
+      onSelectStream(raw);
+    }
+  }, [rawById, onSelectStream]);
+
   const handleRefreshClick = () => {
     if (onRefresh) {
       onRefresh();
@@ -162,7 +177,7 @@ export const StreamList: React.FC<StreamListProps> = ({
               <StreamRowComponent
                 key={`${item.ui.id || "stream"}-${index}`}
                 stream={item.ui}
-                onClick={() => onSelectStream(item.raw)}
+                onClick={handleSelectStream}
               />
             );
           })

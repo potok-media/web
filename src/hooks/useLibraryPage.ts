@@ -156,12 +156,12 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
         setHasMore(false);
         getPaginationCache()[collectionType] = { page, hasMore: false };
       } else {
+        // The collection cache mirrors `items` for this collection, so it is a safe
+        // source for the current page (avoids a side effect inside a setState updater).
+        const combined = [...(getCollectionCache()[collectionType] || []), ...cards];
+        getCollectionCache()[collectionType] = combined;
         startTransition(() => {
-          setItems((prev) => {
-            const combined = [...prev, ...cards];
-            getCollectionCache()[collectionType] = combined;
-            return combined;
-          });
+          setItems(combined);
         });
         setPage(nextPage);
         const hasMoreFlag = cards.length >= 20;

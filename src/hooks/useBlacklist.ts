@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { logger } from "../utils/logger";
 
 const DEFAULT_BLACKLIST = ["potok-malicious-exploit", "adware-tracker-plugin", "potok-crypto-miner"];
 
@@ -21,13 +22,13 @@ export function useBlacklist() {
             const data = await res.json();
             if (Array.isArray(data)) {
               setBlacklist((prev) => Array.from(new Set([...prev, ...data])));
-              console.log("[useBlacklist] Dynamic blacklist fetched successfully:", data);
+              logger.log("[useBlacklist] Dynamic blacklist fetched successfully:", data);
               break;
             }
           }
         } catch (err) {
           clearTimeout(timeoutId);
-          console.warn(`[useBlacklist] Failed to fetch blacklist from ${url}:`, err);
+          logger.warn(`[useBlacklist] Failed to fetch blacklist from ${url}:`, err);
         }
       }
     };

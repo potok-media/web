@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { Play, Check, CheckCircle2, ArrowLeft, Pencil, ListVideo, MoreHorizontal } from "lucide-react";
 import { FilmOff } from "./FilmOff";
+
 
 export interface GenericEpisodeItem {
   id: string;
@@ -559,7 +561,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
   const maxSeasonInBalancer = uniqueSeasons.length > 0 ? Math.max(...uniqueSeasons) : 1;
   const parsingFailed = maxSeasonInBalancer > tmdbCount;
 
-  return (
+  return ReactDOM.createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div 
         className="modal-container" 
@@ -638,7 +640,8 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

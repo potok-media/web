@@ -4,6 +4,7 @@ import { ApiError } from "../network/ApiTypes";
 import type { HomeResponse } from "../network/ApiTypes";
 import { useSettings, useAuth } from "../context/AppSettingsContext";
 import { PlatformManager } from "../utils/PlatformManager";
+import { logger } from "../utils/logger";
 
 // In-memory feed cache mapped by profile ID to prevent profile switching data leaks!
 const profileFeedCache: Record<string, HomeResponse> = {};
@@ -14,7 +15,7 @@ const getCachedFeed = (profileKey: string): HomeResponse | null => {
     const data = localStorage.getItem(`potok_cached_feed_${profileKey}`);
     return data ? JSON.parse(data) : null;
   } catch (e) {
-    console.error("Failed to parse cached feed from localStorage", e);
+    logger.error("Failed to parse cached feed from localStorage", e);
     return null;
   }
 };
@@ -24,7 +25,7 @@ const setCachedFeed = (profileKey: string, feed: HomeResponse): void => {
   try {
     localStorage.setItem(`potok_cached_feed_${profileKey}`, JSON.stringify(feed));
   } catch (e) {
-    console.error("Failed to save feed to localStorage cache", e);
+    logger.error("Failed to save feed to localStorage cache", e);
   }
 };
 

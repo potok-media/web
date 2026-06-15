@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import type { StreamUIItem } from "../network/ApiTypes";
 import { extractBadges } from "../utils/mediaUtils";
 import { formatBytes, formatPublishDate } from "../utils/formatters";
@@ -10,11 +10,13 @@ interface StreamRowComponentProps {
 }
 
 export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(({ stream, onClick }) => {
-  const extracted = extractBadges(stream.title);
-  const parsedTags = Array.from(new Set([
-    ...(stream.tags?.map((t: { kind: string; value: string }) => t.value) || []),
-    ...extracted
-  ])).slice(0, 6);
+  const parsedTags = useMemo(() => {
+    const extracted = extractBadges(stream.title);
+    return Array.from(new Set([
+      ...(stream.tags?.map((t: { kind: string; value: string }) => t.value) || []),
+      ...extracted
+    ])).slice(0, 6);
+  }, [stream.title, stream.tags]);
 
   return (
     <Focusable onEnterPress={() => onClick(stream)}>

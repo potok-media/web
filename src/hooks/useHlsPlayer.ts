@@ -3,6 +3,7 @@ import Hls from "hls.js";
 import { getFileExtension, normalizeStreamUrlToPath, getProxyUrl, updateStreamUrlParams } from "../utils/playerHelpers";
 import { ApiClient } from "../network/ApiClient";
 import { type ActivePlayback } from "../context/AppSettingsContext";
+import { logger } from "../utils/logger";
 
 interface HlsPlayerParams {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -54,14 +55,14 @@ export function useHlsPlayer({
         video.removeAttribute("src");
         video.load();
       } catch (e) {
-        console.error("[useHlsPlayer] Video teardown error:", e);
+        logger.error("[useHlsPlayer] Video teardown error:", e);
       }
     }
     if (hlsRef.current) {
       try {
         hlsRef.current.destroy();
       } catch (e) {
-        console.error("[useHlsPlayer] Hls destroy error:", e);
+        logger.error("[useHlsPlayer] Hls destroy error:", e);
       }
       hlsRef.current = null;
     }
@@ -189,15 +190,15 @@ export function useHlsPlayer({
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
-              console.warn("[useHlsPlayer] Hls network error, retrying...", data);
+              logger.warn("[useHlsPlayer] Hls network error, retrying...", data);
               hls.startLoad();
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
-              console.warn("[useHlsPlayer] Hls media error, recovering...", data);
+              logger.warn("[useHlsPlayer] Hls media error, recovering...", data);
               hls.recoverMediaError();
               break;
             default:
-              console.error("[useHlsPlayer] Fatal Hls error:", data);
+              logger.error("[useHlsPlayer] Fatal Hls error:", data);
               setPlayerError("Ошибка при воспроизведении HLS потока.");
               setIsMetadataLoading(false);
               break;
@@ -229,7 +230,7 @@ export function useHlsPlayer({
 
       video.play().catch(() => {
         video.muted = true;
-        video.play().catch((err) => console.error("[useHlsPlayer] Autoplay failed:", err));
+        video.play().catch((err) => logger.error("[useHlsPlayer] Autoplay failed:", err));
       });
 
       return () => {

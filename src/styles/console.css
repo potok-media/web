@@ -34,7 +34,7 @@
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition-interactive);
 }
 
 .console-tab-btn:hover {
@@ -107,7 +107,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(15, 18, 25, 0.4);
   color: #fff;
-  transition: all 0.2s ease;
+  transition: var(--transition-interactive);
   box-sizing: border-box;
 }
 

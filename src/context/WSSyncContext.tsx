@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 import { webSocketClient } from "../network/WebSocketClient";
 import { logger } from "../utils/logger";
 import { Storage } from "../utils/StorageService";
@@ -136,8 +136,13 @@ export const WSSyncProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   }, [clientId, dispatchToMedia]);
 
+  const value = useMemo<WSSyncContextType>(
+    () => ({ clientId, subscribeToMedia }),
+    [clientId, subscribeToMedia]
+  );
+
   return (
-    <WSSyncContext.Provider value={{ clientId, subscribeToMedia }}>
+    <WSSyncContext.Provider value={value}>
       {children}
     </WSSyncContext.Provider>
   );

@@ -3,6 +3,7 @@ import { ApiClient } from "../network/ApiClient";
 import { ApiError } from "../network/ApiTypes";
 import type { MediaCard } from "../network/ApiTypes";
 import { useAuth } from "../context/AppSettingsContext";
+import { logger } from "../utils/logger";
 
 export interface CalendarGroup {
   title: string;
@@ -33,7 +34,7 @@ export function useCalendarData() {
       }
     } catch (err) {
       if (isMountedRef.current) {
-        console.error("[useCalendarData] Failed to fetch calendar:", err);
+        logger.error("[useCalendarData] Failed to fetch calendar:", err);
         if (err instanceof ApiError) {
           setError(err.message || "Не удалось загрузить расписание релизов");
         } else {

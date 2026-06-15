@@ -4,6 +4,7 @@ import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import * as uiComponents from "../../../sdk/src/components/common";
 import * as mediaComponents from "../../../sdk/src/components/media";
 import { SDK_TYPINGS } from "../../../sdk/src/sdkTypings";
+import { logger } from "../../../utils/logger";
 
 export const DeveloperInspector: React.FC = () => {
   const { selectedSlot, setSelectedSlot } = useInspector();
@@ -32,7 +33,7 @@ export const DeveloperInspector: React.FC = () => {
         require(["vs/editor/editor.main"], () => {
           setMonacoLoaded(true);
         }, (err: any) => {
-          console.error("Failed to load Monaco editor.main:", err);
+          logger.error("Failed to load Monaco editor.main:", err);
         });
       }
     };
@@ -190,7 +191,7 @@ return Card()
         monaco.languages.typescript.typescriptDefaults.addExtraLib(SDK_TYPINGS, "file:///node_modules/@types/potok-sdk/index.d.ts");
         (window as any)._monacoInspectorSdkLibAdded = true;
       } catch (e) {
-        console.warn("Inspector Monaco extra lib inject failed:", e);
+        logger.warn("Inspector Monaco extra lib inject failed:", e);
       }
     }
 
@@ -442,11 +443,11 @@ return Card()
               const mockPotokSDK = {
                 ui: {
                   showHUD: (type: string, msg: string) => {
-                    console.log(`[HUD ${type}] ${msg}`);
+                    logger.log(`[HUD ${type}] ${msg}`);
                     alert(`[Potok SDK HUD - ${type.toUpperCase()}]: ${msg}`);
                   },
                   navigateTo: (to: string) => {
-                    console.log(`[NAVIGATE] to: ${to}`);
+                    logger.log(`[NAVIGATE] to: ${to}`);
                     alert(`[Potok SDK NAVIGATE]: ${to}`);
                   }
                 }

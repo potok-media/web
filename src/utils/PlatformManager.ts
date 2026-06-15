@@ -1,3 +1,5 @@
+import { logger } from "./logger";
+
 export interface ActivePlayback {
   streamUrl: string;
   title: string;
@@ -88,7 +90,7 @@ export const PlatformManager = {
         window.AndroidBridge.playVideo(JSON.stringify(playback));
         return true;
       } catch (e) {
-        console.error("[PlatformManager] AndroidBridge playVideo failed:", e);
+        logger.error("[PlatformManager] AndroidBridge playVideo failed:", e);
       }
     }
 
@@ -100,7 +102,7 @@ export const PlatformManager = {
         });
         return true;
       } catch (e) {
-        console.error("[PlatformManager] AppleBridge playVideo failed:", e);
+        logger.error("[PlatformManager] AppleBridge playVideo failed:", e);
       }
     }
 
@@ -109,7 +111,7 @@ export const PlatformManager = {
 
   exitApp(): void {
     const platform = this.getPlatform();
-    console.log(`[PlatformManager] Exiting application for platform: ${platform}`);
+    logger.log(`[PlatformManager] Exiting application for platform: ${platform}`);
 
     if (platform === "android-tv" && window.AndroidBridge) {
       window.AndroidBridge.exitApp();
@@ -117,7 +119,7 @@ export const PlatformManager = {
       try {
         window.tizen.application.getCurrentApplication().exit();
       } catch (e) {
-        console.error("[PlatformManager] Tizen exit failed:", e);
+        logger.error("[PlatformManager] Tizen exit failed:", e);
       }
     } else if (platform === "webos") {
       window.close();
@@ -130,7 +132,7 @@ export const PlatformManager = {
     if (typeof window === "undefined") return;
 
     const platform = this.getPlatform();
-    console.log(`[PlatformManager] Initializing for platform: ${platform}`);
+    logger.log(`[PlatformManager] Initializing for platform: ${platform}`);
 
     // Set TV class on body
     if (this.isTV()) {
@@ -144,7 +146,7 @@ export const PlatformManager = {
       try {
         window.tizen.tvinput.registerKey("back");
       } catch (e) {
-        console.error("[PlatformManager] Tizen key registration failed:", e);
+        logger.error("[PlatformManager] Tizen key registration failed:", e);
       }
     }
 

@@ -6,13 +6,14 @@ import { Focusable } from "./common/TVNavigation";
 
 interface EpisodeCardProps {
   episode: TvEpisode;
-  onClick: () => void;
+  onClick: (episode: TvEpisode) => void;
   isActive?: boolean;
   isWatched?: boolean;
   isSelectMode?: boolean;
   onToggleWatched?: () => void;
-  onContextMenu?: (clientX: number, clientY: number) => void;
-  onFocus?: () => void;
+  onContextMenu?: (episode: TvEpisode, clientX: number, clientY: number) => void;
+  onFocus?: (episode: TvEpisode) => void;
+  focusKey?: string;
 }
 
 export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
@@ -24,6 +25,7 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
   onToggleWatched,
   onContextMenu,
   onFocus,
+  focusKey,
 }) => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPressRef = useRef(false);
@@ -36,10 +38,10 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
     timerRef.current = setTimeout(() => {
       isLongPressRef.current = true;
       if (onContextMenu) {
-        onContextMenu(clientX, clientY);
+        onContextMenu(episode, clientX, clientY);
       }
     }, 600); // 600ms threshold for long press
-  }, [onContextMenu]);
+  }, [onContextMenu, episode]);
 
   const endPress = useCallback(() => {
     if (timerRef.current) {
@@ -60,7 +62,7 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
         onToggleWatched();
       }
     } else {
-      onClick();
+      onClick(episode);
     }
   };
 
@@ -70,7 +72,7 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
       if (isSelectMode) {
         if (onToggleWatched) onToggleWatched();
       } else {
-        onClick();
+        onClick(episode);
       }
     }
   };
@@ -78,7 +80,7 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     if (onContextMenu) {
-      onContextMenu(e.clientX, e.clientY);
+      onContextMenu(episode, e.clientX, e.clientY);
     }
   };
 
@@ -102,12 +104,13 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
 
   return (
     <Focusable
-      onFocus={onFocus}
+      focusKey={focusKey}
+      onFocus={onFocus ? () => onFocus(episode) : undefined}
       onEnterPress={() => {
         if (isSelectMode) {
           if (onToggleWatched) onToggleWatched();
         } else {
-          onClick();
+          onClick(episode);
         }
       }}
     >

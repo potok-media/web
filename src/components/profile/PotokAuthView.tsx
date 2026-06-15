@@ -61,6 +61,7 @@ export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
 
       <form onSubmit={handleSubmit} className="auth-form">
         <FocusableInput
+          focusKey="AUTH_USERNAME_INPUT"
           type="text"
           placeholder="Имя пользователя"
           className="auth-input"

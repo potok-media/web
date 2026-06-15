@@ -45,7 +45,7 @@ body {
 /* Interactive elements transition */
 a, button {
   cursor: pointer;
-  transition: all var(--timing-hover);
+  transition: var(--transition-interactive);
 }
 
 a, button, [role="button"], .media-card {

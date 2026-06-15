@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
+import ReactDOM from "react-dom";
 import { X, Check, Loader2 } from "lucide-react";
 import { FilmOff } from "./common/FilmOff";
 import { ApiClient } from "../network/ApiClient";
 import type { TvEpisode } from "../network/ApiTypes";
-import { FocusableButton } from "./common/TVNavigation";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { FocusableButton, FocusableContainer, setNativeScrollMode } from "./common/TVNavigation";
+import { logger } from "../utils/logger";
+
 
 interface EpisodeMultiPickerModalProps {
   isOpen: boolean;
@@ -28,6 +32,29 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
   const [seasonsData, setSeasonsData] = useState<{ seasonNumber: number; episodes: TvEpisode[] }[]>([]);
   const [selected, setSelected] = useState<{ season: number; number: number }[]>(initialSelected);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Enable native browser scroll inside the modal to avoid Layout Thrashing on TV
+      setNativeScrollMode(true);
+    } else {
+      setNativeScrollMode(false);
+      setFocus("SEASON_WATCH_TRIGGER");
+    }
+    return () => {
+      setNativeScrollMode(false);
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleBack = (e: Event) => {
+      e.preventDefault();
+      onClose();
+    };
+    window.addEventListener("potok-back-pressed", handleBack);
+    return () => window.removeEventListener("potok-back-pressed", handleBack);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -57,9 +84,18 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
         });
 
         const results = await Promise.all(promises);
-        setSeasonsData(results.sort((a, b) => a.seasonNumber - b.seasonNumber));
+        const sorted = results.sort((a, b) => a.seasonNumber - b.seasonNumber);
+        setSeasonsData(sorted);
+        
+        if (sorted.length > 0 && sorted[0].episodes.length > 0) {
+          const firstEp = sorted[0].episodes[0];
+          const firstSeasonNum = sorted[0].seasonNumber;
+          setTimeout(() => {
+            setFocus(`MULTIPICKER_EPISODE_${firstSeasonNum}_${firstEp.episodeNumber}`);
+          }, 80);
+        }
       } catch (err) {
-        console.error("Failed to load seasons for multipicker", err);
+        logger.error("Failed to load seasons for multipicker", err);
       } finally {
         setLoading(false);
       }
@@ -166,7 +202,7 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
       await onSave(selected);
       onClose();
     } catch (err) {
-      console.error("Failed to save episode selection", err);
+      logger.error("Failed to save episode selection", err);
     } finally {
       setSaving(false);
     }
@@ -174,191 +210,198 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
 
   if (!isOpen) return null;
 
-  return (
+  return ReactDOM.createPortal(
     <div className="modal-overlay" onClick={onClose}>
-      <div 
-        className="modal-container" 
+      <FocusableContainer 
+        focusKey="EPISODE_MULTIPICKER_CONTAINER"
+        isFocusBoundary={true}
+        className="modal-container episode-multipicker-modal-container" 
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: "1000px", display: "flex", flexDirection: "column", height: "85vh" }}
       >
-        
-        {/* Header */}
-        <div className="modal-header">
-          <div className="modal-title-row">
+        {/* Left Sidebar: Info & Primary/Secondary Actions */}
+        <div className="modal-sidebar">
+          {/* Top Info */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             <div className="modal-title-text-group">
-              <h3 className="modal-title">Выборочная отметка серий</h3>
-              <span className="modal-subtitle">{mediaTitle}</span>
+              <h3 className="modal-title" style={{ fontSize: "1.25rem", fontWeight: 800, margin: 0, color: "#fff" }}>
+                Выборочная отметка
+              </h3>
+              <span className="modal-subtitle" style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginTop: "4px", display: "block" }}>
+                {mediaTitle}
+              </span>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px", background: "rgba(255, 255, 255, 0.03)", padding: "16px", borderRadius: "12px", border: "1px solid rgba(255, 255, 255, 0.04)" }}>
+              <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)", fontWeight: 500 }}>Выбрано серий:</span>
+              <span style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--accent)" }}>
+                {selected.length}
+              </span>
+              <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.5)", fontFamily: "monospace", marginTop: "4px", wordBreak: "break-all", lineHeight: "1.3" }}>
+                {formatSelectedRanges(selected)}
+              </span>
             </div>
           </div>
-          
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <div style={{ display: "flex", gap: "8px" }}>
-              <FocusableButton 
-                className="potok-badge potok-badge-secondary" 
-                style={{ cursor: "pointer", border: "none", padding: "8px 16px", borderRadius: "8px", fontSize: "0.8rem", background: "rgba(255,255,255,0.08)", color: "#fff", fontWeight: 600 }}
-                onClick={selectAll} 
-                disabled={loading || saving}
-              >
-                Выбрать все
-              </FocusableButton>
-              <FocusableButton 
-                className="potok-badge potok-badge-secondary" 
-                style={{ cursor: "pointer", border: "none", padding: "8px 16px", borderRadius: "8px", fontSize: "0.8rem", background: "rgba(255,255,255,0.08)", color: "#fff", fontWeight: 600 }}
-                onClick={deselectAll} 
-                disabled={loading || saving}
-              >
-                Снять все
-              </FocusableButton>
-            </div>
+
+          {/* Bottom Actions */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <FocusableButton 
-              style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", display: "flex", padding: "6px" }}
+              focusKey="MULTIPICKER_SAVE"
+              className="potok-btn-primary" 
+              style={{ width: "100%", background: "var(--accent)", color: "#000", border: "none", padding: "14px", borderRadius: "10px", fontWeight: 700, cursor: "pointer", textAlign: "center", fontSize: "0.95rem" }}
+              onClick={handleSave} 
+              disabled={loading || saving}
+            >
+              {saving ? "Сохранение..." : "Сохранить"}
+            </FocusableButton>
+            <FocusableButton 
+              focusKey="MULTIPICKER_CANCEL"
+              className="potok-btn-secondary" 
+              style={{ width: "100%", background: "rgba(255, 255, 255, 0.06)", border: "none", padding: "14px", borderRadius: "10px", color: "#fff", fontWeight: 600, cursor: "pointer", textAlign: "center", fontSize: "0.95rem" }}
+              onClick={onClose} 
+              disabled={saving}
+            >
+              Отмена
+            </FocusableButton>
+
+            <div style={{ height: "8px" }} />
+
+            <FocusableButton 
+              focusKey="MULTIPICKER_SELECT_ALL"
+              className="potok-badge potok-badge-secondary" 
+              style={{ width: "100%", cursor: "pointer", border: "none", padding: "10px", borderRadius: "8px", fontSize: "0.8rem", background: "rgba(255, 255, 255, 0.04)", color: "#fff", fontWeight: 600, textAlign: "center" }}
+              onClick={selectAll} 
+              disabled={loading || saving}
+            >
+              Выбрать все
+            </FocusableButton>
+            <FocusableButton 
+              focusKey="MULTIPICKER_DESELECT_ALL"
+              className="potok-badge potok-badge-secondary" 
+              style={{ width: "100%", cursor: "pointer", border: "none", padding: "10px", borderRadius: "8px", fontSize: "0.8rem", background: "rgba(255, 255, 255, 0.04)", color: "#fff", fontWeight: 600, textAlign: "center" }}
+              onClick={deselectAll} 
+              disabled={loading || saving}
+            >
+              Снять все
+            </FocusableButton>
+          </div>
+        </div>
+
+        {/* Right Scrollable Area */}
+        <div className="modal-main-content">
+          <div style={{ position: "absolute", top: "24px", right: "24px", zIndex: 10 }}>
+            <FocusableButton 
+              focusKey="MULTIPICKER_CLOSE_X"
+              className="modal-close-btn"
+              style={{ background: "rgba(255, 255, 255, 0.06)", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", display: "flex", padding: "8px", borderRadius: "50%" }}
               onClick={onClose} 
               aria-label="Закрыть"
             >
               <X size={20} />
             </FocusableButton>
           </div>
-        </div>
 
-        {/* Content */}
-        <div className="episode-popup-body" style={{ flex: 1, overflowY: "auto", position: "relative" }}>
-          {loading ? (
-            <div className="picker-loading-container" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: "16px", color: "var(--text-secondary)" }}>
-              <Loader2 className="multipicker-spinner" size={40} style={{ animation: "spin 1s linear infinite", color: "var(--accent)" }} />
-              <span>Загрузка серий...</span>
-            </div>
-          ) : (
-            <div className="episode-picker-container" style={{ padding: "24px 32px" }}>
-              {seasonsData.map((s) => {
-                const seasonSelectedCount = selected.filter((item) => item.season === s.seasonNumber).length;
-                const isAllSeasonSelected = s.episodes.length > 0 && seasonSelectedCount === s.episodes.length;
+          <div className="episode-popup-body" style={{ flex: 1, overflowY: "auto", padding: "24px 30px" }}>
+            {loading ? (
+              <div className="picker-loading-container" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: "16px", color: "var(--text-secondary)" }}>
+                <Loader2 className="multipicker-spinner" size={40} style={{ animation: "spin 1s linear infinite", color: "var(--accent)" }} />
+                <span>Загрузка серий...</span>
+              </div>
+            ) : (
+              <div className="episode-picker-container" style={{ padding: "0" }}>
+                {seasonsData.map((s) => {
+                  const seasonSelectedCount = selected.filter((item) => item.season === s.seasonNumber).length;
+                  const isAllSeasonSelected = s.episodes.length > 0 && seasonSelectedCount === s.episodes.length;
 
-                return (
-                  <div key={s.seasonNumber} className="season-section">
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 255, 255, 0.05)", paddingBottom: "8px", marginBottom: "16px" }}>
-                      <h3 className="season-section-title" style={{ margin: 0 }}>Сезон {s.seasonNumber}</h3>
-                      {s.episodes.length > 0 && (
-                        <FocusableButton
-                          style={{ background: "none", border: "none", color: "var(--accent)", fontSize: "0.85rem", fontWeight: 700, cursor: "pointer" }}
-                          onClick={() => toggleSeason(s.seasonNumber, s.episodes)}
-                          disabled={saving}
-                        >
-                          {isAllSeasonSelected ? "Снять сезон" : "Выбрать сезон"}
-                        </FocusableButton>
-                      )}
-                    </div>
-
-                    <div className="episode-grid">
-                      {s.episodes.map((ep) => {
-                        const isWatched = selected.some(
-                          (item) => item.season === s.seasonNumber && item.number === ep.episodeNumber
-                        );
-                        return (
+                  return (
+                    <div key={s.seasonNumber} className="season-section" style={{ marginBottom: "32px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 255, 255, 0.05)", paddingBottom: "8px", marginBottom: "16px" }}>
+                        <h3 className="season-section-title" style={{ margin: 0 }}>Сезон {s.seasonNumber}</h3>
+                        {s.episodes.length > 0 && (
                           <FocusableButton
-                            key={ep.id}
-                            className={`episode-picker-card ${isWatched ? "checked" : ""}`}
-                            onClick={() => !saving && toggleEpisode(s.seasonNumber, ep.episodeNumber)}
-                            style={{ background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer" }}
+                            style={{ background: "none", border: "none", color: "var(--accent)", fontSize: "0.85rem", fontWeight: 700, cursor: "pointer" }}
+                            onClick={() => toggleSeason(s.seasonNumber, s.episodes)}
+                            disabled={saving}
                           >
-                            <div className="episode-card-preview-wrap" style={{ position: "relative", borderColor: isWatched ? "var(--accent)" : "rgba(255,255,255,0.1)" }}>
-                              {ep.stillPath || ep.still_path ? (
-                                <img
-                                  src={ep.stillPath || ep.still_path}
-                                  alt={ep.name}
-                                  className="episode-card-image"
-                                  loading="lazy"
-                                />
-                              ) : (
-                                <div className="episode-still-fallback-placeholder">
-                                  <FilmOff size={28} />
-                                </div>
-                              )}
-                              <span className="episode-card-badge" style={{ position: "absolute", top: "8px", left: "8px", background: "rgba(0,0,0,0.85)", color: "#fff", padding: "2px 6px", borderRadius: "4px", fontSize: "0.75rem", fontWeight: 700 }}>
-                                {ep.episodeNumber}
-                              </span>
-                              
-                              {/* Checkbox circle */}
-                              <div 
-                                style={{
-                                  position: "absolute",
-                                  top: "8px",
-                                  right: "8px",
-                                  width: "20px",
-                                  height: "20px",
-                                  borderRadius: "50%",
-                                  border: "1.5px solid rgba(255,255,255,0.5)",
-                                  background: isWatched ? "var(--accent)" : "rgba(0,0,0,0.5)",
-                                  borderColor: isWatched ? "var(--accent)" : "rgba(255,255,255,0.5)",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  transition: "all 0.2s ease",
-                                  zIndex: 2
-                                }}
-                              >
-                                {isWatched && <Check size={12} strokeWidth={3.5} style={{ color: "#fff" }} />}
-                              </div>
-                            </div>
-                            
-                            <div className="episode-card-info" style={{ marginTop: "8px" }}>
-                              <span className="episode-card-title" style={{ fontSize: "0.875rem", fontWeight: 700, color: "var(--text-primary)" }}>{ep.name}</span>
-                              {ep.airDate && (
-                                <span className="episode-card-date" style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-                                  {formatDate(ep.airDate)}
-                                </span>
-                              )}
-                            </div>
+                            {isAllSeasonSelected ? "Снять сезон" : "Выбрать сезон"}
                           </FocusableButton>
-                        );
-                      })}
+                        )}
+                      </div>
+
+                      <div className="episode-grid">
+                        {s.episodes.map((ep) => {
+                          const isWatched = selected.some(
+                            (item) => item.season === s.seasonNumber && item.number === ep.episodeNumber
+                          );
+                          return (
+                            <FocusableButton
+                              key={ep.id}
+                              focusKey={`MULTIPICKER_EPISODE_${s.seasonNumber}_${ep.episodeNumber}`}
+                              className={`episode-picker-card ${isWatched ? "checked" : ""}`}
+                              onClick={() => !saving && toggleEpisode(s.seasonNumber, ep.episodeNumber)}
+                              style={{ background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer" }}
+                            >
+                              <div className="episode-card-preview-wrap" style={{ position: "relative", borderColor: isWatched ? "var(--accent)" : "rgba(255,255,255,0.1)" }}>
+                                {ep.stillPath || ep.still_path ? (
+                                  <img
+                                    src={ep.stillPath || ep.still_path}
+                                    alt={ep.name}
+                                    className="episode-card-image"
+                                    loading="lazy"
+                                  />
+                                ) : (
+                                  <div className="episode-still-fallback-placeholder">
+                                    <FilmOff size={28} />
+                                  </div>
+                                )}
+                                <span className="episode-card-badge">
+                                  {ep.episodeNumber}
+                                </span>
+                                
+                                {/* Checkbox circle */}
+                                <div 
+                                  style={{
+                                    position: "absolute",
+                                    top: "8px",
+                                    right: "8px",
+                                    width: "20px",
+                                    height: "20px",
+                                    borderRadius: "50%",
+                                    border: "1.5px solid rgba(255,255,255,0.5)",
+                                    background: isWatched ? "var(--accent)" : "rgba(0,0,0,0.5)",
+                                    borderColor: isWatched ? "var(--accent)" : "rgba(255,255,255,0.5)",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    transition: "all 0.2s ease",
+                                    zIndex: 2
+                                  }}
+                                >
+                                  {isWatched && <Check size={12} strokeWidth={3.5} style={{ color: "#fff" }} />}
+                                </div>
+                              </div>
+                              
+                              <div className="episode-card-info" style={{ marginTop: "8px" }}>
+                                <span className="episode-card-title">{ep.name}</span>
+                                {ep.airDate && (
+                                  <span className="episode-card-date" style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                                    {formatDate(ep.airDate)}
+                                  </span>
+                                )}
+                              </div>
+                            </FocusableButton>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div 
-          style={{
-            padding: "20px 32px",
-            borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-            background: "rgba(15, 15, 20, 0.95)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center"
-          }}
-        >
-          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-            <span style={{ fontSize: "1rem", fontWeight: 700, color: "#fff" }}>
-              Выбрано серий: {selected.length}
-            </span>
-            <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.5)", fontFamily: "monospace" }}>
-              {formatSelectedRanges(selected)}
-            </span>
-          </div>
-          <div style={{ display: "flex", gap: "12px" }}>
-            <FocusableButton 
-              style={{ background: "rgba(255,255,255,0.08)", border: "none", padding: "12px 24px", borderRadius: "8px", color: "#fff", fontWeight: 600, cursor: "pointer" }}
-              onClick={onClose} 
-              disabled={saving}
-            >
-              Отмена
-            </FocusableButton>
-            <FocusableButton
-              className="close-btn"
-              style={{ background: "var(--accent)", color: "#000", border: "none", padding: "12px 28px", borderRadius: "8px", fontWeight: 700, cursor: "pointer" }}
-              onClick={handleSave}
-              disabled={loading || saving}
-            >
-              {saving ? "Сохранение..." : "Сохранить"}
-            </FocusableButton>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
-
-      </div>
-    </div>
+      </FocusableContainer>
+    </div>,
+    document.body
   );
 };
 

@@ -12,6 +12,8 @@ import { LoadingSpinner } from "../components/LoadingSpinner";
 import { CATEGORY_MAP, DYNAMIC_CATEGORY_TITLES } from "./LibraryConfig";
 import { Grid } from "../components/common/Grid";
 import { PlatformManager } from "../utils/PlatformManager";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { FocusableInput } from "../components/common/TVNavigation";
 import "../styles/media.css";
  
 export const LibraryPage: React.FC = () => {
@@ -58,9 +60,50 @@ export const LibraryPage: React.FC = () => {
   const [autoPageLimit, setAutoPageLimit] = useState(() => PlatformManager.isTV() ? 3 : 10);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  // Progressive (chunked) rendering: cap how many cards are mounted at once and grow
+  // the window as the user scrolls toward the end. This keeps the DOM small for large
+  // collections without unmounting items (spatial navigation needs focusable nodes to
+  // stay mounted, so true windowing is avoided).
+  const renderChunk = PlatformManager.isTV() ? 18 : 36;
+  const [visibleCount, setVisibleCount] = useState(renderChunk);
+  const renderSentinelRef = useRef<HTMLDivElement>(null);
+
+  // Reset the render window when the collection or the search query changes
+  // (React's recommended "adjust state during render" pattern — no effect needed).
+  const resetKey = `${collectionType}|${isSearchPage ? query : ""}`;
+  const [prevResetKey, setPrevResetKey] = useState(resetKey);
+  if (resetKey !== prevResetKey) {
+    setPrevResetKey(resetKey);
+    setVisibleCount(renderChunk);
     setAutoPageLimit(PlatformManager.isTV() ? 3 : 10);
-  }, [collectionType]);
+  }
+
+  // Grow the render window ahead of the viewport.
+  useEffect(() => {
+    if (visibleCount >= items.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + renderChunk, items.length));
+        }
+      },
+      { rootMargin: "600px" }
+    );
+    const el = renderSentinelRef.current;
+    if (el) observer.observe(el);
+    return () => {
+      if (el) observer.unobserve(el);
+    };
+  }, [visibleCount, items.length, renderChunk]);
+
+  useEffect(() => {
+    if (loading) return;
+    if (isSearchPage) {
+      setFocus("SEARCH_INPUT");
+    } else if (items.length > 0) {
+      setFocus("LIBRARY_FIRST_CARD");
+    }
+  }, [loading, isSearchPage, items.length]);
 
   useEffect(() => {
     if (!hasMore || page >= autoPageLimit || loading || loadingMore) return;
@@ -121,7 +164,8 @@ export const LibraryPage: React.FC = () => {
           <h1 className="library-large-title">Поиск</h1>
           <div className="search-input-wrapper">
             <SearchIcon size={18} className="search-input-icon" />
-            <input
+            <FocusableInput
+              focusKey="SEARCH_INPUT"
               type="text"
               className="search-page-input"
               placeholder="Поиск фильмов и сериалов..."
@@ -212,15 +256,20 @@ export const LibraryPage: React.FC = () => {
       return (
         <>
           <Grid minWidth="170px" className="library-grid">
-            {items.map((item) => (
+            {items.slice(0, visibleCount).map((item, index) => (
               <MediaCardComponent
                 key={item.id}
                 item={item}
+                focusKey={index === 0 ? "LIBRARY_FIRST_CARD" : undefined}
               />
             ))}
           </Grid>
 
-          {hasMore && (
+          {visibleCount < items.length && (
+            <div ref={renderSentinelRef} className="library-render-sentinel" aria-hidden="true" />
+          )}
+
+          {hasMore && visibleCount >= items.length && (
             <div className="library-pagination-wrapper">
               {page >= autoPageLimit ? (
                 <button 

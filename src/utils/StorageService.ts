@@ -1,4 +1,5 @@
 import type { ConnectionProfile } from "../network/ApiTypes";
+import { logger } from "./logger";
 
 export type { ConnectionProfile };
 
@@ -31,7 +32,7 @@ export class LocalStorageService implements IStorageService {
         return;
       }
     } catch (e) {
-      console.error("Failed to write to localStorage:", e);
+      logger.error("Failed to write to localStorage:", e);
     }
     this.memoryStore[key] = value;
   }
@@ -43,7 +44,7 @@ export class LocalStorageService implements IStorageService {
         return;
       }
     } catch (e) {
-      console.error("Failed to remove from localStorage:", e);
+      logger.error("Failed to remove from localStorage:", e);
     }
     delete this.memoryStore[key];
   }

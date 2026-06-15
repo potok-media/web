@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { logger } from "../utils/logger";
 
 export function usePlayerFullscreen(overlayRef: React.RefObject<HTMLDivElement | null>) {
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -18,11 +19,11 @@ export function usePlayerFullscreen(overlayRef: React.RefObject<HTMLDivElement |
     if (!el) return;
     if (!document.fullscreenElement) {
       el.requestFullscreen().catch((err) => {
-        console.error("[WebMediaPlayer] Failed to enter fullscreen:", err);
+        logger.error("[WebMediaPlayer] Failed to enter fullscreen:", err);
       });
     } else {
       document.exitFullscreen().catch((err) => {
-        console.error("[WebMediaPlayer] Failed to exit fullscreen:", err);
+        logger.error("[WebMediaPlayer] Failed to exit fullscreen:", err);
       });
     }
   }, [overlayRef]);

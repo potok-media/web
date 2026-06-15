@@ -277,11 +277,11 @@ export const PluginSandbox: React.FC = () => {
         }
       }
       if (!pluginId) {
-        console.warn("[PluginSandbox] Received message from untracked iframe/source:", msg);
+        logger.warn("[PluginSandbox] Received message from untracked iframe/source:", msg);
         return;
       }
 
-      console.log(`[PluginSandbox] Received message from plugin "${pluginId}":`, msg);
+      logger.log(`[PluginSandbox] Received message from plugin "${pluginId}":`, msg);
 
       const ext = activeExtensions.find((e) => e.id === pluginId);
       const permissions = ext?.manifest.permissions || [];
@@ -320,7 +320,7 @@ export const PluginSandbox: React.FC = () => {
           try {
             localStorage.setItem("potok_custom_themes", JSON.stringify(serializableThemes));
           } catch (e) {
-            console.error("[PluginSandbox] Failed to cache custom themes:", e);
+            logger.error("[PluginSandbox] Failed to cache custom themes:", e);
           }
           break;
         }

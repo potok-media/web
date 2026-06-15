@@ -3,6 +3,9 @@ import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { Star, Eye, Bookmark } from "lucide-react";
 import { useHUD } from "../context/HUDContext";
 import { Slot } from "../components/common/extension/Slot";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { Focusable } from "../components/common/TVNavigation";
+import { PlatformManager } from "../utils/PlatformManager";
 
 import { useMediaDetails } from "../hooks/useMediaDetails";
 import { SeasonEpisodesSection } from "../components/SeasonEpisodesSection";
@@ -26,6 +29,24 @@ export const MediaDetailsPage: React.FC = () => {
   const tmdbId = mediaId;
 
   const { show: showHUD } = useHUD();
+
+  const isTV = PlatformManager.isTV();
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768 && !isTV);
+
+  useEffect(() => {
+    if (isTV) return;
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isTV]);
+
+  const layoutModifier = isTV 
+    ? "details-layout--tv" 
+    : isMobile 
+      ? "details-layout--mobile" 
+      : "details-layout--desktop";
 
 
   const mediaRef = useRef<MediaCard | null>(null);
@@ -74,6 +95,12 @@ export const MediaDetailsPage: React.FC = () => {
     setSelectedEpisode(null);
   }, [mediaId, mediaType]);
 
+  useEffect(() => {
+    if (media) {
+      setFocus("DETAILS_WATCHED_BTN");
+    }
+  }, [media]);
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -90,10 +117,16 @@ export const MediaDetailsPage: React.FC = () => {
   const cast = media.cast || [];
 
   return (
-    <div className="details-layout">
+    <div className={`details-layout ${layoutModifier}`}>
       <div className="immersive-hero-container">
         {media.backdropSrc && (
-          <img src={media.backdropSrc} className="immersive-hero-backdrop" alt="" />
+          <img
+            src={media.backdropSrc}
+            className="immersive-hero-backdrop details-hero-backdrop"
+            alt=""
+            decoding="async"
+            onLoad={(e) => e.currentTarget.classList.add("is-loaded")}
+          />
         )}
         <div className="immersive-hero-overlay" />
         <div className="immersive-hero-content">
@@ -117,35 +150,59 @@ export const MediaDetailsPage: React.FC = () => {
                     mediaType,
                     title: media.title,
                     originalTitle: media.originalTitle,
-                    media
+                    media,
+                    season: selectedEpisode?.seasonNumber,
+                    episode: selectedEpisode?.episode.episodeNumber
                   }}
                 />
 
                 {/* Social and Watchlist row */}
                 <div id="social-actions-row" className="details-actions-row">
-                  <button
-                    className={`action-btn-circle ${isWatched ? "active" : ""}`}
-                    onClick={toggleWatched}
-                    title={isWatched ? "Удалить из истории просмотра" : "Отметить просмотренным"}
+                  <Focusable
+                    focusKey="DETAILS_WATCHED_BTN"
+                    onEnterPress={toggleWatched}
                   >
-                    <Eye size={18} />
-                  </button>
+                    {({ ref: focusRef, focused }) => (
+                      <button
+                        ref={focusRef}
+                        className={`action-btn-circle ${isWatched ? "active" : ""} ${focused ? "focused" : ""}`}
+                        onClick={toggleWatched}
+                        title={isWatched ? "Удалить из истории просмотра" : "Отметить просмотренным"}
+                      >
+                        <Eye size={18} />
+                      </button>
+                    )}
+                  </Focusable>
 
-                  <button
-                    className={`action-btn-circle ${inWatchlist ? "active" : ""}`}
-                    onClick={toggleWatchlist}
-                    title={inWatchlist ? "Удалить из списка ожидания" : "В список ожидания"}
+                  <Focusable
+                    onEnterPress={toggleWatchlist}
                   >
-                    <Bookmark size={18} fill={inWatchlist ? "var(--accent)" : "none"} />
-                  </button>
+                    {({ ref: focusRef, focused }) => (
+                      <button
+                        ref={focusRef}
+                        className={`action-btn-circle ${inWatchlist ? "active" : ""} ${focused ? "focused" : ""}`}
+                        onClick={toggleWatchlist}
+                        title={inWatchlist ? "Удалить из списка ожидания" : "В список ожидания"}
+                      >
+                        <Bookmark size={18} fill={inWatchlist ? "var(--accent)" : "none"} />
+                      </button>
+                    )}
+                  </Focusable>
 
-                  <button
-                    className={`action-btn-circle ${isFavorite ? "active" : ""}`}
-                    onClick={toggleFavorite}
-                    title={isFavorite ? "Удалить из избранного" : "Добавить в избранное"}
+                  <Focusable
+                    onEnterPress={toggleFavorite}
                   >
-                    <Star size={18} fill={isFavorite ? "var(--accent)" : "none"} />
-                  </button>
+                    {({ ref: focusRef, focused }) => (
+                      <button
+                        ref={focusRef}
+                        className={`action-btn-circle ${isFavorite ? "active" : ""} ${focused ? "focused" : ""}`}
+                        onClick={toggleFavorite}
+                        title={isFavorite ? "Удалить из избранного" : "Добавить в избранное"}
+                      >
+                        <Star size={18} fill={isFavorite ? "var(--accent)" : "none"} />
+                      </button>
+                    )}
+                  </Focusable>
                 </div>
               </div>
             </div>

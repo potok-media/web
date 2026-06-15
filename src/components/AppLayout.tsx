@@ -13,6 +13,7 @@ import { FocusTrap } from "./FocusTrap";
 import { PluginSandbox } from "./common/PluginSandbox";
 import { PlatformManager } from "../utils/PlatformManager";
 import "../styles/layout.css";
+import { logger } from "../utils/logger";
 
 const DeveloperInspector = React.lazy(() => import("./common/extension/DeveloperInspector"));
 
@@ -172,7 +173,7 @@ export const AppLayout: React.FC = () => {
             }, { replace: true });
           }
         } catch (e) {
-          console.error("Failed to restore playback state from sessionStorage", e);
+          logger.error("Failed to restore playback state from sessionStorage", e);
         }
       }
     } else {

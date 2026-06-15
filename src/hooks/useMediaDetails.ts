@@ -29,6 +29,13 @@ export function useMediaDetails({
   const [isWatched, setIsWatched] = useState(false);
 
   const lastFetchTimeRef = useRef<number>(0);
+  // Mirror of `media` for synchronous reads inside the WebSocket handler, so we can
+  // compute the next state once and call setMedia/setIsWatched with concrete values
+  // (no setState nested inside a setMedia updater).
+  const mediaRef = useRef<MediaCard | null>(null);
+  useEffect(() => {
+    mediaRef.current = media;
+  }, [media]);
   const { subscribeToMedia } = useWSSync();
 
   const onNavigateToStreamsRef = useRef(onNavigateToStreams);
@@ -132,62 +139,58 @@ export function useMediaDetails({
 
       if (event === "sync:history:changed") {
         const { seasonNumber, episodeNumber, isWatched: watchState } = payload;
-        setMedia(prev => {
-          if (!prev) return null;
-          let watchedEpisodes = [...(prev.progress?.watchedEpisodes || [])];
-          if (mediaType === "tv" && seasonNumber !== undefined && episodeNumber !== undefined) {
-            if (watchState) {
-              if (!watchedEpisodes.some(ep => ep.season === seasonNumber && ep.number === episodeNumber)) {
-                watchedEpisodes.push({ season: seasonNumber, number: episodeNumber });
-              }
-            } else {
-              watchedEpisodes = watchedEpisodes.filter(ep => !(ep.season === seasonNumber && ep.number === episodeNumber));
+        const prev = mediaRef.current;
+        if (!prev) return;
+        let watchedEpisodes = [...(prev.progress?.watchedEpisodes || [])];
+        if (mediaType === "tv" && seasonNumber !== undefined && episodeNumber !== undefined) {
+          if (watchState) {
+            if (!watchedEpisodes.some(ep => ep.season === seasonNumber && ep.number === episodeNumber)) {
+              watchedEpisodes.push({ season: seasonNumber, number: episodeNumber });
             }
+          } else {
+            watchedEpisodes = watchedEpisodes.filter(ep => !(ep.season === seasonNumber && ep.number === episodeNumber));
           }
-          const updatedMedia = {
-            ...prev,
-            progress: {
-              ...prev.progress,
-              watchedEpisodes,
-              completed: mediaType === "movie" 
-                ? (watchState ? 100 : 0)
-                : watchedEpisodes.length
-            } as any
-          };
-          setIsWatched(checkIsWatched(updatedMedia));
-          return updatedMedia;
-        });
-
-        if (mediaType === "movie") {
-          setIsWatched(watchState);
         }
+        const updatedMedia = {
+          ...prev,
+          progress: {
+            ...prev.progress,
+            watchedEpisodes,
+            completed: mediaType === "movie"
+              ? (watchState ? 100 : 0)
+              : watchedEpisodes.length
+          } as any
+        };
+        mediaRef.current = updatedMedia;
+        setMedia(updatedMedia);
+        setIsWatched(mediaType === "movie" ? watchState : checkIsWatched(updatedMedia));
       }
       else if (event === "sync:history:batch_changed") {
         const { changes } = payload;
-        setMedia(prev => {
-          if (!prev) return null;
-          let watchedEpisodes = [...(prev.progress?.watchedEpisodes || [])];
-          for (const ch of changes) {
-            const { seasonNumber, episodeNumber, isWatched: watchState } = ch;
-            if (watchState) {
-              if (!watchedEpisodes.some(ep => ep.season === seasonNumber && ep.number === episodeNumber)) {
-                watchedEpisodes.push({ season: seasonNumber, number: episodeNumber });
-              }
-            } else {
-              watchedEpisodes = watchedEpisodes.filter(ep => !(ep.season === seasonNumber && ep.number === episodeNumber));
+        const prev = mediaRef.current;
+        if (!prev) return;
+        let watchedEpisodes = [...(prev.progress?.watchedEpisodes || [])];
+        for (const ch of changes) {
+          const { seasonNumber, episodeNumber, isWatched: watchState } = ch;
+          if (watchState) {
+            if (!watchedEpisodes.some(ep => ep.season === seasonNumber && ep.number === episodeNumber)) {
+              watchedEpisodes.push({ season: seasonNumber, number: episodeNumber });
             }
+          } else {
+            watchedEpisodes = watchedEpisodes.filter(ep => !(ep.season === seasonNumber && ep.number === episodeNumber));
           }
-          const updatedMedia = {
-            ...prev,
-            progress: {
-              ...prev.progress,
-              watchedEpisodes,
-              completed: watchedEpisodes.length
-            } as any
-          };
-          setIsWatched(checkIsWatched(updatedMedia));
-          return updatedMedia;
-        });
+        }
+        const updatedMedia = {
+          ...prev,
+          progress: {
+            ...prev.progress,
+            watchedEpisodes,
+            completed: watchedEpisodes.length
+          } as any
+        };
+        mediaRef.current = updatedMedia;
+        setMedia(updatedMedia);
+        setIsWatched(checkIsWatched(updatedMedia));
       }
       else if (event === "sync:library:updated") {
         const { listType, action } = payload;

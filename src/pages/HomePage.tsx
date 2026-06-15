@@ -1,5 +1,6 @@
 import React, { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { useHUD } from "../context/HUDContext";
 import { useHomeFeed } from "../hooks/useHomeFeed";
 import HeroSpotlight from "../components/HeroSpotlight";
@@ -19,9 +20,18 @@ export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { show: showHUD } = useHUD();
 
-
-
   const { feed, loading, refetch } = useHomeFeed((msg) => showHUD("error", msg));
+
+  React.useEffect(() => {
+    if (feed && feed.rows && feed.rows.length > 0 && (!feed.hero || feed.hero.length === 0)) {
+      const firstRow = feed.rows[0];
+      if (firstRow.items && firstRow.items.length > 0) {
+        const rowCleanId = (firstRow.id || firstRow.title).replace(/\s+/g, "-").toLowerCase();
+        const firstCardFocusKey = `row-${rowCleanId}-first-card-${firstRow.items[0].id}-${firstRow.items[0].mediaType}`;
+        setFocus(firstCardFocusKey);
+      }
+    }
+  }, [feed]);
 
   const handleCardClick = useCallback((item: MediaCard) => {
     navigate(`/media/${item.mediaType}/${item.id}`);

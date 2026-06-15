@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ApiClient } from "../network/ApiClient";
+import { logger } from "../utils/logger";
 
 export function useTorrentStatus(streamHash: string, isMetadataLoading: boolean) {
   const [torrentPeers, setTorrentPeers] = useState<number | null>(null);
@@ -39,7 +40,7 @@ export function useTorrentStatus(streamHash: string, isMetadataLoading: boolean)
           setHasPositivePeersTime(null);
         }
       } catch (err) {
-        console.warn("[WebMediaPlayer] Torrent status poll failed:", err);
+        logger.warn("[WebMediaPlayer] Torrent status poll failed:", err);
       }
     };
 

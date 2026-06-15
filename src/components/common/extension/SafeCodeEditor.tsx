@@ -3,6 +3,7 @@ import type { CodeEditorSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import { SDK_TYPINGS } from "../../../sdk/src/sdkTypings";
 import { Focusable } from "../TVNavigation";
+import { logger } from "../../../utils/logger";
 
 interface SafeCodeEditorProps {
   schema: CodeEditorSchema;
@@ -35,7 +36,7 @@ export const SafeCodeEditor: React.FC<SafeCodeEditorProps> = ({ schema, pluginId
           setIsLoaded(true);
         }, (err: any) => {
           setLoadError("Failed to initialize Monaco Editor modules.");
-          console.error("[Monaco Load Error]", err);
+          logger.error("[Monaco Load Error]", err);
         });
       } else {
         setLoadError("Loader script loaded but 'require' is not available.");
@@ -93,7 +94,7 @@ export const SafeCodeEditor: React.FC<SafeCodeEditorProps> = ({ schema, pluginId
         monaco.languages.typescript.typescriptDefaults.addExtraLib(SDK_TYPINGS, "file:///node_modules/@types/potok-sdk/index.d.ts");
         (window as any)._monacoHostSdkLibAdded = true;
       } catch (err) {
-        console.warn("Failed to add Potok typings library to Monaco:", err);
+        logger.warn("Failed to add Potok typings library to Monaco:", err);
       }
     }
   }, [isLoaded]);

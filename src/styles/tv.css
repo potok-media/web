@@ -1,196 +1,310 @@
 /* ==========================================================================
-   Smart TV Spatial Navigation - Clean & Optimized Styling System
+   Smart TV Stylesheet (TV-performance Optimized)
    ========================================================================== */
 
-/* 1. Prevent default browser focus outlines */
-.focused,
-.focused *,
+/* Disable default browser focus outlines */
 *:focus {
   outline: none !important;
 }
 
-/* 2. Focused Interactive Elements (Buttons, Links, Circles) */
+/* TV Focus Indication (disable default thick browser outlines globally) */
+.focused {
+  outline: none !important;
+}
+
+/* Focused Interactive Buttons (simple color swap + 2px outline for maximum TV performance and visibility) */
 .btn-accent.focused,
-.btn-glass.focused,
-.btn-watch-primary.focused,
 .potok-btn.btn-watch-primary.focused,
-.overlay-btn.focused,
-.action-btn-circle.focused,
-button.focused,
-a.focused:not(.media-card):not(.carousel-title-link):not(.sidebar-nav-item) {
-  background-color: var(--accent) !important;
-  color: var(--text-accent, #ffffff) !important;
-  box-shadow: 
-    0 0 0 3px var(--bg-window),
-    0 0 0 5px var(--accent) !important; /* Flat solid outline, no expensive GPU blur shadow */
-  transform: translateY(-2px) scale(1.03) !important;
+.btn-watch-primary.focused {
+  background-color: white !important;
+  color: var(--bg-window) !important;
+  outline: 2px solid var(--accent) !important;
+  outline-offset: -2px !important;
 }
 
-/* Keep icon colors white inside focused buttons */
-.btn-accent.focused svg,
-.btn-glass.focused svg,
-.btn-watch-primary.focused svg,
-.potok-btn.btn-watch-primary.focused svg,
-.action-btn-circle.focused svg,
-button.focused svg {
-  color: var(--text-accent, #ffffff) !important;
-  stroke: var(--text-accent, #ffffff) !important;
-}
-
-.action-btn-circle.focused svg:not([fill="none"]) {
-  fill: var(--text-accent, #ffffff) !important;
-}
-
-/* Focused Hero Banner Dot indicators */
-.hero-dot.focused {
-  background-color: var(--accent) !important;
-  opacity: 1 !important;
-  transform: scale(1.3) !important;
-  box-shadow: 
-    0 0 0 2px var(--bg-window),
-    0 0 0 4px var(--accent) !important;
-}
-
-/* Focused Sidebar Items */
-.sidebar-nav-item.focused {
+.potok-btn.btn-watch-online.focused,
+.btn-watch-online.focused {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: var(--accent) !important;
   color: var(--text-primary) !important;
-  background: var(--bg-surface-high) !important;
-  border-left-color: var(--accent) !important;
-  box-shadow: 0 0 0 2px var(--accent-dim) !important;
+  outline: 2px solid var(--accent) !important;
+  outline-offset: -2px !important;
 }
 
-/* Focused Input Fields */
-input.focused,
-select.focused,
-textarea.focused,
-.search-page-input.focused,
-.sidebar-search-input.focused {
+.action-btn-circle.focused {
   background: var(--bg-surface-highest) !important;
   border-color: var(--accent) !important;
-  box-shadow: 
-    0 0 0 3px var(--accent-dim),
-    inset 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+  outline: 2px solid var(--accent) !important;
+  outline-offset: -2px !important;
 }
 
-/* ==========================================================================
-   Focused Cards System (Media & Episode Cards)
-   ========================================================================== */
-
-/* TV Low Mode style constraints - replace expensive blurry box-shadows with simple solid borders */
-body.is-tv .media-poster-wrap,
-body.is-tv .episode-still-wrap {
-  box-shadow: none !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+.action-btn-circle.active.focused {
+  background: var(--accent-dim) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  outline: 2px solid var(--accent) !important;
+  outline-offset: -2px !important;
 }
 
-/* Focused Media Cards (Outline on wrapper, scale up) */
+/* TV Focus overrides for inputs/interactive fields */
+input.focused,
+select.focused,
+textarea.focused {
+  background: var(--bg-surface-highest) !important;
+  border-color: var(--accent) !important;
+  outline: 2px solid var(--accent) !important;
+  outline-offset: -2px !important;
+}
+
+/* Media Cards Focus (2px outline border-highlight only, no heavy GPU transforms or shadows) */
+body.is-tv .media-card.focused {
+  outline: none !important;
+}
+
 body.is-tv .media-card.focused .media-poster-wrap {
-  transform: scale(1.04) !important;
-  box-shadow: 0 0 0 1px var(--accent) !important;
-  border-color: transparent !important;
+  outline: 2px solid var(--accent) !important;
+  outline-offset: -2px !important;
+  z-index: 10 !important;
 }
 
 body.is-tv .media-card.focused .media-card-title {
   color: var(--accent) !important;
-  text-shadow: none !important;
 }
 
-/* Focused Episode Cards */
+/* Episode Cards Focus (2px outline border-highlight only) */
+body.is-tv .episode-card.focused {
+  outline: none !important;
+}
+
 body.is-tv .episode-card.focused .episode-still-wrap {
-  box-shadow: 0 0 0 1px var(--accent) !important;
-  transform: scale(1.03) !important;
-  border-color: transparent !important;
+  border-color: var(--accent) !important;
+  outline: 2px solid var(--accent) !important;
+  outline-offset: -2px !important;
 }
 
 body.is-tv .episode-card.focused .episode-number-title {
   color: var(--accent) !important;
 }
 
+/* Dropdown Menu Items Focus (match desktop hover) */
+body.is-tv .season-popover-item.focused,
+body.is-tv .watch-popover-item.focused {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--accent) !important;
+  outline: none !important;
+}
+
+/* Sidebar focused item highlight */
+body.is-tv .sidebar-nav-item.focused {
+  background: var(--bg-surface-high) !important;
+  color: var(--text-primary) !important;
+  outline: 2px solid var(--accent) !important;
+  outline-offset: -2px !important;
+}
+
+/* Prevent screen from scrolling when a popover is active/open in TV mode */
+body.is-tv .main-content:has(.season-popover-menu),
+body.is-tv .main-content:has(.watch-popover-menu) {
+  overflow-y: hidden !important;
+}
+
 /* ==========================================================================
-   Smart TV Performance & Layout Optimizations
+   Smart TV Details Page Layout & Popovers
    ========================================================================== */
 
-body.is-tv .main-content {
-  padding-bottom: 180px !important;
+/* TV Details Page Hero Container limits to fit nicely inside logical TV viewports */
+.details-layout--tv .immersive-hero-container {
+  height: 82vh !important;
+  min-height: 450px !important;
+  max-height: 800px !important;
+  margin-bottom: var(--space-l) !important;
 }
 
-/* Snappy focus transition (100ms) for elements that actively receive focus */
-body.is-tv .focused,
-body.is-tv a.focused:not(.media-card):not(.carousel-title-link):not(.sidebar-nav-item),
-body.is-tv .media-card.focused .media-poster-wrap,
-body.is-tv .episode-card.focused .episode-still-wrap {
-  transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+.details-layout--tv .immersive-hero-content {
+  padding-bottom: 40px !important;
 }
 
-/* GPU acceleration layer promotion on focused elements */
-body.is-tv .media-card.focused .media-poster-wrap,
-body.is-tv .episode-card.focused .episode-still-wrap {
-  will-change: transform;
+/* TV 2-column grid layout (exact match to desktop dimensions) */
+.details-layout--tv .details-content-container {
+  display: grid !important;
+  grid-template-columns: 280px 1fr !important;
+  gap: 48px !important;
+  align-items: end !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 
-/* Disable expensive backdrop blurs, GPU filters, and blurry text shadows on TVs */
+.details-layout--tv .details-poster-sidebar {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-s) !important;
+  width: 280px !important;
+  justify-content: flex-end !important;
+}
+
+.details-layout--tv .details-main-info {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-end !important;
+}
+
+/* Popovers positioning and clipping prevention on TV */
+.details-layout--tv .season-popover-menu,
+.details-layout--tv .watch-popover-menu {
+  position: absolute !important;
+  top: calc(100% + 4px) !important;
+}
+
+/* Shift the season popover menu so it does not get cut off by the left screen edge */
+.details-layout--tv .season-popover-menu {
+  left: 0px !important;
+}
+
+/* Align watch popover to the left of the trigger button so it opens to the right and doesn't clip into the sidebar */
+.details-layout--tv .watch-popover-menu {
+  left: 0px !important;
+  right: auto !important;
+  transform-origin: top left !important;
+}
+
+/* Multi-picker Modal TV Focus Highlights */
+body.is-tv .episode-picker-card.focused {
+  outline: none !important;
+}
+
+body.is-tv .episode-picker-card.focused .episode-card-preview-wrap {
+  border-color: var(--accent) !important;
+  outline: 2px solid var(--accent) !important;
+  outline-offset: -2px !important;
+  z-index: 10 !important;
+}
+
+body.is-tv .episode-picker-card.focused .episode-card-title {
+  color: var(--accent) !important;
+}
+
+body.is-tv .modal-sidebar .potok-btn-primary.focused {
+  background: #fff !important;
+  color: #000 !important;
+  outline: 2px solid var(--accent) !important;
+  outline-offset: -2px !important;
+}
+
+body.is-tv .modal-sidebar .potok-btn-secondary.focused {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #fff !important;
+  outline: 2px solid var(--accent) !important;
+  outline-offset: -2px !important;
+}
+
+body.is-tv .modal-sidebar .potok-badge.focused {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #fff !important;
+  outline: 2px solid var(--accent) !important;
+  outline-offset: -2px !important;
+}
+
+body.is-tv .modal-close-btn.focused {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+  outline: 2px solid var(--accent) !important;
+  outline-offset: -2px !important;
+}
+
+/* ==========================================================================
+   TV GPU Performance Overrides
+   Weak chips (Mi Stick 4K, etc.) drop FPS on backdrop-filter, box-shadow
+   transitions, and CSS animations. We disable them on TV entirely.
+   ========================================================================== */
+
+/* 1. Kill backdrop-filter globally on TV — single biggest GPU win */
 body.is-tv * {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  filter: none !important;
-  text-shadow: none !important;
 }
 
-/* Disable hover effects on TVs to prevent style recalculations and layout jitter from virtual D-pad cursors */
-body.is-tv *:hover {
-  transform: none !important;
-  box-shadow: none !important;
+/* 2. Kill all transitions on focused elements — prevents forced reflow
+      every time .focused class is toggled by spatial navigation */
+body.is-tv .focused,
+body.is-tv .focused * {
   transition: none !important;
+}
+
+/* 3. Kill box-shadow on interactive elements — composited layer cost */
+body.is-tv .media-card,
+body.is-tv .episode-card,
+body.is-tv .episode-picker-card,
+body.is-tv .modal-container,
+body.is-tv .modal-overlay {
+  box-shadow: none !important;
+}
+
+/* 4. Replace JS-driven card entrance animations with instant display
+      (cardFadeIn, slideUp animations cause jank on first render) */
+body.is-tv .media-card,
+body.is-tv .season-section,
+body.is-tv .episode-picker-container {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* 5. Disable modal open animations — instant open is snappier on TV */
+body.is-tv .modal-container,
+body.is-tv .modal-overlay {
   animation: none !important;
 }
 
-/* Add a radial dark gradient overlay to unblurred backdrop containers on TV for contrast */
-body.is-tv .backdrop-blur-container::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at center, rgba(15, 15, 18, 0.8) 0%, rgba(15, 15, 18, 0.98) 100%) !important;
-  z-index: 1;
+/* 6. Lightweight transition tokens on TV — override the global property sets so
+      that interactive elements animate ONLY transform/opacity/color and never
+      repaint background, border, box-shadow or outline. Custom properties
+      inherit, so every element using var(--transition-*) picks this up. */
+body.is-tv {
+  --transition-interactive: transform var(--timing-hover), opacity var(--timing-hover), color var(--timing-hover);
+  --transition-sheet: transform var(--timing-sheet), opacity var(--timing-sheet);
 }
 
-/* Force hardware accelerated layers for carousel rows on TV to speed up horizontal scrolls */
-body.is-tv .carousel-row {
-  will-change: transform;
-}
-
-/* Enable native content-visibility for offscreen grid cards in collections/search pages on TV */
-body.is-tv .library-grid .media-card {
-  content-visibility: auto;
-  contain-intrinsic-size: 170px 270px;
-}
-
-/* Restrict all transitions in TV mode to compositor-only properties (transform and opacity) to prevent layout thrashing */
-body.is-tv * {
-  transition-property: transform, opacity !important;
-}
-
-/* Allow progress bars to animate width changes normally */
-body.is-tv .player-progress-bar,
-body.is-tv .progress-bar,
-body.is-tv .media-card-progress-bar {
-  transition-property: width, transform, opacity !important;
-}
-
-/* Isolate static component layout calculations to prevent global page reflows */
-body.is-tv .sidebar {
-  contain: layout paint;
-}
-
-body.is-tv .carousel-header {
-  contain: layout paint;
-}
-
-/* Disable native CSS smooth scroll in TV mode to prevent conflicts with JS animations */
-body.is-tv .main-content,
+/* 7. Instant scrolling on TV — native CSS smooth scroll stutters on weak GPUs.
+      Centering is handled in JS (TVNavigation) which already animates manually. */
 body.is-tv .carousel-row,
-body.is-tv .episodes-scroll-container {
+body.is-tv .episodes-scroll-container,
+body.is-tv .main-content,
+body.is-tv .modal-sidebar {
   scroll-behavior: auto !important;
+}
+
+/* 8. Kill CSS filter: blur on decorative ambient backdrops — the global
+      backdrop-filter reset does NOT cover plain `filter`, and blur(60px) on a
+      full-screen image is one of the most expensive paints on TV. Hide them and
+      fall back to the flat window background. */
+body.is-tv .backdrop-blur-image,
+body.is-tv .streams-page-backdrop {
+  display: none !important;
+}
+
+/* Details backdrop: show instantly on TV. The JS onLoad fade can stall on cached
+   images in some WebViews, leaving the backdrop invisible — avoid that risk. */
+body.is-tv .details-hero-backdrop {
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+/* 9. Extend the box-shadow kill to glass buttons, pills, player chrome and
+      cards — drop-shadows force an extra composited rasterization per element. */
+body.is-tv .btn-accent,
+body.is-tv .btn-glass,
+body.is-tv .action-btn-circle,
+body.is-tv .potok-btn,
+body.is-tv .potok-card,
+body.is-tv .stat-card,
+body.is-tv .media-glass-pill,
+body.is-tv .carousel-nav-btn,
+body.is-tv .player-top-bar,
+body.is-tv .player-controller-container,
+body.is-tv .player-controller-glass-pill,
+body.is-tv .control-icon-btn,
+body.is-tv .skip-intro-overlay-btn,
+body.is-tv .player-loading-card {
+  box-shadow: none !important;
 }

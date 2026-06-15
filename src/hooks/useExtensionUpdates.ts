@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { RegisteredExtension } from "@potok/sdk-types";
 import { useHUD } from "../context/HUDContext";
 import { Storage } from "../utils/StorageService";
+import { logger } from "../utils/logger";
 
 export const useExtensionUpdates = () => {
   const { show: showHUD } = useHUD();
@@ -13,7 +14,7 @@ export const useExtensionUpdates = () => {
       const list = Storage.get<RegisteredExtension[]>("potok_extensions", []);
       setExtensions(list);
     } catch (err) {
-      console.error("[useExtensionUpdates] Load failed:", err);
+      logger.error("[useExtensionUpdates] Load failed:", err);
     }
   }, []);
 

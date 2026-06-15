@@ -4,6 +4,7 @@ import { createState } from "../sdk/src/core/state";
 import { CallbackRegistry } from "../sdk/src/core/registry";
 import { INITIAL_SANDBOX_CODE } from "../pages/wiki/wikiData";
 import { getSandboxComponents } from "./sandboxComponents";
+import { logger } from "../utils/logger";
 
 export interface LogEntry {
   id: string;
@@ -179,7 +180,7 @@ export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
           setEditorLoaded(true);
         }, (err: any) => {
           setEditorError("Не удалось инициализировать Monaco.");
-          console.error(err);
+          logger.error(err);
         });
       }
     };
@@ -221,7 +222,7 @@ export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
         monaco.languages.typescript.javascriptDefaults.addExtraLib(SDK_TYPINGS, "file:///node_modules/@types/potok-sdk/index.d.ts");
         (window as any)._monacoSandboxSdkLibAdded = true;
       } catch (err) {
-        console.warn("Failed to inject types:", err);
+        logger.warn("Failed to inject types:", err);
       }
     }
 

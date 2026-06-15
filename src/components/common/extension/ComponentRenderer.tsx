@@ -16,6 +16,7 @@ import { HostMediaComponentsRenderer } from "./HostMediaComponentsRenderer";
 import { HostCommonComponentsRenderer } from "./HostCommonComponentsRenderer";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import { Grid } from "../Grid";
+import { logger } from "../../../utils/logger";
 
 const formatSpacingValue = (val: any): string | undefined => {
   if (val === undefined || val === null) return undefined;
@@ -314,17 +315,17 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       }
 
       const debugClick = () => {
-        console.log("[ComponentRenderer] Button Clicked!", {
+        logger.log("[ComponentRenderer] Button Clicked!", {
           text: componentProps.text,
           pluginId,
           events: schema.events,
           schema
         });
         if (schema.events?.onClick) {
-          console.log("[ComponentRenderer] Dispatching onClick:", schema.events.onClick);
+          logger.log("[ComponentRenderer] Dispatching onClick:", schema.events.onClick);
           ExtensionRegistry.triggerUIEvent(pluginId, schema.events.onClick, {});
         } else {
-          console.warn("[ComponentRenderer] No onClick event registered in events schema!");
+          logger.warn("[ComponentRenderer] No onClick event registered in events schema!");
         }
       };
 

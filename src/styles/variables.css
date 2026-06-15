@@ -93,6 +93,14 @@
   --timing-hover: 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
   --timing-sheet: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   --timing-hud: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Performance-safe transition sets.
+     Animate only compositor-friendly / cheap properties — never layout
+     (width/height/margin), filter, or backdrop-filter. Replaces `transition: all`,
+     which forced reflow + composited-layer repaints on every .focused toggle and
+     stuttered on weak TV WebView GPUs. */
+  --transition-interactive: background-color var(--timing-hover), border-color var(--timing-hover), color var(--timing-hover), transform var(--timing-hover), opacity var(--timing-hover), box-shadow var(--timing-hover), outline-color var(--timing-hover);
+  --transition-sheet: background-color var(--timing-sheet), border-color var(--timing-sheet), color var(--timing-sheet), transform var(--timing-sheet), opacity var(--timing-sheet), box-shadow var(--timing-sheet), outline-color var(--timing-sheet);
 }
 
 /* Nordic Frost Theme */

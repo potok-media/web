@@ -10,8 +10,11 @@ import DeclarativeSettings from "../components/settings/DeclarativeSettings";
 import AccessibilitySettings from "../components/settings/AccessibilitySettings";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import type { RegisteredExtension } from "@potok/sdk-types";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { FocusableButton } from "../components/common/TVNavigation";
 import "../styles/settings.css";
 import "../styles/console.css";
+import { logger } from "../utils/logger";
 
 export const SettingsPage: React.FC = () => {
   const {
@@ -29,6 +32,10 @@ export const SettingsPage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<string>("general");
   const [, setTick] = useState(0);
+
+  useEffect(() => {
+    setFocus("SETTINGS_TAB_GENERAL");
+  }, []);
 
   // Setup extensions state from localStorage and keep it in sync
   const [extensions, setExtensions] = useState<RegisteredExtension[]>(() => {
@@ -54,7 +61,7 @@ export const SettingsPage: React.FC = () => {
         const raw = localStorage.getItem("potok_extensions");
         setExtensions(raw ? JSON.parse(raw) : []);
       } catch (err) {
-        console.error("[SettingsPage] Sync failed:", err);
+        logger.error("[SettingsPage] Sync failed:", err);
       }
     };
 
@@ -138,66 +145,67 @@ export const SettingsPage: React.FC = () => {
           </div>
           <div className="settings-divider" />
           <div className="settings-section-title">Приложение</div>
-          <button
+          <FocusableButton
+            focusKey="SETTINGS_TAB_GENERAL"
             className={`settings-nav-item ${activeTab === "general" ? "active" : ""}`}
             onClick={() => setActiveTab("general")}
           >
             <Sliders size={16} />
             <span>Основные</span>
-          </button>
-          <button
+          </FocusableButton>
+          <FocusableButton
             className={`settings-nav-item ${activeTab === "profiles" ? "active" : ""}`}
             onClick={() => setActiveTab("profiles")}
           >
             <Globe size={16} />
             <span>Профили подключения</span>
-          </button>
-          <button
+          </FocusableButton>
+          <FocusableButton
             className={`settings-nav-item ${activeTab === "accessibility" ? "active" : ""}`}
             onClick={() => setActiveTab("accessibility")}
           >
             <Eye size={16} />
             <span>Специальные возможности</span>
-          </button>
+          </FocusableButton>
 
           <div className="settings-section-title">Интеграции</div>
-          <button
+          <FocusableButton
             className={`settings-nav-item ${activeTab === "extensions" ? "active" : ""}`}
             onClick={() => setActiveTab("extensions")}
           >
             <Puzzle size={16} />
             <span>Расширения</span>
-          </button>
-          <button
+          </FocusableButton>
+          <FocusableButton
             className={`settings-nav-item ${activeTab === "console" ? "active" : ""}`}
             onClick={() => setActiveTab("console")}
           >
             <Terminal size={16} />
             <span>Консоль</span>
-          </button>
+          </FocusableButton>
 
           {(slotContributions.length > 0 || configExtensions.length > 0) && (
             <>
               <div className="settings-section-title">Плагины</div>
               {slotContributions.map((c) => (
-                <button
+                <FocusableButton
                   key={c.contribution.id}
                   className={`settings-nav-item ${activeTab === c.contribution.id ? "active" : ""}`}
                   onClick={() => setActiveTab(c.contribution.id)}
                 >
                   <Puzzle size={16} />
                   <span>{c.contribution.title || c.contribution.id}</span>
-                </button>
+                </FocusableButton>
               ))}
               {configExtensions.map((ext) => (
-                <button
+                <FocusableButton
                   key={`config-${ext.id}`}
                   className={`settings-nav-item ${activeTab === `config-${ext.id}` ? "active" : ""}`}
                   onClick={() => setActiveTab(`config-${ext.id}`)}
                 >
                   <Puzzle size={16} />
                   <span>{ext.manifest.name || ext.id}</span>
-                </button>
+                </FocusableButton>
               ))}
             </>
           )}

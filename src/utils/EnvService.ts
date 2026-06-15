@@ -1,3 +1,5 @@
+import { logger } from "./logger";
+
 /**
  * Centralized utility to read environment variables dynamically.
  * Supporting both compile-time Vite environment injection (local dev)
@@ -9,7 +11,7 @@ export function getEnv(key: string): string {
       const bff = (window as any).AndroidBridge.getBffUrl();
       if (bff) return bff;
     } catch (e) {
-      console.error("Failed to get bff url from AndroidBridge:", e);
+      logger.error("Failed to get bff url from AndroidBridge:", e);
     }
   }
 

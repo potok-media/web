@@ -5,7 +5,8 @@ import type { TvEpisode } from "../network/ApiTypes";
 import { EpisodeCard } from "./EpisodeCard";
 import { ChevronLeft, ChevronRight, ChevronDown, Tv, Check, Eye, ListTodo } from "lucide-react";
 import { Grid } from "./common/Grid";
-import { FocusableButton } from "./common/TVNavigation";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { FocusableButton, FocusableContainer } from "./common/TVNavigation";
 
 interface SeasonEpisodesSectionProps {
   mediaId: number;
@@ -45,6 +46,59 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   const [canScrollRight, setCanScrollRight] = useState(false);
 
   const [visibleCount, setVisibleCount] = useState(24);
+
+  const prevShowSeasonPopover = useRef(showSeasonPopover);
+  const prevShowWatchPopover = useRef(showWatchPopover);
+  const prevContextMenu = useRef(contextMenu);
+  const triggerEpisodeCardIdRef = useRef<number | null>(null);
+
+  // Focus transition for Season popover
+  useEffect(() => {
+    if (showSeasonPopover) {
+      setFocus(`SEASON_POP_ITEM_${activeSeason}`);
+    } else if (prevShowSeasonPopover.current && !showSeasonPopover) {
+      setFocus("SEASON_SELECT_TRIGGER");
+    }
+    prevShowSeasonPopover.current = showSeasonPopover;
+  }, [showSeasonPopover, activeSeason]);
+
+  // Focus transition for Watch popover
+  useEffect(() => {
+    if (showWatchPopover) {
+      setFocus("SEASON_WATCH_ITEM_MARK_ALL");
+    } else if (prevShowWatchPopover.current && !showWatchPopover) {
+      setFocus("SEASON_WATCH_TRIGGER");
+    }
+    prevShowWatchPopover.current = showWatchPopover;
+  }, [showWatchPopover]);
+
+  // Focus transition for Context menu
+  useEffect(() => {
+    if (contextMenu) {
+      triggerEpisodeCardIdRef.current = contextMenu.episode.id;
+      setFocus("EPISODE_CONTEXT_MENU_MARK_WATCHED");
+    } else if (prevContextMenu.current && !contextMenu && triggerEpisodeCardIdRef.current !== null) {
+      setFocus(`EPISODE_CARD_${triggerEpisodeCardIdRef.current}`);
+    }
+    prevContextMenu.current = contextMenu;
+  }, [contextMenu]);
+
+  useEffect(() => {
+    const handleBack = (e: Event) => {
+      if (showSeasonPopover) {
+        e.preventDefault();
+        setShowSeasonPopover(false);
+      } else if (showWatchPopover) {
+        e.preventDefault();
+        setShowWatchPopover(false);
+      } else if (contextMenu) {
+        e.preventDefault();
+        setContextMenu(null);
+      }
+    };
+    window.addEventListener("potok-back-pressed", handleBack);
+    return () => window.removeEventListener("potok-back-pressed", handleBack);
+  }, [showSeasonPopover, showWatchPopover, contextMenu]);
 
   const checkScrollLimits = useCallback(() => {
     const container = scrollRef.current;
@@ -107,6 +161,23 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
     return watchedEpisodes.some(we => we.season === activeSeason && we.number === epNum);
   }, [watchedEpisodes, activeSeason]);
 
+  // Stable per-card handlers — keep EpisodeCard's React.memo intact during D-pad
+  // navigation so scroll-driven re-renders of the section don't re-render every card.
+  const handleEpisodeClick = useCallback((ep: TvEpisode) => {
+    onEpisodeClick(ep, activeSeason);
+  }, [onEpisodeClick, activeSeason]);
+
+  const handleEpisodeContextMenu = useCallback((ep: TvEpisode, x: number, y: number) => {
+    setContextMenu({ episode: ep, x, y });
+  }, []);
+
+  const handleEpisodeFocus = useCallback((ep: TvEpisode) => {
+    const idx = episodes.findIndex(e => e.id === ep.id);
+    if (idx >= visibleCount - 4 && visibleCount < episodes.length) {
+      setVisibleCount(prev => Math.min(prev + 24, episodes.length));
+    }
+  }, [episodes, visibleCount]);
+
   const isSeasonFullyWatched = episodes.length > 0 && episodes.every(ep => isEpisodeWatched(ep.episodeNumber));
 
   if (numberOfSeasons <= 0) return null;
@@ -122,6 +193,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
         {/* Season Selector Popover */}
         <div className="season-select-wrapper">
           <FocusableButton 
+            focusKey="SEASON_SELECT_TRIGGER"
             className="season-select-trigger-btn" 
             onClick={() => setShowSeasonPopover(prev => !prev)}
             aria-expanded={showSeasonPopover}
@@ -133,12 +205,13 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
           {showSeasonPopover && (
             <>
               <div className="popover-overlay" onClick={() => setShowSeasonPopover(false)} />
-              <div className="season-popover-menu">
+              <FocusableContainer focusKey="SEASON_POPOVER_CONTAINER" isFocusBoundary={true} className="season-popover-menu">
                 <div className="popover-header">Выберите сезон</div>
                 <div className="popover-scrollable-list">
                   {Array.from({ length: numberOfSeasons }, (_, i) => i + 1).map((sNum) => (
                     <FocusableButton
                       key={sNum}
+                      focusKey={`SEASON_POP_ITEM_${sNum}`}
                       className={`season-popover-item ${activeSeason === sNum ? "active" : ""}`}
                       onClick={() => {
                         setActiveSeason(sNum);
@@ -151,7 +224,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
                     </FocusableButton>
                   ))}
                 </div>
-              </div>
+              </FocusableContainer>
             </>
           )}
         </div>
@@ -160,6 +233,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
         {toggleSeasonWatched && (
           <div className="season-watch-wrapper">
             <FocusableButton 
+              focusKey="SEASON_WATCH_TRIGGER"
               className="season-watch-trigger-btn" 
               onClick={() => setShowWatchPopover(prev => !prev)}
               aria-expanded={showWatchPopover}
@@ -172,9 +246,10 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
             {showWatchPopover && (
               <>
                 <div className="popover-overlay" onClick={() => setShowWatchPopover(false)} />
-                <div className="watch-popover-menu">
+                <FocusableContainer focusKey="WATCH_POPOVER_CONTAINER" isFocusBoundary={true} className="watch-popover-menu">
                   <div className="popover-header">Выбор серий</div>
                   <FocusableButton
+                    focusKey="SEASON_WATCH_ITEM_MARK_ALL"
                     className="watch-popover-item"
                     onClick={() => {
                       toggleSeasonWatched?.(activeSeason, episodes, !isSeasonFullyWatched);
@@ -185,6 +260,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
                     <span>{isSeasonFullyWatched ? "Снять отметку" : "Отметить сезон"}</span>
                   </FocusableButton>
                   <FocusableButton
+                    focusKey="SEASON_WATCH_ITEM_MULTI_PICK"
                     className="watch-popover-item"
                     onClick={() => {
                       setShowWatchPopover(false);
@@ -194,7 +270,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
                     <ListTodo size={16} className="watch-item-icon" />
                     <span>Отметить выборочно...</span>
                   </FocusableButton>
-                </div>
+                </FocusableContainer>
               </>
             )}
           </div>
@@ -243,21 +319,18 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
             ref={scrollRef}
             onScroll={checkScrollLimits}
           >
-            {episodes.slice(0, visibleCount).map((ep, idx) => {
+            {episodes.slice(0, visibleCount).map((ep) => {
               const watched = isEpisodeWatched(ep.episodeNumber);
               return (
                 <EpisodeCard
                   key={ep.id}
+                  focusKey={`EPISODE_CARD_${ep.id}`}
                   episode={ep}
-                  onClick={() => onEpisodeClick(ep, activeSeason)}
+                  onClick={handleEpisodeClick}
                   isActive={selectedEpisode?.episode.id === ep.id}
                   isWatched={watched}
-                  onContextMenu={(x, y) => setContextMenu({ episode: ep, x, y })}
-                  onFocus={() => {
-                    if (idx >= visibleCount - 4 && visibleCount < episodes.length) {
-                      setVisibleCount(prev => Math.min(prev + 24, episodes.length));
-                    }
-                  }}
+                  onContextMenu={handleEpisodeContextMenu}
+                  onFocus={handleEpisodeFocus}
                 />
               );
             })}
@@ -288,7 +361,9 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
             onClick={() => setContextMenu(null)} 
             onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }} 
           />
-          <div 
+          <FocusableContainer 
+            focusKey="EPISODE_CONTEXT_MENU_CONTAINER"
+            isFocusBoundary={true}
             className="episode-card-context-menu"
             style={{
               position: "fixed",
@@ -297,6 +372,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
             }}
           >
             <FocusableButton
+              focusKey="EPISODE_CONTEXT_MENU_MARK_WATCHED"
               className="context-menu-item"
               onClick={() => {
                 const watched = isEpisodeWatched(contextMenu.episode.episodeNumber);
@@ -311,7 +387,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
                   : "Отметить просмотренным"}
               </span>
             </FocusableButton>
-          </div>
+          </FocusableContainer>
         </>
       )}
     </section>

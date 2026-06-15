@@ -24,6 +24,7 @@ import { useExtensionUpdates } from "../hooks/useExtensionUpdates";
 import { ApiClient } from "../network/ApiClient";
 import { Storage } from "../utils/StorageService";
 import { Grid } from "./common/Grid";
+import { logger } from "../utils/logger";
 
 const PERMISSION_DESCRIPTIONS: Record<string, string> = {
   "storage": "Сохранение настроек и данных плагина локально на вашем устройстве",
@@ -134,7 +135,7 @@ export const ExtensionsManager: React.FC = () => {
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Ошибка при установке расширения";
-      console.error("[ExtensionsManager] Install failed:", err);
+      logger.error("[ExtensionsManager] Install failed:", err);
       showHUD("error", errorMsg);
     } finally {
       setIsLoading(false);

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { logger } from "../utils/logger";
 
 interface TimecodeRange {
   start: number;
@@ -55,7 +56,7 @@ export function useTimecodes(
           }
         }
       } catch (err) {
-        console.warn("Could not retrieve segment data from TheIntroDB:", err);
+        logger.warn("Could not retrieve segment data from TheIntroDB:", err);
       }
 
       // Default fallback if query fails

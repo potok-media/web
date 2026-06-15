@@ -1,9 +1,11 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Clock, AlertCircle, RefreshCw, BookmarkCheck, Star } from "lucide-react";
 import { useCalendarData } from "../hooks/useCalendarData";
 import type { MediaCard } from "../network/ApiTypes";
 import { FilmOff } from "../components/common/FilmOff";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { Focusable, FocusableButton } from "../components/common/TVNavigation";
 import "../styles/media.css";
 
 const CalendarSkeleton: React.FC = () => (
@@ -26,6 +28,10 @@ export const CalendarPage: React.FC = () => {
   const navigate = useNavigate();
   const { items, loading, error, refetch, isTraktConnected } = useCalendarData();
   const [activeFilter, setActiveFilter] = useState<"all" | "today" | "tomorrow" | "this-week">("all");
+
+  useEffect(() => {
+    setFocus("CALENDAR_FIRST_TAB");
+  }, []);
 
   const filterChips = [
     { key: "all", label: "Все релизы" },
@@ -153,15 +159,16 @@ export const CalendarPage: React.FC = () => {
 
       {/* Filter Chips (Material Design 3 style) */}
       <nav className="tabs-header calendar-tabs" aria-label="Фильтры календаря по дням">
-        {filterChips.map((chip) => (
-          <button
+        {filterChips.map((chip, index) => (
+          <FocusableButton
             key={chip.key}
+            focusKey={index === 0 ? "CALENDAR_FIRST_TAB" : undefined}
             className={`tab-btn ${activeFilter === chip.key ? "active" : ""}`}
             onClick={() => setActiveFilter(chip.key)}
             aria-current={activeFilter === chip.key ? "page" : undefined}
           >
             {chip.label}
-          </button>
+          </FocusableButton>
         ))}
       </nav>
 
@@ -201,70 +208,79 @@ export const CalendarPage: React.FC = () => {
                 {group.items.map((item) => {
                   const rating = item.kpRating || item.tmdbRating || item.imdbRating;
                   return (
-                    <Link
+                    <Focusable
                       key={`${item.id}-${item.nextEpisodeSeason ?? 0}-${item.nextEpisodeNumber ?? 0}-${item.airDateTime ?? ''}`}
-                      to={`/media/tv/${item.id}`}
-                      className="calendar-row"
-                      aria-label={`${item.title}. ${item.nextEpisodeSeason && item.nextEpisodeNumber ? `Сезон ${item.nextEpisodeSeason}, Серия ${item.nextEpisodeNumber}` : "Новая серия"}. Дата выхода: ${formatReleaseTime(item.airDateTime)}.`}
+                      onEnterPress={() => {
+                        navigate(`/media/tv/${item.id}`);
+                      }}
                     >
-                      {/* Fixed sized poster wrap with aspect-ratio to prevent layout shift */}
-                      <div className="calendar-poster-wrap">
-                        {item.posterSrc ? (
-                          <>
-                            <img
-                              src={item.posterSrc}
-                              alt={item.title}
-                              className="calendar-poster-img"
-                              loading="lazy"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                const placeholder = e.currentTarget.nextElementSibling;
-                                if (placeholder) {
-                                  (placeholder as HTMLElement).style.display = 'flex';
-                                }
-                              }}
-                            />
-                            <div className="media-poster-fallback-placeholder" style={{ display: 'none', height: '100%', width: '100%' }}>
-                              <FilmOff size={24} />
-                            </div>
-                          </>
-                        ) : (
-                          <div className="media-poster-fallback-placeholder" style={{ height: '100%', width: '100%' }}>
-                            <FilmOff size={24} />
+                      {({ ref: focusRef, focused }) => (
+                        <Link
+                          ref={focusRef}
+                          to={`/media/tv/${item.id}`}
+                          className={`calendar-row ${focused ? "focused" : ""}`}
+                          aria-label={`${item.title}. ${item.nextEpisodeSeason && item.nextEpisodeNumber ? `Сезон ${item.nextEpisodeSeason}, Серия ${item.nextEpisodeNumber}` : "Новая серия"}. Дата выхода: ${formatReleaseTime(item.airDateTime)}.`}
+                        >
+                          {/* Fixed sized poster wrap with aspect-ratio to prevent layout shift */}
+                          <div className="calendar-poster-wrap">
+                            {item.posterSrc ? (
+                              <>
+                                <img
+                                  src={item.posterSrc}
+                                  alt={item.title}
+                                  className="calendar-poster-img"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    const placeholder = e.currentTarget.nextElementSibling;
+                                    if (placeholder) {
+                                      (placeholder as HTMLElement).style.display = 'flex';
+                                    }
+                                  }}
+                                />
+                                <div className="media-poster-fallback-placeholder" style={{ display: 'none', height: '100%', width: '100%' }}>
+                                  <FilmOff size={24} />
+                                </div>
+                              </>
+                            ) : (
+                              <div className="media-poster-fallback-placeholder" style={{ height: '100%', width: '100%' }}>
+                                <FilmOff size={24} />
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
 
-                      {/* Episode detailing */}
-                      <div className="calendar-info-col">
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                          <span className="calendar-show-title">{item.title}</span>
-                          {rating && (
-                            <span className="media-glass-pill rating-pill" style={{ display: "inline-flex", alignItems: "center", gap: "3px", padding: "2px 6px", height: "auto", fontSize: "0.75rem" }}>
-                              <Star size={10} fill="var(--warning)" stroke="var(--warning)" />
-                              <span>{rating.toFixed(1)}</span>
+                          {/* Episode detailing */}
+                          <div className="calendar-info-col">
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                              <span className="calendar-show-title">{item.title}</span>
+                              {rating && (
+                                <span className="media-glass-pill rating-pill" style={{ display: "inline-flex", alignItems: "center", gap: "3px", padding: "2px 6px", height: "auto", fontSize: "0.75rem" }}>
+                                  <Star size={10} fill="var(--warning)" stroke="var(--warning)" />
+                                  <span>{rating.toFixed(1)}</span>
+                                </span>
+                              )}
+                            </div>
+                            <span className="calendar-episode-title">
+                              {item.nextEpisodeSeason && item.nextEpisodeNumber
+                                ? `Сезон ${item.nextEpisodeSeason}, Серия ${item.nextEpisodeNumber}`
+                                : "Новая серия"}
+                              {item.nextEpisodeTitle ? ` — «${item.nextEpisodeTitle}»` : ""}
                             </span>
-                          )}
-                        </div>
-                        <span className="calendar-episode-title">
-                          {item.nextEpisodeSeason && item.nextEpisodeNumber
-                            ? `Сезон ${item.nextEpisodeSeason}, Серия ${item.nextEpisodeNumber}`
-                            : "Новая серия"}
-                          {item.nextEpisodeTitle ? ` — «${item.nextEpisodeTitle}»` : ""}
-                        </span>
-                        {item.overview && (
-                          <p className="calendar-episode-overview">
-                            {item.overview}
-                          </p>
-                        )}
-                      </div>
+                            {item.overview && (
+                              <p className="calendar-episode-overview">
+                                {item.overview}
+                              </p>
+                            )}
+                          </div>
 
-                      {/* Localized release time tag */}
-                      <div className="calendar-time-tag">
-                        <Clock size={14} className="calendar-time-icon" />
-                        <span>{formatReleaseTime(item.airDateTime)}</span>
-                      </div>
-                    </Link>
+                          {/* Localized release time tag */}
+                          <div className="calendar-time-tag">
+                            <Clock size={14} className="calendar-time-icon" />
+                            <span>{formatReleaseTime(item.airDateTime)}</span>
+                          </div>
+                        </Link>
+                      )}
+                    </Focusable>
                   );
                 })}
               </div>
