@@ -7,6 +7,7 @@ import { useHUD } from "../context/HUDContext";
 import { useAuth } from "../context/AppSettingsContext";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { FocusableButton } from "../components/common/TVNavigation";
+import { useIsMobile } from "../hooks/useIsMobile";
 import { SyncStrategySelectionView } from "../components/profile/SyncStrategySelectionView";
 import { ServerSyncActiveView } from "../components/profile/ServerSyncActiveView";
 import { TraktDeviceAuthView } from "../components/profile/TraktDeviceAuthView";
@@ -31,6 +32,7 @@ export const ProfilePage: React.FC = () => {
   const [traktProfile, setTraktProfile] = useState<TraktProfile | null>(null);
   const [deviceCode, setDeviceCode] = useState<DeviceCodeResponse | null>(null);
   const [loadingTrakt, setLoadingTrakt] = useState(false);
+  const isMobile = useIsMobile();
 
   const pollingRef = useRef<any>(null);
 
@@ -182,24 +184,8 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       {syncStrategy !== "none" && syncStrategy !== "localDevice" && (
-        <>
-          {/* Desktop sync select dropdown */}
-          <div className="profile-dropdown-wrap desktop-only">
-            <div className="strategy-dropdown-container">
-              <span>Синхронизация:</span>
-              <select
-                value={syncStrategy}
-                onChange={(e) => selectStrategy(e.target.value)}
-                className="strategy-dropdown-select"
-              >
-                <option value="none">Не выбрано</option>
-                <option value="trakt">Trakt.tv</option>
-                <option value="server">Сервер Potok</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Mobile premium strategy segmented chips */}
+        isMobile ? (
+          /* Mobile premium strategy segmented chips */
           <div className="profile-dropdown-wrap mobile-only">
             <div className="strategy-chips-container">
               <span className="strategy-chips-label">Синхронизация:</span>
@@ -231,7 +217,23 @@ export const ProfilePage: React.FC = () => {
               </div>
             </div>
           </div>
-        </>
+        ) : (
+          /* Desktop sync select dropdown */
+          <div className="profile-dropdown-wrap desktop-only">
+            <div className="strategy-dropdown-container">
+              <span>Синхронизация:</span>
+              <select
+                value={syncStrategy}
+                onChange={(e) => selectStrategy(e.target.value)}
+                className="strategy-dropdown-select"
+              >
+                <option value="none">Не выбрано</option>
+                <option value="trakt">Trakt.tv</option>
+                <option value="server">Сервер Potok</option>
+              </select>
+            </div>
+          </div>
+        )
       )}
 
       {syncStrategy === "localDevice" && (
@@ -241,8 +243,8 @@ export const ProfilePage: React.FC = () => {
             В браузере оффлайн-кэш нестабилен и легко стирается. Пожалуйста, переключитесь на облачную синхронизацию Trakt.tv или Сервер Potok для сохранности вашей истории.
           </p>
           <div className="profile-warning-buttons">
-            <button onClick={() => selectStrategy("server")} className="btn-accent profile-btn-caption-bold">Синхронизация на server</button>
-            <button onClick={() => { selectStrategy("trakt"); startTraktAuth(); }} className="btn-glass profile-btn-caption-bold">Синхронизация Trakt.tv</button>
+            <FocusableButton onClick={() => selectStrategy("server")} className="btn-accent profile-btn-caption-bold">Синхронизация на server</FocusableButton>
+            <FocusableButton onClick={() => { selectStrategy("trakt"); startTraktAuth(); }} className="btn-glass profile-btn-caption-bold">Синхронизация Trakt.tv</FocusableButton>
           </div>
         </div>
       )}
@@ -280,9 +282,9 @@ export const ProfilePage: React.FC = () => {
                   Подключите свой аккаунт для облачной синхронизации истории и оценок.
                 </p>
               </div>
-              <button onClick={startTraktAuth} className="btn-accent profile-trakt-connect-btn" disabled={loadingTrakt}>
+              <FocusableButton onClick={startTraktAuth} className="btn-accent profile-trakt-connect-btn" disabled={loadingTrakt}>
                 {loadingTrakt ? "Загрузка..." : "Подключить аккаунт"}
-              </button>
+              </FocusableButton>
             </div>
           )}
         </>
@@ -290,15 +292,19 @@ export const ProfilePage: React.FC = () => {
 
       {syncStrategy === "server" && <ServerSyncActiveView />}
 
-      <div className="profile-mobile-extensions-section">
-        <h2 className="profile-extensions-heading">Ваши расширения и инструменты</h2>
-        <p className="profile-extensions-subheading">Быстрый доступ к установленным плагинам</p>
-        <div className="profile-extensions-grid-wrapper">
-          <Slot name="sidebar-menu-home" props={{ isCollapsed: false }} style={{ marginBottom: "8px" }} />
-          <Slot name="sidebar-menu-library" props={{ isCollapsed: false }} style={{ marginBottom: "8px" }} />
-          <Slot name="sidebar-menu" props={{ isCollapsed: false }} />
+      {/* Mobile-only: the desktop sidebar already exposes these plugin slots, so
+          mounting them here on desktop/TV would duplicate the slot subtrees. */}
+      {isMobile && (
+        <div className="profile-mobile-extensions-section">
+          <h2 className="profile-extensions-heading">Ваши расширения и инструменты</h2>
+          <p className="profile-extensions-subheading">Быстрый доступ к установленным плагинам</p>
+          <div className="profile-extensions-grid-wrapper">
+            <Slot name="sidebar-menu-home" props={{ isCollapsed: false }} style={{ marginBottom: "8px" }} />
+            <Slot name="sidebar-menu-library" props={{ isCollapsed: false }} style={{ marginBottom: "8px" }} />
+            <Slot name="sidebar-menu" props={{ isCollapsed: false }} />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

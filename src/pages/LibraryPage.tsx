@@ -13,7 +13,7 @@ import { CATEGORY_MAP, DYNAMIC_CATEGORY_TITLES } from "./LibraryConfig";
 import { Grid } from "../components/common/Grid";
 import { PlatformManager } from "../utils/PlatformManager";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
-import { FocusableInput } from "../components/common/TVNavigation";
+import { FocusableInput, FocusableButton } from "../components/common/TVNavigation";
 import "../styles/media.css";
  
 export const LibraryPage: React.FC = () => {
@@ -152,7 +152,7 @@ export const LibraryPage: React.FC = () => {
       <div className="library-empty-view">
         <AlertTriangle size={48} className="library-empty-icon error" />
         <h2 className="library-empty-title">{error}</h2>
-        <button className="overlay-btn" onClick={refetch}>Повторить загрузку</button>
+        <FocusableButton className="overlay-btn" onClick={refetch}>Повторить загрузку</FocusableButton>
       </div>
     );
   }

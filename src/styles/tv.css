@@ -12,6 +12,15 @@
   outline: none !important;
 }
 
+/* Default visible focus ring for EVERY focusable element on TV. Without this,
+   buttons whose class has no bespoke .focused rule below show no focus at all.
+   Placed before the specific rules so they override it on equal specificity. */
+body.is-tv .focused {
+  outline: 3px solid var(--accent) !important;
+  outline-offset: -2px;
+  border-radius: inherit;
+}
+
 /* Focused Interactive Buttons (simple color swap + 2px outline for maximum TV performance and visibility) */
 .btn-accent.focused,
 .potok-btn.btn-watch-primary.focused,
@@ -65,6 +74,9 @@ body.is-tv .media-card.focused .media-poster-wrap {
   outline: 2px solid var(--accent) !important;
   outline-offset: -2px !important;
   z-index: 10 !important;
+  /* Focus = ring only on TV: no scale/shadow repaint per D-pad move */
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 body.is-tv .media-card.focused .media-card-title {
@@ -231,9 +243,13 @@ body.is-tv .focused * {
   transition: none !important;
 }
 
-/* 3. Kill box-shadow on interactive elements — composited layer cost */
+/* 3. Kill box-shadow on interactive elements — composited layer cost.
+      Includes the *-wrap children (the real shadow lives on .media-poster-wrap,
+      one per card → ~60 shadows on the home grid). */
 body.is-tv .media-card,
+body.is-tv .media-poster-wrap,
 body.is-tv .episode-card,
+body.is-tv .episode-still-wrap,
 body.is-tv .episode-picker-card,
 body.is-tv .modal-container,
 body.is-tv .modal-overlay {
@@ -307,4 +323,34 @@ body.is-tv .control-icon-btn,
 body.is-tv .skip-intro-overlay-btn,
 body.is-tv .player-loading-card {
   box-shadow: none !important;
+}
+
+/* 10. Drop persistent compositor layers on TV. `will-change` keeps a GPU layer
+       alive per element; with many carousel rows this exhausts the Mi Stick's
+       limited VRAM and causes uneven frames. */
+body.is-tv .carousel-row,
+body.is-tv .episodes-scroll-container,
+body.is-tv .streams-scroll-area {
+  will-change: auto !important;
+}
+
+/* 11. Hide mouse-only carousel arrows on TV — navigation is by D-pad focus,
+       and the arrows are plain buttons (unfocusable + extra paint). */
+body.is-tv .carousel-nav-btn {
+  display: none !important;
+}
+
+/* 12. Hero crossfade is instant on TV — a full-screen opacity transition is a
+       heavy composite; auto-rotation is also disabled in HeroSpotlight on TV. */
+body.is-tv .hero-banner .immersive-hero-backdrop,
+body.is-tv .hero-content {
+  transition: none !important;
+}
+
+/* 13. Multi-picker modal renders every episode of every season at once. Skip
+       rendering/decoding off-screen cards (the modal uses native scroll, so this
+       won't fight the JS focus-centering used elsewhere). */
+body.is-tv .episode-picker-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 200px;
 }

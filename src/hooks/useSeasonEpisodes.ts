@@ -2,6 +2,11 @@ import { useState, useEffect } from "react";
 import { ApiClient } from "../network/ApiClient";
 import type { TvEpisode } from "../network/ApiTypes";
 import { MemorySafeCache } from "../network/MemorySafeCache";
+import { resizeTmdbImage } from "../utils/mediaUtils";
+import { PlatformManager } from "../utils/PlatformManager";
+
+// Smaller episode stills on TV — decoding 24 full-size JPEGs is the main FPS killer.
+const STILL_SIZE = PlatformManager.isTV() ? "w300" : "w500";
 
 // Create cache instance: 5 minutes TTL (300,000 ms), max 100 elements
 const seasonCache = new MemorySafeCache(300000, 100);
@@ -74,7 +79,7 @@ export function useSeasonEpisodes(mediaId: number, seasonNumber: number) {
           episodeNumber: ep.episodeNumber,
           name: ep.name,
           overview: ep.overview,
-          stillPath: ep.stillPath || ep.still_path,
+          stillPath: resizeTmdbImage(ep.stillPath || ep.still_path, STILL_SIZE),
           airDate: ep.airDate,
           seasonNumber: seasonNumber,
         }));

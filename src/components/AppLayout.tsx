@@ -12,6 +12,7 @@ import { OfflineOverlay } from "./OfflineOverlay";
 import { FocusTrap } from "./FocusTrap";
 import { PluginSandbox } from "./common/PluginSandbox";
 import { PlatformManager } from "../utils/PlatformManager";
+import { useIsMobile } from "../hooks/useIsMobile";
 import "../styles/layout.css";
 import { logger } from "../utils/logger";
 
@@ -22,29 +23,7 @@ export const AppLayout: React.FC = () => {
   const mainContentRef = React.useRef<HTMLDivElement>(null);
   const scrollPositions = React.useRef<Record<string, number>>({});
 
-  const [isMobile, setIsMobile] = React.useState(() => window.innerWidth <= 768);
-
-  React.useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 768px)");
-    const handleTabletChange = (e: MediaQueryListEvent) => {
-      setIsMobile(e.matches);
-    };
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener("change", handleTabletChange);
-    } else {
-      mediaQuery.addListener(handleTabletChange);
-    }
-    
-    setIsMobile(mediaQuery.matches);
-
-    return () => {
-      if (mediaQuery.removeEventListener) {
-        mediaQuery.removeEventListener("change", handleTabletChange);
-      } else {
-        mediaQuery.removeListener(handleTabletChange);
-      }
-    };
-  }, []);
+  const isMobile = useIsMobile();
 
   const handleScroll = React.useCallback(() => {
     if (mainContentRef.current) {

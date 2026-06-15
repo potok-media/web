@@ -6,13 +6,14 @@ import { useHomeFeed } from "../hooks/useHomeFeed";
 import HeroSpotlight from "../components/HeroSpotlight";
 import MediaRow from "../components/MediaRow";
 import { LoadingSpinner } from "../components/LoadingSpinner";
+import { FocusableButton } from "../components/common/TVNavigation";
 import type { MediaCard } from "../network/ApiTypes";
 import "../styles/media.css";
 
 const ErrorView: React.FC<{ error: string; onRetry: () => void }> = ({ error, onRetry }) => (
   <div className="media-not-found-container">
     <h2 className="media-not-found-title">{error}</h2>
-    <button className="overlay-btn" onClick={onRetry}>Повторить загрузку</button>
+    <FocusableButton className="overlay-btn" onClick={onRetry}>Повторить загрузку</FocusableButton>
   </div>
 );
 

@@ -4,6 +4,7 @@ import { ShieldAlert, ArrowLeft } from "lucide-react";
 import { StreamList } from "../components/common/StreamList";
 import { StreamSidebar } from "../components/StreamSidebar";
 import { EpisodeSelectorPopup } from "../components/common/EpisodeSelectorPopup";
+import { FocusableButton } from "../components/common/TVNavigation";
 import { useMediaStreams } from "../hooks/useMediaStreams";
 import type { MediaCard } from "../network/ApiTypes";
 import "../styles/media.css";
@@ -53,7 +54,7 @@ export const MediaStreamsPage: React.FC = () => {
     }
     return (
       <aside className="streams-page-sidebar skeleton-loading">
-        <button className="streams-sidebar-back-btn" onClick={() => navigate(-1)}><ArrowLeft size={18} /></button>
+        <FocusableButton className="streams-sidebar-back-btn" onClick={() => navigate(-1)}><ArrowLeft size={18} /></FocusableButton>
         <div className="streams-sidebar-poster skeleton" style={{ height: "360px", borderRadius: "12px", background: "rgba(255,255,255,0.05)" }} />
       </aside>
     );
@@ -101,7 +102,7 @@ export const MediaStreamsPage: React.FC = () => {
       <div className="media-not-found-container">
         <ShieldAlert size={48} className="media-not-found-icon" />
         <h2 className="media-not-found-title">Медиа не найдено</h2>
-        <button className="btn-glass" onClick={() => navigate(-1)}>Назад</button>
+        <FocusableButton className="btn-glass" onClick={() => navigate(-1)}>Назад</FocusableButton>
       </div>
     );
   }

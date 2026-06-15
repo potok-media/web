@@ -4,7 +4,7 @@ import { Star, Eye, Bookmark } from "lucide-react";
 import { useHUD } from "../context/HUDContext";
 import { Slot } from "../components/common/extension/Slot";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
-import { Focusable } from "../components/common/TVNavigation";
+import { Focusable, FocusableButton } from "../components/common/TVNavigation";
 import { PlatformManager } from "../utils/PlatformManager";
 
 import { useMediaDetails } from "../hooks/useMediaDetails";
@@ -109,7 +109,7 @@ export const MediaDetailsPage: React.FC = () => {
     return (
       <div className="media-not-found-container">
         <h2 className="media-not-found-title">{error || "Медиа не найдено"}</h2>
-        <button className="overlay-btn" onClick={refetch}>Повторить загрузку</button>
+        <FocusableButton className="overlay-btn" onClick={refetch}>Повторить загрузку</FocusableButton>
       </div>
     );
   }
@@ -233,15 +233,20 @@ export const MediaDetailsPage: React.FC = () => {
               onOpenMultiPicker={() => setIsMultiPickerOpen(true)}
             />
 
-            <EpisodeMultiPickerModal
-              isOpen={isMultiPickerOpen}
-              onClose={() => setIsMultiPickerOpen(false)}
-              mediaId={media.id}
-              mediaTitle={media.title}
-              numberOfSeasons={media.numberOfSeasons}
-              initialSelected={media.progress?.watchedEpisodes || []}
-              onSave={saveEpisodeSelection}
-            />
+            {/* Multi-picker popup is disabled on TV — it renders every episode of
+                every season and tanks FPS. On TV the season-watch button toggles the
+                whole season instead (see SeasonEpisodesSection). */}
+            {!PlatformManager.isTV() && (
+              <EpisodeMultiPickerModal
+                isOpen={isMultiPickerOpen}
+                onClose={() => setIsMultiPickerOpen(false)}
+                mediaId={media.id}
+                mediaTitle={media.title}
+                numberOfSeasons={media.numberOfSeasons}
+                initialSelected={media.progress?.watchedEpisodes || []}
+                onSave={saveEpisodeSelection}
+              />
+            )}
           </div>
         )}
 

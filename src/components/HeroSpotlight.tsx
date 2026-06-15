@@ -113,9 +113,10 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
     setWatchlistStates(initial);
   }, [heroItems]);
 
-  // Slideshow auto-rotation timer
+  // Slideshow auto-rotation timer. Disabled on TV — a periodic full-screen
+  // backdrop crossfade + image decode causes visible hitches on weak GPUs.
   useEffect(() => {
-    if (heroItems.length <= 1 || !isVisible) return;
+    if (heroItems.length <= 1 || !isVisible || PlatformManager.isTV()) return;
 
     const interval = setInterval(() => {
       changeActiveIndex((prev) => (prev + 1) % heroItems.length);

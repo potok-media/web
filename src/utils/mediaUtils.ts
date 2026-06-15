@@ -1,4 +1,14 @@
 /**
+ * Rewrites the size segment of a TMDB image URL (e.g. `/t/p/original/x.jpg` →
+ * `/t/p/w300/x.jpg`). Used to shrink images on weak TV hardware where decoding
+ * full-size JPEGs tanks FPS. No-op for non-TMDB URLs.
+ */
+export const resizeTmdbImage = (url: string | undefined | null, size: string): string => {
+  if (!url) return url || "";
+  return url.replace(/\/t\/p\/(w\d+|h\d+|original)\//, `/t/p/${size}/`);
+};
+
+/**
  * Извлекает теги качества, источника, HDR и года выпуска из строки названия раздачи.
  */
 export const extractBadges = (title: string): string[] => {

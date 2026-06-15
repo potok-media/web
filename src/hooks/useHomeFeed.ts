@@ -56,7 +56,8 @@ export function useHomeFeed(onError: (msg: string) => void) {
       if (shouldShowLoading) setLoading(true);
       
       const posterSize = PlatformManager.isTV() ? "w185" : "w342";
-      const data = await ApiClient.fetchHomeFeed(posterSize, "w1280");
+      const backdropSize = PlatformManager.isTV() ? "w780" : "w1280";
+      const data = await ApiClient.fetchHomeFeed(posterSize, backdropSize);
 
       const isFeedEqual = (a: HomeResponse | null, b: HomeResponse | null): boolean => {
         if (a === b) return true;

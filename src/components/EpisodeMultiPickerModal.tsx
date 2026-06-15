@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import ReactDOM from "react-dom";
 import { X, Check, Loader2 } from "lucide-react";
 import { FilmOff } from "./common/FilmOff";
@@ -7,7 +7,70 @@ import type { TvEpisode } from "../network/ApiTypes";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { FocusableButton, FocusableContainer, setNativeScrollMode } from "./common/TVNavigation";
 import { logger } from "../utils/logger";
+import { resizeTmdbImage } from "../utils/mediaUtils";
+import { PlatformManager } from "../utils/PlatformManager";
 
+const IS_TV = PlatformManager.isTV();
+// Smaller stills on TV — this modal renders every episode of every season at once.
+const STILL_SIZE = IS_TV ? "w300" : "w500";
+
+const formatPickerDate = (dateStr?: string): string => {
+  if (!dateStr) return "";
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    return date.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" }) + " г.";
+  } catch {
+    return dateStr;
+  }
+};
+
+interface PickerCardProps {
+  episode: TvEpisode;
+  seasonNumber: number;
+  isWatched: boolean;
+  disabled: boolean;
+  focusKey: string;
+  onToggle: (season: number, number: number) => void;
+}
+
+// Memoized so toggling one episode re-renders only that card, not the whole grid
+// (which can be hundreds of cards across all seasons).
+const PickerCard = React.memo<PickerCardProps>(({ episode, seasonNumber, isWatched, disabled, focusKey, onToggle }) => {
+  return (
+    <FocusableButton
+      focusKey={focusKey}
+      className={`episode-picker-card ${isWatched ? "checked" : ""}`}
+      onClick={() => !disabled && onToggle(seasonNumber, episode.episodeNumber)}
+      style={{ background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer" }}
+    >
+      <div className="episode-card-preview-wrap" style={{ position: "relative", borderColor: isWatched ? "var(--accent)" : "rgba(255,255,255,0.1)" }}>
+        {/* On TV skip the still image entirely — this is a checkbox utility, and JPEG
+            decode of every episode across every season is the dominant FPS cost. */}
+        {!IS_TV && episode.stillPath ? (
+          <img src={episode.stillPath} alt={episode.name} className="episode-card-image" loading="lazy" decoding="async" />
+        ) : (
+          <div className="episode-still-fallback-placeholder">
+            <FilmOff size={28} />
+          </div>
+        )}
+        <span className="episode-card-badge">{episode.episodeNumber}</span>
+        <div className={`episode-picker-check ${isWatched ? "checked" : ""}`}>
+          {isWatched && <Check size={12} strokeWidth={3.5} />}
+        </div>
+      </div>
+      <div className="episode-card-info" style={{ marginTop: "8px" }}>
+        <span className="episode-card-title">{episode.name}</span>
+        {episode.airDate && (
+          <span className="episode-card-date" style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+            {formatPickerDate(episode.airDate)}
+          </span>
+        )}
+      </div>
+    </FocusableButton>
+  );
+});
+PickerCard.displayName = "PickerCard";
 
 interface EpisodeMultiPickerModalProps {
   isOpen: boolean;
@@ -73,7 +136,7 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
               episodeNumber: ep.episodeNumber,
               name: ep.name,
               overview: ep.overview,
-              stillPath: ep.stillPath || ep.still_path,
+              stillPath: resizeTmdbImage(ep.stillPath || ep.still_path, STILL_SIZE),
               airDate: ep.airDate,
               seasonNumber: sNum,
             }));
@@ -141,20 +204,12 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
     setSelected([]);
   }, []);
 
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "";
-    try {
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return dateStr;
-      return date.toLocaleDateString("ru-RU", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }) + " г.";
-    } catch {
-      return dateStr;
-    }
-  };
+  // O(1) lookup set so PickerCard gets a stable boolean and the grid doesn't do
+  // an O(n) `.some()` per card on every toggle.
+  const selectedKeys = useMemo(
+    () => new Set(selected.map((item) => `${item.season}_${item.number}`)),
+    [selected]
+  );
 
   const formatSelectedRanges = useCallback((list: { season: number; number: number }[]): string => {
     if (list.length === 0) return "Ничего не выбрано";
@@ -328,69 +383,17 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
                       </div>
 
                       <div className="episode-grid">
-                        {s.episodes.map((ep) => {
-                          const isWatched = selected.some(
-                            (item) => item.season === s.seasonNumber && item.number === ep.episodeNumber
-                          );
-                          return (
-                            <FocusableButton
-                              key={ep.id}
-                              focusKey={`MULTIPICKER_EPISODE_${s.seasonNumber}_${ep.episodeNumber}`}
-                              className={`episode-picker-card ${isWatched ? "checked" : ""}`}
-                              onClick={() => !saving && toggleEpisode(s.seasonNumber, ep.episodeNumber)}
-                              style={{ background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer" }}
-                            >
-                              <div className="episode-card-preview-wrap" style={{ position: "relative", borderColor: isWatched ? "var(--accent)" : "rgba(255,255,255,0.1)" }}>
-                                {ep.stillPath || ep.still_path ? (
-                                  <img
-                                    src={ep.stillPath || ep.still_path}
-                                    alt={ep.name}
-                                    className="episode-card-image"
-                                    loading="lazy"
-                                  />
-                                ) : (
-                                  <div className="episode-still-fallback-placeholder">
-                                    <FilmOff size={28} />
-                                  </div>
-                                )}
-                                <span className="episode-card-badge">
-                                  {ep.episodeNumber}
-                                </span>
-                                
-                                {/* Checkbox circle */}
-                                <div 
-                                  style={{
-                                    position: "absolute",
-                                    top: "8px",
-                                    right: "8px",
-                                    width: "20px",
-                                    height: "20px",
-                                    borderRadius: "50%",
-                                    border: "1.5px solid rgba(255,255,255,0.5)",
-                                    background: isWatched ? "var(--accent)" : "rgba(0,0,0,0.5)",
-                                    borderColor: isWatched ? "var(--accent)" : "rgba(255,255,255,0.5)",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    transition: "all 0.2s ease",
-                                    zIndex: 2
-                                  }}
-                                >
-                                  {isWatched && <Check size={12} strokeWidth={3.5} style={{ color: "#fff" }} />}
-                                </div>
-                              </div>
-                              
-                              <div className="episode-card-info" style={{ marginTop: "8px" }}>
-                                <span className="episode-card-title">{ep.name}</span>
-                                {ep.airDate && (
-                                  <span className="episode-card-date" style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-                                    {formatDate(ep.airDate)}
-                                  </span>
-                                )}
-                              </div>
-                            </FocusableButton>
-                          );
-                        })}
+                        {s.episodes.map((ep) => (
+                          <PickerCard
+                            key={ep.id}
+                            episode={ep}
+                            seasonNumber={s.seasonNumber}
+                            isWatched={selectedKeys.has(`${s.seasonNumber}_${ep.episodeNumber}`)}
+                            disabled={saving}
+                            focusKey={`MULTIPICKER_EPISODE_${s.seasonNumber}_${ep.episodeNumber}`}
+                            onToggle={toggleEpisode}
+                          />
+                        ))}
                       </div>
                     </div>
                   );

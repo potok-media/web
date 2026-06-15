@@ -7,6 +7,11 @@ import { ChevronLeft, ChevronRight, ChevronDown, Tv, Check, Eye, ListTodo } from
 import { Grid } from "./common/Grid";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { FocusableButton, FocusableContainer } from "./common/TVNavigation";
+import { PlatformManager } from "../utils/PlatformManager";
+
+const IS_TV = PlatformManager.isTV();
+// Render fewer episode stills at once on weak TV hardware (each is a JPEG decode).
+const EPISODE_CHUNK = IS_TV ? 8 : 24;
 
 interface SeasonEpisodesSectionProps {
   mediaId: number;
@@ -45,7 +50,8 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  const [visibleCount, setVisibleCount] = useState(24);
+  const [visibleCount, setVisibleCount] = useState(EPISODE_CHUNK);
+  const scrollRafRef = useRef<number | null>(null);
 
   const prevShowSeasonPopover = useRef(showSeasonPopover);
   const prevShowWatchPopover = useRef(showWatchPopover);
@@ -100,29 +106,34 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
     return () => window.removeEventListener("potok-back-pressed", handleBack);
   }, [showSeasonPopover, showWatchPopover, contextMenu]);
 
+  // Throttled to one layout read per frame — onScroll fires per pixel during
+  // D-pad-driven scrolling and reading scrollLeft/scrollWidth forces reflow.
   const checkScrollLimits = useCallback(() => {
-    const container = scrollRef.current;
-    if (container) {
+    if (scrollRafRef.current != null) return;
+    scrollRafRef.current = requestAnimationFrame(() => {
+      scrollRafRef.current = null;
+      const container = scrollRef.current;
+      if (!container) return;
       const { scrollLeft, scrollWidth, clientWidth } = container;
       setCanScrollLeft(scrollLeft > 2);
       setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 2);
 
       // Chunk load episodes if user scrolls near the end
       if (scrollLeft + clientWidth >= scrollWidth - 200 && visibleCount < episodes.length) {
-        setVisibleCount(prev => Math.min(prev + 24, episodes.length));
+        setVisibleCount(prev => Math.min(prev + EPISODE_CHUNK, episodes.length));
       }
-    }
+    });
   }, [visibleCount, episodes.length]);
 
   // Reset active season back to 1 and reset modes when mediaId changes
   useEffect(() => {
     setActiveSeason(1);
     setContextMenu(null);
-    setVisibleCount(24);
+    setVisibleCount(EPISODE_CHUNK);
   }, [mediaId]);
 
   useEffect(() => {
-    setVisibleCount(24);
+    setVisibleCount(EPISODE_CHUNK);
   }, [activeSeason]);
 
   useEffect(() => {
@@ -174,7 +185,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   const handleEpisodeFocus = useCallback((ep: TvEpisode) => {
     const idx = episodes.findIndex(e => e.id === ep.id);
     if (idx >= visibleCount - 4 && visibleCount < episodes.length) {
-      setVisibleCount(prev => Math.min(prev + 24, episodes.length));
+      setVisibleCount(prev => Math.min(prev + EPISODE_CHUNK, episodes.length));
     }
   }, [episodes, visibleCount]);
 
@@ -232,18 +243,27 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
         {/* Season Watch Toggle Popover */}
         {toggleSeasonWatched && (
           <div className="season-watch-wrapper">
-            <FocusableButton 
+            <FocusableButton
               focusKey="SEASON_WATCH_TRIGGER"
-              className="season-watch-trigger-btn" 
-              onClick={() => setShowWatchPopover(prev => !prev)}
-              aria-expanded={showWatchPopover}
-              title="Выбор и просмотр серий"
+              className="season-watch-trigger-btn"
+              onClick={() => {
+                // On TV skip the granular multi-picker popup entirely (it renders
+                // every episode of every season → kills FPS). One press toggles the
+                // whole active season watched/unwatched.
+                if (IS_TV) {
+                  toggleSeasonWatched?.(activeSeason, episodes, !isSeasonFullyWatched);
+                } else {
+                  setShowWatchPopover(prev => !prev);
+                }
+              }}
+              aria-expanded={!IS_TV && showWatchPopover}
+              title={IS_TV ? (isSeasonFullyWatched ? "Снять отметку с сезона" : "Отметить сезон просмотренным") : "Выбор и просмотр серий"}
             >
-              <Eye size={18} />
-              <ChevronDown size={12} />
+              {isSeasonFullyWatched ? <Check size={18} /> : <Eye size={18} />}
+              {!IS_TV && <ChevronDown size={12} />}
             </FocusableButton>
 
-            {showWatchPopover && (
+            {!IS_TV && showWatchPopover && (
               <>
                 <div className="popover-overlay" onClick={() => setShowWatchPopover(false)} />
                 <FocusableContainer focusKey="WATCH_POPOVER_CONTAINER" isFocusBoundary={true} className="watch-popover-menu">

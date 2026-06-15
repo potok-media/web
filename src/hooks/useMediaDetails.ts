@@ -3,6 +3,8 @@ import { ApiClient } from "../network/ApiClient";
 import { SyncApiClient } from "../network/SyncApiClient";
 import { Storage } from "../utils/StorageService";
 import { useWSSync } from "../context/WSSyncContext";
+import { PlatformManager } from "../utils/PlatformManager";
+import { resizeTmdbImage } from "../utils/mediaUtils";
 import type { MediaCard } from "../network/ApiTypes";
 
 interface UseMediaDetailsProps {
@@ -66,6 +68,11 @@ export function useMediaDetails({
         ApiClient.invalidateCache();
       }
       const data = await ApiClient.fetchMediaDetails(mediaType, mediaId);
+
+      // Shrink the full-screen hero backdrop on weak TV hardware.
+      if (PlatformManager.isTV() && data.backdropSrc) {
+        data.backdropSrc = resizeTmdbImage(data.backdropSrc, "w780");
+      }
 
       const strategy = Storage.get<string>("syncStrategy", "none");
       if (strategy === "server") {

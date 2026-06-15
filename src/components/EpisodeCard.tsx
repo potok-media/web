@@ -137,6 +137,7 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
                   alt={episode.name}
                   className="episode-still"
                   loading="lazy"
+                  decoding="async"
                 />
               ) : (
                 <div className="episode-still-fallback-placeholder">

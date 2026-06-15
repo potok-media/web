@@ -12,6 +12,7 @@ import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import type { RegisteredExtension } from "@potok/sdk-types";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { FocusableButton } from "../components/common/TVNavigation";
+import { useIsMobile } from "../hooks/useIsMobile";
 import "../styles/settings.css";
 import "../styles/console.css";
 import { logger } from "../utils/logger";
@@ -32,6 +33,7 @@ export const SettingsPage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<string>("general");
   const [, setTick] = useState(0);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setFocus("SETTINGS_TAB_GENERAL");
@@ -83,6 +85,7 @@ export const SettingsPage: React.FC = () => {
   return (
     <div className="settings-page-container">
       <div className="settings-container">
+        {isMobile && (
         <div className="settings-mobile-tabs-bar">
           <div className="settings-mobile-tabs-scroll">
             <button
@@ -137,7 +140,9 @@ export const SettingsPage: React.FC = () => {
             ))}
           </div>
         </div>
+        )}
 
+        {!isMobile && (
         <aside className="settings-sidebar">
           <div className="settings-brand">
             <h1 className="settings-brand-title">Настройки</h1>
@@ -210,6 +215,7 @@ export const SettingsPage: React.FC = () => {
             </>
           )}
         </aside>
+        )}
 
         <main className="settings-main-content">
           {activeTab === "general" && (
