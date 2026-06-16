@@ -123,7 +123,10 @@ const scrollIntoView = (element: HTMLElement) => {
   }
 
   // 1. Horizontal scroll (e.g. carousels)
-  const horizontalParent = element.closest(".carousel-row, .episodes-scroll-container") as HTMLElement;
+  // Scroll regions are found by the generic `data-tv-scroll` marker; the legacy
+  // class names remain recognized so existing containers keep working. New regions
+  // (PageFrame, etc.) just set data-tv-scroll — this list is never extended again.
+  const horizontalParent = element.closest('[data-tv-scroll="horizontal"], .carousel-row, .episodes-scroll-container') as HTMLElement;
   if (horizontalParent) {
     // Defer layout read to next frame to avoid forced reflow from .focused class change
     if (horizontalScrollRAF) {
@@ -150,7 +153,7 @@ const scrollIntoView = (element: HTMLElement) => {
     lastFocusedRow = null;
   }
 
-  const verticalParent = element.closest(".main-content, .modal-sidebar, .sidebar-nav") as HTMLElement;
+  const verticalParent = element.closest('[data-tv-scroll="vertical"], .main-content, .modal-sidebar, .sidebar-nav') as HTMLElement;
   if (verticalParent) {
     if (verticalScrollTimeoutId) {
       clearTimeout(verticalScrollTimeoutId);
