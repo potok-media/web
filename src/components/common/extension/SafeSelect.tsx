@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
-import { createPortal } from "react-dom";
 import * as Lucide from "lucide-react";
 import type { SelectSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
-import { FocusableButton, FocusableContainer } from "../TVNavigation";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { FocusableButton } from "../TVNavigation";
+import { Overlay } from "../Overlay";
 
 const { ChevronDown, Check } = Lucide;
 
@@ -209,13 +208,6 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
   ) ?? -1;
   const firstItemKey = firstOptionIndex >= 0 ? `SAFE_SELECT_ITEM_${firstOptionIndex}` : undefined;
 
-  // Land D-pad focus inside the dropdown when it opens.
-  useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => setFocus("SAFE_SELECT_POPOVER"), 60);
-    }
-  }, [isOpen]);
-
   const isGlass = componentProps.variant === "glass";
   const IconComponent = componentProps.icon ? (Lucide as any)[componentProps.icon] : null;
 
@@ -258,35 +250,32 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
         )}
       </FocusableButton>
  
-      {isOpen && createPortal(
-        <>
-          <div 
-            className="filter-popover-overlay" 
-            style={{ position: "fixed", inset: 0, zIndex: 999998 }} 
-            onClick={() => setIsOpen(false)} 
-          />
-          <FocusableContainer
-            focusKey="SAFE_SELECT_POPOVER"
-            isFocusBoundary={true}
-            preferredChildFocusKey={firstItemKey}
-            className="filter-popover"
-            style={{
-              position: "fixed",
-              top: `${coords.top}px`,
-              left: isPopoverAlignRight ? undefined : `${coords.left}px`,
-              right: isPopoverAlignRight ? `${window.innerWidth - (coords.left + coords.width)}px` : undefined,
-              width: isGlass ? "auto" : `${coords.width}px`,
-              minWidth: isGlass ? "200px" : undefined,
-              zIndex: 999999,
-              marginTop: coords.openUpward ? "-6px" : "6px",
-              transform: coords.openUpward ? "translateY(-100%)" : "none",
-              maxHeight: "280px",
-              overflowY: "auto",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
-              animation: "fadeIn 0.15s ease-out"
-            }}
-          >
-            {componentProps.options?.map((opt, index) => {
+      <Overlay
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        focusKey="SAFE_SELECT_POPOVER"
+        initialFocusKey={firstItemKey}
+        styled={false}
+        variant="popover"
+        backdropClassName="filter-popover-overlay"
+        className="filter-popover"
+        popoverStyle={{
+          position: "fixed",
+          top: `${coords.top}px`,
+          left: isPopoverAlignRight ? undefined : `${coords.left}px`,
+          right: isPopoverAlignRight ? `${window.innerWidth - (coords.left + coords.width)}px` : undefined,
+          width: isGlass ? "auto" : `${coords.width}px`,
+          minWidth: isGlass ? "200px" : undefined,
+          zIndex: 999999,
+          marginTop: coords.openUpward ? "-6px" : "6px",
+          transform: coords.openUpward ? "translateY(-100%)" : "none",
+          maxHeight: "280px",
+          overflowY: "auto",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+          animation: "fadeIn 0.15s ease-out"
+        }}
+      >
+        {componentProps.options?.map((opt, index) => {
               if (opt.type === "header") {
                 return (
                   <div key={`header-${index}`} className="filter-section-title">
@@ -316,22 +305,19 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
                 </FocusableButton>
               );
             })}
-            {componentProps.resetLabel && isResetActive() && (
-              <>
-                <div className="filter-popover-divider" />
-                <FocusableButton
-                  className="popover-reset-btn"
-                  onClick={handleReset}
-                  style={{ width: "100%" }}
-                >
-                  {componentProps.resetLabel}
-                </FocusableButton>
-              </>
-            )}
-          </FocusableContainer>
-        </>,
-        document.body
-      )}
+        {componentProps.resetLabel && isResetActive() && (
+          <>
+            <div className="filter-popover-divider" />
+            <FocusableButton
+              className="popover-reset-btn"
+              onClick={handleReset}
+              style={{ width: "100%" }}
+            >
+              {componentProps.resetLabel}
+            </FocusableButton>
+          </>
+        )}
+      </Overlay>
     </div>
   );
 };

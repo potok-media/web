@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
 import {
   Plus, Trash2, Copy, Search, X, Puzzle, Globe, Database, Bell, Play, Sparkles,
   ShieldAlert, Power, ChevronDown, ChevronRight,
@@ -11,8 +10,8 @@ import { useBlacklist } from "../hooks/useBlacklist";
 import { useExtensionUpdates } from "../hooks/useExtensionUpdates";
 import { ApiClient } from "../network/ApiClient";
 import { Storage } from "../utils/StorageService";
-import { Focusable, FocusableButton, FocusableInput, FocusableContainer } from "./common/TVNavigation";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { Focusable, FocusableButton, FocusableInput } from "./common/TVNavigation";
+import { Overlay } from "./common/Overlay";
 import { logger } from "../utils/logger";
 
 const PERMISSION_DESCRIPTIONS: Record<string, string> = {
@@ -57,18 +56,18 @@ export const ExtensionsManager: React.FC = () => {
   // The live extension for the action sheet (kept in sync with the latest array).
   const selected = selectedId ? extensions.find((e) => e.id === selectedId) ?? null : null;
 
-  // Default focus on modal open.
+  // Overlay owns default spatial focus; the input also grabs the DOM caret so the
+  // system keyboard is one Enter away.
   useEffect(() => {
     if (isInstallOpen) {
-      setTimeout(() => { setFocus("INSTALL_URL_INPUT"); installInputRef.current?.focus(); }, 60);
+      const t = setTimeout(() => installInputRef.current?.focus(), 80);
+      return () => clearTimeout(t);
     }
   }, [isInstallOpen]);
 
+  // Collapse the inline manifest whenever a different extension is opened.
   useEffect(() => {
-    if (selectedId) {
-      setShowManifest(false);
-      setTimeout(() => setFocus("EXT_ACTION_TOGGLE"), 60);
-    }
+    if (selectedId) setShowManifest(false);
   }, [selectedId]);
 
   const handleCopyLink = async (url: string) => {
@@ -221,15 +220,17 @@ export const ExtensionsManager: React.FC = () => {
       </div>
 
       {/* Action sheet — all per-extension actions live here (clean rows above). */}
-      {selected && createPortal(
-        <div className="manifest-modal-overlay" onClick={() => setSelectedId(null)}>
-          <FocusableContainer
-            focusKey="EXT_ACTION_MODAL"
-            isFocusBoundary={true}
-            className="manifest-modal"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: "34rem", width: "95%" }}
-          >
+      {selected && (
+        <Overlay
+          open
+          onClose={() => setSelectedId(null)}
+          focusKey="EXT_ACTION_MODAL"
+          initialFocusKey="EXT_ACTION_TOGGLE"
+          styled={false}
+          backdropClassName="manifest-modal-overlay"
+          className="manifest-modal"
+          style={{ maxWidth: "34rem", width: "95%" }}
+        >
             <div className="manifest-modal-header">
               <div className="ext-action-head">
                 <div className="ext-row-icon">{getExtensionIcon(selected.manifest)}</div>
@@ -303,55 +304,51 @@ export const ExtensionsManager: React.FC = () => {
                 </pre>
               )}
             </div>
-          </FocusableContainer>
-        </div>,
-        document.body
+        </Overlay>
       )}
 
       {/* Install-by-URL modal */}
-      {isInstallOpen && createPortal(
-        <div className="manifest-modal-overlay" onClick={() => setIsInstallOpen(false)}>
-          <FocusableContainer
-            focusKey="INSTALL_MODAL"
-            isFocusBoundary={true}
-            className="manifest-modal"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: "34rem" }}
-          >
-            <div className="manifest-modal-header">
-              <span className="manifest-modal-title">Установка расширения</span>
-              <FocusableButton onClick={() => setIsInstallOpen(false)} className="manifest-modal-close">
-                <X size={18} />
-              </FocusableButton>
-            </div>
-            <div className="manifest-modal-body ext-action-body">
-              <p className="ext-action-text">
-                Вставьте URL каталога с файлом <code style={{ color: "var(--accent)" }}>manifest.json</code>.
-              </p>
-              <form onSubmit={handleAddExtension} className="potok-vstack" style={{ gap: "12px" }}>
-                <FocusableInput
-                  ref={installInputRef}
-                  focusKey="INSTALL_URL_INPUT"
-                  type="text"
-                  className="settings-input"
-                  placeholder="https://example.com/my-extension"
-                  value={newUrl}
-                  onChange={(e) => setNewUrl(e.target.value)}
-                  disabled={isLoading}
-                  style={{ width: "100%", maxWidth: "none" }}
-                />
-                <FocusableButton
-                  className="potok-btn potok-btn-primary ext-action-btn"
-                  disabled={isLoading || !newUrl.trim()}
-                >
-                  {isLoading ? "Установка..." : "Установить расширение"}
-                </FocusableButton>
-              </form>
-            </div>
-          </FocusableContainer>
-        </div>,
-        document.body
-      )}
+      <Overlay
+        open={isInstallOpen}
+        onClose={() => setIsInstallOpen(false)}
+        focusKey="INSTALL_MODAL"
+        initialFocusKey="INSTALL_URL_INPUT"
+        styled={false}
+        backdropClassName="manifest-modal-overlay"
+        className="manifest-modal"
+        style={{ maxWidth: "34rem" }}
+      >
+        <div className="manifest-modal-header">
+          <span className="manifest-modal-title">Установка расширения</span>
+          <FocusableButton onClick={() => setIsInstallOpen(false)} className="manifest-modal-close">
+            <X size={18} />
+          </FocusableButton>
+        </div>
+        <div className="manifest-modal-body ext-action-body">
+          <p className="ext-action-text">
+            Вставьте URL каталога с файлом <code style={{ color: "var(--accent)" }}>manifest.json</code>.
+          </p>
+          <form onSubmit={handleAddExtension} className="potok-vstack" style={{ gap: "12px" }}>
+            <FocusableInput
+              ref={installInputRef}
+              focusKey="INSTALL_URL_INPUT"
+              type="text"
+              className="settings-input"
+              placeholder="https://example.com/my-extension"
+              value={newUrl}
+              onChange={(e) => setNewUrl(e.target.value)}
+              disabled={isLoading}
+              style={{ width: "100%", maxWidth: "none" }}
+            />
+            <FocusableButton
+              className="potok-btn potok-btn-primary ext-action-btn"
+              disabled={isLoading || !newUrl.trim()}
+            >
+              {isLoading ? "Установка..." : "Установить расширение"}
+            </FocusableButton>
+          </form>
+        </div>
+      </Overlay>
 
       {pendingExtension && (
         <ConsentModal
