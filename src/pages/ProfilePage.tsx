@@ -7,6 +7,7 @@ import { useHUD } from "../context/HUDContext";
 import { useAuth } from "../context/AppSettingsContext";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { FocusableButton } from "../components/common/TVNavigation";
+import { PageFrame } from "../components/common/PageFrame";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { PlatformManager } from "../utils/PlatformManager";
 import { SyncStrategySelectionView } from "../components/profile/SyncStrategySelectionView";
@@ -34,6 +35,7 @@ export const ProfilePage: React.FC = () => {
   const [deviceCode, setDeviceCode] = useState<DeviceCodeResponse | null>(null);
   const [loadingTrakt, setLoadingTrakt] = useState(false);
   const isMobile = useIsMobile();
+  const isTV = PlatformManager.isTV();
 
   const pollingRef = useRef<any>(null);
 
@@ -147,7 +149,7 @@ export const ProfilePage: React.FC = () => {
     );
   }
 
-  return (
+  const profileContent = (
     <div className="profile-container">
       <div className="profile-header-wrap">
         <div>
@@ -306,6 +308,12 @@ export const ProfilePage: React.FC = () => {
       )}
     </div>
   );
+
+  // TV: pin the page so D-pad scrolls the profile body, not the document.
+  if (isTV) {
+    return <PageFrame className="profile-frame-tv">{profileContent}</PageFrame>;
+  }
+  return profileContent;
 };
 
 export default ProfilePage;
