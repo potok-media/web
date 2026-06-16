@@ -1,18 +1,14 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import ReactDOM from "react-dom";
-import { X, Check, Loader2 } from "lucide-react";
+import { X, Check, CheckCircle2, Loader2 } from "lucide-react";
 import { FilmOff } from "./common/FilmOff";
 import { ApiClient } from "../network/ApiClient";
 import type { TvEpisode } from "../network/ApiTypes";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
-import { FocusableButton, FocusableContainer, setNativeScrollMode } from "./common/TVNavigation";
 import { logger } from "../utils/logger";
 import { resizeTmdbImage } from "../utils/mediaUtils";
-import { PlatformManager } from "../utils/PlatformManager";
 
-const IS_TV = PlatformManager.isTV();
-// Smaller stills on TV — this modal renders every episode of every season at once.
-const STILL_SIZE = IS_TV ? "w300" : "w500";
+// Desktop-only modal (disabled on TV, where a single season-toggle button is used).
+const STILL_SIZE = "w500";
 
 const formatPickerDate = (dateStr?: string): string => {
   if (!dateStr) return "";
@@ -30,46 +26,35 @@ interface PickerCardProps {
   seasonNumber: number;
   isWatched: boolean;
   disabled: boolean;
-  focusKey: string;
   onToggle: (season: number, number: number) => void;
 }
 
-// Memoized so toggling one episode re-renders only that card, not the whole grid
-// (which can be hundreds of cards across all seasons).
-const PickerCard = React.memo<PickerCardProps>(({ episode, seasonNumber, isWatched, disabled, focusKey, onToggle }) => {
-  return (
-    <FocusableButton
-      focusKey={focusKey}
-      className={`episode-picker-card ${isWatched ? "checked" : ""}`}
-      onClick={() => !disabled && onToggle(seasonNumber, episode.episodeNumber)}
-      style={{ background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer" }}
-    >
-      <div className="episode-card-preview-wrap" style={{ position: "relative", borderColor: isWatched ? "var(--accent)" : "rgba(255,255,255,0.1)" }}>
-        {/* On TV skip the still image entirely — this is a checkbox utility, and JPEG
-            decode of every episode across every season is the dominant FPS cost. */}
-        {!IS_TV && episode.stillPath ? (
-          <img src={episode.stillPath} alt={episode.name} className="episode-card-image" loading="lazy" decoding="async" />
-        ) : (
-          <div className="episode-still-fallback-placeholder">
-            <FilmOff size={28} />
-          </div>
-        )}
-        <span className="episode-card-badge">{episode.episodeNumber}</span>
-        <div className={`episode-picker-check ${isWatched ? "checked" : ""}`}>
-          {isWatched && <Check size={12} strokeWidth={3.5} />}
+// Memoized so toggling one episode re-renders only that card, not the whole grid.
+const PickerCard = React.memo<PickerCardProps>(({ episode, seasonNumber, isWatched, disabled, onToggle }) => (
+  <button
+    type="button"
+    className={`episode-picker-card ${isWatched ? "checked" : ""}`}
+    onClick={() => !disabled && onToggle(seasonNumber, episode.episodeNumber)}
+  >
+    <div className="episode-card-preview-wrap" style={{ borderColor: isWatched ? "var(--accent)" : undefined }}>
+      {episode.stillPath ? (
+        <img src={episode.stillPath} alt={episode.name} className="episode-card-image" loading="lazy" decoding="async" />
+      ) : (
+        <div className="episode-still-fallback-placeholder">
+          <FilmOff size={28} />
         </div>
+      )}
+      <span className="episode-card-badge">{episode.episodeNumber}</span>
+      <div className={`episode-picker-check ${isWatched ? "checked" : ""}`}>
+        {isWatched && <Check size={12} strokeWidth={3.5} />}
       </div>
-      <div className="episode-card-info" style={{ marginTop: "8px" }}>
-        <span className="episode-card-title">{episode.name}</span>
-        {episode.airDate && (
-          <span className="episode-card-date" style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-            {formatPickerDate(episode.airDate)}
-          </span>
-        )}
-      </div>
-    </FocusableButton>
-  );
-});
+    </div>
+    <div className="episode-card-info">
+      <span className="episode-card-title">{episode.name}</span>
+      {episode.airDate && <span className="episode-card-date">{formatPickerDate(episode.airDate)}</span>}
+    </div>
+  </button>
+));
 PickerCard.displayName = "PickerCard";
 
 interface EpisodeMultiPickerModalProps {
@@ -95,29 +80,7 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
   const [seasonsData, setSeasonsData] = useState<{ seasonNumber: number; episodes: TvEpisode[] }[]>([]);
   const [selected, setSelected] = useState<{ season: number; number: number }[]>(initialSelected);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      // Enable native browser scroll inside the modal to avoid Layout Thrashing on TV
-      setNativeScrollMode(true);
-    } else {
-      setNativeScrollMode(false);
-      setFocus("SEASON_WATCH_TRIGGER");
-    }
-    return () => {
-      setNativeScrollMode(false);
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleBack = (e: Event) => {
-      e.preventDefault();
-      onClose();
-    };
-    window.addEventListener("potok-back-pressed", handleBack);
-    return () => window.removeEventListener("potok-back-pressed", handleBack);
-  }, [isOpen, onClose]);
+  const [selectedSeason, setSelectedSeason] = useState(1);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -147,16 +110,7 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
         });
 
         const results = await Promise.all(promises);
-        const sorted = results.sort((a, b) => a.seasonNumber - b.seasonNumber);
-        setSeasonsData(sorted);
-        
-        if (sorted.length > 0 && sorted[0].episodes.length > 0) {
-          const firstEp = sorted[0].episodes[0];
-          const firstSeasonNum = sorted[0].seasonNumber;
-          setTimeout(() => {
-            setFocus(`MULTIPICKER_EPISODE_${firstSeasonNum}_${firstEp.episodeNumber}`);
-          }, 80);
-        }
+        setSeasonsData(results.sort((a, b) => a.seasonNumber - b.seasonNumber));
       } catch (err) {
         logger.error("Failed to load seasons for multipicker", err);
       } finally {
@@ -167,87 +121,86 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
     loadAllSeasons();
   }, [isOpen, mediaId, numberOfSeasons, initialSelected]);
 
-  const toggleEpisode = useCallback((season: number, number: number) => {
-    setSelected((prev) => {
-      const exists = prev.some((item) => item.season === season && item.number === number);
-      if (exists) {
-        return prev.filter((item) => !(item.season === season && item.number === number));
-      } else {
-        return [...prev, { season, number }];
-      }
-    });
-  }, []);
+  const uniqueSeasons = useMemo(
+    () => seasonsData.filter((s) => s.episodes.length > 0).map((s) => s.seasonNumber),
+    [seasonsData]
+  );
 
-  const toggleSeason = useCallback((seasonNumber: number, seasonEpisodes: TvEpisode[]) => {
-    setSelected((prev) => {
-      const seasonSelectedCount = prev.filter((item) => item.season === seasonNumber).length;
-      const allSelected = seasonSelectedCount === seasonEpisodes.length;
+  // Keep the selected season tab valid once data loads.
+  useEffect(() => {
+    if (uniqueSeasons.length > 0 && !uniqueSeasons.includes(selectedSeason)) {
+      setSelectedSeason(uniqueSeasons[0]);
+    }
+  }, [uniqueSeasons, selectedSeason]);
 
-      const filtered = prev.filter((item) => item.season !== seasonNumber);
+  const currentSeasonEpisodes = useMemo(
+    () => seasonsData.find((s) => s.seasonNumber === selectedSeason)?.episodes ?? [],
+    [seasonsData, selectedSeason]
+  );
 
-      if (allSelected) {
-        return filtered;
-      } else {
-        return [...filtered, ...seasonEpisodes.map((ep) => ({ season: seasonNumber, number: ep.episodeNumber }))];
-      }
-    });
-  }, []);
-
-  const selectAll = useCallback(() => {
-    const allEpisodes = seasonsData.flatMap((s) =>
-      s.episodes.map((ep) => ({ season: s.seasonNumber, number: ep.episodeNumber }))
-    );
-    setSelected(allEpisodes);
-  }, [seasonsData]);
-
-  const deselectAll = useCallback(() => {
-    setSelected([]);
-  }, []);
-
-  // O(1) lookup set so PickerCard gets a stable boolean and the grid doesn't do
-  // an O(n) `.some()` per card on every toggle.
+  // O(1) lookup so each card gets a stable boolean.
   const selectedKeys = useMemo(
     () => new Set(selected.map((item) => `${item.season}_${item.number}`)),
     [selected]
   );
 
-  const formatSelectedRanges = useCallback((list: { season: number; number: number }[]): string => {
-    if (list.length === 0) return "Ничего не выбрано";
+  const totalEpisodes = useMemo(
+    () => seasonsData.reduce((sum, s) => sum + s.episodes.length, 0),
+    [seasonsData]
+  );
 
+  const toggleEpisode = useCallback((season: number, number: number) => {
+    setSelected((prev) => {
+      const exists = prev.some((item) => item.season === season && item.number === number);
+      return exists
+        ? prev.filter((item) => !(item.season === season && item.number === number))
+        : [...prev, { season, number }];
+    });
+  }, []);
+
+  const isCurrentSeasonFull =
+    currentSeasonEpisodes.length > 0 &&
+    currentSeasonEpisodes.every((ep) => selectedKeys.has(`${selectedSeason}_${ep.episodeNumber}`));
+
+  const toggleCurrentSeason = useCallback(() => {
+    setSelected((prev) => {
+      const filtered = prev.filter((item) => item.season !== selectedSeason);
+      if (isCurrentSeasonFull) return filtered;
+      return [...filtered, ...currentSeasonEpisodes.map((ep) => ({ season: selectedSeason, number: ep.episodeNumber }))];
+    });
+  }, [selectedSeason, currentSeasonEpisodes, isCurrentSeasonFull]);
+
+  const selectAll = useCallback(() => {
+    setSelected(seasonsData.flatMap((s) => s.episodes.map((ep) => ({ season: s.seasonNumber, number: ep.episodeNumber }))));
+  }, [seasonsData]);
+
+  const deselectAll = useCallback(() => setSelected([]), []);
+
+  // "S1: 1-8, 10; S2: 3-5" — compact ranges of the current selection.
+  const formatSelectedRanges = useCallback((list: { season: number; number: number }[]): string => {
+    if (list.length === 0) return "";
     const grouped: Record<number, number[]> = {};
     for (const item of list) {
-      if (!grouped[item.season]) {
-        grouped[item.season] = [];
-      }
-      grouped[item.season].push(item.number);
+      (grouped[item.season] ??= []).push(item.number);
     }
-
-    const sortedSeasons = Object.keys(grouped).map(Number).sort((a, b) => a - b);
     const parts: string[] = [];
-
-    for (const s of sortedSeasons) {
+    for (const s of Object.keys(grouped).map(Number).sort((a, b) => a - b)) {
       const nums = grouped[s].sort((a, b) => a - b);
       const ranges: string[] = [];
       let start = nums[0];
       let prev = nums[0];
-
       for (let i = 1; i <= nums.length; i++) {
-        const current = nums[i];
-        if (current === prev + 1) {
-          prev = current;
+        const cur = nums[i];
+        if (cur === prev + 1) {
+          prev = cur;
         } else {
-          if (start === prev) {
-            ranges.push(`${start}`);
-          } else {
-            ranges.push(`${start}-${prev}`);
-          }
-          start = current;
-          prev = current;
+          ranges.push(start === prev ? `${start}` : `${start}-${prev}`);
+          start = cur;
+          prev = cur;
         }
       }
       parts.push(`S${s}: ${ranges.join(", ")}`);
     }
-
     return parts.join("; ");
   }, []);
 
@@ -267,142 +220,112 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
 
   return ReactDOM.createPortal(
     <div className="modal-overlay" onClick={onClose}>
-      <FocusableContainer 
-        focusKey="EPISODE_MULTIPICKER_CONTAINER"
-        isFocusBoundary={true}
-        className="modal-container episode-multipicker-modal-container" 
+      <div
+        className="modal-container"
         onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: "850px", display: "flex", flexDirection: "column" }}
       >
-        {/* Left Sidebar: Info & Primary/Secondary Actions */}
-        <div className="modal-sidebar">
-          {/* Top Info */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-            <div className="modal-title-text-group">
-              <h3 className="modal-title" style={{ fontSize: "1.25rem", fontWeight: 800, margin: 0, color: "#fff" }}>
-                Выборочная отметка
-              </h3>
-              <span className="modal-subtitle" style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginTop: "4px", display: "block" }}>
-                {mediaTitle}
-              </span>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px", background: "rgba(255, 255, 255, 0.03)", padding: "16px", borderRadius: "12px", border: "1px solid rgba(255, 255, 255, 0.04)" }}>
-              <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)", fontWeight: 500 }}>Выбрано серий:</span>
-              <span style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--accent)" }}>
-                {selected.length}
-              </span>
-              <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.5)", fontFamily: "monospace", marginTop: "4px", wordBreak: "break-all", lineHeight: "1.3" }}>
-                {formatSelectedRanges(selected)}
-              </span>
-            </div>
-          </div>
-
-          {/* Bottom Actions */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <FocusableButton 
-              focusKey="MULTIPICKER_SAVE"
-              className="potok-btn-primary" 
-              style={{ width: "100%", background: "var(--accent)", color: "#000", border: "none", padding: "14px", borderRadius: "10px", fontWeight: 700, cursor: "pointer", textAlign: "center", fontSize: "0.95rem" }}
-              onClick={handleSave} 
-              disabled={loading || saving}
-            >
-              {saving ? "Сохранение..." : "Сохранить"}
-            </FocusableButton>
-            <FocusableButton 
-              focusKey="MULTIPICKER_CANCEL"
-              className="potok-btn-secondary" 
-              style={{ width: "100%", background: "rgba(255, 255, 255, 0.06)", border: "none", padding: "14px", borderRadius: "10px", color: "#fff", fontWeight: 600, cursor: "pointer", textAlign: "center", fontSize: "0.95rem" }}
-              onClick={onClose} 
-              disabled={saving}
-            >
-              Отмена
-            </FocusableButton>
-
-            <div style={{ height: "8px" }} />
-
-            <FocusableButton 
-              focusKey="MULTIPICKER_SELECT_ALL"
-              className="potok-badge potok-badge-secondary" 
-              style={{ width: "100%", cursor: "pointer", border: "none", padding: "10px", borderRadius: "8px", fontSize: "0.8rem", background: "rgba(255, 255, 255, 0.04)", color: "#fff", fontWeight: 600, textAlign: "center" }}
-              onClick={selectAll} 
-              disabled={loading || saving}
-            >
-              Выбрать все
-            </FocusableButton>
-            <FocusableButton 
-              focusKey="MULTIPICKER_DESELECT_ALL"
-              className="potok-badge potok-badge-secondary" 
-              style={{ width: "100%", cursor: "pointer", border: "none", padding: "10px", borderRadius: "8px", fontSize: "0.8rem", background: "rgba(255, 255, 255, 0.04)", color: "#fff", fontWeight: 600, textAlign: "center" }}
-              onClick={deselectAll} 
-              disabled={loading || saving}
-            >
-              Снять все
-            </FocusableButton>
-          </div>
-        </div>
-
-        {/* Right Scrollable Area */}
-        <div className="modal-main-content">
-          <div style={{ position: "absolute", top: "24px", right: "24px", zIndex: 10 }}>
-            <FocusableButton 
-              focusKey="MULTIPICKER_CLOSE_X"
-              className="modal-close-btn"
-              style={{ background: "rgba(255, 255, 255, 0.06)", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", display: "flex", padding: "8px", borderRadius: "50%" }}
-              onClick={onClose} 
-              aria-label="Закрыть"
-            >
+        {/* Header — same layout as the torrent EpisodeSelectorPopup, with marking actions. */}
+        <div className="modal-header">
+          <div className="modal-title-row">
+            <button className="modal-close-btn" onClick={onClose} aria-label="Закрыть">
               <X size={20} />
-            </FocusableButton>
+            </button>
+            <div className="modal-title-text-group">
+              <h3 className="modal-title modal-title-custom-size">Отметить просмотренные</h3>
+              <span className="modal-subtitle modal-subtitle-text">{mediaTitle}</span>
+              {totalEpisodes > 0 && (
+                <div className="tv-progress-container">
+                  <CheckCircle2 size={12} fill="var(--accent)" stroke="var(--bg-surface)" />
+                  <span>Выбрано серий: {selected.length} из {totalEpisodes}</span>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="episode-popup-body" style={{ flex: 1, overflowY: "auto", padding: "24px 30px" }}>
-            {loading ? (
-              <div className="picker-loading-container" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: "16px", color: "var(--text-secondary)" }}>
-                <Loader2 className="multipicker-spinner" size={40} style={{ animation: "spin 1s linear infinite", color: "var(--accent)" }} />
-                <span>Загрузка серий...</span>
-              </div>
-            ) : (
-              <div className="episode-picker-container" style={{ padding: "0" }}>
-                {seasonsData.map((s) => {
-                  const seasonSelectedCount = selected.filter((item) => item.season === s.seasonNumber).length;
-                  const isAllSeasonSelected = s.episodes.length > 0 && seasonSelectedCount === s.episodes.length;
-
-                  return (
-                    <div key={s.seasonNumber} className="season-section" style={{ marginBottom: "32px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255, 255, 255, 0.05)", paddingBottom: "8px", marginBottom: "16px" }}>
-                        <h3 className="season-section-title" style={{ margin: 0 }}>Сезон {s.seasonNumber}</h3>
-                        {s.episodes.length > 0 && (
-                          <FocusableButton
-                            style={{ background: "none", border: "none", color: "var(--accent)", fontSize: "0.85rem", fontWeight: 700, cursor: "pointer" }}
-                            onClick={() => toggleSeason(s.seasonNumber, s.episodes)}
-                            disabled={saving}
-                          >
-                            {isAllSeasonSelected ? "Снять сезон" : "Выбрать сезон"}
-                          </FocusableButton>
-                        )}
-                      </div>
-
-                      <div className="episode-grid">
-                        {s.episodes.map((ep) => (
-                          <PickerCard
-                            key={ep.id}
-                            episode={ep}
-                            seasonNumber={s.seasonNumber}
-                            isWatched={selectedKeys.has(`${s.seasonNumber}_${ep.episodeNumber}`)}
-                            disabled={saving}
-                            focusKey={`MULTIPICKER_EPISODE_${s.seasonNumber}_${ep.episodeNumber}`}
-                            onToggle={toggleEpisode}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+          <div className="modal-header-actions-row">
+            <button className="close-btn" onClick={selectAll} disabled={loading || saving}>Выбрать все</button>
+            <button className="close-btn" onClick={deselectAll} disabled={loading || saving}>Снять все</button>
           </div>
         </div>
-      </FocusableContainer>
+
+        <div className="episode-popup-body" style={{ flex: 1, overflowY: "auto", position: "relative" }}>
+          {loading ? (
+            <div className="picker-loading-container">
+              <Loader2 className="multipicker-spinner" size={40} style={{ animation: "spin 1s linear infinite", color: "var(--accent)" }} />
+              <span className="picker-loading-label">Загрузка серий...</span>
+            </div>
+          ) : (
+            <div className="files-list-container" style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+              {uniqueSeasons.length > 1 && (
+                <div className="multipicker-season-tabs" style={{ display: "flex", alignItems: "center", gap: "8px", overflowX: "auto", padding: "12px 20px", borderBottom: "1px solid rgba(255, 255, 255, 0.05)" }}>
+                  {uniqueSeasons.map((sNum) => (
+                    <button
+                      key={sNum}
+                      className={`potok-badge ${selectedSeason === sNum ? "potok-badge-info" : "potok-badge-secondary"}`}
+                      style={{ cursor: "pointer", border: "none", padding: "8px 18px", borderRadius: "20px", fontSize: "0.85rem" }}
+                      onClick={() => setSelectedSeason(sNum)}
+                    >
+                      Сезон {sNum}
+                    </button>
+                  ))}
+                  <button
+                    className="close-btn"
+                    style={{ marginLeft: "auto", whiteSpace: "nowrap" }}
+                    onClick={toggleCurrentSeason}
+                    disabled={saving}
+                  >
+                    {isCurrentSeasonFull ? "Снять сезон" : "Выбрать сезон"}
+                  </button>
+                </div>
+              )}
+
+              <div className="episode-popup-rows-list" style={{ padding: "20px", flex: 1, overflowY: "auto" }}>
+                <div className="episode-grid">
+                  {currentSeasonEpisodes.map((ep) => (
+                    <PickerCard
+                      key={ep.id}
+                      episode={ep}
+                      seasonNumber={selectedSeason}
+                      isWatched={selectedKeys.has(`${selectedSeason}_${ep.episodeNumber}`)}
+                      disabled={saving}
+                      onToggle={toggleEpisode}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {saving && (
+            <div className="saving-overlay">
+              <div className="saving-content">
+                <div className="premium-spinner" style={{ marginBottom: "12px" }}>
+                  <div className="spinner-outer" />
+                  <div className="spinner-inner" />
+                </div>
+                <span>Сохранение...</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer: selection summary + primary actions */}
+        <div
+          className="multipicker-footer"
+          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", padding: "16px 24px", borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}
+        >
+          <span style={{ flex: 1, minWidth: 0, fontSize: "0.8rem", color: "rgba(255,255,255,0.5)", fontFamily: "monospace", lineHeight: 1.3, wordBreak: "break-word" }}>
+            {selected.length > 0 ? `Выбрано: ${formatSelectedRanges(selected)}` : "Ничего не выбрано"}
+          </span>
+          <div style={{ display: "flex", gap: "12px", flexShrink: 0 }}>
+            <button className="potok-btn potok-btn-secondary" onClick={onClose} disabled={saving}>Отмена</button>
+            <button className="potok-btn potok-btn-primary" onClick={handleSave} disabled={loading || saving}>
+              {saving ? "Сохранение..." : "Сохранить"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>,
     document.body
   );

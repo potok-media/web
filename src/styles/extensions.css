@@ -176,10 +176,11 @@
 }
 
 .potok-btn-primary {
-  background: var(--color-accent, #007aff);
+  background: var(--accent);
+  color: var(--text-accent);
 }
 .potok-btn-primary:hover:not(:disabled) {
-  background: #0063d1;
+  background: var(--accent-hover);
   transform: scale(1.02);
 }
 
@@ -237,7 +238,7 @@
 }
 
 .potok-input:focus {
-  border-color: var(--color-accent, #007aff);
+  border-color: var(--accent);
 }
 
 .potok-select {
@@ -1682,3 +1683,260 @@ input:checked + .slider-round:before {
 
 
 
+
+/* ==========================================================================
+   Extensions Manager — TV-first simplified layout (clean list + action sheet).
+   Replaces the old stat-cards + category-chips + dense feature cards.
+   ========================================================================== */
+.ext-manager {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-l);
+  width: 100%;
+}
+
+.ext-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-m);
+  flex-wrap: wrap;
+}
+
+.ext-header-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ext-title {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.ext-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.ext-install-btn {
+  white-space: nowrap;
+}
+
+.ext-filter-row {
+  display: flex;
+  gap: var(--space-s);
+  flex-wrap: wrap;
+}
+
+.ext-filter-chip {
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  border: var(--glass-border);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ext-filter-chip.active {
+  background: var(--accent);
+  color: var(--text-accent);
+  border-color: transparent;
+}
+
+.ext-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  height: 46px;
+  border-radius: var(--radius-m);
+  background: var(--bg-surface);
+  border: var(--glass-border);
+}
+
+.ext-search-icon { color: var(--text-tertiary); flex-shrink: 0; }
+
+.ext-search-input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.ext-search-clear {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  display: inline-flex;
+}
+
+/* List */
+.ext-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.ext-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  padding: 14px 16px;
+  border-radius: var(--radius-m);
+  background: var(--bg-surface);
+  border: var(--glass-border);
+  cursor: pointer;
+  transition: var(--transition-interactive);
+}
+
+.ext-row:hover { background: var(--bg-surface-high); }
+.ext-row.focused { background: var(--bg-surface-high); }
+
+.ext-row-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-m);
+  background: var(--bg-surface-high);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ext-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ext-row-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ext-row-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ext-row-status {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.ext-row-status.on { background: var(--accent-dim); color: var(--accent); }
+.ext-row-status.off { background: var(--bg-surface-highest); color: var(--text-tertiary); }
+
+.ext-row-chevron { flex-shrink: 0; color: var(--text-tertiary); }
+
+.ext-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-m);
+  padding: var(--space-xxl) var(--space-m);
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+/* Action sheet */
+.ext-action-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  min-width: 0;
+}
+
+.ext-action-sub {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  word-break: break-all;
+}
+
+.ext-action-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-l);
+}
+
+.ext-action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.ext-action-btn {
+  width: 100%;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ext-action-danger {
+  background: var(--error-dim);
+  color: var(--error);
+  border: 1px solid var(--error-border);
+}
+.ext-action-danger:hover:not(:disabled) { background: var(--error-dim); }
+
+.ext-action-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.ext-action-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: var(--text-tertiary);
+}
+
+.ext-action-text {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.ext-perm-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.ext-perm {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: var(--radius-s);
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
+}
+
+.ext-perm-name { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+.ext-perm-desc { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; }

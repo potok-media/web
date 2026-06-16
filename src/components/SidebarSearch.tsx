@@ -1,6 +1,7 @@
 import React from "react";
 import { Search, X } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { FocusableButton, FocusableInput } from "./common/TVNavigation";
 
 interface SidebarSearchProps {
   isCollapsed: boolean;
@@ -37,7 +38,7 @@ export const SidebarSearch: React.FC<SidebarSearchProps> = React.memo(({
     <form onSubmit={(e) => e.preventDefault()} className="sidebar-search-form">
       <div className="sidebar-search-wrap">
         <Search size={16} className="sidebar-search-icon" />
-        <input
+        <FocusableInput
           ref={inputRef}
           type="text"
           placeholder="Поиск..."
@@ -48,14 +49,13 @@ export const SidebarSearch: React.FC<SidebarSearchProps> = React.memo(({
           className="sidebar-search-input"
         />
         {sidebarSearch && (
-          <button 
-            type="button" 
-            onClick={onClear} 
+          <FocusableButton
+            onClick={onClear}
             className="sidebar-search-clear"
             title="Очистить"
           >
             <X size={14} />
-          </button>
+          </FocusableButton>
         )}
       </div>
     </form>

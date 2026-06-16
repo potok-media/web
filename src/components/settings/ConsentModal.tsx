@@ -2,6 +2,8 @@ import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
 import { X, ShieldAlert } from "lucide-react";
 import type { ExtensionManifest } from "@potok/sdk-types";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { FocusableButton, FocusableContainer } from "../common/TVNavigation";
 
 interface Props {
   manifest: ExtensionManifest;
@@ -24,11 +26,21 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
+  useEffect(() => {
+    setFocus("CONSENT_MODAL_CONFIRM");
+  }, []);
+
   const requestedPermissions = manifest.permissions || [];
 
   const modalHtml = (
     <div className="manifest-modal-overlay" onClick={onClose}>
-      <div className="manifest-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "34rem" }}>
+      <FocusableContainer
+        focusKey="CONSENT_MODAL"
+        isFocusBoundary
+        className="manifest-modal"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: "34rem" }}
+      >
         <div className="manifest-modal-header" style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>
           <div className="potok-hstack" style={{ alignItems: "center", gap: "10px" }}>
             <ShieldAlert size={24} style={{ color: "#ff9f1a" }} />
@@ -41,9 +53,9 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
               </span>
             </div>
           </div>
-          <button onClick={onClose} className="manifest-modal-close" title="Закрыть">
+          <FocusableButton onClick={onClose} className="manifest-modal-close" title="Закрыть">
             <X size={20} />
-          </button>
+          </FocusableButton>
         </div>
 
         <div className="manifest-modal-body" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
@@ -77,22 +89,23 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
         </div>
 
         <div className="manifest-modal-footer" style={{ padding: "1.25rem 1.5rem", borderTop: "1px solid rgba(255, 255, 255, 0.08)", display: "flex", gap: "12px", justifyContent: "flex-end" }}>
-          <button
+          <FocusableButton
+            focusKey="CONSENT_MODAL_CONFIRM"
             onClick={onConfirm}
             className="potok-btn potok-btn-primary"
             style={{ fontSize: "0.85rem", padding: "0.6rem 1.2rem", background: "#ff9f1a", borderColor: "#ff9f1a", color: "#000", fontWeight: "bold" }}
           >
             Да, я доверяю и хочу установить
-          </button>
-          <button
+          </FocusableButton>
+          <FocusableButton
             onClick={onClose}
             className="potok-btn potok-btn-ghost"
             style={{ fontSize: "0.85rem", padding: "0.6rem 1.2rem", border: "1px solid rgba(255, 255, 255, 0.15)", borderRadius: "6px", color: "var(--text-primary)" }}
           >
             Отмена
-          </button>
+          </FocusableButton>
         </div>
-      </div>
+      </FocusableContainer>
     </div>
   );
 

@@ -181,9 +181,8 @@ export const LibraryPage: React.FC = () => {
               }}
             />
             {query && (
-              <button 
-                type="button" 
-                className="search-input-clear-btn" 
+              <FocusableButton
+                className="search-input-clear-btn"
                 onClick={() => {
                   setQuery("");
                   navigate("/search", { replace: true });
@@ -191,7 +190,7 @@ export const LibraryPage: React.FC = () => {
                 title="Очистить"
               >
                 <X size={18} />
-              </button>
+              </FocusableButton>
             )}
           </div>
           {query.trim() && (
@@ -228,13 +227,13 @@ export const LibraryPage: React.FC = () => {
           {categoriesList.map((cat) => {
             const isActive = collectionType === cat.id;
             return (
-              <button
+              <FocusableButton
                 key={cat.id}
                 onClick={() => navigate(`/library/${cat.id}`)}
                 className={`library-mobile-tab-chip ${isActive ? "active" : ""}`}
               >
                 {cat.label}
-              </button>
+              </FocusableButton>
             );
           })}
         </div>
@@ -272,7 +271,7 @@ export const LibraryPage: React.FC = () => {
           {hasMore && visibleCount >= items.length && (
             <div className="library-pagination-wrapper">
               {page >= autoPageLimit ? (
-                <button 
+                <FocusableButton
                   className="load-more-btn"
                   onClick={() => {
                     setAutoPageLimit((prev) => prev + (PlatformManager.isTV() ? 3 : 5));
@@ -281,7 +280,7 @@ export const LibraryPage: React.FC = () => {
                   disabled={loadingMore}
                 >
                   {loadingMore ? "Загрузка..." : "Загрузить ещё"}
-                </button>
+                </FocusableButton>
               ) : (
                 <div ref={sentinelRef} className="pagination-sentinel-loader">
                   {loadingMore && <LoadingSpinner height="80px" message="Загружаем еще..." />}

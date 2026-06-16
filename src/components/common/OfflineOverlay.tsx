@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import type { ConnectionState } from "../../context/AppSettingsContext";
 import { FocusTrap } from "./FocusTrap";
 import { Server, WifiOff, Settings2, Loader2, ArrowRight } from "lucide-react";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { FocusableButton, FocusableInput, FocusableContainer } from "./TVNavigation";
 
 export interface OfflineOverlayProps {
   state: ConnectionState;
@@ -22,6 +24,16 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
   useEffect(() => {
     setInputUrl(gatewayURL);
   }, [gatewayURL]);
+
+  // TV: default focus on the URL input when an interactive state is shown
+  useEffect(() => {
+    if (state === "offline" || state === "setupRequired") {
+      const t = setTimeout(() => {
+        setFocus("OFFLINE_OVERLAY_INPUT");
+      }, 60);
+      return () => clearTimeout(t);
+    }
+  }, [state]);
 
   if (state === "connected") return null;
 
@@ -113,38 +125,41 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
           )}
 
           {(state === "offline" || state === "setupRequired") && (
-            <form onSubmit={handleSubmit} className="potok-overlay-form-container">
-              <div className="potok-input-wrapper">
-                <input
-                  type="text"
-                  className="potok-premium-input"
-                  placeholder="Например: http://192.168.1.100:8080"
-                  value={inputUrl}
-                  onChange={(e) => setInputUrl(e.target.value)}
-                  required
-                  autoFocus
-                />
-              </div>
+            <FocusableContainer focusKey="OFFLINE_OVERLAY" isFocusBoundary>
+              <form onSubmit={handleSubmit} className="potok-overlay-form-container">
+                <div className="potok-input-wrapper">
+                  <FocusableInput
+                    focusKey="OFFLINE_OVERLAY_INPUT"
+                    type="text"
+                    className="potok-premium-input"
+                    placeholder="Например: http://192.168.1.100:8080"
+                    value={inputUrl}
+                    onChange={(e) => setInputUrl(e.target.value)}
+                    required
+                    autoFocus
+                  />
+                </div>
 
-              <div className="potok-action-buttons">
-                <button type="submit" className="potok-btn-primary">
-                  <span>
-                    {state === "offline" ? "Применить и повторить попытку" : "Сохранить и подключиться"}
-                  </span>
-                  <ArrowRight size={16} className="arrow-icon" />
-                </button>
+                <div className="potok-action-buttons">
+                  <FocusableButton type="submit" className="potok-btn-primary">
+                    <span>
+                      {state === "offline" ? "Применить и повторить попытку" : "Сохранить и подключиться"}
+                    </span>
+                    <ArrowRight size={16} className="arrow-icon" />
+                  </FocusableButton>
 
-                {state === "offline" && onRetry && (
-                  <button 
-                    type="button" 
-                    className="potok-btn-secondary"
-                    onClick={onRetry}
-                  >
-                    Проверить снова
-                  </button>
-                )}
-              </div>
-            </form>
+                  {state === "offline" && onRetry && (
+                    <FocusableButton
+                      type="button"
+                      className="potok-btn-secondary"
+                      onClick={onRetry}
+                    >
+                      Проверить снова
+                    </FocusableButton>
+                  )}
+                </div>
+              </form>
+            </FocusableContainer>
           )}
         </div>
 

@@ -1,6 +1,7 @@
 import React from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { FocusableButton } from "./common/TVNavigation";
 import "../styles/media.css";
 
 interface LoadingSpinnerProps {
@@ -24,13 +25,13 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         <div className="streams-page-backdrop spinner-backdrop" />
 
         {showBackButton && (
-          <button 
-            className="streams-sidebar-back-btn spinner-back-btn-pos" 
-            onClick={() => navigate(-1)} 
+          <FocusableButton
+            className="streams-sidebar-back-btn spinner-back-btn-pos"
+            onClick={() => navigate(-1)}
             title="Назад"
           >
             <ArrowLeft size={18} />
-          </button>
+          </FocusableButton>
         )}
 
         <div className="loading-glass-card">

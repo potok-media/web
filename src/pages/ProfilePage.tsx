@@ -8,6 +8,7 @@ import { useAuth } from "../context/AppSettingsContext";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { FocusableButton } from "../components/common/TVNavigation";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { PlatformManager } from "../utils/PlatformManager";
 import { SyncStrategySelectionView } from "../components/profile/SyncStrategySelectionView";
 import { ServerSyncActiveView } from "../components/profile/ServerSyncActiveView";
 import { TraktDeviceAuthView } from "../components/profile/TraktDeviceAuthView";
@@ -184,21 +185,20 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       {syncStrategy !== "none" && syncStrategy !== "localDevice" && (
-        isMobile ? (
-          /* Mobile premium strategy segmented chips */
+        (isMobile || PlatformManager.isTV()) ? (
+          /* Segmented chips — focusable, used on mobile and TV (a native <select>
+             can't be reached by the D-pad). */
           <div className="profile-dropdown-wrap mobile-only">
             <div className="strategy-chips-container">
               <span className="strategy-chips-label">Синхронизация:</span>
               <div className="strategy-segmented-chips">
-                <button
-                  type="button"
+                <FocusableButton
                   onClick={() => selectStrategy("none")}
                   className={`strategy-chip-btn ${syncStrategy === "none" ? "active" : ""}`}
                 >
                   Выкл
-                </button>
-                <button
-                  type="button"
+                </FocusableButton>
+                <FocusableButton
                   onClick={() => {
                     selectStrategy("trakt");
                     if (!traktToken) startTraktAuth();
@@ -206,14 +206,13 @@ export const ProfilePage: React.FC = () => {
                   className={`strategy-chip-btn ${syncStrategy === "trakt" ? "active" : ""}`}
                 >
                   Trakt.tv
-                </button>
-                <button
-                  type="button"
+                </FocusableButton>
+                <FocusableButton
                   onClick={() => selectStrategy("server")}
                   className={`strategy-chip-btn ${syncStrategy === "server" ? "active" : ""}`}
                 >
                   Сервер Potok
-                </button>
+                </FocusableButton>
               </div>
             </div>
           </div>

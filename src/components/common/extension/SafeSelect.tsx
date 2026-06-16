@@ -3,7 +3,8 @@ import { createPortal } from "react-dom";
 import * as Lucide from "lucide-react";
 import type { SelectSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
-import { FocusableButton } from "../TVNavigation";
+import { FocusableButton, FocusableContainer } from "../TVNavigation";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 
 const { ChevronDown, Check } = Lucide;
 
@@ -203,6 +204,18 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
     );
   };
 
+  const firstOptionIndex = componentProps.options?.findIndex(
+    (o) => o.type !== "header" && o.type !== "divider"
+  ) ?? -1;
+  const firstItemKey = firstOptionIndex >= 0 ? `SAFE_SELECT_ITEM_${firstOptionIndex}` : undefined;
+
+  // Land D-pad focus inside the dropdown when it opens.
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => setFocus("SAFE_SELECT_POPOVER"), 60);
+    }
+  }, [isOpen]);
+
   const isGlass = componentProps.variant === "glass";
   const IconComponent = componentProps.icon ? (Lucide as any)[componentProps.icon] : null;
 
@@ -252,16 +265,19 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
             style={{ position: "fixed", inset: 0, zIndex: 999998 }} 
             onClick={() => setIsOpen(false)} 
           />
-          <div 
-            className="filter-popover" 
-            style={{ 
-              position: "fixed", 
-              top: `${coords.top}px`, 
-              left: isPopoverAlignRight ? undefined : `${coords.left}px`, 
+          <FocusableContainer
+            focusKey="SAFE_SELECT_POPOVER"
+            isFocusBoundary={true}
+            preferredChildFocusKey={firstItemKey}
+            className="filter-popover"
+            style={{
+              position: "fixed",
+              top: `${coords.top}px`,
+              left: isPopoverAlignRight ? undefined : `${coords.left}px`,
               right: isPopoverAlignRight ? `${window.innerWidth - (coords.left + coords.width)}px` : undefined,
               width: isGlass ? "auto" : `${coords.width}px`,
               minWidth: isGlass ? "200px" : undefined,
-              zIndex: 999999, 
+              zIndex: 999999,
               marginTop: coords.openUpward ? "-6px" : "6px",
               transform: coords.openUpward ? "translateY(-100%)" : "none",
               maxHeight: "280px",
@@ -287,6 +303,7 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
               return (
                 <FocusableButton
                   key={opt.value || `item-${index}`}
+                  focusKey={`SAFE_SELECT_ITEM_${index}`}
                   className={`popover-item ${active ? "active" : ""}`}
                   onClick={() => handleSelectOption(opt.value || "")}
                   style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
@@ -311,7 +328,7 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
                 </FocusableButton>
               </>
             )}
-          </div>
+          </FocusableContainer>
         </>,
         document.body
       )}

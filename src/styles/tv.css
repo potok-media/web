@@ -12,13 +12,15 @@
   outline: none !important;
 }
 
-/* Default visible focus ring for EVERY focusable element on TV. Without this,
-   buttons whose class has no bespoke .focused rule below show no focus at all.
-   Placed before the specific rules so they override it on equal specificity. */
+/* Single consistent focus ring for EVERY focusable element on TV.
+   2px to match the bespoke rules below (was 3px → looked thicker on plain buttons).
+   No `border-radius: inherit` — that forced each element to take its PARENT's radius,
+   making some buttons square and others round; the outline already follows the
+   element's own radius. Offset is -2px (drawn just inside) so it never gets clipped
+   by overflow:hidden wrappers and looks identical across rounded/square elements. */
 body.is-tv .focused {
-  outline: 3px solid var(--accent) !important;
-  outline-offset: -2px;
-  border-radius: inherit;
+  outline: 2px solid var(--accent) !important;
+  outline-offset: -2px !important;
 }
 
 /* Focused Interactive Buttons (simple color swap + 2px outline for maximum TV performance and visibility) */
@@ -65,17 +67,17 @@ textarea.focused {
   outline-offset: -2px !important;
 }
 
-/* Media Cards Focus (2px outline border-highlight only, no heavy GPU transforms or shadows) */
+/* Media Cards Focus — scale the whole card so it's unmistakable from the couch,
+   plus a bold ring. Transform is composite-only (cheap); box-shadow stays off. */
 body.is-tv .media-card.focused {
   outline: none !important;
+  transform: scale(1.06) !important;
+  z-index: 10 !important;
 }
 
 body.is-tv .media-card.focused .media-poster-wrap {
-  outline: 2px solid var(--accent) !important;
-  outline-offset: -2px !important;
-  z-index: 10 !important;
-  /* Focus = ring only on TV: no scale/shadow repaint per D-pad move */
-  transform: none !important;
+  outline: 3px solid var(--accent) !important;
+  outline-offset: -3px !important;
   box-shadow: none !important;
 }
 
@@ -83,15 +85,17 @@ body.is-tv .media-card.focused .media-card-title {
   color: var(--accent) !important;
 }
 
-/* Episode Cards Focus (2px outline border-highlight only) */
+/* Episode Cards Focus — scale + bold ring */
 body.is-tv .episode-card.focused {
   outline: none !important;
+  transform: scale(1.05) !important;
+  z-index: 10 !important;
 }
 
 body.is-tv .episode-card.focused .episode-still-wrap {
   border-color: var(--accent) !important;
-  outline: 2px solid var(--accent) !important;
-  outline-offset: -2px !important;
+  outline: 3px solid var(--accent) !important;
+  outline-offset: -3px !important;
 }
 
 body.is-tv .episode-card.focused .episode-number-title {
@@ -183,13 +187,14 @@ body.is-tv .main-content:has(.watch-popover-menu) {
 /* Multi-picker Modal TV Focus Highlights */
 body.is-tv .episode-picker-card.focused {
   outline: none !important;
+  transform: scale(1.05) !important;
+  z-index: 10 !important;
 }
 
 body.is-tv .episode-picker-card.focused .episode-card-preview-wrap {
   border-color: var(--accent) !important;
-  outline: 2px solid var(--accent) !important;
-  outline-offset: -2px !important;
-  z-index: 10 !important;
+  outline: 3px solid var(--accent) !important;
+  outline-offset: -3px !important;
 }
 
 body.is-tv .episode-picker-card.focused .episode-card-title {
@@ -353,4 +358,119 @@ body.is-tv .hero-content {
 body.is-tv .episode-picker-card {
   content-visibility: auto;
   contain-intrinsic-size: auto 200px;
+}
+
+/* 14. TV readability for Settings & Profile — larger focus targets and text so
+       controls are comfortable from across the room (no layout restructure). */
+body.is-tv .settings-nav-item,
+body.is-tv .strategy-chip-btn,
+body.is-tv .console-tab-btn,
+body.is-tv .console-clear-btn,
+body.is-tv .profile-logout-btn {
+  min-height: 44px;
+  font-size: 0.95rem;
+}
+
+body.is-tv .console-search-input,
+body.is-tv .log-msg,
+body.is-tv .log-time,
+body.is-tv .settings-nav-item span,
+body.is-tv .strategy-chips-label {
+  font-size: 0.95rem;
+}
+
+/* ==========================================================================
+   15. Fixed-frame page layout on TV (10-foot UI)
+   The page must NOT scroll as a document — it stays "nailed" to the viewport
+   and only inner panels scroll. Applied per-page (Settings) so it doesn't break
+   pages that legitimately scroll the document (Home/Library/Calendar).
+   ========================================================================== */
+body.is-tv .settings-page-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  padding: var(--space-l);
+  overflow: hidden;
+}
+
+body.is-tv .settings-container {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  margin: 0;
+  max-width: 100%;
+  /* Let the content panel fill the width instead of capping at 52rem. */
+  grid-template-columns: 17.5rem 1fr;
+}
+
+body.is-tv .settings-sidebar {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* The right content panel is the ONLY scroll region on the settings screen. */
+body.is-tv .settings-main-content {
+  height: 100%;
+  min-height: 0;
+  max-width: none;
+  overflow-y: auto;
+  padding: var(--space-l);
+}
+
+/* 16. Compact extension stat cards on TV — the default min-240px auto-fit grid
+       wraps to one tall column that pushes the page off-screen. Force a 3-up row
+       and shrink the cards. */
+body.is-tv .extensions-stats-container {
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 10px;
+}
+
+body.is-tv .stat-card {
+  padding: 10px 12px;
+  gap: 10px;
+  border-radius: 12px;
+}
+
+body.is-tv .stat-card-icon-wrapper {
+  width: 36px;
+  height: 36px;
+}
+
+body.is-tv .stat-card-value {
+  font-size: 1.4rem;
+}
+
+/* 17. Kill gradient-border ::before masks on TV — mask-composite across multiple
+       cards is a heavy paint on weak GPUs (the flat border on the card remains). */
+body.is-tv .stat-card::before,
+body.is-tv .potok-extension-card::before {
+  display: none !important;
+}
+
+/* ==========================================================================
+   18. Sidebar as an OVERLAY on TV.
+   On focus the sidebar expands OVER the content (no layout reflow / content
+   shift). Width + labels are still driven by the existing
+   .app-container.sidebar-collapsed rules (toggled by AppLayout from the
+   sidebar's hasFocusedChild); this only changes the stacking/layering.
+   ========================================================================== */
+body.is-tv .sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  z-index: 60;
+}
+
+/* Reserve the resting (collapsed) strip so content isn't hidden behind it. */
+body.is-tv .main-content {
+  margin-left: 78px;
+}
+
+/* Depth shadow only while expanded (i.e. focused). */
+body.is-tv .app-container:not(.sidebar-collapsed) .sidebar {
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
 }

@@ -3,6 +3,8 @@ import ReactDOM from "react-dom";
 import { X, Copy, Check } from "lucide-react";
 import type { ExtensionManifest } from "@potok/sdk-types";
 import { useHUD } from "../../context/HUDContext";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { FocusableButton, FocusableContainer } from "../common/TVNavigation";
 
 interface Props {
   manifest: ExtensionManifest;
@@ -21,6 +23,10 @@ export const ManifestViewerModal: React.FC<Props> = ({ manifest, onClose }) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
+  useEffect(() => {
+    setFocus("MANIFEST_MODAL_CLOSE");
+  }, []);
+
   const jsonString = JSON.stringify(manifest, null, 2);
 
   const handleCopy = async () => {
@@ -36,7 +42,12 @@ export const ManifestViewerModal: React.FC<Props> = ({ manifest, onClose }) => {
 
   const modalHtml = (
     <div className="manifest-modal-overlay" onClick={onClose}>
-      <div className="manifest-modal" onClick={(e) => e.stopPropagation()}>
+      <FocusableContainer
+        focusKey="MANIFEST_MODAL"
+        isFocusBoundary
+        className="manifest-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="manifest-modal-header">
           <div>
             <h3 className="manifest-modal-title">Манифест расширения</h3>
@@ -44,9 +55,9 @@ export const ManifestViewerModal: React.FC<Props> = ({ manifest, onClose }) => {
               {manifest.name} (ID: {manifest.id})
             </span>
           </div>
-          <button onClick={onClose} className="manifest-modal-close" title="Закрыть">
+          <FocusableButton onClick={onClose} className="manifest-modal-close" title="Закрыть">
             <X size={20} />
-          </button>
+          </FocusableButton>
         </div>
 
         <div className="manifest-modal-body">
@@ -56,15 +67,15 @@ export const ManifestViewerModal: React.FC<Props> = ({ manifest, onClose }) => {
         </div>
 
         <div className="manifest-modal-footer">
-          <button onClick={handleCopy} className="settings-btn-primary" style={{ fontSize: "0.9rem", padding: "0.5rem 1rem" }}>
+          <FocusableButton onClick={handleCopy} className="settings-btn-primary" style={{ fontSize: "0.9rem", padding: "0.5rem 1rem" }}>
             {copied ? <Check size={16} style={{ color: "#4f9e71" }} /> : <Copy size={16} />}
             <span>{copied ? "Скопировано!" : "Копировать"}</span>
-          </button>
-          <button onClick={onClose} className="settings-btn-primary settings-form-btn-cancel" style={{ fontSize: "0.9rem", padding: "0.5rem 1rem" }}>
+          </FocusableButton>
+          <FocusableButton focusKey="MANIFEST_MODAL_CLOSE" onClick={onClose} className="settings-btn-primary settings-form-btn-cancel" style={{ fontSize: "0.9rem", padding: "0.5rem 1rem" }}>
             Закрыть
-          </button>
+          </FocusableButton>
         </div>
-      </div>
+      </FocusableContainer>
     </div>
   );
 

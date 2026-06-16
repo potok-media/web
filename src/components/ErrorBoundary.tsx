@@ -1,4 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { FocusableButton } from "./common/TVNavigation";
 import { logger } from "../utils/logger";
 
 interface Props {
@@ -23,6 +25,8 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     logger.error("Uncaught error inside ErrorBoundary:", error, errorInfo);
+    // Land D-pad focus on the retry button when the default fallback is shown.
+    setTimeout(() => setFocus("ERROR_RETRY"), 80);
   }
 
   private resetError = () => {
@@ -58,7 +62,8 @@ export class ErrorBoundary extends Component<Props, State> {
           <p style={{ opacity: 0.8, marginBottom: "1.5rem" }}>
             {this.state.error?.message || "Произошла непредвиденная ошибка в компоненте."}
           </p>
-          <button
+          <FocusableButton
+            focusKey="ERROR_RETRY"
             onClick={this.resetError}
             style={{
               padding: "0.5rem 1.5rem",
@@ -67,14 +72,11 @@ export class ErrorBoundary extends Component<Props, State> {
               borderRadius: "6px",
               color: "#fff",
               cursor: "pointer",
-              fontWeight: 600,
-              transition: "background 0.2s"
+              fontWeight: 600
             }}
-            onMouseOver={(e) => (e.currentTarget.style.background = "var(--error-hover, #dc2626)")}
-            onMouseOut={(e) => (e.currentTarget.style.background = "var(--error, #ef4444)")}
           >
             Попробовать снова
-          </button>
+          </FocusableButton>
         </div>
       );
     }

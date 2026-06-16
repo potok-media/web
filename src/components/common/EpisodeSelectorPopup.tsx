@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { Play, Check, CheckCircle2, ArrowLeft, Pencil, ListVideo, MoreHorizontal } from "lucide-react";
 import { FilmOff } from "./FilmOff";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { Focusable, FocusableButton, FocusableContainer } from "./TVNavigation";
 
 
 export interface GenericEpisodeItem {
@@ -36,6 +38,7 @@ interface EpisodeSelectorRowProps {
   backdropSrc?: string;
   posterSrc?: string;
   onPlay: () => void;
+  focusKey?: string;
 }
 
 const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
@@ -44,6 +47,7 @@ const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
   backdropSrc,
   posterSrc,
   onPlay,
+  focusKey,
 }) => {
   const displayTitle = episodeItem.title || `Серия ${episodeItem.episode}`;
   
@@ -86,8 +90,11 @@ const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
   const streamType = getStreamType(episodeItem);
 
   return (
+    <Focusable focusKey={focusKey} onEnterPress={onPlay}>
+      {({ ref, focused }) => (
     <div
-      className="file-card-row"
+      ref={ref}
+      className={`file-card-row ${focused ? "focused" : ""}`.trim()}
       onClick={onPlay}
       tabIndex={0}
       role="button"
@@ -142,10 +149,12 @@ const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
         )}
       </div>
 
-      <button className="file-card-play-btn" onClick={(e) => { e.stopPropagation(); onPlay(); }}>
+      <FocusableButton className="file-card-play-btn" onClick={(e) => { e.stopPropagation(); onPlay(); }} onEnterPress={onPlay}>
         <Play size={16} fill="currentColor" className="file-card-play-icon-fix" />
-      </button>
+      </FocusableButton>
     </div>
+      )}
+    </Focusable>
   );
 });
 
@@ -198,9 +207,9 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
   return (
     <div className="modal-header">
       <div className="modal-title-row">
-        <button className="modal-close-btn" onClick={handleBackOrClose}>
+        <FocusableButton className="modal-close-btn" onClick={handleBackOrClose}>
           <ArrowLeft size={20} />
-        </button>
+        </FocusableButton>
         <div className="modal-title-text-group">
           <h3 className="modal-title modal-title-custom-size">{title}</h3>
           {subtitle && (
@@ -237,8 +246,8 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
 
         {hasOptions && (
           <div className="popover-wrapper" ref={popoverRef} style={{ position: "relative" }}>
-            <button 
-              className="edit-btn popover-trigger-btn" 
+            <FocusableButton
+              className="edit-btn popover-trigger-btn"
               onClick={() => setShowPopover(!showPopover)}
               style={{
                 display: "flex",
@@ -256,7 +265,7 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
             >
               <MoreHorizontal size={16} />
               <span>Дополнительно</span>
-            </button>
+            </FocusableButton>
 
             {showPopover && (
               <div 
@@ -279,7 +288,7 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
                 }}
               >
                 {onOpenAsPlaylist && (
-                  <button 
+                  <FocusableButton
                     className="popover-menu-item"
                     onClick={() => { onOpenAsPlaylist(); setShowPopover(false); }}
                     style={{
@@ -303,11 +312,11 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
                   >
                     <ListVideo size={16} style={{ color: "var(--accent)" }} />
                     <span>Открыть как плейлист</span>
-                  </button>
+                  </FocusableButton>
                 )}
 
                 {onStartEditing && (
-                  <button 
+                  <FocusableButton
                     className="popover-menu-item"
                     onClick={() => { onStartEditing(); setShowPopover(false); }}
                     style={{
@@ -331,16 +340,16 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
                   >
                     <Pencil size={16} style={{ color: "rgba(255, 255, 255, 0.6)" }} />
                     <span>Править соответствие</span>
-                  </button>
+                  </FocusableButton>
                 )}
               </div>
             )}
           </div>
         )}
 
-        <button className="close-btn" onClick={handleBackOrClose}>
+        <FocusableButton className="close-btn" onClick={handleBackOrClose}>
           {isEditing ? "Назад" : "Закрыть"}
-        </button>
+        </FocusableButton>
       </div>
     </div>
   );
@@ -404,7 +413,7 @@ const EpisodeOverridePicker: React.FC<EpisodeOverridePickerProps> = React.memo((
                 const epAirDate = episode.airDate || episode.air_date;
 
                 return (
-                  <button
+                  <FocusableButton
                     key={episode.id || epNum}
                     className="episode-picker-card"
                     onClick={() => onApplyOverride(seasonNum, epNum)}
@@ -430,7 +439,7 @@ const EpisodeOverridePicker: React.FC<EpisodeOverridePickerProps> = React.memo((
                         <span className="episode-card-date">{formatDate(epAirDate)}</span>
                       )}
                     </div>
-                  </button>
+                  </FocusableButton>
                 );
               })}
             </div>
@@ -496,6 +505,15 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
       setIsEditing(false);
     }
   }, [isOpen]);
+
+  // TV: default focus on the first episode row when the popup opens / season changes
+  useEffect(() => {
+    if (!isOpen || isEditing) return;
+    const t = setTimeout(() => {
+      setFocus("EPISODE_SELECTOR_FIRST_ROW");
+    }, 60);
+    return () => clearTimeout(t);
+  }, [isOpen, isEditing, selectedSeason, episodes.length]);
 
   if (!isOpen) return null;
 
@@ -563,9 +581,11 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
 
   return ReactDOM.createPortal(
     <div className="modal-overlay" onClick={onClose}>
-      <div 
-        className="modal-container" 
-        onClick={(e) => e.stopPropagation()} 
+      <FocusableContainer
+        focusKey="EPISODE_SELECTOR_MODAL"
+        isFocusBoundary
+        className="modal-container"
+        onClick={(e) => e.stopPropagation()}
         style={{ maxWidth: isEditing ? "1000px" : "850px", display: "flex", flexDirection: "column" }}
       >
         <EpisodeSelectorHeader
@@ -594,21 +614,21 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
               {uniqueSeasons.length > 1 && (
                 <div style={{ display: "flex", gap: "8px", overflowX: "auto", padding: "12px 20px", borderBottom: "1px solid rgba(255, 255, 255, 0.05)" }}>
                   {uniqueSeasons.map((sNum) => (
-                    <button
+                    <FocusableButton
                       key={sNum}
                       className={`potok-badge ${selectedSeason === sNum ? "potok-badge-info" : "potok-badge-secondary"}`}
                       style={{ cursor: "pointer", border: "none", padding: "8px 18px", borderRadius: "20px", fontSize: "0.85rem" }}
                       onClick={() => setSelectedSeason(sNum)}
                     >
                       Сезон {sNum}
-                    </button>
+                    </FocusableButton>
                   ))}
                 </div>
               )}
 
               <div className="episode-popup-rows-list" style={{ padding: "20px", flex: 1, overflowY: "auto" }}>
                 {currentSeasonEpisodes.length > 0 ? (
-                  currentSeasonEpisodes.map((ep) => (
+                  currentSeasonEpisodes.map((ep, idx) => (
                     <EpisodeSelectorRow
                       key={ep.id}
                       episodeItem={ep}
@@ -616,6 +636,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
                       backdropSrc={backdropSrc}
                       posterSrc={posterSrc}
                       onPlay={() => onPlay(ep, "default")}
+                      focusKey={idx === 0 ? "EPISODE_SELECTOR_FIRST_ROW" : undefined}
                     />
                   ))
                 ) : (
@@ -639,7 +660,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
             </div>
           )}
         </div>
-      </div>
+      </FocusableContainer>
     </div>,
     document.body
   );

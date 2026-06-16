@@ -19,6 +19,18 @@ if (!__PWA_ENABLED__ && typeof navigator !== 'undefined' && 'serviceWorker' in n
   }
 }
 
+// Auto-recover from stale lazy chunks: after a rebuild/redeploy the hashed chunk
+// names change, so a page open since before the change fails to fetch its old chunk.
+// Reload once (rate-limited) to pull the fresh index.html + chunk names.
+window.addEventListener('vite:preloadError', () => {
+  const now = Date.now()
+  const last = Number(sessionStorage.getItem('potok_preload_reload_ts') || 0)
+  if (now - last > 5000) {
+    sessionStorage.setItem('potok_preload_reload_ts', String(now))
+    window.location.reload()
+  }
+})
+
 init({
   debug: false,
   visualDebug: false

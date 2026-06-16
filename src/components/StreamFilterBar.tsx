@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { RotateCw, Flame, Calendar, ArrowUpCircle, ArrowDownCircle, ChevronDown, Check, Filter } from "lucide-react";
-import { FocusableButton } from "./common/TVNavigation";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { FocusableButton, FocusableContainer } from "./common/TVNavigation";
 
 interface StreamFilterBarProps {
   id?: string;
@@ -94,6 +95,21 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
     };
   }, [filterOpen]);
 
+  // Move focus into the sort popover when it opens
+  useEffect(() => {
+    if (sortOpen) {
+      const firstSortKey = Object.keys(SORT_OPTIONS)[0];
+      setFocus(`SORT_ITEM_${firstSortKey}`);
+    }
+  }, [sortOpen]);
+
+  // Move focus into the filter popover when it opens
+  useEffect(() => {
+    if (filterOpen) {
+      setFocus("FILTER_QUALITY_all");
+    }
+  }, [filterOpen]);
+
   return (
     <header className="streams-results-header" id={id}>
       <div className="streams-results-count">
@@ -136,7 +152,9 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                   style={{ position: "fixed", inset: 0, zIndex: 999998 }}
                   onClick={() => setSortOpen(false)} 
                 />
-                <div 
+                <FocusableContainer
+                  focusKey="SORT_POPOVER"
+                  isFocusBoundary
                   className="filter-popover filter-popover-menu-sort"
                   style={{
                     position: "fixed",
@@ -149,6 +167,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                   {Object.entries(SORT_OPTIONS).map(([key, label]) => (
                     <FocusableButton
                       key={key}
+                      focusKey={`SORT_ITEM_${key}`}
                       className={`popover-item ${sortOption === key ? "active" : ""}`}
                       onClick={() => {
                         setSortOption(key);
@@ -166,7 +185,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                       {sortOption === key && <Check size={14} className="filter-popover-check" />}
                     </FocusableButton>
                   ))}
-                </div>
+                </FocusableContainer>
               </>,
               document.body
             )}
@@ -198,7 +217,10 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                 style={{ position: "fixed", inset: 0, zIndex: 999998 }}
                 onClick={() => setFilterOpen(false)} 
               />
-              <div 
+              <FocusableContainer
+                focusKey="FILTER_POPOVER"
+                isFocusBoundary
+                preferredChildFocusKey="FILTER_QUALITY_all"
                 className="filter-popover filter-popover-menu-filter"
                 style={{
                   position: "fixed",
@@ -213,6 +235,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                   {["all", "2160p", "1080p", "720p", "480p"].map((q) => (
                     <FocusableButton
                       key={q}
+                      focusKey={`FILTER_QUALITY_${q}`}
                       className={`popover-item ${qualityFilter === q ? "active" : ""}`}
                       onClick={() => setQualityFilter(q)}
                       style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
@@ -230,6 +253,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                 </div>
                 <div className="filter-popover-scroll-area">
                   <FocusableButton
+                    focusKey="FILTER_TRACKER_all"
                     className={`popover-item ${activeTracker === "all" ? "active" : ""}`}
                     onClick={() => setActiveTracker("all")}
                     style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
@@ -242,6 +266,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                   {trackers.map((tr) => (
                     <FocusableButton
                       key={tr}
+                      focusKey={`FILTER_TRACKER_${tr}`}
                       className={`popover-item ${activeTracker === tr ? "active" : ""}`}
                       onClick={() => setActiveTracker(tr)}
                       style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
@@ -256,6 +281,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                   <>
                     <div className="filter-popover-divider" />
                     <FocusableButton
+                      focusKey="FILTER_RESET"
                       className="popover-reset-btn"
                       onClick={() => {
                         setQualityFilter("all");
@@ -268,7 +294,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                     </FocusableButton>
                   </>
                 )}
-              </div>
+              </FocusableContainer>
             </>,
             document.body
           )}

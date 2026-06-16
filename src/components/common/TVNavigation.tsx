@@ -150,7 +150,7 @@ const scrollIntoView = (element: HTMLElement) => {
     lastFocusedRow = null;
   }
 
-  const verticalParent = element.closest(".main-content, .modal-sidebar") as HTMLElement;
+  const verticalParent = element.closest(".main-content, .modal-sidebar, .sidebar-nav") as HTMLElement;
   if (verticalParent) {
     if (verticalScrollTimeoutId) {
       clearTimeout(verticalScrollTimeoutId);

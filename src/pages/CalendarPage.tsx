@@ -147,13 +147,13 @@ export const CalendarPage: React.FC = () => {
               </span>
             </div>
           </div>
-          <button 
+          <FocusableButton
             className="calendar-trakt-banner-btn"
             onClick={() => navigate("/profile")}
             aria-label="Перейти в профиль для подключения Trakt.tv"
           >
             Подключить Trakt.tv
-          </button>
+          </FocusableButton>
         </div>
       )}
 
@@ -182,14 +182,14 @@ export const CalendarPage: React.FC = () => {
             </h2>
             <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", margin: 0 }}>{error}</p>
           </div>
-          <button 
-            className="calendar-trakt-banner-btn" 
+          <FocusableButton
+            className="calendar-trakt-banner-btn"
             onClick={refetch}
             style={{ display: "inline-flex", alignItems: "center", gap: "8px", marginTop: "8px" }}
           >
             <RefreshCw size={14} />
             Повторить попытку
-          </button>
+          </FocusableButton>
         </div>
       )}
 

@@ -13,6 +13,7 @@ import { FocusTrap } from "./FocusTrap";
 import { PluginSandbox } from "./common/PluginSandbox";
 import { PlatformManager } from "../utils/PlatformManager";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { getCurrentFocusKey, setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import "../styles/layout.css";
 import { logger } from "../utils/logger";
 
@@ -86,31 +87,28 @@ export const AppLayout: React.FC = () => {
     };
   }, [location.pathname, navigate]);
 
+  // Driven by AppSidebar's norigin `hasFocusedChild` (via onFocusChange) — the
+  // authoritative signal for whether spatial-navigation focus is inside the sidebar.
   const [isSidebarFocused, setIsSidebarFocused] = React.useState(false);
 
+  // TV: pressing LEFT with nowhere left to go (left edge of content) opens the
+  // sidebar on the active section. Deterministic — only fires when LEFT did NOT move
+  // focus, and never while a modal/popover holds focus.
   React.useEffect(() => {
-    const handleFocusIn = (e: FocusEvent) => {
-      const target = e.target as HTMLElement;
-      if (target && target.closest(".sidebar")) {
-        setIsSidebarFocused(true);
-      } else {
-        setIsSidebarFocused(false);
-      }
+    if (!PlatformManager.isTV()) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== "ArrowLeft" && e.keyCode !== 37) return;
+      if (document.querySelector(".modal-overlay, .manifest-modal-overlay, .filter-popover, .potok-update-modal-overlay")) return;
+      const before = getCurrentFocusKey();
+      if (!before || (typeof before === "string" && before.startsWith("SIDEBAR"))) return;
+      requestAnimationFrame(() => {
+        if (getCurrentFocusKey() === before) {
+          setFocus("SIDEBAR");
+        }
+      });
     };
-
-    const handleFocusOut = (e: FocusEvent) => {
-      const relatedTarget = e.relatedTarget as HTMLElement | null;
-      if (!relatedTarget || !relatedTarget.closest(".sidebar")) {
-        setIsSidebarFocused(false);
-      }
-    };
-
-    document.addEventListener("focusin", handleFocusIn);
-    document.addEventListener("focusout", handleFocusOut);
-    return () => {
-      document.removeEventListener("focusin", handleFocusIn);
-      document.removeEventListener("focusout", handleFocusOut);
-    };
+    window.addEventListener("keydown", handler, true);
+    return () => window.removeEventListener("keydown", handler, true);
   }, []);
 
   const {
@@ -260,6 +258,7 @@ export const AppLayout: React.FC = () => {
           onToggle={toggleSidebar}
           pathname={location.pathname}
           search={location.search}
+          onFocusChange={setIsSidebarFocused}
         />
       )}
       <main
