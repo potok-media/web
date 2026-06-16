@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import ReactDOM from "react-dom";
 import { X, Check, CheckCircle2, Loader2 } from "lucide-react";
+import { Overlay } from "./common/Overlay";
 import { FilmOff } from "./common/FilmOff";
 import { ApiClient } from "../network/ApiClient";
 import type { TvEpisode } from "../network/ApiTypes";
@@ -216,15 +216,16 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
     }
   };
 
-  if (!isOpen) return null;
-
-  return ReactDOM.createPortal(
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="modal-container"
-        onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: "850px", display: "flex", flexDirection: "column" }}
-      >
+  return (
+    <Overlay
+      open={isOpen}
+      onClose={onClose}
+      focusKey="MULTIPICKER_MODAL"
+      styled={false}
+      backdropClassName="modal-overlay"
+      className="modal-container"
+      style={{ maxWidth: "850px", display: "flex", flexDirection: "column" }}
+    >
         {/* Header — same layout as the torrent EpisodeSelectorPopup, with marking actions. */}
         <div className="modal-header">
           <div className="modal-title-row">
@@ -325,9 +326,7 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
             </button>
           </div>
         </div>
-      </div>
-    </div>,
-    document.body
+    </Overlay>
   );
 };
 

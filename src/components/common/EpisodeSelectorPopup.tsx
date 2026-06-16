@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import ReactDOM from "react-dom";
 import { Play, Check, CheckCircle2, ArrowLeft, Pencil, ListVideo, MoreHorizontal } from "lucide-react";
 import { FilmOff } from "./FilmOff";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
-import { Focusable, FocusableButton, FocusableContainer } from "./TVNavigation";
+import { Focusable, FocusableButton } from "./TVNavigation";
+import { Overlay } from "./Overlay";
 
 
 export interface GenericEpisodeItem {
@@ -506,7 +506,8 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
     }
   }, [isOpen]);
 
-  // TV: default focus on the first episode row when the popup opens / season changes
+  // Re-land focus on the first episode row when the season changes (Overlay owns
+  // the initial focus on open).
   useEffect(() => {
     if (!isOpen || isEditing) return;
     const t = setTimeout(() => {
@@ -514,8 +515,6 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
     }, 60);
     return () => clearTimeout(t);
   }, [isOpen, isEditing, selectedSeason, episodes.length]);
-
-  if (!isOpen) return null;
 
   const currentSeasonEpisodes = React.useMemo(() => {
     return episodes.filter((e) => e.season === selectedSeason);
@@ -579,15 +578,17 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
   const maxSeasonInBalancer = uniqueSeasons.length > 0 ? Math.max(...uniqueSeasons) : 1;
   const parsingFailed = maxSeasonInBalancer > tmdbCount;
 
-  return ReactDOM.createPortal(
-    <div className="modal-overlay" onClick={onClose}>
-      <FocusableContainer
-        focusKey="EPISODE_SELECTOR_MODAL"
-        isFocusBoundary
-        className="modal-container"
-        onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: isEditing ? "1000px" : "850px", display: "flex", flexDirection: "column" }}
-      >
+  return (
+    <Overlay
+      open={isOpen}
+      onClose={onClose}
+      focusKey="EPISODE_SELECTOR_MODAL"
+      initialFocusKey="EPISODE_SELECTOR_FIRST_ROW"
+      styled={false}
+      backdropClassName="modal-overlay"
+      className="modal-container"
+      style={{ maxWidth: isEditing ? "1000px" : "850px", display: "flex", flexDirection: "column" }}
+    >
         <EpisodeSelectorHeader
           isEditing={isEditing}
           onClose={onClose}
@@ -660,9 +661,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
             </div>
           )}
         </div>
-      </FocusableContainer>
-    </div>,
-    document.body
+    </Overlay>
   );
 };
 

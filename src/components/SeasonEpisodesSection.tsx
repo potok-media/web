@@ -215,7 +215,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
           
           {showSeasonPopover && (
             <>
-              <div className="popover-overlay" onClick={() => setShowSeasonPopover(false)} />
+              <div className="popover-overlay" data-tv-overlay="true" onClick={() => setShowSeasonPopover(false)} />
               <FocusableContainer focusKey="SEASON_POPOVER_CONTAINER" isFocusBoundary={true} className="season-popover-menu">
                 <div className="popover-header">Выберите сезон</div>
                 <div className="popover-scrollable-list">
@@ -265,7 +265,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
 
             {!IS_TV && showWatchPopover && (
               <>
-                <div className="popover-overlay" onClick={() => setShowWatchPopover(false)} />
+                <div className="popover-overlay" data-tv-overlay="true" onClick={() => setShowWatchPopover(false)} />
                 <FocusableContainer focusKey="WATCH_POPOVER_CONTAINER" isFocusBoundary={true} className="watch-popover-menu">
                   <div className="popover-header">Выбор серий</div>
                   <FocusableButton
@@ -376,10 +376,11 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
       {/* Custom Context Menu Popover for Long Press / Right Click */}
       {contextMenu && (
         <>
-          <div 
-            className="popover-overlay" 
-            onClick={() => setContextMenu(null)} 
-            onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }} 
+          <div
+            className="popover-overlay"
+            data-tv-overlay="true"
+            onClick={() => setContextMenu(null)}
+            onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }}
           />
           <FocusableContainer 
             focusKey="EPISODE_CONTEXT_MENU_CONTAINER"
