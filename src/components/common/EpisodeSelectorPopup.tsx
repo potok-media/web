@@ -202,6 +202,13 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // TV: move focus into the menu when it opens so the remote can reach its items.
+  useEffect(() => {
+    if (!showPopover) return;
+    const t = setTimeout(() => setFocus("ESEL_MENU_FIRST"), 50);
+    return () => clearTimeout(t);
+  }, [showPopover]);
+
   const hasOptions = !isEditing && mediaType === "tv" && totalCount > 0 && (onOpenAsPlaylist || onStartEditing);
 
   return (
@@ -289,6 +296,7 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
               >
                 {onOpenAsPlaylist && (
                   <FocusableButton
+                    focusKey="ESEL_MENU_FIRST"
                     className="popover-menu-item"
                     onClick={() => { onOpenAsPlaylist(); setShowPopover(false); }}
                     style={{
@@ -317,6 +325,7 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
 
                 {onStartEditing && (
                   <FocusableButton
+                    focusKey={!onOpenAsPlaylist ? "ESEL_MENU_FIRST" : undefined}
                     className="popover-menu-item"
                     onClick={() => { onStartEditing(); setShowPopover(false); }}
                     style={{

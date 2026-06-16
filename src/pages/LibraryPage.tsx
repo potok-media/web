@@ -100,13 +100,17 @@ export const LibraryPage: React.FC = () => {
   }, [visibleCount, items.length, renderChunk]);
 
   useEffect(() => {
+    if (error && !loading) {
+      setFocus("LIBRARY_ERROR_RETRY");
+      return;
+    }
     if (loading) return;
     if (isSearchPage) {
       setFocus("SEARCH_INPUT");
     } else if (items.length > 0) {
       setFocus("LIBRARY_FIRST_CARD");
     }
-  }, [loading, isSearchPage, items.length]);
+  }, [loading, isSearchPage, items.length, error]);
 
   useEffect(() => {
     if (!hasMore || page >= autoPageLimit || loading || loadingMore) return;
@@ -155,7 +159,7 @@ export const LibraryPage: React.FC = () => {
       <div className="library-empty-view">
         <AlertTriangle size={48} className="library-empty-icon error" />
         <h2 className="library-empty-title">{error}</h2>
-        <FocusableButton className="overlay-btn" onClick={refetch}>Повторить загрузку</FocusableButton>
+        <FocusableButton focusKey="LIBRARY_ERROR_RETRY" className="overlay-btn" onClick={refetch}>Повторить загрузку</FocusableButton>
       </div>
     );
   }

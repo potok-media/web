@@ -10,12 +10,17 @@ import { FocusableButton } from "../components/common/TVNavigation";
 import type { MediaCard } from "../network/ApiTypes";
 import "../styles/media.css";
 
-const ErrorView: React.FC<{ error: string; onRetry: () => void }> = ({ error, onRetry }) => (
-  <div className="media-not-found-container">
-    <h2 className="media-not-found-title">{error}</h2>
-    <FocusableButton className="overlay-btn" onClick={onRetry}>Повторить загрузку</FocusableButton>
-  </div>
-);
+const ErrorView: React.FC<{ error: string; onRetry: () => void }> = ({ error, onRetry }) => {
+  React.useEffect(() => {
+    setFocus("HOME_ERROR_RETRY");
+  }, []);
+  return (
+    <div className="media-not-found-container">
+      <h2 className="media-not-found-title">{error}</h2>
+      <FocusableButton focusKey="HOME_ERROR_RETRY" className="overlay-btn" onClick={onRetry}>Повторить загрузку</FocusableButton>
+    </div>
+  );
+};
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
