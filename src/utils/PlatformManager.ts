@@ -137,6 +137,12 @@ export const PlatformManager = {
     // Set TV class on body
     if (this.isTV()) {
       document.body.classList.add("is-tv");
+      // TV WebViews report a narrow CSS viewport (~800px), so the desktop layout
+      // renders "zoomed in" — oversized controls, wrapping toolbars, huge modals.
+      // Pin a desktop-class logical width so proportions match the desktop design;
+      // the WebView downscales it to the panel. One knob fixes every screen at once.
+      const vp = document.querySelector('meta[name="viewport"]');
+      if (vp) vp.setAttribute("content", "width=1280, viewport-fit=cover");
     } else {
       document.body.classList.remove("is-tv");
     }

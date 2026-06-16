@@ -459,64 +459,16 @@ body.is-tv .app-container:not(.sidebar-collapsed) .sidebar {
 
 /* ==========================================================================
    19. Streams page (torrents + plugin results) on TV.
-   The right results list must scroll (data-tv-scroll on .streams-scroll-area);
-   here we fix the chrome: narrower meta sidebar, no decorative backdrop, no
-   back button (the remote Back key works), and a header that never wraps text
-   mid-button or mid-word.
+   With the 1280-wide TV viewport the desktop layout fits as-is; the only TV
+   deltas are the scroll fix (data-tv-scroll on .streams-scroll-area, in the TSX)
+   and dropping the on-screen back button (the remote Back key handles it).
+   The decorative blurred backdrop is already hidden globally above.
    ========================================================================== */
-body.is-tv .streams-page-layout {
-  grid-template-columns: 300px 1fr;
-}
-
-body.is-tv .streams-page-sidebar {
-  width: 300px;
-  min-width: 300px;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  background: var(--bg-surface-high);
-}
-
-/* Decorative blurred backdrop is a heavy paint and bleeds behind the poster. */
-body.is-tv .streams-page-backdrop {
-  display: none !important;
-}
-
-/* Back key replaces the on-screen button on TV. */
 body.is-tv .streams-sidebar-back-btn {
   display: none !important;
 }
 
-/* Header: keep the count on one line and let the action group drop to its own
-   row instead of breaking button labels across lines. */
-body.is-tv .streams-results-header {
-  flex-wrap: wrap;
-  gap: var(--space-s);
-}
-
+/* Belt-and-braces: never break the source count onto a second line. */
 body.is-tv .streams-results-count {
   white-space: nowrap;
-  flex-shrink: 0;
-}
-
-body.is-tv .streams-header-actions {
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-body.is-tv .streams-header-actions .filter-btn-text,
-body.is-tv .filter-btn-trigger,
-body.is-tv .filter-btn-trigger-relative {
-  white-space: nowrap;
-}
-
-/* Cap the poster so the title, original title and overview are all visible in the
-   meta sidebar (the full 2/3 poster pushed them off-screen on TV). */
-body.is-tv .streams-sidebar-poster {
-  aspect-ratio: auto;
-  height: 34vh;
-  margin-bottom: 14px;
-}
-
-body.is-tv .streams-sidebar-subtitle {
-  -webkit-line-clamp: 2;
 }
