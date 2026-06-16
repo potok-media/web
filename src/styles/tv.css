@@ -381,44 +381,10 @@ body.is-tv .strategy-chips-label {
 
 /* ==========================================================================
    15. Fixed-frame page layout on TV (10-foot UI)
-   The page must NOT scroll as a document — it stays "nailed" to the viewport
-   and only inner panels scroll. Applied per-page (Settings) so it doesn't break
-   pages that legitimately scroll the document (Home/Library/Calendar).
+   Handled by the <PageFrame> primitive now (Settings renders inside it on TV/
+   mobile). The page is pinned and only .page-frame-body scrolls — no per-page
+   CSS overrides here.
    ========================================================================== */
-body.is-tv .settings-page-container {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  height: 100%;
-  padding: var(--space-l);
-  overflow: hidden;
-}
-
-body.is-tv .settings-container {
-  flex: 1;
-  min-height: 0;
-  height: 100%;
-  margin: 0;
-  max-width: 100%;
-  /* Let the content panel fill the width instead of capping at 52rem. */
-  grid-template-columns: 17.5rem 1fr;
-}
-
-body.is-tv .settings-sidebar {
-  height: 100%;
-  min-height: 0;
-  overflow-y: auto;
-}
-
-/* The right content panel is the ONLY scroll region on the settings screen. */
-body.is-tv .settings-main-content {
-  height: 100%;
-  min-height: 0;
-  max-width: none;
-  overflow-y: auto;
-  padding: var(--space-l);
-}
 
 /* 16. Compact extension stat cards on TV — the default min-240px auto-fit grid
        wraps to one tall column that pushes the page off-screen. Force a 3-up row

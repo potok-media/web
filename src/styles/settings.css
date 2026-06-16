@@ -97,6 +97,22 @@
   flex-shrink: 0;
 }
 
+/* Settings rendered inside the PageFrame primitive (TV / mobile). The page is
+   pinned; only .page-frame-body scrolls. */
+.settings-frame-tv .page-frame-sidebar {
+  width: 20rem;
+  padding: var(--space-l);
+}
+.settings-frame-tv .settings-sidebar {
+  height: 100%;
+}
+.settings-frame-tv .page-frame-body {
+  padding: var(--space-l);
+}
+.settings-frame-mobile .page-frame-body {
+  padding: var(--space-m);
+}
+
 /* Settings Brand Header */
 .settings-brand {
   padding: var(--space-s) 0.75rem;

@@ -12,7 +12,8 @@ import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import type { RegisteredExtension } from "@potok/sdk-types";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { FocusableButton } from "../components/common/TVNavigation";
-import { useIsMobile } from "../hooks/useIsMobile";
+import { PageFrame } from "../components/common/PageFrame";
+import { usePlatform } from "../hooks/usePlatform";
 import "../styles/settings.css";
 import "../styles/console.css";
 import { logger } from "../utils/logger";
@@ -33,7 +34,7 @@ export const SettingsPage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<string>("general");
   const [, setTick] = useState(0);
-  const isMobile = useIsMobile();
+  const { isTV, isMobile } = usePlatform();
 
   useEffect(() => {
     setFocus("SETTINGS_TAB_GENERAL");
@@ -82,173 +83,166 @@ export const SettingsPage: React.FC = () => {
     (ext) => ext.enabled && ext.manifest.config && Object.keys(ext.manifest.config).length > 0
   );
 
+  // ── Shared building blocks (identical markup across platform branches) ──────
+
+  const mobileTabs = (
+    <div className="settings-mobile-tabs-bar">
+      <div className="settings-mobile-tabs-scroll">
+        <button className={`settings-tab-chip ${activeTab === "general" ? "active" : ""}`} onClick={() => setActiveTab("general")}>Основные</button>
+        <button className={`settings-tab-chip ${activeTab === "profiles" ? "active" : ""}`} onClick={() => setActiveTab("profiles")}>Подключения</button>
+        <button className={`settings-tab-chip ${activeTab === "accessibility" ? "active" : ""}`} onClick={() => setActiveTab("accessibility")}>Спец. возможности</button>
+        <button className={`settings-tab-chip ${activeTab === "extensions" ? "active" : ""}`} onClick={() => setActiveTab("extensions")}>Расширения</button>
+        <button className={`settings-tab-chip ${activeTab === "console" ? "active" : ""}`} onClick={() => setActiveTab("console")}>Консоль</button>
+        {slotContributions.map((c) => (
+          <button key={c.contribution.id} className={`settings-tab-chip ${activeTab === c.contribution.id ? "active" : ""}`} onClick={() => setActiveTab(c.contribution.id)}>
+            {c.contribution.title || c.contribution.id}
+          </button>
+        ))}
+        {configExtensions.map((ext) => (
+          <button key={`config-${ext.id}`} className={`settings-tab-chip ${activeTab === `config-${ext.id}` ? "active" : ""}`} onClick={() => setActiveTab(`config-${ext.id}`)}>
+            {ext.manifest.name || ext.id}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const sidebarNav = (
+    <>
+      <div className="settings-brand">
+        <h1 className="settings-brand-title">Настройки</h1>
+        <p className="settings-brand-desc">Панель управления</p>
+      </div>
+      <div className="settings-divider" />
+      <div className="settings-section-title">Приложение</div>
+      <FocusableButton
+        focusKey="SETTINGS_TAB_GENERAL"
+        className={`settings-nav-item ${activeTab === "general" ? "active" : ""}`}
+        onClick={() => setActiveTab("general")}
+      >
+        <Sliders size={16} />
+        <span>Основные</span>
+      </FocusableButton>
+      <FocusableButton
+        className={`settings-nav-item ${activeTab === "profiles" ? "active" : ""}`}
+        onClick={() => setActiveTab("profiles")}
+      >
+        <Globe size={16} />
+        <span>Профили подключения</span>
+      </FocusableButton>
+      <FocusableButton
+        className={`settings-nav-item ${activeTab === "accessibility" ? "active" : ""}`}
+        onClick={() => setActiveTab("accessibility")}
+      >
+        <Eye size={16} />
+        <span>Специальные возможности</span>
+      </FocusableButton>
+
+      <div className="settings-section-title">Интеграции</div>
+      <FocusableButton
+        className={`settings-nav-item ${activeTab === "extensions" ? "active" : ""}`}
+        onClick={() => setActiveTab("extensions")}
+      >
+        <Puzzle size={16} />
+        <span>Расширения</span>
+      </FocusableButton>
+      <FocusableButton
+        className={`settings-nav-item ${activeTab === "console" ? "active" : ""}`}
+        onClick={() => setActiveTab("console")}
+      >
+        <Terminal size={16} />
+        <span>Консоль</span>
+      </FocusableButton>
+
+      {(slotContributions.length > 0 || configExtensions.length > 0) && (
+        <>
+          <div className="settings-section-title">Плагины</div>
+          {slotContributions.map((c) => (
+            <FocusableButton
+              key={c.contribution.id}
+              className={`settings-nav-item ${activeTab === c.contribution.id ? "active" : ""}`}
+              onClick={() => setActiveTab(c.contribution.id)}
+            >
+              <Puzzle size={16} />
+              <span>{c.contribution.title || c.contribution.id}</span>
+            </FocusableButton>
+          ))}
+          {configExtensions.map((ext) => (
+            <FocusableButton
+              key={`config-${ext.id}`}
+              className={`settings-nav-item ${activeTab === `config-${ext.id}` ? "active" : ""}`}
+              onClick={() => setActiveTab(`config-${ext.id}`)}
+            >
+              <Puzzle size={16} />
+              <span>{ext.manifest.name || ext.id}</span>
+            </FocusableButton>
+          ))}
+        </>
+      )}
+    </>
+  );
+
+  const panel = (
+    <>
+      {activeTab === "general" && (
+        <GeneralSettings
+          accentTheme={accentTheme}
+          setAccentTheme={setAccentTheme}
+          defaultPlayer={defaultPlayer}
+          setDefaultPlayer={setDefaultPlayer}
+        />
+      )}
+      {activeTab === "accessibility" && (
+        <AccessibilitySettings
+          uiFontScale={uiFontScale}
+          setUiFontScale={setUiFontScale}
+          developerMode={developerMode}
+          setDeveloperMode={setDeveloperMode}
+          disableHttpProxy={disableHttpProxy}
+          setDisableHttpProxy={setDisableHttpProxy}
+        />
+      )}
+      {activeTab === "profiles" && <ProfilesSettings />}
+      {activeTab === "extensions" && <ExtensionsManager />}
+      {activeTab === "console" && <ConsoleManager />}
+      {slotContributions.some((c) => c.contribution.id === activeTab) && (
+        <Slot name="settings-tabs" contributionId={activeTab} />
+      )}
+      {configExtensions.map((ext) => (
+        activeTab === `config-${ext.id}` && (
+          <DeclarativeSettings key={ext.id} ext={ext} />
+        )
+      ))}
+    </>
+  );
+
+  // ── TV: pinned frame — sidebar + the single scrolling panel ─────────────────
+  if (isTV) {
+    return (
+      <PageFrame
+        className="settings-frame-tv"
+        sidebar={<aside className="settings-sidebar">{sidebarNav}</aside>}
+      >
+        <main className="settings-main-content">{panel}</main>
+      </PageFrame>
+    );
+  }
+
+  // ── Mobile: pinned frame — tabs header + the single scrolling panel ─────────
+  if (isMobile) {
+    return (
+      <PageFrame className="settings-frame-mobile" header={mobileTabs}>
+        <main className="settings-main-content">{panel}</main>
+      </PageFrame>
+    );
+  }
+
+  // ── Desktop: unchanged two-pane layout ──────────────────────────────────────
   return (
     <div className="settings-page-container">
       <div className="settings-container">
-        {isMobile && (
-        <div className="settings-mobile-tabs-bar">
-          <div className="settings-mobile-tabs-scroll">
-            <button
-              className={`settings-tab-chip ${activeTab === "general" ? "active" : ""}`}
-              onClick={() => setActiveTab("general")}
-            >
-              Основные
-            </button>
-            <button
-              className={`settings-tab-chip ${activeTab === "profiles" ? "active" : ""}`}
-              onClick={() => setActiveTab("profiles")}
-            >
-              Подключения
-            </button>
-            <button
-              className={`settings-tab-chip ${activeTab === "accessibility" ? "active" : ""}`}
-              onClick={() => setActiveTab("accessibility")}
-            >
-              Спец. возможности
-            </button>
-            <button
-              className={`settings-tab-chip ${activeTab === "extensions" ? "active" : ""}`}
-              onClick={() => setActiveTab("extensions")}
-            >
-              Расширения
-            </button>
-            <button
-              className={`settings-tab-chip ${activeTab === "console" ? "active" : ""}`}
-              onClick={() => setActiveTab("console")}
-            >
-              Консоль
-            </button>
-            
-            {slotContributions.map((c) => (
-              <button
-                key={c.contribution.id}
-                className={`settings-tab-chip ${activeTab === c.contribution.id ? "active" : ""}`}
-                onClick={() => setActiveTab(c.contribution.id)}
-              >
-                {c.contribution.title || c.contribution.id}
-              </button>
-            ))}
-
-            {configExtensions.map((ext) => (
-              <button
-                key={`config-${ext.id}`}
-                className={`settings-tab-chip ${activeTab === `config-${ext.id}` ? "active" : ""}`}
-                onClick={() => setActiveTab(`config-${ext.id}`)}
-              >
-                {ext.manifest.name || ext.id}
-              </button>
-            ))}
-          </div>
-        </div>
-        )}
-
-        {!isMobile && (
-        <aside className="settings-sidebar">
-          <div className="settings-brand">
-            <h1 className="settings-brand-title">Настройки</h1>
-            <p className="settings-brand-desc">Панель управления</p>
-          </div>
-          <div className="settings-divider" />
-          <div className="settings-section-title">Приложение</div>
-          <FocusableButton
-            focusKey="SETTINGS_TAB_GENERAL"
-            className={`settings-nav-item ${activeTab === "general" ? "active" : ""}`}
-            onClick={() => setActiveTab("general")}
-          >
-            <Sliders size={16} />
-            <span>Основные</span>
-          </FocusableButton>
-          <FocusableButton
-            className={`settings-nav-item ${activeTab === "profiles" ? "active" : ""}`}
-            onClick={() => setActiveTab("profiles")}
-          >
-            <Globe size={16} />
-            <span>Профили подключения</span>
-          </FocusableButton>
-          <FocusableButton
-            className={`settings-nav-item ${activeTab === "accessibility" ? "active" : ""}`}
-            onClick={() => setActiveTab("accessibility")}
-          >
-            <Eye size={16} />
-            <span>Специальные возможности</span>
-          </FocusableButton>
-
-          <div className="settings-section-title">Интеграции</div>
-          <FocusableButton
-            className={`settings-nav-item ${activeTab === "extensions" ? "active" : ""}`}
-            onClick={() => setActiveTab("extensions")}
-          >
-            <Puzzle size={16} />
-            <span>Расширения</span>
-          </FocusableButton>
-          <FocusableButton
-            className={`settings-nav-item ${activeTab === "console" ? "active" : ""}`}
-            onClick={() => setActiveTab("console")}
-          >
-            <Terminal size={16} />
-            <span>Консоль</span>
-          </FocusableButton>
-
-          {(slotContributions.length > 0 || configExtensions.length > 0) && (
-            <>
-              <div className="settings-section-title">Плагины</div>
-              {slotContributions.map((c) => (
-                <FocusableButton
-                  key={c.contribution.id}
-                  className={`settings-nav-item ${activeTab === c.contribution.id ? "active" : ""}`}
-                  onClick={() => setActiveTab(c.contribution.id)}
-                >
-                  <Puzzle size={16} />
-                  <span>{c.contribution.title || c.contribution.id}</span>
-                </FocusableButton>
-              ))}
-              {configExtensions.map((ext) => (
-                <FocusableButton
-                  key={`config-${ext.id}`}
-                  className={`settings-nav-item ${activeTab === `config-${ext.id}` ? "active" : ""}`}
-                  onClick={() => setActiveTab(`config-${ext.id}`)}
-                >
-                  <Puzzle size={16} />
-                  <span>{ext.manifest.name || ext.id}</span>
-                </FocusableButton>
-              ))}
-            </>
-          )}
-        </aside>
-        )}
-
-        <main className="settings-main-content">
-          {activeTab === "general" && (
-            <GeneralSettings
-              accentTheme={accentTheme}
-              setAccentTheme={setAccentTheme}
-              defaultPlayer={defaultPlayer}
-              setDefaultPlayer={setDefaultPlayer}
-            />
-          )}
-          {activeTab === "accessibility" && (
-            <AccessibilitySettings
-              uiFontScale={uiFontScale}
-              setUiFontScale={setUiFontScale}
-              developerMode={developerMode}
-              setDeveloperMode={setDeveloperMode}
-              disableHttpProxy={disableHttpProxy}
-              setDisableHttpProxy={setDisableHttpProxy}
-            />
-          )}
-          {activeTab === "profiles" && <ProfilesSettings />}
-          {activeTab === "extensions" && <ExtensionsManager />}
-          {activeTab === "console" && <ConsoleManager />}
-          {slotContributions.some((c) => c.contribution.id === activeTab) && (
-            <Slot name="settings-tabs" contributionId={activeTab} />
-          )}
-          {configExtensions.map((ext) => (
-            activeTab === `config-${ext.id}` && (
-              <DeclarativeSettings key={ext.id} ext={ext} />
-            )
-          ))}
-        </main>
-
+        <aside className="settings-sidebar">{sidebarNav}</aside>
+        <main className="settings-main-content">{panel}</main>
         <div className="settings-sidebar-spacer" />
       </div>
     </div>
