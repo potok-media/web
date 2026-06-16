@@ -73,7 +73,7 @@ export const MediaStreamsPage: React.FC = () => {
 
   const renderContent = () => (
     <section className="streams-page-content" style={{ display: "flex", flexDirection: "column" }}>
-      <div className="streams-scroll-area">
+      <div className="streams-scroll-area" data-tv-scroll="vertical">
         <StreamList
           streams={streams}
           loading={loading}
