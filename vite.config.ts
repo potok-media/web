@@ -133,6 +133,18 @@ export default defineConfig({
       },
     })] : []),
   ],
+  // Listen on all network interfaces so devices on the home LAN (the TV, phones)
+  // can reach the dev/preview server by the host machine's IP — e.g.
+  // http://192.168.x.x:4173 — without adb reverse. allowedHosts:true relaxes Vite's
+  // host check for arbitrary LAN hostnames (IPs are allowed by default).
+  server: {
+    host: true,
+  },
+  preview: {
+    host: true,
+    port: 4173,
+    allowedHosts: true,
+  },
   resolve: {
     alias: {
       '@potok/sdk-types': resolve(__dirname, './src/sdk/src/types.ts')
