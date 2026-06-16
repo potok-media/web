@@ -7,7 +7,7 @@ import { useHUD } from "../context/HUDContext";
 import { useAuth } from "../context/AppSettingsContext";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { FocusableButton } from "../components/common/TVNavigation";
-import { PageFrame } from "../components/common/PageFrame";
+import { FitFrame } from "../components/common/FitFrame";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { PlatformManager } from "../utils/PlatformManager";
 import { SyncStrategySelectionView } from "../components/profile/SyncStrategySelectionView";
@@ -309,9 +309,10 @@ export const ProfilePage: React.FC = () => {
     </div>
   );
 
-  // TV: pin the page so D-pad scrolls the profile body, not the document.
+  // TV: a profile is not a list — scale it to fit so every element is visible at once
+  // (no scrolling).
   if (isTV) {
-    return <PageFrame className="profile-frame-tv">{profileContent}</PageFrame>;
+    return <FitFrame className="profile-frame-tv">{profileContent}</FitFrame>;
   }
   return profileContent;
 };

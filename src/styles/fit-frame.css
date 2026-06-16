@@ -1,0 +1,18 @@
+/* ==========================================================================
+   FitFrame — scales a non-list screen down so it fits the viewport at once.
+   ========================================================================== */
+
+.fit-frame {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.fit-frame-inner {
+  transform-origin: top center;
+  width: 100%;
+  flex-shrink: 0;
+}

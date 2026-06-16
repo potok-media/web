@@ -2,6 +2,16 @@ import React from "react";
 import { Eye, BookOpen } from "lucide-react";
 import "../../styles/extensions.css";
 import { Focusable, FocusableButton, FocusableInput } from "../common/TVNavigation";
+import { TVSelect } from "../common/TVSelect";
+import { usePlatform } from "../../hooks/usePlatform";
+
+const FONT_SCALE_OPTIONS = [
+  { value: 0.8, label: "Мелкий (80%)" },
+  { value: 0.9, label: "Компактный (90%)" },
+  { value: 1.0, label: "Стандартный (100%)" },
+  { value: 1.1, label: "Увеличенный (110%)" },
+  { value: 1.2, label: "Крупный (120%)" },
+];
 
 interface AccessibilitySettingsProps {
   uiFontScale: number;
@@ -20,6 +30,9 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
   disableHttpProxy,
   setDisableHttpProxy,
 }) => {
+  const { isTV, isMobile } = usePlatform();
+  const touchUI = isTV || isMobile;
+
   return (
     <div className="settings-pane">
       <section className="settings-section">
@@ -30,22 +43,31 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
 
         <div className="settings-form-group settings-preference-group">
           <label className="settings-label">Масштаб интерфейса</label>
-          <Focusable>
-            {({ ref, focused }) => (
-              <select
-                ref={ref}
-                className={`settings-select ${focused ? "focused" : ""}`}
-                value={uiFontScale.toFixed(1)}
-                onChange={(e) => setUiFontScale(parseFloat(e.target.value))}
-              >
-                <option value="0.8">Мелкий (80%)</option>
-                <option value="0.9">Компактный (90%)</option>
-                <option value="1.0">Стандартный (100%)</option>
-                <option value="1.1">Увеличенный (110%)</option>
-                <option value="1.2">Крупный (120%)</option>
-              </select>
-            )}
-          </Focusable>
+          {touchUI ? (
+            <TVSelect
+              value={Number(uiFontScale.toFixed(1))}
+              options={FONT_SCALE_OPTIONS}
+              onChange={(v) => setUiFontScale(v)}
+              focusKeyPrefix="SETTINGS_FONTSCALE_"
+            />
+          ) : (
+            <Focusable>
+              {({ ref, focused }) => (
+                <select
+                  ref={ref}
+                  className={`settings-select ${focused ? "focused" : ""}`}
+                  value={uiFontScale.toFixed(1)}
+                  onChange={(e) => setUiFontScale(parseFloat(e.target.value))}
+                >
+                  <option value="0.8">Мелкий (80%)</option>
+                  <option value="0.9">Компактный (90%)</option>
+                  <option value="1.0">Стандартный (100%)</option>
+                  <option value="1.1">Увеличенный (110%)</option>
+                  <option value="1.2">Крупный (120%)</option>
+                </select>
+              )}
+            </Focusable>
+          )}
         </div>
 
         <div className="potok-toggle-group" style={{ marginTop: "var(--space-l)", maxWidth: "30rem", width: "100%" }}>

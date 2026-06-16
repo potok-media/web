@@ -2,6 +2,8 @@ import React from "react";
 import { Sliders } from "lucide-react";
 import { ExtensionRegistry } from "../../utils/extensions/ExtensionRegistry";
 import { Focusable } from "../common/TVNavigation";
+import { TVSelect, type TVSelectOption } from "../common/TVSelect";
+import { usePlatform } from "../../hooks/usePlatform";
 import { Slot } from "../common/extension/Slot";
 
 interface GeneralSettingsProps {
@@ -17,9 +19,17 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
   defaultPlayer,
   setDefaultPlayer,
 }) => {
-  const isApple = typeof window !== "undefined" && 
-    (/Mac|iPad|iPhone|iPod/.test(navigator.userAgent) || 
+  const isApple = typeof window !== "undefined" &&
+    (/Mac|iPad|iPhone|iPod/.test(navigator.userAgent) ||
      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+
+  const { isTV, isMobile } = usePlatform();
+  const touchUI = isTV || isMobile;
+
+  const playerOptions: TVSelectOption<string>[] = [
+    { value: "native", label: "Встроенный веб-плеер" },
+    ...(isApple ? [{ value: "infuse", label: "Infuse" }] : []),
+  ];
 
   const themes = [
     { id: "nordicFrost", name: "Nordic Frost", color: "#3a86c8" },
@@ -82,19 +92,28 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
 
         <div className="settings-form-group settings-preference-group">
           <label className="settings-label">Плеер по умолчанию</label>
-          <Focusable>
-            {({ ref, focused }) => (
-              <select
-                ref={ref}
-                className={`settings-select ${focused ? "focused" : ""}`}
-                value={defaultPlayer || "native"}
-                onChange={(e) => setDefaultPlayer(e.target.value)}
-              >
-                <option value="native">Встроенный веб-плеер</option>
-                {isApple && <option value="infuse">Infuse</option>}
-              </select>
-            )}
-          </Focusable>
+          {touchUI ? (
+            <TVSelect
+              value={defaultPlayer || "native"}
+              options={playerOptions}
+              onChange={(v) => setDefaultPlayer(v)}
+              focusKeyPrefix="SETTINGS_PLAYER_"
+            />
+          ) : (
+            <Focusable>
+              {({ ref, focused }) => (
+                <select
+                  ref={ref}
+                  className={`settings-select ${focused ? "focused" : ""}`}
+                  value={defaultPlayer || "native"}
+                  onChange={(e) => setDefaultPlayer(e.target.value)}
+                >
+                  <option value="native">Встроенный веб-плеер</option>
+                  {isApple && <option value="infuse">Infuse</option>}
+                </select>
+              )}
+            </Focusable>
+          )}
         </div>
       </section>
     </div>
