@@ -5,6 +5,8 @@ import { StreamList } from "../components/common/StreamList";
 import { StreamSidebar } from "../components/StreamSidebar";
 import { EpisodeSelectorPopup } from "../components/common/EpisodeSelectorPopup";
 import { FocusableButton } from "../components/common/TVNavigation";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { PlatformManager } from "../utils/PlatformManager";
 import { useMediaStreams } from "../hooks/useMediaStreams";
 import type { MediaCard } from "../network/ApiTypes";
 import "../styles/media.css";
@@ -47,6 +49,15 @@ export const MediaStreamsPage: React.FC = () => {
     initialMedia,
     activeTab: tab,
   });
+
+  // TV: land focus on the first stream row once results arrive (otherwise focus is
+  // stranded on entry).
+  React.useEffect(() => {
+    if (!PlatformManager.isTV()) return;
+    if (loading || streams.length === 0) return;
+    const t = setTimeout(() => setFocus("STREAM_FIRST_ROW"), 80);
+    return () => clearTimeout(t);
+  }, [loading, streams.length]);
 
   const renderSidebar = () => {
     if (currentMedia) {

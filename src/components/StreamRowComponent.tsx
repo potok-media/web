@@ -7,9 +7,10 @@ import { Focusable } from "./common/TVNavigation";
 interface StreamRowComponentProps {
   stream: StreamUIItem;
   onClick: (stream: StreamUIItem) => void;
+  focusKey?: string;
 }
 
-export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(({ stream, onClick }) => {
+export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(({ stream, onClick, focusKey }) => {
   const parsedTags = useMemo(() => {
     const extracted = extractBadges(stream.title);
     return Array.from(new Set([
@@ -19,7 +20,7 @@ export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(
   }, [stream.title, stream.tags]);
 
   return (
-    <Focusable onEnterPress={() => onClick(stream)}>
+    <Focusable focusKey={focusKey} onEnterPress={() => onClick(stream)}>
       {({ ref: focusRef, focused }) => {
         const setRefs = (node: HTMLDivElement | null) => {
           (focusRef as React.MutableRefObject<HTMLDivElement | null>).current = node;

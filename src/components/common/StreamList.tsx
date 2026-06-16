@@ -168,7 +168,7 @@ export const StreamList: React.FC<StreamListProps> = ({
         />
       )}
 
-      <div className="streams-results-list">
+      <div className="streams-results-list" data-tv-scroll="vertical">
         {loading ? (
           <StreamSkeletonList />
         ) : displayStreams.length > 0 ? (
@@ -178,6 +178,7 @@ export const StreamList: React.FC<StreamListProps> = ({
                 key={`${item.ui.id || "stream"}-${index}`}
                 stream={item.ui}
                 onClick={handleSelectStream}
+                focusKey={index === 0 ? "STREAM_FIRST_ROW" : undefined}
               />
             );
           })

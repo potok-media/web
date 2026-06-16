@@ -102,6 +102,22 @@ body.is-tv .episode-card.focused .episode-number-title {
   color: var(--accent) !important;
 }
 
+/* Cast Cards Focus — scale + bold ring on the photo (card variant) */
+body.is-tv .cast-member-card.focused {
+  outline: none !important;
+  transform: scale(1.06) !important;
+  z-index: 10 !important;
+}
+
+body.is-tv .cast-member-card.focused .cast-photo-wrap {
+  outline: 3px solid var(--accent) !important;
+  outline-offset: -3px !important;
+}
+
+body.is-tv .cast-member-card.focused .cast-name {
+  color: var(--accent) !important;
+}
+
 /* Dropdown Menu Items Focus (match desktop hover) */
 body.is-tv .season-popover-item.focused,
 body.is-tv .watch-popover-item.focused {
