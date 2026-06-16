@@ -339,6 +339,16 @@
   width: 100%;
 }
 
+/* Library inside PageFrame (TV): the header wrapper already pads on all sides, so
+   the scrolling body only needs side + bottom padding. */
+.library-frame-header {
+  padding-bottom: 0 !important;
+}
+.library-frame-body {
+  padding: var(--space-m) var(--space-l) var(--space-l);
+  box-sizing: border-box;
+}
+
 .library-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); /* Spacious, luxurious poster card scale */

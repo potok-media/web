@@ -14,6 +14,8 @@ import { Grid } from "../components/common/Grid";
 import { PlatformManager } from "../utils/PlatformManager";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { FocusableInput, FocusableButton } from "../components/common/TVNavigation";
+import { PageFrame } from "../components/common/PageFrame";
+import { usePlatform } from "../hooks/usePlatform";
 import "../styles/media.css";
  
 export const LibraryPage: React.FC = () => {
@@ -21,6 +23,7 @@ export const LibraryPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
  
+  const { isTV } = usePlatform();
   const isSearchPage = location.pathname === "/search";
   const collectionType = isSearchPage ? "search" : (routeType || "");
  
@@ -324,6 +327,15 @@ export const LibraryPage: React.FC = () => {
 
     return null;
   };
+
+  // TV: pin the header (title / search field); only the grid scrolls.
+  if (isTV) {
+    return (
+      <PageFrame className="library-frame-tv" header={<div className="library-page-container library-frame-header">{renderHeader()}</div>}>
+        <main className="library-content-area library-frame-body">{renderContent()}</main>
+      </PageFrame>
+    );
+  }
 
   return (
     <div className="library-page-container">
