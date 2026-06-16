@@ -98,7 +98,9 @@ export const AppLayout: React.FC = () => {
     if (!PlatformManager.isTV()) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key !== "ArrowLeft" && e.keyCode !== 37) return;
-      if (document.querySelector(".modal-overlay, .manifest-modal-overlay, .filter-popover, .potok-update-modal-overlay")) return;
+      // Any open Overlay tags itself with data-tv-overlay; the trailing legacy
+      // selectors cover the non-React PWA update prompt.
+      if (document.querySelector("[data-tv-overlay], .potok-update-modal-overlay")) return;
       const before = getCurrentFocusKey();
       if (!before || (typeof before === "string" && before.startsWith("SIDEBAR"))) return;
       requestAnimationFrame(() => {

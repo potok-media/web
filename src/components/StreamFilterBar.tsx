@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { RotateCw, Flame, Calendar, ArrowUpCircle, ArrowDownCircle, ChevronDown, Check, Filter } from "lucide-react";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
-import { FocusableButton, FocusableContainer } from "./common/TVNavigation";
+import { FocusableButton } from "./common/TVNavigation";
+import { Overlay } from "./common/Overlay";
 
 interface StreamFilterBarProps {
   id?: string;
@@ -26,6 +25,8 @@ const SORT_OPTIONS: Record<string, string> = {
   sizeDesc: "Сначала большие",
   sizeAsc: "Сначала маленькие",
 };
+
+const FIRST_SORT_KEY = Object.keys(SORT_OPTIONS)[0];
 
 export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
   id,
@@ -54,20 +55,14 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
   const updateSortCoords = () => {
     if (sortTriggerRef.current) {
       const rect = sortTriggerRef.current.getBoundingClientRect();
-      setSortCoords({
-        top: rect.bottom,
-        right: window.innerWidth - rect.right,
-      });
+      setSortCoords({ top: rect.bottom, right: window.innerWidth - rect.right });
     }
   };
 
   const updateFilterCoords = () => {
     if (filterTriggerRef.current) {
       const rect = filterTriggerRef.current.getBoundingClientRect();
-      setFilterCoords({
-        top: rect.bottom,
-        right: window.innerWidth - rect.right,
-      });
+      setFilterCoords({ top: rect.bottom, right: window.innerWidth - rect.right });
     }
   };
 
@@ -95,31 +90,16 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
     };
   }, [filterOpen]);
 
-  // Move focus into the sort popover when it opens
-  useEffect(() => {
-    if (sortOpen) {
-      const firstSortKey = Object.keys(SORT_OPTIONS)[0];
-      setFocus(`SORT_ITEM_${firstSortKey}`);
-    }
-  }, [sortOpen]);
-
-  // Move focus into the filter popover when it opens
-  useEffect(() => {
-    if (filterOpen) {
-      setFocus("FILTER_QUALITY_all");
-    }
-  }, [filterOpen]);
-
   return (
     <header className="streams-results-header" id={id}>
       <div className="streams-results-count">
         {countLabel}
       </div>
-      
+
       <div className="streams-header-actions">
         {/* Refresh Button */}
-        <FocusableButton 
-          className="btn-glass filter-btn-trigger" 
+        <FocusableButton
+          className="btn-glass filter-btn-trigger"
           onClick={onRefresh}
         >
           <RotateCw size={14} />
@@ -145,50 +125,39 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
               <ChevronDown size={14} />
             </FocusableButton>
 
-            {sortOpen && createPortal(
-              <>
-                <div 
-                  className="filter-popover-overlay" 
-                  style={{ position: "fixed", inset: 0, zIndex: 999998 }}
-                  onClick={() => setSortOpen(false)} 
-                />
-                <FocusableContainer
-                  focusKey="SORT_POPOVER"
-                  isFocusBoundary
-                  className="filter-popover filter-popover-menu-sort"
-                  style={{
-                    position: "fixed",
-                    top: `${sortCoords.top}px`,
-                    right: `${sortCoords.right}px`,
-                    zIndex: 999999,
-                    marginTop: "6px",
+            <Overlay
+              open={sortOpen}
+              onClose={() => setSortOpen(false)}
+              focusKey="SORT_POPOVER"
+              initialFocusKey={`SORT_ITEM_${FIRST_SORT_KEY}`}
+              styled={false}
+              variant="popover"
+              backdropClassName="filter-popover-overlay"
+              className="filter-popover filter-popover-menu-sort"
+              popoverStyle={{ position: "fixed", top: `${sortCoords.top}px`, right: `${sortCoords.right}px`, zIndex: 999999, marginTop: "6px" }}
+            >
+              {Object.entries(SORT_OPTIONS).map(([key, label]) => (
+                <FocusableButton
+                  key={key}
+                  focusKey={`SORT_ITEM_${key}`}
+                  className={`popover-item ${sortOption === key ? "active" : ""}`}
+                  onClick={() => {
+                    setSortOption(key);
+                    setSortOpen(false);
                   }}
+                  style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
                 >
-                  {Object.entries(SORT_OPTIONS).map(([key, label]) => (
-                    <FocusableButton
-                      key={key}
-                      focusKey={`SORT_ITEM_${key}`}
-                      className={`popover-item ${sortOption === key ? "active" : ""}`}
-                      onClick={() => {
-                        setSortOption(key);
-                        setSortOpen(false);
-                      }}
-                      style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
-                    >
-                      <div className="filter-popover-item-content">
-                        {key === "seedersDesc" && <Flame size={14} />}
-                        {key === "publishDateDesc" && <Calendar size={14} />}
-                        {key === "sizeDesc" && <ArrowUpCircle size={14} />}
-                        {key === "sizeAsc" && <ArrowDownCircle size={14} />}
-                        <span>{label}</span>
-                      </div>
-                      {sortOption === key && <Check size={14} className="filter-popover-check" />}
-                    </FocusableButton>
-                  ))}
-                </FocusableContainer>
-              </>,
-              document.body
-            )}
+                  <div className="filter-popover-item-content">
+                    {key === "seedersDesc" && <Flame size={14} />}
+                    {key === "publishDateDesc" && <Calendar size={14} />}
+                    {key === "sizeDesc" && <ArrowUpCircle size={14} />}
+                    {key === "sizeAsc" && <ArrowDownCircle size={14} />}
+                    <span>{label}</span>
+                  </div>
+                  {sortOption === key && <Check size={14} className="filter-popover-check" />}
+                </FocusableButton>
+              ))}
+            </Overlay>
           </div>
         )}
 
@@ -210,94 +179,82 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
             )}
           </FocusableButton>
 
-          {filterOpen && createPortal(
-            <>
-              <div 
-                className="filter-popover-overlay" 
-                style={{ position: "fixed", inset: 0, zIndex: 999998 }}
-                onClick={() => setFilterOpen(false)} 
-              />
-              <FocusableContainer
-                focusKey="FILTER_POPOVER"
-                isFocusBoundary
-                preferredChildFocusKey="FILTER_QUALITY_all"
-                className="filter-popover filter-popover-menu-filter"
-                style={{
-                  position: "fixed",
-                  top: `${filterCoords.top}px`,
-                  right: `${filterCoords.right}px`,
-                  zIndex: 999999,
-                  marginTop: "6px",
-                }}
+          <Overlay
+            open={filterOpen}
+            onClose={() => setFilterOpen(false)}
+            focusKey="FILTER_POPOVER"
+            initialFocusKey="FILTER_QUALITY_all"
+            styled={false}
+            variant="popover"
+            backdropClassName="filter-popover-overlay"
+            className="filter-popover filter-popover-menu-filter"
+            popoverStyle={{ position: "fixed", top: `${filterCoords.top}px`, right: `${filterCoords.right}px`, zIndex: 999999, marginTop: "6px" }}
+          >
+            <div className="filter-section-title">Качество</div>
+            <div className="filter-popover-column">
+              {["all", "2160p", "1080p", "720p", "480p"].map((q) => (
+                <FocusableButton
+                  key={q}
+                  focusKey={`FILTER_QUALITY_${q}`}
+                  className={`popover-item ${qualityFilter === q ? "active" : ""}`}
+                  onClick={() => setQualityFilter(q)}
+                  style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                >
+                  <span>{q === "all" ? "Все качества" : q}</span>
+                  {qualityFilter === q && <Check size={14} className="filter-popover-check" />}
+                </FocusableButton>
+              ))}
+            </div>
+
+            <div className="filter-popover-divider" />
+
+            <div className="filter-section-title">
+              {trackerLabel}
+            </div>
+            <div className="filter-popover-scroll-area">
+              <FocusableButton
+                focusKey="FILTER_TRACKER_all"
+                className={`popover-item ${activeTracker === "all" ? "active" : ""}`}
+                onClick={() => setActiveTracker("all")}
+                style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
               >
-                <div className="filter-section-title">Качество</div>
-                <div className="filter-popover-column">
-                  {["all", "2160p", "1080p", "720p", "480p"].map((q) => (
-                    <FocusableButton
-                      key={q}
-                      focusKey={`FILTER_QUALITY_${q}`}
-                      className={`popover-item ${qualityFilter === q ? "active" : ""}`}
-                      onClick={() => setQualityFilter(q)}
-                      style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
-                    >
-                      <span>{q === "all" ? "Все качества" : q}</span>
-                      {qualityFilter === q && <Check size={14} className="filter-popover-check" />}
-                    </FocusableButton>
-                  ))}
-                </div>
+                <span>
+                  {allTrackersLabel}
+                </span>
+                {activeTracker === "all" && <Check size={14} className="filter-popover-check" />}
+              </FocusableButton>
+              {trackers.map((tr) => (
+                <FocusableButton
+                  key={tr}
+                  focusKey={`FILTER_TRACKER_${tr}`}
+                  className={`popover-item ${activeTracker === tr ? "active" : ""}`}
+                  onClick={() => setActiveTracker(tr)}
+                  style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                >
+                  <span>{tr}</span>
+                  {activeTracker === tr && <Check size={14} className="filter-popover-check" />}
+                </FocusableButton>
+              ))}
+            </div>
 
+            {(qualityFilter !== "all" || activeTracker !== "all") && (
+              <>
                 <div className="filter-popover-divider" />
-
-                <div className="filter-section-title">
-                  {trackerLabel}
-                </div>
-                <div className="filter-popover-scroll-area">
-                  <FocusableButton
-                    focusKey="FILTER_TRACKER_all"
-                    className={`popover-item ${activeTracker === "all" ? "active" : ""}`}
-                    onClick={() => setActiveTracker("all")}
-                    style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
-                  >
-                    <span>
-                      {allTrackersLabel}
-                    </span>
-                    {activeTracker === "all" && <Check size={14} className="filter-popover-check" />}
-                  </FocusableButton>
-                  {trackers.map((tr) => (
-                    <FocusableButton
-                      key={tr}
-                      focusKey={`FILTER_TRACKER_${tr}`}
-                      className={`popover-item ${activeTracker === tr ? "active" : ""}`}
-                      onClick={() => setActiveTracker(tr)}
-                      style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
-                    >
-                      <span>{tr}</span>
-                      {activeTracker === tr && <Check size={14} className="filter-popover-check" />}
-                    </FocusableButton>
-                  ))}
-                </div>
-
-                {(qualityFilter !== "all" || activeTracker !== "all") && (
-                  <>
-                    <div className="filter-popover-divider" />
-                    <FocusableButton
-                      focusKey="FILTER_RESET"
-                      className="popover-reset-btn"
-                      onClick={() => {
-                        setQualityFilter("all");
-                        setActiveTracker("all");
-                        setFilterOpen(false);
-                      }}
-                      style={{ width: "100%" }}
-                    >
-                      Сбросить всё
-                    </FocusableButton>
-                  </>
-                )}
-              </FocusableContainer>
-            </>,
-            document.body
-          )}
+                <FocusableButton
+                  focusKey="FILTER_RESET"
+                  className="popover-reset-btn"
+                  onClick={() => {
+                    setQualityFilter("all");
+                    setActiveTracker("all");
+                    setFilterOpen(false);
+                  }}
+                  style={{ width: "100%" }}
+                >
+                  Сбросить всё
+                </FocusableButton>
+              </>
+            )}
+          </Overlay>
         </div>
       </div>
     </header>
