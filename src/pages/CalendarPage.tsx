@@ -6,6 +6,8 @@ import type { MediaCard } from "../network/ApiTypes";
 import { FilmOff } from "../components/common/FilmOff";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { Focusable, FocusableButton } from "../components/common/TVNavigation";
+import { PageFrame } from "../components/common/PageFrame";
+import { usePlatform } from "../hooks/usePlatform";
 import "../styles/media.css";
 
 const CalendarSkeleton: React.FC = () => (
@@ -28,6 +30,7 @@ export const CalendarPage: React.FC = () => {
   const navigate = useNavigate();
   const { items, loading, error, refetch, isTraktConnected } = useCalendarData();
   const [activeFilter, setActiveFilter] = useState<"all" | "today" | "tomorrow" | "this-week">("all");
+  const { isTV } = usePlatform();
 
   useEffect(() => {
     setFocus("CALENDAR_FIRST_TAB");
@@ -126,8 +129,8 @@ export const CalendarPage: React.FC = () => {
     }
   };
 
-  return (
-    <main className="calendar-container">
+  const calendarHeader = (
+    <>
       <header className="calendar-header">
         <h1 className="calendar-title">Календарь релизов</h1>
         <p className="calendar-description">
@@ -135,6 +138,25 @@ export const CalendarPage: React.FC = () => {
         </p>
       </header>
 
+      {/* Filter Chips (Material Design 3 style) */}
+      <nav className="tabs-header calendar-tabs" aria-label="Фильтры календаря по дням">
+        {filterChips.map((chip, index) => (
+          <FocusableButton
+            key={chip.key}
+            focusKey={index === 0 ? "CALENDAR_FIRST_TAB" : undefined}
+            className={`tab-btn ${activeFilter === chip.key ? "active" : ""}`}
+            onClick={() => setActiveFilter(chip.key)}
+            aria-current={activeFilter === chip.key ? "page" : undefined}
+          >
+            {chip.label}
+          </FocusableButton>
+        ))}
+      </nav>
+    </>
+  );
+
+  const calendarBody = (
+    <>
       {/* Trakt connection prompt for guest users */}
       {!isTraktConnected && (
         <div className="calendar-trakt-banner">
@@ -156,21 +178,6 @@ export const CalendarPage: React.FC = () => {
           </FocusableButton>
         </div>
       )}
-
-      {/* Filter Chips (Material Design 3 style) */}
-      <nav className="tabs-header calendar-tabs" aria-label="Фильтры календаря по дням">
-        {filterChips.map((chip, index) => (
-          <FocusableButton
-            key={chip.key}
-            focusKey={index === 0 ? "CALENDAR_FIRST_TAB" : undefined}
-            className={`tab-btn ${activeFilter === chip.key ? "active" : ""}`}
-            onClick={() => setActiveFilter(chip.key)}
-            aria-current={activeFilter === chip.key ? "page" : undefined}
-          >
-            {chip.label}
-          </FocusableButton>
-        ))}
-      </nav>
 
       {/* Error state */}
       {error && (
@@ -294,6 +301,22 @@ export const CalendarPage: React.FC = () => {
           )}
         </div>
       )}
+    </>
+  );
+
+  // TV: pin the title + filter chips; only the release feed scrolls.
+  if (isTV) {
+    return (
+      <PageFrame className="calendar-frame-tv" header={<div className="calendar-container calendar-frame-header">{calendarHeader}</div>}>
+        <div className="calendar-container calendar-frame-body">{calendarBody}</div>
+      </PageFrame>
+    );
+  }
+
+  return (
+    <main className="calendar-container">
+      {calendarHeader}
+      {calendarBody}
     </main>
   );
 };
