@@ -40,7 +40,7 @@ export const MediaCastSection: React.FC<MediaCastSectionProps> = React.memo(({ c
   return (
     <div className="details-fullwidth-section">
       <h2 className="carousel-title details-section-title">Актерский состав</h2>
-      <Grid minWidth="110px" gap="var(--space-s)" className="cast-grid">
+      <Grid minWidth="6.875rem" gap="var(--space-s)" className="cast-grid">
         {cast.slice(0, 10).map((c, i) =>
           isTV ? (
             <Focusable key={i} focusKey={`CAST_CARD_${i}`}>

@@ -102,7 +102,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
           className="btn-glass filter-btn-trigger"
           onClick={onRefresh}
         >
-          <RotateCw size={14} />
+          <RotateCw size="0.875rem" />
           <span className="filter-btn-text">Обновить</span>
         </FocusableButton>
 
@@ -117,12 +117,12 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                 setFilterOpen(false);
               }}
             >
-              {sortOption === "seedersDesc" && <Flame size={14} />}
-              {sortOption === "publishDateDesc" && <Calendar size={14} />}
-              {sortOption === "sizeDesc" && <ArrowUpCircle size={14} />}
-              {sortOption === "sizeAsc" && <ArrowDownCircle size={14} />}
+              {sortOption === "seedersDesc" && <Flame size="0.875rem" />}
+              {sortOption === "publishDateDesc" && <Calendar size="0.875rem" />}
+              {sortOption === "sizeDesc" && <ArrowUpCircle size="0.875rem" />}
+              {sortOption === "sizeAsc" && <ArrowDownCircle size="0.875rem" />}
               <span className="filter-btn-text">{SORT_OPTIONS[sortOption]}</span>
-              <ChevronDown size={14} />
+              <ChevronDown size="0.875rem" />
             </FocusableButton>
 
             <Overlay
@@ -134,7 +134,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
               variant="popover"
               backdropClassName="filter-popover-overlay"
               className="filter-popover filter-popover-menu-sort"
-              popoverStyle={{ position: "fixed", top: `${sortCoords.top}px`, right: `${sortCoords.right}px`, zIndex: 999999, marginTop: "6px" }}
+              popoverStyle={{ position: "fixed", top: `${sortCoords.top}px`, right: `${sortCoords.right}px`, zIndex: 999999, marginTop: "0.375rem" }}
             >
               {Object.entries(SORT_OPTIONS).map(([key, label]) => (
                 <FocusableButton
@@ -148,13 +148,13 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                   style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
                 >
                   <div className="filter-popover-item-content">
-                    {key === "seedersDesc" && <Flame size={14} />}
-                    {key === "publishDateDesc" && <Calendar size={14} />}
-                    {key === "sizeDesc" && <ArrowUpCircle size={14} />}
-                    {key === "sizeAsc" && <ArrowDownCircle size={14} />}
+                    {key === "seedersDesc" && <Flame size="0.875rem" />}
+                    {key === "publishDateDesc" && <Calendar size="0.875rem" />}
+                    {key === "sizeDesc" && <ArrowUpCircle size="0.875rem" />}
+                    {key === "sizeAsc" && <ArrowDownCircle size="0.875rem" />}
                     <span>{label}</span>
                   </div>
-                  {sortOption === key && <Check size={14} className="filter-popover-check" />}
+                  {sortOption === key && <Check size="0.875rem" className="filter-popover-check" />}
                 </FocusableButton>
               ))}
             </Overlay>
@@ -171,9 +171,9 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
               setSortOpen(false);
             }}
           >
-            <Filter size={14} />
+            <Filter size="0.875rem" />
             <span className="filter-btn-text">Фильтры</span>
-            <ChevronDown size={14} />
+            <ChevronDown size="0.875rem" />
             {(qualityFilter !== "all" || activeTracker !== "all") && (
               <span className="filter-badge-dot" />
             )}
@@ -188,7 +188,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
             variant="popover"
             backdropClassName="filter-popover-overlay"
             className="filter-popover filter-popover-menu-filter"
-            popoverStyle={{ position: "fixed", top: `${filterCoords.top}px`, right: `${filterCoords.right}px`, zIndex: 999999, marginTop: "6px" }}
+            popoverStyle={{ position: "fixed", top: `${filterCoords.top}px`, right: `${filterCoords.right}px`, zIndex: 999999, marginTop: "0.375rem" }}
           >
             <div className="filter-section-title">Качество</div>
             <div className="filter-popover-column">
@@ -201,7 +201,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                   style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
                 >
                   <span>{q === "all" ? "Все качества" : q}</span>
-                  {qualityFilter === q && <Check size={14} className="filter-popover-check" />}
+                  {qualityFilter === q && <Check size="0.875rem" className="filter-popover-check" />}
                 </FocusableButton>
               ))}
             </div>
@@ -221,7 +221,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                 <span>
                   {allTrackersLabel}
                 </span>
-                {activeTracker === "all" && <Check size={14} className="filter-popover-check" />}
+                {activeTracker === "all" && <Check size="0.875rem" className="filter-popover-check" />}
               </FocusableButton>
               {trackers.map((tr) => (
                 <FocusableButton
@@ -232,7 +232,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                   style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
                 >
                   <span>{tr}</span>
-                  {activeTracker === tr && <Check size={14} className="filter-popover-check" />}
+                  {activeTracker === tr && <Check size="0.875rem" className="filter-popover-check" />}
                 </FocusableButton>
               ))}
             </div>

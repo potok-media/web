@@ -14,6 +14,7 @@ import { PluginSandbox } from "./common/PluginSandbox";
 import { PlatformManager } from "../utils/PlatformManager";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { getCurrentFocusKey, setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { setActiveRoute, recallFocus } from "../utils/focusMemory";
 import "../styles/layout.css";
 import { logger } from "../utils/logger";
 
@@ -21,6 +22,9 @@ const DeveloperInspector = React.lazy(() => import("./common/extension/Developer
 
 export const AppLayout: React.FC = () => {
   const location = useLocation();
+  // Tag the active route during render (before child pages mount/focus) so focusMemory records
+  // each focus change under the correct route — enabling focus restoration on Back.
+  setActiveRoute(location.key || location.pathname);
   const mainContentRef = React.useRef<HTMLDivElement>(null);
   const scrollPositions = React.useRef<Record<string, number>>({});
 
@@ -45,6 +49,27 @@ export const AppLayout: React.FC = () => {
 
     return () => clearTimeout(timer);
   }, [location.pathname, location.key]);
+
+  // Universal focus restoration on Back — covers EVERY route, including pages created by plugins
+  // via the SDK (which we can't wire individually). Pages render their focusables asynchronously
+  // and may set their own default focus, so we retry briefly until the remembered element exists,
+  // then stop (no re-asserting → never fights the user once restored). Routes visited fresh
+  // (forward nav) have no saved key → this no-ops and the page's own default focus stands.
+  React.useEffect(() => {
+    if (!PlatformManager.isTV()) return;
+    const saved = recallFocus(location.key || location.pathname);
+    if (!saved) return;
+    let raf = 0;
+    const deadline = Date.now() + 1500;
+    const attempt = () => {
+      if (getCurrentFocusKey() === saved) return;       // restored (here or by the page itself)
+      setFocus(saved);
+      if (getCurrentFocusKey() === saved || Date.now() > deadline) return;
+      raf = requestAnimationFrame(attempt);             // element not mounted yet → keep trying
+    };
+    raf = requestAnimationFrame(attempt);
+    return () => cancelAnimationFrame(raf);
+  }, [location.key, location.pathname]);
 
   const {
     connectionState,
@@ -280,14 +305,14 @@ export const AppLayout: React.FC = () => {
         <ErrorBoundary fallback={(error, resetError) => (
           <div style={{
             position: "fixed",
-            bottom: "20px",
-            right: "20px",
+            bottom: "1.25rem",
+            right: "1.25rem",
             zIndex: 9999,
-            width: "350px",
+            width: "21.875rem",
             padding: "1rem",
             background: "rgba(20, 20, 20, 0.95)",
             backdropFilter: "blur(25px)",
-            borderRadius: "12px",
+            borderRadius: "0.75rem",
             border: "1px solid var(--error, #ef4444)",
             color: "#fff",
             boxShadow: "0 10px 30px rgba(0,0,0,0.5)"
@@ -296,7 +321,7 @@ export const AppLayout: React.FC = () => {
             <p style={{ fontSize: "0.85rem", opacity: 0.8, margin: "0 0 1rem 0" }}>
               {error.message || "Не удалось воспроизвести видео."}
             </p>
-            <div style={{ display: "flex", gap: "10px" }}>
+            <div style={{ display: "flex", gap: "0.625rem" }}>
               <button
                 onClick={resetError}
                 style={{
@@ -304,7 +329,7 @@ export const AppLayout: React.FC = () => {
                   padding: "0.4rem",
                   background: "var(--error, #ef4444)",
                   border: "none",
-                  borderRadius: "4px",
+                  borderRadius: "0.25rem",
                   color: "#fff",
                   cursor: "pointer",
                   fontSize: "0.85rem",
@@ -320,7 +345,7 @@ export const AppLayout: React.FC = () => {
                   padding: "0.4rem",
                   background: "rgba(255,255,255,0.1)",
                   border: "none",
-                  borderRadius: "4px",
+                  borderRadius: "0.25rem",
                   color: "#fff",
                   cursor: "pointer",
                   fontSize: "0.85rem"
@@ -365,9 +390,9 @@ export const AppLayout: React.FC = () => {
             zIndex: 99999,
             display: "flex",
             alignItems: "center",
-            gap: "8px",
-            padding: "10px 16px",
-            borderRadius: "30px",
+            gap: "0.5rem",
+            padding: "0.625rem 1rem",
+            borderRadius: "1.875rem",
             border: "none",
             background: isInspectorActive ? "#ef4444" : "var(--accent, #3b82f6)",
             color: "#fff",
@@ -379,7 +404,7 @@ export const AppLayout: React.FC = () => {
             transform: "translateY(0)"
           }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <svg width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>

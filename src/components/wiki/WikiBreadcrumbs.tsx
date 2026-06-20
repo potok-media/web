@@ -16,18 +16,18 @@ export const WikiBreadcrumbs: React.FC<WikiBreadcrumbsProps> = ({
   return (
     <div className="wiki-breadcrumbs">
       <span>Документация</span>
-      <ChevronRight size={12} />
+      <ChevronRight size="0.75rem" />
       {activePage === "sandbox" ? (
         <>
           <span>{PAGES[referrerPage]?.category || "Документация"}</span>
-          <ChevronRight size={12} />
+          <ChevronRight size="0.75rem" />
           <span 
             onClick={() => setActivePage(referrerPage)}
             style={{ cursor: "pointer", textDecoration: "underline", color: "var(--accent)" }}
           >
             {PAGES[referrerPage]?.title || "Назад к документу"}
           </span>
-          <ChevronRight size={12} />
+          <ChevronRight size="0.75rem" />
           <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>
             Песочница
           </span>
@@ -35,7 +35,7 @@ export const WikiBreadcrumbs: React.FC<WikiBreadcrumbsProps> = ({
       ) : (
         <>
           <span>{PAGES[activePage]?.category}</span>
-          <ChevronRight size={12} />
+          <ChevronRight size="0.75rem" />
           <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>
             {PAGES[activePage]?.title}
           </span>

@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { restoreFocusOrDefault } from "../utils/focusMemory";
 import { useHUD } from "../context/HUDContext";
 import { useHomeFeed } from "../hooks/useHomeFeed";
 import HeroSpotlight from "../components/HeroSpotlight";
@@ -24,20 +25,26 @@ const ErrorView: React.FC<{ error: string; onRetry: () => void }> = ({ error, on
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { show: showHUD } = useHUD();
 
   const { feed, loading, refetch } = useHomeFeed((msg) => showHUD("error", msg));
 
+  // Initial focus: on Back, restore the card the user was on; otherwise the hero button (if any)
+  // or the first row's first card. HomePage owns this (HeroSpotlight gets autoFocus={false}) so the
+  // restore isn't overridden. Runs after HeroSpotlight's effects (child-before-parent).
   React.useEffect(() => {
-    if (feed && feed.rows && feed.rows.length > 0 && (!feed.hero || feed.hero.length === 0)) {
+    if (!feed) return;
+    let defaultKey: string | undefined;
+    if (feed.hero && feed.hero.length > 0) {
+      defaultKey = "HERO_DETAILS_BUTTON";
+    } else if (feed.rows?.length && feed.rows[0].items?.length) {
       const firstRow = feed.rows[0];
-      if (firstRow.items && firstRow.items.length > 0) {
-        const rowCleanId = (firstRow.id || firstRow.title).replace(/\s+/g, "-").toLowerCase();
-        const firstCardFocusKey = `row-${rowCleanId}-first-card-${firstRow.items[0].id}-${firstRow.items[0].mediaType}`;
-        setFocus(firstCardFocusKey);
-      }
+      const rowCleanId = (firstRow.id || firstRow.title).replace(/\s+/g, "-").toLowerCase();
+      defaultKey = `row-${rowCleanId}-first-card-${firstRow.items[0].id}-${firstRow.items[0].mediaType}`;
     }
-  }, [feed]);
+    restoreFocusOrDefault(location.key || location.pathname, defaultKey);
+  }, [feed, location.key, location.pathname]);
 
   const handleCardClick = useCallback((item: MediaCard) => {
     navigate(`/media/${item.mediaType}/${item.id}`);
@@ -67,6 +74,7 @@ export const HomePage: React.FC = () => {
           items={feed.hero}
           onPlay={handleHeroPlay}
           onDetails={handleHeroDetails}
+          autoFocus={false}
         />
       )}
 

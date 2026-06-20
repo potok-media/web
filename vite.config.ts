@@ -77,6 +77,38 @@ function vitePotokSdkPlugin() {
   };
 }
 
+// Forwards client log lines (POST /__clientlog) to THIS server's terminal. Lets us read
+// network/header logs from a device (Apple TV / Luxo) that loads the app over LAN via
+// `npm run preview`, where the on-device browser console is unreachable. The client side
+// is src/utils/clientLogShipper.ts. Debug-only instrumentation — remove when done.
+function clientLogToTerminal() {
+  const handler = (req: any, res: any) => {
+    if (req.method !== 'POST') { res.statusCode = 405; return res.end(); }
+    let body = '';
+    req.on('data', (c: Buffer) => {
+      body += c;
+      if (body.length > 1_000_000) req.destroy();
+    });
+    req.on('end', () => {
+      try {
+        const { level, message } = JSON.parse(body || '{}');
+        const line = `[client] ${message}`;
+        if (level === 'error') console.error(line);
+        else if (level === 'warn') console.warn(line);
+        else console.log(line);
+      } catch { /* ignore malformed payloads */ }
+      res.statusCode = 204;
+      res.end();
+    });
+  };
+  const register = (server: any) => server.middlewares.use('/__clientlog', handler);
+  return {
+    name: 'potok-client-log',
+    configureServer(server: any) { register(server); },
+    configurePreviewServer(server: any) { register(server); },
+  };
+}
+
 // PWA (Service Worker) is opt-in via POTOK_PWA=1 — enable it only for production
 // deploys (`npm run build:pwa`). Plain `npm run build` ships NO service worker, so
 // on-device iteration is always fresh and the cleanup in main.tsx removes any SW
@@ -91,6 +123,7 @@ export default defineConfig({
   plugins: [
     react(),
     vitePotokSdkPlugin(),
+    clientLogToTerminal(),
     ...(PWA_ENABLED ? [VitePWA({
       // No update prompts — TV/WebView containers should refresh silently.
       registerType: 'autoUpdate',

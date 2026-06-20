@@ -197,7 +197,7 @@ export function createComponentDoc(name: string, category: string) {
           className="doc-sandbox-btn" 
           onClick={() => openInSandbox(meta.example)}
         >
-          <Play size={12} />
+          <Play size="0.75rem" />
           <span>Запустить в Sandbox</span>
         </button>
       </div>

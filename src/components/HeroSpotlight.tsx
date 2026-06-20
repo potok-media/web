@@ -12,6 +12,9 @@ interface HeroSpotlightProps {
   items: HeroItem[];
   onPlay: (item: HeroItem) => void;
   onDetails: (item: HeroItem) => void;
+  // When false, the hero won't grab focus on mount — the host page owns initial focus (so it can
+  // restore the remembered card on Back instead of being overridden by the hero button). Default true.
+  autoFocus?: boolean;
 }
 
 const areHeroSpotlightsEqual = (
@@ -194,10 +197,10 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
   }, [activeIndex, loadedImages, displayedIndex]);
 
   useEffect(() => {
-    if (PlatformManager.isTV() && heroItems.length > 0) {
+    if (props.autoFocus !== false && PlatformManager.isTV() && heroItems.length > 0) {
       setFocus("HERO_DETAILS_BUTTON");
     }
-  }, [heroItems.length]);
+  }, [heroItems.length, props.autoFocus]);
 
   useEffect(() => {
     if (hasFocusRef.current) {
@@ -312,7 +315,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
                             }
                           }}
                         >
-                          <Info size={18} />
+                          <Info size="1.125rem" />
                           <span>Подробнее</span>
                         </Link>
                       );
@@ -323,7 +326,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
                     onClick={() => handleToggleWatchlist(card, index)}
                     focusable={isCurrent}
                   >
-                    {watchlistStates[index] ? <Check size={18} className="hero-btn-success-check" /> : <Plus size={18} />}
+                    {watchlistStates[index] ? <Check size="1.125rem" className="hero-btn-success-check" /> : <Plus size="1.125rem" />}
                     <span>{watchlistStates[index] ? "В списке" : "Буду смотреть"}</span>
                   </FocusableButton>
                 </div>

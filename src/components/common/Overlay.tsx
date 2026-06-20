@@ -14,15 +14,20 @@ interface OverlayProps {
   /** Element to focus when the overlay opens. Falls back to the container. */
   initialFocusKey?: string;
   /**
-   * modal = centered dialog; sheet = bottom panel (TV/mobile); popover = anchored
-   * box (desktop, position supplied via popoverStyle).
+   * When true (default) Overlay applies its own `.tv-overlay--{variant}` chrome —
+   * for NEW overlays (TV/mobile sheets). When false, Overlay is visually neutral and
+   * the caller supplies all appearance via backdropClassName/className — used to wrap
+   * EXISTING modals so the desktop look stays byte-for-byte identical.
    */
+  styled?: boolean;
+  /** modal = centered; sheet = bottom; popover = anchored (popoverStyle). */
   variant?: OverlayVariant;
-  /** Inline position for variant="popover" (computed by the caller). */
+  /** Inline position for variant="popover". */
   popoverStyle?: React.CSSProperties;
-  /** Class on the panel element. */
+  /** Extra classes on the backdrop (e.g. an existing "manifest-modal-overlay"). */
+  backdropClassName?: string;
+  /** Classes on the panel (e.g. an existing "manifest-modal"). */
   className?: string;
-  /** Optional inline styles on the panel (e.g. maxWidth). */
   style?: React.CSSProperties;
   title?: React.ReactNode;
   /** Close when the backdrop is clicked. Default true. */
@@ -31,26 +36,28 @@ interface OverlayProps {
 }
 
 /**
- * The ONE overlay primitive for every modal / sheet / popover / dropdown. It owns
- * all the cross-cutting behavior that was previously hand-rolled (or forgotten) per
- * component:
- *  - portal to <body> with a shared `.tv-overlay` backdrop (AppLayout's LEFT-edge
- *    handler keys off `.tv-overlay`, so the sidebar never opens behind a layer),
+ * The ONE overlay primitive for every modal / sheet / popover / dropdown. It owns the
+ * cross-cutting behavior that was previously hand-rolled (or forgotten) per component:
+ *  - portal to <body>, tagged `data-tv-overlay` (AppLayout's LEFT-edge handler keys
+ *    off this, so the sidebar never opens behind a layer),
  *  - focus boundary + default focus on open,
  *  - close on Back (potok-back-pressed, preventDefault so AppLayout doesn't also
- *    navigate away) and Escape and backdrop click,
- *  - native browser scroll for overflowing content (setNativeScrollMode), with the
- *    panel marked `data-tv-scroll="vertical"` so spatial-nav scrolls it.
+ *    navigate away), Escape, and backdrop click,
+ *  - native browser scroll for overflowing content (setNativeScrollMode).
  *
- * Callers never touch portals, boundaries, back keys, or scroll modes again.
+ * Appearance is decoupled from behavior: pass `styled={false}` to keep an existing
+ * modal's exact CSS (desktop unchanged), or use the default styled variants for new
+ * TV/mobile layers.
  */
 export const Overlay: React.FC<OverlayProps> = ({
   open,
   onClose,
   focusKey,
   initialFocusKey,
+  styled = true,
   variant = "modal",
   popoverStyle,
+  backdropClassName = "",
   className = "",
   style,
   title,
@@ -89,9 +96,17 @@ export const Overlay: React.FC<OverlayProps> = ({
 
   if (!open) return null;
 
+  const backdropClass = styled
+    ? `tv-overlay tv-overlay--${variant} ${backdropClassName}`.trim()
+    : backdropClassName;
+  const panelClass = styled
+    ? `tv-overlay-panel tv-overlay-panel--${variant} ${className}`.trim()
+    : className;
+
   return createPortal(
     <div
-      className={`tv-overlay tv-overlay--${variant}`}
+      className={backdropClass}
+      data-tv-overlay="true"
       onClick={closeOnBackdrop ? onClose : undefined}
     >
       <FocusableContainer
@@ -99,9 +114,8 @@ export const Overlay: React.FC<OverlayProps> = ({
         isFocusBoundary
         trackChildren
         preferredChildFocusKey={initialFocusKey}
-        className={`tv-overlay-panel tv-overlay-panel--${variant} ${className}`.trim()}
+        className={panelClass}
         style={variant === "popover" ? { ...popoverStyle, ...style } : style}
-        data-tv-scroll="vertical"
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
         {title && <div className="tv-overlay-title">{title}</div>}

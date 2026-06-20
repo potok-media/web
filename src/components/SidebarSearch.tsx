@@ -29,7 +29,7 @@ export const SidebarSearch: React.FC<SidebarSearchProps> = React.memo(({
         className={({ isActive }) => `sidebar-nav-item ${isActive ? "active" : ""}`} 
         title="Поиск"
       >
-        <Search size={18} />
+        <Search size="1.125rem" />
       </NavLink>
     );
   }
@@ -37,7 +37,7 @@ export const SidebarSearch: React.FC<SidebarSearchProps> = React.memo(({
   return (
     <form onSubmit={(e) => e.preventDefault()} className="sidebar-search-form">
       <div className="sidebar-search-wrap">
-        <Search size={16} className="sidebar-search-icon" />
+        <Search size="1rem" className="sidebar-search-icon" />
         <FocusableInput
           ref={inputRef}
           type="text"
@@ -54,7 +54,7 @@ export const SidebarSearch: React.FC<SidebarSearchProps> = React.memo(({
             className="sidebar-search-clear"
             title="Очистить"
           >
-            <X size={14} />
+            <X size="0.875rem" />
           </FocusableButton>
         )}
       </div>

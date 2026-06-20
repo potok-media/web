@@ -23,13 +23,13 @@ const PERMISSION_DESCRIPTIONS: Record<string, string> = {
 const getExtensionIcon = (manifest: ExtensionManifest) => {
   const name = (manifest.name || "").toLowerCase();
   const perms = manifest.permissions || [];
-  if (/player|video|kinopoisk|youtube|media|плеер/.test(name)) return <Play size={22} />;
-  if (/search|find|filter|поиск/.test(name)) return <Search size={22} />;
-  if (perms.includes("http-proxy") || /network|api|torrent|сеть/.test(name)) return <Globe size={22} />;
-  if (perms.includes("storage") || /db|save|cache|база/.test(name)) return <Database size={22} />;
-  if (perms.includes("ui-notifications") || /notify|alert|уведомл/.test(name)) return <Bell size={22} />;
-  if (/theme|style|css|design|тема/.test(name)) return <Sparkles size={22} />;
-  return <Puzzle size={22} />;
+  if (/player|video|kinopoisk|youtube|media|плеер/.test(name)) return <Play size="1.375rem" />;
+  if (/search|find|filter|поиск/.test(name)) return <Search size="1.375rem" />;
+  if (perms.includes("http-proxy") || /network|api|torrent|сеть/.test(name)) return <Globe size="1.375rem" />;
+  if (perms.includes("storage") || /db|save|cache|база/.test(name)) return <Database size="1.375rem" />;
+  if (perms.includes("ui-notifications") || /notify|alert|уведомл/.test(name)) return <Bell size="1.375rem" />;
+  if (/theme|style|css|design|тема/.test(name)) return <Sparkles size="1.375rem" />;
+  return <Puzzle size="1.375rem" />;
 };
 
 const getSourceLabel = (url: string) => {
@@ -154,7 +154,7 @@ export const ExtensionsManager: React.FC = () => {
           <span className="ext-subtitle">{total} установлено · {enabledCount} активно</span>
         </div>
         <FocusableButton className="potok-btn potok-btn-primary ext-install-btn" onClick={() => setIsInstallOpen(true)}>
-          <Plus size={16} />
+          <Plus size="1rem" />
           <span>Установить по URL</span>
         </FocusableButton>
       </header>
@@ -173,7 +173,7 @@ export const ExtensionsManager: React.FC = () => {
 
       {total > 6 && (
         <div className="ext-search">
-          <Search size={16} className="ext-search-icon" />
+          <Search size="1rem" className="ext-search-icon" />
           <FocusableInput
             type="text"
             className="ext-search-input"
@@ -183,7 +183,7 @@ export const ExtensionsManager: React.FC = () => {
           />
           {searchQuery && (
             <FocusableButton className="ext-search-clear" onClick={() => setSearchQuery("")} title="Очистить">
-              <X size={14} />
+              <X size="0.875rem" />
             </FocusableButton>
           )}
         </div>
@@ -192,7 +192,7 @@ export const ExtensionsManager: React.FC = () => {
       <div className="ext-list">
         {filtered.length === 0 ? (
           <div className="ext-empty">
-            <ShieldAlert size={40} />
+            <ShieldAlert size="2.5rem" />
             <span>{total === 0 ? "Нет установленных расширений" : "Ничего не найдено"}</span>
           </div>
         ) : (
@@ -211,7 +211,7 @@ export const ExtensionsManager: React.FC = () => {
                     {ext.manifest.description && <span className="ext-row-desc">{ext.manifest.description}</span>}
                   </div>
                   <span className={`ext-row-status ${ext.enabled ? "on" : "off"}`}>{ext.enabled ? "Вкл" : "Выкл"}</span>
-                  <ChevronRight size={20} className="ext-row-chevron" />
+                  <ChevronRight size="1.25rem" className="ext-row-chevron" />
                 </div>
               )}
             </Focusable>
@@ -240,7 +240,7 @@ export const ExtensionsManager: React.FC = () => {
                 </div>
               </div>
               <FocusableButton onClick={() => setSelectedId(null)} className="manifest-modal-close" title="Закрыть">
-                <X size={20} />
+                <X size="1.25rem" />
               </FocusableButton>
             </div>
 
@@ -251,21 +251,21 @@ export const ExtensionsManager: React.FC = () => {
                   className={`potok-btn ext-action-btn ${selected.enabled ? "potok-btn-secondary" : "potok-btn-primary"}`}
                   onClick={() => handleToggle(selected.id)}
                 >
-                  <Power size={16} />
+                  <Power size="1rem" />
                   <span>{selected.enabled ? "Выключить" : "Включить"}</span>
                 </FocusableButton>
                 <FocusableButton
                   className="potok-btn potok-btn-secondary ext-action-btn"
                   onClick={() => handleCopyLink(selected.url)}
                 >
-                  <Copy size={16} />
+                  <Copy size="1rem" />
                   <span>Копировать ссылку</span>
                 </FocusableButton>
                 <FocusableButton
                   className="potok-btn ext-action-btn ext-action-danger"
                   onClick={() => { handleDelete(selected.id); setSelectedId(null); }}
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size="1rem" />
                   <span>Удалить</span>
                 </FocusableButton>
               </div>
@@ -295,7 +295,7 @@ export const ExtensionsManager: React.FC = () => {
                 className="potok-btn potok-btn-secondary ext-action-btn"
                 onClick={() => setShowManifest((v) => !v)}
               >
-                <ChevronDown size={14} style={{ transform: showManifest ? "rotate(180deg)" : "none" }} />
+                <ChevronDown size="0.875rem" style={{ transform: showManifest ? "rotate(180deg)" : "none" }} />
                 <span>{showManifest ? "Скрыть манифест" : "Показать манифест (JSON)"}</span>
               </FocusableButton>
               {showManifest && (
@@ -321,14 +321,14 @@ export const ExtensionsManager: React.FC = () => {
         <div className="manifest-modal-header">
           <span className="manifest-modal-title">Установка расширения</span>
           <FocusableButton onClick={() => setIsInstallOpen(false)} className="manifest-modal-close">
-            <X size={18} />
+            <X size="1.125rem" />
           </FocusableButton>
         </div>
         <div className="manifest-modal-body ext-action-body">
           <p className="ext-action-text">
             Вставьте URL каталога с файлом <code style={{ color: "var(--accent)" }}>manifest.json</code>.
           </p>
-          <form onSubmit={handleAddExtension} className="potok-vstack" style={{ gap: "12px" }}>
+          <form onSubmit={handleAddExtension} className="potok-vstack" style={{ gap: "0.75rem" }}>
             <FocusableInput
               ref={installInputRef}
               focusKey="INSTALL_URL_INPUT"

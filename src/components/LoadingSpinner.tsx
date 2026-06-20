@@ -30,7 +30,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
             onClick={() => navigate(-1)}
             title="Назад"
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft size="1.125rem" />
           </FocusableButton>
         )}
 

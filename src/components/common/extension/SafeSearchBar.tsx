@@ -36,7 +36,7 @@ export const SafeSearchBar: React.FC<SafeSearchBarProps> = ({ schema, pluginId, 
   return (
     <div key={id} className="sidebar-search-form" style={{ ...baseStyle, width: "100%", margin: 0 }}>
       <div className="sidebar-search-wrap" style={{ margin: 0 }}>
-        <Search size={16} className="sidebar-search-icon" />
+        <Search size="1rem" className="sidebar-search-icon" />
         <FocusableInput
           type="text"
           placeholder={componentProps.placeholder || "Поиск..."}
@@ -53,7 +53,7 @@ export const SafeSearchBar: React.FC<SafeSearchBarProps> = ({ schema, pluginId, 
             className="sidebar-search-clear"
             title="Очистить"
           >
-            <X size={14} />
+            <X size="0.875rem" />
           </FocusableButton>
         )}
       </div>

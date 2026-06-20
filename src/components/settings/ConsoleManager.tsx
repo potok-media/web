@@ -67,11 +67,11 @@ export const ConsoleManager: React.FC = () => {
   const getLogIcon = (type: "info" | "warn" | "error") => {
     switch (type) {
       case "error":
-        return <AlertCircle size={14} className="log-icon-error" />;
+        return <AlertCircle size="0.875rem" className="log-icon-error" />;
       case "warn":
-        return <AlertTriangle size={14} className="log-icon-warn" />;
+        return <AlertTriangle size="0.875rem" className="log-icon-warn" />;
       default:
-        return <Info size={14} className="log-icon-info" />;
+        return <Info size="0.875rem" className="log-icon-info" />;
     }
   };
 
@@ -117,7 +117,7 @@ export const ConsoleManager: React.FC = () => {
 
         <div className="console-actions">
           <div className="console-search-wrapper">
-            <Search size={14} className="console-search-icon" />
+            <Search size="0.875rem" className="console-search-icon" />
             <FocusableInput
               type="text"
               placeholder="Фильтр логов..."
@@ -131,7 +131,7 @@ export const ConsoleManager: React.FC = () => {
             onClick={handleClear}
             title="Очистить консоль"
           >
-            <Trash2 size={16} />
+            <Trash2 size="1rem" />
             <span>Очистить</span>
           </FocusableButton>
         </div>
@@ -139,13 +139,13 @@ export const ConsoleManager: React.FC = () => {
 
       <div className="console-viewport-wrapper">
         <div className="console-viewport-header">
-          <Terminal size={14} />
+          <Terminal size="0.875rem" />
           <span>Системный вывод Potok</span>
         </div>
         <div className="console-viewport" ref={containerRef}>
           {filteredLogs.length === 0 ? (
             <div className="console-empty">
-              <Terminal size={32} className="console-empty-icon" />
+              <Terminal size="2rem" className="console-empty-icon" />
               <span className="console-empty-text">Логи отсутствуют</span>
             </div>
           ) : (

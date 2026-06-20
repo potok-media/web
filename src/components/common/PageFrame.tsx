@@ -1,4 +1,5 @@
 import React from "react";
+import { TVScrollView } from "./TVScrollView";
 import "../../styles/page-frame.css";
 
 interface PageFrameProps {
@@ -34,13 +35,13 @@ export const PageFrame: React.FC<PageFrameProps> = ({
       {header && <div className="page-frame-header">{header}</div>}
       <div className="page-frame-row">
         {sidebar && (
-          <div className="page-frame-sidebar" data-tv-scroll="vertical">
+          <TVScrollView orientation="vertical" className="page-frame-sidebar">
             {sidebar}
-          </div>
+          </TVScrollView>
         )}
-        <div className={`page-frame-body ${bodyClassName}`.trim()} data-tv-scroll="vertical">
+        <TVScrollView orientation="vertical" className={`page-frame-body ${bodyClassName}`.trim()}>
           {children}
-        </div>
+        </TVScrollView>
       </div>
     </div>
   );

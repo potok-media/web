@@ -37,7 +37,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = React.memo(({
   return (
     <section className="settings-section">
       <h2 className="settings-section-title">
-        <SettingsIcon size={20} />
+        <SettingsIcon size="1.25rem" />
         <span>Профили подключения</span>
       </h2>
 
@@ -70,7 +70,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = React.memo(({
                       onClick={(e) => handleDeleteClick(e, p.id)}
                       title="Удалить профиль"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size="1rem" />
                     </FocusableButton>
                   </div>
                 )}
@@ -85,7 +85,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = React.memo(({
           className="settings-btn-primary settings-add-profile-btn"
           onClick={onStartAdd}
         >
-          <Plus size={16} />
+          <Plus size="1rem" />
           <span>Добавить профиль</span>
         </FocusableButton>
       )}

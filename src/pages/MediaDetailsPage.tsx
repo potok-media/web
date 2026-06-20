@@ -1,9 +1,9 @@
 import React, { useCallback, useRef, useState, useEffect } from "react";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { Star, Eye, Bookmark } from "lucide-react";
 import { useHUD } from "../context/HUDContext";
 import { Slot } from "../components/common/extension/Slot";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { restoreFocusOrDefault } from "../utils/focusMemory";
 import { Focusable, FocusableButton } from "../components/common/TVNavigation";
 import { PlatformManager } from "../utils/PlatformManager";
 
@@ -25,6 +25,7 @@ export const MediaDetailsPage: React.FC = () => {
   const { mediaType, id } = useParams<{ mediaType: string; id: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const mediaId = Number(id);
   const tmdbId = mediaId;
 
@@ -97,9 +98,10 @@ export const MediaDetailsPage: React.FC = () => {
 
   useEffect(() => {
     if (media) {
-      setFocus("DETAILS_WATCHED_BTN");
+      // Restore focus on Back (e.g. from the streams page); default to the Watch button.
+      restoreFocusOrDefault(location.key || location.pathname, "DETAILS_WATCHED_BTN");
     }
-  }, [media]);
+  }, [media, location.key, location.pathname]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -169,7 +171,7 @@ export const MediaDetailsPage: React.FC = () => {
                         onClick={toggleWatched}
                         title={isWatched ? "Удалить из истории просмотра" : "Отметить просмотренным"}
                       >
-                        <Eye size={18} />
+                        <Eye size="1.125rem" />
                       </button>
                     )}
                   </Focusable>
@@ -184,7 +186,7 @@ export const MediaDetailsPage: React.FC = () => {
                         onClick={toggleWatchlist}
                         title={inWatchlist ? "Удалить из списка ожидания" : "В список ожидания"}
                       >
-                        <Bookmark size={18} fill={inWatchlist ? "var(--accent)" : "none"} />
+                        <Bookmark size="1.125rem" fill={inWatchlist ? "var(--accent)" : "none"} />
                       </button>
                     )}
                   </Focusable>
@@ -199,7 +201,7 @@ export const MediaDetailsPage: React.FC = () => {
                         onClick={toggleFavorite}
                         title={isFavorite ? "Удалить из избранного" : "Добавить в избранное"}
                       >
-                        <Star size={18} fill={isFavorite ? "var(--accent)" : "none"} />
+                        <Star size="1.125rem" fill={isFavorite ? "var(--accent)" : "none"} />
                       </button>
                     )}
                   </Focusable>

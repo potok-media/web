@@ -27,13 +27,13 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
     <div className="settings-pane">
       <section className="settings-section">
         <h2 className="settings-section-title">
-          <Play size={20} />
+          <Play size="1.25rem" />
           <span>{isAdding ? "Новый профиль" : "Параметры соединения"}</span>
         </h2>
 
         {isSettingsLocked && (
           <div className="settings-lock-banner">
-            <Info size={16} />
+            <Info size="1rem" />
             <span>Настройки подключения заблокированы администратором.</span>
           </div>
         )}
@@ -68,7 +68,7 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
           {!isSettingsLocked && (
             <div className="settings-form-buttons-row" style={{ marginTop: "var(--space-s)" }}>
               <FocusableButton type="submit" className="settings-btn-primary cursor-pointer btn-gap-s">
-                <Save size={16} />
+                <Save size="1rem" />
                 <span>{isAdding ? "Создать профиль" : "Сохранить изменения"}</span>
               </FocusableButton>
               {isAdding && (

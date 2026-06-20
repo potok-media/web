@@ -1,6 +1,7 @@
 import { ApiError } from "../../network/ApiTypes";
 import { WebSocketClient, webSocketClient } from "../../network/WebSocketClient";
 import { Storage } from "../StorageService";
+import { logger } from "../logger";
 
 class WorkerBridge {
   private worker: Worker | null = null;
@@ -41,6 +42,16 @@ class WorkerBridge {
             }
             break;
           }
+          case "log": {
+            // Re-emit a log line forwarded from the worker (e.g. fetchLogger) so it
+            // reaches the main-thread console + in-app Console viewer.
+            if (msg.level === "error") {
+              logger.error(msg.message);
+            } else {
+              logger.log(msg.message);
+            }
+            break;
+          }
           case "ws_event": {
             webSocketClient.triggerLocalEvent(msg.event, msg.payload);
             break;
@@ -76,7 +87,8 @@ class WorkerBridge {
       traktAccessToken: Storage.get<string | null>("traktAccessToken", null),
       syncStrategy: Storage.get<string>("syncStrategy", "none"),
       potok_client_id: webSocketClient.clientId,
-      
+      netDebug: Storage.get<boolean>("netDebug", true),
+
       "potok_plugin:scoped:potok-torrents:playerServerURL": Storage.get<string>("potok_plugin:scoped:potok-torrents:playerServerURL", ""),
       "potok_plugin:scoped:potok-torrents:torrentGoURL": Storage.get<string>("potok_plugin:scoped:potok-torrents:torrentGoURL", ""),
     };

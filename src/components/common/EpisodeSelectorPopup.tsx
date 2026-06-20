@@ -122,7 +122,7 @@ const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
         )}
         {episodeItem.isWatched && (
           <div className="file-card-badge-checked">
-            <CheckCircle2 size={20} fill="var(--accent)" stroke="var(--bg-surface)" />
+            <CheckCircle2 size="1.25rem" fill="var(--accent)" stroke="var(--bg-surface)" />
           </div>
         )}
       </div>
@@ -137,7 +137,7 @@ const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
       <div className="file-card-details-panel">
         {episodeItem.isWatched && (
           <div className="file-card-watched-badge">
-            <Check size={12} strokeWidth={3} />
+            <Check size="0.75rem" strokeWidth={3} />
             <span>Просмотрено</span>
           </div>
         )}
@@ -150,7 +150,7 @@ const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
       </div>
 
       <FocusableButton className="file-card-play-btn" onClick={(e) => { e.stopPropagation(); onPlay(); }} onEnterPress={onPlay}>
-        <Play size={16} fill="currentColor" className="file-card-play-icon-fix" />
+        <Play size="1rem" fill="currentColor" className="file-card-play-icon-fix" />
       </FocusableButton>
     </div>
       )}
@@ -215,7 +215,7 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
     <div className="modal-header">
       <div className="modal-title-row">
         <FocusableButton className="modal-close-btn" onClick={handleBackOrClose}>
-          <ArrowLeft size={20} />
+          <ArrowLeft size="1.25rem" />
         </FocusableButton>
         <div className="modal-title-text-group">
           <h3 className="modal-title modal-title-custom-size">{title}</h3>
@@ -227,7 +227,7 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
           
           {mediaType === "tv" && totalCount > 0 && (
             <div className="tv-progress-container">
-              <CheckCircle2 size={12} fill="var(--accent)" stroke="var(--bg-surface)" />
+              <CheckCircle2 size="0.75rem" fill="var(--accent)" stroke="var(--bg-surface)" />
               <span>
                 Просмотрено серий: {completedCount} из {totalCount} ({Math.round(percentage)}%)
               </span>
@@ -236,7 +236,7 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
 
           {mediaType === "movie" && completedCount > 0 && (
             <div className="tv-progress-container">
-              <CheckCircle2 size={12} fill="var(--accent)" stroke="var(--bg-surface)" />
+              <CheckCircle2 size="0.75rem" fill="var(--accent)" stroke="var(--bg-surface)" />
               <span>Просмотрено</span>
             </div>
           )}
@@ -259,18 +259,18 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "8px",
-                padding: "8px 16px",
+                gap: "0.5rem",
+                padding: "0.5rem 1rem",
                 background: "rgba(255, 255, 255, 0.05)",
                 border: "1px solid rgba(255, 255, 255, 0.08)",
-                borderRadius: "8px",
+                borderRadius: "0.5rem",
                 color: "#fff",
                 fontWeight: 500,
                 cursor: "pointer",
                 transition: "background 0.2s ease"
               }}
             >
-              <MoreHorizontal size={16} />
+              <MoreHorizontal size="1rem" />
               <span>Дополнительно</span>
             </FocusableButton>
 
@@ -279,19 +279,19 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
                 className="popover-dropdown-menu"
                 style={{
                   position: "absolute",
-                  top: "calc(100% + 6px)",
+                  top: "calc(100% + 0.375rem)",
                   right: 0,
-                  width: "220px",
+                  width: "13.75rem",
                   background: "rgba(20, 20, 25, 0.95)",
                   backdropFilter: "blur(16px)",
                   border: "1px solid rgba(255, 255, 255, 0.08)",
-                  borderRadius: "10px",
+                  borderRadius: "0.625rem",
                   boxShadow: "0 8px 32px rgba(0, 0, 0, 0.6)",
-                  padding: "6px",
+                  padding: "0.375rem",
                   zIndex: 100,
                   display: "flex",
                   flexDirection: "column",
-                  gap: "4px"
+                  gap: "0.25rem"
                 }}
               >
                 {onOpenAsPlaylist && (
@@ -302,12 +302,12 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: "10px",
+                      gap: "0.625rem",
                       width: "100%",
-                      padding: "10px 12px",
+                      padding: "0.625rem 0.75rem",
                       background: "none",
                       border: "none",
-                      borderRadius: "6px",
+                      borderRadius: "0.375rem",
                       color: "#fff",
                       fontSize: "0.85rem",
                       fontWeight: 500,
@@ -318,7 +318,7 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
                     onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255, 255, 255, 0.06)"}
                     onMouseLeave={(e) => e.currentTarget.style.background = "none"}
                   >
-                    <ListVideo size={16} style={{ color: "var(--accent)" }} />
+                    <ListVideo size="1rem" style={{ color: "var(--accent)" }} />
                     <span>Открыть как плейлист</span>
                   </FocusableButton>
                 )}
@@ -331,12 +331,12 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: "10px",
+                      gap: "0.625rem",
                       width: "100%",
-                      padding: "10px 12px",
+                      padding: "0.625rem 0.75rem",
                       background: "none",
                       border: "none",
-                      borderRadius: "6px",
+                      borderRadius: "0.375rem",
                       color: "#fff",
                       fontSize: "0.85rem",
                       fontWeight: 500,
@@ -347,7 +347,7 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
                     onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255, 255, 255, 0.06)"}
                     onMouseLeave={(e) => e.currentTarget.style.background = "none"}
                   >
-                    <Pencil size={16} style={{ color: "rgba(255, 255, 255, 0.6)" }} />
+                    <Pencil size="1rem" style={{ color: "rgba(255, 255, 255, 0.6)" }} />
                     <span>Править соответствие</span>
                   </FocusableButton>
                 )}
@@ -394,7 +394,7 @@ const EpisodeOverridePicker: React.FC<EpisodeOverridePickerProps> = React.memo((
   if (seasonsLoading) {
     return (
       <div className="picker-loading-container">
-        <div className="premium-spinner" style={{ marginBottom: "16px" }}>
+        <div className="premium-spinner" style={{ marginBottom: "1rem" }}>
           <div className="spinner-outer" />
           <div className="spinner-inner" />
         </div>
@@ -437,7 +437,7 @@ const EpisodeOverridePicker: React.FC<EpisodeOverridePickerProps> = React.memo((
                         />
                       ) : (
                         <div className="episode-still-fallback-placeholder">
-                          <FilmOff size={28} />
+                          <FilmOff size="1.75rem" />
                         </div>
                       )}
                       <span className="episode-card-badge">{epNum}</span>
@@ -596,7 +596,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
       styled={false}
       backdropClassName="modal-overlay"
       className="modal-container"
-      style={{ maxWidth: isEditing ? "1000px" : "850px", display: "flex", flexDirection: "column" }}
+      style={{ maxWidth: isEditing ? "62.5rem" : "53.125rem", display: "flex", flexDirection: "column" }}
     >
         <EpisodeSelectorHeader
           isEditing={isEditing}
@@ -622,12 +622,12 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
           ) : (
             <div className="files-list-container" style={{ display: "flex", flexDirection: "column", height: "100%" }}>
               {uniqueSeasons.length > 1 && (
-                <div style={{ display: "flex", gap: "8px", overflowX: "auto", padding: "12px 20px", borderBottom: "1px solid rgba(255, 255, 255, 0.05)" }}>
+                <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", padding: "0.75rem 1.25rem", borderBottom: "1px solid rgba(255, 255, 255, 0.05)" }}>
                   {uniqueSeasons.map((sNum) => (
                     <FocusableButton
                       key={sNum}
                       className={`potok-badge ${selectedSeason === sNum ? "potok-badge-info" : "potok-badge-secondary"}`}
-                      style={{ cursor: "pointer", border: "none", padding: "8px 18px", borderRadius: "20px", fontSize: "0.85rem" }}
+                      style={{ cursor: "pointer", border: "none", padding: "0.5rem 1.125rem", borderRadius: "1.25rem", fontSize: "0.85rem" }}
                       onClick={() => setSelectedSeason(sNum)}
                     >
                       Сезон {sNum}
@@ -636,7 +636,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
                 </div>
               )}
 
-              <div className="episode-popup-rows-list" style={{ padding: "20px", flex: 1, overflowY: "auto" }}>
+              <div className="episode-popup-rows-list" style={{ padding: "1.25rem", flex: 1, overflowY: "auto" }}>
                 {currentSeasonEpisodes.length > 0 ? (
                   currentSeasonEpisodes.map((ep, idx) => (
                     <EpisodeSelectorRow
@@ -661,7 +661,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
           {isSaving && (
             <div className="saving-overlay">
               <div className="saving-content">
-                <div className="premium-spinner" style={{ marginBottom: "12px" }}>
+                <div className="premium-spinner" style={{ marginBottom: "0.75rem" }}>
                   <div className="spinner-outer" />
                   <div className="spinner-inner" />
                 </div>

@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, ChevronDown, Tv, Check, Eye, ListTodo } from
 import { Grid } from "./common/Grid";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { FocusableButton, FocusableContainer } from "./common/TVNavigation";
+import { TVScrollView } from "./common/TVScrollView";
 import { PlatformManager } from "../utils/PlatformManager";
 
 const IS_TV = PlatformManager.isTV();
@@ -197,7 +198,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   const renderY = contextMenu ? Math.min(contextMenu.y, window.innerHeight - 100) : 0;
 
   return (
-    <section className="season-episodes-section" style={{ minHeight: "350px" }}>
+    <section className="season-episodes-section" style={{ minHeight: "21.875rem" }}>
       <h2 className="season-episodes-title">Выбор серий</h2>
 
       <div className="season-selector-row">
@@ -210,7 +211,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
             aria-expanded={showSeasonPopover}
           >
             Сезон {activeSeason}
-            <ChevronDown size={16} />
+            <ChevronDown size="1rem" />
           </FocusableButton>
           
           {showSeasonPopover && (
@@ -229,9 +230,9 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
                         setShowSeasonPopover(false);
                       }}
                     >
-                      <Tv size={16} className="season-item-icon" />
+                      <Tv size="1rem" className="season-item-icon" />
                       <span>Сезон {sNum}</span>
-                      {activeSeason === sNum && <Check size={16} className="season-active-check" />}
+                      {activeSeason === sNum && <Check size="1rem" className="season-active-check" />}
                     </FocusableButton>
                   ))}
                 </div>
@@ -259,8 +260,8 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
               aria-expanded={!IS_TV && showWatchPopover}
               title={IS_TV ? (isSeasonFullyWatched ? "Снять отметку с сезона" : "Отметить сезон просмотренным") : "Выбор и просмотр серий"}
             >
-              {isSeasonFullyWatched ? <Check size={18} /> : <Eye size={18} />}
-              {!IS_TV && <ChevronDown size={12} />}
+              {isSeasonFullyWatched ? <Check size="1.125rem" /> : <Eye size="1.125rem" />}
+              {!IS_TV && <ChevronDown size="0.75rem" />}
             </FocusableButton>
 
             {!IS_TV && showWatchPopover && (
@@ -276,7 +277,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
                       setShowWatchPopover(false);
                     }}
                   >
-                    <Eye size={16} className="watch-item-icon" />
+                    <Eye size="1rem" className="watch-item-icon" />
                     <span>{isSeasonFullyWatched ? "Снять отметку" : "Отметить сезон"}</span>
                   </FocusableButton>
                   <FocusableButton
@@ -287,7 +288,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
                       onOpenMultiPicker?.();
                     }}
                   >
-                    <ListTodo size={16} className="watch-item-icon" />
+                    <ListTodo size="1rem" className="watch-item-icon" />
                     <span>Отметить выборочно...</span>
                   </FocusableButton>
                 </FocusableContainer>
@@ -299,12 +300,12 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
 
       {loading ? (
         <Grid 
-          minWidth="280px" 
-          gap="16px" 
-          className="season-episodes-skeleton-grid" 
-          style={{ 
-            minHeight: "220px",
-            marginTop: "16px"
+          minWidth="17.5rem"
+          gap="1rem"
+          className="season-episodes-skeleton-grid"
+          style={{
+            minHeight: "13.75rem",
+            marginTop: "1rem"
           }}
         >
           {Array.from({ length: 4 }).map((_, idx) => (
@@ -312,9 +313,9 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
               key={idx} 
               className="episode-card-skeleton" 
               style={{ 
-                height: "230px", 
-                background: "rgba(255, 255, 255, 0.03)", 
-                borderRadius: "12px", 
+                height: "14.375rem",
+                background: "rgba(255, 255, 255, 0.03)",
+                borderRadius: "0.75rem",
                 border: "1px solid rgba(255, 255, 255, 0.05)",
                 opacity: 0.6,
               }} 
@@ -330,13 +331,15 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
               onClick={() => handleScroll("left")}
               aria-label="Прокрутить назад"
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size="1.25rem" />
             </button>
           )}
 
-          <div
-            className="episodes-scroll-container"
-            ref={scrollRef}
+          <TVScrollView
+            orientation="horizontal"
+            className="episodes-scroll-viewport"
+            trackClassName="episodes-scroll-container"
+            viewportRef={scrollRef}
             onScroll={checkScrollLimits}
           >
             {episodes.slice(0, visibleCount).map((ep) => {
@@ -354,7 +357,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
                 />
               );
             })}
-          </div>
+          </TVScrollView>
 
           {canScrollRight && (
             <button
@@ -363,7 +366,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
               onClick={() => handleScroll("right")}
               aria-label="Прокрутить вперед"
             >
-              <ChevronRight size={20} />
+              <ChevronRight size="1.25rem" />
             </button>
           )}
         </div>
@@ -401,7 +404,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
                 setContextMenu(null);
               }}
             >
-              <Eye size={14} />
+              <Eye size="0.875rem" />
               <span>
                 {isEpisodeWatched(contextMenu.episode.episodeNumber) 
                   ? "Убрать отметку просмотрено" 

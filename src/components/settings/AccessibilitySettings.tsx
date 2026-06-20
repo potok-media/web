@@ -11,7 +11,27 @@ const FONT_SCALE_OPTIONS = [
   { value: 1.0, label: "Стандартный (100%)" },
   { value: 1.1, label: "Увеличенный (110%)" },
   { value: 1.2, label: "Крупный (120%)" },
+  { value: 1.3, label: "Очень крупный (130%)" },
+  { value: 1.4, label: "Огромный (140%)" },
+  { value: 1.5, label: "Максимальный (150%)" },
 ];
+
+// On TV the UI scale is the root font-size multiplier (everything is rem-based, so this enlarges the
+// whole UI crisply at native resolution — see AppSettingsContext). 3 plain presets instead of the
+// desktop font-percent steps; values are bigger than desktop because of the 10-foot viewing distance.
+const TV_SIZE_PRESETS = [
+  { value: 1.6, label: "Крупнее" },
+  { value: 1.4, label: "Стандарт" },
+  { value: 1.2, label: "Компактнее" },
+];
+
+// Snap a stored uiFontScale to the nearest preset so the control always shows a selected option.
+function nearestTvPreset(scale: number): number {
+  return TV_SIZE_PRESETS.reduce(
+    (best, p) => (Math.abs(p.value - scale) < Math.abs(best - scale) ? p.value : best),
+    TV_SIZE_PRESETS[1].value
+  );
+}
 
 interface AccessibilitySettingsProps {
   uiFontScale: number;
@@ -20,6 +40,8 @@ interface AccessibilitySettingsProps {
   setDeveloperMode: (val: boolean) => void;
   disableHttpProxy: boolean;
   setDisableHttpProxy: (val: boolean) => void;
+  tvLightMode: boolean;
+  setTvLightMode: (val: boolean) => void;
 }
 
 export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React.memo(({
@@ -29,21 +51,43 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
   setDeveloperMode,
   disableHttpProxy,
   setDisableHttpProxy,
+  tvLightMode,
+  setTvLightMode,
 }) => {
   const { isTV, isMobile } = usePlatform();
   const touchUI = isTV || isMobile;
+
+  // Manual TV-mode override — the guaranteed escape hatch when auto-detection misses a
+  // third-party WebView (e.g. Luxo on Apple TV). PlatformManager.isTV() already reads
+  // `tvMode` from localStorage; TV mode is decided once at load (body class, viewport,
+  // norigin geometry), so flipping it reloads the app.
+  const forcedTvMode = typeof localStorage !== "undefined" && localStorage.getItem("tvMode") === "true";
+  const handleForceTvMode = (next: boolean) => {
+    try {
+      if (next) localStorage.setItem("tvMode", "true");
+      else localStorage.removeItem("tvMode");
+    } catch { /* localStorage unavailable — nothing to persist */ }
+    window.location.reload();
+  };
 
   return (
     <div className="settings-pane">
       <section className="settings-section">
         <h2 className="settings-section-title">
-          <Eye size={20} />
+          <Eye size="1.25rem" />
           <span>Специальные возможности</span>
         </h2>
 
         <div className="settings-form-group settings-preference-group">
-          <label className="settings-label">Масштаб интерфейса</label>
-          {touchUI ? (
+          <label className="settings-label">{isTV ? "Размер интерфейса" : "Масштаб интерфейса"}</label>
+          {isTV ? (
+            <TVSelect
+              value={nearestTvPreset(uiFontScale)}
+              options={TV_SIZE_PRESETS}
+              onChange={(v) => setUiFontScale(v)}
+              focusKeyPrefix="SETTINGS_TVSIZE_"
+            />
+          ) : touchUI ? (
             <TVSelect
               value={Number(uiFontScale.toFixed(1))}
               options={FONT_SCALE_OPTIONS}
@@ -64,6 +108,9 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
                   <option value="1.0">Стандартный (100%)</option>
                   <option value="1.1">Увеличенный (110%)</option>
                   <option value="1.2">Крупный (120%)</option>
+                  <option value="1.3">Очень крупный (130%)</option>
+                  <option value="1.4">Огромный (140%)</option>
+                  <option value="1.5">Максимальный (150%)</option>
                 </select>
               )}
             </Focusable>
@@ -94,18 +141,54 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
           </label>
         </div>
 
+        <div className="potok-toggle-group" style={{ marginTop: "var(--space-l)", maxWidth: "30rem", width: "100%" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+            <span className="settings-label" style={{ margin: 0 }}>Режим ТВ / приставки</span>
+            <span style={{ fontSize: "var(--font-size-caption, 0.75rem)", color: "var(--text-muted)" }}>
+              Принудительно включить интерфейс для пульта (Apple TV, Android-приставки, WebView вроде Luxo), если он не определился сам. Приложение перезагрузится.
+            </span>
+          </div>
+          <label className="potok-switch" style={{ flexShrink: 0 }}>
+            <FocusableInput
+              type="checkbox"
+              checked={forcedTvMode}
+              onChange={(e) => handleForceTvMode(e.target.checked)}
+            />
+            <span className="potok-slider" />
+          </label>
+        </div>
+
+        {isTV && (
+          <div className="potok-toggle-group" style={{ marginTop: "var(--space-l)", maxWidth: "30rem", width: "100%" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+              <span className="settings-label" style={{ margin: 0 }}>Облегчённый режим</span>
+              <span style={{ fontSize: "var(--font-size-caption, 0.75rem)", color: "var(--text-muted)" }}>
+                Убирает тени, скругления и эффекты для более плавной работы на слабых ТВ.
+              </span>
+            </div>
+            <label className="potok-switch" style={{ flexShrink: 0 }}>
+              <FocusableInput
+                type="checkbox"
+                checked={tvLightMode}
+                onChange={(e) => setTvLightMode(e.target.checked)}
+              />
+              <span className="potok-slider" />
+            </label>
+          </div>
+        )}
+
         {developerMode && (
-          <div style={{ marginTop: "var(--space-xl)", paddingTop: "var(--space-l)", borderTop: "var(--glass-border)", display: "flex", flexDirection: "column", gap: "8px", maxWidth: "30rem" }}>
+          <div style={{ marginTop: "var(--space-xl)", paddingTop: "var(--space-l)", borderTop: "var(--glass-border)", display: "flex", flexDirection: "column", gap: "0.5rem", maxWidth: "30rem" }}>
             <label className="settings-label" style={{ margin: 0 }}>Документация и песочница</label>
-            <span style={{ fontSize: "var(--font-size-caption, 0.75rem)", color: "var(--text-muted)", marginBottom: "8px" }}>
+            <span style={{ fontSize: "var(--font-size-caption, 0.75rem)", color: "var(--text-muted)", marginBottom: "0.5rem" }}>
               Интерактивное руководство по созданию плагинов, спецификация API и песочница для отладки кода.
             </span>
             <FocusableButton
               onClick={() => window.open("/wiki", "_blank")}
               className="settings-btn-primary"
-              style={{ alignSelf: "flex-start", padding: "0.625rem 1.25rem", display: "flex", alignItems: "center", gap: "8px" }}
+              style={{ alignSelf: "flex-start", padding: "0.625rem 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}
             >
-              <BookOpen size={16} />
+              <BookOpen size="1rem" />
               <span>Открыть Вики</span>
             </FocusableButton>
           </div>

@@ -1,6 +1,6 @@
 .sidebar {
-  width: 280px;
-  min-width: 280px;
+  width: 17.5rem;
+  min-width: 17.5rem;
   flex-shrink: 0;
   white-space: nowrap;
   height: 100vh;
@@ -50,7 +50,7 @@
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: var(--space-xs) 14px;
+  padding: var(--space-xs) 0.875rem;
   font-size: 0.625rem;
   opacity: 0.8;
 }
@@ -59,7 +59,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-s);
-  padding: 10px 14px 10px 11px;
+  padding: 0.625rem 0.875rem 0.625rem 0.6875rem;
   border-radius: var(--radius-m);
   font: var(--font-body-bold);
   color: var(--text-secondary);
@@ -96,7 +96,7 @@
 
 /* Gorgeous macOS-style sidebar search bar */
 .sidebar-search-form {
-  padding: 2px 8px;
+  padding: 0.125rem 0.5rem;
   margin-bottom: var(--space-xs);
   width: 100%;
 }
@@ -110,7 +110,7 @@
 
 .sidebar-search-icon {
   position: absolute;
-  left: 10px;
+  left: 0.625rem;
   color: var(--text-tertiary);
   pointer-events: none;
   transition: color 0.2s ease;
@@ -118,7 +118,7 @@
 
 .sidebar-search-input {
   width: 100%;
-  padding: 8px 28px 8px 30px;
+  padding: 0.5rem 1.75rem 0.5rem 1.875rem;
   background: var(--bg-surface-high);
   border: var(--glass-border);
   color: var(--text-primary);
@@ -146,7 +146,7 @@
 
 .sidebar-search-clear {
   position: absolute;
-  right: 8px;
+  right: 0.5rem;
   background: transparent;
   border: none;
   color: var(--text-tertiary);
@@ -154,7 +154,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px;
+  padding: 0.125rem;
   border-radius: var(--radius-s);
   transition: background 0.2s, color 0.2s;
 }
@@ -188,8 +188,8 @@
 }
 
 .sidebar-status-dot {
-  width: 8px;
-  height: 8px;
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: var(--radius-full);
 }
 
@@ -223,7 +223,7 @@
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 6px;
+  padding: 0.375rem;
   border-radius: var(--radius-s);
   display: flex;
   align-items: center;
@@ -244,8 +244,8 @@
 }
 
 .app-container.sidebar-collapsed .sidebar {
-  width: 78px;
-  min-width: 78px;
+  width: 4.875rem;
+  min-width: 4.875rem;
   padding: var(--space-l) var(--space-xs);
   align-items: center;
   overflow: hidden !important;
@@ -266,15 +266,15 @@
 }
 
 .app-container.sidebar-collapsed .sidebar-toggle-btn {
-  margin-top: 4px;
+  margin-top: 0.25rem;
 }
 
 .app-container.sidebar-collapsed .sidebar .sidebar-nav-item {
   justify-content: center;
-  padding: 10px 0;
+  padding: 0.625rem 0;
   border-radius: var(--radius-m);
-  width: 44px;
-  height: 44px;
+  width: 2.75rem;
+  height: 2.75rem;
   margin: 0 auto;
   border-left: none;
 }
@@ -303,10 +303,10 @@
 .sidebar-alert-offline {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   background-color: var(--error);
   color: white;
-  padding: 8px 12px;
+  padding: 0.5rem 0.75rem;
   border-radius: var(--radius-s);
   font-size: 0.6875rem;
   font-weight: bold;

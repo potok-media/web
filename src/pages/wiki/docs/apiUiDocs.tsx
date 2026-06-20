@@ -126,7 +126,7 @@ ui.navigateTo("/library", { filter: "watchlist" });`}
         <li><code>id</code> (string, обязательное) — Уникальный идентификатор вклада в рамках плагина (должен соответствовать <code>id</code> из массива <code>slots</code> в манифесте).</li>
         <li><code>slotName</code> (string, обязательное) — Целевая точка встраивания (например, <code>"media-actions"</code>, <code>"details-bottom"</code>, <code>"extension-page"</code>).</li>
         <li><code>render(props)</code> (function, обязательное) — Функция, возвращающая UI. Принимает <code>props</code> (данные текущего контекста хоста, например, информацию о просматриваемом фильме) и должна возвращать объект:
-          <ul className="doc-bullet-list" style={{ marginTop: "4px", paddingLeft: "1.2rem" }}>
+          <ul className="doc-bullet-list" style={{ marginTop: "0.25rem", paddingLeft: "1.2rem" }}>
             <li><code>label</code> (string) — Название/подпись для вклада.</li>
             <li><code>icon</code> (string, опционально) — Имя иконки Lucide.</li>
             <li><code>layout</code> (UIComponent) — Дерево UI компонентов (создается с помощью билдеров <code>Card()</code>, <code>VStack()</code>, <code>Button()</code> и т.д.).</li>
@@ -270,7 +270,7 @@ ui.render(
         )
     )
 );`)}>
-        <Play size={12} />
+        <Play size="0.75rem" />
         <span>Протестировать оверлеи в Sandbox</span>
       </button>
     </div>

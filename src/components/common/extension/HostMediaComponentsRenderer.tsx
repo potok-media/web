@@ -45,7 +45,7 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
       };
       if (!componentProps.item) return null;
       return (
-        <div key={id} style={{ width: "160px", ...baseStyle }}>
+        <div key={id} style={{ width: "10rem", ...baseStyle }}>
           <MediaCardComponent
             item={componentProps.item as ApiMediaCard}
             onClick={handleMediaCardClick}
@@ -83,7 +83,7 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
       });
 
       return (
-        <div key={id} style={{ width: "100%", borderRadius: "12px", overflow: "hidden", ...baseStyle }}>
+        <div key={id} style={{ width: "100%", borderRadius: "0.75rem", overflow: "hidden", ...baseStyle }}>
           <HeroSpotlight
             items={spotlightItems}
             onPlay={handlePlay}
@@ -261,7 +261,7 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
       };
       if (!episode) return null;
       return (
-        <div key={id} style={{ width: "280px", ...baseStyle }}>
+        <div key={id} style={{ width: "17.5rem", ...baseStyle }}>
           <EpisodeCard
             episode={episode as any}
             onClick={handleEpisodeClick}

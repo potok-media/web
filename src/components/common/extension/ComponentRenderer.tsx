@@ -154,7 +154,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       return (
         <Grid
           key={id}
-          minWidth={componentProps.minWidth || "180px"}
+          minWidth={componentProps.minWidth || "11.25rem"}
           gap={componentProps.gap}
           style={baseStyle}
         >
@@ -291,15 +291,15 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
         const pascalName = toPascalCase(iconName);
         const DynamIcon = (Lucide as any)[pascalName] || (Lucide as any)[iconName];
         if (DynamIcon) {
-          IconComponent = <DynamIcon size={18} />;
+          IconComponent = <DynamIcon size="1.125rem" />;
         } else {
           const iconUrl = `/assets/icons/${iconName}.svg`;
           IconComponent = (
             <span
               style={{
                 display: "inline-block",
-                width: "18px",
-                height: "18px",
+                width: "1.125rem",
+                height: "1.125rem",
                 backgroundColor: "currentColor",
                 maskImage: `url(${iconUrl})`,
                 WebkitMaskImage: `url(${iconUrl})`,

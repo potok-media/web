@@ -357,7 +357,7 @@ function draw() {
 
 state.$subscribe(draw);
 draw();`)}>
-        <Play size={12} />
+        <Play size="0.75rem" />
         <span>Запустить пример с реактивностью в Sandbox</span>
       </button>
     </div>

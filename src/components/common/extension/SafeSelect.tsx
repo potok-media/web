@@ -191,12 +191,12 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
       <span 
         style={{
           display: "inline-block",
-          width: "12px",
-          height: "12px",
+          width: "0.75rem",
+          height: "0.75rem",
           borderRadius: "50%",
           background: `linear-gradient(135deg, ${colors.accent} 50%, ${colors.bg} 50%)`,
           border: "1px solid var(--text-tertiary)",
-          marginRight: "8px",
+          marginRight: "0.5rem",
           flexShrink: 0
         }}
       />
@@ -215,7 +215,7 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
 
   return (
     <div key={id} className="potok-input-group filter-popover-wrapper" style={{ ...baseStyle, position: "relative" }}>
-      {!isGlass && componentProps.label && <label className="potok-label" style={{ marginBottom: "6px" }}>{componentProps.label}</label>}
+      {!isGlass && componentProps.label && <label className="potok-label" style={{ marginBottom: "0.375rem" }}>{componentProps.label}</label>}
       <FocusableButton
         ref={triggerRef}
         type="button"
@@ -223,9 +223,9 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
         style={isGlass ? {
           display: "flex",
           alignItems: "center",
-          gap: "8px",
-          padding: "10px 16px",
-          borderRadius: "10px",
+          gap: "0.5rem",
+          padding: "0.625rem 1rem",
+          borderRadius: "0.625rem",
           cursor: "pointer",
         } : { 
           width: "100%", 
@@ -236,15 +236,15 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
         disabled={componentProps.disabled}
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          {IconComponent && <IconComponent size={14} />}
+        <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          {IconComponent && <IconComponent size="0.875rem" />}
           {componentProps.multiple && Array.isArray(localSelected) && localSelected.length === 1 && getThemeColorPreview(localSelected[0])}
           {!componentProps.multiple && typeof localSelected === "string" && getThemeColorPreview(localSelected)}
           <span className={isGlass ? "filter-btn-text" : ""}>
             {getTriggerLabel()}
           </span>
         </span>
-        <ChevronDown size={14} style={isGlass ? undefined : { opacity: 0.7 }} />
+        <ChevronDown size="0.875rem" style={isGlass ? undefined : { opacity: 0.7 }} />
         {isGlass && isResetActive() && (
           <span className="filter-badge-dot" />
         )}
@@ -265,11 +265,11 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
           left: isPopoverAlignRight ? undefined : `${coords.left}px`,
           right: isPopoverAlignRight ? `${window.innerWidth - (coords.left + coords.width)}px` : undefined,
           width: isGlass ? "auto" : `${coords.width}px`,
-          minWidth: isGlass ? "200px" : undefined,
+          minWidth: isGlass ? "12.5rem" : undefined,
           zIndex: 999999,
-          marginTop: coords.openUpward ? "-6px" : "6px",
+          marginTop: coords.openUpward ? "-0.375rem" : "0.375rem",
           transform: coords.openUpward ? "translateY(-100%)" : "none",
-          maxHeight: "280px",
+          maxHeight: "17.5rem",
           overflowY: "auto",
           boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
           animation: "fadeIn 0.15s ease-out"
@@ -301,7 +301,7 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
                     {opt.value && getThemeColorPreview(opt.value)}
                     <span>{opt.label}</span>
                   </span>
-                  {active && <Check size={14} className="filter-popover-check" />}
+                  {active && <Check size="0.875rem" className="filter-popover-check" />}
                 </FocusableButton>
               );
             })}

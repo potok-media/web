@@ -27,7 +27,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
   return (
     <div className="doc-code-card" style={{ position: "relative", margin: "var(--space-m) 0" }}>
       <button className="doc-code-copy" onClick={handleCopy}>
-        {copied ? <CheckCircle size={14} style={{ color: "var(--accent-color)" }} /> : <Copy size={14} />}
+        {copied ? <CheckCircle size="0.875rem" style={{ color: "var(--accent-color)" }} /> : <Copy size="0.875rem" />}
       </button>
       <pre style={{ margin: 0, padding: 0, background: "transparent" }}>
         <code ref={codeRef} className={`language-${language}`}>

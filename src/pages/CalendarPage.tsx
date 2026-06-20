@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Clock, AlertCircle, RefreshCw, BookmarkCheck, Star } from "lucide-react";
 import { useCalendarData } from "../hooks/useCalendarData";
 import type { MediaCard } from "../network/ApiTypes";
 import { FilmOff } from "../components/common/FilmOff";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { restoreFocusOrDefault } from "../utils/focusMemory";
 import { Focusable, FocusableButton } from "../components/common/TVNavigation";
 import { PageFrame } from "../components/common/PageFrame";
 import { usePlatform } from "../hooks/usePlatform";
@@ -28,13 +28,15 @@ const CalendarSkeleton: React.FC = () => (
 
 export const CalendarPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { items, loading, error, refetch, isTraktConnected } = useCalendarData();
   const [activeFilter, setActiveFilter] = useState<"all" | "today" | "tomorrow" | "this-week">("all");
   const { isTV } = usePlatform();
 
   useEffect(() => {
-    setFocus("CALENDAR_FIRST_TAB");
-  }, []);
+    // On Back, restore the row/tab the user was on; otherwise default to the first filter tab.
+    restoreFocusOrDefault(location.key || location.pathname, "CALENDAR_FIRST_TAB");
+  }, [location.key, location.pathname, loading]);
 
   const filterChips = [
     { key: "all", label: "Все релизы" },
@@ -161,7 +163,7 @@ export const CalendarPage: React.FC = () => {
       {!isTraktConnected && (
         <div className="calendar-trakt-banner">
           <div className="calendar-trakt-banner-content">
-            <BookmarkCheck size={20} className="calendar-trakt-banner-icon" />
+            <BookmarkCheck size="1.25rem" className="calendar-trakt-banner-icon" />
             <div className="calendar-trakt-banner-text-col">
               <span className="calendar-trakt-banner-title">Синхронизируйте личное расписание</span>
               <span className="calendar-trakt-banner-desc">
@@ -181,10 +183,10 @@ export const CalendarPage: React.FC = () => {
 
       {/* Error state */}
       {error && (
-        <div className="calendar-empty" role="alert" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
-          <AlertCircle size={40} className="calendar-time-icon" style={{ color: "var(--error)" }} />
+        <div className="calendar-empty" role="alert" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
+          <AlertCircle size="2.5rem" className="calendar-time-icon" style={{ color: "var(--error)" }} />
           <div>
-            <h2 style={{ fontSize: "1.1rem", fontWeight: 600, color: "var(--text-primary)", marginBottom: "4px" }}>
+            <h2 style={{ fontSize: "1.1rem", fontWeight: 600, color: "var(--text-primary)", marginBottom: "0.25rem" }}>
               Ошибка загрузки расписания
             </h2>
             <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", margin: 0 }}>{error}</p>
@@ -192,9 +194,9 @@ export const CalendarPage: React.FC = () => {
           <FocusableButton
             className="calendar-trakt-banner-btn"
             onClick={refetch}
-            style={{ display: "inline-flex", alignItems: "center", gap: "8px", marginTop: "8px" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem" }}
           >
-            <RefreshCw size={14} />
+            <RefreshCw size="0.875rem" />
             Повторить попытку
           </FocusableButton>
         </div>
@@ -217,6 +219,7 @@ export const CalendarPage: React.FC = () => {
                   return (
                     <Focusable
                       key={`${item.id}-${item.nextEpisodeSeason ?? 0}-${item.nextEpisodeNumber ?? 0}-${item.airDateTime ?? ''}`}
+                      focusKey={`CAL_ROW_${item.id}-${item.nextEpisodeSeason ?? 0}-${item.nextEpisodeNumber ?? 0}`}
                       onEnterPress={() => {
                         navigate(`/media/tv/${item.id}`);
                       }}
@@ -246,23 +249,23 @@ export const CalendarPage: React.FC = () => {
                                   }}
                                 />
                                 <div className="media-poster-fallback-placeholder" style={{ display: 'none', height: '100%', width: '100%' }}>
-                                  <FilmOff size={24} />
+                                  <FilmOff size="1.5rem" />
                                 </div>
                               </>
                             ) : (
                               <div className="media-poster-fallback-placeholder" style={{ height: '100%', width: '100%' }}>
-                                <FilmOff size={24} />
+                                <FilmOff size="1.5rem" />
                               </div>
                             )}
                           </div>
 
                           {/* Episode detailing */}
                           <div className="calendar-info-col">
-                            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
                               <span className="calendar-show-title">{item.title}</span>
                               {rating && (
-                                <span className="media-glass-pill rating-pill" style={{ display: "inline-flex", alignItems: "center", gap: "3px", padding: "2px 6px", height: "auto", fontSize: "0.75rem" }}>
-                                  <Star size={10} fill="var(--warning)" stroke="var(--warning)" />
+                                <span className="media-glass-pill rating-pill" style={{ display: "inline-flex", alignItems: "center", gap: "0.1875rem", padding: "0.125rem 0.375rem", height: "auto", fontSize: "0.75rem" }}>
+                                  <Star size="0.625rem" fill="var(--warning)" stroke="var(--warning)" />
                                   <span>{rating.toFixed(1)}</span>
                                 </span>
                               )}
@@ -282,7 +285,7 @@ export const CalendarPage: React.FC = () => {
 
                           {/* Localized release time tag */}
                           <div className="calendar-time-tag">
-                            <Clock size={14} className="calendar-time-icon" />
+                            <Clock size="0.875rem" className="calendar-time-icon" />
                             <span>{formatReleaseTime(item.airDateTime)}</span>
                           </div>
                         </Link>

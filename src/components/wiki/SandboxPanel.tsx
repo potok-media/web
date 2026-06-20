@@ -54,11 +54,11 @@ export const SandboxPanel: React.FC<SandboxPanelProps> = ({
 
         <div className="sb-actions">
           <button className="sb-btn sb-btn-run" onClick={handleRun}>
-            <Play size={14} />
+            <Play size="0.875rem" />
             Запустить
           </button>
           <button className="sb-btn" onClick={handleReset}>
-            <RefreshCw size={14} />
+            <RefreshCw size="0.875rem" />
             Сбросить
           </button>
         </div>

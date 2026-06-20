@@ -5,7 +5,7 @@ import { StreamList } from "../components/common/StreamList";
 import { StreamSidebar } from "../components/StreamSidebar";
 import { EpisodeSelectorPopup } from "../components/common/EpisodeSelectorPopup";
 import { FocusableButton } from "../components/common/TVNavigation";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { restoreFocusOrDefault } from "../utils/focusMemory";
 import { PlatformManager } from "../utils/PlatformManager";
 import { useMediaStreams } from "../hooks/useMediaStreams";
 import type { MediaCard } from "../network/ApiTypes";
@@ -55,9 +55,9 @@ export const MediaStreamsPage: React.FC = () => {
   React.useEffect(() => {
     if (!PlatformManager.isTV()) return;
     if (loading || streams.length === 0) return;
-    const t = setTimeout(() => setFocus("STREAM_FIRST_ROW"), 80);
+    const t = setTimeout(() => restoreFocusOrDefault(location.key || location.pathname, "STREAM_FIRST_ROW"), 80);
     return () => clearTimeout(t);
-  }, [loading, streams.length]);
+  }, [loading, streams.length, location.key, location.pathname]);
 
   const renderSidebar = () => {
     if (currentMedia) {
@@ -65,8 +65,8 @@ export const MediaStreamsPage: React.FC = () => {
     }
     return (
       <aside className="streams-page-sidebar skeleton-loading">
-        <FocusableButton className="streams-sidebar-back-btn" onClick={() => navigate(-1)}><ArrowLeft size={18} /></FocusableButton>
-        <div className="streams-sidebar-poster skeleton" style={{ height: "360px", borderRadius: "12px", background: "rgba(255,255,255,0.05)" }} />
+        <FocusableButton className="streams-sidebar-back-btn" onClick={() => navigate(-1)}><ArrowLeft size="1.125rem" /></FocusableButton>
+        <div className="streams-sidebar-poster skeleton" style={{ height: "22.5rem", borderRadius: "0.75rem", background: "rgba(255,255,255,0.05)" }} />
       </aside>
     );
   };
@@ -111,7 +111,7 @@ export const MediaStreamsPage: React.FC = () => {
   if (!loadingMediaDetails && !currentMedia) {
     return (
       <div className="media-not-found-container">
-        <ShieldAlert size={48} className="media-not-found-icon" />
+        <ShieldAlert size="3rem" className="media-not-found-icon" />
         <h2 className="media-not-found-title">Медиа не найдено</h2>
         <FocusableButton className="btn-glass" onClick={() => navigate(-1)}>Назад</FocusableButton>
       </div>
@@ -131,7 +131,7 @@ export const MediaStreamsPage: React.FC = () => {
               <div className="spinner-outer" />
               <div className="spinner-inner" />
             </div>
-            <span style={{ marginTop: "12px", fontSize: "0.95rem", color: "#fff", fontWeight: 500 }}>
+            <span style={{ marginTop: "0.75rem", fontSize: "0.95rem", color: "#fff", fontWeight: 500 }}>
               Получение информации...
             </span>
           </div>

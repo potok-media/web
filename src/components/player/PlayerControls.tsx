@@ -156,11 +156,11 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
               title="Назад на 10 сек."
               aria-label="Назад на 10 секунд"
             >
-              <RotateCcw size={18} />
+              <RotateCcw size="1.125rem" />
             </button>
 
             <button className="control-icon-btn" onClick={onTogglePlay} aria-label={isPlaying ? "Пауза" : "Воспроизведение"}>
-              {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
+              {isPlaying ? <Pause size="1.25rem" fill="currentColor" /> : <Play size="1.25rem" fill="currentColor" />}
             </button>
 
             <button 
@@ -173,12 +173,12 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
               title="Вперед на 10 сек."
               aria-label="Вперед на 10 секунд"
             >
-              <RotateCw size={18} />
+              <RotateCw size="1.125rem" />
             </button>
             
             <div className="volume-control-wrapper">
               <button className="control-icon-btn" onClick={onToggleMuted} aria-label="Вкл/Выкл звук">
-                {isMuted || volume === 0 ? <VolumeX size={20} /> : volume < 0.5 ? <Volume1 size={20} /> : <Volume2 size={20} />}
+                {isMuted || volume === 0 ? <VolumeX size="1.25rem" /> : volume < 0.5 ? <Volume1 size="1.25rem" /> : <Volume2 size="1.25rem" />}
               </button>
               <input 
                 type="range"
@@ -205,11 +205,11 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
               title="Диагностика"
               aria-label="Показать диагностику"
             >
-              <Activity size={18} />
+              <Activity size="1.125rem" />
             </button>
 
             <TrackSelectorDropdown
-              icon={<Volume2 size={18} />}
+              icon={<Volume2 size="1.125rem" />}
               title="Аудиодорожки"
               items={displayAudioTracks}
               currentItemId={displayCurrentAudio}
@@ -219,7 +219,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             />
 
             <TrackSelectorDropdown
-              icon={<Subtitles size={18} />}
+              icon={<Subtitles size="1.125rem" />}
               title="Субтитры"
               items={subtitleTracks}
               currentItemId={currentSubtitleTrack}
@@ -234,7 +234,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
 
             {playlistItems && playlistItems.length > 0 && (
               <TrackSelectorDropdown
-                icon={<ListVideo size={18} />}
+                icon={<ListVideo size="1.125rem" />}
                 title="Серии плейлиста"
                 items={playlistItems}
                 currentItemId={playlistIndex ?? -1}
@@ -246,7 +246,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
 
             {qualityLevels && qualityLevels.length > 0 && (
               <TrackSelectorDropdown
-                icon={<Settings size={18} />}
+                icon={<Settings size="1.125rem" />}
                 title="Качество"
                 items={qualityLevels}
                 currentItemId={currentQualityLevel}
@@ -257,7 +257,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             )}
 
             <button className="control-icon-btn" onClick={onToggleFullscreen} aria-label="Во весь экран">
-              {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+              {isFullscreen ? <Minimize size="1.25rem" /> : <Maximize size="1.25rem" />}
             </button>
           </div>
         </div>

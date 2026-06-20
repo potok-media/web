@@ -31,8 +31,8 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
       style={{ maxWidth: "34rem" }}
     >
       <div className="manifest-modal-header" style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>
-        <div className="potok-hstack" style={{ alignItems: "center", gap: "10px" }}>
-          <ShieldAlert size={24} style={{ color: "#ff9f1a" }} />
+        <div className="potok-hstack" style={{ alignItems: "center", gap: "0.625rem" }}>
+          <ShieldAlert size="1.5rem" style={{ color: "#ff9f1a" }} />
           <div>
             <h3 className="manifest-modal-title" style={{ color: "#ff9f1a", fontWeight: 700 }}>
               Подтверждение разрешений
@@ -43,7 +43,7 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
           </div>
         </div>
         <FocusableButton onClick={onClose} className="manifest-modal-close" title="Закрыть">
-          <X size={20} />
+          <X size="1.25rem" />
         </FocusableButton>
       </div>
 
@@ -64,7 +64,7 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
         <div style={{
           background: "rgba(255, 159, 26, 0.06)",
           border: "1px solid rgba(255, 159, 26, 0.2)",
-          borderRadius: "8px",
+          borderRadius: "0.5rem",
           padding: "1rem",
           display: "flex",
           flexDirection: "column",
@@ -77,7 +77,7 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
         </div>
       </div>
 
-      <div className="manifest-modal-footer" style={{ padding: "1.25rem 1.5rem", borderTop: "1px solid rgba(255, 255, 255, 0.08)", display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+      <div className="manifest-modal-footer" style={{ padding: "1.25rem 1.5rem", borderTop: "1px solid rgba(255, 255, 255, 0.08)", display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
         <FocusableButton
           focusKey="CONSENT_MODAL_CONFIRM"
           onClick={onConfirm}
@@ -89,7 +89,7 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
         <FocusableButton
           onClick={onClose}
           className="potok-btn potok-btn-ghost"
-          style={{ fontSize: "0.85rem", padding: "0.6rem 1.2rem", border: "1px solid rgba(255, 255, 255, 0.15)", borderRadius: "6px", color: "var(--text-primary)" }}
+          style={{ fontSize: "0.85rem", padding: "0.6rem 1.2rem", border: "1px solid rgba(255, 255, 255, 0.15)", borderRadius: "0.375rem", color: "var(--text-primary)" }}
         >
           Отмена
         </FocusableButton>

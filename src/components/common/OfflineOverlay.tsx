@@ -54,7 +54,7 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
           themeColor: "var(--accent, #007aff)",
           dimColor: "var(--accent-dim, rgba(0, 122, 255, 0.15))",
           glowColor: "rgba(0, 122, 255, 0.1)",
-          icon: <Loader2 size={32} className="potok-overlay-spinner-icon" />,
+          icon: <Loader2 size="2rem" className="potok-overlay-spinner-icon" />,
         };
       case "offline":
         return {
@@ -65,7 +65,7 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
           themeColor: "var(--error, #ef4444)",
           dimColor: "var(--error-dim, rgba(239, 68, 68, 0.15))",
           glowColor: "rgba(239, 68, 68, 0.1)",
-          icon: <WifiOff size={32} style={{ color: "var(--error, #ef4444)" }} />,
+          icon: <WifiOff size="2rem" style={{ color: "var(--error, #ef4444)" }} />,
         };
       case "setupRequired":
         return {
@@ -74,7 +74,7 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
           themeColor: "var(--warning, #f59e0b)",
           dimColor: "var(--warning-dim, rgba(245, 158, 11, 0.15))",
           glowColor: "rgba(245, 158, 11, 0.1)",
-          icon: <Settings2 size={32} style={{ color: "var(--warning, #f59e0b)" }} />,
+          icon: <Settings2 size="2rem" style={{ color: "var(--warning, #f59e0b)" }} />,
         };
       default:
         return {
@@ -83,7 +83,7 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
           themeColor: "var(--accent, #007aff)",
           dimColor: "rgba(255, 255, 255, 0.1)",
           glowColor: "rgba(255, 255, 255, 0.05)",
-          icon: <Server size={32} />,
+          icon: <Server size="2rem" />,
         };
     }
   };
@@ -145,7 +145,7 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
                     <span>
                       {state === "offline" ? "Применить и повторить попытку" : "Сохранить и подключиться"}
                     </span>
-                    <ArrowRight size={16} className="arrow-icon" />
+                    <ArrowRight size="1rem" className="arrow-icon" />
                   </FocusableButton>
 
                   {state === "offline" && onRetry && (
@@ -182,8 +182,8 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
           /* Ambient Orbs */
           .potok-ambient-glow {
             position: absolute;
-            width: 450px;
-            height: 450px;
+            width: 28.125rem;
+            height: 28.125rem;
             border-radius: 50%;
             background: radial-gradient(circle, var(--glow-color, var(--accent)) 0%, transparent 70%);
             opacity: 0.12;
@@ -198,8 +198,8 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
           .potok-ambient-glow.second {
             top: 55%;
             left: 55%;
-            width: 500px;
-            height: 500px;
+            width: 31.25rem;
+            height: 31.25rem;
             animation: potokPulseGlow 14s ease-in-out infinite alternate-reverse;
           }
 
@@ -219,19 +219,19 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
             position: relative;
             z-index: 10;
             width: 100%;
-            max-width: 460px;
-            margin: 20px;
-            padding: 40px;
+            max-width: 28.75rem;
+            margin: 1.25rem;
+            padding: 2.5rem;
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 24px;
+            border-radius: 1.5rem;
             box-shadow: 
               0 30px 80px rgba(0, 0, 0, 0.6),
               inset 0 1px 0 rgba(255, 255, 255, 0.08);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 28px;
+            gap: 1.75rem;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             animation: potokCardFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -254,19 +254,19 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
             flex-direction: column;
             align-items: center;
             text-align: center;
-            gap: 16px;
+            gap: 1rem;
           }
 
           .potok-overlay-icon-wrapper {
-            width: 72px;
-            height: 72px;
+            width: 4.5rem;
+            height: 4.5rem;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.08);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 8px;
+            margin-bottom: 0.5rem;
             transition: all 0.3s ease;
           }
 
@@ -302,19 +302,19 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
             line-height: 1.5;
             color: var(--text-secondary, #a1a1a6);
             margin: 0;
-            max-width: 360px;
+            max-width: 22.5rem;
           }
 
           /* Spinner container for checking state */
           .potok-spinner-container {
             display: flex;
             justify-content: center;
-            padding: 8px 0;
+            padding: 0.5rem 0;
           }
 
           .potok-premium-spinner {
-            width: 44px;
-            height: 44px;
+            width: 2.75rem;
+            height: 2.75rem;
             position: relative;
           }
 
@@ -337,7 +337,7 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 1.25rem;
           }
 
           .potok-input-wrapper {
@@ -347,10 +347,10 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
 
           .potok-premium-input {
             width: 100%;
-            padding: 14px 20px;
+            padding: 0.875rem 1.25rem;
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
+            border-radius: 0.75rem;
             color: var(--text-primary, #ffffff);
             font-size: 0.95rem;
             text-align: center;
@@ -374,7 +374,7 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
           .potok-action-buttons {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 0.75rem;
             width: 100%;
           }
 
@@ -382,10 +382,10 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 0.5rem;
             width: 100%;
-            padding: 14px 24px;
-            border-radius: 12px;
+            padding: 0.875rem 1.5rem;
+            border-radius: 0.75rem;
             background: linear-gradient(135deg, var(--accent, #007aff) 0%, rgba(from var(--accent, #007aff) r g b / 0.85) 100%);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #ffffff;
@@ -419,8 +419,8 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
 
           .potok-btn-secondary {
             width: 100%;
-            padding: 14px 24px;
-            border-radius: 12px;
+            padding: 0.875rem 1.5rem;
+            border-radius: 0.75rem;
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.08);
             color: var(--text-secondary, #a1a1a6);

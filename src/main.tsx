@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { init } from '@noriginmedia/norigin-spatial-navigation'
 import { PlatformManager } from './utils/PlatformManager'
+import { startClientLogShipping } from './utils/clientLogShipper'
 import './index.css'
 import App from './App.tsx'
 
@@ -31,41 +32,64 @@ window.addEventListener('vite:preloadError', () => {
   }
 })
 
-init({
-  debug: false,
-  visualDebug: false
-})
+// Forward client logs (incl. worker-forwarded network/header logs) to the preview/dev
+// server terminal. No-op on the production host. Registered early to catch startup logs.
+startClientLogShipping()
 
+// PlatformManager.init() runs first so PlatformManager.isTV() is settled before we
+// configure spatial navigation below.
 PlatformManager.init()
 
-let lastKeyPressTime = 0;
-const dpadKeys = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Select']);
-const dpadKeyCodes = new Set([37, 38, 39, 40, 13, 23, 66]);
+// On TV the carousels/lists are moved with CSS transform (TVScrollView), which
+// offset-based geometry can't see. useGetBoundingClientRect switches norigin to
+// transform-aware measurement so arrow navigation stays correct. Desktop never moves
+// content via transform, so it keeps the cheaper offset math (zero new reflow).
+//
+// shouldFocusDOMNode: by default norigin tracks focus virtually (CSS classes) and never
+// focuses the real DOM element — so a text <input> never becomes the document's active
+// element, and the TV OS keyboard (Apple TV / Luxo) never appears. Enabling it makes
+// norigin call node.focus() on the focused element, so landing on a field opens the
+// system keyboard. The HTMLElement.focus override (TVNavigation) forces preventScroll,
+// so this adds no scroll jank. TV-only — desktop keeps real pointer focus already.
+init({
+  debug: false,
+  visualDebug: false,
+  useGetBoundingClientRect: PlatformManager.isTV(),
+  shouldFocusDOMNode: PlatformManager.isTV()
+})
+
+// Throttle D-pad navigation on TV. A held remote arrow auto-repeats keydowns every
+// ~30-60ms, flooding spatial-navigation with layout + smooth-scroll work and making the
+// UI lag and stutter. Drop arrow repeats faster than 100ms (≈10 moves/sec — still feels
+// responsive), mirroring Lampa's keypad throttle. The capture phase runs before norigin's
+// handler, so throttled events never reach it. Only the four arrows are throttled: Enter/
+// Back don't auto-repeat into a flood, and dropping a deliberate press would feel broken.
+const ARROW_KEYCODES = new Set([37, 38, 39, 40]);
+const NAV_THROTTLE_MS = 100;
+let lastNavTs = 0;
 
 window.addEventListener(
   'keydown',
   (e: KeyboardEvent) => {
-    if (!PlatformManager.isTV()) {
-      return;
-    }
+    if (!PlatformManager.isTV()) return;
 
-    const isDpad =
-      dpadKeys.has(e.key) ||
-      dpadKeyCodes.has(e.keyCode) ||
-      dpadKeyCodes.has(e.which);
+    const code = e.keyCode || e.which;
+    if (!ARROW_KEYCODES.has(code)) return;
 
-    if (!isDpad) {
+    // Never throttle caret movement inside text fields.
+    const el = document.activeElement as HTMLElement | null;
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) {
       return;
     }
 
     const now = Date.now();
-    if (now - lastKeyPressTime < 85) {
-      e.stopImmediatePropagation();
+    if (now - lastNavTs < NAV_THROTTLE_MS) {
       e.preventDefault();
+      e.stopImmediatePropagation();
       return;
     }
 
-    lastKeyPressTime = now;
+    lastNavTs = now;
   },
   { capture: true }
 );

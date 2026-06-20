@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import { useParams, useLocation, Link, useNavigate } from "react-router-dom";
 import { 
   Film, 
@@ -13,6 +13,7 @@ import { CATEGORY_MAP, DYNAMIC_CATEGORY_TITLES } from "./LibraryConfig";
 import { Grid } from "../components/common/Grid";
 import { PlatformManager } from "../utils/PlatformManager";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { restoreFocusOrDefault } from "../utils/focusMemory";
 import { FocusableInput, FocusableButton } from "../components/common/TVNavigation";
 import { PageFrame } from "../components/common/PageFrame";
 import { usePlatform } from "../hooks/usePlatform";
@@ -99,18 +100,38 @@ export const LibraryPage: React.FC = () => {
     };
   }, [visibleCount, items.length, renderChunk]);
 
+  // After a MANUAL "Load more" click finishes loading, re-center focus on the button (new cards
+  // render above it, pushing it off-screen). Only after a button click — never for the focus-driven
+  // auto-load, which would yank the user off the card they're on.
+  const loadMoreClickedRef = useRef(false);
+  useEffect(() => {
+    if (!loadingMore && loadMoreClickedRef.current) {
+      loadMoreClickedRef.current = false;
+      // Re-focus only if the button is still mounted (it unmounts on the last page when hasMore
+      // goes false; targeting a missing key would drop focus).
+      if (PlatformManager.isTV() && hasMore) setFocus("LIBRARY_LOAD_MORE");
+    }
+  }, [loadingMore, hasMore]);
+
+  // Set the INITIAL focus once per collection/query. Keyed by resetKey so it doesn't re-fire on
+  // every items.length change — otherwise each pagination append would yank focus back to the top.
+  const focusedForKeyRef = useRef("");
   useEffect(() => {
     if (error && !loading) {
       setFocus("LIBRARY_ERROR_RETRY");
       return;
     }
     if (loading) return;
+    if (focusedForKeyRef.current === resetKey) return;
     if (isSearchPage) {
+      focusedForKeyRef.current = resetKey;
       setFocus("SEARCH_INPUT");
     } else if (items.length > 0) {
-      setFocus("LIBRARY_FIRST_CARD");
+      focusedForKeyRef.current = resetKey;
+      // On Back, restore focus to the card the user was on; otherwise default to the first card.
+      restoreFocusOrDefault(location.key || location.pathname, "LIBRARY_FIRST_CARD");
     }
-  }, [loading, isSearchPage, items.length, error]);
+  }, [loading, isSearchPage, items.length, error, resetKey, location.key, location.pathname]);
 
   useEffect(() => {
     if (!hasMore || page >= autoPageLimit || loading || loadingMore) return;
@@ -139,10 +160,28 @@ export const LibraryPage: React.FC = () => {
     };
   }, [hasMore, page, autoPageLimit, loading, loadingMore, loadNextPage]);
 
+  // On TV the page scrolls by transform (PageFrame → TVScrollView), which doesn't fire the
+  // IntersectionObserver sentinels above — so pagination is driven by FOCUS instead: when a card
+  // near the end of the mounted window gets focused, grow the render window and/or fetch the next
+  // page. A ref keeps the latest paging state so the per-card onFocus handler can stay stable.
+  const pagingRef = useRef({ visibleCount, itemsLength: items.length, hasMore, page, autoPageLimit, loading, loadingMore });
+  pagingRef.current = { visibleCount, itemsLength: items.length, hasMore, page, autoPageLimit, loading, loadingMore };
+  const NEAR_END = 8; // ≈ one grid row ahead
+  const handleCardFocus = useCallback((index: number) => {
+    if (!PlatformManager.isTV()) return;
+    const p = pagingRef.current;
+    if (index >= p.visibleCount - NEAR_END && p.visibleCount < p.itemsLength) {
+      setVisibleCount((prev) => Math.min(prev + renderChunk, p.itemsLength));
+    }
+    if (index >= p.itemsLength - NEAR_END && p.hasMore && p.page < p.autoPageLimit && !p.loading && !p.loadingMore) {
+      loadNextPage();
+    }
+  }, [renderChunk, loadNextPage]);
+
   if (error === "trakt_unauthorized") {
     return (
       <div className="library-empty-view">
-        <AlertTriangle size={48} className="library-empty-icon warning" />
+        <AlertTriangle size="3rem" className="library-empty-icon warning" />
         <h2 className="library-empty-title">Синхронизация Trakt не настроена</h2>
         <p className="library-empty-subtitle">
           Чтобы просматривать разделы медиатеки, пожалуйста, привяжите вашу учетную запись Trakt в настройках Potok.
@@ -157,7 +196,7 @@ export const LibraryPage: React.FC = () => {
   if (error && !loading) {
     return (
       <div className="library-empty-view">
-        <AlertTriangle size={48} className="library-empty-icon error" />
+        <AlertTriangle size="3rem" className="library-empty-icon error" />
         <h2 className="library-empty-title">{error}</h2>
         <FocusableButton focusKey="LIBRARY_ERROR_RETRY" className="overlay-btn" onClick={refetch}>Повторить загрузку</FocusableButton>
       </div>
@@ -170,7 +209,7 @@ export const LibraryPage: React.FC = () => {
         <header className="library-header">
           <h1 className="library-large-title">Поиск</h1>
           <div className="search-input-wrapper">
-            <SearchIcon size={18} className="search-input-icon" />
+            <SearchIcon size="1.125rem" className="search-input-icon" />
             <FocusableInput
               focusKey="SEARCH_INPUT"
               type="text"
@@ -196,7 +235,7 @@ export const LibraryPage: React.FC = () => {
                 }}
                 title="Очистить"
               >
-                <X size={18} />
+                <X size="1.125rem" />
               </FocusableButton>
             )}
           </div>
@@ -261,12 +300,14 @@ export const LibraryPage: React.FC = () => {
     if (items.length > 0) {
       return (
         <>
-          <Grid minWidth="170px" className="library-grid">
+          <Grid minWidth="10.625rem" className="library-grid">
             {items.slice(0, visibleCount).map((item, index) => (
               <MediaCardComponent
                 key={item.id}
                 item={item}
-                focusKey={index === 0 ? "LIBRARY_FIRST_CARD" : undefined}
+                // Stable per-card focusKey so focus restores to THIS card on Back.
+                focusKey={index === 0 ? "LIBRARY_FIRST_CARD" : `LIBRARY_CARD_${item.id}`}
+                onFocus={() => handleCardFocus(index)}
               />
             ))}
           </Grid>
@@ -279,18 +320,27 @@ export const LibraryPage: React.FC = () => {
             <div className="library-pagination-wrapper">
               {page >= autoPageLimit ? (
                 <FocusableButton
+                  focusKey="LIBRARY_LOAD_MORE"
                   className="load-more-btn"
                   onClick={() => {
-                    setAutoPageLimit((prev) => prev + (PlatformManager.isTV() ? 3 : 5));
+                    if (loadingMore) return;
+                    // On TV, keep the button mounted/focusable so focus isn't lost: raising the
+                    // limit here would swap the button for the auto-sentinel (unmount → focus flies
+                    // away), and `disabled` while loading makes it unfocusable. Desktop keeps the
+                    // raise to resume native-scroll auto-load.
+                    loadMoreClickedRef.current = true;
+                    if (!PlatformManager.isTV()) {
+                      setAutoPageLimit((prev) => prev + 5);
+                    }
                     loadNextPage();
                   }}
-                  disabled={loadingMore}
+                  disabled={!PlatformManager.isTV() && loadingMore}
                 >
                   {loadingMore ? "Загрузка..." : "Загрузить ещё"}
                 </FocusableButton>
               ) : (
                 <div ref={sentinelRef} className="pagination-sentinel-loader">
-                  {loadingMore && <LoadingSpinner height="80px" message="Загружаем еще..." />}
+                  {loadingMore && <LoadingSpinner height="5rem" message="Загружаем еще..." />}
                 </div>
               )}
             </div>
@@ -303,7 +353,7 @@ export const LibraryPage: React.FC = () => {
       if (query.trim()) {
         return (
           <div className="library-empty-view results-mode">
-            <Film size={48} className="library-empty-icon muted" />
+            <Film size="3rem" className="library-empty-icon muted" />
             <h2 className="library-empty-title">Ничего не найдено</h2>
             <p className="library-empty-subtitle">Попробуйте изменить запрос или проверить написание названия</p>
           </div>
@@ -311,7 +361,7 @@ export const LibraryPage: React.FC = () => {
       }
       return (
         <div className="library-empty-view search-mode">
-          <SearchIcon size={48} className="library-empty-icon muted" />
+          <SearchIcon size="3rem" className="library-empty-icon muted" />
           <h2 className="library-empty-title">Начните поиск</h2>
           <p className="library-empty-subtitle">Введите название фильма или сериала для поиска по базе данных</p>
         </div>
@@ -322,7 +372,7 @@ export const LibraryPage: React.FC = () => {
       const EmptyIcon = category.icon;
       return (
         <div className="library-empty-view collection-mode">
-          <EmptyIcon size={48} className="library-empty-icon muted" />
+          <EmptyIcon size="3rem" className="library-empty-icon muted" />
           <h2 className="library-empty-title">{category.emptyText}</h2>
           <p className="library-empty-subtitle">{category.emptySub}</p>
         </div>

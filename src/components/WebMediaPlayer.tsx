@@ -449,7 +449,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
       {playerError && <PlayerErrorOverlay error={playerError} streamUrl={playback.streamUrl} onRefresh={handleRefreshStream} onClose={handleClose} />}
       {isNetworkOffline && (
         <div className="player-network-offline-banner">
-          <AlertTriangle size={18} />
+          <AlertTriangle size="1.125rem" />
           <span>Связь потеряна. Воспроизведение идет из буфера...</span>
         </div>
       )}

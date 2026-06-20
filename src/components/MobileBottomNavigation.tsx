@@ -20,12 +20,12 @@ export const MobileBottomNavigation: React.FC = () => {
   return (
     <nav className="mobile-bottom-nav">
       <NavLink to="/" className={({ isActive }) => `mobile-nav-item ${isActive ? "active" : ""}`} end>
-        <Home size={20} />
+        <Home size="1.25rem" />
         <span>Главная</span>
       </NavLink>
 
       <NavLink to="/search" className={({ isActive }) => `mobile-nav-item ${isActive ? "active" : ""}`}>
-        <Search size={20} />
+        <Search size="1.25rem" />
         <span>Поиск</span>
       </NavLink>
 
@@ -34,7 +34,7 @@ export const MobileBottomNavigation: React.FC = () => {
         className={({ isActive }) => `mobile-nav-item ${isActive ? "active" : ""}`}
         onClick={handleProtectedClick}
       >
-        <Calendar size={20} />
+        <Calendar size="1.25rem" />
         <span>Расписание</span>
       </NavLink>
 
@@ -43,12 +43,12 @@ export const MobileBottomNavigation: React.FC = () => {
         className={({ isActive }) => `mobile-nav-item ${isActive ? "active" : ""}`}
         onClick={handleProtectedClick}
       >
-        <Play size={20} />
+        <Play size="1.25rem" />
         <span>Медиатека</span>
       </NavLink>
 
       <NavLink to="/profile" className={({ isActive }) => `mobile-nav-item ${isActive ? "active" : ""}`}>
-        <User size={20} />
+        <User size="1.25rem" />
         <span>Кабинет</span>
       </NavLink>
     </nav>

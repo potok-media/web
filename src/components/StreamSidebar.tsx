@@ -21,7 +21,7 @@ export const StreamSidebar: React.FC<StreamSidebarProps> = React.memo(({
         onClick={onBack} 
         title="Назад"
       >
-        <ArrowLeft size={18} />
+        <ArrowLeft size="1.125rem" />
       </FocusableButton>
 
       <div className="streams-sidebar-poster">
@@ -36,7 +36,7 @@ export const StreamSidebar: React.FC<StreamSidebarProps> = React.memo(({
       <div className="streams-sidebar-badges">
         {media.imdbRating && (
           <span className="rating-badge">
-            <Star size={12} fill="white" />
+            <Star size="0.75rem" fill="white" />
             <span>{media.imdbRating.toFixed(1)}</span>
           </span>
         )}

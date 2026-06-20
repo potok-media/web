@@ -41,12 +41,12 @@ const PickerCard = React.memo<PickerCardProps>(({ episode, seasonNumber, isWatch
         <img src={episode.stillPath} alt={episode.name} className="episode-card-image" loading="lazy" decoding="async" />
       ) : (
         <div className="episode-still-fallback-placeholder">
-          <FilmOff size={28} />
+          <FilmOff size="1.75rem" />
         </div>
       )}
       <span className="episode-card-badge">{episode.episodeNumber}</span>
       <div className={`episode-picker-check ${isWatched ? "checked" : ""}`}>
-        {isWatched && <Check size={12} strokeWidth={3.5} />}
+        {isWatched && <Check size="0.75rem" strokeWidth={3.5} />}
       </div>
     </div>
     <div className="episode-card-info">
@@ -224,20 +224,20 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
       styled={false}
       backdropClassName="modal-overlay"
       className="modal-container"
-      style={{ maxWidth: "850px", display: "flex", flexDirection: "column" }}
+      style={{ maxWidth: "53.125rem", display: "flex", flexDirection: "column" }}
     >
         {/* Header — same layout as the torrent EpisodeSelectorPopup, with marking actions. */}
         <div className="modal-header">
           <div className="modal-title-row">
             <button className="modal-close-btn" onClick={onClose} aria-label="Закрыть">
-              <X size={20} />
+              <X size="1.25rem" />
             </button>
             <div className="modal-title-text-group">
               <h3 className="modal-title modal-title-custom-size">Отметить просмотренные</h3>
               <span className="modal-subtitle modal-subtitle-text">{mediaTitle}</span>
               {totalEpisodes > 0 && (
                 <div className="tv-progress-container">
-                  <CheckCircle2 size={12} fill="var(--accent)" stroke="var(--bg-surface)" />
+                  <CheckCircle2 size="0.75rem" fill="var(--accent)" stroke="var(--bg-surface)" />
                   <span>Выбрано серий: {selected.length} из {totalEpisodes}</span>
                 </div>
               )}
@@ -253,18 +253,18 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
         <div className="episode-popup-body" style={{ flex: 1, overflowY: "auto", position: "relative" }}>
           {loading ? (
             <div className="picker-loading-container">
-              <Loader2 className="multipicker-spinner" size={40} style={{ animation: "spin 1s linear infinite", color: "var(--accent)" }} />
+              <Loader2 className="multipicker-spinner" size="2.5rem" style={{ animation: "spin 1s linear infinite", color: "var(--accent)" }} />
               <span className="picker-loading-label">Загрузка серий...</span>
             </div>
           ) : (
             <div className="files-list-container" style={{ display: "flex", flexDirection: "column", height: "100%" }}>
               {uniqueSeasons.length > 1 && (
-                <div className="multipicker-season-tabs" style={{ display: "flex", alignItems: "center", gap: "8px", overflowX: "auto", padding: "12px 20px", borderBottom: "1px solid rgba(255, 255, 255, 0.05)" }}>
+                <div className="multipicker-season-tabs" style={{ display: "flex", alignItems: "center", gap: "0.5rem", overflowX: "auto", padding: "0.75rem 1.25rem", borderBottom: "1px solid rgba(255, 255, 255, 0.05)" }}>
                   {uniqueSeasons.map((sNum) => (
                     <button
                       key={sNum}
                       className={`potok-badge ${selectedSeason === sNum ? "potok-badge-info" : "potok-badge-secondary"}`}
-                      style={{ cursor: "pointer", border: "none", padding: "8px 18px", borderRadius: "20px", fontSize: "0.85rem" }}
+                      style={{ cursor: "pointer", border: "none", padding: "0.5rem 1.125rem", borderRadius: "1.25rem", fontSize: "0.85rem" }}
                       onClick={() => setSelectedSeason(sNum)}
                     >
                       Сезон {sNum}
@@ -281,7 +281,7 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
                 </div>
               )}
 
-              <div className="episode-popup-rows-list" style={{ padding: "20px", flex: 1, overflowY: "auto" }}>
+              <div className="episode-popup-rows-list" style={{ padding: "1.25rem", flex: 1, overflowY: "auto" }}>
                 <div className="episode-grid">
                   {currentSeasonEpisodes.map((ep) => (
                     <PickerCard
@@ -301,7 +301,7 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
           {saving && (
             <div className="saving-overlay">
               <div className="saving-content">
-                <div className="premium-spinner" style={{ marginBottom: "12px" }}>
+                <div className="premium-spinner" style={{ marginBottom: "0.75rem" }}>
                   <div className="spinner-outer" />
                   <div className="spinner-inner" />
                 </div>
@@ -314,12 +314,12 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
         {/* Footer: selection summary + primary actions */}
         <div
           className="multipicker-footer"
-          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", padding: "16px 24px", borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}
+          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", padding: "1rem 1.5rem", borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}
         >
           <span style={{ flex: 1, minWidth: 0, fontSize: "0.8rem", color: "rgba(255,255,255,0.5)", fontFamily: "monospace", lineHeight: 1.3, wordBreak: "break-word" }}>
             {selected.length > 0 ? `Выбрано: ${formatSelectedRanges(selected)}` : "Ничего не выбрано"}
           </span>
-          <div style={{ display: "flex", gap: "12px", flexShrink: 0 }}>
+          <div style={{ display: "flex", gap: "0.75rem", flexShrink: 0 }}>
             <button className="potok-btn potok-btn-secondary" onClick={onClose} disabled={saving}>Отмена</button>
             <button className="potok-btn potok-btn-primary" onClick={handleSave} disabled={loading || saving}>
               {saving ? "Сохранение..." : "Сохранить"}

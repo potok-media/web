@@ -68,7 +68,7 @@ export const MediaOverviewSection: React.FC<MediaOverviewSectionProps> = ({
       <div className="details-rating-container">
         {media.imdbRating && (
           <span className="rating-badge details-rating-badge">
-            <Star size={12} fill="white" />
+            <Star size="0.75rem" fill="white" />
             <span>IMDb {media.imdbRating.toFixed(1)}</span>
           </span>
         )}

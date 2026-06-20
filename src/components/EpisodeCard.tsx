@@ -141,19 +141,19 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
                 />
               ) : (
                 <div className="episode-still-fallback-placeholder">
-                  <FilmOff size={32} />
+                  <FilmOff size="2rem" />
                 </div>
               )}
               {isSelectMode ? (
                 <div className="episode-checkbox-overlay">
                   <div className="episode-select-checkbox">
-                    {isWatched && <Check size={16} strokeWidth={3} style={{ color: "#fff" }} />}
+                    {isWatched && <Check size="1rem" strokeWidth={3} style={{ color: "#fff" }} />}
                   </div>
                 </div>
               ) : (
                 isWatched && (
                   <div className="episode-watched-badge">
-                    <Check size={14} strokeWidth={3} />
+                    <Check size="0.875rem" strokeWidth={3} />
                   </div>
                 )
               )}

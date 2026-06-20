@@ -48,7 +48,7 @@
 
 .tv-overlay-panel--sheet {
   width: 100%;
-  max-width: 720px;
+  max-width: 45rem;
   max-height: 72vh;
   overflow-y: auto;
   border-radius: var(--radius-l, 1rem) var(--radius-l, 1rem) 0 0;
@@ -57,7 +57,7 @@
 
 .tv-overlay-panel--popover {
   position: fixed;
-  min-width: 220px;
+  min-width: 13.75rem;
   max-height: 60vh;
   overflow-y: auto;
   border-radius: var(--radius-m, 0.75rem);

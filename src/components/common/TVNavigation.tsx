@@ -1,6 +1,7 @@
-import React, { useRef, useCallback, useState, useEffect } from "react";
+import React, { useRef, useCallback } from "react";
 import { useFocusable, FocusContext } from "@noriginmedia/norigin-spatial-navigation";
 import type { UseFocusableConfig } from "@noriginmedia/norigin-spatial-navigation";
+import { rememberFocus } from "../../utils/focusMemory";
 import { PlatformManager } from "../../utils/PlatformManager";
 
 
@@ -13,69 +14,46 @@ if (typeof window !== "undefined" && typeof HTMLElement !== "undefined" && HTMLE
     originalFocus.call(this, newOptions);
   };
 }
-let isScrolling = false;
-const scrollListeners = new Set<(scrolling: boolean) => void>();
-let scrollLockTimeoutId: any = null;
+// Flag for modal popups to switch to native browser scroll (O(1) check, no DOM traversal)
+let useNativeScroll = false;
 
-const updateScrollState = (scrolling: boolean) => {
-  if (isScrolling !== scrolling) {
-    isScrolling = scrolling;
-    scrollListeners.forEach((listener) => listener(scrolling));
-  }
+export const setNativeScrollMode = (enabled: boolean) => {
+  useNativeScroll = enabled;
 };
 
-const triggerScrollLock = () => {
-  if (scrollLockTimeoutId) {
-    clearTimeout(scrollLockTimeoutId);
-  }
-  updateScrollState(true);
-  scrollLockTimeoutId = setTimeout(() => {
-    scrollLockTimeoutId = null;
-    updateScrollState(false);
-  }, 120);
-};
+// Pending layout-read handles. Reads (getBoundingClientRect / scrollWidth) are deferred
+// off the focus event to avoid forced reflow while the .focused class is being applied:
+// horizontal coalesces to the next frame, vertical debounces during rapid D-pad bursts.
+let verticalScrollTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let horizontalScrollRAF: number | null = null;
 
-export const useScrollLock = () => {
-  const [locked, setLocked] = useState(isScrolling);
-  useEffect(() => {
-    const handleScrollLockChange = (scrolling: boolean) => {
-      setLocked(scrolling);
-    };
-    scrollListeners.add(handleScrollLockChange);
-    return () => {
-      scrollListeners.delete(handleScrollLockChange);
-    };
-  }, []);
-  return locked;
-};
-
-export const addScrollListener = (listener: (scrolling: boolean) => void) => {
-  scrollListeners.add(listener);
-  return () => {
-    scrollListeners.delete(listener);
-  };
-};
-
-export const isCurrentlyScrolling = () => isScrolling;
-
-export const smoothScrollTo = (element: HTMLElement, targetValue: number, isVertical: boolean) => {
-  triggerScrollLock();
-
-  const prop = isVertical ? "scrollTop" : "scrollLeft";
-  
-  try {
-    element.scrollTo({
-      [isVertical ? "top" : "left"]: targetValue,
-      behavior: "smooth"
+const schedule = (isHorizontal: boolean, run: () => void) => {
+  if (isHorizontal) {
+    if (horizontalScrollRAF) cancelAnimationFrame(horizontalScrollRAF);
+    horizontalScrollRAF = requestAnimationFrame(() => {
+      horizontalScrollRAF = null;
+      run();
     });
-  } catch (e) {
+  } else {
+    if (verticalScrollTimeoutId) clearTimeout(verticalScrollTimeoutId);
+    verticalScrollTimeoutId = setTimeout(() => {
+      verticalScrollTimeoutId = null;
+      run();
+    }, 50);
+  }
+};
+
+// --- Native scroll (desktop, modals, and not-yet-migrated TV regions) ----------------
+
+const smoothScrollTo = (element: HTMLElement, targetValue: number, isVertical: boolean) => {
+  const prop = isVertical ? "scrollTop" : "scrollLeft";
+  try {
+    element.scrollTo({ [isVertical ? "top" : "left"]: targetValue, behavior: "smooth" });
+  } catch {
     try {
-      if (isVertical) {
-        element.scrollTo(element.scrollLeft, targetValue);
-      } else {
-        element.scrollTo(targetValue, element.scrollTop);
-      }
-    } catch (err) {
+      if (isVertical) element.scrollTo(element.scrollLeft, targetValue);
+      else element.scrollTo(targetValue, element.scrollTop);
+    } catch {
       element[prop] = targetValue;
     }
   }
@@ -84,97 +62,137 @@ export const smoothScrollTo = (element: HTMLElement, targetValue: number, isVert
 const getRelativeOffset = (element: HTMLElement, parent: HTMLElement) => {
   const rect = element.getBoundingClientRect();
   const parentRect = parent.getBoundingClientRect();
-  
   return {
     left: rect.left - parentRect.left + parent.scrollLeft,
     top: rect.top - parentRect.top + parent.scrollTop
   };
 };
 
-// Flag for modal popups to switch to native browser scroll (O(1) check, no DOM traversal)
-let useNativeScroll = false;
-
-export const setNativeScrollMode = (enabled: boolean) => {
-  useNativeScroll = enabled;
+const nativeScrollIntoParent = (parent: HTMLElement, target: HTMLElement, isHorizontal: boolean) => {
+  schedule(isHorizontal, () => {
+    const { left, top } = getRelativeOffset(target, parent);
+    if (isHorizontal) {
+      const targetScrollLeft = left - parent.clientWidth / 2 + target.offsetWidth / 2;
+      smoothScrollTo(parent, targetScrollLeft, false);
+    } else {
+      const isHero = target.closest(".immersive-hero-container");
+      const targetScrollTop = isHero ? 0 : top - parent.clientHeight / 2 + target.offsetHeight / 2;
+      const maxScrollTop = Math.max(0, parent.scrollHeight - parent.clientHeight);
+      const clamped = Math.max(0, Math.min(targetScrollTop, maxScrollTop));
+      if (Math.abs(clamped - parent.scrollTop) > 1) {
+        smoothScrollTo(parent, clamped, true);
+      }
+    }
+  });
 };
 
-let lastFocusedRow: HTMLElement | null = null;
-let verticalScrollTimeoutId: any = null;
-let horizontalScrollRAF: number | null = null;
+// --- Transform scroll (TV regions migrated to TVScrollView) --------------------------
+
+const transformScrollIntoTrack = (
+  viewport: HTMLElement,
+  track: HTMLElement,
+  target: HTMLElement,
+  isHorizontal: boolean
+) => {
+  schedule(isHorizontal, () => {
+    const nodeRect = target.getBoundingClientRect();
+    const trackRect = track.getBoundingClientRect();
+    const viewRect = viewport.getBoundingClientRect();
+
+    // Position within the track's content box. Both rects already include the track's current
+    // transform, so subtracting cancels it → a stable content coordinate. Content size, though,
+    // must come from scrollWidth/Height: a horizontal flex track stays viewport-width while its
+    // items overflow, so trackRect.width == viewSize and the row would never scroll. scrollWidth
+    // is the real content extent. Units match getBoundingClientRect (== layout px; the app renders
+    // at native resolution, no zoom/transform on the canvas).
+    const offset = isHorizontal ? nodeRect.left - trackRect.left : nodeRect.top - trackRect.top;
+    const itemSize = isHorizontal ? nodeRect.width : nodeRect.height;
+    // Horizontal: measure in the TRACK's own terms — clientWidth is its visible content area and
+    // scrollWidth its full content. The viewport's getBoundingClientRect width includes the
+    // carousel viewport's left/right padding (the focus "peek" room), so using it would make the
+    // max-scroll ~2×padding short and clip the last cards. Vertical track grows to its content, so
+    // the viewport rect / track rect are the right references there (unchanged).
+    const viewSize = isHorizontal ? track.clientWidth : viewRect.height;
+    const contentSize = isHorizontal ? track.scrollWidth : trackRect.height;
+
+    const isHero = !isHorizontal && target.closest(".immersive-hero-container");
+    let pos = isHero ? 0 : offset - viewSize / 2 + itemSize / 2;
+    pos = Math.max(0, Math.min(pos, Math.max(0, contentSize - viewSize)));
+
+    track.style.transform = isHorizontal
+      ? `translate3d(${-pos}px, 0, 0)`
+      : `translate3d(0, ${-pos}px, 0)`;
+  });
+};
+
+// --- Viewport resolution & entry point ----------------------------------------------
+
+// Migrated regions use TVScrollView (data-tv-scroll + a `.tv-scrollview-track` child).
+// Legacy regions are still matched by their original class so they keep working via
+// native scroll until migrated — this list shrinks as phases land.
+const SCROLL_VIEWPORT_SELECTOR =
+  '[data-tv-scroll], .carousel-row, .episodes-scroll-container, .main-content, .modal-sidebar, .sidebar-nav';
+
+const isHorizontalViewport = (viewport: HTMLElement): boolean => {
+  const attr = viewport.getAttribute("data-tv-scroll");
+  if (attr === "horizontal") return true;
+  if (attr === "vertical") return false;
+  return (
+    viewport.classList.contains("carousel-row") ||
+    viewport.classList.contains("episodes-scroll-container")
+  );
+};
+
+const resolveViewport = (from: HTMLElement | null): HTMLElement | null => {
+  if (!from) return null;
+  const match = from.closest<HTMLElement>(SCROLL_VIEWPORT_SELECTOR);
+  if (!match) return null;
+  // A migrated track may also carry a legacy layout class; the real viewport is its
+  // parent .tv-scrollview (the element holding data-tv-scroll).
+  if (match.classList.contains("tv-scrollview-track")) {
+    return match.parentElement?.closest<HTMLElement>("[data-tv-scroll]") ?? null;
+  }
+  return match;
+};
+
+const positionViewport = (viewport: HTMLElement, target: HTMLElement, isHorizontal: boolean) => {
+  const track = viewport.querySelector<HTMLElement>(":scope > .tv-scrollview-track");
+  if (track) {
+    transformScrollIntoTrack(viewport, track, target, isHorizontal);
+  } else {
+    nativeScrollIntoParent(viewport, target, isHorizontal);
+  }
+};
 
 const scrollIntoView = (element: HTMLElement) => {
   if (!element) return;
   if (!PlatformManager.isTV() && !document.body.classList.contains("is-tv")) return;
 
-  // Modal popups: use native browser scroll, zero JS layout calculations
+  // Modal popups: native browser scroll, zero JS layout calculations.
   if (useNativeScroll) {
-    if (verticalScrollTimeoutId) {
-      clearTimeout(verticalScrollTimeoutId);
-    }
+    if (verticalScrollTimeoutId) clearTimeout(verticalScrollTimeoutId);
     verticalScrollTimeoutId = setTimeout(() => {
       verticalScrollTimeoutId = null;
-      element.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-        inline: "nearest"
-      });
+      element.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
     }, 50);
     return;
   }
 
-  // 1. Horizontal scroll (e.g. carousels)
-  // Scroll regions are found by the generic `data-tv-scroll` marker; the legacy
-  // class names remain recognized so existing containers keep working. New regions
-  // (PageFrame, etc.) just set data-tv-scroll — this list is never extended again.
-  const horizontalParent = element.closest('[data-tv-scroll="horizontal"], .carousel-row, .episodes-scroll-container') as HTMLElement;
-  if (horizontalParent) {
-    // Defer layout read to next frame to avoid forced reflow from .focused class change
-    if (horizontalScrollRAF) {
-      cancelAnimationFrame(horizontalScrollRAF);
+  // Position the NEAREST horizontal scroller and the NEAREST vertical scroller (at most
+  // one of each). This centers a card in a horizontal row inside a vertical page on both
+  // axes, while leaving nested same-axis scrollers alone (only the innermost moves —
+  // e.g. a vertical list inside a vertical page never fights its parent).
+  let horizontalDone = false;
+  let verticalDone = false;
+  let viewport = resolveViewport(element);
+  while (viewport && !(horizontalDone && verticalDone)) {
+    const isHorizontal = isHorizontalViewport(viewport);
+    if (isHorizontal ? !horizontalDone : !verticalDone) {
+      positionViewport(viewport, element, isHorizontal);
+      if (isHorizontal) horizontalDone = true;
+      else verticalDone = true;
     }
-    const hTarget = element;
-    const hParent = horizontalParent;
-    horizontalScrollRAF = requestAnimationFrame(() => {
-      horizontalScrollRAF = null;
-      const { left } = getRelativeOffset(hTarget, hParent);
-      const targetScrollLeft = left - (hParent.clientWidth / 2) + (hTarget.offsetWidth / 2);
-      smoothScrollTo(hParent, targetScrollLeft, false);
-    });
-  }
-
-  // 2. Vertical scroll (e.g. main content)
-  // Skip vertical scroll adjustment if we are scrolling horizontally within the SAME row
-  if (horizontalParent) {
-    if (horizontalParent === lastFocusedRow) {
-      return;
-    }
-    lastFocusedRow = horizontalParent;
-  } else {
-    lastFocusedRow = null;
-  }
-
-  const verticalParent = element.closest('[data-tv-scroll="vertical"], .main-content, .modal-sidebar, .sidebar-nav') as HTMLElement;
-  if (verticalParent) {
-    if (verticalScrollTimeoutId) {
-      clearTimeout(verticalScrollTimeoutId);
-    }
-    // Defer ALL layout reads (getBoundingClientRect) into the debounced timeout
-    // to prevent forced reflow during rapid D-pad navigation
-    const vTarget = element;
-    const vParent = verticalParent;
-    verticalScrollTimeoutId = setTimeout(() => {
-      verticalScrollTimeoutId = null;
-      const { top } = getRelativeOffset(vTarget, vParent);
-      const isHero = vTarget.closest(".immersive-hero-container");
-      const targetScrollTop = isHero
-        ? 0
-        : top - (vParent.clientHeight / 2) + (vTarget.offsetHeight / 2);
-      const maxScrollTop = Math.max(0, vParent.scrollHeight - vParent.clientHeight);
-      const clampedTargetScrollTop = Math.max(0, Math.min(targetScrollTop, maxScrollTop));
-      if (Math.abs(clampedTargetScrollTop - vParent.scrollTop) > 1) {
-        smoothScrollTo(vParent, clampedTargetScrollTop, true);
-      }
-    }, 50);
+    viewport = resolveViewport(viewport.parentElement);
   }
 };
 
@@ -192,6 +210,7 @@ export const Focusable: React.FC<FocusableProps> = ({ children, disabled, ...con
       if (layout.node) {
         scrollIntoView(layout.node);
       }
+      rememberFocus();
       if (config.onFocus) {
         config.onFocus(layout, props, details);
       }
@@ -297,6 +316,7 @@ export const FocusableButton = React.forwardRef<HTMLButtonElement, FocusableButt
       if (layout.node) {
         scrollIntoView(layout.node);
       }
+      rememberFocus();
       if (config.onFocus) {
         config.onFocus(layout, props, details);
       }
@@ -368,6 +388,7 @@ export const FocusableInput = React.forwardRef<HTMLInputElement, FocusableInputP
       if (layout.node) {
         scrollIntoView(layout.node);
       }
+      rememberFocus();
       if (onFocus) {
         onFocus(layout, props, details);
       }

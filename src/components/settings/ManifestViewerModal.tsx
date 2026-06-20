@@ -45,7 +45,7 @@ export const ManifestViewerModal: React.FC<Props> = ({ manifest, onClose }) => {
           </span>
         </div>
         <FocusableButton onClick={onClose} className="manifest-modal-close" title="Закрыть">
-          <X size={20} />
+          <X size="1.25rem" />
         </FocusableButton>
       </div>
 
@@ -57,7 +57,7 @@ export const ManifestViewerModal: React.FC<Props> = ({ manifest, onClose }) => {
 
       <div className="manifest-modal-footer">
         <FocusableButton onClick={handleCopy} className="settings-btn-primary" style={{ fontSize: "0.9rem", padding: "0.5rem 1rem" }}>
-          {copied ? <Check size={16} style={{ color: "#4f9e71" }} /> : <Copy size={16} />}
+          {copied ? <Check size="1rem" style={{ color: "#4f9e71" }} /> : <Copy size="1rem" />}
           <span>{copied ? "Скопировано!" : "Копировать"}</span>
         </FocusableButton>
         <FocusableButton focusKey="MANIFEST_MODAL_CLOSE" onClick={onClose} className="settings-btn-primary settings-form-btn-cancel" style={{ fontSize: "0.9rem", padding: "0.5rem 1rem" }}>

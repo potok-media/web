@@ -86,11 +86,11 @@ export const TimelinePreviewTooltip: React.FC<TimelinePreviewTooltipProps> = ({
         transform: "translateX(-50%)",
         position: "absolute",
         bottom: "100%",
-        marginBottom: "12px",
+        marginBottom: "0.75rem",
         pointerEvents: "none",
-        padding: imageUrl ? "6px" : "5px 10px",
-        borderRadius: imageUrl ? "10px" : "6px",
-        gap: imageUrl ? "8px" : "0",
+        padding: imageUrl ? "0.375rem" : "0.3125rem 0.625rem",
+        borderRadius: imageUrl ? "0.625rem" : "0.375rem",
+        gap: imageUrl ? "0.5rem" : "0",
       }}
     >
       {imageUrl && (

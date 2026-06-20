@@ -3,7 +3,7 @@
 .potok-extension-slot {
   display: flex;
   flex-direction: column;
-  gap: var(--space-s, 12px);
+  gap: var(--space-s, 0.75rem);
   width: 100%;
 }
 
@@ -14,8 +14,8 @@
 }
 
 #details-bottom-slot {
-  margin-top: var(--space-l, 24px);
-  margin-bottom: var(--space-l, 24px);
+  margin-top: var(--space-l, 1.5rem);
+  margin-bottom: var(--space-l, 1.5rem);
 }
 
 /* Extension page wrapper spacing to prevent viewport edge touching */
@@ -41,14 +41,14 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  gap: var(--space-s, 12px);
+  gap: var(--space-s, 0.75rem);
 }
 
 .potok-hstack {
   display: flex;
   flex-direction: row;
   box-sizing: border-box;
-  gap: var(--space-s, 12px);
+  gap: var(--space-s, 0.75rem);
 }
 
 .potok-card {
@@ -56,10 +56,10 @@
   z-index: 1;
   background: var(--bg-surface-high);
   border: var(--glass-border);
-  border-radius: var(--radius-m, 12px);
+  border-radius: var(--radius-m, 0.75rem);
   backdrop-filter: var(--blur-glass, blur(20px));
-  padding: var(--space-m, 16px);
-  margin-bottom: var(--space-m, 16px);
+  padding: var(--space-m, 1rem);
+  margin-bottom: var(--space-m, 1rem);
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -82,7 +82,7 @@
 
 
 .potok-card-header {
-  margin-bottom: var(--space-s, 8px);
+  margin-bottom: var(--space-s, 0.5rem);
 }
 
 .potok-card-title {
@@ -95,20 +95,20 @@
 .potok-card-subtitle {
   font-size: 0.85rem;
   color: var(--text-secondary);
-  margin: 4px 0 0 0;
+  margin: 0.25rem 0 0 0;
 }
 
 .potok-card-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 /* Typography */
 .potok-heading {
   color: var(--text-primary);
   font-weight: 700;
-  margin: 0 0 8px 0;
+  margin: 0 0 0.5rem 0;
 }
 .potok-heading-1 { font-size: 1.8rem; }
 .potok-heading-2 { font-size: 1.4rem; }
@@ -134,8 +134,8 @@
 .potok-badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
   font-size: 0.75rem;
   font-weight: 600;
   width: fit-content;
@@ -149,7 +149,7 @@
 .potok-divider {
   border: 0;
   border-top: var(--glass-border);
-  margin: 12px 0;
+  margin: 0.75rem 0;
   width: 100%;
 }
 
@@ -162,9 +162,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border-radius: 8px;
+  gap: 0.5rem;
+  padding: 0.625rem 1.125rem;
+  border-radius: 0.5rem;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
@@ -215,7 +215,7 @@
 .potok-input-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0.375rem;
   width: 100%;
 }
 
@@ -228,8 +228,8 @@
 .potok-input {
   background: var(--bg-surface-high);
   border: var(--glass-border);
-  border-radius: 8px;
-  padding: 10px 14px;
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.875rem;
   color: var(--text-primary);
   font-size: 0.95rem;
   outline: none;
@@ -245,8 +245,8 @@
   background: var(--bg-surface-high) !important;
   border: var(--glass-border) !important;
   color: var(--text-primary) !important;
-  padding: 10px 18px !important;
-  border-radius: var(--radius-m, 12px) !important;
+  padding: 0.625rem 1.125rem !important;
+  border-radius: var(--radius-m, 0.75rem) !important;
   backdrop-filter: var(--blur-glass, blur(20px));
   font-weight: 600 !important;
   transition: var(--transition-interactive) !important;
@@ -264,8 +264,8 @@
   background: var(--bg-surface-high) !important;
   border: var(--glass-border) !important;
   color: var(--text-primary) !important;
-  padding: 10px 18px !important;
-  border-radius: var(--radius-m, 12px) !important;
+  padding: 0.625rem 1.125rem !important;
+  border-radius: var(--radius-m, 0.75rem) !important;
   backdrop-filter: var(--blur-glass, blur(20px));
   font-weight: 600 !important;
   transition: var(--transition-interactive) !important;
@@ -283,7 +283,7 @@
   justify-content: space-between;
   width: 100%;
   cursor: pointer;
-  padding: 4px 0;
+  padding: 0.25rem 0;
 }
 
 .potok-toggle-label-wrap {
@@ -299,8 +299,8 @@
 .potok-switch {
   position: relative;
   display: inline-block;
-  width: 44px;
-  height: 24px;
+  width: 2.75rem;
+  height: 1.5rem;
 }
 
 .potok-switch input {
@@ -318,16 +318,16 @@
   bottom: 0;
   background-color: var(--bg-surface-highest);
   transition: .2s;
-  border-radius: 24px;
+  border-radius: 1.5rem;
 }
 
 .potok-slider:before {
   position: absolute;
   content: "";
-  height: 18px;
-  width: 18px;
-  left: 3px;
-  bottom: 3px;
+  height: 1.125rem;
+  width: 1.125rem;
+  left: 0.1875rem;
+  bottom: 0.1875rem;
   background-color: white;
   transition: .2s;
   border-radius: 50%;
@@ -379,10 +379,10 @@ input:checked + .potok-slider:before {
 }
 
 .sidebar-status-group .potok-extension-slot .potok-badge {
-  width: 8px;
-  height: 8px;
-  min-width: 8px;
-  min-height: 8px;
+  width: 0.5rem;
+  height: 0.5rem;
+  min-width: 0.5rem;
+  min-height: 0.5rem;
   padding: 0;
   border-radius: var(--radius-full);
   border: none;
@@ -416,8 +416,8 @@ input:checked + .potok-slider:before {
   font-size: 0.95rem;
   line-height: 1.6;
   color: var(--text-secondary);
-  margin-top: var(--space-m, 16px);
-  margin-bottom: var(--space-m, 16px);
+  margin-top: var(--space-m, 1rem);
+  margin-bottom: var(--space-m, 1rem);
   user-select: text;
   -webkit-user-select: text;
 }
@@ -446,7 +446,7 @@ input:checked + .potok-slider:before {
 .potok-markdown-body ol {
   margin-top: 0;
   margin-bottom: 1rem;
-  padding-left: 20px;
+  padding-left: 1.25rem;
 }
 
 .potok-markdown-body li {
@@ -458,7 +458,7 @@ input:checked + .potok-slider:before {
   font-size: 0.85em;
   background: var(--bg-surface-high);
   padding: 0.2rem 0.4rem;
-  border-radius: 4px;
+  border-radius: 0.25rem;
   color: #ff7875;
 }
 
@@ -475,7 +475,7 @@ input:checked + .potok-slider:before {
   flex-direction: column;
   background: rgba(18, 18, 24, 0.6);
   border: var(--glass-border);
-  border-radius: 12px;
+  border-radius: 0.75rem;
   margin: 1.2rem 0;
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
@@ -486,8 +486,8 @@ input:checked + .potok-slider:before {
 .potok-terminal-header {
   display: flex;
   align-items: center;
-  height: 38px;
-  padding: 0 16px;
+  height: 2.375rem;
+  padding: 0 1rem;
   background: rgba(30, 30, 40, 0.4);
   border-bottom: var(--glass-border);
   position: relative;
@@ -495,13 +495,13 @@ input:checked + .potok-slider:before {
 
 .potok-terminal-dots {
   display: flex;
-  gap: 8px;
+  gap: 0.5rem;
   align-items: center;
 }
 
 .potok-terminal-dots .dot {
-  width: 12px;
-  height: 12px;
+  width: 0.75rem;
+  height: 0.75rem;
   border-radius: 50%;
   display: inline-block;
 }
@@ -515,7 +515,7 @@ input:checked + .potok-slider:before {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-tertiary);
-  margin-left: 20px;
+  margin-left: 1.25rem;
   text-transform: uppercase;
 }
 
@@ -523,8 +523,8 @@ input:checked + .potok-slider:before {
   margin-left: auto;
   background: var(--bg-surface-high);
   border: var(--glass-border);
-  border-radius: 6px;
-  padding: 4px 10px;
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.625rem;
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--text-secondary);
@@ -550,7 +550,7 @@ input:checked + .potok-slider:before {
   font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
   font-size: 0.85rem;
   line-height: 1.5;
-  padding: 16px 0;
+  padding: 1rem 0;
   background: rgba(0, 0, 0, 0.2);
 }
 
@@ -558,8 +558,8 @@ input:checked + .potok-slider:before {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  padding-left: 16px;
-  padding-right: 16px;
+  padding-left: 1rem;
+  padding-right: 1rem;
   color: var(--text-tertiary);
   user-select: none;
   text-align: right;
@@ -573,7 +573,7 @@ input:checked + .potok-slider:before {
 
 .potok-terminal-pre {
   margin: 0;
-  padding: 0 16px;
+  padding: 0 1rem;
   flex-grow: 1;
   overflow: visible;
   user-select: text;
@@ -673,23 +673,23 @@ input:checked + .potok-slider:before {
   background: rgba(56, 189, 248, 0.07);
   border: 1px solid rgba(56, 189, 248, 0.25);
   box-shadow: 0 8px 32px rgba(56, 189, 248, 0.05);
-  border-radius: 12px;
-  padding: 12px 18px;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.125rem;
   margin: 0;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 1rem;
   width: 100%;
   box-sizing: border-box;
 }
 
 .potok-update-banner-icon-box {
   background: rgba(56, 189, 248, 0.15);
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
   color: #38bdf8;
   display: flex;
   align-items: center;
@@ -701,7 +701,7 @@ input:checked + .potok-slider:before {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
   flex: 1;
   min-width: 0;
 }
@@ -709,7 +709,7 @@ input:checked + .potok-slider:before {
 .potok-update-banner-text-wrap {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0.125rem;
   min-width: 0;
 }
 
@@ -728,12 +728,12 @@ input:checked + .potok-slider:before {
 }
 
 .potok-update-banner-btn {
-  padding: 8px 14px;
+  padding: 0.5rem 0.875rem;
   font-size: 0.8rem;
   background: #38bdf8;
   color: #000;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   border: none;
   cursor: pointer;
   white-space: nowrap;
@@ -760,12 +760,12 @@ input:checked + .potok-slider:before {
 }
 
 .potok-update-modal-dialog {
-  width: 520px;
+  width: 32.5rem;
   max-width: 90%;
   background: var(--bg-surface-high);
   border: var(--glass-border);
   box-shadow: var(--shadow-l);
-  border-radius: 16px;
+  border-radius: 1rem;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -773,7 +773,7 @@ input:checked + .potok-slider:before {
 }
 
 .potok-update-modal-header {
-  padding: 16px 20px;
+  padding: 1rem 1.25rem;
   border-bottom: var(--glass-border);
   display: flex;
   flex-direction: row;
@@ -785,7 +785,7 @@ input:checked + .potok-slider:before {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: 0.625rem;
 }
 
 .potok-update-modal-title {
@@ -796,8 +796,8 @@ input:checked + .potok-slider:before {
 }
 
 .potok-update-modal-close-btn {
-  padding: 6px;
-  border-radius: 6px;
+  padding: 0.375rem;
+  border-radius: 0.375rem;
   color: var(--text-secondary);
   display: flex;
   align-items: center;
@@ -812,30 +812,30 @@ input:checked + .potok-slider:before {
 }
 
 .potok-update-modal-body {
-  padding: 20px;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  max-height: 350px;
+  gap: 0.75rem;
+  max-height: 21.875rem;
   overflow-y: auto;
 }
 
 .potok-update-modal-item {
   background: var(--bg-surface-highest);
   border: var(--glass-border);
-  border-radius: 10px;
-  padding: 12px 16px;
+  border-radius: 0.625rem;
+  padding: 0.75rem 1rem;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .potok-update-modal-item-details {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.25rem;
   flex: 1;
   min-width: 0;
 }
@@ -850,29 +850,29 @@ input:checked + .potok-slider:before {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .potok-update-modal-badge-new {
   font-size: 0.75rem;
-  padding: 2px 6px;
+  padding: 0.125rem 0.375rem;
   background: rgba(74, 222, 128, 0.15);
   border: 1px solid rgba(74, 222, 128, 0.3);
   color: #4ade80;
 }
 
 .potok-update-modal-btn-update {
-  padding: 6px 12px;
+  padding: 0.375rem 0.75rem;
   font-size: 0.75rem;
   background: #4ade80;
   color: #000;
   font-weight: 600;
-  border-radius: 6px;
+  border-radius: 0.375rem;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
   transition: var(--transition-interactive);
 }
 
@@ -887,22 +887,22 @@ input:checked + .potok-slider:before {
 }
 
 .potok-update-modal-footer {
-  padding: 14px 20px;
+  padding: 0.875rem 1.25rem;
   border-top: var(--glass-border);
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 0.625rem;
   background: var(--bg-surface-high);
 }
 
 .potok-update-modal-btn-all {
   font-size: 0.8rem;
-  padding: 8px 14px;
+  padding: 0.5rem 0.875rem;
   background: #4ade80;
   color: #000;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   border: none;
   cursor: pointer;
   transition: var(--transition-interactive);
@@ -922,14 +922,14 @@ input:checked + .potok-slider:before {
    ========================================================================== */
 
 .potok-extensions-manager-container {
-  gap: 24px;
+  gap: 1.5rem;
 }
 
 /* 1. Header Statistics Dashboard */
 .extensions-stats-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
   width: 100%;
 }
 
@@ -937,11 +937,11 @@ input:checked + .potok-slider:before {
   position: relative;
   background: var(--bg-surface-high);
   border: var(--glass-border);
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 1rem;
+  padding: 1.25rem;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 1rem;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   transition: var(--transition-sheet);
@@ -952,8 +952,8 @@ input:checked + .potok-slider:before {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: 16px;
-  padding: 1px;
+  border-radius: 1rem;
+  padding: 0.0625rem;
   background: linear-gradient(135deg, var(--text-tertiary), transparent);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -977,9 +977,9 @@ input:checked + .potok-slider:before {
 }
 
 .stat-card-icon-wrapper {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.875rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1007,7 +1007,7 @@ input:checked + .potok-slider:before {
 .stat-card-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.25rem;
 }
 
 .stat-card-value {
@@ -1030,12 +1030,12 @@ input:checked + .potok-slider:before {
 .extensions-control-bar {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1rem;
   width: 100%;
   background: var(--bg-surface);
   border: var(--glass-border);
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 1rem;
+  padding: 1rem;
   backdrop-filter: blur(10px);
 }
 
@@ -1045,10 +1045,10 @@ input:checked + .potok-slider:before {
   align-items: center;
   background: var(--bg-surface-high);
   border: var(--glass-border);
-  border-radius: 12px;
-  padding: 0 14px;
+  border-radius: 0.75rem;
+  padding: 0 0.875rem;
   flex-grow: 1;
-  height: 44px;
+  height: 2.75rem;
   transition: var(--transition-interactive);
 }
 
@@ -1060,7 +1060,7 @@ input:checked + .potok-slider:before {
 
 .extensions-search-bar .search-icon {
   color: var(--text-tertiary);
-  margin-right: 10px;
+  margin-right: 0.625rem;
   flex-shrink: 0;
 }
 
@@ -1086,7 +1086,7 @@ input:checked + .potok-slider:before {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
+  padding: 0.25rem;
   transition: color 0.15s;
 }
 
@@ -1096,13 +1096,13 @@ input:checked + .potok-slider:before {
 
 .filter-chips-container {
   display: flex;
-  gap: 8px;
+  gap: 0.5rem;
   flex-wrap: wrap;
   align-items: center;
 }
 
 .filter-chip {
-  padding: 8px 16px;
+  padding: 0.5rem 1rem;
   border-radius: 9999px;
   font-size: 0.85rem;
   font-weight: 500;
@@ -1113,7 +1113,7 @@ input:checked + .potok-slider:before {
   transition: var(--transition-interactive);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 .filter-chip:hover {
@@ -1134,9 +1134,9 @@ input:checked + .potok-slider:before {
   font-weight: 600;
   background: var(--bg-surface-highest);
   color: var(--text-secondary);
-  padding: 1px 6px;
+  padding: 0.0625rem 0.375rem;
   border-radius: 9999px;
-  margin-left: 4px;
+  margin-left: 0.25rem;
 }
 
 .filter-chip.active .chip-count {
@@ -1151,38 +1151,38 @@ input:checked + .potok-slider:before {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-tertiary);
-  margin-right: 8px;
+  margin-right: 0.5rem;
 }
 
 /* 3. Install Extension Form Panel */
 .extensions-actions-header {
-  margin-top: 8px;
+  margin-top: 0.5rem;
   width: 100%;
 }
 
 .install-toggle-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px !important;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem !important;
   font-size: 0.85rem !important;
-  border-radius: 10px !important;
+  border-radius: 0.625rem !important;
 }
 
 .install-extension-panel {
   background: var(--bg-surface-high);
   border: var(--glass-border);
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 1rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.75rem;
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
 }
 
 .install-extension-form {
-  gap: 12px;
+  gap: 0.75rem;
   width: 100%;
   align-items: center;
 }
@@ -1203,11 +1203,11 @@ input:checked + .potok-slider:before {
   position: relative;
   background: var(--bg-surface-high);
   border: var(--glass-border);
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 1rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1rem;
   transition: var(--transition-sheet);
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -1217,8 +1217,8 @@ input:checked + .potok-slider:before {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: 16px;
-  padding: 1px;
+  border-radius: 1rem;
+  padding: 0.0625rem;
   background: linear-gradient(135deg, var(--text-tertiary) 0%, transparent 50%, var(--accent-semi) 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -1256,15 +1256,15 @@ input:checked + .potok-slider:before {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  gap: 14px;
+  gap: 0.875rem;
   flex: 1;
   min-width: 0;
 }
 
 .extension-card-icon-container {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
   background: var(--bg-surface-high);
   border: var(--glass-border);
   display: flex;
@@ -1300,7 +1300,7 @@ input:checked + .potok-slider:before {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   flex-wrap: wrap;
 }
 
@@ -1317,8 +1317,8 @@ input:checked + .potok-slider:before {
   font-size: 0.75rem;
   background: var(--bg-surface-high);
   color: var(--text-secondary);
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
   border: var(--glass-border);
   font-weight: 500;
 }
@@ -1326,7 +1326,7 @@ input:checked + .potok-slider:before {
 .card-description {
   font-size: 0.85rem;
   color: var(--text-secondary);
-  margin-top: 6px;
+  margin-top: 0.375rem;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1336,15 +1336,15 @@ input:checked + .potok-slider:before {
 
 .card-controls {
   flex-shrink: 0;
-  margin-left: 12px;
+  margin-left: 0.75rem;
 }
 
 /* Custom toggles */
 .card-toggle-switch {
   position: relative;
   display: inline-block;
-  width: 44px;
-  height: 24px;
+  width: 2.75rem;
+  height: 1.5rem;
 }
 
 .card-toggle-switch input {
@@ -1360,16 +1360,16 @@ input:checked + .potok-slider:before {
   background-color: var(--bg-surface-highest);
   border: var(--glass-border);
   transition: .2s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 24px;
+  border-radius: 1.5rem;
 }
 
 .slider-round:before {
   position: absolute;
   content: "";
-  height: 18px;
-  width: 18px;
-  left: 2px;
-  bottom: 2px;
+  height: 1.125rem;
+  width: 1.125rem;
+  left: 0.125rem;
+  bottom: 0.125rem;
   background-color: white;
   transition: .2s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 50%;
@@ -1389,8 +1389,8 @@ input:checked + .slider-round:before {
 .source-badge {
   font-size: 0.7rem;
   font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 6px;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.375rem;
   border: 1px solid transparent;
 }
 
@@ -1422,8 +1422,8 @@ input:checked + .slider-round:before {
 .category-badge {
   font-size: 0.7rem;
   font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 6px;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.375rem;
   border: 1px solid transparent;
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -1466,15 +1466,15 @@ input:checked + .slider-round:before {
   justify-content: space-between;
   align-items: flex-end;
   border-top: var(--glass-border);
-  padding-top: 14px;
+  padding-top: 0.875rem;
   margin-top: auto;
-  gap: 16px;
+  gap: 1rem;
 }
 
 .card-meta-details {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0.375rem;
   min-width: 0;
 }
 
@@ -1490,14 +1490,14 @@ input:checked + .slider-round:before {
 .card-permissions-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 0.25rem;
 }
 
 .card-permission-badge {
   font-size: 0.7rem;
   font-weight: 500;
-  padding: 1px 5px;
-  border-radius: 4px;
+  padding: 0.0625rem 0.3125rem;
+  border-radius: 0.25rem;
   background: var(--bg-surface-highest);
   color: var(--text-secondary);
   border: var(--glass-border);
@@ -1506,16 +1506,16 @@ input:checked + .slider-round:before {
 .card-actions-group {
   display: flex;
   flex-direction: row;
-  gap: 8px;
+  gap: 0.5rem;
   flex-shrink: 0;
 }
 
 .card-action-btn {
   background: var(--bg-surface-high);
   border: var(--glass-border);
-  border-radius: 8px;
-  width: 32px;
-  height: 32px;
+  border-radius: 0.5rem;
+  width: 2rem;
+  height: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1553,12 +1553,12 @@ input:checked + .slider-round:before {
 .card-update-alert {
   background: rgba(255, 159, 10, 0.07);
   border: 1px solid rgba(255, 159, 10, 0.2);
-  border-radius: 10px;
-  padding: 8px 12px;
+  border-radius: 0.625rem;
+  padding: 0.5rem 0.75rem;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-top: 4px;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 .update-alert-text {
@@ -1571,8 +1571,8 @@ input:checked + .slider-round:before {
   background: #ff9f0a;
   color: #000;
   border: none;
-  border-radius: 6px;
-  padding: 4px 10px;
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.625rem;
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
@@ -1706,7 +1706,7 @@ input:checked + .slider-round:before {
 .ext-header-titles {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0.125rem;
 }
 
 .ext-title {
@@ -1732,7 +1732,7 @@ input:checked + .slider-round:before {
 }
 
 .ext-filter-chip {
-  padding: 8px 18px;
+  padding: 0.5rem 1.125rem;
   border-radius: var(--radius-full);
   border: var(--glass-border);
   background: var(--bg-surface);
@@ -1751,9 +1751,9 @@ input:checked + .slider-round:before {
 .ext-search {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 14px;
-  height: 46px;
+  gap: 0.625rem;
+  padding: 0 0.875rem;
+  height: 2.875rem;
   border-radius: var(--radius-m);
   background: var(--bg-surface);
   border: var(--glass-border);
@@ -1790,7 +1790,7 @@ input:checked + .slider-round:before {
   display: flex;
   align-items: center;
   gap: var(--space-m);
-  padding: 14px 16px;
+  padding: 0.875rem 1rem;
   border-radius: var(--radius-m);
   background: var(--bg-surface);
   border: var(--glass-border);
@@ -1803,8 +1803,8 @@ input:checked + .slider-round:before {
 
 .ext-row-icon {
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: var(--radius-m);
   background: var(--bg-surface-high);
   color: var(--accent);
@@ -1818,7 +1818,7 @@ input:checked + .slider-round:before {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0.125rem;
 }
 
 .ext-row-name {
@@ -1840,7 +1840,7 @@ input:checked + .slider-round:before {
 
 .ext-row-status {
   flex-shrink: 0;
-  padding: 4px 12px;
+  padding: 0.25rem 0.75rem;
   border-radius: var(--radius-full);
   font-size: 0.8rem;
   font-weight: 700;
@@ -1891,7 +1891,7 @@ input:checked + .slider-round:before {
 .ext-action-btn {
   width: 100%;
   justify-content: center;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .ext-action-danger {
@@ -1931,8 +1931,8 @@ input:checked + .slider-round:before {
 .ext-perm {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 10px 12px;
+  gap: 0.125rem;
+  padding: 0.625rem 0.75rem;
   border-radius: var(--radius-s);
   background: var(--bg-surface-high);
   border: var(--glass-border);

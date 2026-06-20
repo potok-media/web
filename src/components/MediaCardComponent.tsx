@@ -164,7 +164,7 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
                   />
                 ) : (
                   <div className="media-poster-fallback-placeholder">
-                    <FilmOff size={36} />
+                    <FilmOff size="2.25rem" />
                   </div>
                 )}
                 
@@ -176,7 +176,7 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
                     <div className="media-card-spacer" />
                     {rating && (
                       <span className="media-glass-pill rating-pill">
-                        <Star size={11} fill="var(--warning)" stroke="var(--warning)" className="rating-star-icon" />
+                        <Star size="0.6875rem" fill="var(--warning)" stroke="var(--warning)" className="rating-star-icon" />
                         <span className="rating-value-text">{rating.toFixed(1)}</span>
                       </span>
                     )}

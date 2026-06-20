@@ -25,7 +25,7 @@
   display: none !important;
 }
 
-@media (max-width: 82rem) {
+@media (max-width: 1312px) {
   .settings-container {
     grid-template-columns: 17.5rem 1fr;
     max-width: 100%;
@@ -71,12 +71,12 @@
   .settings-input, .settings-select {
     padding: 0.8rem 1rem;
     font-size: 1rem;
-    min-height: 44px;
+    min-height: 2.75rem;
   }
   .settings-tab-chip {
     padding: 0.65rem 1.25rem;
     font-size: 0.9rem;
-    min-height: 44px;
+    min-height: 2.75rem;
     display: inline-flex;
     align-items: center;
     box-sizing: border-box;

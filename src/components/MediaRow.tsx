@@ -4,6 +4,7 @@ import { ChevronRight } from "lucide-react";
 import type { MediaCard } from "../network/ApiTypes";
 import { MediaCardComponent, areMediaCardsEqual } from "./MediaCardComponent";
 import { Focusable, FocusableContainer } from "./common/TVNavigation";
+import { TVScrollView } from "./common/TVScrollView";
 import { PlatformManager } from "../utils/PlatformManager";
 
 interface MediaRowProps {
@@ -62,58 +63,66 @@ export const MediaRow: React.FC<MediaRowProps> = React.memo(
             title={`Показать все в категории ${title}`}
           >
             <h2 className="carousel-title">{title}</h2>
-            <ChevronRight className="carousel-title-chevron" size={20} />
+            <ChevronRight className="carousel-title-chevron" size="1.25rem" />
           </Link>
         ) : (
           <h2 className="carousel-title">{title}</h2>
         )}
       </div>
-      <FocusableContainer 
-        focusKey={rowFocusKey}
-        preferredChildFocusKey={firstCardFocusKey}
-        saveLastFocusedChild={true}
-        className="carousel-row" 
-        ref={rowRef}
-      >
-        {displayItems.map((item, index) => (
-          <MediaCardComponent
-            key={`${item.mediaType || "movie"}-${item.id}`}
-            item={item}
-            onClick={onCardClick}
-            focusKey={index === 0 ? firstCardFocusKey : undefined}
-          />
-        ))}
-
-        {/* Focusable "Show More" card at the end of the row */}
-        {PlatformManager.isTV() && id && onSeeAllClick && (
-          <Focusable
-            onEnterPress={() => {
-              onSeeAllClick(id, title);
-            }}
+      <TVScrollView
+        orientation="horizontal"
+        className="carousel-viewport"
+        renderTrack={({ trackProps }) => (
+          <FocusableContainer
+            focusKey={rowFocusKey}
+            preferredChildFocusKey={firstCardFocusKey}
+            saveLastFocusedChild={true}
+            className={`carousel-row ${trackProps.className}`}
+            ref={rowRef}
           >
-            {({ ref: focusRef, focused }) => (
-              <Link
-                ref={focusRef}
-                to={`/library/${id}`}
-                className={`media-card more-card is-visible ${focused ? "focused" : ""}`}
-                onClick={(e) => {
-                  if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && e.altKey === false) {
-                    e.preventDefault();
-                    onSeeAllClick(id, title);
-                  }
+            {displayItems.map((item, index) => (
+              <MediaCardComponent
+                key={`${item.mediaType || "movie"}-${item.id}`}
+                item={item}
+                onClick={onCardClick}
+                // Stable per-card focusKey so focus can be restored to THIS card on Back (the first
+                // card keeps its bespoke key, which is also the row's preferredChildFocusKey).
+                focusKey={index === 0 ? firstCardFocusKey : `row-${rowCleanId}-card-${item.id}-${item.mediaType}`}
+              />
+            ))}
+
+            {/* Focusable "Show More" card at the end of the row */}
+            {PlatformManager.isTV() && id && onSeeAllClick && (
+              <Focusable
+                onEnterPress={() => {
+                  onSeeAllClick(id, title);
                 }}
               >
-                <div className="media-poster-wrap more-card-poster">
-                  <div className="more-card-content">
-                    <ChevronRight size={36} className="more-card-icon" />
-                    <span className="more-card-text">Ещё</span>
-                  </div>
-                </div>
-              </Link>
+                {({ ref: focusRef, focused }) => (
+                  <Link
+                    ref={focusRef}
+                    to={`/library/${id}`}
+                    className={`media-card more-card is-visible ${focused ? "focused" : ""}`}
+                    onClick={(e) => {
+                      if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && e.altKey === false) {
+                        e.preventDefault();
+                        onSeeAllClick(id, title);
+                      }
+                    }}
+                  >
+                    <div className="media-poster-wrap more-card-poster">
+                      <div className="more-card-content">
+                        <ChevronRight size="2.25rem" className="more-card-icon" />
+                        <span className="more-card-text">Ещё</span>
+                      </div>
+                    </div>
+                  </Link>
+                )}
+              </Focusable>
             )}
-          </Focusable>
+          </FocusableContainer>
         )}
-      </FocusableContainer>
+      />
     </div>
   );
 }, areMediaRowsEqual);

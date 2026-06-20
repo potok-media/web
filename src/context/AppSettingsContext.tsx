@@ -58,6 +58,7 @@ export interface SettingsContextType {
   developerMode: boolean;
   disableHttpProxy: boolean;
   directPlay: boolean;
+  tvLightMode: boolean;
   selectProfile: (id: string) => void;
   addProfile: (profile: Omit<ConnectionProfile, "id">) => void;
   deleteProfile: (id: string) => void;
@@ -68,6 +69,7 @@ export interface SettingsContextType {
   setDeveloperMode: (val: boolean) => void;
   setDisableHttpProxy: (val: boolean) => void;
   setDirectPlay: (val: boolean) => void;
+  setTvLightMode: (val: boolean) => void;
 }
 
 export const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -199,8 +201,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [defaultPlayer, _setDefaultPlayer] = useState<string>(() => 
     Storage.get<string>("defaultPlayer", "native")
   );
-  const [uiFontScale, _setUiFontScale] = useState<number>(() => 
-    Storage.get<number>("uiFontScale", 1.0)
+  const [uiFontScale, _setUiFontScale] = useState<number>(() =>
+    // TV defaults bigger than desktop for 10-foot viewing (matches the "Стандарт" preset);
+    // PlatformManager.init applies the same default synchronously pre-paint.
+    Storage.get<number>("uiFontScale", PlatformManager.isTV() ? 1.4 : 1.0)
   );
   const [developerMode, _setDeveloperMode] = useState<boolean>(() => 
     Storage.get<boolean>("developerMode", false)
@@ -208,8 +212,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [disableHttpProxy, _setDisableHttpProxy] = useState<boolean>(() => 
     Storage.get<boolean>("disableHttpProxy", true)
   );
-  const [directPlay, _setDirectPlay] = useState<boolean>(() => 
+  const [directPlay, _setDirectPlay] = useState<boolean>(() =>
     Storage.get<boolean>("directPlay", true)
+  );
+  const [tvLightMode, _setTvLightMode] = useState<boolean>(() =>
+    Storage.get<boolean>("tvLightMode", false)
   );
 
   const isSettingsLocked = hostConfig.locked;
@@ -248,13 +255,22 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     document.documentElement.setAttribute("data-theme", accentTheme);
   }, [accentTheme]);
 
+  // "Light mode" flattens residual depth/effects on TV (see tv.css). The class is
+  // mirrored on first paint by PlatformManager; this keeps it in sync with the toggle.
+  useEffect(() => {
+    document.body.classList.toggle("tv-light", tvLightMode);
+  }, [tvLightMode]);
+
   useEffect(() => {
     const scale = uiFontScale || 1.0;
     document.documentElement.style.setProperty("--ui-scale", String(scale));
-    document.documentElement.style.setProperty("font-size", `${scale * 100}%`);
-    if (document.body) {
-      document.body.style.zoom = "";
-    }
+    // One scale lever for every platform: bump the root font-size. The whole UI is rem-based, so
+    // this enlarges it crisply at the panel's native resolution (TV presets just pick a bigger
+    // multiplier than desktop — see AccessibilitySettings). No transform/zoom of the canvas.
+    // On TV, normalize by viewport width so the UI is the same PHYSICAL size on panels that report
+    // different CSS viewports (Apple TV ≈1920 vs Android TV ≈960–1280). See tvFontFactor.
+    const factor = PlatformManager.isTV() ? PlatformManager.tvFontFactor() : 1;
+    document.documentElement.style.setProperty("font-size", `${scale * factor * 100}%`);
   }, [uiFontScale]);
 
   const selectProfile = useCallback((id: string) => {
@@ -317,6 +333,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const setUiFontScale = useCallback((scale: number) => {
     Storage.set("uiFontScale", scale);
+    // On TV the effect above re-applies the transform stage live (no reload needed).
     _setUiFontScale(scale);
   }, []);
 
@@ -335,6 +352,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     _setDirectPlay(val);
   }, []);
 
+  const setTvLightMode = useCallback((val: boolean) => {
+    Storage.set("tvLightMode", val);
+    _setTvLightMode(val);
+  }, []);
+
   const value = useMemo(() => ({
     connectionProfiles,
     activeProfileID,
@@ -345,6 +367,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     developerMode,
     disableHttpProxy,
     directPlay,
+    tvLightMode,
     selectProfile,
     addProfile,
     deleteProfile,
@@ -355,6 +378,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setDeveloperMode,
     setDisableHttpProxy,
     setDirectPlay,
+    setTvLightMode,
   }), [
     connectionProfiles,
     activeProfileID,
@@ -365,6 +389,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     developerMode,
     disableHttpProxy,
     directPlay,
+    tvLightMode,
     selectProfile,
     addProfile,
     deleteProfile,
@@ -375,6 +400,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setDeveloperMode,
     setDisableHttpProxy,
     setDirectPlay,
+    setTvLightMode,
   ]);
 
   useEffect(() => {

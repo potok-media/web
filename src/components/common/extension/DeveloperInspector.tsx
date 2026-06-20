@@ -273,10 +273,10 @@ return Card()
             border: "none",
             color: "#94a3b8",
             cursor: "pointer",
-            padding: "4px"
+            padding: "0.25rem"
           }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg width="1.25rem" height="1.25rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
@@ -286,7 +286,7 @@ return Card()
       <div style={{ padding: "var(--space-m)", flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "var(--space-m)" }}>
         {/* Presets */}
         <div>
-          <label style={{ fontSize: "0.8rem", fontWeight: "bold", color: "#94a3b8", display: "block", marginBottom: "6px" }}>Готовые шаблоны кода:</label>
+          <label style={{ fontSize: "0.8rem", fontWeight: "bold", color: "#94a3b8", display: "block", marginBottom: "0.375rem" }}>Готовые шаблоны кода:</label>
           <select
             onChange={(e) => {
               const val = e.target.value;
@@ -356,10 +356,10 @@ return Card()
             }}
             style={{
               width: "100%",
-              padding: "8px",
+              padding: "0.5rem",
               background: "#1e293b",
               border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: "6px",
+              borderRadius: "0.375rem",
               color: "#fff",
               outline: "none"
             }}
@@ -373,15 +373,15 @@ return Card()
         </div>
 
         {/* Monaco Editor Container */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px", minHeight: "350px" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.375rem", minHeight: "21.875rem" }}>
           <label style={{ fontSize: "0.8rem", fontWeight: "bold", color: "#94a3b8" }}>Код виджета (JavaScript):</label>
           <div 
             style={{ 
               position: "relative",
-              flex: 1, 
-              minHeight: "300px", 
-              borderRadius: "8px", 
-              overflow: "hidden", 
+              flex: 1,
+              minHeight: "18.75rem",
+              borderRadius: "0.5rem",
+              overflow: "hidden",
               border: "1px solid rgba(255, 255, 255, 0.12)",
               backgroundColor: "#1e1e1e"
             }}
@@ -398,17 +398,17 @@ return Card()
                   alignItems: "center", 
                   justifyContent: "center",
                   color: "rgba(255, 255, 255, 0.6)",
-                  fontSize: "14px",
+                  fontSize: "0.875rem",
                   fontFamily: "var(--font-family, sans-serif)",
                   backgroundColor: "rgba(30, 30, 30, 0.8)",
                   zIndex: 10
                 }}
               >
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-                  <div 
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem" }}>
+                  <div
                     style={{
-                      width: "24px",
-                      height: "24px",
+                      width: "1.5rem",
+                      height: "1.5rem",
                       border: "2px solid rgba(255,255,255,0.1)",
                       borderTopColor: "var(--color-primary, #6366f1)",
                       borderRadius: "50%",
@@ -425,12 +425,12 @@ return Card()
                 `}</style>
               </div>
             )}
-            <div ref={editorContainerRef} style={{ width: "100%", height: "100%", minHeight: "300px" }} />
+            <div ref={editorContainerRef} style={{ width: "100%", height: "100%", minHeight: "18.75rem" }} />
           </div>
         </div>
         
         {inspectorError && (
-          <div style={{ color: "#ef4444", fontSize: "0.8rem", background: "rgba(239,68,68,0.1)", padding: "8px", borderRadius: "4px" }}>
+          <div style={{ color: "#ef4444", fontSize: "0.8rem", background: "rgba(239,68,68,0.1)", padding: "0.5rem", borderRadius: "0.25rem" }}>
             {inspectorError}
           </div>
         )}
@@ -533,11 +533,11 @@ return Card()
           }}
           style={{
             width: "100%",
-            padding: "10px",
+            padding: "0.625rem",
             background: "#10b981",
             color: "#fff",
             border: "none",
-            borderRadius: "6px",
+            borderRadius: "0.375rem",
             fontWeight: "bold",
             cursor: "pointer",
             textAlign: "center"

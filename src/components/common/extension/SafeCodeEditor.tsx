@@ -176,12 +176,12 @@ export const SafeCodeEditor: React.FC<SafeCodeEditorProps> = ({ schema, pluginId
               ref={setRefs}
               style={{ 
                 position: "relative",
-                flex: 1, 
-                height: baseStyle.height || "200px", 
-                minHeight: "120px", 
-                resize: "vertical", 
-                overflow: "hidden", 
-                borderRadius: "8px", 
+                flex: 1,
+                height: baseStyle.height || "12.5rem",
+                minHeight: "7.5rem",
+                resize: "vertical",
+                overflow: "hidden",
+                borderRadius: "0.5rem",
                 border: focused ? "2px solid var(--accent, #6366f1)" : "1px solid rgba(255, 255, 255, 0.12)",
                 backgroundColor: "#1e1e1e"
               }}
@@ -198,17 +198,17 @@ export const SafeCodeEditor: React.FC<SafeCodeEditorProps> = ({ schema, pluginId
                     alignItems: "center", 
                     justifyContent: "center",
                     color: "rgba(255, 255, 255, 0.6)",
-                    fontSize: "14px",
+                    fontSize: "0.875rem",
                     fontFamily: "var(--font-family, sans-serif)",
                     backgroundColor: "rgba(30, 30, 30, 0.8)",
                     zIndex: 10
                   }}
                 >
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-                    <div 
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem" }}>
+                    <div
                       style={{
-                        width: "24px",
-                        height: "24px",
+                        width: "1.5rem",
+                        height: "1.5rem",
                         border: "2px solid rgba(255,255,255,0.1)",
                         borderTopColor: "var(--color-primary, #6366f1)",
                         borderRadius: "50%",
@@ -237,9 +237,9 @@ export const SafeCodeEditor: React.FC<SafeCodeEditorProps> = ({ schema, pluginId
                     alignItems: "center", 
                     justifyContent: "center",
                     color: "#ef4444",
-                    fontSize: "14px",
+                    fontSize: "0.875rem",
                     fontFamily: "var(--font-family, sans-serif)",
-                    padding: "16px",
+                    padding: "1rem",
                     textAlign: "center",
                     zIndex: 10
                   }}

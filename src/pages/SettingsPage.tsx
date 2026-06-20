@@ -10,7 +10,8 @@ import DeclarativeSettings from "../components/settings/DeclarativeSettings";
 import AccessibilitySettings from "../components/settings/AccessibilitySettings";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import type { RegisteredExtension } from "@potok/sdk-types";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { useLocation } from "react-router-dom";
+import { restoreFocusOrDefault } from "../utils/focusMemory";
 import { FocusableButton } from "../components/common/TVNavigation";
 import { PageFrame } from "../components/common/PageFrame";
 import { usePlatform } from "../hooks/usePlatform";
@@ -25,20 +26,23 @@ export const SettingsPage: React.FC = () => {
     uiFontScale,
     developerMode,
     disableHttpProxy,
+    tvLightMode,
     setAccentTheme,
     setDefaultPlayer,
     setUiFontScale,
     setDeveloperMode,
     setDisableHttpProxy,
+    setTvLightMode,
   } = useSettings();
 
   const [activeTab, setActiveTab] = useState<string>("general");
   const [, setTick] = useState(0);
   const { isTV, isMobile } = usePlatform();
+  const location = useLocation();
 
   useEffect(() => {
-    setFocus("SETTINGS_TAB_GENERAL");
-  }, []);
+    restoreFocusOrDefault(location.key || location.pathname, "SETTINGS_TAB_GENERAL");
+  }, [location.key, location.pathname]);
 
   // Setup extensions state from localStorage and keep it in sync
   const [extensions, setExtensions] = useState<RegisteredExtension[]>(() => {
@@ -120,21 +124,21 @@ export const SettingsPage: React.FC = () => {
         className={`settings-nav-item ${activeTab === "general" ? "active" : ""}`}
         onClick={() => setActiveTab("general")}
       >
-        <Sliders size={16} />
+        <Sliders size="1rem" />
         <span>Основные</span>
       </FocusableButton>
       <FocusableButton
         className={`settings-nav-item ${activeTab === "profiles" ? "active" : ""}`}
         onClick={() => setActiveTab("profiles")}
       >
-        <Globe size={16} />
+        <Globe size="1rem" />
         <span>Профили подключения</span>
       </FocusableButton>
       <FocusableButton
         className={`settings-nav-item ${activeTab === "accessibility" ? "active" : ""}`}
         onClick={() => setActiveTab("accessibility")}
       >
-        <Eye size={16} />
+        <Eye size="1rem" />
         <span>Специальные возможности</span>
       </FocusableButton>
 
@@ -143,14 +147,14 @@ export const SettingsPage: React.FC = () => {
         className={`settings-nav-item ${activeTab === "extensions" ? "active" : ""}`}
         onClick={() => setActiveTab("extensions")}
       >
-        <Puzzle size={16} />
+        <Puzzle size="1rem" />
         <span>Расширения</span>
       </FocusableButton>
       <FocusableButton
         className={`settings-nav-item ${activeTab === "console" ? "active" : ""}`}
         onClick={() => setActiveTab("console")}
       >
-        <Terminal size={16} />
+        <Terminal size="1rem" />
         <span>Консоль</span>
       </FocusableButton>
 
@@ -163,7 +167,7 @@ export const SettingsPage: React.FC = () => {
               className={`settings-nav-item ${activeTab === c.contribution.id ? "active" : ""}`}
               onClick={() => setActiveTab(c.contribution.id)}
             >
-              <Puzzle size={16} />
+              <Puzzle size="1rem" />
               <span>{c.contribution.title || c.contribution.id}</span>
             </FocusableButton>
           ))}
@@ -173,7 +177,7 @@ export const SettingsPage: React.FC = () => {
               className={`settings-nav-item ${activeTab === `config-${ext.id}` ? "active" : ""}`}
               onClick={() => setActiveTab(`config-${ext.id}`)}
             >
-              <Puzzle size={16} />
+              <Puzzle size="1rem" />
               <span>{ext.manifest.name || ext.id}</span>
             </FocusableButton>
           ))}
@@ -200,6 +204,8 @@ export const SettingsPage: React.FC = () => {
           setDeveloperMode={setDeveloperMode}
           disableHttpProxy={disableHttpProxy}
           setDisableHttpProxy={setDisableHttpProxy}
+          tvLightMode={tvLightMode}
+          setTvLightMode={setTvLightMode}
         />
       )}
       {activeTab === "profiles" && <ProfilesSettings />}

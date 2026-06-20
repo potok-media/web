@@ -71,7 +71,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
                 key={key}
                 onClick={() => setActivePage(key)}
               >
-                <FileCode size={14} />
+                <FileCode size="0.875rem" />
                 <span>{info.title}</span>
               </div>
             ))}
@@ -85,7 +85,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
           >
             <span>API методы</span>
             <ChevronDown 
-              size={14} 
+              size="0.875rem" 
               style={{ 
                 transform: expandedGroups["API"] ? "rotate(0deg)" : "rotate(-90deg)", 
                 transition: "transform 0.2s" 
@@ -101,7 +101,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
                 key={key}
                 onClick={() => setActivePage(key)}
               >
-                <Sliders size={14} />
+                <Sliders size="0.875rem" />
                 <span>{info.title}</span>
               </div>
             ))}
@@ -115,7 +115,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
           >
             <span>UI: Разметка и Сетки</span>
             <ChevronDown 
-              size={14} 
+              size="0.875rem" 
               style={{ 
                 transform: expandedGroups["UI: Контейнеры"] ? "rotate(0deg)" : "rotate(-90deg)", 
                 transition: "transform 0.2s" 
@@ -130,7 +130,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
                 key={key}
                 onClick={() => setActivePage(key)}
               >
-                <Layout size={14} />
+                <Layout size="0.875rem" />
                 <span>{info.title}</span>
               </div>
             ))}
@@ -144,7 +144,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
           >
             <span>UI: Текст и Инфо</span>
             <ChevronDown 
-              size={14} 
+              size="0.875rem" 
               style={{ 
                 transform: expandedGroups["UI: Текст и Инфо"] ? "rotate(0deg)" : "rotate(-90deg)", 
                 transition: "transform 0.2s" 
@@ -159,7 +159,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
                 key={key}
                 onClick={() => setActivePage(key)}
               >
-                <Type size={14} />
+                <Type size="0.875rem" />
                 <span>{info.title}</span>
               </div>
             ))}
@@ -173,7 +173,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
           >
             <span>UI: Формы и Ввод</span>
             <ChevronDown 
-              size={14} 
+              size="0.875rem" 
               style={{ 
                 transform: expandedGroups["UI: Формы и Ввод"] ? "rotate(0deg)" : "rotate(-90deg)", 
                 transition: "transform 0.2s" 
@@ -188,7 +188,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
                 key={key}
                 onClick={() => setActivePage(key)}
               >
-                <CheckSquare size={14} />
+                <CheckSquare size="0.875rem" />
                 <span>{info.title}</span>
               </div>
             ))}
@@ -202,7 +202,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
           >
             <span>UI: Медиа компоненты</span>
             <ChevronDown 
-              size={14} 
+              size="0.875rem" 
               style={{ 
                 transform: expandedGroups["UI: Медиа"] ? "rotate(0deg)" : "rotate(-90deg)", 
                 transition: "transform 0.2s" 
@@ -217,7 +217,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
                 key={key}
                 onClick={() => setActivePage(key)}
               >
-                <Film size={14} />
+                <Film size="0.875rem" />
                 <span>{info.title}</span>
               </div>
             ))}
@@ -231,7 +231,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
           >
             <span>UI: Плееры и Потоки</span>
             <ChevronDown 
-              size={14} 
+              size="0.875rem" 
               style={{ 
                 transform: expandedGroups["UI: Рендеринг и Стриминг"] ? "rotate(0deg)" : "rotate(-90deg)", 
                 transition: "transform 0.2s" 
@@ -246,7 +246,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
                 key={key}
                 onClick={() => setActivePage(key)}
               >
-                <PlayCircle size={14} />
+                <PlayCircle size="0.875rem" />
                 <span>{info.title}</span>
               </div>
             ))}
@@ -259,7 +259,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
             className={`wiki-sidebar-item ${activePage === "sandbox" ? "active" : ""}`}
             onClick={() => setActivePage("sandbox")}
           >
-            <Terminal size={14} />
+            <Terminal size="0.875rem" />
             <span>Песочница / Sandbox</span>
           </div>
         </div>
@@ -271,12 +271,12 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
       >
         {theme === "light" ? (
           <>
-            <Moon size={14} />
+            <Moon size="0.875rem" />
             <span>Темная тема</span>
           </>
         ) : (
           <>
-            <Sun size={14} />
+            <Sun size="0.875rem" />
             <span>Светлая тема</span>
           </>
         )}

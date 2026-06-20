@@ -1,7 +1,7 @@
 import React from "react";
 
 interface FilmOffProps {
-  size?: number;
+  size?: number | string;
   className?: string;
   strokeWidth?: number;
 }

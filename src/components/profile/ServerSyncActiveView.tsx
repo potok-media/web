@@ -29,7 +29,7 @@ export const ServerSyncActiveView: React.FC = () => {
   return (
     <div className="strategy-card-wrapper server-sync-padding">
       <div className="sync-active-badge">
-        <CheckCircle size={8} className="sync-active-badge-dot" />
+        <CheckCircle size="0.5rem" className="sync-active-badge-dot" />
         <span className="sync-active-badge-text">
           Синхронизация активна
         </span>
@@ -46,19 +46,19 @@ export const ServerSyncActiveView: React.FC = () => {
 
       <div className="server-benefits-list">
         <BenefitRow
-          icon={<ServerIcon size={14} />}
+          icon={<ServerIcon size="0.875rem" />}
           color="#a855f7"
           title="Централизованное хранение"
           description="История и списки синхронизируются между всеми вашими клиентами через ваш сервер."
         />
         <BenefitRow
-          icon={<Lock size={14} />}
+          icon={<Lock size="0.875rem" />}
           color="#10b981"
           title="Полный контроль"
           description="Ваши данные хранятся на вашей собственной базе данных PostgreSQL."
         />
         <BenefitRow
-          icon={<User size={14} />}
+          icon={<User size="0.875rem" />}
           color="#fbbf24"
           title="Многопользовательский режим"
           description="Поддержка раздельных учетных записей с изолированной историей и настройками."

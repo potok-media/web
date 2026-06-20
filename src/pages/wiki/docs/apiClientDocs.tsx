@@ -75,7 +75,7 @@ function render() {
 state.$subscribe(render);
 render();
 loadData();`)}>
-        <Play size={12} />
+        <Play size="0.75rem" />
         <span>Загрузить Todo по сети in Sandbox</span>
       </button>
     </div>
@@ -169,7 +169,7 @@ function render() {
 state.$subscribe(render);
 render();
 initStorage();`)}>
-        <Play size={12} />
+        <Play size="0.75rem" />
         <span>Запустить пример работы с БД в Sandbox</span>
       </button>
     </div>

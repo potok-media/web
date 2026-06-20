@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { LogOut, RefreshCw, Popcorn, Settings } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { AuthApiClient } from "../network/AuthApiClient";
 import { Slot } from "../components/common/extension/Slot";
 import { useHUD } from "../context/HUDContext";
 import { useAuth } from "../context/AppSettingsContext";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { restoreFocusOrDefault } from "../utils/focusMemory";
 import { FocusableButton } from "../components/common/TVNavigation";
 import { FitFrame } from "../components/common/FitFrame";
 import { useIsMobile } from "../hooks/useIsMobile";
@@ -20,6 +20,7 @@ import "../styles/profile.css";
 
 export const ProfilePage: React.FC = () => {
   const { show: showHUD } = useHUD();
+  const location = useLocation();
   const {
     potokToken,
     potokUser,
@@ -127,12 +128,9 @@ export const ProfilePage: React.FC = () => {
   }, [syncStrategy, traktToken]);
 
   useEffect(() => {
-    if (!potokToken) {
-      setFocus("AUTH_USERNAME_INPUT");
-    } else {
-      setFocus("PROFILE_LOGOUT_BTN");
-    }
-  }, [potokToken]);
+    const def = potokToken ? "PROFILE_LOGOUT_BTN" : "AUTH_USERNAME_INPUT";
+    restoreFocusOrDefault(location.key || location.pathname, def);
+  }, [potokToken, location.key, location.pathname]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -156,7 +154,7 @@ export const ProfilePage: React.FC = () => {
           <div className="profile-title-row">
             <h1 className="profile-hero-title">Профиль</h1>
             <Link to="/settings" className="profile-mobile-settings-btn" title="Настройки">
-              <Settings size={20} />
+              <Settings size="1.25rem" />
             </Link>
           </div>
           <span className="profile-subtitle">
@@ -181,7 +179,7 @@ export const ProfilePage: React.FC = () => {
             className="profile-logout-btn"
             title="Выйти"
           >
-            <LogOut size={16} />
+            <LogOut size="1rem" />
           </FocusableButton>
         </div>
       </div>
@@ -262,7 +260,7 @@ export const ProfilePage: React.FC = () => {
                 <TraktActiveView traktProfile={traktProfile} onLogout={handleTraktLogout} />
               ) : (
                 <div className="profile-loading-wrap">
-                  <RefreshCw className="spin profile-loading-spinner" size={32} />
+                  <RefreshCw className="spin profile-loading-spinner" size="2rem" />
                 </div>
               )}
             </>
@@ -275,7 +273,7 @@ export const ProfilePage: React.FC = () => {
           ) : (
             <div className="strategy-card-wrapper trakt-connect">
               <div className="profile-trakt-icon-container">
-                <Popcorn size={32} />
+                <Popcorn size="2rem" />
               </div>
               <div>
                 <h3 className="profile-trakt-sync-title">Синхронизация с Trakt.tv</h3>
@@ -300,8 +298,8 @@ export const ProfilePage: React.FC = () => {
           <h2 className="profile-extensions-heading">Ваши расширения и инструменты</h2>
           <p className="profile-extensions-subheading">Быстрый доступ к установленным плагинам</p>
           <div className="profile-extensions-grid-wrapper">
-            <Slot name="sidebar-menu-home" props={{ isCollapsed: false }} style={{ marginBottom: "8px" }} />
-            <Slot name="sidebar-menu-library" props={{ isCollapsed: false }} style={{ marginBottom: "8px" }} />
+            <Slot name="sidebar-menu-home" props={{ isCollapsed: false }} style={{ marginBottom: "0.5rem" }} />
+            <Slot name="sidebar-menu-library" props={{ isCollapsed: false }} style={{ marginBottom: "0.5rem" }} />
             <Slot name="sidebar-menu" props={{ isCollapsed: false }} />
           </div>
         </div>

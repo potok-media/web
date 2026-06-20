@@ -5,6 +5,7 @@ import type { StreamUIItem } from "../../network/ApiTypes";
 import { StreamFilterBar } from "../StreamFilterBar";
 import StreamRowComponent from "../StreamRowComponent";
 import StreamSkeletonList from "../StreamSkeletonList";
+import { TVScrollView } from "./TVScrollView";
 import { getPluralForm } from "../../utils/formatters";
 import { PlatformManager } from "../../utils/PlatformManager";
 
@@ -168,7 +169,7 @@ export const StreamList: React.FC<StreamListProps> = ({
         />
       )}
 
-      <div className="streams-results-list" data-tv-scroll="vertical">
+      <TVScrollView orientation="vertical" className="streams-results-list" trackClassName="streams-results-track">
         {loading ? (
           <StreamSkeletonList />
         ) : displayStreams.length > 0 ? (
@@ -184,13 +185,13 @@ export const StreamList: React.FC<StreamListProps> = ({
           })
         ) : (
           <div className="stream-empty-state" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "var(--space-s)", padding: "var(--space-xl) var(--space-m)", color: "var(--text-secondary)" }}>
-            <ShieldAlert size={40} opacity={0.5} />
+            <ShieldAlert size="2.5rem" opacity={0.5} />
             <span className="stream-empty-state-text" style={{ font: "var(--font-body)", textAlign: "center" }}>
               {emptyText}
             </span>
           </div>
         )}
-      </div>
+      </TVScrollView>
     </div>
   );
 };

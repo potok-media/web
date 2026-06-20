@@ -70,7 +70,7 @@ ui.render(
     .child(Text("Добро пожаловать в Sandbox! Измените этот текст и запустите заново."))
     .child(Button("Уведомление").onClick(() => ui.showHUD("info", "Клик!")))
 );`)}>
-          <Play size={12} />
+          <Play size="0.75rem" />
           <span>Запустить этот пример в Sandbox</span>
         </button>
       </div>

@@ -2,6 +2,10 @@
    Smart TV Stylesheet (TV-performance Optimized)
    ========================================================================== */
 
+/* The 10-foot UI is sized by bumping the root font-size (everything is rem-based); the app
+   renders at the panel's native resolution, so there's no transform/zoom and nothing blurs.
+   See PlatformManager.init + AppSettingsContext (root font-size) and AccessibilitySettings (presets). */
+
 /* Disable default browser focus outlines */
 *:focus {
   outline: none !important;
@@ -12,90 +16,96 @@
   outline: none !important;
 }
 
-/* Single consistent focus ring for EVERY focusable element on TV.
-   2px to match the bespoke rules below (was 3px → looked thicker on plain buttons).
-   No `border-radius: inherit` — that forced each element to take its PARENT's radius,
-   making some buttons square and others round; the outline already follows the
-   element's own radius. Offset is -2px (drawn just inside) so it never gets clipped
-   by overflow:hidden wrappers and looks identical across rounded/square elements. */
+/* TV focus = a clean accent ring + a slight grow. The prominent CTA buttons are unified to a dark
+   surface on TV (see "TV: unify buttons to a dark surface" below), so the accent ring always
+   contrasts with the button. The grow is a colour-independent cue (composite-only, no reflow) that
+   reads even on accent "selected" chips where the ring could blend. Offset -2px so the inset ring
+   is never clipped by overflow:hidden rows; it follows each element's own border-radius. */
 body.is-tv .focused {
   outline: 2px solid var(--accent) !important;
   outline-offset: -2px !important;
 }
 
-/* Focused Interactive Buttons (simple color swap + 2px outline for maximum TV performance and visibility) */
-.btn-accent.focused,
-.potok-btn.btn-watch-primary.focused,
-.btn-watch-primary.focused {
-  background-color: white !important;
-  color: var(--bg-window) !important;
-  outline: 2px solid var(--accent) !important;
-  outline-offset: -2px !important;
+/* The grow — buttons, chips, links, list items. Cards have their own (bigger) scale below; sidebar
+   rows and text fields don't grow (they'd look odd / clip their container). */
+body.is-tv .focused:not(.media-card):not(.episode-card):not(.cast-member-card):not(.episode-picker-card):not(.sidebar-nav-item):not(input):not(select):not(textarea) {
+  transform: scale(1.04) !important;
+  z-index: 5 !important;
 }
 
-.potok-btn.btn-watch-online.focused,
-.btn-watch-online.focused {
-  background: rgba(255, 255, 255, 0.15) !important;
+/* Text fields: ring + a subtle surface tint instead of a grow. */
+body.is-tv input.focused,
+body.is-tv select.focused,
+body.is-tv textarea.focused {
+  background: var(--bg-surface-highest) !important;
   border-color: var(--accent) !important;
+}
+
+/* TV: unify the filled CTA buttons to a dark surface — the same look as `.btn-glass`
+   ("Буду смотреть"). Default accent/white fills made the accent focus ring blend into the button;
+   dark buttons let the ring (+ grow) read clearly. "Selected/active" accent states elsewhere
+   (filter chips, tabs, segmented controls) are intentionally NOT touched — they stay accent. */
+body.is-tv .btn-accent,
+body.is-tv .btn-watch-primary,
+body.is-tv .potok-btn.btn-watch-primary,
+body.is-tv .potok-btn-primary,
+body.is-tv .settings-btn-primary {
+  background: var(--bg-surface-high) !important;
+  background-color: var(--bg-surface-high) !important;
   color: var(--text-primary) !important;
-  outline: 2px solid var(--accent) !important;
-  outline-offset: -2px !important;
-}
-
-.action-btn-circle.focused {
-  background: var(--bg-surface-highest) !important;
-  border-color: var(--accent) !important;
-  outline: 2px solid var(--accent) !important;
-  outline-offset: -2px !important;
-}
-
-.action-btn-circle.active.focused {
-  background: var(--accent-dim) !important;
-  border-color: var(--accent) !important;
-  color: var(--accent) !important;
-  outline: 2px solid var(--accent) !important;
-  outline-offset: -2px !important;
-}
-
-/* TV Focus overrides for inputs/interactive fields */
-input.focused,
-select.focused,
-textarea.focused {
-  background: var(--bg-surface-highest) !important;
-  border-color: var(--accent) !important;
-  outline: 2px solid var(--accent) !important;
-  outline-offset: -2px !important;
+  border: var(--glass-border) !important;
+  box-shadow: none !important;
 }
 
 /* Media Cards Focus — scale the whole card so it's unmistakable from the couch,
    plus a bold ring. Transform is composite-only (cheap); box-shadow stays off. */
 body.is-tv .media-card.focused {
   outline: none !important;
-  transform: scale(1.06) !important;
+  transform: scale(1.04) !important;
   z-index: 10 !important;
 }
 
 body.is-tv .media-card.focused .media-poster-wrap {
-  outline: 3px solid var(--accent) !important;
-  outline-offset: -3px !important;
-  box-shadow: none !important;
+  /* Outset ring (not inset outline): an inset outline gets clipped by the poster's overflow:hidden
+     on WebKit, so the ring vanished. box-shadow draws outside, on top, follows the radius, and isn't
+     clipped by the element's own overflow. Wins over the perf `box-shadow:none` by specificity; the
+     cost is one shadow on the single focused card (negligible). */
+  box-shadow: 0 0 0 1px var(--accent) !important;
 }
 
 body.is-tv .media-card.focused .media-card-title {
   color: var(--accent) !important;
 }
 
+/* Extra top/bottom room so a focused card's scale + ring isn't clipped by the carousel viewport's
+   overflow:hidden. The bigger padding is cancelled by a matching negative margin, so the row's
+   resting position/spacing is unchanged — it only enlarges the bleed area inside the clip. */
+body.is-tv .carousel-viewport {
+  padding-top: 1.5rem !important;
+  padding-bottom: 1.5rem !important;
+  margin-top: -1.25rem !important;
+  margin-bottom: -1.25rem !important;
+}
+
+/* Give the episode strip a buffer so the focus scale + ring isn't clipped by the viewport's
+   overflow:hidden (the home `.carousel-viewport` already has this via its own padding). The
+   negative margin cancels the buffer so the strip's position/size is unchanged — it only adds
+   bleed room inside the clip. */
+body.is-tv .episodes-scroll-viewport {
+  padding: 0.625rem var(--space-m) !important;
+  margin: -0.625rem calc(-1 * var(--space-m)) !important;
+}
+
 /* Episode Cards Focus — scale + bold ring */
 body.is-tv .episode-card.focused {
   outline: none !important;
-  transform: scale(1.05) !important;
+  transform: scale(1.04) !important;
   z-index: 10 !important;
 }
 
 body.is-tv .episode-card.focused .episode-still-wrap {
   border-color: var(--accent) !important;
-  outline: 3px solid var(--accent) !important;
-  outline-offset: -3px !important;
+  box-shadow: 0 0 0 1px var(--accent) !important;
 }
 
 body.is-tv .episode-card.focused .episode-number-title {
@@ -105,13 +115,12 @@ body.is-tv .episode-card.focused .episode-number-title {
 /* Cast Cards Focus — scale + bold ring on the photo (card variant) */
 body.is-tv .cast-member-card.focused {
   outline: none !important;
-  transform: scale(1.06) !important;
+  transform: scale(1.04) !important;
   z-index: 10 !important;
 }
 
 body.is-tv .cast-member-card.focused .cast-photo-wrap {
-  outline: 3px solid var(--accent) !important;
-  outline-offset: -3px !important;
+  box-shadow: 0 0 0 1px var(--accent) !important;
 }
 
 body.is-tv .cast-member-card.focused .cast-name {
@@ -140,6 +149,17 @@ body.is-tv .main-content:has(.watch-popover-menu) {
   overflow-y: hidden !important;
 }
 
+/* No native scrollbar on TV — navigation is by D-pad, and the gutter ate into the right edge
+   (clipping the last card of every row). */
+body.is-tv .main-content {
+  scrollbar-width: none;
+}
+body.is-tv .main-content::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 /* ==========================================================================
    Smart TV Details Page Layout & Popovers
    ========================================================================== */
@@ -147,20 +167,20 @@ body.is-tv .main-content:has(.watch-popover-menu) {
 /* TV Details Page Hero Container limits to fit nicely inside logical TV viewports */
 .details-layout--tv .immersive-hero-container {
   height: 82vh !important;
-  min-height: 450px !important;
-  max-height: 800px !important;
+  min-height: 28.125rem !important;
+  max-height: 50rem !important;
   margin-bottom: var(--space-l) !important;
 }
 
 .details-layout--tv .immersive-hero-content {
-  padding-bottom: 40px !important;
+  padding-bottom: 2.5rem !important;
 }
 
 /* TV 2-column grid layout (exact match to desktop dimensions) */
 .details-layout--tv .details-content-container {
   display: grid !important;
-  grid-template-columns: 280px 1fr !important;
-  gap: 48px !important;
+  grid-template-columns: 17.5rem 1fr !important;
+  gap: 3rem !important;
   align-items: end !important;
   width: 100% !important;
   height: 100% !important;
@@ -170,7 +190,7 @@ body.is-tv .main-content:has(.watch-popover-menu) {
   display: flex !important;
   flex-direction: column !important;
   gap: var(--space-s) !important;
-  width: 280px !important;
+  width: 17.5rem !important;
   justify-content: flex-end !important;
 }
 
@@ -185,17 +205,17 @@ body.is-tv .main-content:has(.watch-popover-menu) {
 .details-layout--tv .season-popover-menu,
 .details-layout--tv .watch-popover-menu {
   position: absolute !important;
-  top: calc(100% + 4px) !important;
+  top: calc(100% + 0.25rem) !important;
 }
 
 /* Shift the season popover menu so it does not get cut off by the left screen edge */
 .details-layout--tv .season-popover-menu {
-  left: 0px !important;
+  left: 0 !important;
 }
 
 /* Align watch popover to the left of the trigger button so it opens to the right and doesn't clip into the sidebar */
 .details-layout--tv .watch-popover-menu {
-  left: 0px !important;
+  left: 0 !important;
   right: auto !important;
   transform-origin: top left !important;
 }
@@ -203,47 +223,20 @@ body.is-tv .main-content:has(.watch-popover-menu) {
 /* Multi-picker Modal TV Focus Highlights */
 body.is-tv .episode-picker-card.focused {
   outline: none !important;
-  transform: scale(1.05) !important;
+  transform: scale(1.04) !important;
   z-index: 10 !important;
 }
 
 body.is-tv .episode-picker-card.focused .episode-card-preview-wrap {
   border-color: var(--accent) !important;
-  outline: 3px solid var(--accent) !important;
-  outline-offset: -3px !important;
+  box-shadow: 0 0 0 1px var(--accent) !important;
 }
 
 body.is-tv .episode-picker-card.focused .episode-card-title {
   color: var(--accent) !important;
 }
 
-body.is-tv .modal-sidebar .potok-btn-primary.focused {
-  background: #fff !important;
-  color: #000 !important;
-  outline: 2px solid var(--accent) !important;
-  outline-offset: -2px !important;
-}
-
-body.is-tv .modal-sidebar .potok-btn-secondary.focused {
-  background: rgba(255, 255, 255, 0.15) !important;
-  color: #fff !important;
-  outline: 2px solid var(--accent) !important;
-  outline-offset: -2px !important;
-}
-
-body.is-tv .modal-sidebar .potok-badge.focused {
-  background: rgba(255, 255, 255, 0.15) !important;
-  color: #fff !important;
-  outline: 2px solid var(--accent) !important;
-  outline-offset: -2px !important;
-}
-
-body.is-tv .modal-close-btn.focused {
-  background: rgba(255, 255, 255, 0.2) !important;
-  color: #fff !important;
-  outline: 2px solid var(--accent) !important;
-  outline-offset: -2px !important;
-}
+/* modal-sidebar buttons use the unified dark style + the generic accent ring + grow on focus. */
 
 /* ==========================================================================
    TV GPU Performance Overrides
@@ -304,8 +297,6 @@ body.is-tv {
 
 /* 7. Instant scrolling on TV — native CSS smooth scroll stutters on weak GPUs.
       Centering is handled in JS (TVNavigation) which already animates manually. */
-body.is-tv .carousel-row,
-body.is-tv .episodes-scroll-container,
 body.is-tv .main-content,
 body.is-tv .modal-sidebar {
   scroll-behavior: auto !important;
@@ -349,8 +340,6 @@ body.is-tv .player-loading-card {
 /* 10. Drop persistent compositor layers on TV. `will-change` keeps a GPU layer
        alive per element; with many carousel rows this exhausts the Mi Stick's
        limited VRAM and causes uneven frames. */
-body.is-tv .carousel-row,
-body.is-tv .episodes-scroll-container,
 body.is-tv .streams-scroll-area {
   will-change: auto !important;
 }
@@ -383,7 +372,7 @@ body.is-tv .strategy-chip-btn,
 body.is-tv .console-tab-btn,
 body.is-tv .console-clear-btn,
 body.is-tv .profile-logout-btn {
-  min-height: 44px;
+  min-height: 2.75rem;
   font-size: 0.95rem;
 }
 
@@ -407,18 +396,18 @@ body.is-tv .strategy-chips-label {
        and shrink the cards. */
 body.is-tv .extensions-stats-container {
   grid-template-columns: repeat(3, 1fr) !important;
-  gap: 10px;
+  gap: 0.625rem;
 }
 
 body.is-tv .stat-card {
-  padding: 10px 12px;
-  gap: 10px;
-  border-radius: 12px;
+  padding: 0.625rem 0.75rem;
+  gap: 0.625rem;
+  border-radius: 0.75rem;
 }
 
 body.is-tv .stat-card-icon-wrapper {
-  width: 36px;
-  height: 36px;
+  width: 2.25rem;
+  height: 2.25rem;
 }
 
 body.is-tv .stat-card-value {
@@ -449,7 +438,7 @@ body.is-tv .sidebar {
 
 /* Reserve the resting (collapsed) strip so content isn't hidden behind it. */
 body.is-tv .main-content {
-  margin-left: 78px;
+  margin-left: 4.875rem;
 }
 
 /* Depth shadow only while expanded (i.e. focused). */
@@ -471,4 +460,22 @@ body.is-tv .streams-sidebar-back-btn {
 /* Belt-and-braces: never break the source count onto a second line. */
 body.is-tv .streams-results-count {
   white-space: nowrap;
+}
+
+/* ==========================================================================
+   20. "Light mode" — opt-in user toggle (Settings → Спец. возможности) for the
+   weakest WebViews. The base TV rules above already kill backdrop-filter,
+   transitions and most box-shadows; this strips what's LEFT — every residual
+   shadow, text-shadow, border-radius and decorative filter — so the renderer
+   does the absolute minimum compositing/rasterization. Activated by the
+   `tv-light` body class (mirrored on first paint by PlatformManager). Mirrors
+   Lampa's `body.light--version`.
+   ========================================================================== */
+body.is-tv.tv-light *,
+body.is-tv.tv-light *::before,
+body.is-tv.tv-light *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  border-radius: 0 !important;
+  filter: none !important;
 }
