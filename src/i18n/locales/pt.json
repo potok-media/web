@@ -1,0 +1,763 @@
+{
+  "common": {
+    "loadingEditor": "Carregando o editor...",
+    "actions": {
+      "retry": "Repetir",
+      "close": "FECHAR"
+    },
+    "playerError": "Erro de reprodutor",
+    "playbackFailed": "Não foi possível reproduzir o vídeo.",
+    "errorBoundary": {
+      "title": "Algo deu errado",
+      "message": "Um erro inesperado ocorreu no componente.",
+      "retry": "Tente novamente"
+    },
+    "loading": "Carregandochar@@0",
+    "back": "Anterior",
+    "inspector": {
+      "enable": "Inspecionar layout",
+      "disable": "Parar inspeção"
+    },
+    "loadError": "Erro de carregamento"
+  },
+  "connection": {
+    "checking": {
+      "title": "Conectando ao Potok...",
+      "subtitle": "Polling the API Gateway"
+    },
+    "setup": {
+      "title": "Configuração necessária",
+      "hint": "Digite o endereço de gateway BFF (gateway da API) para conectar ao servidor Potok:"
+    },
+    "offline": {
+      "title": "Servidor Potok indisponível",
+      "cantReach": "Não foi possível conectar a:",
+      "otherAddress": "Use um endereço BFF diferente:"
+    },
+    "bffPlaceholder": "Endereço do gateway BFF",
+    "saveAndConnect": "Salvar e conectar",
+    "applyRetry": "Aplicar e tentar novamente",
+    "checkAgain": "Verificar novamente"
+  },
+  "settings": {
+    "appearance": {
+      "title": "Aparência & jogador"
+    },
+    "accent": {
+      "label": "Cor de realce"
+    },
+    "player": {
+      "label": "Player padrão",
+      "native": "Jogador web integrado"
+    },
+    "imageQuality": {
+      "label": "Qualidade da imagem",
+      "auto": "Automático",
+      "high": "Alta (1280p)",
+      "max": "Máximo (original)"
+    },
+    "language": {
+      "label": "IDIOMA",
+      "incomplete": "",
+      "helpTranslate": ""
+    },
+    "nav": {
+      "brandTitle": "Confirgurações",
+      "brandDesc": "Painel de controle",
+      "groupApp": "Solicitação",
+      "groupIntegrations": "Integrações",
+      "groupPlugins": "Complementos",
+      "general": "Gerais",
+      "connections": "Perfis de conexão",
+      "connectionsShort": "Conexões",
+      "accessibility": "Acessibilidade",
+      "accessibilityShort": "Acessibilidade",
+      "extensions": "Extensões",
+      "console": "Console"
+    },
+    "profiles": {
+      "errorEmptyGateway": "Insira um endereço de gateway",
+      "errorInvalidAddressExample": "Endereço inválido (exemplo: https://api.example.com)",
+      "errorInvalidServer": "Endereço do servidor inválido",
+      "errorEmptyName": "Insira um nome de perfil",
+      "errorInvalidAddress": "Endereço inválido",
+      "errorUnreachable": "O servidor não está respondendo a este endereço",
+      "profileAdded": "Perfil adicionado",
+      "saved": "Salvo"
+    },
+    "consent": {
+      "title": "Confirmar permissões",
+      "installing": "Instalando extensão: {{name}}",
+      "close": "FECHAR",
+      "requestsAccess": "Esta extensão solicita os seguintes privilégios de acesso:",
+      "permissionStorage": "Armazenando configurações e dados do plugin localmente em seu dispositivo",
+      "permissionHttpProxy": "Fazendo solicitações de internet (necessário para pesquisar e carregar fluxos de vídeo)",
+      "permissionUiNotifications": "Mostrando dicas e notificações no aplicativo",
+      "permissionCustom": "Solicitação de acesso especial: {{permission}}",
+      "securityWarningTitle": "Aviso de segurança",
+      "securityWarningBody": "A instalação do plugin garante a capacidade de realizar as ações listadas no aplicativo. Por favor, instale extensões somente de fontes e autores confiáveis que você confia, para manter seus dados pessoais seguros.",
+      "confirm": "Sim, eu confio e quero instalar",
+      "cancel": "cancelar"
+    },
+    "accessibility": {
+      "title": "Acessibilidade",
+      "uiSize": "Tamanho da interface",
+      "uiScale": "Escala da interface",
+      "tvSizeLarger": "Maior",
+      "tvSizeStandard": "Padrão",
+      "tvSizeCompact": "Mais compacto",
+      "fontScale": {
+        "80": "Pequeno (80%)",
+        "90": "Compacta (90%)",
+        "100": "Padrão (100%)",
+        "110": "Alargado (110%)",
+        "120": "Grande (120%)",
+        "130": "Muito grande (130%)",
+        "140": "Enorme (140%)",
+        "150": "Máximo (150%)"
+      },
+      "developerMode": "Modo de desenvolvedor",
+      "directRequests": "Pedidos diretos",
+      "docsTitle": "Documentação e sandbox",
+      "docsDescription": "Um guia interativo de construção de plugins, a especificação de API e um sandbox para código de depuração.",
+      "openWiki": "Abrir Wiki"
+    },
+    "console": {
+      "filterAll": "TODOS",
+      "filterInfo": "Informações",
+      "filterWarnings": "Avisos",
+      "filterErrors": "Erros",
+      "searchPlaceholder": "Filtrar registros...",
+      "clearConsole": "Limpar console",
+      "clear": "Limpar",
+      "systemOutput": "Potok system output",
+      "empty": "Sem registros"
+    },
+    "manifest": {
+      "title": "Manifesto de extensão",
+      "nameWithId": "{{name}} (ID: {{id}})",
+      "close": "FECHAR",
+      "copySuccess": "Manifesto copiado para área de transferência",
+      "copyError": "Falha ao copiar o manifesto",
+      "copied": "Copiado!",
+      "copy": "copiar"
+    },
+    "declarative": {
+      "saveSuccess": "Configurações do plugin salvas com sucesso",
+      "noSettings": "Não há configurações disponíveis para este plugin.",
+      "hide": "Esconder",
+      "show": "Apresentar",
+      "saveButton": "Salvar Configurações"
+    },
+    "profileEditor": {
+      "newProfile": "Novo perfil",
+      "connectionParams": "Configurações de conexão",
+      "lockedBanner": "As configurações de conexão estão bloqueadas pelo administrador.",
+      "nameLabel": "Nome Perfil",
+      "namePlaceholder": "Servidor principal",
+      "gatewayLabel": "Endereço do Gateway Potok (BFF)",
+      "gatewayPlaceholder": "Endereço do gateway BFF",
+      "checking": "Verificando…",
+      "createProfile": "Criar perfil",
+      "saveChanges": "Salvar as alterações",
+      "cancel": "cancelar"
+    },
+    "profileSelector": {
+      "title": "Perfis de conexão",
+      "cannotDeleteLast": "Não é possível excluir o único perfil",
+      "profileDeleted": "Perfil excluído",
+      "deleteProfile": "Apagar perfil",
+      "addProfile": "Adicionar perfil"
+    }
+  },
+  "player": {
+    "skip": {
+      "intro": "Pular introdução",
+      "outro": "Pular créditos"
+    },
+    "trackSelector": {
+      "chooseTitle": "Selecionar: {{title}}",
+      "disable": "Desligado",
+      "uploadSubtitlesAria": "Enviar legendas",
+      "uploadSrtVtt": "Enviar SRT/VTT...",
+      "subtitlesFallback": "{{index}} Legendas"
+    },
+    "resume": {
+      "continuedFrom": "Retomada de {{time}}",
+      "startOver": "Começar novamente"
+    },
+    "timeline": {
+      "seekAria": "Procurar vídeo"
+    },
+    "topBar": {
+      "seasonEpisode": "Temporada {{season}}, Episódio {{episode}}",
+      "closeAria": "Fechar reprodutor"
+    },
+    "error": {
+      "title": "Erro de reprodução",
+      "linkLabel": "Link:",
+      "refreshStream": "Atualizar fluxo",
+      "closePlayer": "Fechar reprodutor"
+    },
+    "loading": {
+      "cancel": "cancelar",
+      "steps": {
+        "peers": "Procurando seeders",
+        "headers": "Cabeçalhos",
+        "analyze": "Analisando mídia",
+        "buffering": "Armazenando"
+      },
+      "init": {
+        "title": "Inicializando e buffers...",
+        "loadingStream": "Carregando stream de mídia",
+        "subtitle": "Iniciando o jogador e preenchendo o buffer de reprodução"
+      },
+      "peers": {
+        "title": "Procurando separadores...",
+        "subtitle": "Procurando por pares ativos na rede P2P (DHT)"
+      },
+      "preparing": {
+        "title": "Preparando fluxo de vídeo...",
+        "subtitle": "Baixando cabeçalhos de arquivos • Paers: {{peers}} • Velocidade: {{speed}} MB/s"
+      },
+      "tracks": {
+        "title": "Configurando áudio e vídeo...",
+        "subtitle": "Analisando o contêiner de mídia e faixas"
+      }
+    },
+    "stats": {
+      "title": "Estatísticas de rede",
+      "closeTitle": "FECHAR",
+      "networkSpeed": "Velocidade de rede:",
+      "megabytesPerSec": "{{value}} MB/s",
+      "streamBitrate": "Bitrate da transmissão:",
+      "mbps": "{{value}} Mbps",
+      "resolution": "Resolução:",
+      "buffer": "Buffer:",
+      "seconds": "{{value}} seg",
+      "frames": "Frames:",
+      "fps": "{{value}} fps"
+    },
+    "controls": {
+      "defaultAudioTrack": "Principal (Padrão)",
+      "episode": "Episódio",
+      "episodeNumbered": "Episódio {{number}}",
+      "rewind10Title": "Voltar 10 seg.",
+      "rewind10Aria": "Voltar 10 segundos",
+      "forward10Title": "Avance 10 seg.",
+      "forward10Aria": "Avançar 10 segundos",
+      "pause": "Suspender",
+      "play": "Reproduzir",
+      "toggleMute": "Silenciar/Reativar",
+      "volume": "Volume",
+      "diagnosticsTitle": "Diagnóstico",
+      "diagnosticsAria": "Mostrar diagnósticos",
+      "audioTracks": "Faixas de Áudio",
+      "subtitles": "Legendas",
+      "disable": "Desligado",
+      "playlistEpisodes": "Episódios da playlist",
+      "quality": "Qualidade",
+      "fullscreen": "Tela cheia"
+    },
+    "playback": {
+      "accessRestricted": "Acesso de reprodução restrito.",
+      "loadFailed": "Falha ao carregar o fluxo de vídeo."
+    },
+    "quality": {
+      "auto": "Automático",
+      "autoWithHeight": "Automático ({{height}}p)",
+      "levelNumbered": "Qualidade {{number}}"
+    },
+    "offline": {
+      "banner": "Conexão perdida. Reproduzindo do buffer..."
+    }
+  },
+  "streams": {
+    "source": "fonte",
+    "empty": "Nenhuma transmissão encontrada. Tente alterar os filtros.",
+    "countLabel_one": "Fonte {{count}}",
+    "countLabel_other": "Fontes de {{count}}",
+    "actions": {
+      "refresh": "atualizar",
+      "back": "Anterior"
+    },
+    "sort": {
+      "seedersDesc": "Por popularidade",
+      "publishDateDesc": "Mais recentes primeiro",
+      "sizeDesc": "Maior primeiro",
+      "sizeAsc": "Menores primeiro"
+    },
+    "filter": {
+      "title": "Filtros",
+      "quality": "Qualidade",
+      "allQualities": "Todas as qualidades",
+      "trackerLabel": "fonte",
+      "allTrackers": "Todos os rastreadores",
+      "providerLabel": "Fornecedor",
+      "allSources": "Todas as fontes",
+      "resetAll": "Redefinir tudo"
+    },
+    "row": {
+      "watch": "Acompanhar",
+      "seedersTitle": "Semeadores",
+      "seedersLabel": "Semeadores:",
+      "leechersTitle": "Leechers (Peers)",
+      "leechersLabel": "Leechers:"
+    },
+    "loading": {
+      "fetchingInfo": "Buscando informações..."
+    },
+    "notFound": {
+      "title": "Mídia não encontrada"
+    }
+  },
+  "media": {
+    "common": {
+      "retry": "Repetir"
+    },
+    "cast": {
+      "title": "Transmitir"
+    },
+    "episode": {
+      "fallbackName": "Episódio {{number}}",
+      "noOverview": "Descrição do episódio não disponível.",
+      "backToShow": "Voltar para visão geral da série"
+    },
+    "overview": {
+      "seasonsCount_one": "Temporada de {{count}}",
+      "seasonsCount_other": "Temporadas {{count}}"
+    },
+    "row": {
+      "seeAllTitle": "Mostrar tudo em {{title}}",
+      "more": "MAIS"
+    },
+    "hero": {
+      "details": "Mais informações",
+      "inWatchlist": "Na lista",
+      "addToWatchlist": "Adicionar à lista",
+      "slide": "Slide {{number}}"
+    },
+    "watchlist": {
+      "added": "Adicionado à lista",
+      "removed": "Removido das assinaturas",
+      "syncError": "Erro de sincronização"
+    },
+    "selector": {
+      "season": "Temporada {{number}}",
+      "watched": "Assistido",
+      "audioCount_one": "Faixa de voz {{count}}",
+      "audioCount_other": "",
+      "progress": "Episódios assistidos: {{completed}} de {{total}} ({{percentage}}%)",
+      "parsingHintQuestion": "Não foi possível detectar as temporadas?",
+      "parsingHintBody": "Talvez seja necessário definir o mapeamento do episódio para rastreamento.",
+      "more": "MAIS",
+      "openAsPlaylist": "Abrir como playlist",
+      "editMapping": "Editar Mapeamento",
+      "back": "Anterior",
+      "close": "FECHAR",
+      "mainStream": "Stream principal",
+      "noEpisodes": "Nenhum episódio disponível.",
+      "savingOffset": "Salvando offset..."
+    },
+    "override": {
+      "loading": "Carregando episódios do TMDB...",
+      "prompt": "De qual episódio esta lista começa?"
+    },
+    "home": {
+      "loadError": "Falha ao carregar a biblioteca"
+    },
+    "details": {
+      "notFound": "Mídia não encontrada",
+      "markWatched": "Marcar como assistido",
+      "removeFromHistory": "Remover do histórico de assistir",
+      "addToWatchlist": "Adicionar à lista",
+      "removeFromWatchlist": "Remover da lista",
+      "addToFavorites": "Adicionar aos Favoritos",
+      "removeFromFavorites": "Remover dos favoritos",
+      "loadFailed": "Não foi possível carregar detalhes",
+      "toasts": {
+        "favoriteAdded": "Adicionado aos Favoritos",
+        "favoriteRemoved": "Removido dos favoritos",
+        "favoriteError": "Falha ao atualizar os favoritos",
+        "watchlistError": "Falha ao atualizar a lista de desejos",
+        "historyMarked": "Marcado como assistido",
+        "historyRemoved": "Removido do histórico",
+        "historyError": "Falha ao atualizar o histórico",
+        "episodeMarked": "Episódio {{number}} marcado como assistido",
+        "episodeRemoved": "Episódio {{number}} removido do histórico",
+        "episodeError": "Falha ao atualizar o histórico do episódio",
+        "seasonMarked": "Temporada {{number}} marcada como assistida",
+        "seasonRemoved": "{{number}} Temporada removida do histórico",
+        "seasonError": "Falha ao atualizar o histórico da temporada",
+        "historyUpdated": "Histórico do relógio atualizado",
+        "historySaveError": "Falha ao salvar histórico de assistidos"
+      }
+    },
+    "library": {
+      "category": "categoria",
+      "nothingFound": "Nada foi encontrado",
+      "emptyCategorySub": "Ainda não há nenhum item nesta categoria",
+      "traktNotConfiguredTitle": "Sincronização do Trakt não está configurada",
+      "traktNotConfiguredSub": "Para navegar nas seções da biblioteca, vincule sua conta Trakt nas configurações de Potok.",
+      "goToSettings": "Ir para as configurações",
+      "searchTitle": "Pesquisa",
+      "searchPlaceholder": "Procurar filmes e programas de TV...",
+      "clearSearch": "Limpar",
+      "foundCount": "",
+      "totalCount": "Total de itens: {{count}}",
+      "tabs": {
+        "upNext": "Continuar",
+        "watchlist": "Planejado",
+        "favorites": "Atalhos",
+        "history": "Histórico"
+      },
+      "searching": "Procurando mídia...",
+      "loadingCollection": "Carregando coleção...",
+      "loadingMore": "Carregando mais...",
+      "searchNoResultsSub": "Tente alterar a sua consulta ou verificar a ortografia do título",
+      "startSearchTitle": "Começar a pesquisar",
+      "startSearchSub": "Digite o título de um filme ou programa de TV para procurar no banco de dados",
+      "loadError": "Falha ao carregar a biblioteca",
+      "nextPageError": "Falha ao carregar a próxima página",
+      "categoryNotFound": "Categoria não encontrada"
+    },
+    "calendar": {
+      "filters": {
+        "all": "Todas as versões",
+        "today": "hoje",
+        "tomorrow": "Amanhã",
+        "thisWeek": "Esta semana"
+      },
+      "groups": {
+        "tbd": "Datas a serem anunciadas",
+        "today": "hoje",
+        "tomorrow": "Amanhã"
+      },
+      "soon": "Em breve",
+      "title": "Calendário de lançamento",
+      "descriptionConnected": "Programação de novos episódios para suas séries do Trakt.tv.",
+      "descriptionGuest": "Calendário de novos episódios para séries populares com base nos dados do Trakt.TV.",
+      "filtersAriaLabel": "Filtrar o calendário por dia",
+      "traktBannerTitle": "Sincronize sua agenda pessoal",
+      "traktBannerDesc": "Conecte sua conta do Trakt.tv no seu perfil para ver o cronograma exato de episódios somente para séries dos seus favoritos e histórico.",
+      "connectTrakt": "Conectar Trakt.tv",
+      "connectTraktAria": "Vá para o perfil para conectar Trakt.tv",
+      "errorTitle": "Falha ao carregar o cronograma",
+      "retry": "Tente novamente",
+      "seasonEpisode": "Temporada {{season}}, Episódio {{episode}}",
+      "newEpisode": "Novo episódio",
+      "releaseDateAria": "Data de lançamento: {{time}}.",
+      "emptyPeriod": "Nenhuma versão agendada para o período selecionado.",
+      "loadError": "Falha ao carregar o cronograma de versão",
+      "connectionError": "Não foi possível conectar-se ao servidor"
+    },
+    "multiPicker": {
+      "close": "FECHAR",
+      "title": "Marcar como assistido",
+      "selectedCount": "Episódios selecionados: {{count}} de {{total}}",
+      "selectAll": "Selecionar todos",
+      "deselectAll": "Desmarcar todos",
+      "loading": "Carregando episódios...",
+      "season": "Temporada {{number}}",
+      "selectSeason": "Selecionar temporada",
+      "deselectSeason": "Desmarcar temporada",
+      "saving": "Salvando...",
+      "selectedRanges": "",
+      "nothingSelected": "Nada selecionado",
+      "cancel": "cancelar",
+      "save": "Guardar"
+    },
+    "seasons": {
+      "episodeSelection": "Seleção de episódio",
+      "season": "Temporada {{number}}",
+      "chooseSeason": "Escolha uma temporada",
+      "unmarkSeason": "Desmarcar temporada",
+      "markSeasonWatched": "Marcar temporada como assistido",
+      "selectAndWatch": "Selecionar e assistir aos episódios",
+      "unmark": "Unmark",
+      "markSeason": "Marcar temporada",
+      "markSelectively": "Marcar seletivamente...",
+      "scrollBack": "Rolar para trás",
+      "scrollForward": "Rolar para frente",
+      "noEpisodes": "Não há informações sobre os episódios desta temporada.",
+      "unmarkWatched": "Remover marca assistida",
+      "markWatched": "Marcar como assistido",
+      "loadError": "Falha ao carregar os episódios da temporada"
+    },
+    "categories": {
+      "upNext": {
+        "title": "Continuar",
+        "empty": "Aqui você verá filmes e episódios que você começou a assistir",
+        "emptySub": "Seu histórico de assistir começa automaticamente quando você começa a reprodução"
+      },
+      "watchlist": {
+        "title": "Planejado",
+        "empty": "Sua lista está vazia",
+        "emptySub": "Adicionar filmes e mostrar aqui para que você não se esqueça de assisti-los mais tarde"
+      },
+      "favorites": {
+        "title": "Atalhos",
+        "empty": "Nada nos Favoritos ainda",
+        "emptySub": "Marque seus títulos favoritos com um coração nas telas de detalhes para acesso rápido"
+      },
+      "history": {
+        "title": "Histórico de assistidos",
+        "empty": "Você ainda não assistiu a nada",
+        "emptySub": "Um feed cronológico de filmes e episódios completados aparecerá aqui"
+      },
+      "dynamic": {
+        "nowPlaying": "Nos teatros",
+        "trendingDay": "Tendências hoje",
+        "trendingWeek": "Tendências esta semana",
+        "upcoming": "Em breve",
+        "popularMovies": "Filmes populares",
+        "popularTv": "Séries populares",
+        "topMovies": "Principais Filmes",
+        "topTv": "Melhores séries"
+      }
+    },
+    "streams": {
+      "playbackInfoEmpty": "Falha ao obter informações de reprodução: resposta vazia do plugin",
+      "fileSelection": "Selecione um arquivo",
+      "episodeSelection": "Selecionar um episódio"
+    }
+  },
+  "profile": {
+    "page": {
+      "title": "Perfil",
+      "settings": "Confirgurações",
+      "subtitle": "Gerenciar contas e sincronização",
+      "defaultUser": "Usuário",
+      "logout": "Efetuar logout",
+      "syncLabel": "Sincronização:",
+      "strategyLabel": {
+        "trakt": "Trakt.tv Cloud",
+        "server": "Servidor de Potok",
+        "none": "Sincronização desativada"
+      },
+      "chip": {
+        "off": "Desligado"
+      },
+      "dropdown": {
+        "none": "Não selecionado"
+      },
+      "localWarning": {
+        "title": "O modo local não é suportado no cliente web",
+        "text": "No navegador, o cache offline é instável e facilmente apagado. Por favor, alterne para a sincronização de nuvem do Trakt.tv ou do Potok Server para manter seu histórico seguro.",
+        "serverButton": "Sincronizar com o servidor",
+        "traktButton": "Sincronizar com Trakt.tv"
+      },
+      "traktConnect": {
+        "title": "Sincronizar com Trakt.tv",
+        "description": "Conecte sua conta para sincronizar sua história e avaliações na nuvem.",
+        "loading": "Carregandochar@@0",
+        "connectButton": "Conectar conta"
+      },
+      "extensions": {
+        "heading": "Suas extensões e ferramentas",
+        "subheading": "Acesso rápido aos plugins instalados"
+      }
+    },
+    "hud": {
+      "loggedOut": "Você foi desconectado",
+      "strategyUpdateFailed": "Falha ao atualizar a estratégia no servidor",
+      "traktCodeError": "Erro ao obter o código Trakt",
+      "traktConnected": "Trakt.tv conectado!",
+      "codeExpired": "O código expirou",
+      "traktDisconnected": "Trakt.tv desconectado",
+      "codeCopied": "Código copiado"
+    },
+    "serverSync": {
+      "syncActive": "Sincronização ativa",
+      "title": "Servidor de Potok",
+      "description": "Todos os dados da sua biblioteca, histórico de assistir e favoritos são armazenados com segurança no seu servidor Potok.",
+      "benefits": {
+        "centralized": {
+          "title": "Armazenamento centralizado",
+          "description": "Histórico e listas sincronizam entre todos os seus clientes através do seu servidor."
+        },
+        "fullControl": {
+          "title": "Controle total",
+          "description": "Seus dados são armazenados no seu próprio banco de dados PostgreSQL."
+        },
+        "multiUser": {
+          "title": "Modo multi-usuário",
+          "description": "Suporte para contas separadas com histórico e configurações isoladas."
+        }
+      }
+    },
+    "strategySelection": {
+      "title": "Escolha um método de sincronização",
+      "description": "Sincronize seus históricos, lista de notificações e avaliações entre os dispositivos, ou mantenha tudo neste dispositivo.",
+      "trakt": {
+        "title": "Trakt.tv Cloud",
+        "description": "Sincronize automaticamente seus históricos de assistidos, progresso e lista de desejos com o serviço popular Trakt.tv."
+      },
+      "server": {
+        "title": "Servidor de Potok",
+        "description": "Sincronize com seu servidor Potok auto-hospedado (PostgreSQL). Privacidade completa e suporte para várias contas."
+      }
+    },
+    "traktActive": {
+      "connected": "Conectado",
+      "disconnect": "Desconectar",
+      "watchTime": {
+        "daysHours": "{{days}}d {{hours}}h",
+        "hours": "{{hours}}h"
+      },
+      "stats": {
+        "moviesWatched": "Filmes assistidos",
+        "episodesWatched": "Episódios assistidos",
+        "watchTime": "Tempo para assistir",
+        "ratingsGiven": "Avaliações dadas"
+      }
+    },
+    "traktDeviceAuth": {
+      "title": "Ativação do dispositivo",
+      "description": "Para conectar sua conta do Trakt, siga estes simples passos:",
+      "step1": "Abrir este link no telefone ou no computador:",
+      "step2": "Insira o seguinte código único:",
+      "waiting": "Esperando a confirmação do Trakt...",
+      "backToSelection": "Voltar para a seleção"
+    },
+    "potokAuth": {
+      "fillAllFields": "Preencha todos os campos",
+      "registerSuccess": "Registrado com sucesso!",
+      "loginSuccess": "Login efetuado com sucesso!",
+      "authError": "Erro de autorização",
+      "createAccountTitle": "Criar uma conta Potok",
+      "loginTitle": "Entrar no Potok",
+      "createAccountDesc": "Registre uma conta no seu servidor",
+      "loginDesc": "Entre com sua conta",
+      "usernamePlaceholder": "Usuário:",
+      "passwordPlaceholder": "Palavra-passe",
+      "loading": "Carregandochar@@0",
+      "registerButton": "Cadastrar",
+      "loginButton": "Iniciar sessão",
+      "haveAccount": "Já tem uma conta? Entrar",
+      "noAccount": "Sem conta? Registre-se"
+    },
+    "localSync": {
+      "syncActive": "Sincronização ativa",
+      "title": "Modo local",
+      "description": "Todos os dados da sua biblioteca e histórico de relógio são armazenados exclusivamente neste dispositivo. Nenhuma conexão de rede é necessária.",
+      "benefits": {
+        "fullyOffline": {
+          "title": "Totalmente offline",
+          "description": "Todos os dados da sua biblioteca e histórico de assistir são armazenados localmente."
+        },
+        "absoluteControl": {
+          "title": "Controle absoluto",
+          "description": "Privacidade e segurança absolutas sem enviar seu histórico para servidores externos."
+        },
+        "instantResponse": {
+          "title": "Resposta instantânea",
+          "description": "Zero latência de rede ao salvar suas marcas, histórico e listas."
+        }
+      }
+    }
+  },
+  "sidebar": {
+    "protectedLoginRequired": "Por favor, entre na sua conta Potok para acessar esta seção",
+    "expandMenu": "Expandir menu",
+    "collapseMenu": "Recolher menu",
+    "profile": "Perfil",
+    "home": "Residencial",
+    "library": "Biblioteca",
+    "upNext": "A seguir",
+    "calendar": "Agendamento",
+    "watchlist": "Interesses",
+    "favorites": "Atalhos",
+    "history": "Histórico",
+    "settings": "Confirgurações",
+    "search": "Pesquisa",
+    "searchPlaceholder": "Buscar...",
+    "clear": "Limpar",
+    "potokServer": "Servidor de imóveis",
+    "statusOff": "desligado",
+    "statusOffline": "desconectado",
+    "mobileLibrary": "Biblioteca",
+    "mobileAccount": "conta"
+  },
+  "extensions": {
+    "title": "Extensões",
+    "subtitle": "{{total}} instalado · {{enabledCount}} ativo",
+    "installByUrl": "Instalar da URL",
+    "searchPlaceholder": "Pesquisar extensões...",
+    "clear": "Limpar",
+    "close": "FECHAR",
+    "filter": {
+      "all": "TODOS",
+      "active": "ativo",
+      "disabled": "Desabilitado"
+    },
+    "status": {
+      "on": "Ligado",
+      "off": "Desligado"
+    },
+    "empty": {
+      "none": "Nenhuma extensão instalada",
+      "noResults": "Nada foi encontrado"
+    },
+    "action": {
+      "enable": "Habilitado",
+      "disable": "Desligado",
+      "copyLink": "Link de cópia",
+      "delete": "excluir"
+    },
+    "section": {
+      "description": "Descrição:",
+      "permissions": "Permissões"
+    },
+    "permissionDescriptions": {
+      "storage": "Armazena as configurações e dados do plugin localmente no seu dispositivo",
+      "httpProxy": "Faz solicitações de internet (buscando e carregando fluxos de vídeo)",
+      "uiNotifications": "Mostra dicas e notificações dentro do aplicativo",
+      "fallback": "Acesso: {{permission}}"
+    },
+    "manifest": {
+      "show": "Show manifest (JSON)",
+      "hide": "Ocultar manifesto"
+    },
+    "install": {
+      "title": "Instalar extensão",
+      "description": "Cole a URL do diretório que contém o arquivo <code>manifest.json</code>.",
+      "installing": "Instalando...",
+      "submit": "Instalar extensão"
+    },
+    "toast": {
+      "linkCopied": "Link copiado",
+      "linkCopyFailed": "Não foi possível copiar o link",
+      "installed": "Extensão \"{{name}}\" instalada"
+    },
+    "errors": {
+      "invalidManifest": "Manibo inválido: campos obrigatórios estão faltando.",
+      "blacklisted": "Instalação bloqueada: esta extensão está no registro da lista de bloqueio de segurança.",
+      "duplicateId": "Uma extensão com esta ID já está instalada.",
+      "installGeneric": "Falha na instalação"
+    },
+    "pageTitleFallback": "Extensão",
+    "hud": {
+      "refreshRequesting": "Solicitando atualização do link...",
+      "noActivePlugins": "Não há plugins ativos para atualizar o link.",
+      "hlsRefreshed": "Link para transmissão HLS atualizado!",
+      "refreshFailed": "Não foi possível atualizar o stream: {{error}}",
+      "pluginError": "Plugin \"{{id}}\" gerou um erro: {{error}}",
+      "genericError": "Erro"
+    },
+    "safe": {
+      "searchPlaceholder": "Buscar...",
+      "clear": "Limpar",
+      "selectPlaceholder": "Selecionar...",
+      "selectedCount": "",
+      "copy": "copiar",
+      "copied": "Copiado!",
+      "copySuccess": "Código copiado para área de transferência",
+      "copyFailed": "Falha ao copiar"
+    },
+    "slot": {
+      "placeholder": "[Slot de extensão: {{name}}]",
+      "active": "Slot: {{name}} (Ativo)"
+    }
+  }
+}
