@@ -1,0 +1,763 @@
+{
+  "common": {
+    "loadingEditor": "",
+    "actions": {
+      "retry": "",
+      "close": ""
+    },
+    "playerError": "",
+    "playbackFailed": "",
+    "errorBoundary": {
+      "title": "",
+      "message": "",
+      "retry": ""
+    },
+    "loading": "",
+    "back": "",
+    "inspector": {
+      "enable": "",
+      "disable": ""
+    },
+    "loadError": ""
+  },
+  "connection": {
+    "checking": {
+      "title": "",
+      "subtitle": ""
+    },
+    "setup": {
+      "title": "",
+      "hint": ""
+    },
+    "offline": {
+      "title": "",
+      "cantReach": "",
+      "otherAddress": ""
+    },
+    "bffPlaceholder": "",
+    "saveAndConnect": "",
+    "applyRetry": "",
+    "checkAgain": ""
+  },
+  "settings": {
+    "appearance": {
+      "title": ""
+    },
+    "accent": {
+      "label": ""
+    },
+    "player": {
+      "label": "",
+      "native": ""
+    },
+    "imageQuality": {
+      "label": "",
+      "auto": "",
+      "high": "",
+      "max": ""
+    },
+    "language": {
+      "label": "",
+      "incomplete": "",
+      "helpTranslate": ""
+    },
+    "nav": {
+      "brandTitle": "",
+      "brandDesc": "",
+      "groupApp": "",
+      "groupIntegrations": "",
+      "groupPlugins": "",
+      "general": "",
+      "connections": "",
+      "connectionsShort": "",
+      "accessibility": "",
+      "accessibilityShort": "",
+      "extensions": "",
+      "console": ""
+    },
+    "profiles": {
+      "errorEmptyGateway": "",
+      "errorInvalidAddressExample": "",
+      "errorInvalidServer": "",
+      "errorEmptyName": "",
+      "errorInvalidAddress": "",
+      "errorUnreachable": "",
+      "profileAdded": "",
+      "saved": ""
+    },
+    "consent": {
+      "title": "",
+      "installing": "",
+      "close": "",
+      "requestsAccess": "",
+      "permissionStorage": "",
+      "permissionHttpProxy": "",
+      "permissionUiNotifications": "",
+      "permissionCustom": "",
+      "securityWarningTitle": "",
+      "securityWarningBody": "",
+      "confirm": "",
+      "cancel": ""
+    },
+    "accessibility": {
+      "title": "",
+      "uiSize": "",
+      "uiScale": "",
+      "tvSizeLarger": "",
+      "tvSizeStandard": "",
+      "tvSizeCompact": "",
+      "fontScale": {
+        "80": "",
+        "90": "",
+        "100": "",
+        "110": "",
+        "120": "",
+        "130": "",
+        "140": "",
+        "150": ""
+      },
+      "developerMode": "",
+      "directRequests": "",
+      "docsTitle": "",
+      "docsDescription": "",
+      "openWiki": ""
+    },
+    "console": {
+      "filterAll": "",
+      "filterInfo": "",
+      "filterWarnings": "",
+      "filterErrors": "",
+      "searchPlaceholder": "",
+      "clearConsole": "",
+      "clear": "",
+      "systemOutput": "",
+      "empty": ""
+    },
+    "manifest": {
+      "title": "",
+      "nameWithId": "",
+      "close": "",
+      "copySuccess": "",
+      "copyError": "",
+      "copied": "",
+      "copy": ""
+    },
+    "declarative": {
+      "saveSuccess": "",
+      "noSettings": "",
+      "hide": "",
+      "show": "",
+      "saveButton": ""
+    },
+    "profileEditor": {
+      "newProfile": "",
+      "connectionParams": "",
+      "lockedBanner": "",
+      "nameLabel": "",
+      "namePlaceholder": "",
+      "gatewayLabel": "",
+      "gatewayPlaceholder": "",
+      "checking": "",
+      "createProfile": "",
+      "saveChanges": "",
+      "cancel": ""
+    },
+    "profileSelector": {
+      "title": "",
+      "cannotDeleteLast": "",
+      "profileDeleted": "",
+      "deleteProfile": "",
+      "addProfile": ""
+    }
+  },
+  "player": {
+    "skip": {
+      "intro": "",
+      "outro": ""
+    },
+    "trackSelector": {
+      "chooseTitle": "",
+      "disable": "",
+      "uploadSubtitlesAria": "",
+      "uploadSrtVtt": "",
+      "subtitlesFallback": ""
+    },
+    "resume": {
+      "continuedFrom": "",
+      "startOver": ""
+    },
+    "timeline": {
+      "seekAria": ""
+    },
+    "topBar": {
+      "seasonEpisode": "",
+      "closeAria": ""
+    },
+    "error": {
+      "title": "",
+      "linkLabel": "",
+      "refreshStream": "",
+      "closePlayer": ""
+    },
+    "loading": {
+      "cancel": "",
+      "steps": {
+        "peers": "",
+        "headers": "",
+        "analyze": "",
+        "buffering": ""
+      },
+      "init": {
+        "title": "",
+        "loadingStream": "",
+        "subtitle": ""
+      },
+      "peers": {
+        "title": "",
+        "subtitle": ""
+      },
+      "preparing": {
+        "title": "",
+        "subtitle": ""
+      },
+      "tracks": {
+        "title": "",
+        "subtitle": ""
+      }
+    },
+    "stats": {
+      "title": "",
+      "closeTitle": "",
+      "networkSpeed": "",
+      "megabytesPerSec": "",
+      "streamBitrate": "",
+      "mbps": "",
+      "resolution": "",
+      "buffer": "",
+      "seconds": "",
+      "frames": "",
+      "fps": ""
+    },
+    "controls": {
+      "defaultAudioTrack": "",
+      "episode": "",
+      "episodeNumbered": "",
+      "rewind10Title": "",
+      "rewind10Aria": "",
+      "forward10Title": "",
+      "forward10Aria": "",
+      "pause": "",
+      "play": "",
+      "toggleMute": "",
+      "volume": "",
+      "diagnosticsTitle": "",
+      "diagnosticsAria": "",
+      "audioTracks": "",
+      "subtitles": "",
+      "disable": "",
+      "playlistEpisodes": "",
+      "quality": "",
+      "fullscreen": ""
+    },
+    "playback": {
+      "accessRestricted": "",
+      "loadFailed": ""
+    },
+    "quality": {
+      "auto": "",
+      "autoWithHeight": "",
+      "levelNumbered": ""
+    },
+    "offline": {
+      "banner": ""
+    }
+  },
+  "streams": {
+    "source": "",
+    "empty": "",
+    "countLabel_one": "",
+    "countLabel_other": "",
+    "actions": {
+      "refresh": "",
+      "back": ""
+    },
+    "sort": {
+      "seedersDesc": "",
+      "publishDateDesc": "",
+      "sizeDesc": "",
+      "sizeAsc": ""
+    },
+    "filter": {
+      "title": "",
+      "quality": "",
+      "allQualities": "",
+      "trackerLabel": "",
+      "allTrackers": "",
+      "providerLabel": "",
+      "allSources": "",
+      "resetAll": ""
+    },
+    "row": {
+      "watch": "",
+      "seedersTitle": "",
+      "seedersLabel": "",
+      "leechersTitle": "",
+      "leechersLabel": ""
+    },
+    "loading": {
+      "fetchingInfo": ""
+    },
+    "notFound": {
+      "title": ""
+    }
+  },
+  "media": {
+    "common": {
+      "retry": ""
+    },
+    "cast": {
+      "title": ""
+    },
+    "episode": {
+      "fallbackName": "",
+      "noOverview": "",
+      "backToShow": ""
+    },
+    "overview": {
+      "seasonsCount_one": "",
+      "seasonsCount_other": ""
+    },
+    "row": {
+      "seeAllTitle": "",
+      "more": ""
+    },
+    "hero": {
+      "details": "",
+      "inWatchlist": "",
+      "addToWatchlist": "",
+      "slide": ""
+    },
+    "watchlist": {
+      "added": "",
+      "removed": "",
+      "syncError": ""
+    },
+    "selector": {
+      "season": "",
+      "watched": "",
+      "audioCount_one": "",
+      "audioCount_other": "",
+      "progress": "",
+      "parsingHintQuestion": "",
+      "parsingHintBody": "",
+      "more": "",
+      "openAsPlaylist": "",
+      "editMapping": "",
+      "back": "",
+      "close": "",
+      "mainStream": "",
+      "noEpisodes": "",
+      "savingOffset": ""
+    },
+    "override": {
+      "loading": "",
+      "prompt": ""
+    },
+    "home": {
+      "loadError": ""
+    },
+    "details": {
+      "notFound": "",
+      "markWatched": "",
+      "removeFromHistory": "",
+      "addToWatchlist": "",
+      "removeFromWatchlist": "",
+      "addToFavorites": "",
+      "removeFromFavorites": "",
+      "loadFailed": "",
+      "toasts": {
+        "favoriteAdded": "",
+        "favoriteRemoved": "",
+        "favoriteError": "",
+        "watchlistError": "",
+        "historyMarked": "",
+        "historyRemoved": "",
+        "historyError": "",
+        "episodeMarked": "",
+        "episodeRemoved": "",
+        "episodeError": "",
+        "seasonMarked": "",
+        "seasonRemoved": "",
+        "seasonError": "",
+        "historyUpdated": "",
+        "historySaveError": ""
+      }
+    },
+    "library": {
+      "category": "",
+      "nothingFound": "",
+      "emptyCategorySub": "",
+      "traktNotConfiguredTitle": "",
+      "traktNotConfiguredSub": "",
+      "goToSettings": "",
+      "searchTitle": "",
+      "searchPlaceholder": "",
+      "clearSearch": "",
+      "foundCount": "",
+      "totalCount": "",
+      "tabs": {
+        "upNext": "",
+        "watchlist": "",
+        "favorites": "",
+        "history": ""
+      },
+      "searching": "",
+      "loadingCollection": "",
+      "loadingMore": "",
+      "searchNoResultsSub": "",
+      "startSearchTitle": "",
+      "startSearchSub": "",
+      "loadError": "",
+      "nextPageError": "",
+      "categoryNotFound": ""
+    },
+    "calendar": {
+      "filters": {
+        "all": "",
+        "today": "",
+        "tomorrow": "",
+        "thisWeek": ""
+      },
+      "groups": {
+        "tbd": "",
+        "today": "",
+        "tomorrow": ""
+      },
+      "soon": "",
+      "title": "",
+      "descriptionConnected": "",
+      "descriptionGuest": "",
+      "filtersAriaLabel": "",
+      "traktBannerTitle": "",
+      "traktBannerDesc": "",
+      "connectTrakt": "",
+      "connectTraktAria": "",
+      "errorTitle": "",
+      "retry": "",
+      "seasonEpisode": "",
+      "newEpisode": "",
+      "releaseDateAria": "",
+      "emptyPeriod": "",
+      "loadError": "",
+      "connectionError": ""
+    },
+    "multiPicker": {
+      "close": "",
+      "title": "",
+      "selectedCount": "",
+      "selectAll": "",
+      "deselectAll": "",
+      "loading": "",
+      "season": "",
+      "selectSeason": "",
+      "deselectSeason": "",
+      "saving": "",
+      "selectedRanges": "",
+      "nothingSelected": "",
+      "cancel": "",
+      "save": ""
+    },
+    "seasons": {
+      "episodeSelection": "",
+      "season": "",
+      "chooseSeason": "",
+      "unmarkSeason": "",
+      "markSeasonWatched": "",
+      "selectAndWatch": "",
+      "unmark": "",
+      "markSeason": "",
+      "markSelectively": "",
+      "scrollBack": "",
+      "scrollForward": "",
+      "noEpisodes": "",
+      "unmarkWatched": "",
+      "markWatched": "",
+      "loadError": ""
+    },
+    "categories": {
+      "upNext": {
+        "title": "",
+        "empty": "",
+        "emptySub": ""
+      },
+      "watchlist": {
+        "title": "",
+        "empty": "",
+        "emptySub": ""
+      },
+      "favorites": {
+        "title": "",
+        "empty": "",
+        "emptySub": ""
+      },
+      "history": {
+        "title": "",
+        "empty": "",
+        "emptySub": ""
+      },
+      "dynamic": {
+        "nowPlaying": "",
+        "trendingDay": "",
+        "trendingWeek": "",
+        "upcoming": "",
+        "popularMovies": "",
+        "popularTv": "",
+        "topMovies": "",
+        "topTv": ""
+      }
+    },
+    "streams": {
+      "playbackInfoEmpty": "",
+      "fileSelection": "",
+      "episodeSelection": ""
+    }
+  },
+  "profile": {
+    "page": {
+      "title": "",
+      "settings": "",
+      "subtitle": "",
+      "defaultUser": "",
+      "logout": "",
+      "syncLabel": "",
+      "strategyLabel": {
+        "trakt": "",
+        "server": "",
+        "none": ""
+      },
+      "chip": {
+        "off": ""
+      },
+      "dropdown": {
+        "none": ""
+      },
+      "localWarning": {
+        "title": "",
+        "text": "",
+        "serverButton": "",
+        "traktButton": ""
+      },
+      "traktConnect": {
+        "title": "",
+        "description": "",
+        "loading": "",
+        "connectButton": ""
+      },
+      "extensions": {
+        "heading": "",
+        "subheading": ""
+      }
+    },
+    "hud": {
+      "loggedOut": "",
+      "strategyUpdateFailed": "",
+      "traktCodeError": "",
+      "traktConnected": "",
+      "codeExpired": "",
+      "traktDisconnected": "",
+      "codeCopied": ""
+    },
+    "serverSync": {
+      "syncActive": "",
+      "title": "",
+      "description": "",
+      "benefits": {
+        "centralized": {
+          "title": "",
+          "description": ""
+        },
+        "fullControl": {
+          "title": "",
+          "description": ""
+        },
+        "multiUser": {
+          "title": "",
+          "description": ""
+        }
+      }
+    },
+    "strategySelection": {
+      "title": "",
+      "description": "",
+      "trakt": {
+        "title": "",
+        "description": ""
+      },
+      "server": {
+        "title": "",
+        "description": ""
+      }
+    },
+    "traktActive": {
+      "connected": "",
+      "disconnect": "",
+      "watchTime": {
+        "daysHours": "",
+        "hours": ""
+      },
+      "stats": {
+        "moviesWatched": "",
+        "episodesWatched": "",
+        "watchTime": "",
+        "ratingsGiven": ""
+      }
+    },
+    "traktDeviceAuth": {
+      "title": "",
+      "description": "",
+      "step1": "",
+      "step2": "",
+      "waiting": "",
+      "backToSelection": ""
+    },
+    "potokAuth": {
+      "fillAllFields": "",
+      "registerSuccess": "",
+      "loginSuccess": "",
+      "authError": "",
+      "createAccountTitle": "",
+      "loginTitle": "",
+      "createAccountDesc": "",
+      "loginDesc": "",
+      "usernamePlaceholder": "",
+      "passwordPlaceholder": "",
+      "loading": "",
+      "registerButton": "",
+      "loginButton": "",
+      "haveAccount": "",
+      "noAccount": ""
+    },
+    "localSync": {
+      "syncActive": "",
+      "title": "",
+      "description": "",
+      "benefits": {
+        "fullyOffline": {
+          "title": "",
+          "description": ""
+        },
+        "absoluteControl": {
+          "title": "",
+          "description": ""
+        },
+        "instantResponse": {
+          "title": "",
+          "description": ""
+        }
+      }
+    }
+  },
+  "sidebar": {
+    "protectedLoginRequired": "",
+    "expandMenu": "",
+    "collapseMenu": "",
+    "profile": "",
+    "home": "",
+    "library": "",
+    "upNext": "",
+    "calendar": "",
+    "watchlist": "",
+    "favorites": "",
+    "history": "",
+    "settings": "",
+    "search": "",
+    "searchPlaceholder": "",
+    "clear": "",
+    "potokServer": "",
+    "statusOff": "",
+    "statusOffline": "",
+    "mobileLibrary": "",
+    "mobileAccount": ""
+  },
+  "extensions": {
+    "title": "",
+    "subtitle": "",
+    "installByUrl": "",
+    "searchPlaceholder": "",
+    "clear": "",
+    "close": "",
+    "filter": {
+      "all": "",
+      "active": "",
+      "disabled": ""
+    },
+    "status": {
+      "on": "",
+      "off": ""
+    },
+    "empty": {
+      "none": "",
+      "noResults": ""
+    },
+    "action": {
+      "enable": "",
+      "disable": "",
+      "copyLink": "",
+      "delete": ""
+    },
+    "section": {
+      "description": "",
+      "permissions": ""
+    },
+    "permissionDescriptions": {
+      "storage": "",
+      "httpProxy": "",
+      "uiNotifications": "",
+      "fallback": ""
+    },
+    "manifest": {
+      "show": "",
+      "hide": ""
+    },
+    "install": {
+      "title": "",
+      "description": "",
+      "installing": "",
+      "submit": ""
+    },
+    "toast": {
+      "linkCopied": "",
+      "linkCopyFailed": "",
+      "installed": ""
+    },
+    "errors": {
+      "invalidManifest": "",
+      "blacklisted": "",
+      "duplicateId": "",
+      "installGeneric": ""
+    },
+    "pageTitleFallback": "",
+    "hud": {
+      "refreshRequesting": "",
+      "noActivePlugins": "",
+      "hlsRefreshed": "",
+      "refreshFailed": "",
+      "pluginError": "",
+      "genericError": ""
+    },
+    "safe": {
+      "searchPlaceholder": "",
+      "clear": "",
+      "selectPlaceholder": "",
+      "selectedCount": "",
+      "copy": "",
+      "copied": "",
+      "copySuccess": "",
+      "copyFailed": ""
+    },
+    "slot": {
+      "placeholder": "",
+      "active": ""
+    }
+  }
+}

@@ -1,0 +1,763 @@
+{
+  "common": {
+    "loadingEditor": "Завантаження редактора...",
+    "actions": {
+      "retry": "Повторити спробу",
+      "close": "Закрити"
+    },
+    "playerError": "Помилка гравця",
+    "playbackFailed": "Не вдалося відтворити відео.",
+    "errorBoundary": {
+      "title": "Сталася помилка",
+      "message": "Неочікувана помилка при виконанні компонента.",
+      "retry": "Спробуйте ще раз"
+    },
+    "loading": "Завантажується...",
+    "back": "Відмінити",
+    "inspector": {
+      "enable": "Дослідити розкладку",
+      "disable": "Зупинити перевірку"
+    },
+    "loadError": "Помилка завантаження"
+  },
+  "connection": {
+    "checking": {
+      "title": "Підключення до Потоку...",
+      "subtitle": "Опитування API шлюзу"
+    },
+    "setup": {
+      "title": "Потрібне налаштування",
+      "hint": "Введіть BFF шлюз (API Gateway) для підключення до сервера Потоку:"
+    },
+    "offline": {
+      "title": "Потоковий сервер недоступний",
+      "cantReach": "Не вдалося з'єднатися з:",
+      "otherAddress": "Використовувати іншу BFF адресу:"
+    },
+    "bffPlaceholder": "BFF-шлюз",
+    "saveAndConnect": "Зберегти та підключитися",
+    "applyRetry": "Застосувати та повторити спробу",
+    "checkAgain": "Перевірити знову"
+  },
+  "settings": {
+    "appearance": {
+      "title": "Вигляд і гравець"
+    },
+    "accent": {
+      "label": "Колір акценту"
+    },
+    "player": {
+      "label": "Гравець за замовчуванням",
+      "native": "Вбудований веб-плеєр"
+    },
+    "imageQuality": {
+      "label": "Якість зображення",
+      "auto": "Авто",
+      "high": "Висока (1280p)",
+      "max": "Максимум (в оригіналі)"
+    },
+    "language": {
+      "label": "Мова:",
+      "incomplete": "",
+      "helpTranslate": ""
+    },
+    "nav": {
+      "brandTitle": "Налаштування",
+      "brandDesc": "Панель керування",
+      "groupApp": "Програма",
+      "groupIntegrations": "Ентеграції",
+      "groupPlugins": "Плагіни",
+      "general": "Загальні налаштування",
+      "connections": "Профілі з'єднання",
+      "connectionsShort": "З'єднання",
+      "accessibility": "Доступність",
+      "accessibilityShort": "Доступність",
+      "extensions": "Розширення",
+      "console": "Консоль"
+    },
+    "profiles": {
+      "errorEmptyGateway": "Введіть адресу шлюзу",
+      "errorInvalidAddressExample": "Недійсна адреса (наприклад: https://api.example.com)",
+      "errorInvalidServer": "Неприпустима адреса сервера",
+      "errorEmptyName": "Введіть ім'я профілю",
+      "errorInvalidAddress": "Некоректна адреса",
+      "errorUnreachable": "Сервер не відповідає на цю адресу",
+      "profileAdded": "Профіль додано",
+      "saved": "Збережено"
+    },
+    "consent": {
+      "title": "Підтвердити дозвіл",
+      "installing": "Встановлення розширення: {{name}}",
+      "close": "Закрити",
+      "requestsAccess": "Це розширення запитує такі права доступу:",
+      "permissionStorage": "Збереження налаштувань плагінів і даних локально на вашому пристрої",
+      "permissionHttpProxy": "Надання Інтернет-запитів (необхідні для пошуку та завантаження відеопотоків)",
+      "permissionUiNotifications": "Показувати підказки та сповіщення у додатку",
+      "permissionCustom": "Спеціальний запит на доступ: {{permission}}",
+      "securityWarningTitle": "Попередження безпеки",
+      "securityWarningBody": "Встановлення плагіна надає йому можливість виконувати перераховані дії в додатку. Будь ласка, встановіть розширення лише з довірених джерел і авторів, яким ви довіряєте, щоб зберігати ваші особисті дані в безпеці.",
+      "confirm": "Так, я довіряю йому і хочу встановити",
+      "cancel": "Скасувати"
+    },
+    "accessibility": {
+      "title": "Доступність",
+      "uiSize": "Розмір інтерфейсу",
+      "uiScale": "Шкала інтерфейсу",
+      "tvSizeLarger": "Більший",
+      "tvSizeStandard": "Стандартна",
+      "tvSizeCompact": "Більш компактний",
+      "fontScale": {
+        "80": "Малий (80%)",
+        "90": "Компактний (90%)",
+        "100": "Стандарт (100%)",
+        "110": "Збільшений (110%)",
+        "120": "Великий (120%)",
+        "130": "Дуже великий (130%)",
+        "140": "Величезний (140%)",
+        "150": "Максимальний (150%)"
+      },
+      "developerMode": "Режим розробника",
+      "directRequests": "Прямі запити",
+      "docsTitle": "Документація та пісочниця",
+      "docsDescription": "Інтерактивне керівництво з розробки плагінів, специфікації API та пісочниця для відладки коду.",
+      "openWiki": "Відкрити Wiki"
+    },
+    "console": {
+      "filterAll": "Всі",
+      "filterInfo": "Інформація",
+      "filterWarnings": "Попередження",
+      "filterErrors": "Помилки",
+      "searchPlaceholder": "Фільтрувати журнали...",
+      "clearConsole": "Очистити консоль",
+      "clear": "Очистити",
+      "systemOutput": "Potok system output",
+      "empty": "Немає журналів"
+    },
+    "manifest": {
+      "title": "Іманіфест розширення",
+      "nameWithId": "{{name}} (ID: {{id}})",
+      "close": "Закрити",
+      "copySuccess": "Маніфест скопійовано до буфера обміну",
+      "copyError": "Не вдалося скопіювати файл маніфесту",
+      "copied": "Скопійовано!",
+      "copy": "Копія"
+    },
+    "declarative": {
+      "saveSuccess": "Налаштування плагіна успішно збережено",
+      "noSettings": "Немає доступних для цього плагіна.",
+      "hide": "Приховати",
+      "show": "Показати",
+      "saveButton": "Зберегти налаштування"
+    },
+    "profileEditor": {
+      "newProfile": "Новий профіль",
+      "connectionParams": "Параметри підключення",
+      "lockedBanner": "Налаштування підключення заблоковані адміністратором.",
+      "nameLabel": "Ім'я профілю",
+      "namePlaceholder": "Головний сервер",
+      "gatewayLabel": "Потокове підворіття (BFF) адреса",
+      "gatewayPlaceholder": "BFF-шлюз",
+      "checking": "Перевірка…",
+      "createProfile": "Створити профіль",
+      "saveChanges": "Зберегти зміни",
+      "cancel": "Скасувати"
+    },
+    "profileSelector": {
+      "title": "Профілі з'єднання",
+      "cannotDeleteLast": "Не можна видалити лише профіль",
+      "profileDeleted": "Профіль видалено",
+      "deleteProfile": "Видалити профіль",
+      "addProfile": "Додати профіль"
+    }
+  },
+  "player": {
+    "skip": {
+      "intro": "Пропустити вступ",
+      "outro": "Пропустити кредити"
+    },
+    "trackSelector": {
+      "chooseTitle": "",
+      "disable": "Вимкнено",
+      "uploadSubtitlesAria": "Відвантажити субтитри",
+      "uploadSrtVtt": "Вивантажити SRT/VTT...",
+      "subtitlesFallback": "Субтитри {{index}}"
+    },
+    "resume": {
+      "continuedFrom": "Відновлено з {{time}}",
+      "startOver": "Почати знову"
+    },
+    "timeline": {
+      "seekAria": "Переставити відео"
+    },
+    "topBar": {
+      "seasonEpisode": "Сезон {{season}}, епізод {{episode}}",
+      "closeAria": "Закрити програвач"
+    },
+    "error": {
+      "title": "Помилка відтворення",
+      "linkLabel": "Посилання:",
+      "refreshStream": "Оновити потік",
+      "closePlayer": "Закрити програвач"
+    },
+    "loading": {
+      "cancel": "Скасувати",
+      "steps": {
+        "peers": "Пошук сідів",
+        "headers": "Заголовки",
+        "analyze": "Аналіз медіа",
+        "buffering": "Буферизація"
+      },
+      "init": {
+        "title": "Ініціалізація та буферизація...",
+        "loadingStream": "Завантаження медіа потоку",
+        "subtitle": "Запуск гравця та заповнення буфера відтворення"
+      },
+      "peers": {
+        "title": "Пошук сідерів...",
+        "subtitle": "Пошук активних учасників у мережі P2P (DHT)"
+      },
+      "preparing": {
+        "title": "Підготовка відеопотоку...",
+        "subtitle": "Завантаження заголовків файлів • Вузлів: {{peers}} • Швидкість: {{speed}} MB/s"
+      },
+      "tracks": {
+        "title": "Налаштування аудіо та відео...",
+        "subtitle": "Аналіз медіа і маршрутів"
+      }
+    },
+    "stats": {
+      "title": "Статистика мережі",
+      "closeTitle": "Закрити",
+      "networkSpeed": "Швидкість мережі:",
+      "megabytesPerSec": "{{value}} Мбіт/с",
+      "streamBitrate": "Бітрейт потоку:",
+      "mbps": "{{value}} Мбіт/с",
+      "resolution": "Роздільна здатність:",
+      "buffer": "Буфери:",
+      "seconds": "",
+      "frames": "Frames:",
+      "fps": "{{value}} к/с"
+    },
+    "controls": {
+      "defaultAudioTrack": "Головний (за замовчуванням)",
+      "episode": "Епізод",
+      "episodeNumbered": "Епізод {{number}}",
+      "rewind10Title": "Назад на 10 сек.",
+      "rewind10Aria": "Назад 10 секунд",
+      "forward10Title": "Прямо на 10 секунд.",
+      "forward10Aria": "На попереду 10 секунд",
+      "pause": "Пауза",
+      "play": "Відтворити",
+      "toggleMute": "Вимкнути/увімкнути звук",
+      "volume": "Об'єм",
+      "diagnosticsTitle": "Діагностика",
+      "diagnosticsAria": "Показати діагностику",
+      "audioTracks": "Аудіодоріжки",
+      "subtitles": "Субтитри",
+      "disable": "Вимкнено",
+      "playlistEpisodes": "Плейлист серій",
+      "quality": "Якість",
+      "fullscreen": "Повноекранний"
+    },
+    "playback": {
+      "accessRestricted": "Доступ до відтворення обмежений.",
+      "loadFailed": "Не вдалося завантажити відеопотік."
+    },
+    "quality": {
+      "auto": "Авто",
+      "autoWithHeight": "Авто ({{height}}p)",
+      "levelNumbered": "Якість {{number}}"
+    },
+    "offline": {
+      "banner": "З'єднання втрачено. Відтворюється з буфера..."
+    }
+  },
+  "streams": {
+    "source": "Джерело",
+    "empty": "Стрім не знайдено. Спробуйте змінити фільтри.",
+    "countLabel_one": "Джерело {{count}}",
+    "countLabel_other": "Джерела {{count}}",
+    "actions": {
+      "refresh": "Оновити",
+      "back": "Відмінити"
+    },
+    "sort": {
+      "seedersDesc": "За популярністю",
+      "publishDateDesc": "Спочатку нові",
+      "sizeDesc": "Спершу великі",
+      "sizeAsc": "Спершу малі"
+    },
+    "filter": {
+      "title": "Фільтри",
+      "quality": "Якість",
+      "allQualities": "Всі якості",
+      "trackerLabel": "Джерело",
+      "allTrackers": "Всі трекери",
+      "providerLabel": "Постачальник",
+      "allSources": "Всі джерела",
+      "resetAll": "Скинути все"
+    },
+    "row": {
+      "watch": "Дивитися",
+      "seedersTitle": "Сидів",
+      "seedersLabel": "Сідери:",
+      "leechersTitle": "Leechers (Peers)",
+      "leechersLabel": "Leechers:"
+    },
+    "loading": {
+      "fetchingInfo": "Отримання інформації..."
+    },
+    "notFound": {
+      "title": "Медіа не знайдено"
+    }
+  },
+  "media": {
+    "common": {
+      "retry": "Повторити спробу"
+    },
+    "cast": {
+      "title": "Транслювати"
+    },
+    "episode": {
+      "fallbackName": "Епізод {{number}}",
+      "noOverview": "Опис серії не доступний.",
+      "backToShow": "Повернутися до серії"
+    },
+    "overview": {
+      "seasonsCount_one": "",
+      "seasonsCount_other": "Сезони {{count}}"
+    },
+    "row": {
+      "seeAllTitle": "Показати все у {{title}}",
+      "more": "Більше"
+    },
+    "hero": {
+      "details": "Детальніше",
+      "inWatchlist": "В списку перегляду",
+      "addToWatchlist": "Додати до списку перегляду",
+      "slide": "Слайд {{number}}"
+    },
+    "watchlist": {
+      "added": "Додано до списку перегляду",
+      "removed": "Видалено зі списку перегляду",
+      "syncError": "Помилка синхронізації"
+    },
+    "selector": {
+      "season": "Сезон {{number}}",
+      "watched": "Переглянуто",
+      "audioCount_one": "Голосова доріжка {{count}}",
+      "audioCount_other": "{{count}} голосових доріжок",
+      "progress": "Переглянуті епізоди: {{completed}} з {{total}} ({{percentage}}%)",
+      "parsingHintQuestion": "Не вдалося визначити пори року?",
+      "parsingHintBody": "Вам може знадобитися встановити відображення епізоду для відстеження.",
+      "more": "Більше",
+      "openAsPlaylist": "Відкрити як плейліст",
+      "editMapping": "Редагувати відображення",
+      "back": "Відмінити",
+      "close": "Закрити",
+      "mainStream": "Основний потік",
+      "noEpisodes": "Немає доступних серій.",
+      "savingOffset": "Збереження відхилення..."
+    },
+    "override": {
+      "loading": "Завантаження серій з TMDB...",
+      "prompt": "З якої серії починається цей список?"
+    },
+    "home": {
+      "loadError": "Не вдалося завантажити бібліотеку"
+    },
+    "details": {
+      "notFound": "Медіа не знайдено",
+      "markWatched": "Позначити як переглянутий",
+      "removeFromHistory": "Видалити з історії спостереження",
+      "addToWatchlist": "Додати до списку перегляду",
+      "removeFromWatchlist": "Видалити зі списку перегляду",
+      "addToFavorites": "Додати в обране",
+      "removeFromFavorites": "Видалити з улюблених",
+      "loadFailed": "Не вдалося завантажити деталі",
+      "toasts": {
+        "favoriteAdded": "Додано до обраного",
+        "favoriteRemoved": "Видалено з вибраного",
+        "favoriteError": "Не вдалося оновити обране",
+        "watchlistError": "Не вдалося оновити список перегляду",
+        "historyMarked": "Позначено як переглянутий",
+        "historyRemoved": "Вилучено з історії",
+        "historyError": "Не вдалося оновити історію",
+        "episodeMarked": "Епізод {{number}} позначений як переглянутий",
+        "episodeRemoved": "З історії видалено епізод {{number}}",
+        "episodeError": "Не вдалося оновити історію серій",
+        "seasonMarked": "Сезон {{number}} позначено як переглянутий",
+        "seasonRemoved": "",
+        "seasonError": "Не вдалося оновити історію сезону",
+        "historyUpdated": "Історію годинника оновлено",
+        "historySaveError": "Не вдалося зберегти історію годинника"
+      }
+    },
+    "library": {
+      "category": "Категорія",
+      "nothingFound": "Нічого не знайдено",
+      "emptyCategorySub": "Немає товарів в цій категорії",
+      "traktNotConfiguredTitle": "Trakt синхронізація не налаштована",
+      "traktNotConfiguredSub": "Для перегляду розділів бібліотеки, зв'яжіть свій обліковий запис Trakt в розділі налаштувань Pook .",
+      "goToSettings": "Перейти до налаштувань",
+      "searchTitle": "Пошук",
+      "searchPlaceholder": "Пошук фільмів і телешоу...",
+      "clearSearch": "Очистити",
+      "foundCount": "",
+      "totalCount": "Всього товарів: {{count}}",
+      "tabs": {
+        "upNext": "Продовжити",
+        "watchlist": "Заплановано",
+        "favorites": "Вподобання",
+        "history": "Історія"
+      },
+      "searching": "Пошук медіа...",
+      "loadingCollection": "Завантаження колекції...",
+      "loadingMore": "Завантаження більше...",
+      "searchNoResultsSub": "Спробуйте змінити запит або перевірити орфографію назви",
+      "startSearchTitle": "Почати пошук",
+      "startSearchSub": "Введіть заголовок відео або телевізора для пошуку бази даних",
+      "loadError": "Не вдалося завантажити бібліотеку",
+      "nextPageError": "Помилка завантаження наступної сторінки",
+      "categoryNotFound": "Категорію не знайдено"
+    },
+    "calendar": {
+      "filters": {
+        "all": "Всі релізи",
+        "today": "Сьогодні",
+        "tomorrow": "Завтра",
+        "thisWeek": "Цього тижня"
+      },
+      "groups": {
+        "tbd": "Дати, які будуть оголошені",
+        "today": "Сьогодні",
+        "tomorrow": "Завтра"
+      },
+      "soon": "Незабаром",
+      "title": "Календар релізу",
+      "descriptionConnected": "Розклад нових серій для ваших серіалів з Trakt.tv.",
+      "descriptionGuest": "Розклад нових серій для популярних серіалів на основі даних Trakt.tv.",
+      "filtersAriaLabel": "Фільтрувати календар за день",
+      "traktBannerTitle": "Синхронізувати ваш особистий розклад",
+      "traktBannerDesc": "Підключіть ваш обліковий запис Trakt.tv у вашому профілі для перегляду точного розкладу епізодів лише для відображення з ваших закладок та історії.",
+      "connectTrakt": "Підключити Trakt.tv",
+      "connectTraktAria": "Перейдіть до профілю для підключення до Trakt.tv",
+      "errorTitle": "Не вдалося завантажити розклад",
+      "retry": "Спробуйте ще раз",
+      "seasonEpisode": "Сезон {{season}}, епізод {{episode}}",
+      "newEpisode": "Нова серія",
+      "releaseDateAria": "Дата випуску: {{time}}.",
+      "emptyPeriod": "Немає запланованих релізів для вибраного періоду.",
+      "loadError": "Не вдалося завантажити розклад випуску",
+      "connectionError": "Не вдалося підключитися до сервера"
+    },
+    "multiPicker": {
+      "close": "Закрити",
+      "title": "Позначити як переглянутий",
+      "selectedCount": "Вибрано епізодів: {{count}} з {{total}}",
+      "selectAll": "Виділити все",
+      "deselectAll": "Зняти всі виділення",
+      "loading": "Завантаження серій...",
+      "season": "Сезон {{number}}",
+      "selectSeason": "Виберіть сезон",
+      "deselectSeason": "Зняти виділення з сезону",
+      "saving": "Збереження...",
+      "selectedRanges": "",
+      "nothingSelected": "Нічого не вибрано",
+      "cancel": "Скасувати",
+      "save": "Зберегти"
+    },
+    "seasons": {
+      "episodeSelection": "Вибір епізоду",
+      "season": "Сезон {{number}}",
+      "chooseSeason": "Виберіть сезон",
+      "unmarkSeason": "Скасувати сезон відміни",
+      "markSeasonWatched": "Позначити сезон, як переглянутий",
+      "selectAndWatch": "Вибір і перегляд серій",
+      "unmark": "Unmark",
+      "markSeason": "Марк Сезон",
+      "markSelectively": "Виділити вибірку...",
+      "scrollBack": "Прокрутити назад",
+      "scrollForward": "Прокрутити вперед",
+      "noEpisodes": "У цей сезон немає інформації про епізоди.",
+      "unmarkWatched": "Видалити переглянутий позначку",
+      "markWatched": "Позначити як переглянутий",
+      "loadError": "Не вдалося завантажити серії сезону"
+    },
+    "categories": {
+      "upNext": {
+        "title": "Продовжити",
+        "empty": "Тут ви побачите фільми та епізоди, які ви почали дивитися",
+        "emptySub": "Ваша історія годинника починається автоматично, коли ви починаєте відтворення"
+      },
+      "watchlist": {
+        "title": "Заплановано",
+        "empty": "Твій список перегляду порожній",
+        "emptySub": "Додайте фільми та серіали тут, щоб ви не забули дивитися їх пізніше"
+      },
+      "favorites": {
+        "title": "Вподобання",
+        "empty": "Ще нічого в обраному",
+        "emptySub": "Позначте улюблені заголовки з серцем на екранах для швидкого доступу"
+      },
+      "history": {
+        "title": "Історія переглядів",
+        "empty": "Ви ще нічого не переглянули",
+        "emptySub": "хронологічна стрічка завершених фільмів та епізодів з'явиться тут"
+      },
+      "dynamic": {
+        "nowPlaying": "В театрах",
+        "trendingDay": "Популярні сьогодні",
+        "trendingWeek": "Популярний цього тижня",
+        "upcoming": "Чекайте вже скоро",
+        "popularMovies": "Популярні фільми",
+        "popularTv": "Популярні серіали",
+        "topMovies": "Популярні фільми",
+        "topTv": "Популярні серіали"
+      }
+    },
+    "streams": {
+      "playbackInfoEmpty": "Не вдалося отримати відомості про відтворення: порожня відповідь з плагіна",
+      "fileSelection": "Виберіть файл",
+      "episodeSelection": "Виберіть серію"
+    }
+  },
+  "profile": {
+    "page": {
+      "title": "Анкета",
+      "settings": "Налаштування",
+      "subtitle": "Управління обліковими записами та синхронізацією",
+      "defaultUser": "Користувач",
+      "logout": "Вийти з системи",
+      "syncLabel": "Синхронізація:",
+      "strategyLabel": {
+        "trakt": "Хмара Trakt.tv",
+        "server": "Поток-Сервер",
+        "none": "Синхронізація вимкнена"
+      },
+      "chip": {
+        "off": "Вимкнено"
+      },
+      "dropdown": {
+        "none": "Не обрано"
+      },
+      "localWarning": {
+        "title": "Локальний режим не підтримується у веб-клієнті",
+        "text": "У браузері кеш офлайн є нестабільним та легко очищений. Будь ласка, увімкніть синхронізацію хмар Trakt.tv або сервер Потоку, щоб зберегти свою історію в безпеці.",
+        "serverButton": "Синхронізація з сервером",
+        "traktButton": "Синхронізація з Trakt.tv"
+      },
+      "traktConnect": {
+        "title": "Синхронізація з Trakt.tv",
+        "description": "Підключіть ваш обліковий запис для синхронізації та синхронізації вашої історії та рейтингів.",
+        "loading": "Завантажується...",
+        "connectButton": "Підключити обліковий запис"
+      },
+      "extensions": {
+        "heading": "Ваші розширення та інструменти",
+        "subheading": "Швидкий доступ до встановлених плагінів"
+      }
+    },
+    "hud": {
+      "loggedOut": "Ви вийшли з системи",
+      "strategyUpdateFailed": "Не вдалося оновити стратегію на сервері",
+      "traktCodeError": "Помилка отримання коду Trakt",
+      "traktConnected": "Trakt.tv підключений!",
+      "codeExpired": "Термін дії коду закінчився",
+      "traktDisconnected": "Trakt.tv відключено",
+      "codeCopied": "Код скопійовано"
+    },
+    "serverSync": {
+      "syncActive": "Синхронізація активна",
+      "title": "Поток-Сервер",
+      "description": "Всі дані вашої бібліотеки, дивіться історію та закладки надійно зберігаються на вашому персональному сервері Потока.",
+      "benefits": {
+        "centralized": {
+          "title": "Централізований накопичувач",
+          "description": "Синхронізація історії та списків між усіма вашими клієнтами через ваш сервер."
+        },
+        "fullControl": {
+          "title": "Повне керування",
+          "description": "Ваші дані зберігаються в базі даних PostgreSQL."
+        },
+        "multiUser": {
+          "title": "Багатокористувацький режим",
+          "description": "Підтримка окремих облікових записів із ізольованою історією та налаштуваннями."
+        }
+      }
+    },
+    "strategySelection": {
+      "title": "Виберіть метод синхронізації",
+      "description": "Синхронізуйте свою історію, список і рейтинги на різних пристроях, або тримайте все на цьому пристрої.",
+      "trakt": {
+        "title": "Хмара Trakt.tv",
+        "description": "Автоматично синхронізує історію переглядів, прогрес та список переглядів з популярним сервісом Trakt.tv."
+      },
+      "server": {
+        "title": "Поток-Сервер",
+        "description": "Синхронізація з особистим хостингом Potok сервером (PostgreSQL). Повна конфіденційність та підтримка кількох облікових записів."
+      }
+    },
+    "traktActive": {
+      "connected": "Підключено",
+      "disconnect": "Від'єднатись",
+      "watchTime": {
+        "daysHours": "",
+        "hours": ""
+      },
+      "stats": {
+        "moviesWatched": "Кіно переглянуті",
+        "episodesWatched": "Епізоди переглянуті",
+        "watchTime": "Час перегляду",
+        "ratingsGiven": "Наданий рейтинг"
+      }
+    },
+    "traktDeviceAuth": {
+      "title": "Активація пристрою",
+      "description": "Щоб прив'язати ваш акаунт в Trakt, виконайте ці прості дії:",
+      "step1": "Відкрийте це посилання на вашому телефоні чи комп'ютері:",
+      "step2": "Введіть наступний унікальний код:",
+      "waiting": "Очікування підтвердження з Trakt...",
+      "backToSelection": "Повернутися до вибору"
+    },
+    "potokAuth": {
+      "fillAllFields": "Заповніть всі поля",
+      "registerSuccess": "Реєстрація успішна!",
+      "loginSuccess": "Ви успішно увійшли!",
+      "authError": "Помилка авторизації",
+      "createAccountTitle": "Створити обліковий запис Потока",
+      "loginTitle": "Увійти до Потока",
+      "createAccountDesc": "Зареєструвати обліковий запис на вашому сервері",
+      "loginDesc": "Увійдіть за допомогою вашої обліковки",
+      "usernamePlaceholder": "Ім'я користувача",
+      "passwordPlaceholder": "Пароль",
+      "loading": "Завантажується...",
+      "registerButton": "Зареєструватися",
+      "loginButton": "Увійти",
+      "haveAccount": "Вже зареєстровані? Увійдіть",
+      "noAccount": "Немає облікового запису? Зареєструйтеся"
+    },
+    "localSync": {
+      "syncActive": "Синхронізація активна",
+      "title": "Локальний режим",
+      "description": "Всі дані бібліотеки та історія перегляду зберігаються виключно на цьому пристрої. Зв'язок з мережею не потрібен.",
+      "benefits": {
+        "fullyOffline": {
+          "title": "Повністю не в мережі",
+          "description": "Всі дані вашої бібліотеки та історія перегляду зберігаються локально."
+        },
+        "absoluteControl": {
+          "title": "Абсолютне керування",
+          "description": "Абсолютна конфіденційність і безпека без відправлення історії на зовнішні сервери."
+        },
+        "instantResponse": {
+          "title": "Миттєва відповідь",
+          "description": "Нульова затримка в мережі при збереженні ваших мітк, історії і списків."
+        }
+      }
+    }
+  },
+  "sidebar": {
+    "protectedLoginRequired": "Увійдіть у свій обліковий запис Pook для доступу до цього розділу",
+    "expandMenu": "Розгорнути меню",
+    "collapseMenu": "Згорнути меню",
+    "profile": "Анкета",
+    "home": "Домашній екран",
+    "library": "Бібліотека",
+    "upNext": "До наступного",
+    "calendar": "Розклад",
+    "watchlist": "Список перегляду",
+    "favorites": "Вподобання",
+    "history": "Історія",
+    "settings": "Налаштування",
+    "search": "Пошук",
+    "searchPlaceholder": "Пошук...",
+    "clear": "Очистити",
+    "potokServer": "Потоковий сервер",
+    "statusOff": "вимкнено",
+    "statusOffline": "не в мережі",
+    "mobileLibrary": "Бібліотека",
+    "mobileAccount": "Обліковий запис"
+  },
+  "extensions": {
+    "title": "Розширення",
+    "subtitle": "",
+    "installByUrl": "Встановити з URL-адресою",
+    "searchPlaceholder": "Пошук розширень...",
+    "clear": "Очистити",
+    "close": "Закрити",
+    "filter": {
+      "all": "Всі",
+      "active": "Активний",
+      "disabled": "Вимкнено"
+    },
+    "status": {
+      "on": "Увімк",
+      "off": "Вимкнено"
+    },
+    "empty": {
+      "none": "Розширення не встановлені",
+      "noResults": "Нічого не знайдено"
+    },
+    "action": {
+      "enable": "Увімкнено",
+      "disable": "Вимкнено",
+      "copyLink": "Скопіювати посилання",
+      "delete": "Видалити"
+    },
+    "section": {
+      "description": "Опис",
+      "permissions": "Дозволи"
+    },
+    "permissionDescriptions": {
+      "storage": "Зберігає налаштування та дані плагіну локально на вашому пристрої",
+      "httpProxy": "Робить інтернет-запити (пошук і завантаження відеопотоків)",
+      "uiNotifications": "Показувати підказки та сповіщення у додатку",
+      "fallback": ""
+    },
+    "manifest": {
+      "show": "Show manifest (JSON)",
+      "hide": "Приховати маніфест"
+    },
+    "install": {
+      "title": "Встановити розширення",
+      "description": "Вставте URL-адресу каталогу, що містить <code>manifest.json</code> файл.",
+      "installing": "Інсталяція...",
+      "submit": "Встановити розширення"
+    },
+    "toast": {
+      "linkCopied": "Скопійовано посилання",
+      "linkCopyFailed": "Не вдалося скопіювати посилання",
+      "installed": "Розширення\" встановлено{{name}}\""
+    },
+    "errors": {
+      "invalidManifest": "Невірний manifest.json: відсутні обов'язкові поля.",
+      "blacklisted": "Установка заблокована: це розширення знаходиться в реєстрі блокувань безпеки.",
+      "duplicateId": "Розширення з цим ID вже встановлено.",
+      "installGeneric": "Невдала спроба встановлення"
+    },
+    "pageTitleFallback": "Розширення",
+    "hud": {
+      "refreshRequesting": "Запит посилання оновлення...",
+      "noActivePlugins": "Немає активних плагінів для оновлення посилання.",
+      "hlsRefreshed": "Оновлення HLS потоку даних!",
+      "refreshFailed": "Не вдалося оновити стрім: {{error}}",
+      "pluginError": "Плагін \"{{id}}\" зібрав помилку: {{error}}",
+      "genericError": "помилка"
+    },
+    "safe": {
+      "searchPlaceholder": "Пошук...",
+      "clear": "Очистити",
+      "selectPlaceholder": "Виберіть...",
+      "selectedCount": "",
+      "copy": "Копія",
+      "copied": "Скопійовано!",
+      "copySuccess": "Код скопійовано до буферу обміну",
+      "copyFailed": "Не вдалося скопіювати"
+    },
+    "slot": {
+      "placeholder": "[Слот розширення: {{name}}]",
+      "active": "Слот: {{name}} (активний)"
+    }
+  }
+}
