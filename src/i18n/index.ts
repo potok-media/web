@@ -62,6 +62,32 @@ function loadLanguageFile(lng: string): Promise<Record<string, any>> {
   return promise;
 }
 
+/** Count string leaves in a nested object (optionally only non-empty ones). */
+function countLeafStrings(obj: unknown, nonEmptyOnly = false): number {
+  if (typeof obj === "string") return nonEmptyOnly ? (obj.trim() ? 1 : 0) : 1;
+  if (obj && typeof obj === "object") {
+    let n = 0;
+    for (const v of Object.values(obj as Record<string, unknown>)) {
+      n += countLeafStrings(v, nonEmptyOnly);
+    }
+    return n;
+  }
+  return 0;
+}
+
+const EN_LEAF_COUNT = countLeafStrings(enTranslations);
+
+/**
+ * Approximate translation coverage of a language (0–100), relative to the English source.
+ * Source/unknown → 100. Used to nudge users of partially-translated languages toward Crowdin.
+ */
+export async function getLanguageCoverage(lng: string): Promise<number> {
+  if (lng === SOURCE_LANGUAGE || EN_LEAF_COUNT === 0) return 100;
+  const data = await loadLanguageFile(lng);
+  const translated = countLeafStrings(data, true);
+  return Math.max(0, Math.min(100, Math.round((translated / EN_LEAF_COUNT) * 100)));
+}
+
 const localeBackend: BackendModule = {
   type: "backend",
   init() {

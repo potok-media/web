@@ -6,7 +6,9 @@ import { Focusable } from "../common/TVNavigation";
 import { TVSelect, type TVSelectOption } from "../common/TVSelect";
 import { usePlatform } from "../../hooks/usePlatform";
 import { Slot } from "../common/extension/Slot";
-import { AVAILABLE_LANGUAGES } from "../../i18n";
+import { AVAILABLE_LANGUAGES, getLanguageCoverage } from "../../i18n";
+
+const CROWDIN_URL = "https://crowdin.com/project/potok";
 
 interface GeneralSettingsProps {
   accentTheme: string;
@@ -21,8 +23,16 @@ interface GeneralSettingsProps {
 
 // Endonyms (the language's own name) — conventionally NOT translated.
 const LANGUAGE_ENDONYMS: Record<string, string> = {
-  ru: "Русский",
   en: "English",
+  ru: "Русский",
+  uk: "Українська",
+  de: "Deutsch",
+  fr: "Français",
+  it: "Italiano",
+  es: "Español",
+  pt: "Português (Brasil)",
+  pl: "Polski",
+  tr: "Türkçe",
 };
 
 export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
@@ -58,6 +68,18 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
     value: code,
     label: LANGUAGE_ENDONYMS[code] || code.toUpperCase(),
   }));
+
+  // Translation coverage of the selected language — drives a "help translate" hint when < 100%.
+  const [langCoverage, setLangCoverage] = React.useState<number | null>(null);
+  React.useEffect(() => {
+    let active = true;
+    getLanguageCoverage(language).then((c) => {
+      if (active) setLangCoverage(c);
+    });
+    return () => {
+      active = false;
+    };
+  }, [language]);
 
   const themes = [
     { id: "nordicFrost", name: "Nordic Frost", color: "#3a86c8" },
@@ -195,6 +217,23 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
                 </select>
               )}
             </Focusable>
+          )}
+
+          {langCoverage !== null && langCoverage < 100 && (
+            <p
+              className="settings-lang-incomplete"
+              style={{ marginTop: "0.4rem", fontSize: "0.8rem", opacity: 0.7, lineHeight: 1.4 }}
+            >
+              {t("language.incomplete", { percent: langCoverage })}{" "}
+              <a
+                href={CROWDIN_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "var(--accent, #3b82f6)", fontWeight: 600 }}
+              >
+                {t("language.helpTranslate")}
+              </a>
+            </p>
           )}
         </div>
       </section>

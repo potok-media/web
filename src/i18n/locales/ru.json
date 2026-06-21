@@ -57,7 +57,9 @@
       "max": "Максимум (оригинал)"
     },
     "language": {
-      "label": "Язык"
+      "label": "Язык",
+      "incomplete": "Этот язык переведён на {{percent}}%.",
+      "helpTranslate": "Помогите с переводом на Crowdin →"
     },
     "nav": {
       "brandTitle": "Настройки",
