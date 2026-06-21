@@ -50,7 +50,6 @@ docker compose up -d      # ghcr.io/potok-media/potok-web:latest, http://localho
 This is one client of the **Potok** ecosystem:
 
 - 🌐 **Web** — this repository
-- 📱 **Android** · 🍎 **Apple / tvOS** — native clients
 - ⚙️ **Backend** — Gateway · SearchEngine · TorrentGo
 - 🧩 **Plugins & SDK** — extend the UI via `PotokSDK`
 
