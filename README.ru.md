@@ -39,6 +39,25 @@ npm run dev               # http://localhost:5173
 docker compose up -d      # ghcr.io/potok-media/potok-web:latest, http://localhost:3000
 ```
 
+<details>
+<summary><code>docker-compose.yml</code></summary>
+
+```yaml
+services:
+  # 💻 Potok web client (Frontend)
+  potok-web:
+    image: ghcr.io/potok-media/potok-web:latest
+    container_name: potok-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3000}:80"
+    environment:
+      - VITE_DEFAULT_BFF_URL=${VITE_DEFAULT_BFF_URL}
+      - VITE_BLOCK_SETTINGS_INPUT=${VITE_BLOCK_SETTINGS_INPUT:-false}
+```
+
+</details>
+
 ## Переменные окружения
 
 | Переменная | Описание | По умолчанию |
