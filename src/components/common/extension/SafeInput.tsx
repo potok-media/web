@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import type { InputSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import { Focusable } from "../TVNavigation";
+import { PlatformManager } from "../../../utils/PlatformManager";
 
 interface SafeInputProps {
   schema: InputSchema;
@@ -35,6 +36,7 @@ export const SafeInput: React.FC<SafeInputProps> = ({ schema, pluginId, baseStyl
         onEnterPress={() => {
           const inputEl = document.getElementById(`input-${id}`) as HTMLInputElement | HTMLTextAreaElement | null;
           inputEl?.focus();
+          PlatformManager.openNativeKeyboard(); // native tvOS keyboard on Apple TV (Luxo); no-op elsewhere
         }}
       >
         {({ ref, focused }) => {

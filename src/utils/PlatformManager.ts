@@ -120,6 +120,33 @@ export const PlatformManager = {
     return false;
   },
 
+  // The Apple TV WKWebView host (the Luxo app — Lampa's `apple_tv` target). Same tell as isTV's
+  // Apple-TV branch: iPad UA at dpr=1 on a large landscape screen, or an explicit AppleBridge.
+  isAppleTvHost(): boolean {
+    if (typeof navigator === "undefined" || typeof window === "undefined") return false;
+    if (window.webkit?.messageHandlers?.AppleBridge) return true;
+    const ua = navigator.userAgent.toLowerCase();
+    return (
+      ua.includes("ipad") &&
+      window.devicePixelRatio === 1 &&
+      window.innerWidth >= 1280 &&
+      window.innerWidth > window.innerHeight
+    );
+  },
+
+  // tvOS WKWebView won't raise the system keyboard from web JS. Luxo (= Lampa's apple_tv host)
+  // intercepts the `lampa://openkeyboard` URL scheme in its native WKNavigationDelegate and presents
+  // the native tvOS keyboard, which types into the currently-focused web <input> (value/onChange
+  // then flow normally). Caller must focus the target <input> first. Mirrors Lampa keyboard.js:185.
+  openNativeKeyboard(): void {
+    if (!this.isAppleTvHost()) return;
+    try {
+      window.location.assign("lampa://openkeyboard");
+    } catch (e) {
+      logger.error("[PlatformManager] openNativeKeyboard failed:", e);
+    }
+  },
+
   playVideo(playback: ActivePlayback): boolean {
     const platform = this.getPlatform();
 

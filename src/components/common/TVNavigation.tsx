@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, useEffect } from "react";
 import { useFocusable, FocusContext } from "@noriginmedia/norigin-spatial-navigation";
 import type { UseFocusableConfig } from "@noriginmedia/norigin-spatial-navigation";
 import { rememberFocus } from "../../utils/focusMemory";
@@ -379,7 +379,11 @@ export const FocusableInput = React.forwardRef<HTMLInputElement, FocusableInputP
       if (onEnterPress) {
         onEnterPress(props, details);
       } else {
+        // Focus the DOM input, then ask the Apple TV host (Luxo) to raise the native tvOS keyboard
+        // via the lampa://openkeyboard scheme — it types into this now-focused <input>. No-op off
+        // Apple TV. Mirrors Lampa's input.focus() + scheme on Enter.
         inputRef.current?.focus();
+        PlatformManager.openNativeKeyboard();
       }
     },
     focusable: disabled !== undefined ? !disabled : config.focusable,
@@ -406,6 +410,29 @@ export const FocusableInput = React.forwardRef<HTMLInputElement, FocusableInputP
       }
     }
   }, [ref, forwardedRef]);
+
+  // The native tvOS keyboard (raised via lampa://openkeyboard) injects text straight into the DOM
+  // <input>. On a React CONTROLLED input that bypasses React's value tracker, so React's onChange
+  // doesn't fire and the controlled value resets the typed text on re-render → "text won't enter".
+  // Fix (like Lampa, which reads its uncontrolled input): on TV mirror raw DOM input/keyup/change
+  // events into React state via onChange. A ref keeps the latest onChange without re-binding.
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el || !PlatformManager.isTV()) return;
+    const handler = () => {
+      onChangeRef.current?.({ target: el, currentTarget: el } as unknown as React.ChangeEvent<HTMLInputElement>);
+    };
+    el.addEventListener("input", handler);
+    el.addEventListener("keyup", handler);
+    el.addEventListener("change", handler);
+    return () => {
+      el.removeEventListener("input", handler);
+      el.removeEventListener("keyup", handler);
+      el.removeEventListener("change", handler);
+    };
+  }, []);
 
   return (
     <input
