@@ -5,6 +5,7 @@ import { Focusable } from "../common/TVNavigation";
 import { TVSelect, type TVSelectOption } from "../common/TVSelect";
 import { usePlatform } from "../../hooks/usePlatform";
 import { Slot } from "../common/extension/Slot";
+import { AVAILABLE_LANGUAGES } from "../../i18n";
 
 interface GeneralSettingsProps {
   accentTheme: string;
@@ -13,7 +14,15 @@ interface GeneralSettingsProps {
   setDefaultPlayer: (player: string) => void;
   bannerQuality: string;
   setBannerQuality: (quality: string) => void;
+  language: string;
+  setLanguage: (lng: string) => void;
 }
+
+// Endonyms (the language's own name) — conventionally NOT translated.
+const LANGUAGE_ENDONYMS: Record<string, string> = {
+  ru: "Русский",
+  en: "English",
+};
 
 export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
   accentTheme,
@@ -22,6 +31,8 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
   setDefaultPlayer,
   bannerQuality,
   setBannerQuality,
+  language,
+  setLanguage,
 }) => {
   const isApple = typeof window !== "undefined" &&
     (/Mac|iPad|iPhone|iPod/.test(navigator.userAgent) ||
@@ -40,6 +51,11 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
     { value: "high", label: "Высокое (1280p)" },
     { value: "max", label: "Максимум (оригинал)" },
   ];
+
+  const languageOptions: TVSelectOption<string>[] = AVAILABLE_LANGUAGES.map((code) => ({
+    value: code,
+    label: LANGUAGE_ENDONYMS[code] || code.toUpperCase(),
+  }));
 
   const themes = [
     { id: "nordicFrost", name: "Nordic Frost", color: "#3a86c8" },
@@ -147,6 +163,33 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
                   <option value="auto">Авто</option>
                   <option value="high">Высокое (1280p)</option>
                   <option value="max">Максимум (оригинал)</option>
+                </select>
+              )}
+            </Focusable>
+          )}
+        </div>
+
+        <div className="settings-form-group settings-preference-group">
+          <label className="settings-label">Язык</label>
+          {touchUI ? (
+            <TVSelect
+              value={language}
+              options={languageOptions}
+              onChange={(v) => setLanguage(v)}
+              focusKeyPrefix="SETTINGS_LANGUAGE_"
+            />
+          ) : (
+            <Focusable>
+              {({ ref, focused }) => (
+                <select
+                  ref={ref}
+                  className={`settings-select ${focused ? "focused" : ""}`}
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                >
+                  {languageOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
                 </select>
               )}
             </Focusable>

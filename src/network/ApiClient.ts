@@ -42,17 +42,14 @@ export class ApiClient {
   private static isWorker = typeof window === "undefined";
 
   private static getHostConfig() {
-    const hostname = typeof window !== "undefined" ? window.location.hostname : "";
     const envBff = getEnv("VITE_DEFAULT_BFF_URL");
-    const envLocked = getEnv("VITE_BLOCK_SETTINGS_INPUT") === "true";
-
-    const isLocked = envLocked || hostname === "beta.potok.rip";
+    const isLocked = getEnv("VITE_BLOCK_SETTINGS_INPUT") === "true";
 
     return {
       bff: envBff,
       search: "",
       locked: isLocked,
-      profileName: hostname === "beta.potok.rip" ? "Potok Beta" : "Основной профиль"
+      profileName: "Основной профиль"
     };
   }
 
@@ -72,8 +69,7 @@ export class ApiClient {
   }
 
   public static get isSettingsLocked(): boolean {
-    const hostname = typeof window !== "undefined" ? window.location.hostname : "";
-    return getEnv("VITE_BLOCK_SETTINGS_INPUT") === "true" || hostname === "beta.potok.rip";
+    return getEnv("VITE_BLOCK_SETTINGS_INPUT") === "true";
   }
 
   private static ensureAbsoluteURL(url: string): string {

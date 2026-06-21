@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { init } from '@noriginmedia/norigin-spatial-navigation'
 import { PlatformManager } from './utils/PlatformManager'
 import { startClientLogShipping } from './utils/clientLogShipper'
+import './i18n' // initialize i18next (side-effect) before the app renders
 import './index.css'
 import App from './App.tsx'
 

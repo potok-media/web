@@ -1,5 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { I18nextProvider } from "react-i18next";
+import { i18n } from "./i18n";
 import { HUDProvider } from "./context/HUDContext";
 import { AppSettingsProvider } from "./context/AppSettingsContext";
 import { InspectorProvider } from "./context/InspectorContext";
@@ -20,8 +22,9 @@ import "./index.css";
 
 export const App: React.FC = () => {
   return (
-    <HUDProvider>
-      <WSSyncProvider>
+    <I18nextProvider i18n={i18n}>
+      <HUDProvider>
+        <WSSyncProvider>
         <AppSettingsProvider>
           <InspectorProvider>
             <BrowserRouter>
@@ -46,8 +49,9 @@ export const App: React.FC = () => {
             </BrowserRouter>
           </InspectorProvider>
         </AppSettingsProvider>
-      </WSSyncProvider>
-    </HUDProvider>
+        </WSSyncProvider>
+      </HUDProvider>
+    </I18nextProvider>
   );
 };
 

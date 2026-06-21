@@ -10,6 +10,7 @@ import { getEnv } from "../utils/EnvService";
 import { logger } from "../utils/logger";
 import { useSystemWake } from "../hooks/useSystemWake";
 import { PlatformManager } from "../utils/PlatformManager";
+import { i18n, LANGUAGE_STORAGE_KEY } from "../i18n";
 
 export type ConnectionState = "checking" | "connected" | "offline" | "setupRequired";
 
@@ -55,6 +56,7 @@ export interface SettingsContextType {
   defaultPlayer: string;
   bannerQuality: string;
   uiFontScale: number;
+  language: string;
   isSettingsLocked: boolean;
   developerMode: boolean;
   disableHttpProxy: boolean;
@@ -67,6 +69,7 @@ export interface SettingsContextType {
   setDefaultPlayer: (player: string) => void;
   setBannerQuality: (quality: string) => void;
   setUiFontScale: (scale: number) => void;
+  setLanguage: (lng: string) => void;
   setDeveloperMode: (val: boolean) => void;
   setDisableHttpProxy: (val: boolean) => void;
   setDirectPlay: (val: boolean) => void;
@@ -75,17 +78,14 @@ export interface SettingsContextType {
 export const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 const getHostConfig = () => {
-  const hostname = typeof window !== "undefined" ? window.location.hostname : "";
   const envBff = getEnv("VITE_DEFAULT_BFF_URL");
-  const envLocked = getEnv("VITE_BLOCK_SETTINGS_INPUT") === "true";
-
-  const isLocked = envLocked || hostname === "beta.potok.rip";
+  const isLocked = getEnv("VITE_BLOCK_SETTINGS_INPUT") === "true";
 
   return {
     bff: envBff,
     search: "",
     locked: isLocked,
-    profileName: hostname === "beta.potok.rip" ? "Potok Beta" : "Основной профиль"
+    profileName: "Основной профиль"
   };
 };
 
@@ -218,6 +218,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [directPlay, _setDirectPlay] = useState<boolean>(() =>
     Storage.get<boolean>("directPlay", true)
   );
+  // i18n already resolved the active language at startup (persisted → navigator → env);
+  // mirror it into React state so the selector reflects/drives it.
+  const [language, _setLanguage] = useState<string>(() => i18n.language);
   const isSettingsLocked = hostConfig.locked;
 
   useEffect(() => {
@@ -335,6 +338,14 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     _setUiFontScale(scale);
   }, []);
 
+  const setLanguage = useCallback((lng: string) => {
+    Storage.set(LANGUAGE_STORAGE_KEY, lng);
+    _setLanguage(lng);
+    // Drives i18next (fetches the new language's bundles via the OTA backend) and the
+    // <html lang/dir> listener; plugin iframes are notified separately (Step 9).
+    i18n.changeLanguage(lng);
+  }, []);
+
   const setDeveloperMode = useCallback((val: boolean) => {
     Storage.set("developerMode", val);
     _setDeveloperMode(val);
@@ -357,6 +368,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     defaultPlayer,
     bannerQuality,
     uiFontScale,
+    language,
     isSettingsLocked,
     developerMode,
     disableHttpProxy,
@@ -369,6 +381,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setDefaultPlayer,
     setBannerQuality,
     setUiFontScale,
+    setLanguage,
     setDeveloperMode,
     setDisableHttpProxy,
     setDirectPlay,
@@ -379,6 +392,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     defaultPlayer,
     bannerQuality,
     uiFontScale,
+    language,
     isSettingsLocked,
     developerMode,
     disableHttpProxy,
@@ -391,6 +405,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setDefaultPlayer,
     setBannerQuality,
     setUiFontScale,
+    setLanguage,
     setDeveloperMode,
     setDisableHttpProxy,
     setDirectPlay,

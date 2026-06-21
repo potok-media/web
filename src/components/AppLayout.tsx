@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { Outlet, useLocation, useSearchParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useSettings, useConnectionHealth, usePlayback } from "../context/AppSettingsContext";
 import { useInspector } from "../context/InspectorContext";
 import { AppSidebar } from "./AppSidebar";
@@ -21,6 +22,7 @@ import { logger } from "../utils/logger";
 const DeveloperInspector = React.lazy(() => import("./common/extension/DeveloperInspector"));
 
 export const AppLayout: React.FC = () => {
+  const { t } = useTranslation("common");
   const location = useLocation();
   // Tag the active route during render (before child pages mount/focus) so focusMemory records
   // each focus change under the correct route — enabling focus restoration on Back.
@@ -317,9 +319,9 @@ export const AppLayout: React.FC = () => {
             color: "#fff",
             boxShadow: "0 10px 30px rgba(0,0,0,0.5)"
           }}>
-            <h4 style={{ color: "var(--error, #ef4444)", margin: "0 0 0.5rem 0" }}>Ошибка плеера</h4>
+            <h4 style={{ color: "var(--error, #ef4444)", margin: "0 0 0.5rem 0" }}>{t("playerError")}</h4>
             <p style={{ fontSize: "0.85rem", opacity: 0.8, margin: "0 0 1rem 0" }}>
-              {error.message || "Не удалось воспроизвести видео."}
+              {error.message || t("playbackFailed")}
             </p>
             <div style={{ display: "flex", gap: "0.625rem" }}>
               <button
@@ -336,7 +338,7 @@ export const AppLayout: React.FC = () => {
                   fontWeight: 600
                 }}
               >
-                Повторить
+                {t("actions.retry")}
               </button>
               <button
                 onClick={handleClosePlayer}
@@ -351,7 +353,7 @@ export const AppLayout: React.FC = () => {
                   fontSize: "0.85rem"
                 }}
               >
-                Закрыть
+                {t("actions.close")}
               </button>
             </div>
           </div>
@@ -412,7 +414,7 @@ export const AppLayout: React.FC = () => {
         </button>
       )}
       {isDesktop && developerMode && isInspectorActive && (
-        <React.Suspense fallback={<div className="inspector-loading" style={{ position: "fixed", bottom: "1.5rem", right: "1.5rem", zIndex: 99999, color: "#fff" }}>Загрузка редактора...</div>}>
+        <React.Suspense fallback={<div className="inspector-loading" style={{ position: "fixed", bottom: "1.5rem", right: "1.5rem", zIndex: 99999, color: "#fff" }}>{t("loadingEditor")}</div>}>
           <DeveloperInspector />
         </React.Suspense>
       )}

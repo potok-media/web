@@ -25,12 +25,14 @@ export const SettingsPage: React.FC = () => {
     defaultPlayer,
     bannerQuality,
     uiFontScale,
+    language,
     developerMode,
     disableHttpProxy,
     setAccentTheme,
     setDefaultPlayer,
     setBannerQuality,
     setUiFontScale,
+    setLanguage,
     setDeveloperMode,
     setDisableHttpProxy,
   } = useSettings();
@@ -196,6 +198,8 @@ export const SettingsPage: React.FC = () => {
           setDefaultPlayer={setDefaultPlayer}
           bannerQuality={bannerQuality}
           setBannerQuality={setBannerQuality}
+          language={language}
+          setLanguage={setLanguage}
         />
       )}
       {activeTab === "accessibility" && (

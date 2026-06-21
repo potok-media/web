@@ -1,0 +1,58 @@
+name: Crowdin sync
+
+# Crowdin is an AUTHORING tool only — never in the app runtime.
+#  - on push to the English source: upload sources so translators see new keys.
+#  - on a daily schedule (and manual dispatch): download translations and commit them
+#    into the repo, so the app bundles them from its own origin. If Crowdin is down,
+#    users are unaffected (the last-synced files are already committed).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/i18n/locales/en.json"
+      - "crowdin.yml"
+  schedule:
+    - cron: "0 3 * * *" # daily at 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  upload-sources:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload sources to Crowdin
+        uses: crowdin/github-action@v2
+        with:
+          upload_sources: true
+          upload_translations: false
+          download_translations: false
+          config: crowdin.yml
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+
+  download-translations:
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download translations and commit
+        uses: crowdin/github-action@v2
+        with:
+          upload_sources: false
+          download_translations: true
+          # Commits the downloaded locale files into the repo as a PR/commit.
+          localization_branch_name: l10n_crowdin_translations
+          create_pull_request: true
+          pull_request_title: "chore(i18n): sync translations from Crowdin"
+          pull_request_base_branch_name: main
+          config: crowdin.yml
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

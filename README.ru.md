@@ -10,6 +10,7 @@
   ![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white)
   ![Vite](https://img.shields.io/badge/Vite-646cff?logo=vite&logoColor=white)
   ![Image](https://img.shields.io/badge/ghcr.io-potok--web-181717?logo=docker&logoColor=white)
+  ![License](https://img.shields.io/badge/license-MIT-green)
 </div>
 
 Браузерный клиент медиа-сервиса **Potok**. Работает через шлюз Potok Gateway (BFF): поиск

@@ -1,0 +1,30 @@
+{
+  "common": {
+    "loadingEditor": "Loading editor...",
+    "actions": {
+      "retry": "Retry",
+      "close": "Close"
+    },
+    "playerError": "Player error",
+    "playbackFailed": "Couldn't play the video."
+  },
+  "connection": {
+    "checking": {
+      "title": "Connecting to Potok...",
+      "subtitle": "Polling the API Gateway"
+    },
+    "setup": {
+      "title": "Setup required",
+      "hint": "Enter the BFF gateway (API Gateway) address to connect to the Potok server:"
+    },
+    "offline": {
+      "title": "Potok server unavailable",
+      "cantReach": "Couldn't connect to:",
+      "otherAddress": "Use a different BFF address:"
+    },
+    "bffPlaceholder": "BFF gateway address",
+    "saveAndConnect": "Save and connect",
+    "applyRetry": "Apply and retry",
+    "checkAgain": "Check again"
+  }
+}

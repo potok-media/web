@@ -1,0 +1,12 @@
+# Crowdin configuration. Crowdin is used ONLY for authoring — it is NOT in the app's
+# runtime path. Source language is English (locales/en.json); CI uploads the source and
+# downloads translations, committing them back into the repo. The app bundles/serves the
+# committed locale files from its own origin, so Crowdin being down never affects users.
+project_id_env: CROWDIN_PROJECT_ID
+api_token_env: CROWDIN_PERSONAL_TOKEN
+
+preserve_hierarchy: true
+
+files:
+  - source: /src/i18n/locales/en.json
+    translation: /src/i18n/locales/%two_letters_code%.json

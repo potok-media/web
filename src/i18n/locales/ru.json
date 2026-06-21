@@ -1,0 +1,30 @@
+{
+  "common": {
+    "loadingEditor": "Загрузка редактора...",
+    "actions": {
+      "retry": "Повторить",
+      "close": "Закрыть"
+    },
+    "playerError": "Ошибка плеера",
+    "playbackFailed": "Не удалось воспроизвести видео."
+  },
+  "connection": {
+    "checking": {
+      "title": "Подключение к Potok...",
+      "subtitle": "Опрашиваем шлюз API Gateway"
+    },
+    "setup": {
+      "title": "Требуется настройка",
+      "hint": "Укажите адрес BFF-шлюза (API Gateway) для связи с сервером Potok:"
+    },
+    "offline": {
+      "title": "Сервер Potok недоступен",
+      "cantReach": "Не удалось соединиться по адресу:",
+      "otherAddress": "Указать другой адрес BFF:"
+    },
+    "bffPlaceholder": "Адрес до BFF-шлюза",
+    "saveAndConnect": "Сохранить и подключиться",
+    "applyRetry": "Применить и повторить попытку",
+    "checkAgain": "Проверить снова"
+  }
+}
