@@ -4,7 +4,7 @@ import { SyncApiClient } from "../network/SyncApiClient";
 import { Storage } from "../utils/StorageService";
 import { useWSSync } from "../context/WSSyncContext";
 import { PlatformManager } from "../utils/PlatformManager";
-import { resizeTmdbImage } from "../utils/mediaUtils";
+import { resizeTmdbImage, backdropSizeForQuality } from "../utils/mediaUtils";
 import type { MediaCard } from "../network/ApiTypes";
 
 interface UseMediaDetailsProps {
@@ -69,9 +69,14 @@ export function useMediaDetails({
       }
       const data = await ApiClient.fetchMediaDetails(mediaType, mediaId);
 
-      // Shrink the full-screen hero backdrop on weak TV hardware.
-      if (PlatformManager.isTV() && data.backdropSrc) {
-        data.backdropSrc = resizeTmdbImage(data.backdropSrc, "w780");
+      // Size the full-screen hero backdrop by the user's banner-quality setting (default "auto"
+      // keeps the perf-friendly w780 on TV / w1280 on desktop).
+      if (data.backdropSrc) {
+        const bannerQuality = Storage.get<string>("bannerQuality", "auto");
+        data.backdropSrc = resizeTmdbImage(
+          data.backdropSrc,
+          backdropSizeForQuality(bannerQuality, PlatformManager.isTV())
+        );
       }
 
       const strategy = Storage.get<string>("syncStrategy", "none");

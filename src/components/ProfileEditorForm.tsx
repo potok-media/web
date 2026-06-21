@@ -10,6 +10,7 @@ interface ProfileEditorFormProps {
   setFormGateway: (val: string) => void;
   onSave: (e: React.FormEvent) => void;
   onCancel: () => void;
+  saving?: boolean;
   isSettingsLocked?: boolean;
 }
 
@@ -21,6 +22,7 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
   setFormGateway,
   onSave,
   onCancel,
+  saving = false,
   isSettingsLocked = false,
 }) => {
   return (
@@ -47,7 +49,7 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
               placeholder="Основной сервер"
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
-              disabled={isSettingsLocked}
+              disabled={isSettingsLocked || saving}
               required
             />
           </div>
@@ -60,22 +62,23 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
               placeholder="Адрес до BFF-шлюза"
               value={formGateway}
               onChange={(e) => setFormGateway(e.target.value)}
-              disabled={isSettingsLocked}
+              disabled={isSettingsLocked || saving}
               required
             />
           </div>
 
           {!isSettingsLocked && (
             <div className="settings-form-buttons-row" style={{ marginTop: "var(--space-s)" }}>
-              <FocusableButton type="submit" className="settings-btn-primary cursor-pointer btn-gap-s">
+              <FocusableButton type="submit" className="settings-btn-primary cursor-pointer btn-gap-s" disabled={saving}>
                 <Save size="1rem" />
-                <span>{isAdding ? "Создать профиль" : "Сохранить изменения"}</span>
+                <span>{saving ? "Проверка…" : isAdding ? "Создать профиль" : "Сохранить изменения"}</span>
               </FocusableButton>
               {isAdding && (
                 <FocusableButton
                   type="button"
                   className="settings-btn-primary settings-form-btn-cancel"
                   onClick={onCancel}
+                  disabled={saving}
                 >
                   Отмена
                 </FocusableButton>

@@ -53,6 +53,7 @@ export interface SettingsContextType {
   activeProfileID: string | null;
   accentTheme: string;
   defaultPlayer: string;
+  bannerQuality: string;
   uiFontScale: number;
   isSettingsLocked: boolean;
   developerMode: boolean;
@@ -65,6 +66,7 @@ export interface SettingsContextType {
   updateProfile: (profile: ConnectionProfile) => void;
   setAccentTheme: (theme: string) => void;
   setDefaultPlayer: (player: string) => void;
+  setBannerQuality: (quality: string) => void;
   setUiFontScale: (scale: number) => void;
   setDeveloperMode: (val: boolean) => void;
   setDisableHttpProxy: (val: boolean) => void;
@@ -198,8 +200,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [accentTheme, _setAccentTheme] = useState<string>(() => 
     Storage.get<string>("accentTheme", "nordicFrost")
   );
-  const [defaultPlayer, _setDefaultPlayer] = useState<string>(() => 
+  const [defaultPlayer, _setDefaultPlayer] = useState<string>(() =>
     Storage.get<string>("defaultPlayer", "native")
+  );
+  const [bannerQuality, _setBannerQuality] = useState<string>(() =>
+    Storage.get<string>("bannerQuality", "auto")
   );
   const [uiFontScale, _setUiFontScale] = useState<number>(() =>
     // TV defaults bigger than desktop for 10-foot viewing (matches the "Стандарт" preset);
@@ -331,6 +336,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     _setDefaultPlayer(player);
   }, []);
 
+  const setBannerQuality = useCallback((quality: string) => {
+    Storage.set("bannerQuality", quality);
+    _setBannerQuality(quality);
+  }, []);
+
   const setUiFontScale = useCallback((scale: number) => {
     Storage.set("uiFontScale", scale);
     // On TV the effect above re-applies the transform stage live (no reload needed).
@@ -362,6 +372,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     activeProfileID,
     accentTheme,
     defaultPlayer,
+    bannerQuality,
     uiFontScale,
     isSettingsLocked,
     developerMode,
@@ -374,6 +385,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     updateProfile,
     setAccentTheme,
     setDefaultPlayer,
+    setBannerQuality,
     setUiFontScale,
     setDeveloperMode,
     setDisableHttpProxy,
@@ -384,6 +396,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     activeProfileID,
     accentTheme,
     defaultPlayer,
+    bannerQuality,
     uiFontScale,
     isSettingsLocked,
     developerMode,
@@ -396,6 +409,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     updateProfile,
     setAccentTheme,
     setDefaultPlayer,
+    setBannerQuality,
     setUiFontScale,
     setDeveloperMode,
     setDisableHttpProxy,

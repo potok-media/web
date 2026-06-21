@@ -9,6 +9,26 @@ export const resizeTmdbImage = (url: string | undefined | null, size: string): s
 };
 
 /**
+ * TMDB backdrop size for the user's "banner quality" setting (Settings → Внешний вид).
+ * "auto" keeps the perf-friendly per-platform default (TV smaller); "high"/"max" override it.
+ */
+export const backdropSizeForQuality = (quality: string, isTV: boolean): string => {
+  if (quality === "max") return "original";
+  if (quality === "high") return "w1280";
+  return isTV ? "w780" : "w1280"; // auto
+};
+
+/**
+ * TMDB poster size for the "image quality" setting. Capped at w780 — posters are small cards, so
+ * "original" (≈2000px) would just waste bandwidth. "auto" keeps the per-platform default.
+ */
+export const posterSizeForQuality = (quality: string, isTV: boolean): string => {
+  if (quality === "max") return "w780";
+  if (quality === "high") return "w500";
+  return isTV ? "w185" : "w342"; // auto
+};
+
+/**
  * Извлекает теги качества, источника, HDR и года выпуска из строки названия раздачи.
  */
 export const extractBadges = (title: string): string[] => {

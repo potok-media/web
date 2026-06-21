@@ -11,6 +11,8 @@ interface GeneralSettingsProps {
   setAccentTheme: (theme: string) => void;
   defaultPlayer: string | null;
   setDefaultPlayer: (player: string) => void;
+  bannerQuality: string;
+  setBannerQuality: (quality: string) => void;
 }
 
 export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
@@ -18,6 +20,8 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
   setAccentTheme,
   defaultPlayer,
   setDefaultPlayer,
+  bannerQuality,
+  setBannerQuality,
 }) => {
   const isApple = typeof window !== "undefined" &&
     (/Mac|iPad|iPhone|iPod/.test(navigator.userAgent) ||
@@ -29,6 +33,12 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
   const playerOptions: TVSelectOption<string>[] = [
     { value: "native", label: "Встроенный веб-плеер" },
     ...(isApple ? [{ value: "infuse", label: "Infuse" }] : []),
+  ];
+
+  const bannerQualityOptions: TVSelectOption<string>[] = [
+    { value: "auto", label: "Авто" },
+    { value: "high", label: "Высокое (1280p)" },
+    { value: "max", label: "Максимум (оригинал)" },
   ];
 
   const themes = [
@@ -110,6 +120,33 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
                 >
                   <option value="native">Встроенный веб-плеер</option>
                   {isApple && <option value="infuse">Infuse</option>}
+                </select>
+              )}
+            </Focusable>
+          )}
+        </div>
+
+        <div className="settings-form-group settings-preference-group">
+          <label className="settings-label">Качество изображений</label>
+          {touchUI ? (
+            <TVSelect
+              value={bannerQuality || "auto"}
+              options={bannerQualityOptions}
+              onChange={(v) => setBannerQuality(v)}
+              focusKeyPrefix="SETTINGS_BANNER_"
+            />
+          ) : (
+            <Focusable>
+              {({ ref, focused }) => (
+                <select
+                  ref={ref}
+                  className={`settings-select ${focused ? "focused" : ""}`}
+                  value={bannerQuality || "auto"}
+                  onChange={(e) => setBannerQuality(e.target.value)}
+                >
+                  <option value="auto">Авто</option>
+                  <option value="high">Высокое (1280p)</option>
+                  <option value="max">Максимум (оригинал)</option>
                 </select>
               )}
             </Focusable>

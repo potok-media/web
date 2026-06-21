@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import { Star } from "lucide-react";
 import { FilmOff } from "./common/FilmOff";
 import { Focusable } from "./common/TVNavigation";
+import { useSettings } from "../context/AppSettingsContext";
+import { resizeTmdbImage, posterSizeForQuality } from "../utils/mediaUtils";
+import { PlatformManager } from "../utils/PlatformManager";
 import type { MediaCard } from "../network/ApiClient";
 
 interface MediaCardComponentProps {
@@ -89,6 +92,10 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
   ({ item, onClick, onFocus, style, focusKey }) => {
     const [hasError, setHasError] = useState(false);
     const cardRef = useRef<HTMLAnchorElement>(null);
+    const { bannerQuality } = useSettings();
+    // Upscale the TMDB poster URL to the user's image-quality setting (no-op for non-TMDB URLs /
+    // "auto"). Covers every card surface — home, library, search — in one place.
+    const posterSrc = resizeTmdbImage(item.posterSrc, posterSizeForQuality(bannerQuality, PlatformManager.isTV()));
 
     const handleImageError = () => {
       setHasError(true);
@@ -146,9 +153,9 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
               style={style}
             >
               <div className="media-poster-wrap">
-                {item.posterSrc && !hasError ? (
+                {posterSrc && !hasError ? (
                   <img
-                    src={item.posterSrc}
+                    src={posterSrc}
                     className="media-poster"
                     alt={item.title}
                     loading="lazy"

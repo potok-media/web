@@ -12,6 +12,19 @@ interface SlotProps {
   contributionId?: string;
 }
 
+// Plugin schema ids are random per compile (SDK base.ts uses Math.random), so React keys derived
+// from them change on EVERY plugin re-render → focusable components remount and D-pad focus is lost
+// (no navigation on plugin pages). Reassign deterministic, position-based ids so keys stay stable
+// across re-renders of the same tree. Mutates in place — the layout is freshly built each render.
+function stabilizeSchemaIds(node: unknown, path: string): void {
+  if (!node || typeof node !== "object") return;
+  const n = node as { id?: string; children?: unknown[] };
+  n.id = path;
+  if (Array.isArray(n.children)) {
+    n.children.forEach((child, i) => stabilizeSchemaIds(child, `${path}.${i}`));
+  }
+}
+
 function shallowEqual(objA: any, objB: any): boolean {
   if (Object.is(objA, objB)) return true;
   if (typeof objA !== 'object' || objA === null || typeof objB !== 'object' || objB === null) return false;
@@ -148,6 +161,7 @@ export const Slot: React.FC<SlotProps> = ({ name, props = {}, className, style, 
       {filteredContributions.map((c) => {
         const renderResponse = ExtensionRegistry.getSlotRender(c.contribution.id);
         if (!renderResponse || !renderResponse.layout) return null;
+        stabilizeSchemaIds(renderResponse.layout, c.contribution.id);
         return (
           <div key={c.contribution.id} style={{ display: "contents" }}>
             <ComponentRenderer

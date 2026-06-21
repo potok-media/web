@@ -121,8 +121,11 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       };
       return (
         <div key={id} id={id} className="potok-vstack" style={inlineStyle}>
-          {children?.map((child) => (
-            <ComponentRenderer key={child.id} schema={child} pluginId={pluginId} />
+          {children?.map((child, index) => (
+            // Stable position-based key: plugin schema ids are random per compile (base.ts), so
+            // keying by child.id would remount every focusable on each plugin re-render and drop
+            // D-pad focus. Tree position is stable for a given state.
+            <ComponentRenderer key={`${index}-${child.type}`} schema={child} pluginId={pluginId} />
           ))}
         </div>
       );
@@ -142,8 +145,11 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       };
       return (
         <div key={id} id={id} className="potok-hstack" style={inlineStyle}>
-          {children?.map((child) => (
-            <ComponentRenderer key={child.id} schema={child} pluginId={pluginId} />
+          {children?.map((child, index) => (
+            // Stable position-based key: plugin schema ids are random per compile (base.ts), so
+            // keying by child.id would remount every focusable on each plugin re-render and drop
+            // D-pad focus. Tree position is stable for a given state.
+            <ComponentRenderer key={`${index}-${child.type}`} schema={child} pluginId={pluginId} />
           ))}
         </div>
       );
@@ -158,8 +164,11 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
           gap={componentProps.gap}
           style={baseStyle}
         >
-          {children?.map((child) => (
-            <ComponentRenderer key={child.id} schema={child} pluginId={pluginId} />
+          {children?.map((child, index) => (
+            // Stable position-based key: plugin schema ids are random per compile (base.ts), so
+            // keying by child.id would remount every focusable on each plugin re-render and drop
+            // D-pad focus. Tree position is stable for a given state.
+            <ComponentRenderer key={`${index}-${child.type}`} schema={child} pluginId={pluginId} />
           ))}
         </Grid>
       );
@@ -186,8 +195,8 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
             </div>
           )}
           <div className="potok-card-body">
-            {children?.map((child) => (
-              <ComponentRenderer key={child.id} schema={child} pluginId={pluginId} />
+            {children?.map((child, index) => (
+              <ComponentRenderer key={`${index}-${child.type}`} schema={child} pluginId={pluginId} />
             ))}
           </div>
         </div>
