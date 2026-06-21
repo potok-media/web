@@ -1,7 +1,7 @@
 <div align="center">
   <img src="./.github/assets/logo.svg" alt="Potok" width="120" />
 
-  <h1>Potok Web Client</h1>
+  <h1>Potok</h1>
 
   **English** · [Русский](./README.ru.md)
 
