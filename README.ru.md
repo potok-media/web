@@ -11,6 +11,7 @@
   ![Vite](https://img.shields.io/badge/Vite-646cff?logo=vite&logoColor=white)
   ![Image](https://img.shields.io/badge/ghcr.io-potok--web-181717?logo=docker&logoColor=white)
   ![License](https://img.shields.io/badge/license-MIT-green)
+  [![Crowdin](https://badges.crowdin.net/potok/localized.svg)](https://crowdin.com/project/potok)
 </div>
 
 Браузерный клиент медиа-сервиса **Potok**. Работает через шлюз Potok Gateway (BFF): поиск
@@ -45,6 +46,13 @@ docker compose up -d      # ghcr.io/potok-media/potok-web:latest, http://localho
 | `VITE_DEFAULT_BFF_URL` | Адрес шлюза Gateway (BFF) по умолчанию | `http://localhost:5000` |
 | `VITE_BLOCK_SETTINGS_INPUT` | Блокировка настроек подключения (только чтение) | `false` |
 | `WEB_PORT` | Порт хоста для Docker-контейнера | `3000` |
+
+## Переводы
+
+> [!NOTE]
+> 🌐 **Помогите с переводом Potok!** Интерфейс локализуется через [**Crowdin**](https://crowdin.com/project/potok) — без программирования. Выберите свой язык (или предложите новый) и переводите строки прямо в браузере; одобренные переводы попадут в следующий релиз.
+>
+> 👉 **[Перевести на Crowdin →](https://crowdin.com/project/potok)**
 
 ## Часть Potok
 

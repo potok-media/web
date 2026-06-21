@@ -11,6 +11,7 @@
   ![Vite](https://img.shields.io/badge/Vite-646cff?logo=vite&logoColor=white)
   ![Image](https://img.shields.io/badge/ghcr.io-potok--web-181717?logo=docker&logoColor=white)
   ![License](https://img.shields.io/badge/license-MIT-green)
+  [![Crowdin](https://badges.crowdin.net/potok/localized.svg)](https://crowdin.com/project/potok)
 </div>
 
 Browser client for the **Potok** media service. Connects to a Potok Gateway (BFF) to search
@@ -45,6 +46,13 @@ docker compose up -d      # ghcr.io/potok-media/potok-web:latest, http://localho
 | `VITE_DEFAULT_BFF_URL` | Default Gateway (BFF) address | `http://localhost:5000` |
 | `VITE_BLOCK_SETTINGS_INPUT` | Lock connection settings (read-only) | `false` |
 | `WEB_PORT` | Host port for the Docker container | `3000` |
+
+## Translations
+
+> [!NOTE]
+> 🌐 **Help translate Potok!** The interface is localized via [**Crowdin**](https://crowdin.com/project/potok) — no coding required. Pick your language (or request a new one) and translate strings right in the browser; approved translations ship with the next release.
+>
+> 👉 **[Start translating on Crowdin →](https://crowdin.com/project/potok)**
 
 ## Part of Potok
 
