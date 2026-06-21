@@ -34,7 +34,7 @@
       "cantReach": "Не удалось соединиться по адресу:",
       "otherAddress": "Указать другой адрес BFF:"
     },
-    "bffPlaceholder": "Адрес до BFF-шлюза",
+    "bffPlaceholder": "Адрес шлюза BFF",
     "saveAndConnect": "Сохранить и подключиться",
     "applyRetry": "Применить и повторить попытку",
     "checkAgain": "Проверить снова"
@@ -231,12 +231,12 @@
       "networkSpeed": "Скорость сети:",
       "megabytesPerSec": "{{value}} МБ/с",
       "streamBitrate": "Битрейт потока:",
-      "mbps": "{{value}} Mbps",
+      "mbps": "{{value}} Мбит/с",
       "resolution": "Разрешение:",
       "buffer": "Буфер:",
       "seconds": "{{value}} сек",
       "frames": "Кадры:",
-      "fps": "{{value}} fps"
+      "fps": "{{value}} ф/с"
     },
     "controls": {
       "defaultAudioTrack": "Основная (По умолчанию)",
@@ -276,8 +276,6 @@
     "source": "Источник",
     "empty": "Потоков не найдено. Попробуйте сменить фильтры.",
     "countLabel_one": "{{count}} источник",
-    "countLabel_few": "{{count}} источника",
-    "countLabel_many": "{{count}} источников",
     "countLabel_other": "{{count}} источников",
     "actions": {
       "refresh": "Обновить",
@@ -327,8 +325,6 @@
     },
     "overview": {
       "seasonsCount_one": "Сезонов: {{count}}",
-      "seasonsCount_few": "Сезонов: {{count}}",
-      "seasonsCount_many": "Сезонов: {{count}}",
       "seasonsCount_other": "Сезонов: {{count}}"
     },
     "row": {
@@ -350,8 +346,6 @@
       "season": "Сезон {{number}}",
       "watched": "Просмотрено",
       "audioCount_one": "{{count}} озвучка",
-      "audioCount_few": "{{count}} озвучки",
-      "audioCount_many": "{{count}} озвучек",
       "audioCount_other": "{{count}} озвучек",
       "progress": "Просмотрено серий: {{completed}} из {{total}} ({{percentage}}%)",
       "parsingHintQuestion": "Не удалось распознать сезоны?",
