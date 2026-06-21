@@ -461,21 +461,3 @@ body.is-tv .streams-sidebar-back-btn {
 body.is-tv .streams-results-count {
   white-space: nowrap;
 }
-
-/* ==========================================================================
-   20. "Light mode" — opt-in user toggle (Settings → Спец. возможности) for the
-   weakest WebViews. The base TV rules above already kill backdrop-filter,
-   transitions and most box-shadows; this strips what's LEFT — every residual
-   shadow, text-shadow, border-radius and decorative filter — so the renderer
-   does the absolute minimum compositing/rasterization. Activated by the
-   `tv-light` body class (mirrored on first paint by PlatformManager). Mirrors
-   Lampa's `body.light--version`.
-   ========================================================================== */
-body.is-tv.tv-light *,
-body.is-tv.tv-light *::before,
-body.is-tv.tv-light *::after {
-  box-shadow: none !important;
-  text-shadow: none !important;
-  border-radius: 0 !important;
-  filter: none !important;
-}

@@ -230,12 +230,6 @@ export const PlatformManager = {
     // Set TV class on body
     if (this.isTV()) {
       document.body.classList.add("is-tv");
-      // Apply the user's "light mode" class before first paint to avoid a flash of the
-      // heavier (rounded/shadowed) styling. The source of truth is the same `tvLightMode`
-      // setting React keeps in sync afterwards. `JSON.stringify(true)` === "true".
-      if (localStorage.getItem("tvLightMode") === "true") {
-        document.body.classList.add("tv-light");
-      }
       // Size the 10-foot UI by bumping the root font-size: everything dimensional is rem-based, so
       // this scales the whole UI crisply at the panel's native resolution — no transform/zoom (which
       // blur on tvOS WebKit). Applied synchronously here to avoid a flash of the un-scaled layout;

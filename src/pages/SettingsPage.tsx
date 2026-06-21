@@ -27,14 +27,12 @@ export const SettingsPage: React.FC = () => {
     uiFontScale,
     developerMode,
     disableHttpProxy,
-    tvLightMode,
     setAccentTheme,
     setDefaultPlayer,
     setBannerQuality,
     setUiFontScale,
     setDeveloperMode,
     setDisableHttpProxy,
-    setTvLightMode,
   } = useSettings();
 
   const [activeTab, setActiveTab] = useState<string>("general");
@@ -208,8 +206,6 @@ export const SettingsPage: React.FC = () => {
           setDeveloperMode={setDeveloperMode}
           disableHttpProxy={disableHttpProxy}
           setDisableHttpProxy={setDisableHttpProxy}
-          tvLightMode={tvLightMode}
-          setTvLightMode={setTvLightMode}
         />
       )}
       {activeTab === "profiles" && <ProfilesSettings />}

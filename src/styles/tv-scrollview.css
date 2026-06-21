@@ -53,8 +53,3 @@ body.is-tv .tv-scrollview-track {
   transition: transform 180ms ease-out;
   will-change: transform;
 }
-
-/* Light mode (weakest WebViews): instant snap, zero animation cost. */
-body.is-tv.tv-light .tv-scrollview-track {
-  transition: none;
-}

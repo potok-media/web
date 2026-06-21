@@ -1,87 +1,57 @@
-# Potok Web Client 💻
+<div align="center">
+  <img src="./.github/assets/logo.svg" alt="Potok" width="120" />
 
-Добро пожаловать в репозиторий веб-клиента проекта **Potok**. Это современное веб-приложение на базе **React + TypeScript + Vite**, реализующее премиальный, высокоэстетичный интерфейс в стиле macOS для удобного поиска и стриминга торрент-контента.
+  <h1>Potok Web Client</h1>
 
-Клиент полностью оптимизирован для работы со шлюзом **Potok Gateway (BFF)**, торрент-движком **TorrentGo** и поисковиком **SearchEngine**.
+  **English** · [Русский](./README.ru.md)
 
----
+  ![Version](https://img.shields.io/badge/version-3.1.0-3b82f6)
+  ![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)
+  ![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white)
+  ![Vite](https://img.shields.io/badge/Vite-646cff?logo=vite&logoColor=white)
+  ![Image](https://img.shields.io/badge/ghcr.io-potok--web-181717?logo=docker&logoColor=white)
+</div>
 
-## 🛠️ Особенности и стек технологий
+Browser client for the **Potok** media service. Connects to a Potok Gateway (BFF) to search
+movies and TV shows and stream them via the TorrentGo engine. React 19 + TypeScript + Vite.
 
-* **Ядро**: React 18, TypeScript, Vite.
-* **Стилизация**: Чистый премиальный CSS с поддержкой CSS-переменных, плавной физики анимаций, адаптивного грида и тем оформления (Nordic Frost, Sage Muted, Graphite, Amber Gold, System).
-* **Сетевой слой**: Архитектура с автоматическим расчетом прогресса просмотра, поддержкой WebSockets и рекурсивной нормализацией ответов API.
-* **Профили**: Возможность переключения между несколькими серверами (BFF/TorrentGo) «на лету» с изоляцией данных и кэша Trakt/Медиатеки.
-* **Блокировка настроек**: Поддержка флагов окружения для развертывания веб-клиента в качестве защищенного публичного веб-интерфейса (без возможности манипулирования адресами шлюзов со стороны конечных пользователей).
+## Features
 
----
+- Search and streaming through the Potok Gateway
+- Built-in player (ArtPlayer + HLS) with watch-progress tracking
+- Multiple server profiles with isolated Trakt/library cache
+- Trakt integration, personal media library, real-time updates (WebSockets)
+- Plugin SDK (`PotokSDK`) — see the [wiki](https://potok.rip/wiki)
 
-## 🚀 Локальный запуск (Разработка)
+## Run locally
 
-Для запуска веб-клиента на локальной машине без контейнеров выполните следующие шаги:
-
-1. **Установка зависимостей**:
-   ```bash
-   npm install
-   ```
-
-2. **Настройка конфигурации окружения**:
-   Скопируйте шаблон переменного окружения `.env.example` в `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-   *Вы можете настроить адреса BFF шлюза, TorrentGo и SearchEngine, а также включить блокировку полей настроек подключения.*
-
-3. **Запуск сервера разработки**:
-   ```bash
-   npm run dev
-   ```
-   Приложение запустится в режиме разработчика и будет доступно по адресу `http://localhost:5173`.
-
-4. **Сборка продакшн-версии**:
-   ```bash
-   npm run build
-   ```
-
----
-
-## 🐳 Запуск в Docker и Докеризация
-
-Веб-клиент полностью докеризован и поддерживает два режима: локальный дебаг с автоперезагрузкой и защищенный релиз.
-
-### 1. Локальный Дебаг / Разработка (Debug Mode)
-Этот режим собирает образ разработчика и пробрасывает порты с поддержкой Hot Module Replacement (HMR):
 ```bash
-docker compose -f docker-compose.debug.yml up -d
+npm install
+cp .env.example .env      # set the Gateway address
+npm run dev               # http://localhost:5173
 ```
-* **Доступ**: `http://localhost:3000`
-* *Автоматически монтирует исходный код для отслеживания изменений на хосте без пересборки контейнера.*
 
-### 2. Релиз / Продакшн (Release Mode)
-Запускает оптимизированный production-бандл, обслуживаемый сервером **Nginx** с нативной поддержкой SPA-маршрутов:
+## Docker
+
 ```bash
-docker compose up -d
+docker compose up -d      # ghcr.io/potok-media/potok-web:latest, http://localhost:3000
 ```
-* **Доступ**: `http://localhost:3000` (настраивается через переменную `WEB_PORT` в корневом `.env`).
 
----
+## Environment
 
-## 📄 Настройка Переменных Окружения
-
-Вы можете гибко изменять поведение клиента на этапе сборки и старта контейнеров через файл `.env`:
-
-| Переменная | Описание | Значение по умолчанию |
+| Variable | Description | Default |
 |---|---|---|
-| `VITE_DEFAULT_BFF_URL` | Адрес шлюза Potok Gateway (BFF) по умолчанию | `http://localhost:5000` |
-| `VITE_BLOCK_SETTINGS_INPUT` | Блокировка изменения настроек подключения (режим "только для чтения") | `false` |
+| `VITE_DEFAULT_BFF_URL` | Default Gateway (BFF) address | `http://localhost:5000` |
+| `VITE_BLOCK_SETTINGS_INPUT` | Lock connection settings (read-only) | `false` |
+| `WEB_PORT` | Host port for the Docker container | `3000` |
 
-> [!IMPORTANT]
-> Если переменная `VITE_BLOCK_SETTINGS_INPUT` установлена в `true` или веб-клиент открыт по адресу `beta.potok.rip`, поля ввода настроек будут визуально отключены, а кнопки создания и удаления профилей будут скрыты от конечных пользователей.
+## Part of Potok
 
----
+This is one client of the **Potok** ecosystem:
 
-## ⚙️ CI/CD и Gitflow Автоматизация
+- 🌐 **Web** — this repository
+- 📱 **Android** · 🍎 **Apple / tvOS** — native clients
+- ⚙️ **Backend** — Gateway · SearchEngine · TorrentGo
+- 🧩 **Plugins & SDK** — extend the UI via `PotokSDK`
 
-В проекте настроен автоматизированный GitHub Actions пайплайн для сборки и выкатки версий:
-* **Скрипт релиза**: Находится в `.github/workflows/web-release.yml`.
-* **Что делает**: Автоматически считывает версию из `package.json`, инкрементирует её (major/minor/patch), фиксирует изменения в репозитории от имени GitHub-бота, собирает оптимизированный Docker-образ, пушит его в GitHub Container Registry (`ghcr.io`) под тегами `latest`/`beta` и соответствующей версией, а затем публикует официальный GitHub Release с автоматическими примечаниями к выпуску.
+🔗 [Live](https://potok.rip) · [Wiki](https://potok.rip/wiki) · [GitHub](https://github.com/potok-media)

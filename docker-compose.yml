@@ -1,7 +1,7 @@
 services:
-  # 💻 Веб-клиент Potok (Frontend)
+  # 💻 Potok web client (Frontend)
   potok-web:
-    image: ghcr.io/potok-media/potok-web:main
+    image: ghcr.io/potok-media/potok-web:latest
     container_name: potok-web
     restart: unless-stopped
     ports:

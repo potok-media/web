@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { restoreFocusOrDefault } from "../utils/focusMemory";
+import { PlatformManager } from "../utils/PlatformManager";
 import { useHUD } from "../context/HUDContext";
 import { useHomeFeed } from "../hooks/useHomeFeed";
 import HeroSpotlight from "../components/HeroSpotlight";
@@ -33,7 +34,9 @@ export const HomePage: React.FC = () => {
   // Initial focus: on Back, restore the card the user was on; otherwise the hero button (if any)
   // or the first row's first card. HomePage owns this (HeroSpotlight gets autoFocus={false}) so the
   // restore isn't overridden. Runs after HeroSpotlight's effects (child-before-parent).
+  // TV only — on desktop there's a mouse, so forcing focus just paints a stray ring on a card.
   React.useEffect(() => {
+    if (!PlatformManager.isTV()) return;
     if (!feed) return;
     let defaultKey: string | undefined;
     if (feed.hero && feed.hero.length > 0) {

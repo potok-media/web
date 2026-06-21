@@ -40,8 +40,6 @@ interface AccessibilitySettingsProps {
   setDeveloperMode: (val: boolean) => void;
   disableHttpProxy: boolean;
   setDisableHttpProxy: (val: boolean) => void;
-  tvLightMode: boolean;
-  setTvLightMode: (val: boolean) => void;
 }
 
 export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React.memo(({
@@ -51,24 +49,9 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
   setDeveloperMode,
   disableHttpProxy,
   setDisableHttpProxy,
-  tvLightMode,
-  setTvLightMode,
 }) => {
   const { isTV, isMobile } = usePlatform();
   const touchUI = isTV || isMobile;
-
-  // Manual TV-mode override — the guaranteed escape hatch when auto-detection misses a
-  // third-party WebView (e.g. Luxo on Apple TV). PlatformManager.isTV() already reads
-  // `tvMode` from localStorage; TV mode is decided once at load (body class, viewport,
-  // norigin geometry), so flipping it reloads the app.
-  const forcedTvMode = typeof localStorage !== "undefined" && localStorage.getItem("tvMode") === "true";
-  const handleForceTvMode = (next: boolean) => {
-    try {
-      if (next) localStorage.setItem("tvMode", "true");
-      else localStorage.removeItem("tvMode");
-    } catch { /* localStorage unavailable — nothing to persist */ }
-    window.location.reload();
-  };
 
   return (
     <div className="settings-pane">
@@ -140,42 +123,6 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
             <span className="potok-slider" />
           </label>
         </div>
-
-        <div className="potok-toggle-group" style={{ marginTop: "var(--space-l)", maxWidth: "30rem", width: "100%" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-            <span className="settings-label" style={{ margin: 0 }}>Режим ТВ / приставки</span>
-            <span style={{ fontSize: "var(--font-size-caption, 0.75rem)", color: "var(--text-muted)" }}>
-              Принудительно включить интерфейс для пульта (Apple TV, Android-приставки, WebView вроде Luxo), если он не определился сам. Приложение перезагрузится.
-            </span>
-          </div>
-          <label className="potok-switch" style={{ flexShrink: 0 }}>
-            <FocusableInput
-              type="checkbox"
-              checked={forcedTvMode}
-              onChange={(e) => handleForceTvMode(e.target.checked)}
-            />
-            <span className="potok-slider" />
-          </label>
-        </div>
-
-        {isTV && (
-          <div className="potok-toggle-group" style={{ marginTop: "var(--space-l)", maxWidth: "30rem", width: "100%" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-              <span className="settings-label" style={{ margin: 0 }}>Облегчённый режим</span>
-              <span style={{ fontSize: "var(--font-size-caption, 0.75rem)", color: "var(--text-muted)" }}>
-                Убирает тени, скругления и эффекты для более плавной работы на слабых ТВ.
-              </span>
-            </div>
-            <label className="potok-switch" style={{ flexShrink: 0 }}>
-              <FocusableInput
-                type="checkbox"
-                checked={tvLightMode}
-                onChange={(e) => setTvLightMode(e.target.checked)}
-              />
-              <span className="potok-slider" />
-            </label>
-          </div>
-        )}
 
         {developerMode && (
           <div style={{ marginTop: "var(--space-xl)", paddingTop: "var(--space-l)", borderTop: "var(--glass-border)", display: "flex", flexDirection: "column", gap: "0.5rem", maxWidth: "30rem" }}>

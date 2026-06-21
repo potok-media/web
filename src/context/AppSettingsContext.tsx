@@ -59,7 +59,6 @@ export interface SettingsContextType {
   developerMode: boolean;
   disableHttpProxy: boolean;
   directPlay: boolean;
-  tvLightMode: boolean;
   selectProfile: (id: string) => void;
   addProfile: (profile: Omit<ConnectionProfile, "id">) => void;
   deleteProfile: (id: string) => void;
@@ -71,7 +70,6 @@ export interface SettingsContextType {
   setDeveloperMode: (val: boolean) => void;
   setDisableHttpProxy: (val: boolean) => void;
   setDirectPlay: (val: boolean) => void;
-  setTvLightMode: (val: boolean) => void;
 }
 
 export const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -220,10 +218,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [directPlay, _setDirectPlay] = useState<boolean>(() =>
     Storage.get<boolean>("directPlay", true)
   );
-  const [tvLightMode, _setTvLightMode] = useState<boolean>(() =>
-    Storage.get<boolean>("tvLightMode", false)
-  );
-
   const isSettingsLocked = hostConfig.locked;
 
   useEffect(() => {
@@ -259,12 +253,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", accentTheme);
   }, [accentTheme]);
-
-  // "Light mode" flattens residual depth/effects on TV (see tv.css). The class is
-  // mirrored on first paint by PlatformManager; this keeps it in sync with the toggle.
-  useEffect(() => {
-    document.body.classList.toggle("tv-light", tvLightMode);
-  }, [tvLightMode]);
 
   useEffect(() => {
     const scale = uiFontScale || 1.0;
@@ -362,11 +350,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     _setDirectPlay(val);
   }, []);
 
-  const setTvLightMode = useCallback((val: boolean) => {
-    Storage.set("tvLightMode", val);
-    _setTvLightMode(val);
-  }, []);
-
   const value = useMemo(() => ({
     connectionProfiles,
     activeProfileID,
@@ -378,7 +361,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     developerMode,
     disableHttpProxy,
     directPlay,
-    tvLightMode,
     selectProfile,
     addProfile,
     deleteProfile,
@@ -390,7 +372,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setDeveloperMode,
     setDisableHttpProxy,
     setDirectPlay,
-    setTvLightMode,
   }), [
     connectionProfiles,
     activeProfileID,
@@ -402,7 +383,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     developerMode,
     disableHttpProxy,
     directPlay,
-    tvLightMode,
     selectProfile,
     addProfile,
     deleteProfile,
@@ -414,7 +394,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setDeveloperMode,
     setDisableHttpProxy,
     setDirectPlay,
-    setTvLightMode,
   ]);
 
   useEffect(() => {

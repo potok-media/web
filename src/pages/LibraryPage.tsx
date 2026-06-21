@@ -61,7 +61,6 @@ export const LibraryPage: React.FC = () => {
     initialQuery,
   });
 
-  const [autoPageLimit, setAutoPageLimit] = useState(() => PlatformManager.isTV() ? 3 : 10);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   // Progressive (chunked) rendering: cap how many cards are mounted at once and grow
@@ -79,7 +78,6 @@ export const LibraryPage: React.FC = () => {
   if (resetKey !== prevResetKey) {
     setPrevResetKey(resetKey);
     setVisibleCount(renderChunk);
-    setAutoPageLimit(PlatformManager.isTV() ? 3 : 10);
   }
 
   // Grow the render window ahead of the viewport.
@@ -99,19 +97,6 @@ export const LibraryPage: React.FC = () => {
       if (el) observer.unobserve(el);
     };
   }, [visibleCount, items.length, renderChunk]);
-
-  // After a MANUAL "Load more" click finishes loading, re-center focus on the button (new cards
-  // render above it, pushing it off-screen). Only after a button click — never for the focus-driven
-  // auto-load, which would yank the user off the card they're on.
-  const loadMoreClickedRef = useRef(false);
-  useEffect(() => {
-    if (!loadingMore && loadMoreClickedRef.current) {
-      loadMoreClickedRef.current = false;
-      // Re-focus only if the button is still mounted (it unmounts on the last page when hasMore
-      // goes false; targeting a missing key would drop focus).
-      if (PlatformManager.isTV() && hasMore) setFocus("LIBRARY_LOAD_MORE");
-    }
-  }, [loadingMore, hasMore]);
 
   // Set the INITIAL focus once per collection/query. Keyed by resetKey so it doesn't re-fire on
   // every items.length change — otherwise each pagination append would yank focus back to the top.
@@ -134,7 +119,7 @@ export const LibraryPage: React.FC = () => {
   }, [loading, isSearchPage, items.length, error, resetKey, location.key, location.pathname]);
 
   useEffect(() => {
-    if (!hasMore || page >= autoPageLimit || loading || loadingMore) return;
+    if (!hasMore || loading || loadingMore) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -158,14 +143,14 @@ export const LibraryPage: React.FC = () => {
         observer.unobserve(currentSentinel);
       }
     };
-  }, [hasMore, page, autoPageLimit, loading, loadingMore, loadNextPage]);
+  }, [hasMore, page, loading, loadingMore, loadNextPage]);
 
   // On TV the page scrolls by transform (PageFrame → TVScrollView), which doesn't fire the
   // IntersectionObserver sentinels above — so pagination is driven by FOCUS instead: when a card
   // near the end of the mounted window gets focused, grow the render window and/or fetch the next
   // page. A ref keeps the latest paging state so the per-card onFocus handler can stay stable.
-  const pagingRef = useRef({ visibleCount, itemsLength: items.length, hasMore, page, autoPageLimit, loading, loadingMore });
-  pagingRef.current = { visibleCount, itemsLength: items.length, hasMore, page, autoPageLimit, loading, loadingMore };
+  const pagingRef = useRef({ visibleCount, itemsLength: items.length, hasMore, page, loading, loadingMore });
+  pagingRef.current = { visibleCount, itemsLength: items.length, hasMore, page, loading, loadingMore };
   const NEAR_END = 8; // ≈ one grid row ahead
   const handleCardFocus = useCallback((index: number) => {
     if (!PlatformManager.isTV()) return;
@@ -173,7 +158,7 @@ export const LibraryPage: React.FC = () => {
     if (index >= p.visibleCount - NEAR_END && p.visibleCount < p.itemsLength) {
       setVisibleCount((prev) => Math.min(prev + renderChunk, p.itemsLength));
     }
-    if (index >= p.itemsLength - NEAR_END && p.hasMore && p.page < p.autoPageLimit && !p.loading && !p.loadingMore) {
+    if (index >= p.itemsLength - NEAR_END && p.hasMore && !p.loading && !p.loadingMore) {
       loadNextPage();
     }
   }, [renderChunk, loadNextPage]);
@@ -318,31 +303,11 @@ export const LibraryPage: React.FC = () => {
 
           {hasMore && visibleCount >= items.length && (
             <div className="library-pagination-wrapper">
-              {page >= autoPageLimit ? (
-                <FocusableButton
-                  focusKey="LIBRARY_LOAD_MORE"
-                  className="load-more-btn"
-                  onClick={() => {
-                    if (loadingMore) return;
-                    // On TV, keep the button mounted/focusable so focus isn't lost: raising the
-                    // limit here would swap the button for the auto-sentinel (unmount → focus flies
-                    // away), and `disabled` while loading makes it unfocusable. Desktop keeps the
-                    // raise to resume native-scroll auto-load.
-                    loadMoreClickedRef.current = true;
-                    if (!PlatformManager.isTV()) {
-                      setAutoPageLimit((prev) => prev + 5);
-                    }
-                    loadNextPage();
-                  }}
-                  disabled={!PlatformManager.isTV() && loadingMore}
-                >
-                  {loadingMore ? "Загрузка..." : "Загрузить ещё"}
-                </FocusableButton>
-              ) : (
-                <div ref={sentinelRef} className="pagination-sentinel-loader">
-                  {loadingMore && <LoadingSpinner height="5rem" message="Загружаем еще..." />}
-                </div>
-              )}
+              {/* Always auto-load on scroll: desktop via this IntersectionObserver sentinel,
+                  TV via focus-driven handleCardFocus. No manual "Load more" button. */}
+              <div ref={sentinelRef} className="pagination-sentinel-loader">
+                {loadingMore && <LoadingSpinner height="5rem" message="Загружаем еще..." />}
+              </div>
             </div>
           )}
         </>
