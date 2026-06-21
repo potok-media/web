@@ -10,8 +10,7 @@ preserve_hierarchy: true
 files:
   - source: /src/i18n/locales/en.json
     translation: /src/i18n/locales/%two_letters_code%.json
-    # Don't create a file for a fully-untranslated language (e.g. 0% → no locale file, so it
-    # won't appear in the app's selector). Keep only translated strings in partial files; the
-    # rest fall back to English at runtime.
+    # Don't create a file for a fully-untranslated language (0% → no locale file → it won't
+    # appear in the app's selector). Missing/untranslated keys in partial files fall back to
+    # English at runtime. (Crowdin forbids skip files + skip strings together — files wins.)
     skip_untranslated_files: true
-    skip_untranslated_strings: true
