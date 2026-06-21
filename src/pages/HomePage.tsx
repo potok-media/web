@@ -6,6 +6,7 @@ import { restoreFocusOrDefault } from "../utils/focusMemory";
 import { PlatformManager } from "../utils/PlatformManager";
 import { useHUD } from "../context/HUDContext";
 import { useHomeFeed } from "../hooks/useHomeFeed";
+import { DYNAMIC_CATEGORY_TITLES } from "./LibraryConfig";
 import HeroSpotlight from "../components/HeroSpotlight";
 import MediaRow from "../components/MediaRow";
 import { LoadingSpinner } from "../components/LoadingSpinner";
@@ -84,16 +85,22 @@ export const HomePage: React.FC = () => {
         />
       )}
 
-      {feed.rows.map((row, index) => (
+      {feed.rows.map((row, index) => {
+        // Row titles are category names; the backend sends them in its own language, so
+        // localize known category rows by id (falling back to the backend-provided title).
+        const titleKey = DYNAMIC_CATEGORY_TITLES[row.id];
+        const rowTitle = titleKey ? t(titleKey) : row.title;
+        return (
         <MediaRow
           key={row.id || index}
           id={row.id}
-          title={row.title}
+          title={rowTitle}
           items={row.items}
           onCardClick={handleCardClick}
           onSeeAllClick={handleSeeAllClick}
         />
-      ))}
+        );
+      })}
     </div>
   );
 };

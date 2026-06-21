@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { ApiClient } from "../network/ApiClient";
 import { SyncApiClient } from "../network/SyncApiClient";
 import { Storage } from "../utils/StorageService";
@@ -29,6 +30,7 @@ export function useMediaDetails({
   const [inWatchlist, setInWatchlist] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isWatched, setIsWatched] = useState(false);
+  const { i18n } = useTranslation();
 
   const lastFetchTimeRef = useRef<number>(0);
   // Mirror of `media` for synchronous reads inside the WebSocket handler, so we can
@@ -125,11 +127,11 @@ export function useMediaDetails({
         }
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Не удалось загрузить сведения");
+      setError(err instanceof Error ? err.message : i18n.t("media:details.loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, [mediaType, mediaId, playParam, checkIsWatched]);
+  }, [mediaType, mediaId, playParam, checkIsWatched, i18n, i18n.language]);
 
   useEffect(() => {
     fetchDetails(false);
@@ -238,11 +240,11 @@ export function useMediaDetails({
         };
         await ApiClient.syncTraktAction(nextState ? "watchlist" : "watchlist/remove", payload);
       }
-      showHUDRef.current("success", nextState ? "Добавлено в список ожидания" : "Удалено из списка ожидания");
+      showHUDRef.current("success", nextState ? i18n.t("media:watchlist.added") : i18n.t("media:watchlist.removed"));
       fetchDetails(true);
     } catch {
       setInWatchlist(media.isInWatchlist || false);
-      showHUDRef.current("error", "Ошибка при обновлении списка ожидания");
+      showHUDRef.current("error", i18n.t("media:details.toasts.watchlistError"));
     }
   };
 
@@ -265,11 +267,11 @@ export function useMediaDetails({
         };
         await ApiClient.syncTraktAction(nextState ? "favorites" : "favorites/remove", payload);
       }
-      showHUDRef.current("success", nextState ? "Добавлено в избранное" : "Удалено из избранного");
+      showHUDRef.current("success", nextState ? i18n.t("media:details.toasts.favoriteAdded") : i18n.t("media:details.toasts.favoriteRemoved"));
       fetchDetails(true);
     } catch {
       setIsFavorite(media.isFavorite || false);
-      showHUDRef.current("error", "Ошибка при обновлении избранного");
+      showHUDRef.current("error", i18n.t("media:details.toasts.favoriteError"));
     }
   };
 
@@ -292,11 +294,11 @@ export function useMediaDetails({
         };
         await ApiClient.syncTraktAction(nextState ? "history" : "history/remove", payload);
       }
-      showHUDRef.current("success", nextState ? "Отмечено просмотренным" : "Удалено из истории");
+      showHUDRef.current("success", nextState ? i18n.t("media:details.toasts.historyMarked") : i18n.t("media:details.toasts.historyRemoved"));
       fetchDetails(true);
     } catch {
       setIsWatched(checkIsWatched(media));
-      showHUDRef.current("error", "Ошибка при обновлении истории");
+      showHUDRef.current("error", i18n.t("media:details.toasts.historyError"));
     }
   };
 
@@ -324,10 +326,10 @@ export function useMediaDetails({
         };
         await ApiClient.syncTraktAction(nextState ? "history" : "history/remove", payload);
       }
-      showHUDRef.current("success", nextState ? `Эпизод ${episodeNumber} отмечен просмотренным` : `Эпизод ${episodeNumber} удален из истории`);
+      showHUDRef.current("success", nextState ? i18n.t("media:details.toasts.episodeMarked", { number: episodeNumber }) : i18n.t("media:details.toasts.episodeRemoved", { number: episodeNumber }));
       fetchDetails(true);
     } catch {
-      showHUDRef.current("error", "Ошибка при обновлении истории эпизода");
+      showHUDRef.current("error", i18n.t("media:details.toasts.episodeError"));
     }
   };
 
@@ -363,10 +365,10 @@ export function useMediaDetails({
         };
         await ApiClient.syncTraktAction(nextState ? "history" : "history/remove", payload);
       }
-      showHUDRef.current("success", nextState ? `Сезон ${seasonNumber} отмечен просмотренным` : `Сезон ${seasonNumber} удален из истории`);
+      showHUDRef.current("success", nextState ? i18n.t("media:details.toasts.seasonMarked", { number: seasonNumber }) : i18n.t("media:details.toasts.seasonRemoved", { number: seasonNumber }));
       fetchDetails(true);
     } catch {
-      showHUDRef.current("error", "Ошибка при обновлении истории сезона");
+      showHUDRef.current("error", i18n.t("media:details.toasts.seasonError"));
     }
   };
 
@@ -387,10 +389,10 @@ export function useMediaDetails({
 
       await SyncApiClient.saveSyncBulkProgress(media.id.toString(), "tv", changes);
       
-      showHUDRef.current("success", "История просмотра обновлена");
+      showHUDRef.current("success", i18n.t("media:details.toasts.historyUpdated"));
       fetchDetails(true);
     } catch {
-      showHUDRef.current("error", "Ошибка при сохранении истории просмотра");
+      showHUDRef.current("error", i18n.t("media:details.toasts.historySaveError"));
     }
   };
 

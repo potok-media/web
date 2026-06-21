@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { ApiClient } from "../network/ApiClient";
 import { logger } from "../utils/logger";
+import { i18n } from "../i18n";
 
 export function usePlayerMetadataAndTracks(
   streamHash: string,
@@ -32,7 +33,7 @@ export function usePlayerMetadataAndTracks(
       if (track.kind === "subtitles" || track.kind === "captions") {
         tracks.push({
           id: i,
-          name: track.label || track.language || `Субтитры ${i + 1}`,
+          name: track.label || track.language || i18n.t("player:trackSelector.subtitlesFallback", { index: i + 1 }),
         });
         if (track.mode === "showing") activeIdx = i;
       }

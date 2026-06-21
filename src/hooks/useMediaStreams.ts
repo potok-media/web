@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useHUD } from "../context/HUDContext";
 import { usePlayback } from "../context/AppSettingsContext";
@@ -29,6 +30,7 @@ interface UseMediaStreamsParams {
 
 export function useMediaStreams({ mediaType, mediaId, season, episode, initialMedia, activeTab: activeTabParam }: UseMediaStreamsParams) {
   const { show: showHUD } = useHUD();
+  const { i18n } = useTranslation();
   const { playVideo } = usePlayback();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -117,8 +119,8 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
 
   const handleOnError = useCallback((err: unknown) => {
     logger.error(err);
-    showHUD("error", err instanceof Error ? err.message : "Ошибка загрузки");
-  }, [showHUD]);
+    showHUD("error", err instanceof Error ? err.message : i18n.t("common:loadError"));
+  }, [showHUD, i18n]);
 
   useEffect(() => {
     if (initialMedia) return setMediaDetails(initialMedia);
@@ -134,7 +136,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
       .then(setMediaDetails)
       .catch(handleOnError)
       .finally(() => setLoadingMediaDetails(false));
-  }, [mediaType, mediaId, initialMedia, handleOnError]);
+  }, [mediaType, mediaId, initialMedia, handleOnError, i18n.language]);
 
   const currentMedia = mediaDetails || null;
 
@@ -295,7 +297,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
       ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(activeSource.pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", { stream, context })
         .then((info) => {
           if (!info) {
-            throw new Error("Не удалось получить информацию о воспроизведении: пустой ответ от плагина");
+            throw new Error(i18n.t("media:streams.playbackInfoEmpty"));
           }
           playVideo({
             streamUrl: info.streamUrl,
@@ -328,7 +330,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
             return ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(activeSource.pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", { stream, episode: singleEp, context })
               .then((info) => {
                 if (!info) {
-                  throw new Error("Не удалось получить информацию о воспроизведении: пустой ответ от плагина");
+                  throw new Error(i18n.t("media:streams.playbackInfoEmpty"));
                 }
                 playVideo({
                   streamUrl: info.streamUrl,
@@ -351,7 +353,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
           } else {
             // Multiple files: show files list selector popup
             const data = {
-              title: stream.title || (mediaType === "movie" ? "Выбор файла" : "Выбор серии"),
+              title: stream.title || (mediaType === "movie" ? i18n.t("media:streams.fileSelection") : i18n.t("media:streams.episodeSelection")),
               episodes: mapEpisodesWithWatched(eps),
               tmdbSeasonsCount: res.tmdbSeasonsCount || currentMedia?.numberOfSeasons || 1,
             };
@@ -369,7 +371,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
         .catch(handleOnError)
         .finally(() => setActionLoading(false));
     }
-  }, [activeSource, mediaType, context, mediaId, currentMedia, playVideo, handleOnError, season, episode, mapEpisodesWithWatched, setSearchParams]);
+  }, [activeSource, mediaType, context, mediaId, currentMedia, playVideo, handleOnError, season, episode, mapEpisodesWithWatched, setSearchParams, i18n]);
 
   const handlePlayEpisode = useCallback((ep: GenericEpisodeItem) => {
     if (!activeSource || !clickedStream) return;
@@ -388,7 +390,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
         }
 
         if (!info) {
-          throw new Error("Не удалось получить информацию о воспроизведении: пустой ответ от плагина");
+          throw new Error(i18n.t("media:streams.playbackInfoEmpty"));
         }
         playVideo({
           streamUrl: info.streamUrl,
@@ -411,7 +413,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
       })
       .catch(handleOnError)
       .finally(() => setActionLoading(false));
-  }, [activeSource, clickedStream, context, currentMedia, mediaId, playVideo, handleOnError, mediaType]);
+  }, [activeSource, clickedStream, context, currentMedia, mediaId, playVideo, handleOnError, mediaType, i18n]);
 
   const handleStartEditing = useCallback(() => {
     if (!activeSource || !clickedStream) return;
@@ -431,7 +433,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
       .then(() => ExtensionRegistry.sendSandboxRequest<{ episodes: StreamEpisode[]; tmdbSeasonsCount: number }>(activeSource.pluginId, "STREAM_SOURCE_GET_EPISODES", { stream: clickedStream, context }))
       .then((res) => {
         const data = {
-          title: clickedStream.title || "Выбор серии", episodes: mapEpisodesWithWatched(res.episodes || []),
+          title: clickedStream.title || i18n.t("media:streams.episodeSelection"), episodes: mapEpisodesWithWatched(res.episodes || []),
           tmdbSeasonsCount: res.tmdbSeasonsCount || currentMedia?.numberOfSeasons || 1,
         };
         sessionStorage.setItem("potok_popup_data", JSON.stringify(data));
@@ -439,7 +441,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
       })
       .catch(handleOnError)
       .finally(() => setIsSaving(false));
-  }, [activeSource, clickedStream, context, currentMedia, handleOnError, mapEpisodesWithWatched]);
+  }, [activeSource, clickedStream, context, currentMedia, handleOnError, mapEpisodesWithWatched, i18n]);
 
   return {
     loadingMediaDetails, currentMedia, sources, activeTab, setActiveTab, streams, loading, error, handleRefresh,

@@ -17,7 +17,8 @@
     "inspector": {
       "enable": "Изучить разметку",
       "disable": "Выключить изучение"
-    }
+    },
+    "loadError": "Ошибка загрузки"
   },
   "connection": {
     "checking": {
@@ -176,7 +177,8 @@
       "chooseTitle": "Выбор: {{title}}",
       "disable": "Отключить",
       "uploadSubtitlesAria": "Загрузить субтитры",
-      "uploadSrtVtt": "Загрузить SRT/VTT..."
+      "uploadSrtVtt": "Загрузить SRT/VTT...",
+      "subtitlesFallback": "Субтитры {{index}}"
     },
     "resume": {
       "continuedFrom": "Продолжено с {{time}}",
@@ -375,7 +377,25 @@
       "addToWatchlist": "В список ожидания",
       "removeFromWatchlist": "Удалить из списка ожидания",
       "addToFavorites": "Добавить в избранное",
-      "removeFromFavorites": "Удалить из избранного"
+      "removeFromFavorites": "Удалить из избранного",
+      "loadFailed": "Не удалось загрузить сведения",
+      "toasts": {
+        "favoriteAdded": "Добавлено в избранное",
+        "favoriteRemoved": "Удалено из избранного",
+        "favoriteError": "Ошибка при обновлении избранного",
+        "watchlistError": "Ошибка при обновлении списка ожидания",
+        "historyMarked": "Отмечено просмотренным",
+        "historyRemoved": "Удалено из истории",
+        "historyError": "Ошибка при обновлении истории",
+        "episodeMarked": "Эпизод {{number}} отмечен просмотренным",
+        "episodeRemoved": "Эпизод {{number}} удален из истории",
+        "episodeError": "Ошибка при обновлении истории эпизода",
+        "seasonMarked": "Сезон {{number}} отмечен просмотренным",
+        "seasonRemoved": "Сезон {{number}} удален из истории",
+        "seasonError": "Ошибка при обновлении истории сезона",
+        "historyUpdated": "История просмотра обновлена",
+        "historySaveError": "Ошибка при сохранении истории просмотра"
+      }
     },
     "library": {
       "category": "Категория",
@@ -400,7 +420,10 @@
       "loadingMore": "Загружаем еще...",
       "searchNoResultsSub": "Попробуйте изменить запрос или проверить написание названия",
       "startSearchTitle": "Начните поиск",
-      "startSearchSub": "Введите название фильма или сериала для поиска по базе данных"
+      "startSearchSub": "Введите название фильма или сериала для поиска по базе данных",
+      "loadError": "Не удалось загрузить медиатеку",
+      "nextPageError": "Не удалось загрузить следующую страницу",
+      "categoryNotFound": "Категория не найдена"
     },
     "calendar": {
       "filters": {
@@ -428,7 +451,9 @@
       "seasonEpisode": "Сезон {{season}}, Серия {{episode}}",
       "newEpisode": "Новая серия",
       "releaseDateAria": "Дата выхода: {{time}}.",
-      "emptyPeriod": "Нет запланированных релизов на выбранный период."
+      "emptyPeriod": "Нет запланированных релизов на выбранный период.",
+      "loadError": "Не удалось загрузить расписание релизов",
+      "connectionError": "Не удалось установить соединение с сервером"
     },
     "multiPicker": {
       "close": "Закрыть",
@@ -460,7 +485,8 @@
       "scrollForward": "Прокрутить вперед",
       "noEpisodes": "Нет сведений об эпизодах этого сезона.",
       "unmarkWatched": "Убрать отметку просмотрено",
-      "markWatched": "Отметить просмотренным"
+      "markWatched": "Отметить просмотренным",
+      "loadError": "Не удалось загрузить эпизоды сезона"
     },
     "categories": {
       "upNext": {
@@ -493,6 +519,11 @@
         "topMovies": "Лучшие фильмы",
         "topTv": "Лучшие сериалы"
       }
+    },
+    "streams": {
+      "playbackInfoEmpty": "Не удалось получить информацию о воспроизведении: пустой ответ от плагина",
+      "fileSelection": "Выбор файла",
+      "episodeSelection": "Выбор серии"
     }
   },
   "profile": {

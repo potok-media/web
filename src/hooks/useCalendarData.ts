@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { ApiClient } from "../network/ApiClient";
 import { ApiError } from "../network/ApiTypes";
 import type { MediaCard } from "../network/ApiTypes";
@@ -16,6 +17,7 @@ export function useCalendarData() {
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
   const { syncStrategy, traktToken } = useAuth();
+  const { i18n } = useTranslation();
 
   const fetchCalendar = useCallback(async () => {
     setLoading(true);
@@ -36,9 +38,9 @@ export function useCalendarData() {
       if (isMountedRef.current) {
         logger.error("[useCalendarData] Failed to fetch calendar:", err);
         if (err instanceof ApiError) {
-          setError(err.message || "Не удалось загрузить расписание релизов");
+          setError(err.message || i18n.t("media:calendar.loadError"));
         } else {
-          setError("Не удалось установить соединение с сервером");
+          setError(i18n.t("media:calendar.connectionError"));
         }
       }
     } finally {
@@ -46,7 +48,7 @@ export function useCalendarData() {
         setLoading(false);
       }
     }
-  }, [syncStrategy, traktToken]);
+  }, [syncStrategy, traktToken, i18n, i18n.language]);
 
   useEffect(() => {
     isMountedRef.current = true;

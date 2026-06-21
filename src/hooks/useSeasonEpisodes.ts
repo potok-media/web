@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { ApiClient } from "../network/ApiClient";
 import type { TvEpisode } from "../network/ApiTypes";
 import { MemorySafeCache } from "../network/MemorySafeCache";
@@ -21,7 +22,9 @@ interface ActiveRequest {
 const activeRequests = new Map<string, ActiveRequest>();
 
 export function useSeasonEpisodes(mediaId: number, seasonNumber: number) {
-  const cacheKey = `${mediaId}_s${seasonNumber}`;
+  const { i18n } = useTranslation();
+  // Language in the key isolates cache per language and re-runs the effect on change.
+  const cacheKey = `${mediaId}_s${seasonNumber}_${i18n.language}`;
   
   // Instantly resolve cache during render to eliminate flickers/skeletons
   const cachedData = mediaId && seasonNumber > 0 ? seasonCache.get<TvEpisode[]>(cacheKey) : null;
@@ -90,7 +93,7 @@ export function useSeasonEpisodes(mediaId: number, seasonNumber: number) {
         setEpisodes(mapped);
       } catch (err: any) {
         if (err.name !== "AbortError") {
-          setError(err.message || "Не удалось загрузить эпизоды сезона");
+          setError(err.message || i18n.t("media:seasons.loadError"));
         }
       } finally {
         if (activeRequests.get(cacheKey) === active) {
@@ -113,7 +116,7 @@ export function useSeasonEpisodes(mediaId: number, seasonNumber: number) {
         }
       }
     };
-  }, [mediaId, seasonNumber]);
+  }, [mediaId, seasonNumber, i18n]);
 
   return { episodes, loading, error };
 }

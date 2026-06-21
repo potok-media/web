@@ -289,7 +289,7 @@ export class ApiClient {
     if (!this.isWorker) {
       return DataWorkerBridge.request<MediaCard[]>("searchMedia", [query]);
     }
-    const res = await fetch(`${this.baseURL}/api/media/search?query=${encodeURIComponent(query)}`, {
+    const res = await fetch(`${this.baseURL}/api/media/search?query=${encodeURIComponent(query)}&language=${encodeURIComponent(this.language)}`, {
       headers: this.headers,
     });
     return this.handleResponse<MediaCard[]>(res, "Search failed");
@@ -312,7 +312,7 @@ export class ApiClient {
     if (this.mediaDetailsCache.has(cacheKey)) {
       return this.mediaDetailsCache.get(cacheKey)!;
     }
-    const res = await fetch(`${this.baseURL}/api/media/detail/${mediaType}/${id}`, {
+    const res = await fetch(`${this.baseURL}/api/media/detail/${mediaType}/${id}?language=${encodeURIComponent(this.language)}`, {
       headers: this.headers,
     });
     const details = await this.handleResponse<MediaCard>(res, "Failed to fetch details");
@@ -324,7 +324,7 @@ export class ApiClient {
     if (!this.isWorker) {
       return DataWorkerBridge.request<TvSeason>("fetchTvSeason", [tvId, seasonNumber]);
     }
-    const res = await fetch(`${this.baseURL}/api/media/tmdb/tv/${tvId}/season/${seasonNumber}`, {
+    const res = await fetch(`${this.baseURL}/api/media/tmdb/tv/${tvId}/season/${seasonNumber}?language=${encodeURIComponent(this.language)}`, {
       ...options,
       headers: {
         ...this.headers,
@@ -365,7 +365,7 @@ export class ApiClient {
     if (!this.isWorker) {
       return DataWorkerBridge.request<MediaCard[]>("fetchMediaRow", [rowId, page]);
     }
-    const res = await fetch(`${this.baseURL}/api/media/row/${rowId}?page=${page}`, {
+    const res = await fetch(`${this.baseURL}/api/media/row/${rowId}?page=${page}&language=${encodeURIComponent(this.language)}`, {
       headers: this.headers,
     });
     return this.handleResponse<MediaCard[]>(res, `Failed to fetch media row: ${rowId}`);
@@ -376,10 +376,10 @@ export class ApiClient {
       return DataWorkerBridge.request<MediaCard[]>("fetchBatchDetails", [items]);
     }
     if (items.length === 0) return [];
-    const res = await fetch(`${this.baseURL}/api/media/batch`, {
+    const res = await fetch(`${this.baseURL}/api/media/batch?language=${encodeURIComponent(this.language)}`, {
       method: "POST",
       headers: this.headers,
-      body: JSON.stringify({ items }),
+      body: JSON.stringify({ items, language: this.language }),
     });
     return this.handleResponse<MediaCard[]>(res, "Failed to fetch batch media details");
   }
@@ -393,7 +393,7 @@ export class ApiClient {
     }
     const strategy = Storage.get<string>("syncStrategy", "none");
     if (strategy === "trakt") {
-      const res = await fetch(`${this.baseURL}/api/library/${category}`, {
+      const res = await fetch(`${this.baseURL}/api/library/${category}?language=${encodeURIComponent(this.language)}`, {
         headers: this.headers,
       });
       return this.handleResponse<MediaCard[]>(res, `Failed to fetch library category: ${category}`);

@@ -341,9 +341,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const setLanguage = useCallback((lng: string) => {
     Storage.set(LANGUAGE_STORAGE_KEY, lng);
     _setLanguage(lng);
-    // Drives i18next (fetches the new language's bundles via the OTA backend) and the
-    // <html lang/dir> listener; plugin iframes are notified separately (Step 9).
+    // Drives i18next (UI strings re-render) and the <html lang/dir> listener; plugin
+    // iframes are notified separately (Step 9).
     i18n.changeLanguage(lng);
+    // TMDB-sourced data (titles/overviews/genres/logos) is fetched per-language, so drop
+    // the cached responses (main + data worker) — subsequent fetches use the new language.
+    ApiClient.invalidateCache();
   }, []);
 
   const setDeveloperMode = useCallback((val: boolean) => {

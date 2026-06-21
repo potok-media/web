@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, startTransition } from "react";
+import { useTranslation } from "react-i18next";
 import { ApiClient } from "../network/ApiClient";
 import { ApiError } from "../network/ApiTypes";
 import type { MediaCard } from "../network/ApiTypes";
@@ -17,9 +18,11 @@ interface UseLibraryPageProps {
 }
 
 export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: UseLibraryPageProps) {
-  const { activeProfileID } = useSettings();
+  const { activeProfileID, language } = useSettings();
   const { syncStrategy } = useAuth();
-  const profileKey = `${activeProfileID || "default"}_${syncStrategy}`;
+  const { i18n } = useTranslation();
+  // Language in the key isolates caches per language and re-runs fetches on language change.
+  const profileKey = `${activeProfileID || "default"}_${syncStrategy}_${language}`;
 
   // Safely initialize active profile collection cache
   const getCollectionCache = useCallback(() => {
@@ -82,7 +85,7 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
   const loadData = useCallback(
     async (showLoading = true, currentQuery = "", forceRefetch = false) => {
       if (!isSearchPage && !collectionType) {
-        setError("Категория не найдена");
+        setError(i18n.t("media:library.categoryNotFound"));
         return;
       }
 
@@ -134,13 +137,13 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
         if (isAuthErr) {
           setError("trakt_unauthorized");
         } else {
-          setError(err instanceof Error ? err.message : "Не удалось загрузить медиатеку");
+          setError(err instanceof Error ? err.message : i18n.t("media:home.loadError"));
         }
       } finally {
         setLoading(false);
       }
     },
-    [profileKey, collectionType, isSearchPage, getCollectionCache, getPaginationCache]
+    [profileKey, collectionType, isSearchPage, getCollectionCache, getPaginationCache, i18n]
   );
 
   const loadNextPage = useCallback(async () => {
@@ -169,11 +172,11 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
         getPaginationCache()[collectionType] = { page: nextPage, hasMore: hasMoreFlag };
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Не удалось загрузить следующую страницу");
+      setError(err instanceof Error ? err.message : i18n.t("media:library.nextPageError"));
     } finally {
       setLoadingMore(false);
     }
-  }, [collectionType, page, loading, loadingMore, hasMore, getCollectionCache, getPaginationCache]);
+  }, [collectionType, page, loading, loadingMore, hasMore, getCollectionCache, getPaginationCache, i18n]);
 
   // Synchronize component state with cache when active profile or route section changes
   useEffect(() => {

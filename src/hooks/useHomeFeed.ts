@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, startTransition } from "react";
+import { useTranslation } from "react-i18next";
 import { ApiClient } from "../network/ApiClient";
 import { ApiError } from "../network/ApiTypes";
 import type { HomeResponse } from "../network/ApiTypes";
@@ -31,9 +32,12 @@ const setCachedFeed = (profileKey: string, feed: HomeResponse): void => {
 };
 
 export function useHomeFeed(onError: (msg: string) => void) {
-  const { activeProfileID, bannerQuality } = useSettings();
+  const { activeProfileID, bannerQuality, language } = useSettings();
   const { logout } = useAuth();
-  const profileKey = activeProfileID || "default";
+  const { i18n } = useTranslation();
+  // Language is part of the cache key so each language has its own feed, and changing it
+  // re-runs the fetch effect (refetches in the new language).
+  const profileKey = `${activeProfileID || "default"}_${language}`;
 
   const [feed, setFeed] = useState<HomeResponse | null>(() => {
     return profileFeedCache[profileKey] || getCachedFeed(profileKey) || null;
@@ -84,12 +88,12 @@ export function useHomeFeed(onError: (msg: string) => void) {
       if (isAuthErr) {
         logout();
       } else {
-        onErrorRef.current(err instanceof Error ? err.message : "Не удалось загрузить медиатеку");
+        onErrorRef.current(err instanceof Error ? err.message : i18n.t("media:home.loadError"));
       }
     } finally {
       if (shouldShowLoading) setLoading(false);
     }
-  }, [profileKey, logout, bannerQuality]);
+  }, [profileKey, logout, bannerQuality, i18n]);
 
   useEffect(() => {
     const cached = profileFeedCache[profileKey] || getCachedFeed(profileKey);

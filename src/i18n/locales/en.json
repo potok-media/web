@@ -17,7 +17,8 @@
     "inspector": {
       "enable": "Inspect layout",
       "disable": "Stop inspecting"
-    }
+    },
+    "loadError": "Loading error"
   },
   "connection": {
     "checking": {
@@ -176,7 +177,8 @@
       "chooseTitle": "Select: {{title}}",
       "disable": "Disable",
       "uploadSubtitlesAria": "Upload subtitles",
-      "uploadSrtVtt": "Upload SRT/VTT..."
+      "uploadSrtVtt": "Upload SRT/VTT...",
+      "subtitlesFallback": "Subtitles {{index}}"
     },
     "resume": {
       "continuedFrom": "Resumed from {{time}}",
@@ -369,7 +371,25 @@
       "addToWatchlist": "Add to watchlist",
       "removeFromWatchlist": "Remove from watchlist",
       "addToFavorites": "Add to favorites",
-      "removeFromFavorites": "Remove from favorites"
+      "removeFromFavorites": "Remove from favorites",
+      "loadFailed": "Failed to load details",
+      "toasts": {
+        "favoriteAdded": "Added to favorites",
+        "favoriteRemoved": "Removed from favorites",
+        "favoriteError": "Failed to update favorites",
+        "watchlistError": "Failed to update the watchlist",
+        "historyMarked": "Marked as watched",
+        "historyRemoved": "Removed from history",
+        "historyError": "Failed to update history",
+        "episodeMarked": "Episode {{number}} marked as watched",
+        "episodeRemoved": "Episode {{number}} removed from history",
+        "episodeError": "Failed to update episode history",
+        "seasonMarked": "Season {{number}} marked as watched",
+        "seasonRemoved": "Season {{number}} removed from history",
+        "seasonError": "Failed to update season history",
+        "historyUpdated": "Watch history updated",
+        "historySaveError": "Failed to save watch history"
+      }
     },
     "library": {
       "category": "Category",
@@ -394,7 +414,10 @@
       "loadingMore": "Loading more...",
       "searchNoResultsSub": "Try changing your query or checking the spelling of the title",
       "startSearchTitle": "Start searching",
-      "startSearchSub": "Enter a movie or TV show title to search the database"
+      "startSearchSub": "Enter a movie or TV show title to search the database",
+      "loadError": "Failed to load the library",
+      "nextPageError": "Failed to load the next page",
+      "categoryNotFound": "Category not found"
     },
     "calendar": {
       "filters": {
@@ -422,7 +445,9 @@
       "seasonEpisode": "Season {{season}}, Episode {{episode}}",
       "newEpisode": "New episode",
       "releaseDateAria": "Release date: {{time}}.",
-      "emptyPeriod": "No scheduled releases for the selected period."
+      "emptyPeriod": "No scheduled releases for the selected period.",
+      "loadError": "Failed to load the release schedule",
+      "connectionError": "Couldn't connect to the server"
     },
     "multiPicker": {
       "close": "Close",
@@ -454,7 +479,8 @@
       "scrollForward": "Scroll forward",
       "noEpisodes": "No information about episodes of this season.",
       "unmarkWatched": "Remove watched mark",
-      "markWatched": "Mark as watched"
+      "markWatched": "Mark as watched",
+      "loadError": "Failed to load the season's episodes"
     },
     "categories": {
       "upNext": {
@@ -487,6 +513,11 @@
         "topMovies": "Top movies",
         "topTv": "Top TV shows"
       }
+    },
+    "streams": {
+      "playbackInfoEmpty": "Failed to get playback info: empty response from the plugin",
+      "fileSelection": "Select a file",
+      "episodeSelection": "Select an episode"
     }
   },
   "profile": {
