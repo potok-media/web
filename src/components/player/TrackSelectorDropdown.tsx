@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 interface TrackItem {
   id: number;
@@ -28,10 +29,11 @@ export const TrackSelectorDropdown: React.FC<TrackSelectorDropdownProps> = ({
   isOpen,
   onToggle,
   showDisableOption = false,
-  disableOptionLabel = "Отключить",
+  disableOptionLabel,
   onUploadSubtitle,
   disabled,
 }) => {
+  const { t } = useTranslation("player");
   const ITEM_HEIGHT = 36;
   const MAX_VISIBLE_HEIGHT = 282;
 
@@ -56,7 +58,7 @@ export const TrackSelectorDropdown: React.FC<TrackSelectorDropdownProps> = ({
           e.stopPropagation();
           if (!disabled) onToggle();
         }}
-        title={`Выбор: ${title}`}
+        title={t("trackSelector.chooseTitle", { title })}
       >
         {icon}
       </button>
@@ -69,7 +71,7 @@ export const TrackSelectorDropdown: React.FC<TrackSelectorDropdownProps> = ({
               onClick={() => onSelect(-1)}
               style={{ minHeight: `${ITEM_HEIGHT}px`, height: "auto", boxSizing: "border-box" }}
             >
-              {disableOptionLabel}
+              {disableOptionLabel ?? t("trackSelector.disable")}
             </div>
           )}
 
@@ -106,9 +108,9 @@ export const TrackSelectorDropdown: React.FC<TrackSelectorDropdownProps> = ({
                   accept=".srt,.vtt" 
                   onChange={handleFileChange}
                   className="dropdown-upload-input"
-                  aria-label="Загрузить субтитры"
+                  aria-label={t("trackSelector.uploadSubtitlesAria")}
                 />
-                <span className="upload-btn-text">Загрузить SRT/VTT...</span>
+                <span className="upload-btn-text">{t("trackSelector.uploadSrtVtt")}</span>
               </label>
             </>
           )}

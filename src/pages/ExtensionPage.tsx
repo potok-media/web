@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
@@ -7,6 +8,7 @@ import { FocusableContainer } from "../components/common/TVNavigation";
 import { PlatformManager } from "../utils/PlatformManager";
 
 export const ExtensionPage: React.FC = () => {
+  const { t } = useTranslation("extensions");
   const { tab } = useParams<{ tab: string }>();
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -15,7 +17,7 @@ export const ExtensionPage: React.FC = () => {
   const currentContribution = contributions.find((c) => c.contribution.id === tab);
   const contribution = currentContribution?.contribution;
   const showHeader = !contribution || (contribution.hideHeader !== true && contribution.title !== "");
-  const title = contribution?.title || "Расширение";
+  const title = contribution?.title || t("pageTitleFallback");
 
   // The plugin renders its UI (selects/buttons/cards) into this page asynchronously (data loads
   // after mount) and re-renders on its own state changes. norigin needs an initial focus to start

@@ -16,7 +16,9 @@ export const createIframeHtml = (
   ext: any,
   activeProfile: any,
   scopedStorage: Record<string, string>,
-  hostOrigin: string
+  hostOrigin: string,
+  language?: string,
+  hostStrings?: Record<string, unknown>
 ): string => {
   const normalizedDirUrl = normalizeUrl(ext.url);
   const baseUrl = normalizedDirUrl.endsWith("/") ? normalizedDirUrl : `${normalizedDirUrl}/`;
@@ -89,7 +91,9 @@ export const createIframeHtml = (
           permissions: ${JSON.stringify(ext.manifest.permissions || [])},
           config: ${JSON.stringify(configPayload)},
           localStorage: ${JSON.stringify(scopedStorage)},
-          hostOrigin: ${JSON.stringify(hostOrigin)}
+          hostOrigin: ${JSON.stringify(hostOrigin)},
+          language: ${JSON.stringify(language || "en")},
+          hostStrings: ${JSON.stringify(hostStrings || {})}
         };
       </script>
       <script>

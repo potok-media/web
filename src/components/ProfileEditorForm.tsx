@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Save, Play, Info } from "lucide-react";
 import { FocusableButton, FocusableInput } from "./common/TVNavigation";
 
@@ -25,28 +26,29 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
   saving = false,
   isSettingsLocked = false,
 }) => {
+  const { t } = useTranslation("settings");
   return (
     <div className="settings-pane">
       <section className="settings-section">
         <h2 className="settings-section-title">
           <Play size="1.25rem" />
-          <span>{isAdding ? "Новый профиль" : "Параметры соединения"}</span>
+          <span>{isAdding ? t("profileEditor.newProfile") : t("profileEditor.connectionParams")}</span>
         </h2>
 
         {isSettingsLocked && (
           <div className="settings-lock-banner">
             <Info size="1rem" />
-            <span>Настройки подключения заблокированы администратором.</span>
+            <span>{t("profileEditor.lockedBanner")}</span>
           </div>
         )}
 
         <form onSubmit={onSave} className="settings-form-wrapper" style={{ display: "flex", flexDirection: "column", gap: "var(--space-m)" }}>
           <div className="settings-form-group">
-            <label className="settings-label">Название профиля</label>
+            <label className="settings-label">{t("profileEditor.nameLabel")}</label>
             <FocusableInput
               className="settings-input"
               type="text"
-              placeholder="Основной сервер"
+              placeholder={t("profileEditor.namePlaceholder")}
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
               disabled={isSettingsLocked || saving}
@@ -55,11 +57,11 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
           </div>
 
           <div className="settings-form-group">
-            <label className="settings-label">Адрес Potok Gateway (BFF)</label>
+            <label className="settings-label">{t("profileEditor.gatewayLabel")}</label>
             <FocusableInput
               className="settings-input"
               type="text"
-              placeholder="Адрес до BFF-шлюза"
+              placeholder={t("profileEditor.gatewayPlaceholder")}
               value={formGateway}
               onChange={(e) => setFormGateway(e.target.value)}
               disabled={isSettingsLocked || saving}
@@ -71,7 +73,7 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
             <div className="settings-form-buttons-row" style={{ marginTop: "var(--space-s)" }}>
               <FocusableButton type="submit" className="settings-btn-primary cursor-pointer btn-gap-s" disabled={saving}>
                 <Save size="1rem" />
-                <span>{saving ? "Проверка…" : isAdding ? "Создать профиль" : "Сохранить изменения"}</span>
+                <span>{saving ? t("profileEditor.checking") : isAdding ? t("profileEditor.createProfile") : t("profileEditor.saveChanges")}</span>
               </FocusableButton>
               {isAdding && (
                 <FocusableButton
@@ -80,7 +82,7 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
                   onClick={onCancel}
                   disabled={saving}
                 >
-                  Отмена
+                  {t("profileEditor.cancel")}
                 </FocusableButton>
               )}
             </div>

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { X, Copy, Check } from "lucide-react";
 import type { ExtensionManifest } from "@potok/sdk-types";
 import { useHUD } from "../../context/HUDContext";
@@ -12,6 +13,7 @@ interface Props {
 
 export const ManifestViewerModal: React.FC<Props> = ({ manifest, onClose }) => {
   const { show: showHUD } = useHUD();
+  const { t } = useTranslation("settings");
   const [copied, setCopied] = useState(false);
 
   const jsonString = JSON.stringify(manifest, null, 2);
@@ -20,10 +22,10 @@ export const ManifestViewerModal: React.FC<Props> = ({ manifest, onClose }) => {
     try {
       await navigator.clipboard.writeText(jsonString);
       setCopied(true);
-      showHUD("success", "Манифест успешно скопирован в буфер обмена");
+      showHUD("success", t("manifest.copySuccess"));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      showHUD("error", "Не удалось скопировать манифест");
+      showHUD("error", t("manifest.copyError"));
     }
   };
 
@@ -39,12 +41,12 @@ export const ManifestViewerModal: React.FC<Props> = ({ manifest, onClose }) => {
     >
       <div className="manifest-modal-header">
         <div>
-          <h3 className="manifest-modal-title">Манифест расширения</h3>
+          <h3 className="manifest-modal-title">{t("manifest.title")}</h3>
           <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)", opacity: 0.7 }}>
-            {manifest.name} (ID: {manifest.id})
+            {t("manifest.nameWithId", { name: manifest.name, id: manifest.id })}
           </span>
         </div>
-        <FocusableButton onClick={onClose} className="manifest-modal-close" title="Закрыть">
+        <FocusableButton onClick={onClose} className="manifest-modal-close" title={t("manifest.close")}>
           <X size="1.25rem" />
         </FocusableButton>
       </div>
@@ -58,10 +60,10 @@ export const ManifestViewerModal: React.FC<Props> = ({ manifest, onClose }) => {
       <div className="manifest-modal-footer">
         <FocusableButton onClick={handleCopy} className="settings-btn-primary" style={{ fontSize: "0.9rem", padding: "0.5rem 1rem" }}>
           {copied ? <Check size="1rem" style={{ color: "#4f9e71" }} /> : <Copy size="1rem" />}
-          <span>{copied ? "Скопировано!" : "Копировать"}</span>
+          <span>{copied ? t("manifest.copied") : t("manifest.copy")}</span>
         </FocusableButton>
         <FocusableButton focusKey="MANIFEST_MODAL_CLOSE" onClick={onClose} className="settings-btn-primary settings-form-btn-cancel" style={{ fontSize: "0.9rem", padding: "0.5rem 1rem" }}>
-          Закрыть
+          {t("manifest.close")}
         </FocusableButton>
       </div>
     </Overlay>

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Clock, AlertCircle, RefreshCw, BookmarkCheck, Star } from "lucide-react";
 import { useCalendarData } from "../hooks/useCalendarData";
@@ -29,6 +30,7 @@ const CalendarSkeleton: React.FC = () => (
 export const CalendarPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation("media");
   const { items, loading, error, refetch, isTraktConnected } = useCalendarData();
   const [activeFilter, setActiveFilter] = useState<"all" | "today" | "tomorrow" | "this-week">("all");
   const { isTV } = usePlatform();
@@ -39,10 +41,10 @@ export const CalendarPage: React.FC = () => {
   }, [location.key, location.pathname, loading]);
 
   const filterChips = [
-    { key: "all", label: "Все релизы" },
-    { key: "today", label: "Сегодня" },
-    { key: "tomorrow", label: "Завтра" },
-    { key: "this-week", label: "На этой неделе" }
+    { key: "all", label: t("calendar.filters.all") },
+    { key: "today", label: t("calendar.filters.today") },
+    { key: "tomorrow", label: t("calendar.filters.tomorrow") },
+    { key: "this-week", label: t("calendar.filters.thisWeek") }
   ] as const;
 
   const filteredItems = useMemo(() => {
@@ -86,15 +88,15 @@ export const CalendarPage: React.FC = () => {
     const groups: Record<string, MediaCard[]> = {};
 
     filteredItems.forEach((item) => {
-      let groupTitle = "Даты уточняются";
+      let groupTitle = t("calendar.groups.tbd");
       if (item.airDateTime) {
         const date = new Date(item.airDateTime);
         date.setHours(0, 0, 0, 0);
 
         if (date.getTime() === today.getTime()) {
-          groupTitle = "Сегодня";
+          groupTitle = t("calendar.groups.today");
         } else if (date.getTime() === tomorrow.getTime()) {
-          groupTitle = "Завтра";
+          groupTitle = t("calendar.groups.tomorrow");
         } else {
           // Localized date: e.g. "Среда, 3 июня"
           groupTitle = date.toLocaleDateString("ru-RU", {
@@ -120,28 +122,28 @@ export const CalendarPage: React.FC = () => {
   }, [filteredItems]);
 
   const formatReleaseTime = (dateTimeStr?: string) => {
-    if (!dateTimeStr) return "Скоро";
+    if (!dateTimeStr) return t("calendar.soon");
     try {
       const date = new Date(dateTimeStr);
       const hours = String(date.getHours()).padStart(2, "0");
       const minutes = String(date.getMinutes()).padStart(2, "0");
       return `${hours}:${minutes}`;
     } catch {
-      return "Скоро";
+      return t("calendar.soon");
     }
   };
 
   const calendarHeader = (
     <>
       <header className="calendar-header">
-        <h1 className="calendar-title">Календарь релизов</h1>
+        <h1 className="calendar-title">{t("calendar.title")}</h1>
         <p className="calendar-description">
-          Расписание выхода новых серий {isTraktConnected ? "ваших сериалов из" : "популярных сериалов на основе данных"} Trakt.tv.
+          {isTraktConnected ? t("calendar.descriptionConnected") : t("calendar.descriptionGuest")}
         </p>
       </header>
 
       {/* Filter Chips (Material Design 3 style) */}
-      <nav className="tabs-header calendar-tabs" aria-label="Фильтры календаря по дням">
+      <nav className="tabs-header calendar-tabs" aria-label={t("calendar.filtersAriaLabel")}>
         {filterChips.map((chip, index) => (
           <FocusableButton
             key={chip.key}
@@ -165,18 +167,18 @@ export const CalendarPage: React.FC = () => {
           <div className="calendar-trakt-banner-content">
             <BookmarkCheck size="1.25rem" className="calendar-trakt-banner-icon" />
             <div className="calendar-trakt-banner-text-col">
-              <span className="calendar-trakt-banner-title">Синхронизируйте личное расписание</span>
+              <span className="calendar-trakt-banner-title">{t("calendar.traktBannerTitle")}</span>
               <span className="calendar-trakt-banner-desc">
-                Подключите ваш аккаунт Trakt.tv в профиле, чтобы видеть точное расписание серий только для сериалов из ваших закладок и истории.
+                {t("calendar.traktBannerDesc")}
               </span>
             </div>
           </div>
           <FocusableButton
             className="calendar-trakt-banner-btn"
             onClick={() => navigate("/profile")}
-            aria-label="Перейти в профиль для подключения Trakt.tv"
+            aria-label={t("calendar.connectTraktAria")}
           >
-            Подключить Trakt.tv
+            {t("calendar.connectTrakt")}
           </FocusableButton>
         </div>
       )}
@@ -187,7 +189,7 @@ export const CalendarPage: React.FC = () => {
           <AlertCircle size="2.5rem" className="calendar-time-icon" style={{ color: "var(--error)" }} />
           <div>
             <h2 style={{ fontSize: "1.1rem", fontWeight: 600, color: "var(--text-primary)", marginBottom: "0.25rem" }}>
-              Ошибка загрузки расписания
+              {t("calendar.errorTitle")}
             </h2>
             <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", margin: 0 }}>{error}</p>
           </div>
@@ -197,7 +199,7 @@ export const CalendarPage: React.FC = () => {
             style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem" }}
           >
             <RefreshCw size="0.875rem" />
-            Повторить попытку
+            {t("calendar.retry")}
           </FocusableButton>
         </div>
       )}
@@ -229,7 +231,7 @@ export const CalendarPage: React.FC = () => {
                           ref={focusRef}
                           to={`/media/tv/${item.id}`}
                           className={`calendar-row ${focused ? "focused" : ""}`}
-                          aria-label={`${item.title}. ${item.nextEpisodeSeason && item.nextEpisodeNumber ? `Сезон ${item.nextEpisodeSeason}, Серия ${item.nextEpisodeNumber}` : "Новая серия"}. Дата выхода: ${formatReleaseTime(item.airDateTime)}.`}
+                          aria-label={`${item.title}. ${item.nextEpisodeSeason && item.nextEpisodeNumber ? t("calendar.seasonEpisode", { season: item.nextEpisodeSeason, episode: item.nextEpisodeNumber }) : t("calendar.newEpisode")}. ${t("calendar.releaseDateAria", { time: formatReleaseTime(item.airDateTime) })}`}
                         >
                           {/* Fixed sized poster wrap with aspect-ratio to prevent layout shift */}
                           <div className="calendar-poster-wrap">
@@ -272,8 +274,8 @@ export const CalendarPage: React.FC = () => {
                             </div>
                             <span className="calendar-episode-title">
                               {item.nextEpisodeSeason && item.nextEpisodeNumber
-                                ? `Сезон ${item.nextEpisodeSeason}, Серия ${item.nextEpisodeNumber}`
-                                : "Новая серия"}
+                                ? t("calendar.seasonEpisode", { season: item.nextEpisodeSeason, episode: item.nextEpisodeNumber })
+                                : t("calendar.newEpisode")}
                               {item.nextEpisodeTitle ? ` — «${item.nextEpisodeTitle}»` : ""}
                             </span>
                             {item.overview && (
@@ -299,7 +301,7 @@ export const CalendarPage: React.FC = () => {
 
           {groupedGroups.length === 0 && (
             <div className="calendar-empty" role="status">
-              Нет запланированных релизов на выбранный период.
+              {t("calendar.emptyPeriod")}
             </div>
           )}
         </div>

@@ -632,6 +632,34 @@ export const SDK_TYPINGS = `
      */
     typings: string;
     /**
+     * Локализация (i18n). Плагин может читать строки хоста и регистрировать свои словари.
+     */
+    i18n: {
+      /**
+       * Возвращает перевод по ключу "namespace:path" для текущего языка.
+       * Поддерживает интерполяцию ({{var}}) и множественное число (передайте { count }).
+       * Примеры: t("common:actions.close"), t("myplugin:greeting", { name: "Bob" }).
+       */
+      t(key: string, opts?: Record<string, any>): string;
+      /**
+       * Текущий язык интерфейса (например "en", "ru").
+       */
+      readonly language: string;
+      /**
+       * Регистрирует словарь плагина для языка и пространства имён.
+       * Пример: addResourceBundle("en", "myplugin", { greeting: "Hi {{name}}" }).
+       */
+      addResourceBundle(lng: string, ns: string, resources: Record<string, any>): void;
+      /**
+       * Массовая регистрация словарей: { en: { myplugin: {...} }, ru: { myplugin: {...} } }.
+       */
+      registerTranslations(bundlesByLng: Record<string, Record<string, any>>): void;
+      /**
+       * Подписка на смену языка. Возвращает функцию отписки.
+       */
+      onLanguageChange(cb: (lng: string) => void): () => void;
+    };
+    /**
      * Создает реактивное состояние (State) для плагина.
      */
     createState<T extends object>(state: T): T;

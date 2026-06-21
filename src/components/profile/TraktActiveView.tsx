@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { User, Film, Tv, Clock, Award } from "lucide-react";
 import { FocusableButton } from "../common/TVNavigation";
 
@@ -40,10 +41,13 @@ const StatCard: React.FC<{ icon: React.ReactNode; color: string; title: string; 
 );
 
 export const TraktActiveView: React.FC<TraktActiveViewProps> = ({ traktProfile, onLogout }) => {
+  const { t } = useTranslation("profile");
   const formatMinutes = (minutes: number) => {
     const days = Math.floor(minutes / 1440);
     const hours = Math.floor((minutes % 1440) / 60);
-    return days > 0 ? `${days}д ${hours}ч` : `${hours}ч`;
+    return days > 0
+      ? t("traktActive.watchTime.daysHours", { days, hours })
+      : t("traktActive.watchTime.hours", { hours });
   };
 
   return (
@@ -72,7 +76,7 @@ export const TraktActiveView: React.FC<TraktActiveViewProps> = ({ traktProfile, 
             </div>
             <p className="profile-connection-status">
               <span className="profile-connection-dot" />
-              <span className="profile-connection-text">Подключено</span>
+              <span className="profile-connection-text">{t("traktActive.connected")}</span>
               <span>• @{traktProfile.username}</span>
             </p>
           </div>
@@ -81,7 +85,7 @@ export const TraktActiveView: React.FC<TraktActiveViewProps> = ({ traktProfile, 
           onClick={onLogout}
           className="trakt-logout-btn"
         >
-          Отключить
+          {t("traktActive.disconnect")}
         </FocusableButton>
       </div>
 
@@ -89,25 +93,25 @@ export const TraktActiveView: React.FC<TraktActiveViewProps> = ({ traktProfile, 
         <StatCard
           icon={<Film size={20} />}
           color="var(--accent)"
-          title="Фильмов просмотрено"
+          title={t("traktActive.stats.moviesWatched")}
           value={traktProfile.moviesWatched.toString()}
         />
         <StatCard
           icon={<Tv size={20} />}
           color="var(--accent)"
-          title="Эпизодов просмотрено"
+          title={t("traktActive.stats.episodesWatched")}
           value={traktProfile.episodesWatched.toString()}
         />
         <StatCard
           icon={<Clock size={20} />}
           color="#10b981"
-          title="Время просмотра"
+          title={t("traktActive.stats.watchTime")}
           value={formatMinutes(traktProfile.totalWatchMinutes)}
         />
         <StatCard
           icon={<Award size={20} />}
           color="#fbbf24"
-          title="Выставлено оценок"
+          title={t("traktActive.stats.ratingsGiven")}
           value={traktProfile.ratingsCount.toString()}
         />
       </div>

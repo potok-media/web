@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Sliders } from "lucide-react";
 import { ExtensionRegistry } from "../../utils/extensions/ExtensionRegistry";
 import { Focusable } from "../common/TVNavigation";
@@ -34,6 +35,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
   language,
   setLanguage,
 }) => {
+  const { t } = useTranslation("settings");
   const isApple = typeof window !== "undefined" &&
     (/Mac|iPad|iPhone|iPod/.test(navigator.userAgent) ||
      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
@@ -42,14 +44,14 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
   const touchUI = isTV || isMobile;
 
   const playerOptions: TVSelectOption<string>[] = [
-    { value: "native", label: "Встроенный веб-плеер" },
+    { value: "native", label: t("player.native") },
     ...(isApple ? [{ value: "infuse", label: "Infuse" }] : []),
   ];
 
   const bannerQualityOptions: TVSelectOption<string>[] = [
-    { value: "auto", label: "Авто" },
-    { value: "high", label: "Высокое (1280p)" },
-    { value: "max", label: "Максимум (оригинал)" },
+    { value: "auto", label: t("imageQuality.auto") },
+    { value: "high", label: t("imageQuality.high") },
+    { value: "max", label: t("imageQuality.max") },
   ];
 
   const languageOptions: TVSelectOption<string>[] = AVAILABLE_LANGUAGES.map((code) => ({
@@ -86,14 +88,14 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
       <section className="settings-section">
         <h2 className="settings-section-title">
           <Sliders size={20} />
-          <span>Внешний вид и плеер</span>
+          <span>{t("appearance.title")}</span>
         </h2>
         
         {hasAccentContribution ? (
           <Slot name="settings-color-accent" props={{ accentTheme }} />
         ) : (
           <div className="settings-form-group">
-            <label className="settings-label">Цветовой акцент</label>
+            <label className="settings-label">{t("accent.label")}</label>
             <div className="theme-options-grid">
               {themes.map((t) => (
                 <Focusable
@@ -117,7 +119,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
         )}
 
         <div className="settings-form-group settings-preference-group">
-          <label className="settings-label">Плеер по умолчанию</label>
+          <label className="settings-label">{t("player.label")}</label>
           {touchUI ? (
             <TVSelect
               value={defaultPlayer || "native"}
@@ -134,7 +136,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
                   value={defaultPlayer || "native"}
                   onChange={(e) => setDefaultPlayer(e.target.value)}
                 >
-                  <option value="native">Встроенный веб-плеер</option>
+                  <option value="native">{t("player.native")}</option>
                   {isApple && <option value="infuse">Infuse</option>}
                 </select>
               )}
@@ -143,7 +145,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
         </div>
 
         <div className="settings-form-group settings-preference-group">
-          <label className="settings-label">Качество изображений</label>
+          <label className="settings-label">{t("imageQuality.label")}</label>
           {touchUI ? (
             <TVSelect
               value={bannerQuality || "auto"}
@@ -160,9 +162,9 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
                   value={bannerQuality || "auto"}
                   onChange={(e) => setBannerQuality(e.target.value)}
                 >
-                  <option value="auto">Авто</option>
-                  <option value="high">Высокое (1280p)</option>
-                  <option value="max">Максимум (оригинал)</option>
+                  <option value="auto">{t("imageQuality.auto")}</option>
+                  <option value="high">{t("imageQuality.high")}</option>
+                  <option value="max">{t("imageQuality.max")}</option>
                 </select>
               )}
             </Focusable>
@@ -170,7 +172,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
         </div>
 
         <div className="settings-form-group settings-preference-group">
-          <label className="settings-label">Язык</label>
+          <label className="settings-label">{t("language.label")}</label>
           {touchUI ? (
             <TVSelect
               value={language}

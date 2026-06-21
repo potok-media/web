@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { X, Check, CheckCircle2, Loader2 } from "lucide-react";
 import { Overlay } from "./common/Overlay";
 import { FilmOff } from "./common/FilmOff";
@@ -76,6 +77,7 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
   initialSelected,
   onSave,
 }) => {
+  const { t } = useTranslation("media");
   const [loading, setLoading] = useState(true);
   const [seasonsData, setSeasonsData] = useState<{ seasonNumber: number; episodes: TvEpisode[] }[]>([]);
   const [selected, setSelected] = useState<{ season: number; number: number }[]>(initialSelected);
@@ -229,24 +231,24 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
         {/* Header — same layout as the torrent EpisodeSelectorPopup, with marking actions. */}
         <div className="modal-header">
           <div className="modal-title-row">
-            <button className="modal-close-btn" onClick={onClose} aria-label="Закрыть">
+            <button className="modal-close-btn" onClick={onClose} aria-label={t("multiPicker.close")}>
               <X size="1.25rem" />
             </button>
             <div className="modal-title-text-group">
-              <h3 className="modal-title modal-title-custom-size">Отметить просмотренные</h3>
+              <h3 className="modal-title modal-title-custom-size">{t("multiPicker.title")}</h3>
               <span className="modal-subtitle modal-subtitle-text">{mediaTitle}</span>
               {totalEpisodes > 0 && (
                 <div className="tv-progress-container">
                   <CheckCircle2 size="0.75rem" fill="var(--accent)" stroke="var(--bg-surface)" />
-                  <span>Выбрано серий: {selected.length} из {totalEpisodes}</span>
+                  <span>{t("multiPicker.selectedCount", { count: selected.length, total: totalEpisodes })}</span>
                 </div>
               )}
             </div>
           </div>
 
           <div className="modal-header-actions-row">
-            <button className="close-btn" onClick={selectAll} disabled={loading || saving}>Выбрать все</button>
-            <button className="close-btn" onClick={deselectAll} disabled={loading || saving}>Снять все</button>
+            <button className="close-btn" onClick={selectAll} disabled={loading || saving}>{t("multiPicker.selectAll")}</button>
+            <button className="close-btn" onClick={deselectAll} disabled={loading || saving}>{t("multiPicker.deselectAll")}</button>
           </div>
         </div>
 
@@ -254,7 +256,7 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
           {loading ? (
             <div className="picker-loading-container">
               <Loader2 className="multipicker-spinner" size="2.5rem" style={{ animation: "spin 1s linear infinite", color: "var(--accent)" }} />
-              <span className="picker-loading-label">Загрузка серий...</span>
+              <span className="picker-loading-label">{t("multiPicker.loading")}</span>
             </div>
           ) : (
             <div className="files-list-container" style={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -267,7 +269,7 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
                       style={{ cursor: "pointer", border: "none", padding: "0.5rem 1.125rem", borderRadius: "1.25rem", fontSize: "0.85rem" }}
                       onClick={() => setSelectedSeason(sNum)}
                     >
-                      Сезон {sNum}
+                      {t("multiPicker.season", { number: sNum })}
                     </button>
                   ))}
                   <button
@@ -276,7 +278,7 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
                     onClick={toggleCurrentSeason}
                     disabled={saving}
                   >
-                    {isCurrentSeasonFull ? "Снять сезон" : "Выбрать сезон"}
+                    {isCurrentSeasonFull ? t("multiPicker.deselectSeason") : t("multiPicker.selectSeason")}
                   </button>
                 </div>
               )}
@@ -305,7 +307,7 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
                   <div className="spinner-outer" />
                   <div className="spinner-inner" />
                 </div>
-                <span>Сохранение...</span>
+                <span>{t("multiPicker.saving")}</span>
               </div>
             </div>
           )}
@@ -317,12 +319,12 @@ export const EpisodeMultiPickerModal: React.FC<EpisodeMultiPickerModalProps> = (
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", padding: "1rem 1.5rem", borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}
         >
           <span style={{ flex: 1, minWidth: 0, fontSize: "0.8rem", color: "rgba(255,255,255,0.5)", fontFamily: "monospace", lineHeight: 1.3, wordBreak: "break-word" }}>
-            {selected.length > 0 ? `Выбрано: ${formatSelectedRanges(selected)}` : "Ничего не выбрано"}
+            {selected.length > 0 ? t("multiPicker.selectedRanges", { ranges: formatSelectedRanges(selected) }) : t("multiPicker.nothingSelected")}
           </span>
           <div style={{ display: "flex", gap: "0.75rem", flexShrink: 0 }}>
-            <button className="potok-btn potok-btn-secondary" onClick={onClose} disabled={saving}>Отмена</button>
+            <button className="potok-btn potok-btn-secondary" onClick={onClose} disabled={saving}>{t("multiPicker.cancel")}</button>
             <button className="potok-btn potok-btn-primary" onClick={handleSave} disabled={loading || saving}>
-              {saving ? "Сохранение..." : "Сохранить"}
+              {saving ? t("multiPicker.saving") : t("multiPicker.save")}
             </button>
           </div>
         </div>

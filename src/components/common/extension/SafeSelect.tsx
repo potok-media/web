@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import * as Lucide from "lucide-react";
 import type { SelectSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
@@ -14,6 +15,7 @@ interface SafeSelectProps {
 }
 
 export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseStyle }) => {
+  const { t } = useTranslation("extensions");
   const { id, props: componentProps, events } = schema;
   
   const getInitialSelected = () => {
@@ -160,15 +162,15 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
       const selectedOptions = componentProps.options?.filter((opt) => opt.value && currentList.includes(opt.value)) || [];
       if (selectedOptions.length > 0) {
         if (selectedOptions.length > 2) {
-          return `Выбрано: ${selectedOptions.length}`;
+          return t("safe.selectedCount", { count: selectedOptions.length });
         }
         return selectedOptions.map(o => o.label).join(", ");
       }
-      return componentProps.label || "Выбрать...";
+      return componentProps.label || t("safe.selectPlaceholder");
     } else {
-      const selectedOption = componentProps.options?.find((opt) => opt.value === localSelected) 
+      const selectedOption = componentProps.options?.find((opt) => opt.value === localSelected)
         || componentProps.options?.[0];
-      return selectedOption ? selectedOption.label || "" : "Выбрать...";
+      return selectedOption ? selectedOption.label || "" : t("safe.selectPlaceholder");
     }
   };
 

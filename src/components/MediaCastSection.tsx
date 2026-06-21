@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Grid } from "./common/Grid";
 import { Focusable } from "./common/TVNavigation";
 import { PlatformManager } from "../utils/PlatformManager";
@@ -19,6 +20,8 @@ interface MediaCastSectionProps {
 }
 
 export const MediaCastSection: React.FC<MediaCastSectionProps> = React.memo(({ cast }) => {
+  const { t } = useTranslation("media");
+
   if (!cast || cast.length === 0) return null;
 
   const isTV = PlatformManager.isTV();
@@ -39,7 +42,7 @@ export const MediaCastSection: React.FC<MediaCastSectionProps> = React.memo(({ c
 
   return (
     <div className="details-fullwidth-section">
-      <h2 className="carousel-title details-section-title">Актерский состав</h2>
+      <h2 className="carousel-title details-section-title">{t("cast.title")}</h2>
       <Grid minWidth="6.875rem" gap="var(--space-s)" className="cast-grid">
         {cast.slice(0, 10).map((c, i) =>
           isTV ? (

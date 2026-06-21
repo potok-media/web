@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Play, Check, CheckCircle2, ArrowLeft, Pencil, ListVideo, MoreHorizontal } from "lucide-react";
 import { FilmOff } from "./FilmOff";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
@@ -49,11 +50,12 @@ const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
   onPlay,
   focusKey,
 }) => {
-  const displayTitle = episodeItem.title || `Серия ${episodeItem.episode}`;
-  
+  const { t } = useTranslation("media");
+  const displayTitle = episodeItem.title || t("episode.fallbackName", { number: episodeItem.episode });
+
   let displaySubtitle = "";
   if (mediaType === "tv") {
-    displaySubtitle = `Сезон ${episodeItem.season}`;
+    displaySubtitle = t("selector.season", { number: episodeItem.season });
     if (episodeItem.airDate) {
       try {
         const airDateStr = new Date(episodeItem.airDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
@@ -68,21 +70,7 @@ const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
   const getAudiosLabel = (audios: any[]) => {
     if (!audios || audios.length === 0) return "";
     if (audios.length === 1) return audios[0].name || "";
-    
-    const n = audios.length;
-    const remainder10 = n % 10;
-    const remainder100 = n % 100;
-    
-    if (remainder100 >= 11 && remainder100 <= 19) {
-      return `${n} озвучек`;
-    }
-    if (remainder10 === 1) {
-      return `${n} озвучка`;
-    }
-    if (remainder10 >= 2 && remainder10 <= 4) {
-      return `${n} озвучки`;
-    }
-    return `${n} озвучек`;
+    return t("selector.audioCount", { count: audios.length });
   };
 
   const sizeLabel = episodeItem.sizeLabel || getAudiosLabel(episodeItem.audios);
@@ -138,7 +126,7 @@ const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
         {episodeItem.isWatched && (
           <div className="file-card-watched-badge">
             <Check size="0.75rem" strokeWidth={3} />
-            <span>Просмотрено</span>
+            <span>{t("selector.watched")}</span>
           </div>
         )}
         {sizeLabel && <span className="file-card-size">{sizeLabel}</span>}
@@ -188,6 +176,7 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
   onStartEditing,
   onOpenAsPlaylist,
 }) => {
+  const { t } = useTranslation("media");
   const handleBackOrClose = isEditing ? onBackToFiles : onClose;
   const [showPopover, setShowPopover] = useState(false);
   const popoverRef = React.useRef<HTMLDivElement>(null);
@@ -229,7 +218,7 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
             <div className="tv-progress-container">
               <CheckCircle2 size="0.75rem" fill="var(--accent)" stroke="var(--bg-surface)" />
               <span>
-                Просмотрено серий: {completedCount} из {totalCount} ({Math.round(percentage)}%)
+                {t("selector.progress", { completed: completedCount, total: totalCount, percentage: Math.round(percentage) })}
               </span>
             </div>
           )}
@@ -237,7 +226,7 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
           {mediaType === "movie" && completedCount > 0 && (
             <div className="tv-progress-container">
               <CheckCircle2 size="0.75rem" fill="var(--accent)" stroke="var(--bg-surface)" />
-              <span>Просмотрено</span>
+              <span>{t("selector.watched")}</span>
             </div>
           )}
         </div>
@@ -246,8 +235,8 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
       <div className="modal-header-actions-row">
         {parsingFailed && !isEditing && (
           <div className="parsing-hint-banner">
-            Не удалось распознать сезоны? <br />
-            Возможно, понадобится указать соответствие серий для отслеживания.
+            {t("selector.parsingHintQuestion")} <br />
+            {t("selector.parsingHintBody")}
           </div>
         )}
 
@@ -271,7 +260,7 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
               }}
             >
               <MoreHorizontal size="1rem" />
-              <span>Дополнительно</span>
+              <span>{t("selector.more")}</span>
             </FocusableButton>
 
             {showPopover && (
@@ -319,7 +308,7 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
                     onMouseLeave={(e) => e.currentTarget.style.background = "none"}
                   >
                     <ListVideo size="1rem" style={{ color: "var(--accent)" }} />
-                    <span>Открыть как плейлист</span>
+                    <span>{t("selector.openAsPlaylist")}</span>
                   </FocusableButton>
                 )}
 
@@ -348,7 +337,7 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
                     onMouseLeave={(e) => e.currentTarget.style.background = "none"}
                   >
                     <Pencil size="1rem" style={{ color: "rgba(255, 255, 255, 0.6)" }} />
-                    <span>Править соответствие</span>
+                    <span>{t("selector.editMapping")}</span>
                   </FocusableButton>
                 )}
               </div>
@@ -357,7 +346,7 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
         )}
 
         <FocusableButton className="close-btn" onClick={handleBackOrClose}>
-          {isEditing ? "Назад" : "Закрыть"}
+          {isEditing ? t("selector.back") : t("selector.close")}
         </FocusableButton>
       </div>
     </div>
@@ -376,6 +365,7 @@ const EpisodeOverridePicker: React.FC<EpisodeOverridePickerProps> = React.memo((
   seasonsLoading,
   onApplyOverride,
 }) => {
+  const { t } = useTranslation("media");
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "";
     try {
@@ -398,14 +388,14 @@ const EpisodeOverridePicker: React.FC<EpisodeOverridePickerProps> = React.memo((
           <div className="spinner-outer" />
           <div className="spinner-inner" />
         </div>
-        <span className="picker-loading-label">Загрузка серий с TMDB...</span>
+        <span className="picker-loading-label">{t("override.loading")}</span>
       </div>
     );
   }
 
   return (
     <div className="episode-picker-container">
-      <h4 className="picker-header-title">С какой серии начинается этот список?</h4>
+      <h4 className="picker-header-title">{t("override.prompt")}</h4>
       {seasons.map((season: any) => {
         const seasonNum = season.seasonNumber ?? season.season_number ?? 1;
         const episodes = season.episodes ?? [];
@@ -413,11 +403,11 @@ const EpisodeOverridePicker: React.FC<EpisodeOverridePickerProps> = React.memo((
 
         return (
           <div key={season.id || seasonNum} className="season-section">
-            <h3 className="season-section-title">Сезон {seasonNum}</h3>
+            <h3 className="season-section-title">{t("selector.season", { number: seasonNum })}</h3>
             <div className="episode-grid">
               {episodes.map((episode: any) => {
                 const epNum = episode.episodeNumber ?? episode.episode_number ?? 1;
-                const epName = episode.name || `Серия ${epNum}`;
+                const epName = episode.name || t("episode.fallbackName", { number: epNum });
                 const epStill = episode.stillPath || episode.still_path;
                 const epAirDate = episode.airDate || episode.air_date;
 
@@ -496,6 +486,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
   posterSrc,
   mediaType = "tv",
 }) => {
+  const { t } = useTranslation("media");
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -555,11 +546,11 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
       return {
         season: ep.season,
         episode: ep.episode,
-        title: ep.title || `Серия ${ep.episode}`,
+        title: ep.title || t("episode.fallbackName", { number: ep.episode }),
         streamUrl,
         streamType: streamUrl.includes(".m3u8") ? "m3u8" : streamUrl.includes(".mpd") ? "dash" : "mp4",
         audios: ep.audios?.map((a: any) => ({ name: a.name, url: a.url || "" })),
-        voice: ep.audios?.[0]?.name || "Основной поток"
+        voice: ep.audios?.[0]?.name || t("selector.mainStream")
       } as any;
     }).filter(item => !!item.streamUrl);
 
@@ -630,7 +621,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
                       style={{ cursor: "pointer", border: "none", padding: "0.5rem 1.125rem", borderRadius: "1.25rem", fontSize: "0.85rem" }}
                       onClick={() => setSelectedSeason(sNum)}
                     >
-                      Сезон {sNum}
+                      {t("selector.season", { number: sNum })}
                     </FocusableButton>
                   ))}
                 </div>
@@ -651,7 +642,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
                   ))
                 ) : (
                   <div className="episode-popup-empty-files">
-                    Нет доступных серий.
+                    {t("selector.noEpisodes")}
                   </div>
                 )}
               </div>
@@ -665,7 +656,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
                   <div className="spinner-outer" />
                   <div className="spinner-inner" />
                 </div>
-                <span>Сохранение смещения...</span>
+                <span>{t("selector.savingOffset")}</span>
               </div>
             </div>
           )}

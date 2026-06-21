@@ -85,7 +85,7 @@ const getHostConfig = () => {
     bff: envBff,
     search: "",
     locked: isLocked,
-    profileName: "Основной профиль"
+    profileName: "Main profile"
   };
 };
 
@@ -417,7 +417,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         DataWorkerBridge.syncSettings();
       });
     }
-  }, [activeProfileID, connectionProfiles]);
+  }, [activeProfileID, connectionProfiles, language]);
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 };

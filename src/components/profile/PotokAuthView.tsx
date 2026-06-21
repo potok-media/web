@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { User, KeyRound } from "lucide-react";
 import { AuthApiClient } from "../../network/AuthApiClient";
 import { useHUD } from "../../context/HUDContext";
@@ -11,6 +12,7 @@ interface PotokAuthViewProps {
 }
 
 export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
+  const { t } = useTranslation("profile");
   const { show: showHUD } = useHUD();
   const { multiUserMode } = useAuth();
   const [isRegister, setIsRegister] = useState(false);
@@ -21,7 +23,7 @@ export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) {
-      showHUD("warning", "Заполните все поля");
+      showHUD("warning", t("potokAuth.fillAllFields"));
       return;
     }
     setLoading(true);
@@ -29,14 +31,14 @@ export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
       let data;
       if (isRegister) {
         data = await AuthApiClient.register({ username, password });
-        showHUD("success", "Регистрация успешна!");
+        showHUD("success", t("potokAuth.registerSuccess"));
       } else {
         data = await AuthApiClient.login({ username, password });
-        showHUD("success", "Успешный вход!");
+        showHUD("success", t("potokAuth.loginSuccess"));
       }
       onSuccess(data);
     } catch (err: unknown) {
-      showHUD("error", err instanceof Error ? err.message : "Ошибка авторизации");
+      showHUD("error", err instanceof Error ? err.message : t("potokAuth.authError"));
     } finally {
       setLoading(false);
     }
@@ -51,11 +53,11 @@ export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
         </div>
 
         <h2 className="auth-title">
-          {isRegister ? "Создать аккаунт Potok" : "Вход в аккаунт Potok"}
+          {isRegister ? t("potokAuth.createAccountTitle") : t("potokAuth.loginTitle")}
         </h2>
 
         <p className="auth-desc">
-          {isRegister ? "Зарегистрируйте аккаунт на вашем сервере" : "Войдите под своей учетной записью"}
+          {isRegister ? t("potokAuth.createAccountDesc") : t("potokAuth.loginDesc")}
         </p>
       </div>
 
@@ -63,7 +65,7 @@ export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
         <FocusableInput
           focusKey="AUTH_USERNAME_INPUT"
           type="text"
-          placeholder="Имя пользователя"
+          placeholder={t("potokAuth.usernamePlaceholder")}
           className="auth-input"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
@@ -73,7 +75,7 @@ export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
 
         <FocusableInput
           type="password"
-          placeholder="Пароль"
+          placeholder={t("potokAuth.passwordPlaceholder")}
           className="auth-input"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -86,7 +88,7 @@ export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
           className="auth-submit-btn"
           disabled={loading}
         >
-          {loading ? "Загрузка..." : isRegister ? "Зарегистрироваться" : "Войти"}
+          {loading ? t("potokAuth.loading") : isRegister ? t("potokAuth.registerButton") : t("potokAuth.loginButton")}
         </FocusableButton>
 
         {multiUserMode && (
@@ -96,7 +98,7 @@ export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
             className="auth-toggle-btn"
             disabled={loading}
           >
-            {isRegister ? "Уже есть аккаунт? Войти" : "Нет аккаунта? Зарегистрироваться"}
+            {isRegister ? t("potokAuth.haveAccount") : t("potokAuth.noAccount")}
           </FocusableButton>
         )}
       </form>

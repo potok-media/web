@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import {
   Plus, Trash2, Copy, Search, X, Puzzle, Globe, Database, Bell, Play, Sparkles,
   ShieldAlert, Power, ChevronDown, ChevronRight,
@@ -14,10 +15,10 @@ import { Focusable, FocusableButton, FocusableInput } from "./common/TVNavigatio
 import { Overlay } from "./common/Overlay";
 import { logger } from "../utils/logger";
 
-const PERMISSION_DESCRIPTIONS: Record<string, string> = {
-  "storage": "Сохранение настроек и данных плагина локально на вашем устройстве",
-  "http-proxy": "Выполнение интернет-запросов (поиск и загрузка видео-потоков)",
-  "ui-notifications": "Показ всплывающих подсказок и уведомлений внутри приложения",
+const PERMISSION_KEYS: Record<string, string> = {
+  "storage": "permissionDescriptions.storage",
+  "http-proxy": "permissionDescriptions.httpProxy",
+  "ui-notifications": "permissionDescriptions.uiNotifications",
 };
 
 const getExtensionIcon = (manifest: ExtensionManifest) => {
@@ -40,6 +41,7 @@ const getSourceLabel = (url: string) => {
 };
 
 export const ExtensionsManager: React.FC = () => {
+  const { t } = useTranslation("extensions");
   const { show: showHUD } = useHUD();
   const blacklist = useBlacklist();
   const { extensions, setExtensions, isLoading, setIsLoading, handleToggle, handleDelete } = useExtensionUpdates();
@@ -73,9 +75,9 @@ export const ExtensionsManager: React.FC = () => {
   const handleCopyLink = async (url: string) => {
     try {
       await navigator.clipboard.writeText(url);
-      showHUD("success", "Ссылка скопирована");
+      showHUD("success", t("toast.linkCopied"));
     } catch {
-      showHUD("error", "Не удалось скопировать ссылку");
+      showHUD("error", t("toast.linkCopyFailed"));
     }
   };
 
@@ -86,7 +88,7 @@ export const ExtensionsManager: React.FC = () => {
     setNewUrl("");
     setIsInstallOpen(false);
     window.dispatchEvent(new Event("potok_extensions_updated"));
-    showHUD("success", `Расширение "${manifest.name}" установлено`);
+    showHUD("success", t("toast.installed", { name: manifest.name }));
   };
 
   const handleAddExtension = async (e: React.FormEvent) => {
@@ -102,13 +104,13 @@ export const ExtensionsManager: React.FC = () => {
       }
       const manifest: ExtensionManifest = await ApiClient.fetchExtensionManifest(fetchUrl);
       if (!manifest.id || !manifest.name || !manifest.entrypoint) {
-        throw new Error("Неверный manifest.json: отсутствуют обязательные поля.");
+        throw new Error(t("errors.invalidManifest"));
       }
       if (blacklist.includes(manifest.id)) {
-        throw new Error("Установка заблокирована: расширение в реестре заблокированных по соображениям безопасности.");
+        throw new Error(t("errors.blacklisted"));
       }
       if (extensions.some((ext) => ext.id === manifest.id)) {
-        throw new Error("Расширение с таким ID уже установлено.");
+        throw new Error(t("errors.duplicateId"));
       }
       if (manifest.permissions && manifest.permissions.length > 0) {
         setPendingExtension({ manifest, cleanUrl });
@@ -119,7 +121,7 @@ export const ExtensionsManager: React.FC = () => {
       }
     } catch (err) {
       logger.error("[ExtensionsManager] Install failed:", err);
-      showHUD("error", err instanceof Error ? err.message : "Ошибка при установке");
+      showHUD("error", err instanceof Error ? err.message : t("errors.installGeneric"));
     } finally {
       setIsLoading(false);
     }
@@ -141,21 +143,21 @@ export const ExtensionsManager: React.FC = () => {
   });
 
   const STATUS: { key: "all" | "active" | "disabled"; label: string }[] = [
-    { key: "all", label: "Все" },
-    { key: "active", label: "Активные" },
-    { key: "disabled", label: "Выключенные" },
+    { key: "all", label: t("filter.all") },
+    { key: "active", label: t("filter.active") },
+    { key: "disabled", label: t("filter.disabled") },
   ];
 
   return (
     <div className="ext-manager">
       <header className="ext-header">
         <div className="ext-header-titles">
-          <h2 className="ext-title">Расширения</h2>
-          <span className="ext-subtitle">{total} установлено · {enabledCount} активно</span>
+          <h2 className="ext-title">{t("title")}</h2>
+          <span className="ext-subtitle">{t("subtitle", { total, enabledCount })}</span>
         </div>
         <FocusableButton className="potok-btn potok-btn-primary ext-install-btn" onClick={() => setIsInstallOpen(true)}>
           <Plus size="1rem" />
-          <span>Установить по URL</span>
+          <span>{t("installByUrl")}</span>
         </FocusableButton>
       </header>
 
@@ -177,12 +179,12 @@ export const ExtensionsManager: React.FC = () => {
           <FocusableInput
             type="text"
             className="ext-search-input"
-            placeholder="Поиск расширений..."
+            placeholder={t("searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <FocusableButton className="ext-search-clear" onClick={() => setSearchQuery("")} title="Очистить">
+            <FocusableButton className="ext-search-clear" onClick={() => setSearchQuery("")} title={t("clear")}>
               <X size="0.875rem" />
             </FocusableButton>
           )}
@@ -193,7 +195,7 @@ export const ExtensionsManager: React.FC = () => {
         {filtered.length === 0 ? (
           <div className="ext-empty">
             <ShieldAlert size="2.5rem" />
-            <span>{total === 0 ? "Нет установленных расширений" : "Ничего не найдено"}</span>
+            <span>{total === 0 ? t("empty.none") : t("empty.noResults")}</span>
           </div>
         ) : (
           filtered.map((ext) => (
@@ -210,7 +212,7 @@ export const ExtensionsManager: React.FC = () => {
                     <span className="ext-row-name">{ext.manifest.name}</span>
                     {ext.manifest.description && <span className="ext-row-desc">{ext.manifest.description}</span>}
                   </div>
-                  <span className={`ext-row-status ${ext.enabled ? "on" : "off"}`}>{ext.enabled ? "Вкл" : "Выкл"}</span>
+                  <span className={`ext-row-status ${ext.enabled ? "on" : "off"}`}>{ext.enabled ? t("status.on") : t("status.off")}</span>
                   <ChevronRight size="1.25rem" className="ext-row-chevron" />
                 </div>
               )}
@@ -239,7 +241,7 @@ export const ExtensionsManager: React.FC = () => {
                   <span className="ext-action-sub">{getSourceLabel(selected.url)} · {selected.id}</span>
                 </div>
               </div>
-              <FocusableButton onClick={() => setSelectedId(null)} className="manifest-modal-close" title="Закрыть">
+              <FocusableButton onClick={() => setSelectedId(null)} className="manifest-modal-close" title={t("close")}>
                 <X size="1.25rem" />
               </FocusableButton>
             </div>
@@ -252,39 +254,39 @@ export const ExtensionsManager: React.FC = () => {
                   onClick={() => handleToggle(selected.id)}
                 >
                   <Power size="1rem" />
-                  <span>{selected.enabled ? "Выключить" : "Включить"}</span>
+                  <span>{selected.enabled ? t("action.disable") : t("action.enable")}</span>
                 </FocusableButton>
                 <FocusableButton
                   className="potok-btn potok-btn-secondary ext-action-btn"
                   onClick={() => handleCopyLink(selected.url)}
                 >
                   <Copy size="1rem" />
-                  <span>Копировать ссылку</span>
+                  <span>{t("action.copyLink")}</span>
                 </FocusableButton>
                 <FocusableButton
                   className="potok-btn ext-action-btn ext-action-danger"
                   onClick={() => { handleDelete(selected.id); setSelectedId(null); }}
                 >
                   <Trash2 size="1rem" />
-                  <span>Удалить</span>
+                  <span>{t("action.delete")}</span>
                 </FocusableButton>
               </div>
 
               {selected.manifest.description && (
                 <div className="ext-action-section">
-                  <span className="ext-action-label">Описание</span>
+                  <span className="ext-action-label">{t("section.description")}</span>
                   <p className="ext-action-text">{selected.manifest.description}</p>
                 </div>
               )}
 
               {selected.manifest.permissions && selected.manifest.permissions.length > 0 && (
                 <div className="ext-action-section">
-                  <span className="ext-action-label">Разрешения</span>
+                  <span className="ext-action-label">{t("section.permissions")}</span>
                   <div className="ext-perm-list">
                     {selected.manifest.permissions.map((p) => (
                       <div key={p} className="ext-perm">
                         <span className="ext-perm-name">{p}</span>
-                        <span className="ext-perm-desc">{PERMISSION_DESCRIPTIONS[p] || `Доступ: ${p}`}</span>
+                        <span className="ext-perm-desc">{PERMISSION_KEYS[p] ? t(PERMISSION_KEYS[p]) : t("permissionDescriptions.fallback", { permission: p })}</span>
                       </div>
                     ))}
                   </div>
@@ -296,7 +298,7 @@ export const ExtensionsManager: React.FC = () => {
                 onClick={() => setShowManifest((v) => !v)}
               >
                 <ChevronDown size="0.875rem" style={{ transform: showManifest ? "rotate(180deg)" : "none" }} />
-                <span>{showManifest ? "Скрыть манифест" : "Показать манифест (JSON)"}</span>
+                <span>{showManifest ? t("manifest.hide") : t("manifest.show")}</span>
               </FocusableButton>
               {showManifest && (
                 <pre className="manifest-json-pre" style={{ maxHeight: "40vh" }}>
@@ -319,14 +321,18 @@ export const ExtensionsManager: React.FC = () => {
         style={{ maxWidth: "34rem" }}
       >
         <div className="manifest-modal-header">
-          <span className="manifest-modal-title">Установка расширения</span>
+          <span className="manifest-modal-title">{t("install.title")}</span>
           <FocusableButton onClick={() => setIsInstallOpen(false)} className="manifest-modal-close">
             <X size="1.125rem" />
           </FocusableButton>
         </div>
         <div className="manifest-modal-body ext-action-body">
           <p className="ext-action-text">
-            Вставьте URL каталога с файлом <code style={{ color: "var(--accent)" }}>manifest.json</code>.
+            <Trans
+              t={t}
+              i18nKey="install.description"
+              components={{ code: <code style={{ color: "var(--accent)" }} /> }}
+            />
           </p>
           <form onSubmit={handleAddExtension} className="potok-vstack" style={{ gap: "0.75rem" }}>
             <FocusableInput
@@ -344,7 +350,7 @@ export const ExtensionsManager: React.FC = () => {
               className="potok-btn potok-btn-primary ext-action-btn"
               disabled={isLoading || !newUrl.trim()}
             >
-              {isLoading ? "Установка..." : "Установить расширение"}
+              {isLoading ? t("install.installing") : t("install.submit")}
             </FocusableButton>
           </form>
         </div>

@@ -2,6 +2,7 @@ import { Component, type ErrorInfo, type ReactNode } from "react";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { FocusableButton } from "./common/TVNavigation";
 import { logger } from "../utils/logger";
+import { i18n } from "../i18n";
 
 interface Props {
   children: ReactNode;
@@ -58,9 +59,9 @@ export class ErrorBoundary extends Component<Props, State> {
           justifyContent: "center",
           minHeight: "12.5rem"
         }}>
-          <h2 style={{ color: "var(--error, #ef4444)", marginBottom: "1rem" }}>Что-то пошло не так</h2>
+          <h2 style={{ color: "var(--error, #ef4444)", marginBottom: "1rem" }}>{i18n.t("common:errorBoundary.title")}</h2>
           <p style={{ opacity: 0.8, marginBottom: "1.5rem" }}>
-            {this.state.error?.message || "Произошла непредвиденная ошибка в компоненте."}
+            {this.state.error?.message || i18n.t("common:errorBoundary.message")}
           </p>
           <FocusableButton
             focusKey="ERROR_RETRY"
@@ -75,7 +76,7 @@ export class ErrorBoundary extends Component<Props, State> {
               fontWeight: 600
             }}
           >
-            Попробовать снова
+            {i18n.t("common:errorBoundary.retry")}
           </FocusableButton>
         </div>
       );

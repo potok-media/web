@@ -1,6 +1,7 @@
 import React from "react";
 import { Gauge, X } from "lucide-react";
 import type Hls from "hls.js";
+import { useTranslation } from "react-i18next";
 import { usePlayerStats } from "../../hooks/usePlayerStats";
 
 interface PlayerStatsHUDProps {
@@ -24,6 +25,7 @@ export const PlayerStatsHUD: React.FC<PlayerStatsHUDProps> = ({
   duration,
   onClose,
 }) => {
+  const { t } = useTranslation("player");
   const [bufferSec, setBufferSec] = React.useState(0);
 
   const { downloadSpeed, bitrate, resolution, fps } = usePlayerStats(
@@ -67,13 +69,13 @@ export const PlayerStatsHUD: React.FC<PlayerStatsHUDProps> = ({
       <div className="stats-header">
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <Gauge size={16} />
-          <span>Статистика сети</span>
+          <span>{t("stats.title")}</span>
         </div>
         {onClose && (
           <button 
             className="stats-close-btn" 
             onClick={(e) => { e.stopPropagation(); onClose(); }}
-            title="Закрыть"
+            title={t("stats.closeTitle")}
           >
             <X size={16} />
           </button>
@@ -81,24 +83,24 @@ export const PlayerStatsHUD: React.FC<PlayerStatsHUDProps> = ({
       </div>
       <div className="stats-grid">
         <div className="stats-row">
-          <span className="stats-label">Скорость сети:</span>
-          <span className="stats-value highlight">{downloadSpeed} МБ/с</span>
+          <span className="stats-label">{t("stats.networkSpeed")}</span>
+          <span className="stats-value highlight">{t("stats.megabytesPerSec", { value: downloadSpeed })}</span>
         </div>
         <div className="stats-row">
-          <span className="stats-label">Битрейт потока:</span>
-          <span className="stats-value">{bitrate} Mbps</span>
+          <span className="stats-label">{t("stats.streamBitrate")}</span>
+          <span className="stats-value">{t("stats.mbps", { value: bitrate })}</span>
         </div>
         <div className="stats-row">
-          <span className="stats-label">Разрешение:</span>
+          <span className="stats-label">{t("stats.resolution")}</span>
           <span className="stats-value">{resolution}</span>
         </div>
         <div className="stats-row">
-          <span className="stats-label">Буфер:</span>
-          <span className="stats-value">{bufferSec.toFixed(0)} сек</span>
+          <span className="stats-label">{t("stats.buffer")}</span>
+          <span className="stats-value">{t("stats.seconds", { value: bufferSec.toFixed(0) })}</span>
         </div>
         <div className="stats-row">
-          <span className="stats-label">Кадры:</span>
-          <span className="stats-value">{fps} fps</span>
+          <span className="stats-label">{t("stats.frames")}</span>
+          <span className="stats-value">{t("stats.fps", { value: fps })}</span>
         </div>
       </div>
     </div>

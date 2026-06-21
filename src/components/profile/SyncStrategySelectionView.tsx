@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Popcorn, Server, ChevronRight } from "lucide-react";
 import { FocusableButton } from "../common/TVNavigation";
 
@@ -11,14 +12,15 @@ export const SyncStrategySelectionView: React.FC<SyncStrategySelectionViewProps>
   onSelectStrategy,
   onStartTraktAuth,
 }) => {
+  const { t } = useTranslation("profile");
   return (
     <div className="strategy-card-wrapper selection-padding">
       <div className="strategy-selection-header">
         <h2 className="strategy-selection-title">
-          Выберите способ синхронизации
+          {t("strategySelection.title")}
         </h2>
         <p className="strategy-selection-desc">
-          Синхронизируйте историю, запланированное и оценки между устройствами или храните всё на этом устройстве.
+          {t("strategySelection.description")}
         </p>
       </div>
 
@@ -34,9 +36,9 @@ export const SyncStrategySelectionView: React.FC<SyncStrategySelectionViewProps>
             <Popcorn size={18} />
           </div>
           <div className="strategy-option-info">
-            <span className="strategy-option-title">Облако Trakt.tv</span>
+            <span className="strategy-option-title">{t("strategySelection.trakt.title")}</span>
             <span className="strategy-option-desc">
-              Автоматически синхронизируйте историю просмотров, прогресс и запланированное с популярным сервисом Trakt.tv.
+              {t("strategySelection.trakt.description")}
             </span>
           </div>
           <ChevronRight size={12} className="card-arrow strategy-option-arrow" />
@@ -50,9 +52,9 @@ export const SyncStrategySelectionView: React.FC<SyncStrategySelectionViewProps>
             <Server size={18} />
           </div>
           <div className="strategy-option-info">
-            <span className="strategy-option-title">Сервер Potok</span>
+            <span className="strategy-option-title">{t("strategySelection.server.title")}</span>
             <span className="strategy-option-desc">
-              Синхронизация с вашим личным self-hosted сервером Potok (PostgreSQL). Полная приватность и поддержка нескольких учетных записей.
+              {t("strategySelection.server.description")}
             </span>
           </div>
           <ChevronRight size={12} className="card-arrow strategy-option-arrow" />

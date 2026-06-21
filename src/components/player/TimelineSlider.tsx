@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { TimelinePreviewTooltip } from "./TimelinePreviewTooltip";
 
 interface TimelineSliderProps {
@@ -18,6 +19,7 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
   streamHash,
   fileIndex
 }) => {
+  const { t } = useTranslation("player");
   const sliderRef = useRef<HTMLInputElement>(null);
   const isDraggingRef = useRef(false);
 
@@ -154,7 +156,7 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
         onMouseUp={handleSliderRelease}
         onTouchEnd={handleSliderRelease}
         className="player-timeline-slider"
-        aria-label="Перемотка видео"
+        aria-label={t("timeline.seekAria")}
       />
       {isHovering && (
         <TimelinePreviewTooltip

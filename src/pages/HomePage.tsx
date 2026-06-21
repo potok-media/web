@@ -1,4 +1,5 @@
 import React, { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { restoreFocusOrDefault } from "../utils/focusMemory";
@@ -13,13 +14,14 @@ import type { MediaCard } from "../network/ApiTypes";
 import "../styles/media.css";
 
 const ErrorView: React.FC<{ error: string; onRetry: () => void }> = ({ error, onRetry }) => {
+  const { t } = useTranslation("media");
   React.useEffect(() => {
     setFocus("HOME_ERROR_RETRY");
   }, []);
   return (
     <div className="media-not-found-container">
       <h2 className="media-not-found-title">{error}</h2>
-      <FocusableButton focusKey="HOME_ERROR_RETRY" className="overlay-btn" onClick={onRetry}>Повторить загрузку</FocusableButton>
+      <FocusableButton focusKey="HOME_ERROR_RETRY" className="overlay-btn" onClick={onRetry}>{t("common.retry")}</FocusableButton>
     </div>
   );
 };
@@ -27,6 +29,7 @@ const ErrorView: React.FC<{ error: string; onRetry: () => void }> = ({ error, on
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation("media");
   const { show: showHUD } = useHUD();
 
   const { feed, loading, refetch } = useHomeFeed((msg) => showHUD("error", msg));
@@ -68,7 +71,7 @@ export const HomePage: React.FC = () => {
   }, [navigate]);
 
   if (loading) return <LoadingSpinner />;
-  if (!feed) return <ErrorView error="Не удалось загрузить медиатеку" onRetry={refetch} />;
+  if (!feed) return <ErrorView error={t("home.loadError")} onRetry={refetch} />;
 
   return (
     <div className="home-page-container">

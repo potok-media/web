@@ -1,43 +1,44 @@
 import { Clock, Heart, Bookmark } from "lucide-react";
 
+// Values are i18next keys (namespace "media"), resolved by the consumer (LibraryPage) via t().
 export const CATEGORY_MAP: Record<string, { title: string; endpoint: string; icon: any; emptyText: string; emptySub: string }> = {
-  "up-next": { 
-    title: "Продолжить", 
-    endpoint: "up-next", 
-    icon: Clock, 
-    emptyText: "Здесь будут фильмы и серии, которые вы начали смотреть", 
-    emptySub: "История ваших просмотров начнется автоматически при запуске воспроизведения" 
+  "up-next": {
+    title: "categories.upNext.title",
+    endpoint: "up-next",
+    icon: Clock,
+    emptyText: "categories.upNext.empty",
+    emptySub: "categories.upNext.emptySub",
   },
-  "watchlist": { 
-    title: "Запланировано", 
-    endpoint: "watchlist", 
-    icon: Bookmark, 
-    emptyText: "Список ожидания пуст", 
-    emptySub: "Добавляйте фильмы и сериалы в этот раздел, чтобы не забыть посмотреть их позже" 
+  "watchlist": {
+    title: "categories.watchlist.title",
+    endpoint: "watchlist",
+    icon: Bookmark,
+    emptyText: "categories.watchlist.empty",
+    emptySub: "categories.watchlist.emptySub",
   },
-  "favorites": { 
-    title: "Избранное", 
-    endpoint: "favorites", 
-    icon: Heart, 
-    emptyText: "В Избранном пока ничего нет", 
-    emptySub: "Отмечайте любимые тайтлы сердечком на экранах деталей для быстрого доступа" 
+  "favorites": {
+    title: "categories.favorites.title",
+    endpoint: "favorites",
+    icon: Heart,
+    emptyText: "categories.favorites.empty",
+    emptySub: "categories.favorites.emptySub",
   },
-  "history": { 
-    title: "История просмотров", 
-    endpoint: "history", 
-    icon: Clock, 
-    emptyText: "Вы еще ничего не посмотрели", 
-    emptySub: "Здесь будет отображаться хронологическая лента завершенных фильмов и эпизодов" 
+  "history": {
+    title: "categories.history.title",
+    endpoint: "history",
+    icon: Clock,
+    emptyText: "categories.history.empty",
+    emptySub: "categories.history.emptySub",
   },
 };
 
 export const DYNAMIC_CATEGORY_TITLES: Record<string, string> = {
-  "movie.now-playing": "В кинотеатрах",
-  "movie.trending-day": "Тренды дня",
-  "movie.trending-week": "Тренды недели",
-  "movie.upcoming": "Скоро выйдет",
-  "movie.popular": "Популярные фильмы",
-  "tv.popular": "Популярные сериалы",
-  "movie.top-rated": "Лучшие фильмы",
-  "tv.top-rated": "Лучшие сериалы"
+  "movie.now-playing": "categories.dynamic.nowPlaying",
+  "movie.trending-day": "categories.dynamic.trendingDay",
+  "movie.trending-week": "categories.dynamic.trendingWeek",
+  "movie.upcoming": "categories.dynamic.upcoming",
+  "movie.popular": "categories.dynamic.popularMovies",
+  "tv.popular": "categories.dynamic.popularTv",
+  "movie.top-rated": "categories.dynamic.topMovies",
+  "tv.top-rated": "categories.dynamic.topTv",
 };

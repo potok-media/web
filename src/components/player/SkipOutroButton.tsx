@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface SkipOutroButtonProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -16,6 +17,7 @@ export const SkipOutroButton: React.FC<SkipOutroButtonProps> = ({
   displayDuration,
   onSeek,
 }) => {
+  const { t } = useTranslation("player");
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -49,7 +51,7 @@ export const SkipOutroButton: React.FC<SkipOutroButtonProps> = ({
         onSeek(Math.min(outroRange.end || displayDuration, displayDuration - 1));
       }}
     >
-      <span>Пропустить титры</span>
+      <span>{t("skip.outro")}</span>
       <ChevronRight size={18} />
     </button>
   );

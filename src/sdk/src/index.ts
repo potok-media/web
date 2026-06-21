@@ -89,6 +89,9 @@ const getRegisteredSources = () => {
 // Formal static named exports as required by step 2
 export const http = HttpClient;
 
+import { i18n, initSdkI18n, handleLanguageChanged } from "./i18n";
+export { i18n };
+
 export const storage = {
   local: LocalStorageBridge
 };
@@ -261,7 +264,9 @@ export function initPotokSDK(): void {
   win.PotokSDK.pluginId = initialState.pluginId;
   win.PotokSDK.permissions = initialState.permissions || [];
   win.PotokSDK.config = initialState.config || {};
+  win.PotokSDK.i18n = i18n;
   win.PotokSDK.typings = SDK_TYPINGS;
+  initSdkI18n(initialState);
 
   // uses a global window initialization flag to prevent duplicate side-effect registrations.
   if (win.PotokSDKInitialized) return;
@@ -327,6 +332,10 @@ export function initPotokSDK(): void {
       if (newConfig) {
         Object.assign(win.PotokSDK.config, newConfig);
       }
+    } else if (msg.action === 'LANGUAGE_CHANGED') {
+      win.PotokInitialState = win.PotokInitialState || {};
+      win.PotokInitialState.language = msg.payload?.language;
+      handleLanguageChanged(msg.payload || {});
     }
   });
 }

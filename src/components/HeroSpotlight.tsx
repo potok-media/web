@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Info, Plus, Check } from "lucide-react";
 import type { HeroItem } from "../network/ApiTypes";
@@ -34,6 +35,7 @@ const areHeroSpotlightsEqual = (
 };
 
 export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) => {
+  const { t } = useTranslation("media");
   const { items, onDetails } = props;
 
   interface SlideState {
@@ -222,10 +224,10 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
       } else {
         await SyncApiClient.addSyncWatchlist(card.id.toString(), card.mediaType);
       }
-      showHUD("success", original ? "Удалено из списка ожидания" : "Добавлено в список ожидания");
+      showHUD("success", original ? t("watchlist.removed") : t("watchlist.added"));
     } catch {
       setWatchlistStates(prev => ({ ...prev, [index]: card.isInWatchlist || false }));
-      showHUD("error", "Ошибка при синхронизации");
+      showHUD("error", t("watchlist.syncError"));
     }
   };
 
@@ -316,7 +318,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
                           }}
                         >
                           <Info size="1.125rem" />
-                          <span>Подробнее</span>
+                          <span>{t("hero.details")}</span>
                         </Link>
                       );
                     }}
@@ -327,7 +329,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
                     focusable={isCurrent}
                   >
                     {watchlistStates[index] ? <Check size="1.125rem" className="hero-btn-success-check" /> : <Plus size="1.125rem" />}
-                    <span>{watchlistStates[index] ? "В списке" : "Буду смотреть"}</span>
+                    <span>{watchlistStates[index] ? t("hero.inWatchlist") : t("hero.addToWatchlist")}</span>
                   </FocusableButton>
                 </div>
               </div>
@@ -342,7 +344,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
                 key={index}
                 className={`hero-dot ${index === activeIndex ? "active" : ""}`}
                 onClick={() => changeActiveIndex(index)}
-                aria-label={`Слайд ${index + 1}`}
+                aria-label={t("hero.slide", { number: index + 1 })}
                 title={heroItems[index].card.title}
               />
             ))}

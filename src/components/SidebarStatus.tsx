@@ -1,10 +1,12 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { useConnectionHealth, useConnectionLatency } from "../context/AppSettingsContext";
 import { Slot } from "./common/extension/Slot";
 
 export const SidebarStatus: React.FC = React.memo(() => {
   const { connectionState } = useConnectionHealth();
   const { bffLatencyMs } = useConnectionLatency();
+  const { t } = useTranslation("sidebar");
   const isConnected = connectionState === "connected";
   const getStatusColor = (configured: boolean, online: boolean, latency: number) => {
     if (!configured) return "offline";
@@ -15,8 +17,8 @@ export const SidebarStatus: React.FC = React.memo(() => {
   };
 
   const getLatencyLabel = (configured: boolean, online: boolean, latency: number) => {
-    if (!configured) return "выкл";
-    if (!online || latency < 0) return "оффлайн";
+    if (!configured) return t("statusOff");
+    if (!online || latency < 0) return t("statusOffline");
     return `${latency} ms`;
   };
 
@@ -25,9 +27,9 @@ export const SidebarStatus: React.FC = React.memo(() => {
       <div className="sidebar-status-group">
         <div className="sidebar-status-row">
           <span className={`sidebar-status-dot ${isConnected ? getStatusColor(true, true, bffLatencyMs) : "offline"}`} />
-          <span className="sidebar-status-label">Сервер Potok</span>
+          <span className="sidebar-status-label">{t("potokServer")}</span>
           <span className="sidebar-status-latency">
-            {isConnected ? getLatencyLabel(true, true, bffLatencyMs) : "оффлайн"}
+            {isConnected ? getLatencyLabel(true, true, bffLatencyMs) : t("statusOffline")}
           </span>
         </div>
 

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { CheckCircle, Server as ServerIcon, Lock, User } from "lucide-react";
 
 const BenefitRow: React.FC<{ icon: React.ReactNode; color: string; title: string; description: string }> = ({
@@ -26,19 +27,20 @@ const BenefitRow: React.FC<{ icon: React.ReactNode; color: string; title: string
 );
 
 export const ServerSyncActiveView: React.FC = () => {
+  const { t } = useTranslation("profile");
   return (
     <div className="strategy-card-wrapper server-sync-padding">
       <div className="sync-active-badge">
         <CheckCircle size="0.5rem" className="sync-active-badge-dot" />
         <span className="sync-active-badge-text">
-          Синхронизация активна
+          {t("serverSync.syncActive")}
         </span>
       </div>
 
       <div className="server-sync-header">
-        <h3 className="server-sync-title">Сервер Potok</h3>
+        <h3 className="server-sync-title">{t("serverSync.title")}</h3>
         <p className="server-sync-desc">
-          Все данные вашей медиатеки, история просмотров и закладки безопасно сохраняются на вашем личном сервере Potok.
+          {t("serverSync.description")}
         </p>
       </div>
 
@@ -48,20 +50,20 @@ export const ServerSyncActiveView: React.FC = () => {
         <BenefitRow
           icon={<ServerIcon size="0.875rem" />}
           color="#a855f7"
-          title="Централизованное хранение"
-          description="История и списки синхронизируются между всеми вашими клиентами через ваш сервер."
+          title={t("serverSync.benefits.centralized.title")}
+          description={t("serverSync.benefits.centralized.description")}
         />
         <BenefitRow
           icon={<Lock size="0.875rem" />}
           color="#10b981"
-          title="Полный контроль"
-          description="Ваши данные хранятся на вашей собственной базе данных PostgreSQL."
+          title={t("serverSync.benefits.fullControl.title")}
+          description={t("serverSync.benefits.fullControl.description")}
         />
         <BenefitRow
           icon={<User size="0.875rem" />}
           color="#fbbf24"
-          title="Многопользовательский режим"
-          description="Поддержка раздельных учетных записей с изолированной историей и настройками."
+          title={t("serverSync.benefits.multiUser.title")}
+          description={t("serverSync.benefits.multiUser.description")}
         />
       </div>
     </div>

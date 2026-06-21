@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { CheckCircle, AlertTriangle, Lock, RefreshCw } from "lucide-react";
 
 const BenefitRow: React.FC<{ icon: React.ReactNode; color: string; title: string; description: string }> = ({
@@ -26,19 +27,20 @@ const BenefitRow: React.FC<{ icon: React.ReactNode; color: string; title: string
 );
 
 export const LocalSyncActiveView: React.FC = () => {
+  const { t } = useTranslation("profile");
   return (
     <div className="strategy-card-wrapper trakt-connect">
       <div className="sync-active-badge local-mode">
         <CheckCircle size={14} className="sync-active-badge-dot local-mode" />
         <span className="sync-active-badge-text local-mode">
-          Синхронизация активна
+          {t("localSync.syncActive")}
         </span>
       </div>
 
       <div>
-        <h3 className="server-sync-title">Локальный режим</h3>
+        <h3 className="server-sync-title">{t("localSync.title")}</h3>
         <p className="server-sync-desc">
-          Все данные вашей медиатеки и история просмотров хранятся исключительно на этом устройстве. Подключение к сети не требуется.
+          {t("localSync.description")}
         </p>
       </div>
 
@@ -48,20 +50,20 @@ export const LocalSyncActiveView: React.FC = () => {
         <BenefitRow
           icon={<AlertTriangle size={22} />}
           color="#10b981"
-          title="Полная автономность"
-          description="Все данные вашей медиатеки и история просмотров хранятся локально."
+          title={t("localSync.benefits.fullyOffline.title")}
+          description={t("localSync.benefits.fullyOffline.description")}
         />
         <BenefitRow
           icon={<Lock size={22} />}
           color="#fbbf24"
-          title="Абсолютный контроль"
-          description="Абсолютная приватность и безопасность без отправки вашей истории на внешние серверы."
+          title={t("localSync.benefits.absoluteControl.title")}
+          description={t("localSync.benefits.absoluteControl.description")}
         />
         <BenefitRow
           icon={<RefreshCw size={22} />}
           color="var(--accent)"
-          title="Мгновенный отклик"
-          description="Нулевая задержка сети при сохранении ваших отметок, истории и списков."
+          title={t("localSync.benefits.instantResponse.title")}
+          description={t("localSync.benefits.instantResponse.description")}
         />
       </div>
     </div>

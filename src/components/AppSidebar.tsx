@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Home, Calendar, User, Settings, Play, Bookmark, Star, Clock, PanelLeft, PanelLeftClose } from "lucide-react";
 import { useAuth } from "../context/AppSettingsContext";
@@ -62,6 +63,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
   ({ isCollapsed, onToggle, pathname, search, onFocusChange }) => {
   const { potokToken } = useAuth();
   const { show: showHUD } = useHUD();
+  const { t } = useTranslation("sidebar");
   const navigate = useNavigate();
 
   const [sidebarSearch, setSidebarSearch] = useState("");
@@ -165,7 +167,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
   const handleProtectedClick = (e: React.MouseEvent) => {
     if (!potokToken) {
       e.preventDefault();
-      showHUD("warning", "Пожалуйста, войдите в аккаунт Potok для доступа к разделу");
+      showHUD("warning", t("protectedLoginRequired"));
       navigate("/profile");
     }
   };
@@ -177,7 +179,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
           <FocusableButton
             className="sidebar-toggle-btn"
             onClick={onToggle}
-            title={isCollapsed ? "Развернуть меню" : "Свернуть меню"}
+            title={isCollapsed ? t("expandMenu") : t("collapseMenu")}
           >
             {isCollapsed ? <PanelLeft size="1.125rem" /> : <PanelLeftClose size="1.125rem" />}
           </FocusableButton>
@@ -197,17 +199,17 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
 
             <FocusableNavLink to="/profile" focusKey="SIDEBAR_PROFILE" className={({ isActive }) => getNavLinkClass(isActive)}>
               <User size="1.125rem" />
-              <span>Профиль</span>
+              <span>{t("profile")}</span>
             </FocusableNavLink>
             <FocusableNavLink to="/" focusKey="SIDEBAR_HOME" className={({ isActive }) => getNavLinkClass(isActive)} end>
               <Home size="1.125rem" />
-              <span>Главная</span>
+              <span>{t("home")}</span>
             </FocusableNavLink>
             <Slot name="sidebar-menu-home" props={{ isCollapsed }} />
           </div>
 
           <div className="sidebar-section">
-            <div className="sidebar-section-title">Медиатека</div>
+            <div className="sidebar-section-title">{t("library")}</div>
             <FocusableNavLink
               to="/library/up-next"
               focusKey="SIDEBAR_UPNEXT"
@@ -215,7 +217,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
               onClick={handleProtectedClick}
             >
               <Play size="1.125rem" />
-              <span>Продолжить</span>
+              <span>{t("upNext")}</span>
             </FocusableNavLink>
             <FocusableNavLink
               to="/calendar"
@@ -224,7 +226,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
               onClick={handleProtectedClick}
             >
               <Calendar size="1.125rem" />
-              <span>Расписание</span>
+              <span>{t("calendar")}</span>
             </FocusableNavLink>
             <FocusableNavLink
               to="/library/watchlist"
@@ -233,7 +235,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
               onClick={handleProtectedClick}
             >
               <Bookmark size="1.125rem" />
-              <span>Запланировано</span>
+              <span>{t("watchlist")}</span>
             </FocusableNavLink>
             <FocusableNavLink
               to="/library/favorites"
@@ -242,7 +244,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
               onClick={handleProtectedClick}
             >
               <Star size="1.125rem" />
-              <span>Избранное</span>
+              <span>{t("favorites")}</span>
             </FocusableNavLink>
             <FocusableNavLink
               to="/library/history"
@@ -251,7 +253,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
               onClick={handleProtectedClick}
             >
               <Clock size="1.125rem" />
-              <span>История</span>
+              <span>{t("history")}</span>
             </FocusableNavLink>
             <Slot name="sidebar-menu-library" props={{ isCollapsed }} />
           </div>
@@ -259,7 +261,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
           <div className="sidebar-section">
             <FocusableNavLink to="/settings" focusKey="SIDEBAR_SETTINGS" className={({ isActive }) => getNavLinkClass(isActive)}>
               <Settings size="1.125rem" />
-              <span>Настройки</span>
+              <span>{t("settings")}</span>
             </FocusableNavLink>
             <Slot name="sidebar-menu" props={{ isCollapsed }} />
           </div>

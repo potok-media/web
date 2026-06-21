@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useSettings } from "../../context/AppSettingsContext";
 import { useHUD } from "../../context/HUDContext";
 import { ApiClient } from "../../network/ApiClient";
@@ -12,17 +13,17 @@ import ProfileEditorForm from "../ProfileEditorForm";
  */
 function normalizeGateway(raw: string): { ok: boolean; url: string; error?: string } {
   let s = raw.trim().replace(/\/+$/, "");
-  if (!s) return { ok: false, url: "", error: "Введите адрес шлюза" };
+  if (!s) return { ok: false, url: "", error: "profiles.errorEmptyGateway" };
   if (!/^https?:\/\//i.test(s)) s = "https://" + s;
   let parsed: URL;
   try {
     parsed = new URL(s);
   } catch {
-    return { ok: false, url: "", error: "Некорректный адрес (пример: https://api.example.com)" };
+    return { ok: false, url: "", error: "profiles.errorInvalidAddressExample" };
   }
   const host = parsed.hostname;
   const isValidHost = host === "localhost" || /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.includes(".");
-  if (!isValidHost) return { ok: false, url: "", error: "Некорректный адрес сервера" };
+  if (!isValidHost) return { ok: false, url: "", error: "profiles.errorInvalidServer" };
   return { ok: true, url: s };
 }
 
@@ -38,6 +39,7 @@ export const ProfilesSettings: React.FC = () => {
   } = useSettings();
 
   const { show: showHUD } = useHUD();
+  const { t } = useTranslation("settings");
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
 
   const [isAdding, setIsAdding] = useState(false);
@@ -77,12 +79,12 @@ export const ProfilesSettings: React.FC = () => {
 
     const name = formName.trim();
     if (!name) {
-      showHUD("warning", "Введите название профиля");
+      showHUD("warning", t("profiles.errorEmptyName"));
       return;
     }
     const v = normalizeGateway(formGateway);
     if (!v.ok) {
-      showHUD("error", v.error || "Некорректный адрес");
+      showHUD("error", v.error ? t(v.error) : t("profiles.errorInvalidAddress"));
       return;
     }
 
@@ -98,7 +100,7 @@ export const ProfilesSettings: React.FC = () => {
     setSaving(false);
 
     if (!reachable) {
-      showHUD("error", "Сервер не отвечает по этому адресу");
+      showHUD("error", t("profiles.errorUnreachable"));
       return;
     }
 
@@ -112,10 +114,10 @@ export const ProfilesSettings: React.FC = () => {
         playerServerAuthLogin: "",
       });
       setIsAdding(false); // effect loads the newly-added (auto-selected) profile into the form
-      showHUD("success", "Профиль добавлен");
+      showHUD("success", t("profiles.profileAdded"));
     } else if (activeProfile) {
       updateProfile({ ...activeProfile, name, gatewayURL: v.url });
-      showHUD("success", "Сохранено");
+      showHUD("success", t("profiles.saved"));
     }
   };
 

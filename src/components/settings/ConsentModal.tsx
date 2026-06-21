@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { X, ShieldAlert } from "lucide-react";
 import type { ExtensionManifest } from "@potok/sdk-types";
 import { FocusableButton } from "../common/TVNavigation";
@@ -10,13 +11,14 @@ interface Props {
   onClose: () => void;
 }
 
-const PERMISSION_DESCRIPTIONS: Record<string, string> = {
-  "storage": "Сохранение настроек и данных плагина локально на вашем устройстве",
-  "http-proxy": "Выполнение интернет-запросов (необходимо для поиска и загрузки видео-потоков)",
-  "ui-notifications": "Показ всплывающих подсказок и уведомлений внутри приложения"
+const PERMISSION_DESCRIPTION_KEYS: Record<string, string> = {
+  "storage": "consent.permissionStorage",
+  "http-proxy": "consent.permissionHttpProxy",
+  "ui-notifications": "consent.permissionUiNotifications"
 };
 
 export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) => {
+  const { t } = useTranslation("settings");
   const requestedPermissions = manifest.permissions || [];
 
   return (
@@ -35,14 +37,14 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
           <ShieldAlert size="1.5rem" style={{ color: "#ff9f1a" }} />
           <div>
             <h3 className="manifest-modal-title" style={{ color: "#ff9f1a", fontWeight: 700 }}>
-              Подтверждение разрешений
+              {t("consent.title")}
             </h3>
             <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)", opacity: 0.7 }}>
-              Установка расширения: {manifest.name}
+              {t("consent.installing", { name: manifest.name })}
             </span>
           </div>
         </div>
-        <FocusableButton onClick={onClose} className="manifest-modal-close" title="Закрыть">
+        <FocusableButton onClick={onClose} className="manifest-modal-close" title={t("consent.close")}>
           <X size="1.25rem" />
         </FocusableButton>
       </div>
@@ -50,12 +52,12 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
       <div className="manifest-modal-body" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
         <div>
           <span className="potok-text potok-text-secondary" style={{ fontSize: "0.9rem", display: "block", marginBottom: "0.5rem" }}>
-            Данное расширение запрашивает следующие привилегии доступа:
+            {t("consent.requestsAccess")}
           </span>
           <ul style={{ margin: 0, paddingLeft: "1.25rem", color: "var(--text-primary)", fontSize: "0.85rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             {requestedPermissions.map((perm) => (
               <li key={perm}>
-                <strong style={{ color: "#fff" }}>{perm}</strong> — {PERMISSION_DESCRIPTIONS[perm] || `Запрос специального доступа: ${perm}`}
+                <strong style={{ color: "#fff" }}>{perm}</strong> — {PERMISSION_DESCRIPTION_KEYS[perm] ? t(PERMISSION_DESCRIPTION_KEYS[perm]) : t("consent.permissionCustom", { permission: perm })}
               </li>
             ))}
           </ul>
@@ -70,9 +72,9 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
           flexDirection: "column",
           gap: "0.5rem"
         }}>
-          <strong style={{ color: "#ff9f1a", fontSize: "0.85rem" }}>⚠️ Предупреждение безопасности</strong>
+          <strong style={{ color: "#ff9f1a", fontSize: "0.85rem" }}>⚠️ {t("consent.securityWarningTitle")}</strong>
           <span className="potok-text" style={{ fontSize: "0.82rem", lineHeight: "1.4", color: "rgba(255,255,255,0.85)" }}>
-            Установка плагина дает ему возможность выполнять указанные действия в приложении. Пожалуйста, устанавливайте расширения только из надежных источников и от авторов, которым вы доверяете, чтобы обеспечить безопасность ваших личных данных.
+            {t("consent.securityWarningBody")}
           </span>
         </div>
       </div>
@@ -84,14 +86,14 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
           className="potok-btn potok-btn-primary"
           style={{ fontSize: "0.85rem", padding: "0.6rem 1.2rem", background: "#ff9f1a", borderColor: "#ff9f1a", color: "#000", fontWeight: "bold" }}
         >
-          Да, я доверяю и хочу установить
+          {t("consent.confirm")}
         </FocusableButton>
         <FocusableButton
           onClick={onClose}
           className="potok-btn potok-btn-ghost"
           style={{ fontSize: "0.85rem", padding: "0.6rem 1.2rem", border: "1px solid rgba(255, 255, 255, 0.15)", borderRadius: "0.375rem", color: "var(--text-primary)" }}
         >
-          Отмена
+          {t("consent.cancel")}
         </FocusableButton>
       </div>
     </Overlay>

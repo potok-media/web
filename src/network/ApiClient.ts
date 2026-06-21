@@ -49,7 +49,7 @@ export class ApiClient {
       bff: envBff,
       search: "",
       locked: isLocked,
-      profileName: "Основной профиль"
+      profileName: "Main profile"
     };
   }
 
@@ -70,6 +70,11 @@ export class ApiClient {
 
   public static get isSettingsLocked(): boolean {
     return getEnv("VITE_BLOCK_SETTINGS_INPUT") === "true";
+  }
+
+  // Active UI language from storage (works in the data worker too, where there is no React i18n).
+  private static get language(): string {
+    return Storage.get<string>("language", "en");
   }
 
   private static ensureAbsoluteURL(url: string): string {
@@ -273,7 +278,7 @@ export class ApiClient {
     if (!this.isWorker) {
       return DataWorkerBridge.request<HomeResponse>("fetchHomeFeed", [posterSize, backdropSize]);
     }
-    const url = `${this.baseURL}/api/media/home?posterSize=${encodeURIComponent(posterSize)}&backdropSize=${encodeURIComponent(backdropSize)}&language=ru`;
+    const url = `${this.baseURL}/api/media/home?posterSize=${encodeURIComponent(posterSize)}&backdropSize=${encodeURIComponent(backdropSize)}&language=${encodeURIComponent(this.language)}`;
     const res = await fetch(url, {
       headers: this.headers,
     });

@@ -83,6 +83,7 @@ class WorkerBridge {
     const settings = {
       activeProfileID: Storage.get<string | null>("activeProfileID", null),
       connectionProfiles: Storage.get<any[]>("connectionProfiles", []),
+      language: Storage.get<string>("language", "en"),
       potokToken: Storage.get<string | null>("potokToken", null),
       traktAccessToken: Storage.get<string | null>("traktAccessToken", null),
       syncStrategy: Storage.get<string>("syncStrategy", "none"),

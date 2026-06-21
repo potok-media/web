@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Search, X } from "lucide-react";
 import type { SearchBarSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
@@ -11,6 +12,7 @@ interface SafeSearchBarProps {
 }
 
 export const SafeSearchBar: React.FC<SafeSearchBarProps> = ({ schema, pluginId, baseStyle }) => {
+  const { t } = useTranslation("extensions");
   const { id, props: componentProps, events } = schema;
   const [localVal, setLocalVal] = useState((componentProps.value as string) || "");
 
@@ -39,7 +41,7 @@ export const SafeSearchBar: React.FC<SafeSearchBarProps> = ({ schema, pluginId, 
         <Search size="1rem" className="sidebar-search-icon" />
         <FocusableInput
           type="text"
-          placeholder={componentProps.placeholder || "Поиск..."}
+          placeholder={(componentProps.placeholder as string) || t("safe.searchPlaceholder")}
           value={localVal}
           onChange={handleChange}
           disabled={componentProps.disabled}
@@ -51,7 +53,7 @@ export const SafeSearchBar: React.FC<SafeSearchBarProps> = ({ schema, pluginId, 
             onClick={handleClear} 
             disabled={componentProps.disabled}
             className="sidebar-search-clear"
-            title="Очистить"
+            title={t("safe.clear")}
           >
             <X size="0.875rem" />
           </FocusableButton>

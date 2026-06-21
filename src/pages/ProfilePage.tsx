@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { LogOut, RefreshCw, Popcorn, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { AuthApiClient } from "../network/AuthApiClient";
@@ -19,6 +20,7 @@ import type { TraktProfile, DeviceCodeResponse } from "../network/ApiTypes";
 import "../styles/profile.css";
 
 export const ProfilePage: React.FC = () => {
+  const { t } = useTranslation("profile");
   const { show: showHUD } = useHUD();
   const location = useLocation();
   const {
@@ -44,7 +46,7 @@ export const ProfilePage: React.FC = () => {
     logout();
     setTraktProfile(null);
     setDeviceCode(null);
-    showHUD("info", "Вы вышли из аккаунта");
+    showHUD("info", t("hud.loggedOut"));
   };
 
   const selectStrategy = async (strategy: string) => {
@@ -53,7 +55,7 @@ export const ProfilePage: React.FC = () => {
       try {
         await AuthApiClient.updateSyncStrategy(strategy);
       } catch {
-        showHUD("error", "Не удалось обновить стратегию на сервере");
+        showHUD("error", t("hud.strategyUpdateFailed"));
       }
     }
   };
@@ -64,7 +66,7 @@ export const ProfilePage: React.FC = () => {
       const code: DeviceCodeResponse = await AuthApiClient.getTraktDeviceCode();
       setDeviceCode(code);
     } catch {
-      showHUD("error", "Ошибка при получении кода Trakt");
+      showHUD("error", t("hud.traktCodeError"));
     } finally {
       setLoadingTrakt(false);
     }
@@ -76,12 +78,12 @@ export const ProfilePage: React.FC = () => {
       if (data.access_token) {
         setTraktToken(data.access_token);
         setDeviceCode(null);
-        showHUD("success", "Trakt.tv подключен!");
+        showHUD("success", t("hud.traktConnected"));
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.message !== "UNAUTHORIZED") {
         setDeviceCode(null);
-        showHUD("error", "Срок действия кода истек");
+        showHUD("error", t("hud.codeExpired"));
       }
     }
   };
@@ -104,7 +106,7 @@ export const ProfilePage: React.FC = () => {
     } catch {}
     setTraktToken(null);
     setTraktProfile(null);
-    showHUD("info", "Trakt.tv отключен");
+    showHUD("info", t("hud.traktDisconnected"));
   };
 
   useEffect(() => {
@@ -134,7 +136,7 @@ export const ProfilePage: React.FC = () => {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    showHUD("success", "Код скопирован");
+    showHUD("success", t("hud.codeCopied"));
   };
 
   if (!potokToken) {
@@ -152,13 +154,13 @@ export const ProfilePage: React.FC = () => {
       <div className="profile-header-wrap">
         <div>
           <div className="profile-title-row">
-            <h1 className="profile-hero-title">Профиль</h1>
-            <Link to="/settings" className="profile-mobile-settings-btn" title="Настройки">
+            <h1 className="profile-hero-title">{t("page.title")}</h1>
+            <Link to="/settings" className="profile-mobile-settings-btn" title={t("page.settings")}>
               <Settings size="1.25rem" />
             </Link>
           </div>
           <span className="profile-subtitle">
-            Управление аккаунтами и синхронизацией
+            {t("page.subtitle")}
           </span>
         </div>
         <div className="profile-user-card profile-shrink-zero">
@@ -167,17 +169,17 @@ export const ProfilePage: React.FC = () => {
           </div>
           <div>
             <div className="profile-username-label">
-              {potokUser?.username || "Пользователь"}
+              {potokUser?.username || t("page.defaultUser")}
             </div>
             <div className="profile-strategy-label">
-              {syncStrategy === "trakt" ? "Облако Trakt.tv" : syncStrategy === "server" ? "Сервер Potok" : "Синхронизация отключена"}
+              {syncStrategy === "trakt" ? t("page.strategyLabel.trakt") : syncStrategy === "server" ? t("page.strategyLabel.server") : t("page.strategyLabel.none")}
             </div>
           </div>
           <FocusableButton
             focusKey="PROFILE_LOGOUT_BTN"
             onClick={handlePotokLogout}
             className="profile-logout-btn"
-            title="Выйти"
+            title={t("page.logout")}
           >
             <LogOut size="1rem" />
           </FocusableButton>
@@ -190,13 +192,13 @@ export const ProfilePage: React.FC = () => {
              can't be reached by the D-pad). */
           <div className="profile-dropdown-wrap mobile-only">
             <div className="strategy-chips-container">
-              <span className="strategy-chips-label">Синхронизация:</span>
+              <span className="strategy-chips-label">{t("page.syncLabel")}</span>
               <div className="strategy-segmented-chips">
                 <FocusableButton
                   onClick={() => selectStrategy("none")}
                   className={`strategy-chip-btn ${syncStrategy === "none" ? "active" : ""}`}
                 >
-                  Выкл
+                  {t("page.chip.off")}
                 </FocusableButton>
                 <FocusableButton
                   onClick={() => {
@@ -211,7 +213,7 @@ export const ProfilePage: React.FC = () => {
                   onClick={() => selectStrategy("server")}
                   className={`strategy-chip-btn ${syncStrategy === "server" ? "active" : ""}`}
                 >
-                  Сервер Potok
+                  {t("page.strategyLabel.server")}
                 </FocusableButton>
               </div>
             </div>
@@ -220,15 +222,15 @@ export const ProfilePage: React.FC = () => {
           /* Desktop sync select dropdown */
           <div className="profile-dropdown-wrap desktop-only">
             <div className="strategy-dropdown-container">
-              <span>Синхронизация:</span>
+              <span>{t("page.syncLabel")}</span>
               <select
                 value={syncStrategy}
                 onChange={(e) => selectStrategy(e.target.value)}
                 className="strategy-dropdown-select"
               >
-                <option value="none">Не выбрано</option>
+                <option value="none">{t("page.dropdown.none")}</option>
                 <option value="trakt">Trakt.tv</option>
-                <option value="server">Сервер Potok</option>
+                <option value="server">{t("page.strategyLabel.server")}</option>
               </select>
             </div>
           </div>
@@ -237,13 +239,13 @@ export const ProfilePage: React.FC = () => {
 
       {syncStrategy === "localDevice" && (
         <div className="strategy-card-wrapper profile-warning-card">
-          <h3 className="profile-warning-title">Локальный режим не поддерживается на веб-клиенте</h3>
+          <h3 className="profile-warning-title">{t("page.localWarning.title")}</h3>
           <p className="profile-warning-text">
-            В браузере оффлайн-кэш нестабилен и легко стирается. Пожалуйста, переключитесь на облачную синхронизацию Trakt.tv или Сервер Potok для сохранности вашей истории.
+            {t("page.localWarning.text")}
           </p>
           <div className="profile-warning-buttons">
-            <FocusableButton onClick={() => selectStrategy("server")} className="btn-accent profile-btn-caption-bold">Синхронизация на server</FocusableButton>
-            <FocusableButton onClick={() => { selectStrategy("trakt"); startTraktAuth(); }} className="btn-glass profile-btn-caption-bold">Синхронизация Trakt.tv</FocusableButton>
+            <FocusableButton onClick={() => selectStrategy("server")} className="btn-accent profile-btn-caption-bold">{t("page.localWarning.serverButton")}</FocusableButton>
+            <FocusableButton onClick={() => { selectStrategy("trakt"); startTraktAuth(); }} className="btn-glass profile-btn-caption-bold">{t("page.localWarning.traktButton")}</FocusableButton>
           </div>
         </div>
       )}
@@ -276,13 +278,13 @@ export const ProfilePage: React.FC = () => {
                 <Popcorn size="2rem" />
               </div>
               <div>
-                <h3 className="profile-trakt-sync-title">Синхронизация с Trakt.tv</h3>
+                <h3 className="profile-trakt-sync-title">{t("page.traktConnect.title")}</h3>
                 <p className="profile-trakt-sync-desc">
-                  Подключите свой аккаунт для облачной синхронизации истории и оценок.
+                  {t("page.traktConnect.description")}
                 </p>
               </div>
               <FocusableButton onClick={startTraktAuth} className="btn-accent profile-trakt-connect-btn" disabled={loadingTrakt}>
-                {loadingTrakt ? "Загрузка..." : "Подключить аккаунт"}
+                {loadingTrakt ? t("page.traktConnect.loading") : t("page.traktConnect.connectButton")}
               </FocusableButton>
             </div>
           )}
@@ -295,8 +297,8 @@ export const ProfilePage: React.FC = () => {
           mounting them here on desktop/TV would duplicate the slot subtrees. */}
       {isMobile && (
         <div className="profile-mobile-extensions-section">
-          <h2 className="profile-extensions-heading">Ваши расширения и инструменты</h2>
-          <p className="profile-extensions-subheading">Быстрый доступ к установленным плагинам</p>
+          <h2 className="profile-extensions-heading">{t("page.extensions.heading")}</h2>
+          <p className="profile-extensions-subheading">{t("page.extensions.subheading")}</p>
           <div className="profile-extensions-grid-wrapper">
             <Slot name="sidebar-menu-home" props={{ isCollapsed: false }} style={{ marginBottom: "0.5rem" }} />
             <Slot name="sidebar-menu-library" props={{ isCollapsed: false }} style={{ marginBottom: "0.5rem" }} />

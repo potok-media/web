@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { ShieldAlert } from "lucide-react";
 import type { RawStreamPayload } from "@potok/sdk-types";
 import type { StreamUIItem } from "../../network/ApiTypes";
@@ -6,7 +8,6 @@ import { StreamFilterBar } from "../StreamFilterBar";
 import StreamRowComponent from "../StreamRowComponent";
 import StreamSkeletonList from "../StreamSkeletonList";
 import { TVScrollView } from "./TVScrollView";
-import { getPluralForm } from "../../utils/formatters";
 import { PlatformManager } from "../../utils/PlatformManager";
 
 export interface StreamListProps {
@@ -16,7 +17,6 @@ export interface StreamListProps {
   emptyText?: string;
   onSelectStream: (stream: RawStreamPayload) => void;
   onRefresh?: () => void;
-  nounPlurals?: [string, string, string];
 }
 
 const mapStreamToUI = (stream: RawStreamPayload & {
@@ -25,7 +25,7 @@ const mapStreamToUI = (stream: RawStreamPayload & {
   leechers?: number;
   tracker?: string;
   publishDate?: string;
-}, index: number): StreamUIItem => {
+}, index: number, t: TFunction): StreamUIItem => {
   const voiceTags = stream.voice
     ? stream.voice
         .split(/[,;]+/)
@@ -49,12 +49,12 @@ const mapStreamToUI = (stream: RawStreamPayload & {
 
   const seeds = stream.seeds !== undefined ? stream.seeds : stream.seeders;
   const peers = stream.peers !== undefined ? stream.peers : stream.leechers;
-  const provider = stream.provider || stream.tracker || "Источник";
+  const provider = stream.provider || stream.tracker || t("source");
   const sizeBytes = typeof stream.size === 'number' ? stream.size : stream.sizeBytes;
 
   return {
     id: stream.url || stream.magnet || stream.hash || `${stream.title}-${index}`,
-    title: stream.title || "Источник",
+    title: stream.title || t("source"),
     sizeLabel: stream.quality ? stream.quality.toUpperCase() : "",
     sizeBytes,
     tracker: provider,
@@ -74,11 +74,12 @@ export const StreamList: React.FC<StreamListProps> = ({
   streams,
   loading = false,
   showFilters = true,
-  emptyText = "Потоков не найдено. Попробуйте сменить фильтры.",
+  emptyText,
   onSelectStream,
   onRefresh,
-  nounPlurals = ["источник", "источника", "источников"],
 }) => {
+  const { t } = useTranslation("streams");
+  const resolvedEmptyText = emptyText ?? t("empty");
   const [sortOption, setSortOption] = useState<string>("seedersDesc");
   const [qualityFilter, setQualityFilter] = useState<string>("all");
   const [activeTracker, setActiveTracker] = useState<string>("all");
@@ -118,9 +119,9 @@ export const StreamList: React.FC<StreamListProps> = ({
 
     return sorted.map((stream, index) => ({
       raw: stream,
-      ui: mapStreamToUI(stream, index)
+      ui: mapStreamToUI(stream, index, t)
     }));
-  }, [streams, qualityFilter, activeTracker, sortOption]);
+  }, [streams, qualityFilter, activeTracker, sortOption, t]);
 
   const displayStreams = useMemo(() => {
     if (PlatformManager.isTV() && processedStreams.length > 25) {
@@ -154,7 +155,7 @@ export const StreamList: React.FC<StreamListProps> = ({
     <div className="stream-list-container" style={{ display: "flex", flexDirection: "column", gap: "var(--space-m)" }}>
       {showFilters && (
         <StreamFilterBar
-          countLabel={`${processedStreams.length} ${getPluralForm(processedStreams.length, nounPlurals)}`}
+          countLabel={t("countLabel", { count: processedStreams.length })}
           qualityFilter={qualityFilter}
           setQualityFilter={setQualityFilter}
           activeTracker={activeTracker}
@@ -164,8 +165,8 @@ export const StreamList: React.FC<StreamListProps> = ({
           showSort={true}
           sortOption={sortOption}
           setSortOption={setSortOption}
-          trackerLabel="Провайдер"
-          allTrackersLabel="Все источники"
+          trackerLabel={t("filter.providerLabel")}
+          allTrackersLabel={t("filter.allSources")}
         />
       )}
 
@@ -187,7 +188,7 @@ export const StreamList: React.FC<StreamListProps> = ({
           <div className="stream-empty-state" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "var(--space-s)", padding: "var(--space-xl) var(--space-m)", color: "var(--text-secondary)" }}>
             <ShieldAlert size="2.5rem" opacity={0.5} />
             <span className="stream-empty-state-text" style={{ font: "var(--font-body)", textAlign: "center" }}>
-              {emptyText}
+              {resolvedEmptyText}
             </span>
           </div>
         )}

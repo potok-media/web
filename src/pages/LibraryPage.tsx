@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, useLocation, Link, useNavigate } from "react-router-dom";
 import { 
   Film, 
@@ -23,7 +24,8 @@ export const LibraryPage: React.FC = () => {
   const { collectionType: routeType } = useParams<{ collectionType: string }>();
   const location = useLocation();
   const navigate = useNavigate();
- 
+  const { t } = useTranslation("media");
+
   const { isTV } = usePlatform();
   const isSearchPage = location.pathname === "/search";
   const collectionType = isSearchPage ? "search" : (routeType || "");
@@ -32,17 +34,30 @@ export const LibraryPage: React.FC = () => {
   const initialQuery = params.get("q") || params.get("query") || "";
  
   const isDynamicCategory = collectionType.includes(".");
-  const categoryTitle = isDynamicCategory 
-    ? (DYNAMIC_CATEGORY_TITLES[collectionType] || "Категория")
-    : (CATEGORY_MAP[collectionType]?.title || "Категория");
- 
-  const category = CATEGORY_MAP[collectionType] || (isDynamicCategory ? {
-    title: categoryTitle,
-    endpoint: collectionType,
-    icon: Film,
-    emptyText: "Ничего не найдено",
-    emptySub: "В этой категории пока нет элементов"
-  } : null);
+  const dynamicTitleKey = DYNAMIC_CATEGORY_TITLES[collectionType];
+  const rawCategory = CATEGORY_MAP[collectionType];
+  const categoryTitle = isDynamicCategory
+    ? (dynamicTitleKey ? t(dynamicTitleKey) : t("library.category"))
+    : (rawCategory ? t(rawCategory.title) : t("library.category"));
+
+  // Static categories store i18next keys in LibraryConfig; resolve them here so downstream
+  // rendering gets localized strings (and re-renders on language change).
+  const category = rawCategory
+    ? {
+        ...rawCategory,
+        title: t(rawCategory.title),
+        emptyText: t(rawCategory.emptyText),
+        emptySub: t(rawCategory.emptySub),
+      }
+    : isDynamicCategory
+    ? {
+        title: categoryTitle,
+        endpoint: collectionType,
+        icon: Film,
+        emptyText: t("library.nothingFound"),
+        emptySub: t("library.emptyCategorySub"),
+      }
+    : null;
  
   const {
     items,
@@ -167,12 +182,12 @@ export const LibraryPage: React.FC = () => {
     return (
       <div className="library-empty-view">
         <AlertTriangle size="3rem" className="library-empty-icon warning" />
-        <h2 className="library-empty-title">Синхронизация Trakt не настроена</h2>
+        <h2 className="library-empty-title">{t("library.traktNotConfiguredTitle")}</h2>
         <p className="library-empty-subtitle">
-          Чтобы просматривать разделы медиатеки, пожалуйста, привяжите вашу учетную запись Trakt в настройках Potok.
+          {t("library.traktNotConfiguredSub")}
         </p>
         <Link className="btn-accent" to="/settings">
-          Перейти к настройкам
+          {t("library.goToSettings")}
         </Link>
       </div>
     );
@@ -183,7 +198,7 @@ export const LibraryPage: React.FC = () => {
       <div className="library-empty-view">
         <AlertTriangle size="3rem" className="library-empty-icon error" />
         <h2 className="library-empty-title">{error}</h2>
-        <FocusableButton focusKey="LIBRARY_ERROR_RETRY" className="overlay-btn" onClick={refetch}>Повторить загрузку</FocusableButton>
+        <FocusableButton focusKey="LIBRARY_ERROR_RETRY" className="overlay-btn" onClick={refetch}>{t("common.retry")}</FocusableButton>
       </div>
     );
   }
@@ -192,14 +207,14 @@ export const LibraryPage: React.FC = () => {
     if (isSearchPage) {
       return (
         <header className="library-header">
-          <h1 className="library-large-title">Поиск</h1>
+          <h1 className="library-large-title">{t("library.searchTitle")}</h1>
           <div className="search-input-wrapper">
             <SearchIcon size="1.125rem" className="search-input-icon" />
             <FocusableInput
               focusKey="SEARCH_INPUT"
               type="text"
               className="search-page-input"
-              placeholder="Поиск фильмов и сериалов..."
+              placeholder={t("library.searchPlaceholder")}
               value={query}
               onChange={(e) => {
                 const val = e.target.value;
@@ -218,14 +233,14 @@ export const LibraryPage: React.FC = () => {
                   setQuery("");
                   navigate("/search", { replace: true });
                 }}
-                title="Очистить"
+                title={t("library.clearSearch")}
               >
                 <X size="1.125rem" />
               </FocusableButton>
             )}
           </div>
           {query.trim() && (
-            <p className="library-metadata-count">Найдено элементов: {items.length}</p>
+            <p className="library-metadata-count">{t("library.foundCount", { count: items.length })}</p>
           )}
         </header>
       );
@@ -235,7 +250,7 @@ export const LibraryPage: React.FC = () => {
       return (
         <header className="library-header">
           <h1 className="library-large-title">{category.title}</h1>
-          <p className="library-metadata-count">Всего элементов: {items.length}</p>
+          <p className="library-metadata-count">{t("library.totalCount", { count: items.length })}</p>
         </header>
       );
     }
@@ -244,10 +259,10 @@ export const LibraryPage: React.FC = () => {
   };
 
   const categoriesList = [
-    { id: "up-next", label: "Продолжить" },
-    { id: "watchlist", label: "Запланировано" },
-    { id: "favorites", label: "Избранное" },
-    { id: "history", label: "История" }
+    { id: "up-next", label: t("library.tabs.upNext") },
+    { id: "watchlist", label: t("library.tabs.watchlist") },
+    { id: "favorites", label: t("library.tabs.favorites") },
+    { id: "history", label: t("library.tabs.history") }
   ];
 
   const renderMobileCategories = () => {
@@ -277,7 +292,7 @@ export const LibraryPage: React.FC = () => {
       return (
         <LoadingSpinner 
           height="50vh" 
-          message={isSearchPage ? "Ищем медиафайлы..." : "Загружаем коллекцию..."} 
+          message={isSearchPage ? t("library.searching") : t("library.loadingCollection")}
         />
       );
     }
@@ -306,7 +321,7 @@ export const LibraryPage: React.FC = () => {
               {/* Always auto-load on scroll: desktop via this IntersectionObserver sentinel,
                   TV via focus-driven handleCardFocus. No manual "Load more" button. */}
               <div ref={sentinelRef} className="pagination-sentinel-loader">
-                {loadingMore && <LoadingSpinner height="5rem" message="Загружаем еще..." />}
+                {loadingMore && <LoadingSpinner height="5rem" message={t("library.loadingMore")} />}
               </div>
             </div>
           )}
@@ -319,16 +334,16 @@ export const LibraryPage: React.FC = () => {
         return (
           <div className="library-empty-view results-mode">
             <Film size="3rem" className="library-empty-icon muted" />
-            <h2 className="library-empty-title">Ничего не найдено</h2>
-            <p className="library-empty-subtitle">Попробуйте изменить запрос или проверить написание названия</p>
+            <h2 className="library-empty-title">{t("library.nothingFound")}</h2>
+            <p className="library-empty-subtitle">{t("library.searchNoResultsSub")}</p>
           </div>
         );
       }
       return (
         <div className="library-empty-view search-mode">
           <SearchIcon size="3rem" className="library-empty-icon muted" />
-          <h2 className="library-empty-title">Начните поиск</h2>
-          <p className="library-empty-subtitle">Введите название фильма или сериала для поиска по базе данных</p>
+          <h2 className="library-empty-title">{t("library.startSearchTitle")}</h2>
+          <p className="library-empty-subtitle">{t("library.startSearchSub")}</p>
         </div>
       );
     }

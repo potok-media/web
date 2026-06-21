@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Terminal, Trash2, Search, AlertCircle, AlertTriangle, Info } from "lucide-react";
 import { logger } from "../../utils/logger";
 import type { LogEntry } from "../../utils/logger";
@@ -6,6 +7,7 @@ import { FocusableButton, FocusableInput } from "../common/TVNavigation";
 import "../../styles/console.css";
 
 export const ConsoleManager: React.FC = () => {
+  const { t } = useTranslation("settings");
   const [logs, setLogs] = useState<LogEntry[]>(() => logger.getHistory());
   const [activeFilter, setActiveFilter] = useState<"all" | "info" | "warn" | "error">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -83,14 +85,14 @@ export const ConsoleManager: React.FC = () => {
             className={`console-tab-btn ${activeFilter === "all" ? "active" : ""}`}
             onClick={() => setActiveFilter("all")}
           >
-            <span>Все</span>
+            <span>{t("console.filterAll")}</span>
             <span className="console-badge bg-all">{logs.length}</span>
           </FocusableButton>
           <FocusableButton
             className={`console-tab-btn ${activeFilter === "info" ? "active" : ""}`}
             onClick={() => setActiveFilter("info")}
           >
-            <span>Инфо</span>
+            <span>{t("console.filterInfo")}</span>
             <span className="console-badge bg-info">
               {logs.filter((l) => l.type === "info").length}
             </span>
@@ -99,7 +101,7 @@ export const ConsoleManager: React.FC = () => {
             className={`console-tab-btn ${activeFilter === "warn" ? "active" : ""}`}
             onClick={() => setActiveFilter("warn")}
           >
-            <span>Предупреждения</span>
+            <span>{t("console.filterWarnings")}</span>
             <span className="console-badge bg-warn">
               {logs.filter((l) => l.type === "warn").length}
             </span>
@@ -108,7 +110,7 @@ export const ConsoleManager: React.FC = () => {
             className={`console-tab-btn ${activeFilter === "error" ? "active" : ""}`}
             onClick={() => setActiveFilter("error")}
           >
-            <span>Ошибки</span>
+            <span>{t("console.filterErrors")}</span>
             <span className="console-badge bg-error">
               {logs.filter((l) => l.type === "error").length}
             </span>
@@ -120,7 +122,7 @@ export const ConsoleManager: React.FC = () => {
             <Search size="0.875rem" className="console-search-icon" />
             <FocusableInput
               type="text"
-              placeholder="Фильтр логов..."
+              placeholder={t("console.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="console-search-input"
@@ -129,10 +131,10 @@ export const ConsoleManager: React.FC = () => {
           <FocusableButton
             className="potok-btn potok-btn-ghost console-clear-btn"
             onClick={handleClear}
-            title="Очистить консоль"
+            title={t("console.clearConsole")}
           >
             <Trash2 size="1rem" />
-            <span>Очистить</span>
+            <span>{t("console.clear")}</span>
           </FocusableButton>
         </div>
       </div>
@@ -140,13 +142,13 @@ export const ConsoleManager: React.FC = () => {
       <div className="console-viewport-wrapper">
         <div className="console-viewport-header">
           <Terminal size="0.875rem" />
-          <span>Системный вывод Potok</span>
+          <span>{t("console.systemOutput")}</span>
         </div>
         <div className="console-viewport" ref={containerRef}>
           {filteredLogs.length === 0 ? (
             <div className="console-empty">
               <Terminal size="2rem" className="console-empty-icon" />
-              <span className="console-empty-text">Логи отсутствуют</span>
+              <span className="console-empty-text">{t("console.empty")}</span>
             </div>
           ) : (
             filteredLogs.map((log) => (

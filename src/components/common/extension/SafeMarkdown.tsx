@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import DOMPurify from "dompurify";
 import { Marked } from "marked";
 import Prism from "prismjs";
@@ -10,6 +11,7 @@ interface SafeMarkdownProps {
 
 export const SafeMarkdown: React.FC<SafeMarkdownProps> = ({ content }) => {
   const hud = useHUD();
+  const { t } = useTranslation("extensions");
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   const html = React.useMemo(() => {
@@ -52,7 +54,7 @@ export const SafeMarkdown: React.FC<SafeMarkdownProps> = ({ content }) => {
       <span class="dot green"></span>
     </div>
     <span class="potok-terminal-lang">${lang || "js"}</span>
-    <button class="potok-terminal-copy-btn" data-code="${dataCodeAttr}">Копировать</button>
+    <button class="potok-terminal-copy-btn" data-code="${dataCodeAttr}">${t("safe.copy")}</button>
   </div>
   <div class="potok-terminal-body">
     <pre class="potok-terminal-line-numbers">${lineNumbersHtml}</pre>
@@ -68,7 +70,7 @@ export const SafeMarkdown: React.FC<SafeMarkdownProps> = ({ content }) => {
     } catch {
       return content;
     }
-  }, [content]);
+  }, [content, t]);
 
   // Sanitize html using DOMPurify before using dangerouslySetInnerHTML
   const sanitizedHtml = React.useMemo(() => {
@@ -85,13 +87,13 @@ export const SafeMarkdown: React.FC<SafeMarkdownProps> = ({ content }) => {
       const codeToCopy = target.getAttribute("data-code");
       if (codeToCopy) {
         navigator.clipboard.writeText(codeToCopy).then(() => {
-          hud.show("success", "Код скопирован в буфер обмена");
-          target.innerText = "Скопировано!";
+          hud.show("success", t("safe.copySuccess"));
+          target.innerText = t("safe.copied");
           setTimeout(() => {
-            target.innerText = "Копировать";
+            target.innerText = t("safe.copy");
           }, 2000);
         }).catch(() => {
-          hud.show("error", "Не удалось скопировать");
+          hud.show("error", t("safe.copyFailed"));
         });
       }
     }

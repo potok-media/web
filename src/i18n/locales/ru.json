@@ -6,7 +6,18 @@
       "close": "Закрыть"
     },
     "playerError": "Ошибка плеера",
-    "playbackFailed": "Не удалось воспроизвести видео."
+    "playbackFailed": "Не удалось воспроизвести видео.",
+    "errorBoundary": {
+      "title": "Что-то пошло не так",
+      "message": "Произошла непредвиденная ошибка в компоненте.",
+      "retry": "Попробовать снова"
+    },
+    "loading": "Загрузка...",
+    "back": "Назад",
+    "inspector": {
+      "enable": "Изучить разметку",
+      "disable": "Выключить изучение"
+    }
   },
   "connection": {
     "checking": {
@@ -26,5 +37,700 @@
     "saveAndConnect": "Сохранить и подключиться",
     "applyRetry": "Применить и повторить попытку",
     "checkAgain": "Проверить снова"
+  },
+  "settings": {
+    "appearance": {
+      "title": "Внешний вид и плеер"
+    },
+    "accent": {
+      "label": "Цветовой акцент"
+    },
+    "player": {
+      "label": "Плеер по умолчанию",
+      "native": "Встроенный веб-плеер"
+    },
+    "imageQuality": {
+      "label": "Качество изображений",
+      "auto": "Авто",
+      "high": "Высокое (1280p)",
+      "max": "Максимум (оригинал)"
+    },
+    "language": {
+      "label": "Язык"
+    },
+    "nav": {
+      "brandTitle": "Настройки",
+      "brandDesc": "Панель управления",
+      "groupApp": "Приложение",
+      "groupIntegrations": "Интеграции",
+      "groupPlugins": "Плагины",
+      "general": "Основные",
+      "connections": "Профили подключения",
+      "connectionsShort": "Подключения",
+      "accessibility": "Специальные возможности",
+      "accessibilityShort": "Спец. возможности",
+      "extensions": "Расширения",
+      "console": "Консоль"
+    },
+    "profiles": {
+      "errorEmptyGateway": "Введите адрес шлюза",
+      "errorInvalidAddressExample": "Некорректный адрес (пример: https://api.example.com)",
+      "errorInvalidServer": "Некорректный адрес сервера",
+      "errorEmptyName": "Введите название профиля",
+      "errorInvalidAddress": "Некорректный адрес",
+      "errorUnreachable": "Сервер не отвечает по этому адресу",
+      "profileAdded": "Профиль добавлен",
+      "saved": "Сохранено"
+    },
+    "consent": {
+      "title": "Подтверждение разрешений",
+      "installing": "Установка расширения: {{name}}",
+      "close": "Закрыть",
+      "requestsAccess": "Данное расширение запрашивает следующие привилегии доступа:",
+      "permissionStorage": "Сохранение настроек и данных плагина локально на вашем устройстве",
+      "permissionHttpProxy": "Выполнение интернет-запросов (необходимо для поиска и загрузки видео-потоков)",
+      "permissionUiNotifications": "Показ всплывающих подсказок и уведомлений внутри приложения",
+      "permissionCustom": "Запрос специального доступа: {{permission}}",
+      "securityWarningTitle": "Предупреждение безопасности",
+      "securityWarningBody": "Установка плагина дает ему возможность выполнять указанные действия в приложении. Пожалуйста, устанавливайте расширения только из надежных источников и от авторов, которым вы доверяете, чтобы обеспечить безопасность ваших личных данных.",
+      "confirm": "Да, я доверяю и хочу установить",
+      "cancel": "Отмена"
+    },
+    "accessibility": {
+      "title": "Специальные возможности",
+      "uiSize": "Размер интерфейса",
+      "uiScale": "Масштаб интерфейса",
+      "tvSizeLarger": "Крупнее",
+      "tvSizeStandard": "Стандарт",
+      "tvSizeCompact": "Компактнее",
+      "fontScale": {
+        "80": "Мелкий (80%)",
+        "90": "Компактный (90%)",
+        "100": "Стандартный (100%)",
+        "110": "Увеличенный (110%)",
+        "120": "Крупный (120%)",
+        "130": "Очень крупный (130%)",
+        "140": "Огромный (140%)",
+        "150": "Максимальный (150%)"
+      },
+      "developerMode": "Режим разработчика",
+      "directRequests": "Прямые запросы",
+      "docsTitle": "Документация и песочница",
+      "docsDescription": "Интерактивное руководство по созданию плагинов, спецификация API и песочница для отладки кода.",
+      "openWiki": "Открыть Вики"
+    },
+    "console": {
+      "filterAll": "Все",
+      "filterInfo": "Инфо",
+      "filterWarnings": "Предупреждения",
+      "filterErrors": "Ошибки",
+      "searchPlaceholder": "Фильтр логов...",
+      "clearConsole": "Очистить консоль",
+      "clear": "Очистить",
+      "systemOutput": "Системный вывод Potok",
+      "empty": "Логи отсутствуют"
+    },
+    "manifest": {
+      "title": "Манифест расширения",
+      "nameWithId": "{{name}} (ID: {{id}})",
+      "close": "Закрыть",
+      "copySuccess": "Манифест успешно скопирован в буфер обмена",
+      "copyError": "Не удалось скопировать манифест",
+      "copied": "Скопировано!",
+      "copy": "Копировать"
+    },
+    "declarative": {
+      "saveSuccess": "Настройки плагина успешно сохранены",
+      "noSettings": "Для этого плагина нет доступных настроек.",
+      "hide": "Скрыть",
+      "show": "Показать",
+      "saveButton": "Сохранить настройки"
+    },
+    "profileEditor": {
+      "newProfile": "Новый профиль",
+      "connectionParams": "Параметры соединения",
+      "lockedBanner": "Настройки подключения заблокированы администратором.",
+      "nameLabel": "Название профиля",
+      "namePlaceholder": "Основной сервер",
+      "gatewayLabel": "Адрес Potok Gateway (BFF)",
+      "gatewayPlaceholder": "Адрес до BFF-шлюза",
+      "checking": "Проверка…",
+      "createProfile": "Создать профиль",
+      "saveChanges": "Сохранить изменения",
+      "cancel": "Отмена"
+    },
+    "profileSelector": {
+      "title": "Профили подключения",
+      "cannotDeleteLast": "Нельзя удалить единственный профиль",
+      "profileDeleted": "Профиль удален",
+      "deleteProfile": "Удалить профиль",
+      "addProfile": "Добавить профиль"
+    }
+  },
+  "player": {
+    "skip": {
+      "intro": "Пропустить интро",
+      "outro": "Пропустить титры"
+    },
+    "trackSelector": {
+      "chooseTitle": "Выбор: {{title}}",
+      "disable": "Отключить",
+      "uploadSubtitlesAria": "Загрузить субтитры",
+      "uploadSrtVtt": "Загрузить SRT/VTT..."
+    },
+    "resume": {
+      "continuedFrom": "Продолжено с {{time}}",
+      "startOver": "Начать с начала"
+    },
+    "timeline": {
+      "seekAria": "Перемотка видео"
+    },
+    "topBar": {
+      "seasonEpisode": "Сезон {{season}}, Серия {{episode}}",
+      "closeAria": "Закрыть плеер"
+    },
+    "error": {
+      "title": "Ошибка воспроизведения",
+      "linkLabel": "Ссылка:",
+      "refreshStream": "Обновить поток",
+      "closePlayer": "Закрыть плеер"
+    },
+    "loading": {
+      "cancel": "Отмена",
+      "steps": {
+        "peers": "Поиск раздающих",
+        "headers": "Заголовки",
+        "analyze": "Анализ медиа",
+        "buffering": "Буферизация"
+      },
+      "init": {
+        "title": "Инициализация и буферизация...",
+        "loadingStream": "Загрузка медиа-потока",
+        "subtitle": "Запуск плеера и наполнение буфера воспроизведения"
+      },
+      "peers": {
+        "title": "Поиск раздающих...",
+        "subtitle": "Поиск активных пиров в сети P2P (DHT)"
+      },
+      "preparing": {
+        "title": "Подготовка видео-потока...",
+        "subtitle": "Скачивание заголовков файла • Пиры: {{peers}} • Скорость: {{speed}} МБ/с"
+      },
+      "tracks": {
+        "title": "Настройка аудио и видео...",
+        "subtitle": "Анализ медиа-контейнера и дорожек"
+      }
+    },
+    "stats": {
+      "title": "Статистика сети",
+      "closeTitle": "Закрыть",
+      "networkSpeed": "Скорость сети:",
+      "megabytesPerSec": "{{value}} МБ/с",
+      "streamBitrate": "Битрейт потока:",
+      "mbps": "{{value}} Mbps",
+      "resolution": "Разрешение:",
+      "buffer": "Буфер:",
+      "seconds": "{{value}} сек",
+      "frames": "Кадры:",
+      "fps": "{{value}} fps"
+    },
+    "controls": {
+      "defaultAudioTrack": "Основная (По умолчанию)",
+      "episode": "Серия",
+      "episodeNumbered": "Серия {{number}}",
+      "rewind10Title": "Назад на 10 сек.",
+      "rewind10Aria": "Назад на 10 секунд",
+      "forward10Title": "Вперед на 10 сек.",
+      "forward10Aria": "Вперед на 10 секунд",
+      "pause": "Пауза",
+      "play": "Воспроизведение",
+      "toggleMute": "Вкл/Выкл звук",
+      "volume": "Громкость",
+      "diagnosticsTitle": "Диагностика",
+      "diagnosticsAria": "Показать диагностику",
+      "audioTracks": "Аудиодорожки",
+      "subtitles": "Субтитры",
+      "disable": "Отключить",
+      "playlistEpisodes": "Серии плейлиста",
+      "quality": "Качество",
+      "fullscreen": "Во весь экран"
+    },
+    "playback": {
+      "accessRestricted": "Доступ к воспроизведению ограничен.",
+      "loadFailed": "Не удалось загрузить видео-поток."
+    },
+    "quality": {
+      "auto": "Авто",
+      "autoWithHeight": "Авто ({{height}}p)",
+      "levelNumbered": "Качество {{number}}"
+    },
+    "offline": {
+      "banner": "Связь потеряна. Воспроизведение идет из буфера..."
+    }
+  },
+  "streams": {
+    "source": "Источник",
+    "empty": "Потоков не найдено. Попробуйте сменить фильтры.",
+    "countLabel_one": "{{count}} источник",
+    "countLabel_few": "{{count}} источника",
+    "countLabel_many": "{{count}} источников",
+    "countLabel_other": "{{count}} источников",
+    "actions": {
+      "refresh": "Обновить",
+      "back": "Назад"
+    },
+    "sort": {
+      "seedersDesc": "По популярности",
+      "publishDateDesc": "Сначала новые",
+      "sizeDesc": "Сначала большие",
+      "sizeAsc": "Сначала маленькие"
+    },
+    "filter": {
+      "title": "Фильтры",
+      "quality": "Качество",
+      "allQualities": "Все качества",
+      "trackerLabel": "Источник",
+      "allTrackers": "Все трекеры",
+      "providerLabel": "Провайдер",
+      "allSources": "Все источники",
+      "resetAll": "Сбросить всё"
+    },
+    "row": {
+      "watch": "Смотреть",
+      "seedersTitle": "Раздают (Сиды)",
+      "seedersLabel": "Раздают:",
+      "leechersTitle": "Скачивают (Пиры)",
+      "leechersLabel": "Скачивают:"
+    },
+    "loading": {
+      "fetchingInfo": "Получение информации..."
+    },
+    "notFound": {
+      "title": "Медиа не найдено"
+    }
+  },
+  "media": {
+    "common": {
+      "retry": "Повторить загрузку"
+    },
+    "cast": {
+      "title": "Актерский состав"
+    },
+    "episode": {
+      "fallbackName": "Серия {{number}}",
+      "noOverview": "Описание эпизода отсутствует.",
+      "backToShow": "Вернуться к описанию сериала"
+    },
+    "overview": {
+      "seasonsCount_one": "Сезонов: {{count}}",
+      "seasonsCount_few": "Сезонов: {{count}}",
+      "seasonsCount_many": "Сезонов: {{count}}",
+      "seasonsCount_other": "Сезонов: {{count}}"
+    },
+    "row": {
+      "seeAllTitle": "Показать все в категории {{title}}",
+      "more": "Ещё"
+    },
+    "hero": {
+      "details": "Подробнее",
+      "inWatchlist": "В списке",
+      "addToWatchlist": "Буду смотреть",
+      "slide": "Слайд {{number}}"
+    },
+    "watchlist": {
+      "added": "Добавлено в список ожидания",
+      "removed": "Удалено из списка ожидания",
+      "syncError": "Ошибка при синхронизации"
+    },
+    "selector": {
+      "season": "Сезон {{number}}",
+      "watched": "Просмотрено",
+      "audioCount_one": "{{count}} озвучка",
+      "audioCount_few": "{{count}} озвучки",
+      "audioCount_many": "{{count}} озвучек",
+      "audioCount_other": "{{count}} озвучек",
+      "progress": "Просмотрено серий: {{completed}} из {{total}} ({{percentage}}%)",
+      "parsingHintQuestion": "Не удалось распознать сезоны?",
+      "parsingHintBody": "Возможно, понадобится указать соответствие серий для отслеживания.",
+      "more": "Дополнительно",
+      "openAsPlaylist": "Открыть как плейлист",
+      "editMapping": "Править соответствие",
+      "back": "Назад",
+      "close": "Закрыть",
+      "mainStream": "Основной поток",
+      "noEpisodes": "Нет доступных серий.",
+      "savingOffset": "Сохранение смещения..."
+    },
+    "override": {
+      "loading": "Загрузка серий с TMDB...",
+      "prompt": "С какой серии начинается этот список?"
+    },
+    "home": {
+      "loadError": "Не удалось загрузить медиатеку"
+    },
+    "details": {
+      "notFound": "Медиа не найдено",
+      "markWatched": "Отметить просмотренным",
+      "removeFromHistory": "Удалить из истории просмотра",
+      "addToWatchlist": "В список ожидания",
+      "removeFromWatchlist": "Удалить из списка ожидания",
+      "addToFavorites": "Добавить в избранное",
+      "removeFromFavorites": "Удалить из избранного"
+    },
+    "library": {
+      "category": "Категория",
+      "nothingFound": "Ничего не найдено",
+      "emptyCategorySub": "В этой категории пока нет элементов",
+      "traktNotConfiguredTitle": "Синхронизация Trakt не настроена",
+      "traktNotConfiguredSub": "Чтобы просматривать разделы медиатеки, пожалуйста, привяжите вашу учетную запись Trakt в настройках Potok.",
+      "goToSettings": "Перейти к настройкам",
+      "searchTitle": "Поиск",
+      "searchPlaceholder": "Поиск фильмов и сериалов...",
+      "clearSearch": "Очистить",
+      "foundCount": "Найдено элементов: {{count}}",
+      "totalCount": "Всего элементов: {{count}}",
+      "tabs": {
+        "upNext": "Продолжить",
+        "watchlist": "Запланировано",
+        "favorites": "Избранное",
+        "history": "История"
+      },
+      "searching": "Ищем медиафайлы...",
+      "loadingCollection": "Загружаем коллекцию...",
+      "loadingMore": "Загружаем еще...",
+      "searchNoResultsSub": "Попробуйте изменить запрос или проверить написание названия",
+      "startSearchTitle": "Начните поиск",
+      "startSearchSub": "Введите название фильма или сериала для поиска по базе данных"
+    },
+    "calendar": {
+      "filters": {
+        "all": "Все релизы",
+        "today": "Сегодня",
+        "tomorrow": "Завтра",
+        "thisWeek": "На этой неделе"
+      },
+      "groups": {
+        "tbd": "Даты уточняются",
+        "today": "Сегодня",
+        "tomorrow": "Завтра"
+      },
+      "soon": "Скоро",
+      "title": "Календарь релизов",
+      "descriptionConnected": "Расписание выхода новых серий ваших сериалов из Trakt.tv.",
+      "descriptionGuest": "Расписание выхода новых серий популярных сериалов на основе данных Trakt.tv.",
+      "filtersAriaLabel": "Фильтры календаря по дням",
+      "traktBannerTitle": "Синхронизируйте личное расписание",
+      "traktBannerDesc": "Подключите ваш аккаунт Trakt.tv в профиле, чтобы видеть точное расписание серий только для сериалов из ваших закладок и истории.",
+      "connectTrakt": "Подключить Trakt.tv",
+      "connectTraktAria": "Перейти в профиль для подключения Trakt.tv",
+      "errorTitle": "Ошибка загрузки расписания",
+      "retry": "Повторить попытку",
+      "seasonEpisode": "Сезон {{season}}, Серия {{episode}}",
+      "newEpisode": "Новая серия",
+      "releaseDateAria": "Дата выхода: {{time}}.",
+      "emptyPeriod": "Нет запланированных релизов на выбранный период."
+    },
+    "multiPicker": {
+      "close": "Закрыть",
+      "title": "Отметить просмотренные",
+      "selectedCount": "Выбрано серий: {{count}} из {{total}}",
+      "selectAll": "Выбрать все",
+      "deselectAll": "Снять все",
+      "loading": "Загрузка серий...",
+      "season": "Сезон {{number}}",
+      "selectSeason": "Выбрать сезон",
+      "deselectSeason": "Снять сезон",
+      "saving": "Сохранение...",
+      "selectedRanges": "Выбрано: {{ranges}}",
+      "nothingSelected": "Ничего не выбрано",
+      "cancel": "Отмена",
+      "save": "Сохранить"
+    },
+    "seasons": {
+      "episodeSelection": "Выбор серий",
+      "season": "Сезон {{number}}",
+      "chooseSeason": "Выберите сезон",
+      "unmarkSeason": "Снять отметку с сезона",
+      "markSeasonWatched": "Отметить сезон просмотренным",
+      "selectAndWatch": "Выбор и просмотр серий",
+      "unmark": "Снять отметку",
+      "markSeason": "Отметить сезон",
+      "markSelectively": "Отметить выборочно...",
+      "scrollBack": "Прокрутить назад",
+      "scrollForward": "Прокрутить вперед",
+      "noEpisodes": "Нет сведений об эпизодах этого сезона.",
+      "unmarkWatched": "Убрать отметку просмотрено",
+      "markWatched": "Отметить просмотренным"
+    },
+    "categories": {
+      "upNext": {
+        "title": "Продолжить",
+        "empty": "Здесь будут фильмы и серии, которые вы начали смотреть",
+        "emptySub": "История ваших просмотров начнется автоматически при запуске воспроизведения"
+      },
+      "watchlist": {
+        "title": "Запланировано",
+        "empty": "Список ожидания пуст",
+        "emptySub": "Добавляйте фильмы и сериалы в этот раздел, чтобы не забыть посмотреть их позже"
+      },
+      "favorites": {
+        "title": "Избранное",
+        "empty": "В Избранном пока ничего нет",
+        "emptySub": "Отмечайте любимые тайтлы сердечком на экранах деталей для быстрого доступа"
+      },
+      "history": {
+        "title": "История просмотров",
+        "empty": "Вы еще ничего не посмотрели",
+        "emptySub": "Здесь будет отображаться хронологическая лента завершенных фильмов и эпизодов"
+      },
+      "dynamic": {
+        "nowPlaying": "В кинотеатрах",
+        "trendingDay": "Тренды дня",
+        "trendingWeek": "Тренды недели",
+        "upcoming": "Скоро выйдет",
+        "popularMovies": "Популярные фильмы",
+        "popularTv": "Популярные сериалы",
+        "topMovies": "Лучшие фильмы",
+        "topTv": "Лучшие сериалы"
+      }
+    }
+  },
+  "profile": {
+    "page": {
+      "title": "Профиль",
+      "settings": "Настройки",
+      "subtitle": "Управление аккаунтами и синхронизацией",
+      "defaultUser": "Пользователь",
+      "logout": "Выйти",
+      "syncLabel": "Синхронизация:",
+      "strategyLabel": {
+        "trakt": "Облако Trakt.tv",
+        "server": "Сервер Potok",
+        "none": "Синхронизация отключена"
+      },
+      "chip": {
+        "off": "Выкл"
+      },
+      "dropdown": {
+        "none": "Не выбрано"
+      },
+      "localWarning": {
+        "title": "Локальный режим не поддерживается на веб-клиенте",
+        "text": "В браузере оффлайн-кэш нестабилен и легко стирается. Пожалуйста, переключитесь на облачную синхронизацию Trakt.tv или Сервер Potok для сохранности вашей истории.",
+        "serverButton": "Синхронизация на сервер",
+        "traktButton": "Синхронизация Trakt.tv"
+      },
+      "traktConnect": {
+        "title": "Синхронизация с Trakt.tv",
+        "description": "Подключите свой аккаунт для облачной синхронизации истории и оценок.",
+        "loading": "Загрузка...",
+        "connectButton": "Подключить аккаунт"
+      },
+      "extensions": {
+        "heading": "Ваши расширения и инструменты",
+        "subheading": "Быстрый доступ к установленным плагинам"
+      }
+    },
+    "hud": {
+      "loggedOut": "Вы вышли из аккаунта",
+      "strategyUpdateFailed": "Не удалось обновить стратегию на сервере",
+      "traktCodeError": "Ошибка при получении кода Trakt",
+      "traktConnected": "Trakt.tv подключен!",
+      "codeExpired": "Срок действия кода истек",
+      "traktDisconnected": "Trakt.tv отключен",
+      "codeCopied": "Код скопирован"
+    },
+    "serverSync": {
+      "syncActive": "Синхронизация активна",
+      "title": "Сервер Potok",
+      "description": "Все данные вашей медиатеки, история просмотров и закладки безопасно сохраняются на вашем личном сервере Potok.",
+      "benefits": {
+        "centralized": {
+          "title": "Централизованное хранение",
+          "description": "История и списки синхронизируются между всеми вашими клиентами через ваш сервер."
+        },
+        "fullControl": {
+          "title": "Полный контроль",
+          "description": "Ваши данные хранятся на вашей собственной базе данных PostgreSQL."
+        },
+        "multiUser": {
+          "title": "Многопользовательский режим",
+          "description": "Поддержка раздельных учетных записей с изолированной историей и настройками."
+        }
+      }
+    },
+    "strategySelection": {
+      "title": "Выберите способ синхронизации",
+      "description": "Синхронизируйте историю, запланированное и оценки между устройствами или храните всё на этом устройстве.",
+      "trakt": {
+        "title": "Облако Trakt.tv",
+        "description": "Автоматически синхронизируйте историю просмотров, прогресс и запланированное с популярным сервисом Trakt.tv."
+      },
+      "server": {
+        "title": "Сервер Potok",
+        "description": "Синхронизация с вашим личным self-hosted сервером Potok (PostgreSQL). Полная приватность и поддержка нескольких учетных записей."
+      }
+    },
+    "traktActive": {
+      "connected": "Подключено",
+      "disconnect": "Отключить",
+      "watchTime": {
+        "daysHours": "{{days}}д {{hours}}ч",
+        "hours": "{{hours}}ч"
+      },
+      "stats": {
+        "moviesWatched": "Фильмов просмотрено",
+        "episodesWatched": "Эпизодов просмотрено",
+        "watchTime": "Время просмотра",
+        "ratingsGiven": "Выставлено оценок"
+      }
+    },
+    "traktDeviceAuth": {
+      "title": "Активация устройства",
+      "description": "Для подключения вашего аккаунта Trakt выполните следующие простые шаги:",
+      "step1": "Перейдите по ссылке на вашем телефоне или ПК:",
+      "step2": "Введите следующий уникальный код:",
+      "waiting": "Ожидание подтверждения от Trakt...",
+      "backToSelection": "Назад к выбору"
+    },
+    "potokAuth": {
+      "fillAllFields": "Заполните все поля",
+      "registerSuccess": "Регистрация успешна!",
+      "loginSuccess": "Успешный вход!",
+      "authError": "Ошибка авторизации",
+      "createAccountTitle": "Создать аккаунт Potok",
+      "loginTitle": "Вход в аккаунт Potok",
+      "createAccountDesc": "Зарегистрируйте аккаунт на вашем сервере",
+      "loginDesc": "Войдите под своей учетной записью",
+      "usernamePlaceholder": "Имя пользователя",
+      "passwordPlaceholder": "Пароль",
+      "loading": "Загрузка...",
+      "registerButton": "Зарегистрироваться",
+      "loginButton": "Войти",
+      "haveAccount": "Уже есть аккаунт? Войти",
+      "noAccount": "Нет аккаунта? Зарегистрироваться"
+    },
+    "localSync": {
+      "syncActive": "Синхронизация активна",
+      "title": "Локальный режим",
+      "description": "Все данные вашей медиатеки и история просмотров хранятся исключительно на этом устройстве. Подключение к сети не требуется.",
+      "benefits": {
+        "fullyOffline": {
+          "title": "Полная автономность",
+          "description": "Все данные вашей медиатеки и история просмотров хранятся локально."
+        },
+        "absoluteControl": {
+          "title": "Абсолютный контроль",
+          "description": "Абсолютная приватность и безопасность без отправки вашей истории на внешние серверы."
+        },
+        "instantResponse": {
+          "title": "Мгновенный отклик",
+          "description": "Нулевая задержка сети при сохранении ваших отметок, истории и списков."
+        }
+      }
+    }
+  },
+  "sidebar": {
+    "protectedLoginRequired": "Пожалуйста, войдите в аккаунт Potok для доступа к разделу",
+    "expandMenu": "Развернуть меню",
+    "collapseMenu": "Свернуть меню",
+    "profile": "Профиль",
+    "home": "Главная",
+    "library": "Медиатека",
+    "upNext": "Продолжить",
+    "calendar": "Расписание",
+    "watchlist": "Запланировано",
+    "favorites": "Избранное",
+    "history": "История",
+    "settings": "Настройки",
+    "search": "Поиск",
+    "searchPlaceholder": "Поиск...",
+    "clear": "Очистить",
+    "potokServer": "Сервер Potok",
+    "statusOff": "выкл",
+    "statusOffline": "оффлайн",
+    "mobileLibrary": "Медиатека",
+    "mobileAccount": "Кабинет"
+  },
+  "extensions": {
+    "title": "Расширения",
+    "subtitle": "{{total}} установлено · {{enabledCount}} активно",
+    "installByUrl": "Установить по URL",
+    "searchPlaceholder": "Поиск расширений...",
+    "clear": "Очистить",
+    "close": "Закрыть",
+    "filter": {
+      "all": "Все",
+      "active": "Активные",
+      "disabled": "Выключенные"
+    },
+    "status": {
+      "on": "Вкл",
+      "off": "Выкл"
+    },
+    "empty": {
+      "none": "Нет установленных расширений",
+      "noResults": "Ничего не найдено"
+    },
+    "action": {
+      "enable": "Включить",
+      "disable": "Выключить",
+      "copyLink": "Копировать ссылку",
+      "delete": "Удалить"
+    },
+    "section": {
+      "description": "Описание",
+      "permissions": "Разрешения"
+    },
+    "permissionDescriptions": {
+      "storage": "Сохранение настроек и данных плагина локально на вашем устройстве",
+      "httpProxy": "Выполнение интернет-запросов (поиск и загрузка видео-потоков)",
+      "uiNotifications": "Показ всплывающих подсказок и уведомлений внутри приложения",
+      "fallback": "Доступ: {{permission}}"
+    },
+    "manifest": {
+      "show": "Показать манифест (JSON)",
+      "hide": "Скрыть манифест"
+    },
+    "install": {
+      "title": "Установка расширения",
+      "description": "Вставьте URL каталога с файлом <code>manifest.json</code>.",
+      "installing": "Установка...",
+      "submit": "Установить расширение"
+    },
+    "toast": {
+      "linkCopied": "Ссылка скопирована",
+      "linkCopyFailed": "Не удалось скопировать ссылку",
+      "installed": "Расширение \"{{name}}\" установлено"
+    },
+    "errors": {
+      "invalidManifest": "Неверный manifest.json: отсутствуют обязательные поля.",
+      "blacklisted": "Установка заблокирована: расширение в реестре заблокированных по соображениям безопасности.",
+      "duplicateId": "Расширение с таким ID уже установлено.",
+      "installGeneric": "Ошибка при установке"
+    },
+    "pageTitleFallback": "Расширение",
+    "hud": {
+      "refreshRequesting": "Запрос на обновление ссылки...",
+      "noActivePlugins": "Нет активных плагинов для обновления ссылки.",
+      "hlsRefreshed": "Ссылка на HLS поток обновлена!",
+      "refreshFailed": "Не удалось обновить поток: {{error}}",
+      "pluginError": "Плагин \"{{id}}\" вызвал ошибку: {{error}}",
+      "genericError": "ошибка"
+    },
+    "safe": {
+      "searchPlaceholder": "Поиск...",
+      "clear": "Очистить",
+      "selectPlaceholder": "Выбрать...",
+      "selectedCount": "Выбрано: {{count}}",
+      "copy": "Копировать",
+      "copied": "Скопировано!",
+      "copySuccess": "Код скопирован в буфер обмена",
+      "copyFailed": "Не удалось скопировать"
+    },
+    "slot": {
+      "placeholder": "[Слот расширения: {{name}}]",
+      "active": "Слот: {{name}} (Активно)"
+    }
   }
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, Trash2, Settings as SettingsIcon } from "lucide-react";
 import type { ConnectionProfile } from "../network/ApiTypes";
 import { Focusable, FocusableButton } from "./common/TVNavigation";
@@ -24,21 +25,22 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = React.memo(({
   showHUD,
   isSettingsLocked = false,
 }) => {
+  const { t } = useTranslation("settings");
   const handleDeleteClick = (e: React.MouseEvent, profileId: string) => {
     e.stopPropagation();
     if (connectionProfiles.length <= 1) {
-      showHUD("error", "Нельзя удалить единственный профиль");
+      showHUD("error", t("profileSelector.cannotDeleteLast"));
       return;
     }
     onDeleteProfile(profileId);
-    showHUD("info", "Профиль удален");
+    showHUD("info", t("profileSelector.profileDeleted"));
   };
 
   return (
     <section className="settings-section">
       <h2 className="settings-section-title">
         <SettingsIcon size="1.25rem" />
-        <span>Профили подключения</span>
+        <span>{t("profileSelector.title")}</span>
       </h2>
 
       <div className="profiles-list">
@@ -68,7 +70,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = React.memo(({
                     <FocusableButton
                       className="profile-btn delete"
                       onClick={(e) => handleDeleteClick(e, p.id)}
-                      title="Удалить профиль"
+                      title={t("profileSelector.deleteProfile")}
                     >
                       <Trash2 size="1rem" />
                     </FocusableButton>
@@ -86,7 +88,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = React.memo(({
           onClick={onStartAdd}
         >
           <Plus size="1rem" />
-          <span>Добавить профиль</span>
+          <span>{t("profileSelector.addProfile")}</span>
         </FocusableButton>
       )}
     </section>

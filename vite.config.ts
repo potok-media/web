@@ -132,8 +132,8 @@ export default defineConfig({
       manifest: {
         name: 'Potok',
         short_name: 'Potok',
-        description: 'Potok — фильмы и сериалы',
-        lang: 'ru',
+        description: 'Potok — movies and TV shows',
+        lang: 'en',
         theme_color: '#0f0f12',
         background_color: '#0f0f12',
         display: 'standalone',

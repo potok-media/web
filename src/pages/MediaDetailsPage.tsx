@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { Star, Eye, Bookmark } from "lucide-react";
 import { useHUD } from "../context/HUDContext";
@@ -29,6 +30,7 @@ export const MediaDetailsPage: React.FC = () => {
   const mediaId = Number(id);
   const tmdbId = mediaId;
 
+  const { t } = useTranslation("media");
   const { show: showHUD } = useHUD();
 
   const isTV = PlatformManager.isTV();
@@ -110,8 +112,8 @@ export const MediaDetailsPage: React.FC = () => {
   if (error || !media) {
     return (
       <div className="media-not-found-container">
-        <h2 className="media-not-found-title">{error || "Медиа не найдено"}</h2>
-        <FocusableButton className="overlay-btn" onClick={refetch}>Повторить загрузку</FocusableButton>
+        <h2 className="media-not-found-title">{error || t("details.notFound")}</h2>
+        <FocusableButton className="overlay-btn" onClick={refetch}>{t("common.retry")}</FocusableButton>
       </div>
     );
   }
@@ -169,7 +171,7 @@ export const MediaDetailsPage: React.FC = () => {
                         ref={focusRef}
                         className={`action-btn-circle ${isWatched ? "active" : ""} ${focused ? "focused" : ""}`}
                         onClick={toggleWatched}
-                        title={isWatched ? "Удалить из истории просмотра" : "Отметить просмотренным"}
+                        title={isWatched ? t("details.removeFromHistory") : t("details.markWatched")}
                       >
                         <Eye size="1.125rem" />
                       </button>
@@ -184,7 +186,7 @@ export const MediaDetailsPage: React.FC = () => {
                         ref={focusRef}
                         className={`action-btn-circle ${inWatchlist ? "active" : ""} ${focused ? "focused" : ""}`}
                         onClick={toggleWatchlist}
-                        title={inWatchlist ? "Удалить из списка ожидания" : "В список ожидания"}
+                        title={inWatchlist ? t("details.removeFromWatchlist") : t("details.addToWatchlist")}
                       >
                         <Bookmark size="1.125rem" fill={inWatchlist ? "var(--accent)" : "none"} />
                       </button>
@@ -199,7 +201,7 @@ export const MediaDetailsPage: React.FC = () => {
                         ref={focusRef}
                         className={`action-btn-circle ${isFavorite ? "active" : ""} ${focused ? "focused" : ""}`}
                         onClick={toggleFavorite}
-                        title={isFavorite ? "Удалить из избранного" : "Добавить в избранное"}
+                        title={isFavorite ? t("details.removeFromFavorites") : t("details.addToFavorites")}
                       >
                         <Star size="1.125rem" fill={isFavorite ? "var(--accent)" : "none"} />
                       </button>

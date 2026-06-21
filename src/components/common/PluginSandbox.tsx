@@ -9,9 +9,23 @@ import { ApiClient } from "../../network/ApiClient";
 import { createIframeHtml } from "../../utils/extensions/iframeHelper";
 import { handleHttpProxyRequest } from "../../utils/extensions/httpProxyHelper";
 import { handleShowEpisodeSelector } from "../../utils/extensions/episodeSelectorHelper";
+import { i18n } from "../../i18n";
+
+// Host namespaces exposed to plugins so they can render host-consistent labels.
+const HOST_SHARED_NS = ["common", "streams", "media", "player"];
+
+// Build the host-strings subset (current language) injected into each plugin iframe.
+function computeHostStrings(lng: string): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const ns of HOST_SHARED_NS) {
+    const bundle = i18n.getResourceBundle(lng, ns) || i18n.getResourceBundle("en", ns);
+    if (bundle) out[ns] = bundle;
+  }
+  return out;
+}
 
 export const PluginSandbox: React.FC = () => {
-  const { connectionProfiles, activeProfileID, playVideo, activePlayback, setAccentTheme } = useAppSettings();
+  const { connectionProfiles, activeProfileID, playVideo, activePlayback, setAccentTheme, language } = useAppSettings();
   const { show: showHUD } = useHUD();
   const navigate = useNavigate();
   const [activeExtensions, setActiveExtensions] = useState<RegisteredExtension[]>([]);
@@ -68,7 +82,7 @@ export const PluginSandbox: React.FC = () => {
     const handleRefreshRequest = (e: Event) => {
       const customEvent = e as CustomEvent;
       const payload = customEvent.detail;
-      showHUD("info", "Запрос на обновление ссылки...");
+      showHUD("info", i18n.t("extensions:hud.refreshRequesting"));
       let dispatched = false;
       for (const [, iframe] of iframeRefs.current.entries()) {
         iframe.contentWindow?.postMessage({
@@ -79,7 +93,7 @@ export const PluginSandbox: React.FC = () => {
         dispatched = true;
       }
       if (!dispatched) {
-        showHUD("error", "Нет активных плагинов для обновления ссылки.");
+        showHUD("error", i18n.t("extensions:hud.noActivePlugins"));
       }
     };
     window.addEventListener("potok:refresh-stream-url", handleRefreshRequest);
@@ -110,7 +124,9 @@ export const PluginSandbox: React.FC = () => {
             ext,
             activeProfile,
             getScopedLocalStorage(pluginId),
-            window.location.origin
+            window.location.origin,
+            i18n.language,
+            computeHostStrings(i18n.language)
           ),
         }));
       }
@@ -183,6 +199,18 @@ export const PluginSandbox: React.FC = () => {
     }
   }, [activeProfileID, activeProfile, activeExtensions]);
 
+  // Propagate UI language changes to running sandboxes (mirrors PROFILE_UPDATED).
+  useEffect(() => {
+    const hostStrings = computeHostStrings(language);
+    for (const [, iframe] of iframeRefs.current.entries()) {
+      iframe.contentWindow?.postMessage({
+        source: "potok-host",
+        action: "LANGUAGE_CHANGED",
+        payload: { language, hostStrings }
+      }, "*");
+    }
+  }, [language, activeExtensions]);
+
   // Graceful Shutdown & srcDoc Stabilization: Stateful Deferred Unmounting
   useEffect(() => {
     const activeEnabled = activeExtensions.filter((e) => e.enabled);
@@ -232,7 +260,9 @@ export const PluginSandbox: React.FC = () => {
             ext,
             activeProfile,
             getScopedLocalStorage(ext.id),
-            window.location.origin
+            window.location.origin,
+            i18n.language,
+            computeHostStrings(i18n.language)
           );
           changed = true;
         }
@@ -424,7 +454,7 @@ export const PluginSandbox: React.FC = () => {
           break;
         case "REFRESH_STREAM_URL_RESPONSE": {
           if (payload.success) {
-            showHUD("success", "Ссылка на HLS поток обновлена!");
+            showHUD("success", i18n.t("extensions:hud.hlsRefreshed"));
             if (activePlayback) {
               playVideo({
                 ...activePlayback,
@@ -434,13 +464,13 @@ export const PluginSandbox: React.FC = () => {
               });
             }
           } else {
-            showHUD("error", `Не удалось обновить поток: ${payload.error || "ошибка"}`);
+            showHUD("error", i18n.t("extensions:hud.refreshFailed", { error: payload.error || i18n.t("extensions:hud.genericError") }));
           }
           break;
         }
         case "SCRIPT_CRASH":
           logger.error(`[PluginSandbox] Plugin ${pluginId} crashed:`, payload.error);
-          showHUD("error", `Плагин "${pluginId}" вызвал ошибку: ${payload.error}`);
+          showHUD("error", i18n.t("extensions:hud.pluginError", { id: pluginId, error: payload.error }));
           break;
       }
     };

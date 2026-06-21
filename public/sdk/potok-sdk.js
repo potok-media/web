@@ -812,6 +812,34 @@ var PotokSDK = (function(exports) {
      */
     typings: string;
     /**
+     * Локализация (i18n). Плагин может читать строки хоста и регистрировать свои словари.
+     */
+    i18n: {
+      /**
+       * Возвращает перевод по ключу "namespace:path" для текущего языка.
+       * Поддерживает интерполяцию ({{var}}) и множественное число (передайте { count }).
+       * Примеры: t("common:actions.close"), t("myplugin:greeting", { name: "Bob" }).
+       */
+      t(key: string, opts?: Record<string, any>): string;
+      /**
+       * Текущий язык интерфейса (например "en", "ru").
+       */
+      readonly language: string;
+      /**
+       * Регистрирует словарь плагина для языка и пространства имён.
+       * Пример: addResourceBundle("en", "myplugin", { greeting: "Hi {{name}}" }).
+       */
+      addResourceBundle(lng: string, ns: string, resources: Record<string, any>): void;
+      /**
+       * Массовая регистрация словарей: { en: { myplugin: {...} }, ru: { myplugin: {...} } }.
+       */
+      registerTranslations(bundlesByLng: Record<string, Record<string, any>>): void;
+      /**
+       * Подписка на смену языка. Возвращает функцию отписки.
+       */
+      onLanguageChange(cb: (lng: string) => void): () => void;
+    };
+    /**
      * Создает реактивное состояние (State) для плагина.
      */
     createState<T extends object>(state: T): T;
@@ -3851,6 +3879,114 @@ var PotokSDK = (function(exports) {
 		});
 	}
 	//#endregion
+	//#region src/sdk/src/i18n.ts
+	/**
+	* Lightweight i18n for plugins (runs inside the plugin iframe). Kept dependency-free and
+	* tiny so the raw SDK injected into every iframe stays small — it is NOT full i18next.
+	*
+	* Plugins can:
+	*   - read HOST strings:        i18n.t("common:actions.close")
+	*   - register OWN namespaces:  i18n.addResourceBundle("en", "myplugin", { hello: "Hi" })
+	*                               i18n.t("myplugin:hello")
+	*   - react to language change: i18n.onLanguageChange((lng) => redraw())
+	*
+	* The host injects the current language + a subset of host strings via window.PotokInitialState,
+	* and pushes a LANGUAGE_CHANGED message when the user switches language.
+	*/
+	var FALLBACK_LANGUAGE = "en";
+	var state = {
+		language: FALLBACK_LANGUAGE,
+		bundles: {},
+		listeners: /* @__PURE__ */ new Set()
+	};
+	function deepMerge(target, src) {
+		for (const k of Object.keys(src)) {
+			const v = src[k];
+			if (v && typeof v === "object" && !Array.isArray(v)) target[k] = deepMerge(target[k] || {}, v);
+			else target[k] = v;
+		}
+		return target;
+	}
+	function putBundle(lng, ns, resources) {
+		state.bundles[lng] = state.bundles[lng] || {};
+		state.bundles[lng][ns] = deepMerge(state.bundles[lng][ns] || {}, resources || {});
+	}
+	/** Merge a host-strings map ({ [ns]: nested }) for a given language. */
+	function putHostStrings(lng, hostStrings) {
+		if (!hostStrings) return;
+		for (const ns of Object.keys(hostStrings)) putBundle(lng, ns, hostStrings[ns]);
+	}
+	function lookup(bundle, path) {
+		if (!bundle) return void 0;
+		let cur = bundle;
+		for (const seg of path.split(".")) if (cur && typeof cur === "object" && seg in cur) cur = cur[seg];
+		else return;
+		return typeof cur === "string" ? cur : void 0;
+	}
+	function pluralPath(path, count, lng) {
+		let category = "other";
+		try {
+			category = new Intl.PluralRules(lng).select(count);
+		} catch {}
+		return [
+			`${path}_${category}`,
+			`${path}_other`,
+			path
+		];
+	}
+	function interpolate(str, opts) {
+		if (!opts) return str;
+		return str.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, key) => opts[key] !== void 0 ? String(opts[key]) : `{{${key}}}`);
+	}
+	function translate(key, opts) {
+		const sep = key.indexOf(":");
+		const ns = sep >= 0 ? key.slice(0, sep) : "common";
+		const path = sep >= 0 ? key.slice(sep + 1) : key;
+		const candidates = opts && typeof opts.count === "number" ? pluralPath(path, opts.count, state.language) : [path];
+		for (const lng of [state.language, FALLBACK_LANGUAGE]) {
+			const nsBundle = state.bundles[lng]?.[ns];
+			for (const p of candidates) {
+				const hit = lookup(nsBundle, p);
+				if (hit !== void 0) return interpolate(hit, opts);
+			}
+		}
+		return key;
+	}
+	var i18n = {
+		t(key, opts) {
+			return translate(key, opts);
+		},
+		get language() {
+			return state.language;
+		},
+		addResourceBundle(lng, ns, resources) {
+			putBundle(lng, ns, resources);
+		},
+		/** Bulk register: { en: { myplugin: {...} }, ru: { myplugin: {...} } }. */
+		registerTranslations(bundlesByLng) {
+			for (const lng of Object.keys(bundlesByLng || {})) for (const ns of Object.keys(bundlesByLng[lng])) putBundle(lng, ns, bundlesByLng[lng][ns]);
+		},
+		onLanguageChange(cb) {
+			state.listeners.add(cb);
+			return () => state.listeners.delete(cb);
+		}
+	};
+	/** Called once from initPotokSDK with window.PotokInitialState. */
+	function initSdkI18n(initialState) {
+		if (initialState.language) state.language = initialState.language;
+		putHostStrings(state.language, initialState.hostStrings);
+	}
+	/** Called from the message handler on a host LANGUAGE_CHANGED message. */
+	function handleLanguageChanged(payload) {
+		if (payload.language) state.language = payload.language;
+		putHostStrings(state.language, payload.hostStrings);
+		state.listeners.forEach((cb) => {
+			try {
+				cb(state.language);
+			} catch {}
+		});
+	}
+	//#endregion
 	//#region src/sdk/src/core/state.ts
 	function isPlainObjectOrArray(val) {
 		if (val === null || typeof val !== "object") return false;
@@ -4144,7 +4280,9 @@ var PotokSDK = (function(exports) {
 		win.PotokSDK.pluginId = initialState.pluginId;
 		win.PotokSDK.permissions = initialState.permissions || [];
 		win.PotokSDK.config = initialState.config || {};
+		win.PotokSDK.i18n = i18n;
 		win.PotokSDK.typings = SDK_TYPINGS;
+		initSdkI18n(initialState);
 		if (win.PotokSDKInitialized) return;
 		win.PotokSDKInitialized = true;
 		win.PotokBlockContextListeners = getBlockContextListeners();
@@ -4219,6 +4357,10 @@ var PotokSDK = (function(exports) {
 			} else if (msg.action === "PROFILE_UPDATED") {
 				const { config: newConfig } = msg.payload;
 				if (newConfig) Object.assign(win.PotokSDK.config, newConfig);
+			} else if (msg.action === "LANGUAGE_CHANGED") {
+				win.PotokInitialState = win.PotokInitialState || {};
+				win.PotokInitialState.language = msg.payload?.language;
+				handleLanguageChanged(msg.payload || {});
 			}
 		});
 	}
@@ -4272,6 +4414,7 @@ var PotokSDK = (function(exports) {
 	exports.VStackBuilder = VStackBuilder;
 	exports.createState = createState;
 	exports.http = http;
+	exports.i18n = i18n;
 	exports.initDeclarativeStreamListeners = initDeclarativeStreamListeners;
 	exports.initPotokSDK = initPotokSDK;
 	exports.media = media;

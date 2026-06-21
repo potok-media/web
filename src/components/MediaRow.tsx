@@ -1,4 +1,5 @@
 import React, { useRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import type { MediaCard } from "../network/ApiTypes";
@@ -29,6 +30,7 @@ const areMediaRowsEqual = (prevProps: MediaRowProps, nextProps: MediaRowProps): 
 
 export const MediaRow: React.FC<MediaRowProps> = React.memo(
   ({ id, title, items, onCardClick, onSeeAllClick }) => {
+  const { t } = useTranslation("media");
   const rowRef = useRef<HTMLDivElement>(null);
 
   // Cap items at 10 to keep TV horizontal scrolling fast
@@ -60,7 +62,7 @@ export const MediaRow: React.FC<MediaRowProps> = React.memo(
             to={`/library/${id}`}
             className="carousel-title-link"
             onClick={handleSeeAllClick}
-            title={`Показать все в категории ${title}`}
+            title={t("row.seeAllTitle", { title })}
           >
             <h2 className="carousel-title">{title}</h2>
             <ChevronRight className="carousel-title-chevron" size="1.25rem" />
@@ -113,7 +115,7 @@ export const MediaRow: React.FC<MediaRowProps> = React.memo(
                     <div className="media-poster-wrap more-card-poster">
                       <div className="more-card-content">
                         <ChevronRight size="2.25rem" className="more-card-icon" />
-                        <span className="more-card-text">Ещё</span>
+                        <span className="more-card-text">{t("row.more")}</span>
                       </div>
                     </div>
                   </Link>

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { FocusableButton } from "./common/TVNavigation";
@@ -12,12 +13,14 @@ interface LoadingSpinnerProps {
 }
 
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
-  message = "Загрузка...",
+  message = "",
   fullscreen = false,
   height = "80vh",
   showBackButton = false,
 }) => {
+  const { t } = useTranslation("common");
   const navigate = useNavigate();
+  const text = message || t("loading");
 
   if (fullscreen) {
     return (
@@ -28,7 +31,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
           <FocusableButton
             className="streams-sidebar-back-btn spinner-back-btn-pos"
             onClick={() => navigate(-1)}
-            title="Назад"
+            title={t("back")}
           >
             <ArrowLeft size="1.125rem" />
           </FocusableButton>
@@ -39,7 +42,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
             <div className="spinner-outer" />
             <div className="spinner-inner" />
           </div>
-          <span className="loading-text">{message}</span>
+          <span className="loading-text">{text}</span>
         </div>
       </div>
     );
@@ -51,9 +54,9 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         <div className="spinner-outer" />
         <div className="spinner-inner" />
       </div>
-      {message && (
+      {text && (
         <span className="spinner-message-text">
-          {message}
+          {text}
         </span>
       )}
     </div>

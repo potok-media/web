@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Sliders, Puzzle, Globe, Terminal, Eye } from "lucide-react";
 import { useSettings } from "../context/AppSettingsContext";
 import { Slot } from "../components/common/extension/Slot";
@@ -40,6 +41,7 @@ export const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("general");
   const [, setTick] = useState(0);
   const { isTV, isMobile } = usePlatform();
+  const { t } = useTranslation("settings");
   const location = useLocation();
 
   useEffect(() => {
@@ -94,11 +96,11 @@ export const SettingsPage: React.FC = () => {
   const mobileTabs = (
     <div className="settings-mobile-tabs-bar">
       <div className="settings-mobile-tabs-scroll">
-        <button className={`settings-tab-chip ${activeTab === "general" ? "active" : ""}`} onClick={() => setActiveTab("general")}>Основные</button>
-        <button className={`settings-tab-chip ${activeTab === "profiles" ? "active" : ""}`} onClick={() => setActiveTab("profiles")}>Подключения</button>
-        <button className={`settings-tab-chip ${activeTab === "accessibility" ? "active" : ""}`} onClick={() => setActiveTab("accessibility")}>Спец. возможности</button>
-        <button className={`settings-tab-chip ${activeTab === "extensions" ? "active" : ""}`} onClick={() => setActiveTab("extensions")}>Расширения</button>
-        <button className={`settings-tab-chip ${activeTab === "console" ? "active" : ""}`} onClick={() => setActiveTab("console")}>Консоль</button>
+        <button className={`settings-tab-chip ${activeTab === "general" ? "active" : ""}`} onClick={() => setActiveTab("general")}>{t("nav.general")}</button>
+        <button className={`settings-tab-chip ${activeTab === "profiles" ? "active" : ""}`} onClick={() => setActiveTab("profiles")}>{t("nav.connectionsShort")}</button>
+        <button className={`settings-tab-chip ${activeTab === "accessibility" ? "active" : ""}`} onClick={() => setActiveTab("accessibility")}>{t("nav.accessibilityShort")}</button>
+        <button className={`settings-tab-chip ${activeTab === "extensions" ? "active" : ""}`} onClick={() => setActiveTab("extensions")}>{t("nav.extensions")}</button>
+        <button className={`settings-tab-chip ${activeTab === "console" ? "active" : ""}`} onClick={() => setActiveTab("console")}>{t("nav.console")}</button>
         {slotContributions.map((c) => (
           <button key={c.contribution.id} className={`settings-tab-chip ${activeTab === c.contribution.id ? "active" : ""}`} onClick={() => setActiveTab(c.contribution.id)}>
             {c.contribution.title || c.contribution.id}
@@ -116,53 +118,53 @@ export const SettingsPage: React.FC = () => {
   const sidebarNav = (
     <>
       <div className="settings-brand">
-        <h1 className="settings-brand-title">Настройки</h1>
-        <p className="settings-brand-desc">Панель управления</p>
+        <h1 className="settings-brand-title">{t("nav.brandTitle")}</h1>
+        <p className="settings-brand-desc">{t("nav.brandDesc")}</p>
       </div>
       <div className="settings-divider" />
-      <div className="settings-section-title">Приложение</div>
+      <div className="settings-section-title">{t("nav.groupApp")}</div>
       <FocusableButton
         focusKey="SETTINGS_TAB_GENERAL"
         className={`settings-nav-item ${activeTab === "general" ? "active" : ""}`}
         onClick={() => setActiveTab("general")}
       >
         <Sliders size="1rem" />
-        <span>Основные</span>
+        <span>{t("nav.general")}</span>
       </FocusableButton>
       <FocusableButton
         className={`settings-nav-item ${activeTab === "profiles" ? "active" : ""}`}
         onClick={() => setActiveTab("profiles")}
       >
         <Globe size="1rem" />
-        <span>Профили подключения</span>
+        <span>{t("nav.connections")}</span>
       </FocusableButton>
       <FocusableButton
         className={`settings-nav-item ${activeTab === "accessibility" ? "active" : ""}`}
         onClick={() => setActiveTab("accessibility")}
       >
         <Eye size="1rem" />
-        <span>Специальные возможности</span>
+        <span>{t("nav.accessibility")}</span>
       </FocusableButton>
 
-      <div className="settings-section-title">Интеграции</div>
+      <div className="settings-section-title">{t("nav.groupIntegrations")}</div>
       <FocusableButton
         className={`settings-nav-item ${activeTab === "extensions" ? "active" : ""}`}
         onClick={() => setActiveTab("extensions")}
       >
         <Puzzle size="1rem" />
-        <span>Расширения</span>
+        <span>{t("nav.extensions")}</span>
       </FocusableButton>
       <FocusableButton
         className={`settings-nav-item ${activeTab === "console" ? "active" : ""}`}
         onClick={() => setActiveTab("console")}
       >
         <Terminal size="1rem" />
-        <span>Консоль</span>
+        <span>{t("nav.console")}</span>
       </FocusableButton>
 
       {(slotContributions.length > 0 || configExtensions.length > 0) && (
         <>
-          <div className="settings-section-title">Плагины</div>
+          <div className="settings-section-title">{t("nav.groupPlugins")}</div>
           {slotContributions.map((c) => (
             <FocusableButton
               key={c.contribution.id}

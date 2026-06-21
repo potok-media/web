@@ -1,6 +1,7 @@
 import React from "react";
-import { 
-  Play, 
+import { useTranslation } from "react-i18next";
+import {
+  Play,
   Pause, 
   Volume2, 
   VolumeX, 
@@ -64,9 +65,6 @@ interface PlayerControlsProps {
   fileIndex?: string;
 }
 
-// Fallback constant array prevents re-rendering allocations
-const FALLBACK_AUDIO_TRACKS = [{ id: -1, name: "Основная (По умолчанию)" }];
-
 export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
   videoRef,
   controlsVisible,
@@ -107,23 +105,30 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
   streamHash,
   fileIndex,
 }) => {
+  const { t } = useTranslation("player");
   const changeVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
     onVolumeChange(parseFloat(e.target.value));
   };
+
+  // Fallback constant array prevents re-rendering allocations
+  const fallbackAudioTracks = React.useMemo(
+    () => [{ id: -1, name: t("controls.defaultAudioTrack") }],
+    [t]
+  );
 
   const playlistItems = React.useMemo(() => {
     if (!playlist) return [];
     return playlist.map((item, idx) => ({
       id: idx,
       name: item.season !== undefined && item.episode !== undefined
-        ? `S${item.season}E${item.episode} - ${item.title || "Серия"}`
-        : item.title || `Серия ${idx + 1}`
+        ? `S${item.season}E${item.episode} - ${item.title || t("controls.episode")}`
+        : item.title || t("controls.episodeNumbered", { number: idx + 1 })
     }));
-  }, [playlist]);
+  }, [playlist, t]);
 
-  const displayAudioTracks = audioTracks.length > 0 
-    ? audioTracks 
-    : FALLBACK_AUDIO_TRACKS;
+  const displayAudioTracks = audioTracks.length > 0
+    ? audioTracks
+    : fallbackAudioTracks;
 
   const displayCurrentAudio = audioTracks.length > 0 ? currentAudioTrack : -1;
 
@@ -153,13 +158,13 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
                 const T_new = Math.max(seekOffset + currentTime - 10, 0);
                 onSeek(T_new);
               }}
-              title="Назад на 10 сек."
-              aria-label="Назад на 10 секунд"
+              title={t("controls.rewind10Title")}
+              aria-label={t("controls.rewind10Aria")}
             >
               <RotateCcw size="1.125rem" />
             </button>
 
-            <button className="control-icon-btn" onClick={onTogglePlay} aria-label={isPlaying ? "Пауза" : "Воспроизведение"}>
+            <button className="control-icon-btn" onClick={onTogglePlay} aria-label={isPlaying ? t("controls.pause") : t("controls.play")}>
               {isPlaying ? <Pause size="1.25rem" fill="currentColor" /> : <Play size="1.25rem" fill="currentColor" />}
             </button>
 
@@ -170,14 +175,14 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
                 const T_new = Math.min(seekOffset + currentTime + 10, duration);
                 onSeek(T_new);
               }}
-              title="Вперед на 10 сек."
-              aria-label="Вперед на 10 секунд"
+              title={t("controls.forward10Title")}
+              aria-label={t("controls.forward10Aria")}
             >
               <RotateCw size="1.125rem" />
             </button>
             
             <div className="volume-control-wrapper">
-              <button className="control-icon-btn" onClick={onToggleMuted} aria-label="Вкл/Выкл звук">
+              <button className="control-icon-btn" onClick={onToggleMuted} aria-label={t("controls.toggleMute")}>
                 {isMuted || volume === 0 ? <VolumeX size="1.25rem" /> : volume < 0.5 ? <Volume1 size="1.25rem" /> : <Volume2 size="1.25rem" />}
               </button>
               <input 
@@ -191,7 +196,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
                 style={{
                   background: `linear-gradient(to right, var(--text-primary) ${ (isMuted ? 0 : volume) * 100 }%, rgba(255, 255, 255, 0.2) ${ (isMuted ? 0 : volume) * 100 }%)`
                 }}
-                aria-label="Громкость"
+                aria-label={t("controls.volume")}
               />
             </div>
 
@@ -202,15 +207,15 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             <button 
               className={`control-icon-btn ${showStats ? "active-accent" : ""}`}
               onClick={onToggleStats}
-              title="Диагностика"
-              aria-label="Показать диагностику"
+              title={t("controls.diagnosticsTitle")}
+              aria-label={t("controls.diagnosticsAria")}
             >
               <Activity size="1.125rem" />
             </button>
 
             <TrackSelectorDropdown
               icon={<Volume2 size="1.125rem" />}
-              title="Аудиодорожки"
+              title={t("controls.audioTracks")}
               items={displayAudioTracks}
               currentItemId={displayCurrentAudio}
               onSelect={onSelectAudioTrack}
@@ -220,14 +225,14 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
 
             <TrackSelectorDropdown
               icon={<Subtitles size="1.125rem" />}
-              title="Субтитры"
+              title={t("controls.subtitles")}
               items={subtitleTracks}
               currentItemId={currentSubtitleTrack}
               onSelect={onSelectSubtitleTrack}
               isOpen={showSubtitleMenu}
               onToggle={onToggleSubtitleMenu}
               showDisableOption={true}
-              disableOptionLabel="Отключить"
+              disableOptionLabel={t("controls.disable")}
               onUploadSubtitle={onUploadSubtitle}
               disabled={true}
             />
@@ -235,7 +240,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             {playlistItems && playlistItems.length > 0 && (
               <TrackSelectorDropdown
                 icon={<ListVideo size="1.125rem" />}
-                title="Серии плейлиста"
+                title={t("controls.playlistEpisodes")}
                 items={playlistItems}
                 currentItemId={playlistIndex ?? -1}
                 onSelect={onSelectPlaylistItem || (() => {})}
@@ -247,7 +252,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             {qualityLevels && qualityLevels.length > 0 && (
               <TrackSelectorDropdown
                 icon={<Settings size="1.125rem" />}
-                title="Качество"
+                title={t("controls.quality")}
                 items={qualityLevels}
                 currentItemId={currentQualityLevel}
                 onSelect={onSelectQualityLevel}
@@ -256,7 +261,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
               />
             )}
 
-            <button className="control-icon-btn" onClick={onToggleFullscreen} aria-label="Во весь экран">
+            <button className="control-icon-btn" onClick={onToggleFullscreen} aria-label={t("controls.fullscreen")}>
               {isFullscreen ? <Minimize size="1.25rem" /> : <Maximize size="1.25rem" />}
             </button>
           </div>

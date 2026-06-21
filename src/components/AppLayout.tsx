@@ -263,7 +263,7 @@ export const AppLayout: React.FC = () => {
       });
     } else {
       addProfile({
-        name: "Локальный BFF",
+        name: "Local BFF",
         gatewayURL: targetUrl,
         playerServerURL: "",
         searchEngineURL: "",
@@ -410,7 +410,7 @@ export const AppLayout: React.FC = () => {
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
-          <span>{isInspectorActive ? "Выключить Изучение" : "Изучить разметку"}</span>
+          <span>{isInspectorActive ? t("inspector.disable") : t("inspector.enable")}</span>
         </button>
       )}
       {isDesktop && developerMode && isInspectorActive && (

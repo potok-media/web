@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { ApiClient } from "../network/ApiClient";
 import { usePlayback, type ActivePlayback } from "../context/AppSettingsContext";
 import { PlayerTopBar } from "./player/PlayerTopBar";
@@ -44,6 +45,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   onClose,
   isNetworkOffline = false,
 }) => {
+  const { t } = useTranslation("player");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const { playVideo } = usePlayback();
@@ -289,11 +291,11 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     const diagnosticUrl = getProxyUrl(playback.streamUrl, gatewayBase, playback.headers);
     fetch(diagnosticUrl, { method: "HEAD" })
       .then((res) => {
-        if (res.status === 403 || res.status === 401) setPlayerError("Доступ к воспроизведению ограничен.");
+        if (res.status === 403 || res.status === 401) setPlayerError(t("playback.accessRestricted"));
         else if (res.status === 410) handleRefreshStream();
-        else setPlayerError("Не удалось загрузить видео-поток.");
+        else setPlayerError(t("playback.loadFailed"));
       })
-      .catch(() => setPlayerError("Не удалось загрузить видео-поток."))
+      .catch(() => setPlayerError(t("playback.loadFailed")))
       .finally(() => setIsMetadataLoading(false));
   };
 
@@ -414,9 +416,9 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   const displayQualityLevels = useMemo(() => {
     if (rawLevels.length === 0) return [];
     const activeLevel = hlsActiveLevel >= 0 ? rawLevels.find(l => l.id === hlsActiveLevel) : null;
-    const autoLabel = activeLevel?.height ? `Авто (${activeLevel.height}p)` : "Авто";
-    return [{ id: -1, name: autoLabel }, ...rawLevels.map((l) => ({ id: l.id, name: l.height ? `${l.height}p` : `Качество ${l.id + 1}` }))];
-  }, [rawLevels, hlsActiveLevel]);
+    const autoLabel = activeLevel?.height ? t("quality.autoWithHeight", { height: activeLevel.height }) : t("quality.auto");
+    return [{ id: -1, name: autoLabel }, ...rawLevels.map((l) => ({ id: l.id, name: l.height ? `${l.height}p` : t("quality.levelNumbered", { number: l.id + 1 }) }))];
+  }, [rawLevels, hlsActiveLevel, t]);
 
   const { introRange: remoteIntro, outroRange: remoteOutro } = useTimecodes(playback.id, playback.season, playback.episode, playback.mediaType === "tv", displayDuration);
   const introRange = localIntroRange || remoteIntro;
@@ -432,14 +434,14 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
 
   const loadingState = useMemo(() => {
     if (!isMetadataLoading) return null;
-    if (!playback.streamUrl.includes("/stream/") && !playback.streamHash) return { title: "Инициализация и буферизация...", subtitle: "Загрузка медиа-потока", step: 4 };
-    if (torrentPeers === null || torrentPeers === 0) return { title: "Поиск раздающих...", subtitle: "Поиск активных пиров в сети P2P (DHT)", step: 1 };
+    if (!playback.streamUrl.includes("/stream/") && !playback.streamHash) return { title: t("loading.init.title"), subtitle: t("loading.init.loadingStream"), step: 4 };
+    if (torrentPeers === null || torrentPeers === 0) return { title: t("loading.peers.title"), subtitle: t("loading.peers.subtitle"), step: 1 };
     if (!isMetadataFetched && !(hasPositivePeersTime && (Date.now() - hasPositivePeersTime > 3000))) {
-      return { title: "Подготовка видео-потока...", subtitle: `Скачивание заголовков файла • Пиры: ${torrentPeers} • Скорость: ${(torrentDownloadSpeed ? torrentDownloadSpeed / 1024 / 1024 : 0).toFixed(1)} МБ/с`, step: 2 };
+      return { title: t("loading.preparing.title"), subtitle: t("loading.preparing.subtitle", { peers: torrentPeers, speed: (torrentDownloadSpeed ? torrentDownloadSpeed / 1024 / 1024 : 0).toFixed(1) }), step: 2 };
     }
-    if (!isMetadataFetched) return { title: "Настройка аудио и видео...", subtitle: "Анализ медиа-контейнера и дорожек", step: 3 };
-    return { title: "Инициализация и буферизация...", subtitle: "Запуск плеера и наполнение буфера воспроизведения", step: 4 };
-  }, [isMetadataLoading, playback.streamUrl, playback.streamHash, torrentPeers, torrentDownloadSpeed, isMetadataFetched, hasPositivePeersTime]);
+    if (!isMetadataFetched) return { title: t("loading.tracks.title"), subtitle: t("loading.tracks.subtitle"), step: 3 };
+    return { title: t("loading.init.title"), subtitle: t("loading.init.subtitle"), step: 4 };
+  }, [isMetadataLoading, playback.streamUrl, playback.streamHash, torrentPeers, torrentDownloadSpeed, isMetadataFetched, hasPositivePeersTime, t]);
 
   // Sub-renders to limit direct JSX to ≤ 60 lines
   const renderOverlays = () => (
@@ -450,7 +452,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
       {isNetworkOffline && (
         <div className="player-network-offline-banner">
           <AlertTriangle size="1.125rem" />
-          <span>Связь потеряна. Воспроизведение идет из буфера...</span>
+          <span>{t("offline.banner")}</span>
         </div>
       )}
     </>

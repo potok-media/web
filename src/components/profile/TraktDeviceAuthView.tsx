@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Key, ExternalLink, Copy, RefreshCw } from "lucide-react";
 import { Focusable, FocusableButton } from "../common/TVNavigation";
 
@@ -16,6 +17,7 @@ export const TraktDeviceAuthView: React.FC<TraktDeviceAuthViewProps> = ({
   onCancel,
   onCopyCode,
 }) => {
+  const { t } = useTranslation("profile");
   return (
     <div className="strategy-card-wrapper device-auth">
       <div className="device-auth-avatar-container">
@@ -26,9 +28,9 @@ export const TraktDeviceAuthView: React.FC<TraktDeviceAuthViewProps> = ({
       </div>
 
       <div className="device-auth-header">
-        <h3 className="device-auth-title">Активация устройства</h3>
+        <h3 className="device-auth-title">{t("traktDeviceAuth.title")}</h3>
         <p className="device-auth-desc">
-          Для подключения вашего аккаунта Trakt выполните следующие простые шаги:
+          {t("traktDeviceAuth.description")}
         </p>
       </div>
 
@@ -37,7 +39,7 @@ export const TraktDeviceAuthView: React.FC<TraktDeviceAuthViewProps> = ({
           <div className="device-auth-step-number">1</div>
           <div className="device-auth-step-content">
             <span className="device-auth-step-title">
-              Перейдите по ссылке на вашем телефоне или ПК:
+              {t("traktDeviceAuth.step1")}
             </span>
             <Focusable>
               {({ ref, focused }) => (
@@ -62,7 +64,7 @@ export const TraktDeviceAuthView: React.FC<TraktDeviceAuthViewProps> = ({
           <div className="device-auth-step-number">2</div>
           <div className="device-auth-step-content wide">
             <span className="device-auth-step-title">
-              Введите следующий уникальный код:
+              {t("traktDeviceAuth.step2")}
             </span>
             <div className="device-auth-code-row">
               <span className="device-auth-code-text">
@@ -82,7 +84,7 @@ export const TraktDeviceAuthView: React.FC<TraktDeviceAuthViewProps> = ({
       <div className="device-auth-waiting-badge">
         <RefreshCw size={12} className="spin device-auth-waiting-icon" />
         <span className="device-auth-waiting-text">
-          Ожидание подтверждения от Trakt...
+          {t("traktDeviceAuth.waiting")}
         </span>
       </div>
 
@@ -90,7 +92,7 @@ export const TraktDeviceAuthView: React.FC<TraktDeviceAuthViewProps> = ({
         onClick={onCancel}
         className="device-auth-cancel-btn"
       >
-        Назад к выбору
+        {t("traktDeviceAuth.backToSelection")}
       </FocusableButton>
     </div>
   );

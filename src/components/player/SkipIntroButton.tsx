@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface SkipIntroButtonProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -16,6 +17,7 @@ export const SkipIntroButton: React.FC<SkipIntroButtonProps> = ({
   displayDuration,
   onSeek,
 }) => {
+  const { t } = useTranslation("player");
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -49,7 +51,7 @@ export const SkipIntroButton: React.FC<SkipIntroButtonProps> = ({
         onSeek(introRange.end);
       }}
     >
-      <span>Пропустить интро</span>
+      <span>{t("skip.intro")}</span>
       <ChevronRight size={18} />
     </button>
   );

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Search, X } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { FocusableButton, FocusableInput } from "./common/TVNavigation";
@@ -22,12 +23,13 @@ export const SidebarSearch: React.FC<SidebarSearchProps> = React.memo(({
   onFocus,
   onBlur,
 }) => {
+  const { t } = useTranslation("sidebar");
   if (isCollapsed) {
     return (
       <NavLink 
         to="/search" 
         className={({ isActive }) => `sidebar-nav-item ${isActive ? "active" : ""}`} 
-        title="Поиск"
+        title={t("search")}
       >
         <Search size="1.125rem" />
       </NavLink>
@@ -41,7 +43,7 @@ export const SidebarSearch: React.FC<SidebarSearchProps> = React.memo(({
         <FocusableInput
           ref={inputRef}
           type="text"
-          placeholder="Поиск..."
+          placeholder={t("searchPlaceholder")}
           value={sidebarSearch}
           onChange={onSearchChange}
           onFocus={onFocus}
@@ -52,7 +54,7 @@ export const SidebarSearch: React.FC<SidebarSearchProps> = React.memo(({
           <FocusableButton
             onClick={onClear}
             className="sidebar-search-clear"
-            title="Очистить"
+            title={t("clear")}
           >
             <X size="0.875rem" />
           </FocusableButton>

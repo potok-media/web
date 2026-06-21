@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Save, Eye, EyeOff, Sliders } from "lucide-react";
 import type { RegisteredExtension } from "@potok/sdk-types";
 import { useHUD } from "../../context/HUDContext";
@@ -12,6 +13,7 @@ interface DeclarativeSettingsProps {
 
 export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.memo(({ ext }) => {
   const { show: showHUD } = useHUD();
+  const { t } = useTranslation("settings");
   const [settings, setSettings] = useState<Record<string, string | number | boolean>>({});
   const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
 
@@ -86,7 +88,7 @@ export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.mem
       })
     );
 
-    showHUD("success", "Настройки плагина успешно сохранены");
+    showHUD("success", t("declarative.saveSuccess"));
   };
 
   if (Object.keys(config).length === 0) {
@@ -97,7 +99,7 @@ export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.mem
             <Sliders size={20} />
             <span>{ext.manifest.name || ext.id}</span>
           </h2>
-          <p className="settings-label">Для этого плагина нет доступных настроек.</p>
+          <p className="settings-label">{t("declarative.noSettings")}</p>
         </section>
       </div>
     );
@@ -184,7 +186,7 @@ export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.mem
                         type="button"
                         onClick={() => handleTogglePassword(key)}
                         className="profile-btn"
-                        title={showPassword[key] ? "Скрыть" : "Показать"}
+                        title={showPassword[key] ? t("declarative.hide") : t("declarative.show")}
                         style={{ flexShrink: 0 }}
                       >
                         {showPassword[key] ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -207,7 +209,7 @@ export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.mem
           <div className="settings-form-buttons-row">
             <FocusableButton type="submit" className="settings-btn-primary cursor-pointer btn-gap-s">
               <Save size={16} />
-              <span>Сохранить настройки</span>
+              <span>{t("declarative.saveButton")}</span>
             </FocusableButton>
           </div>
         </form>

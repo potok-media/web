@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useSeasonEpisodes } from "../hooks/useSeasonEpisodes";
 import { useHUD } from "../context/HUDContext";
 import type { TvEpisode } from "../network/ApiTypes";
@@ -35,6 +36,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   toggleSeasonWatched,
   onOpenMultiPicker,
 }) => {
+  const { t } = useTranslation("media");
   const [activeSeason, setActiveSeason] = useState<number>(1);
   const { episodes, loading, error } = useSeasonEpisodes(mediaId, activeSeason);
   const { show: showHUD } = useHUD();
@@ -199,7 +201,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
 
   return (
     <section className="season-episodes-section" style={{ minHeight: "21.875rem" }}>
-      <h2 className="season-episodes-title">Выбор серий</h2>
+      <h2 className="season-episodes-title">{t("seasons.episodeSelection")}</h2>
 
       <div className="season-selector-row">
         {/* Season Selector Popover */}
@@ -210,7 +212,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
             onClick={() => setShowSeasonPopover(prev => !prev)}
             aria-expanded={showSeasonPopover}
           >
-            Сезон {activeSeason}
+            {t("seasons.season", { number: activeSeason })}
             <ChevronDown size="1rem" />
           </FocusableButton>
           
@@ -218,7 +220,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
             <>
               <div className="popover-overlay" data-tv-overlay="true" onClick={() => setShowSeasonPopover(false)} />
               <FocusableContainer focusKey="SEASON_POPOVER_CONTAINER" isFocusBoundary={true} className="season-popover-menu">
-                <div className="popover-header">Выберите сезон</div>
+                <div className="popover-header">{t("seasons.chooseSeason")}</div>
                 <div className="popover-scrollable-list">
                   {Array.from({ length: numberOfSeasons }, (_, i) => i + 1).map((sNum) => (
                     <FocusableButton
@@ -231,7 +233,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
                       }}
                     >
                       <Tv size="1rem" className="season-item-icon" />
-                      <span>Сезон {sNum}</span>
+                      <span>{t("seasons.season", { number: sNum })}</span>
                       {activeSeason === sNum && <Check size="1rem" className="season-active-check" />}
                     </FocusableButton>
                   ))}
@@ -258,7 +260,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
                 }
               }}
               aria-expanded={!IS_TV && showWatchPopover}
-              title={IS_TV ? (isSeasonFullyWatched ? "Снять отметку с сезона" : "Отметить сезон просмотренным") : "Выбор и просмотр серий"}
+              title={IS_TV ? (isSeasonFullyWatched ? t("seasons.unmarkSeason") : t("seasons.markSeasonWatched")) : t("seasons.selectAndWatch")}
             >
               {isSeasonFullyWatched ? <Check size="1.125rem" /> : <Eye size="1.125rem" />}
               {!IS_TV && <ChevronDown size="0.75rem" />}
@@ -268,7 +270,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
               <>
                 <div className="popover-overlay" data-tv-overlay="true" onClick={() => setShowWatchPopover(false)} />
                 <FocusableContainer focusKey="WATCH_POPOVER_CONTAINER" isFocusBoundary={true} className="watch-popover-menu">
-                  <div className="popover-header">Выбор серий</div>
+                  <div className="popover-header">{t("seasons.episodeSelection")}</div>
                   <FocusableButton
                     focusKey="SEASON_WATCH_ITEM_MARK_ALL"
                     className="watch-popover-item"
@@ -278,7 +280,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
                     }}
                   >
                     <Eye size="1rem" className="watch-item-icon" />
-                    <span>{isSeasonFullyWatched ? "Снять отметку" : "Отметить сезон"}</span>
+                    <span>{isSeasonFullyWatched ? t("seasons.unmark") : t("seasons.markSeason")}</span>
                   </FocusableButton>
                   <FocusableButton
                     focusKey="SEASON_WATCH_ITEM_MULTI_PICK"
@@ -289,7 +291,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
                     }}
                   >
                     <ListTodo size="1rem" className="watch-item-icon" />
-                    <span>Отметить выборочно...</span>
+                    <span>{t("seasons.markSelectively")}</span>
                   </FocusableButton>
                 </FocusableContainer>
               </>
@@ -329,7 +331,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
               type="button"
               className="carousel-nav-btn left"
               onClick={() => handleScroll("left")}
-              aria-label="Прокрутить назад"
+              aria-label={t("seasons.scrollBack")}
             >
               <ChevronLeft size="1.25rem" />
             </button>
@@ -364,7 +366,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
               type="button"
               className="carousel-nav-btn right"
               onClick={() => handleScroll("right")}
-              aria-label="Прокрутить вперед"
+              aria-label={t("seasons.scrollForward")}
             >
               <ChevronRight size="1.25rem" />
             </button>
@@ -372,7 +374,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
         </div>
       ) : (
         <div className="season-episodes-empty">
-          Нет сведений об эпизодах этого сезона.
+          {t("seasons.noEpisodes")}
         </div>
       )}
 
@@ -406,9 +408,9 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
             >
               <Eye size="0.875rem" />
               <span>
-                {isEpisodeWatched(contextMenu.episode.episodeNumber) 
-                  ? "Убрать отметку просмотрено" 
-                  : "Отметить просмотренным"}
+                {isEpisodeWatched(contextMenu.episode.episodeNumber)
+                  ? t("seasons.unmarkWatched")
+                  : t("seasons.markWatched")}
               </span>
             </FocusableButton>
           </FocusableContainer>

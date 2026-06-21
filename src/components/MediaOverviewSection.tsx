@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Star } from "lucide-react";
 import type { TvEpisode, MediaCard } from "../network/ApiTypes";
 
@@ -16,13 +17,15 @@ export const MediaOverviewSection: React.FC<MediaOverviewSectionProps> = ({
   selectedEpisode,
   setSelectedEpisode,
 }) => {
+  const { t } = useTranslation("media");
+
   if (selectedEpisode) {
     return (
       <div className="details-main-info selected-episode-mode">
         {media.originalTitle && <p className="details-subtitles">{media.originalTitle}</p>}
 
         <h2 className="details-episode-title">
-          S{selectedEpisode.seasonNumber} • E{selectedEpisode.episode.episodeNumber} — {selectedEpisode.episode.name || `Серия ${selectedEpisode.episode.episodeNumber}`}
+          S{selectedEpisode.seasonNumber} • E{selectedEpisode.episode.episodeNumber} — {selectedEpisode.episode.name || t("episode.fallbackName", { number: selectedEpisode.episode.episodeNumber })}
         </h2>
 
         <div className="hero-metadata details-hero-metadata">
@@ -34,14 +37,14 @@ export const MediaOverviewSection: React.FC<MediaOverviewSectionProps> = ({
         </div>
 
         <p className="details-overview-text">
-          {selectedEpisode.episode.overview || media.overview || "Описание эпизода отсутствует."}
+          {selectedEpisode.episode.overview || media.overview || t("episode.noOverview")}
         </p>
 
         <button 
           className="details-reset-episode-btn"
           onClick={() => setSelectedEpisode(null)}
         >
-          ← Вернуться к описанию сериала
+          ← {t("episode.backToShow")}
         </button>
       </div>
     );
@@ -58,7 +61,7 @@ export const MediaOverviewSection: React.FC<MediaOverviewSectionProps> = ({
         {media.subtitle && <span className="details-metadata-subtitle">{media.subtitle}</span>}
         {media.genres && <span>• {media.genres}</span>}
         {media.ageRating && <span>• {media.ageRating}</span>}
-        {media.numberOfSeasons && <span>• Сезонов: {media.numberOfSeasons}</span>}
+        {media.numberOfSeasons && <span>• {t("overview.seasonsCount", { count: media.numberOfSeasons })}</span>}
       </div>
 
       {media.overview && (

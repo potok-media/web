@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import { ComponentRenderer } from "./ComponentRenderer";
 import { useInspector } from "../../../context/InspectorContext";
@@ -42,6 +43,7 @@ function shallowEqual(objA: any, objB: any): boolean {
 
 export const Slot: React.FC<SlotProps> = ({ name, props = {}, className, style, contributionId }) => {
   const { isInspectorActive, setSelectedSlot } = useInspector();
+  const { t } = useTranslation("extensions");
   const [, setTick] = useState(0);
 
   useEffect(() => {
@@ -96,7 +98,7 @@ export const Slot: React.FC<SlotProps> = ({ name, props = {}, className, style, 
             ...style
           }}
         >
-          [Слот расширения: {name}]
+          {t("slot.placeholder", { name })}
         </div>
       );
     }
@@ -136,7 +138,7 @@ export const Slot: React.FC<SlotProps> = ({ name, props = {}, className, style, 
             pointerEvents: "none"
           }}
         >
-          Слот: {name} (Активно)
+          {t("slot.active", { name })}
         </div>
         {filteredContributions.map((c) => {
           const renderResponse = ExtensionRegistry.getSlotRender(c.contribution.id);

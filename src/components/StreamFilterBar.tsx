@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { RotateCw, Flame, Calendar, ArrowUpCircle, ArrowDownCircle, ChevronDown, Check, Filter } from "lucide-react";
 import { FocusableButton } from "./common/TVNavigation";
 import { Overlay } from "./common/Overlay";
@@ -19,14 +20,9 @@ interface StreamFilterBarProps {
   allTrackersLabel?: string;
 }
 
-const SORT_OPTIONS: Record<string, string> = {
-  seedersDesc: "По популярности",
-  publishDateDesc: "Сначала новые",
-  sizeDesc: "Сначала большие",
-  sizeAsc: "Сначала маленькие",
-};
+const SORT_KEYS = ["seedersDesc", "publishDateDesc", "sizeDesc", "sizeAsc"] as const;
 
-const FIRST_SORT_KEY = Object.keys(SORT_OPTIONS)[0];
+const FIRST_SORT_KEY = SORT_KEYS[0];
 
 export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
   id,
@@ -40,9 +36,18 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
   trackers,
   onRefresh,
   showSort = true,
-  trackerLabel = "Источник",
-  allTrackersLabel = "Все трекеры",
+  trackerLabel,
+  allTrackersLabel,
 }) => {
+  const { t } = useTranslation("streams");
+  const sortLabels: Record<string, string> = {
+    seedersDesc: t("sort.seedersDesc"),
+    publishDateDesc: t("sort.publishDateDesc"),
+    sizeDesc: t("sort.sizeDesc"),
+    sizeAsc: t("sort.sizeAsc"),
+  };
+  const resolvedTrackerLabel = trackerLabel ?? t("filter.trackerLabel");
+  const resolvedAllTrackersLabel = allTrackersLabel ?? t("filter.allTrackers");
   const [sortOpen, setSortOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -103,7 +108,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
           onClick={onRefresh}
         >
           <RotateCw size="0.875rem" />
-          <span className="filter-btn-text">Обновить</span>
+          <span className="filter-btn-text">{t("actions.refresh")}</span>
         </FocusableButton>
 
         {/* Sorting Dropdown */}
@@ -121,7 +126,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
               {sortOption === "publishDateDesc" && <Calendar size="0.875rem" />}
               {sortOption === "sizeDesc" && <ArrowUpCircle size="0.875rem" />}
               {sortOption === "sizeAsc" && <ArrowDownCircle size="0.875rem" />}
-              <span className="filter-btn-text">{SORT_OPTIONS[sortOption]}</span>
+              <span className="filter-btn-text">{sortLabels[sortOption]}</span>
               <ChevronDown size="0.875rem" />
             </FocusableButton>
 
@@ -136,7 +141,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
               className="filter-popover filter-popover-menu-sort"
               popoverStyle={{ position: "fixed", top: `${sortCoords.top}px`, right: `${sortCoords.right}px`, zIndex: 999999, marginTop: "0.375rem" }}
             >
-              {Object.entries(SORT_OPTIONS).map(([key, label]) => (
+              {SORT_KEYS.map((key) => (
                 <FocusableButton
                   key={key}
                   focusKey={`SORT_ITEM_${key}`}
@@ -152,7 +157,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                     {key === "publishDateDesc" && <Calendar size="0.875rem" />}
                     {key === "sizeDesc" && <ArrowUpCircle size="0.875rem" />}
                     {key === "sizeAsc" && <ArrowDownCircle size="0.875rem" />}
-                    <span>{label}</span>
+                    <span>{sortLabels[key]}</span>
                   </div>
                   {sortOption === key && <Check size="0.875rem" className="filter-popover-check" />}
                 </FocusableButton>
@@ -172,7 +177,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
             }}
           >
             <Filter size="0.875rem" />
-            <span className="filter-btn-text">Фильтры</span>
+            <span className="filter-btn-text">{t("filter.title")}</span>
             <ChevronDown size="0.875rem" />
             {(qualityFilter !== "all" || activeTracker !== "all") && (
               <span className="filter-badge-dot" />
@@ -190,7 +195,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
             className="filter-popover filter-popover-menu-filter"
             popoverStyle={{ position: "fixed", top: `${filterCoords.top}px`, right: `${filterCoords.right}px`, zIndex: 999999, marginTop: "0.375rem" }}
           >
-            <div className="filter-section-title">Качество</div>
+            <div className="filter-section-title">{t("filter.quality")}</div>
             <div className="filter-popover-column">
               {["all", "2160p", "1080p", "720p", "480p"].map((q) => (
                 <FocusableButton
@@ -200,7 +205,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                   onClick={() => setQualityFilter(q)}
                   style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
                 >
-                  <span>{q === "all" ? "Все качества" : q}</span>
+                  <span>{q === "all" ? t("filter.allQualities") : q}</span>
                   {qualityFilter === q && <Check size="0.875rem" className="filter-popover-check" />}
                 </FocusableButton>
               ))}
@@ -209,7 +214,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
             <div className="filter-popover-divider" />
 
             <div className="filter-section-title">
-              {trackerLabel}
+              {resolvedTrackerLabel}
             </div>
             <div className="filter-popover-scroll-area">
               <FocusableButton
@@ -219,7 +224,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                 style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
               >
                 <span>
-                  {allTrackersLabel}
+                  {resolvedAllTrackersLabel}
                 </span>
                 {activeTracker === "all" && <Check size="0.875rem" className="filter-popover-check" />}
               </FocusableButton>
@@ -250,7 +255,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                   }}
                   style={{ width: "100%" }}
                 >
-                  Сбросить всё
+                  {t("filter.resetAll")}
                 </FocusableButton>
               </>
             )}

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 interface PlayerLoadingOverlayProps {
   loadingState: {
@@ -13,6 +14,7 @@ export const PlayerLoadingOverlay: React.FC<PlayerLoadingOverlayProps> = ({
   loadingState,
   onClose,
 }) => {
+  const { t } = useTranslation("player");
   return (
     <div className="player-loading-overlay" onClick={(e) => e.stopPropagation()}>
       <div className="player-loading-card">
@@ -27,10 +29,10 @@ export const PlayerLoadingOverlay: React.FC<PlayerLoadingOverlayProps> = ({
         {/* Premium Step Progress Tracker */}
         <div className="player-loading-steps">
           {[
-            { step: 1, label: "Поиск раздающих" },
-            { step: 2, label: "Заголовки" },
-            { step: 3, label: "Анализ медиа" },
-            { step: 4, label: "Буферизация" }
+            { step: 1, label: t("loading.steps.peers") },
+            { step: 2, label: t("loading.steps.headers") },
+            { step: 3, label: t("loading.steps.analyze") },
+            { step: 4, label: t("loading.steps.buffering") }
           ].map((s) => {
             const isActive = loadingState.step === s.step;
             const isCompleted = loadingState.step > s.step;
@@ -52,7 +54,7 @@ export const PlayerLoadingOverlay: React.FC<PlayerLoadingOverlayProps> = ({
           className="player-loading-cancel-btn" 
           onClick={onClose}
         >
-          Отмена
+          {t("loading.cancel")}
         </button>
       </div>
     </div>

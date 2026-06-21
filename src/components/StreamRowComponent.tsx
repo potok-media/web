@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { StreamUIItem } from "../network/ApiTypes";
 import { extractBadges } from "../utils/mediaUtils";
 import { formatBytes, formatPublishDate } from "../utils/formatters";
@@ -11,6 +12,7 @@ interface StreamRowComponentProps {
 }
 
 export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(({ stream, onClick, focusKey }) => {
+  const { t } = useTranslation("streams");
   const parsedTags = useMemo(() => {
     const extracted = extractBadges(stream.title);
     return Array.from(new Set([
@@ -60,17 +62,17 @@ export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(
               <div className="stream-footer-right">
                 {(stream.seeders === undefined || stream.seeders === null) && (stream.leechers === undefined || stream.leechers === null) ? (
                   <span className="stream-play-action" style={{ display: "flex", alignItems: "center", gap: "0.375rem", color: "var(--color-accent, #007aff)", fontWeight: 600 }}>
-                    <span style={{ fontSize: "0.5625rem" }}>▶</span> Смотреть
+                    <span style={{ fontSize: "0.5625rem" }}>▶</span> {t("row.watch")}
                   </span>
                 ) : (
                   <>
-                    <span className="stream-stat-item seeds" title="Раздают (Сиды)">
-                      <span className="stat-label">Раздают:</span>
+                    <span className="stream-stat-item seeds" title={t("row.seedersTitle")}>
+                      <span className="stat-label">{t("row.seedersLabel")}</span>
                       <span className="stat-icon green">▲</span>
                       <span className="stream-peer-num">{stream.seeders ?? 0}</span>
                     </span>
-                    <span className="stream-stat-item peers" title="Скачивают (Пиры)">
-                      <span className="stat-label">Скачивают:</span>
+                    <span className="stream-stat-item peers" title={t("row.leechersTitle")}>
+                      <span className="stat-label">{t("row.leechersLabel")}</span>
                       <span className="stat-icon grey">▼</span>
                       <span className="stream-peer-num">{stream.leechers ?? 0}</span>
                     </span>

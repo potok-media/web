@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
 import { StreamList } from "../components/common/StreamList";
@@ -12,6 +13,7 @@ import type { MediaCard } from "../network/ApiTypes";
 import "../styles/media.css";
 
 export const MediaStreamsPage: React.FC = () => {
+  const { t } = useTranslation("streams");
   const { mediaType, id, tab } = useParams<{ mediaType: string; id: string; tab?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -78,7 +80,7 @@ export const MediaStreamsPage: React.FC = () => {
           streams={streams}
           loading={loading}
           showFilters={true}
-          emptyText={error || "Потоков не найдено. Попробуйте сменить фильтры."}
+          emptyText={error || undefined}
           onSelectStream={handleSelectStream}
           onRefresh={handleRefresh}
         />
@@ -112,8 +114,8 @@ export const MediaStreamsPage: React.FC = () => {
     return (
       <div className="media-not-found-container">
         <ShieldAlert size="3rem" className="media-not-found-icon" />
-        <h2 className="media-not-found-title">Медиа не найдено</h2>
-        <FocusableButton className="btn-glass" onClick={() => navigate(-1)}>Назад</FocusableButton>
+        <h2 className="media-not-found-title">{t("notFound.title")}</h2>
+        <FocusableButton className="btn-glass" onClick={() => navigate(-1)}>{t("actions.back")}</FocusableButton>
       </div>
     );
   }
@@ -132,7 +134,7 @@ export const MediaStreamsPage: React.FC = () => {
               <div className="spinner-inner" />
             </div>
             <span style={{ marginTop: "0.75rem", fontSize: "0.95rem", color: "#fff", fontWeight: 500 }}>
-              Получение информации...
+              {t("loading.fetchingInfo")}
             </span>
           </div>
         </div>
