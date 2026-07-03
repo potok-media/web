@@ -53,6 +53,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   // Core Playback State
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
+  const [seekOffset, setSeekOffset] = useState(0);
   const [volume, setVolume] = useState<number>(() => {
     const saved = localStorage.getItem("potok_player_volume");
     return saved !== null ? Number(saved) : 0.75;
@@ -134,10 +135,22 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     hasPositivePeersTime,
   } = useTorrentStatus(streamHash, isMetadataLoading);
 
+  const displayDuration = metadataDuration > 0 ? metadataDuration : (duration || 100);
+
+  // Hook: Playback progress tracker
+  const { saveProgress } = usePlaybackTracker({
+    videoRef,
+    playback: useMemo(() => ({ id: playback.id, mediaType: playback.mediaType, season: playback.season, episode: playback.episode }), [playback.id, playback.mediaType, playback.season, playback.episode]),
+    seekOffset,
+    isActive: isPlaying,
+    duration: displayDuration,
+  });
+
   const handleClose = useCallback(() => {
+    saveProgress();
     setIsClosed(true);
     onClose?.();
-  }, [onClose]);
+  }, [onClose, saveProgress]);
 
   // Hook: Inactivity fade-out manager
   const {
@@ -150,8 +163,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     isFullscreen,
     toggleFullscreen,
   } = usePlayerFullscreen(overlayRef);
-
-  const [seekOffset, setSeekOffset] = useState(0);
 
   const seekOffsetRef = useRef(seekOffset);
   useEffect(() => {
@@ -312,6 +323,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     const needsRemux = isStreamServer && (isNonNative || id > 0 || playback.streamUrl.includes("remux=true") || normalizedUrl.includes("remux=true"));
     const time = video ? (seekOffset > 0 ? seekOffset + video.currentTime : video.currentTime) : 0;
 
+    saveProgress();
+
     let newUrl = "";
     if (needsRemux) {
       setSeekOffset(time);
@@ -361,6 +374,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     const needsRemux = isStreamServer && (isNonNative || currentAudioTrack > 0 || playback.streamUrl.includes("remux=true") || normalizedUrl.includes("remux=true"));
 
     if (needsRemux) {
+      saveProgress();
       setSeekOffset(time);
       let newUrl = updateStreamUrlParams(normalizedUrl, {
         remux: "true",
@@ -411,8 +425,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     if (video) { handleUserActivity(); if (video.paused) video.play().catch(() => {}); else video.pause(); }
   };
 
-  const displayDuration = metadataDuration > 0 ? metadataDuration : (duration || 100);
-
   const displayQualityLevels = useMemo(() => {
     if (rawLevels.length === 0) return [];
     const activeLevel = hlsActiveLevel >= 0 ? rawLevels.find(l => l.id === hlsActiveLevel) : null;
@@ -423,14 +435,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   const { introRange: remoteIntro, outroRange: remoteOutro } = useTimecodes(playback.id, playback.season, playback.episode, playback.mediaType === "tv", displayDuration);
   const introRange = localIntroRange || remoteIntro;
   const outroRange = localOutroRange || remoteOutro;
-  
-  usePlaybackTracker({
-    videoRef,
-    playback: useMemo(() => ({ id: playback.id, mediaType: playback.mediaType, season: playback.season, episode: playback.episode }), [playback.id, playback.mediaType, playback.season, playback.episode]),
-    seekOffset,
-    isActive: isPlaying,
-    duration: displayDuration,
-  });
 
   const loadingState = useMemo(() => {
     if (!isMetadataLoading) return null;
