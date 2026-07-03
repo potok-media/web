@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Storage } from "../utils/StorageService";
+import { SettingsService } from "../utils/SettingsService";
 import { useHUD } from "./HUDContext";
 import { ApiClient } from "../network/ApiClient";
 import type { ServiceStatus, ConnectionProfile, PotokUser } from "../network/ApiTypes";
@@ -92,115 +93,13 @@ const getHostConfig = () => {
 
 const hostConfig = getHostConfig();
 
-const defaultProfiles: ConnectionProfile[] = [
-  {
-    id: "default-profile",
-    name: hostConfig.profileName,
-    gatewayURL: hostConfig.bff,
-    playerServerURL: "",
-    searchEngineURL: hostConfig.search,
-    playerServerAuthEnabled: false,
-    playerServerAuthLogin: "",
-  }
-];
-
-interface LegacyProfile {
-  id?: string;
-  name?: string;
-  gatewayURL?: string;
-  playerServerURL?: string;
-  searchEngineURL?: string;
-  playerServerAuthEnabled?: boolean;
-  playerServerAuthLogin?: string;
-  torrServerURL?: string;
-  torrServerAuthEnabled?: boolean;
-  torrServerAuthLogin?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-}
-
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [connectionProfiles, setConnectionProfiles] = useState<ConnectionProfile[]>(() => {
-    const raw = Storage.get<LegacyProfile[]>("connectionProfiles", defaultProfiles as LegacyProfile[]);
-    let migrated = false;
-    const cleanProfiles = raw.map((p: LegacyProfile): ConnectionProfile => {
-      const copy = { ...p };
-      if (copy.id === "default-profile" && !copy.gatewayURL && hostConfig.bff) {
-        copy.gatewayURL = hostConfig.bff;
-        migrated = true;
-      }
-      if ("torrServerURL" in copy && copy.torrServerURL) {
-        if (!copy.playerServerURL) {
-          copy.playerServerURL = copy.torrServerURL;
-        }
-        delete copy.torrServerURL;
-        migrated = true;
-      }
-      if ("torrServerAuthEnabled" in copy && copy.torrServerAuthEnabled !== undefined) {
-        if (copy.playerServerAuthEnabled === undefined) {
-          copy.playerServerAuthEnabled = copy.torrServerAuthEnabled;
-        }
-        delete copy.torrServerAuthEnabled;
-        migrated = true;
-      }
-      if ("torrServerAuthLogin" in copy && copy.torrServerAuthLogin !== undefined) {
-        if (copy.playerServerAuthLogin === undefined) {
-          copy.playerServerAuthLogin = copy.torrServerAuthLogin;
-        }
-        delete copy.torrServerAuthLogin;
-        migrated = true;
-      }
-
-      const tgUrlKey = "tor" + "rentGoURL";
-      const tgAuthEnabledKey = "tor" + "rentGoAuthEnabled";
-      const tgAuthLoginKey = "tor" + "rentGoAuthLogin";
-
-      if (tgUrlKey in copy && copy[tgUrlKey]) {
-        if (!copy.playerServerURL) {
-          copy.playerServerURL = copy[tgUrlKey];
-        }
-        delete copy[tgUrlKey];
-        migrated = true;
-      }
-      if (tgAuthEnabledKey in copy && copy[tgAuthEnabledKey] !== undefined) {
-        if (copy.playerServerAuthEnabled === undefined) {
-          copy.playerServerAuthEnabled = copy[tgAuthEnabledKey];
-        }
-        delete copy[tgAuthEnabledKey];
-        migrated = true;
-      }
-      if (tgAuthLoginKey in copy && copy[tgAuthLoginKey] !== undefined) {
-        if (copy.playerServerAuthLogin === undefined) {
-          copy.playerServerAuthLogin = copy[tgAuthLoginKey];
-        }
-        delete copy[tgAuthLoginKey];
-        migrated = true;
-      }
-
-      return {
-        id: copy.id || `profile-${Date.now()}`,
-        name: copy.name || "Unnamed Profile",
-        gatewayURL: copy.gatewayURL || "",
-        playerServerURL: copy.playerServerURL || "",
-        searchEngineURL: copy.searchEngineURL || "",
-        playerServerAuthEnabled: !!copy.playerServerAuthEnabled,
-        playerServerAuthLogin: copy.playerServerAuthLogin || "",
-      };
-    });
-    if (migrated) {
-      Storage.set("connectionProfiles", cleanProfiles);
-    }
-    return cleanProfiles;
+    return SettingsService.getConnectionProfiles();
   });
 
   const [activeProfileID, setActiveProfileID] = useState<string | null>(() => {
-    const stored = Storage.get<string | null>("activeProfileID", null);
-    const valid = !!stored && connectionProfiles.some((p) => p.id === stored);
-    const resolved = valid ? stored : (connectionProfiles[0]?.id ?? null);
-    if (resolved && resolved !== stored) {
-      Storage.set("activeProfileID", resolved);
-    }
-    return resolved;
+    return SettingsService.getActiveProfileId();
   });
   const [accentTheme, _setAccentTheme] = useState<string>(() => 
     Storage.get<string>("accentTheme", "nordicFrost")
@@ -277,43 +176,29 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [uiFontScale]);
 
   const selectProfile = useCallback((id: string) => {
-    Storage.set("activeProfileID", id);
+    SettingsService.setActiveProfileId(id);
     setActiveProfileID(id);
     ApiClient.invalidateCache();
   }, []);
 
   const addProfile = useCallback((profile: Omit<ConnectionProfile, "id">) => {
-    const newProfile = { ...profile, id: `profile-${Date.now()}` };
-    const current = Storage.get<ConnectionProfile[]>("connectionProfiles", defaultProfiles);
-    const updated = [...current, newProfile];
-    Storage.set("connectionProfiles", updated);
-    setConnectionProfiles(updated);
-    selectProfile(newProfile.id);
-  }, [selectProfile]);
+    const updated = SettingsService.addConnectionProfile(profile);
+    if (updated) {
+      setConnectionProfiles(updated);
+      setActiveProfileID(SettingsService.getActiveProfileId());
+      ApiClient.invalidateCache();
+    }
+  }, []);
 
   const deleteProfile = useCallback((id: string) => {
-    const current = Storage.get<ConnectionProfile[]>("connectionProfiles", defaultProfiles);
-    const updated = current.filter((p) => p.id !== id);
-    Storage.set("connectionProfiles", updated);
+    const { updated, nextActiveId } = SettingsService.deleteConnectionProfile(id);
     setConnectionProfiles(updated);
-
-    const currentActive = Storage.get<string | null>("activeProfileID", null);
-    if (currentActive === id) {
-      const nextActive = updated.length > 0 ? updated[0].id : null;
-      if (nextActive) {
-        Storage.set("activeProfileID", nextActive);
-      } else {
-        Storage.remove("activeProfileID");
-      }
-      setActiveProfileID(nextActive);
-    }
+    setActiveProfileID(nextActiveId);
     ApiClient.invalidateCache();
   }, []);
 
   const updateProfile = useCallback((profile: ConnectionProfile) => {
-    const current = Storage.get<ConnectionProfile[]>("connectionProfiles", defaultProfiles);
-    const updated = current.map((p) => (p.id === profile.id ? profile : p));
-    Storage.set("connectionProfiles", updated);
+    const updated = SettingsService.updateConnectionProfile(profile);
     setConnectionProfiles(updated);
     ApiClient.invalidateCache();
   }, []);

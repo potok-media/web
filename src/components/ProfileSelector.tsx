@@ -86,6 +86,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = React.memo(({
         <FocusableButton
           className="settings-btn-primary settings-add-profile-btn"
           onClick={onStartAdd}
+          disabled={connectionProfiles.length >= 5}
         >
           <Plus size="1rem" />
           <span>{t("profileSelector.addProfile")}</span>
