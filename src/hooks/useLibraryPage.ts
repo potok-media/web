@@ -161,7 +161,11 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
       } else {
         // The collection cache mirrors `items` for this collection, so it is a safe
         // source for the current page (avoids a side effect inside a setState updater).
-        const combined = [...(getCollectionCache()[collectionType] || []), ...cards];
+        const existing = getCollectionCache()[collectionType] || [];
+        const uniqueNewCards = cards.filter(
+          newCard => !existing.some(oldCard => oldCard.id === newCard.id)
+        );
+        const combined = [...existing, ...uniqueNewCards];
         getCollectionCache()[collectionType] = combined;
         startTransition(() => {
           setItems(combined);

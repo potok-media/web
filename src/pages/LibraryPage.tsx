@@ -147,7 +147,7 @@ export const LibraryPage: React.FC = () => {
         }
       },
       {
-        rootMargin: "300px",
+        rootMargin: "1200px",
       }
     );
 
@@ -322,12 +322,12 @@ export const LibraryPage: React.FC = () => {
             <div ref={renderSentinelRef} className="library-render-sentinel" aria-hidden="true" />
           )}
 
-          {hasMore && visibleCount >= items.length && (
+          {hasMore && (
             <div className="library-pagination-wrapper">
               {/* Always auto-load on scroll: desktop via this IntersectionObserver sentinel,
                   TV via focus-driven handleCardFocus. No manual "Load more" button. */}
               <div ref={sentinelRef} className="pagination-sentinel-loader">
-                {loadingMore && <LoadingSpinner height="5rem" message={t("library.loadingMore")} />}
+                {loadingMore && <LoadingSpinner height="4rem" message={t("library.loadingMore")} size="small" />}
               </div>
             </div>
           )}

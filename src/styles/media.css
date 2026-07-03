@@ -2956,6 +2956,31 @@
   animation: pulse 1.6s ease-in-out infinite;
 }
 
+/* Small loading spinner overrides */
+.spinner-flex-container.size-small {
+  gap: 0.5rem;
+}
+
+.premium-spinner.size-small {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.premium-spinner.size-small .spinner-outer {
+  border-width: 2px;
+}
+
+.premium-spinner.size-small .spinner-inner {
+  position: absolute;
+  width: 1.05rem;
+  height: 1.05rem;
+  border-width: 1.5px;
+}
+
+.spinner-message-text.size-small {
+  font-size: 0.75rem;
+}
+
 /* StreamFileRow Styles */
 .file-card-preview-placeholder {
   width: 100%;

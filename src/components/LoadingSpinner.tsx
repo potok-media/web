@@ -10,17 +10,20 @@ interface LoadingSpinnerProps {
   fullscreen?: boolean;
   height?: string;
   showBackButton?: boolean;
+  size?: "small" | "medium";
 }
 
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   message = "",
   fullscreen = false,
-  height = "80vh",
+  height,
   showBackButton = false,
+  size = "medium",
 }) => {
   const { t } = useTranslation("common");
   const navigate = useNavigate();
   const text = message || t("loading");
+  const resolvedHeight = height || (size === "small" ? "auto" : "80vh");
 
   if (fullscreen) {
     return (
@@ -49,13 +52,13 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   }
 
   return (
-    <div className="spinner-flex-container" style={{ height }}>
-      <div className="premium-spinner">
+    <div className={`spinner-flex-container ${size === "small" ? "size-small" : ""}`} style={{ height: resolvedHeight }}>
+      <div className={`premium-spinner ${size === "small" ? "size-small" : ""}`}>
         <div className="spinner-outer" />
         <div className="spinner-inner" />
       </div>
       {text && (
-        <span className="spinner-message-text">
+        <span className={`spinner-message-text ${size === "small" ? "size-small" : ""}`}>
           {text}
         </span>
       )}
