@@ -17,7 +17,15 @@ export class LocalStorageService implements IStorageService {
     try {
       if (typeof localStorage !== "undefined") {
         const item = localStorage.getItem(key);
-        return item ? JSON.parse(item) : defaultValue;
+        if (item === null) return defaultValue;
+        try {
+          return JSON.parse(item) as T;
+        } catch (e) {
+          if (typeof defaultValue === "string") {
+            return item as unknown as T;
+          }
+          throw e;
+        }
       }
     } catch {
       return defaultValue;

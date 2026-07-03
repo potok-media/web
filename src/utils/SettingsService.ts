@@ -191,15 +191,7 @@ class SettingsServiceImpl {
   getPlayerServerUrl(): string {
     let url = this.isSettingsLocked() ? "" : (this.getActiveProfile()?.playerServerURL || "");
     if (!url) {
-      try {
-        if (typeof localStorage !== "undefined") {
-          url = localStorage.getItem(TORRENT_PLAYER_KEY) || localStorage.getItem(TORRENT_LEGACY_KEY) || "";
-        } else {
-          url = Storage.get<string>(TORRENT_PLAYER_KEY, "") || Storage.get<string>(TORRENT_LEGACY_KEY, "") || "";
-        }
-      } catch {
-        /* storage unavailable */
-      }
+      url = Storage.get<string>(TORRENT_PLAYER_KEY, "") || Storage.get<string>(TORRENT_LEGACY_KEY, "") || "";
     }
     return ensureAbsoluteURL(url);
   }
