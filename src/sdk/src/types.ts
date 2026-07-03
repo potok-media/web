@@ -113,6 +113,18 @@ export interface SDKStreamEpisode {
   headers?: Record<string, string>;
 }
 
+export interface SDKSubtitleInfo {
+  id?: string;
+  src: string;
+  label: string;
+  language?: string;
+  isDefault?: boolean;
+  format?: 'vtt' | 'ass' | string;
+  name?: string;
+  srclang?: string;
+  url?: string;
+}
+
 export interface SDKPlaybackInfo {
   streamUrl: string;
   streamType?: 'mp4' | 'm3u8' | 'dash' | string;
@@ -124,6 +136,12 @@ export interface SDKPlaybackInfo {
   headers?: Record<string, string>;
   providerId?: string;
   voice?: string;
+  subtitles?: SDKSubtitleInfo[];
+  duration?: number;
+  introStart?: number;
+  introEnd?: number;
+  outroStart?: number;
+  outroEnd?: number;
 }
 
 export interface SDKRawStreamPayload {
@@ -756,6 +774,12 @@ export interface PlaybackInfo {
   headers?: Record<string, string>;
   providerId?: string;
   voice?: string;
+  subtitles?: SDKSubtitleInfo[];
+  duration?: number;
+  introStart?: number;
+  introEnd?: number;
+  outroStart?: number;
+  outroEnd?: number;
 }
 
 export interface StreamSourceEpisodesResult {

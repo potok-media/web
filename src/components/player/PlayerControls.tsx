@@ -234,7 +234,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
               showDisableOption={true}
               disableOptionLabel={t("controls.disable")}
               onUploadSubtitle={onUploadSubtitle}
-              disabled={true}
+              disabled={subtitleTracks.length === 0}
             />
 
             {playlistItems && playlistItems.length > 0 && (

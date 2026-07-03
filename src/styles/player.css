@@ -1207,4 +1207,18 @@
   }
 }
 
+/* HTML5 Native Subtitles Styling */
+video::cue {
+  font-family: "Outfit", sans-serif;
+  color: #ffffff;
+  background: transparent !important;
+  background-color: transparent !important;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.9), 
+               -1px -1px 0 rgba(0, 0, 0, 0.9), 
+               1px -1px 0 rgba(0, 0, 0, 0.9), 
+               -1px 1px 0 rgba(0, 0, 0, 0.9), 
+               1px 1px 0 rgba(0, 0, 0, 0.9);
+}
+
+
 

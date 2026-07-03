@@ -5,6 +5,7 @@ import { SettingsService } from "../utils/SettingsService";
 import { useHUD } from "./HUDContext";
 import { ApiClient } from "../network/ApiClient";
 import type { ServiceStatus, ConnectionProfile, PotokUser } from "../network/ApiTypes";
+import type { SDKSubtitleInfo } from "../sdk/src/types";
 import { webSocketClient } from "../network/WebSocketClient";
 import { AuthApiClient } from "../network/AuthApiClient";
 import { getEnv } from "../utils/EnvService";
@@ -45,6 +46,12 @@ export interface ActivePlayback {
   voice?: string;
   playlist?: PlaylistItem[];
   playlistIndex?: number;
+  subtitles?: SDKSubtitleInfo[];
+  duration?: number;
+  introStart?: number;
+  introEnd?: number;
+  outroStart?: number;
+  outroEnd?: number;
 }
 
 // --------------------------------------------------

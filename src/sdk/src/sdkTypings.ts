@@ -371,7 +371,7 @@ export const SDK_TYPINGS = `
     /**
      * Настройки воспроизведения (streamUrl, title, и т.д.).
      */
-    playback(v: any): this;
+    playback(v: SDKPlaybackInfo): this;
   }
 
   /**
@@ -611,6 +611,37 @@ export const SDK_TYPINGS = `
     register(cb: (query: string) => Promise<any[]>): this;
   }
 
+  interface SDKSubtitleInfo {
+    id?: string;
+    src: string;
+    label: string;
+    language?: string;
+    isDefault?: boolean;
+    format?: 'vtt' | 'ass' | string;
+    name?: string;
+    srclang?: string;
+    url?: string;
+  }
+
+  interface SDKPlaybackInfo {
+    streamUrl: string;
+    streamType?: 'mp4' | 'm3u8' | 'dash' | string;
+    title: string;
+    season?: number;
+    episode?: number;
+    torrentHash?: string;
+    audios?: { id: string; name: string; url: string }[];
+    headers?: Record<string, string>;
+    providerId?: string;
+    voice?: string;
+    subtitles?: SDKSubtitleInfo[];
+    duration?: number;
+    introStart?: number;
+    introEnd?: number;
+    outroStart?: number;
+    outroEnd?: number;
+  }
+
   /**
    * Глобальный объект управления Potok SDK.
    */
@@ -682,7 +713,7 @@ export const SDK_TYPINGS = `
       /**
        * Отправляет видео на проигрывание во встроенный плеер Potok.
        */
-      playVideo(playback: any): void;
+      playVideo(playback: SDKPlaybackInfo): void;
       /**
        * Открывает диалог выбора эпизодов сериала.
        */

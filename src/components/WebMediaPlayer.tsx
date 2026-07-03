@@ -11,6 +11,13 @@ import { loadExternalSubtitle } from "../utils/SubtitleHelper";
 import { useTimecodes } from "../hooks/useTimecodes";
 import { usePlaybackTracker } from "../hooks/usePlaybackTracker";
 
+// @ts-ignore
+import JASSUB from "jassub";
+// @ts-ignore
+import workerUrl from "jassub/dist/jassub-worker.js?worker&url";
+// @ts-ignore
+import wasmUrl from "jassub/dist/jassub-worker.wasm?url";
+
 // Helpers & Utilities
 import {
   getProxyUrl,
@@ -126,7 +133,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     syncNativeTextTracks,
     localIntroRange,
     localOutroRange,
-  } = usePlayerMetadataAndTracks(streamHash, fileIndex, playback.streamUrl, playback.audios);
+  } = usePlayerMetadataAndTracks(streamHash, fileIndex, playback.streamUrl, playback.audios, playback);
 
   // Hook: Torrent metadata parsing & download speed tracker
   const {
@@ -222,16 +229,71 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     handleUserActivity,
   });
 
-  // Track Synchronization and effects
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const jassubRef = useRef<any>(null);
+
+  // Track Synchronization, native track modes, and JASSUB rendering
   useEffect(() => {
     const video = videoRef.current;
+    const canvas = canvasRef.current;
     if (!video) return;
+
     const timer = setTimeout(() => {
+      // Clean up previous JASSUB instance
+      if (jassubRef.current) {
+        try {
+          jassubRef.current.destroy();
+        } catch (e) {
+          console.error("Error destroying JASSUB instance:", e);
+        }
+        jassubRef.current = null;
+      }
+
+      if (currentSubtitleTrack === -1 || !injectedSubtitles[currentSubtitleTrack]) {
+        for (let i = 0; i < video.textTracks.length; i++) {
+          video.textTracks[i].mode = "disabled";
+        }
+        return;
+      }
+
+      const selectedTrack = injectedSubtitles[currentSubtitleTrack];
+      const isAss = selectedTrack.codec === "ass" || selectedTrack.codec === "ssa";
+
       for (let i = 0; i < video.textTracks.length; i++) {
-        video.textTracks[i].mode = i === currentSubtitleTrack ? "showing" : "disabled";
+        if (i === currentSubtitleTrack) {
+          video.textTracks[i].mode = isAss ? "hidden" : "showing";
+        } else {
+          video.textTracks[i].mode = "disabled";
+        }
+      }
+
+      if (isAss && canvas) {
+        const subUrl = `${selectedTrack.src}${selectedTrack.src.includes("?") ? "&" : "?"}format=ass`;
+        try {
+          jassubRef.current = new JASSUB({
+            video,
+            canvas,
+            subUrl,
+            workerUrl,
+            wasmUrl,
+          });
+        } catch (err) {
+          console.error("Failed to initialize JASSUB:", err);
+        }
       }
     }, 100);
-    return () => clearTimeout(timer);
+
+    return () => {
+      clearTimeout(timer);
+      if (jassubRef.current) {
+        try {
+          jassubRef.current.destroy();
+        } catch (e) {
+          console.error("Error destroying JASSUB instance on cleanup:", e);
+        }
+        jassubRef.current = null;
+      }
+    };
   }, [currentSubtitleTrack, injectedSubtitles, srcResetCounter]);
 
   // Close menus reactively on controls hide
@@ -495,6 +557,18 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
           />
         ))}
       </video>
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+          zIndex: 2,
+        }}
+      />
     </div>
   );
 

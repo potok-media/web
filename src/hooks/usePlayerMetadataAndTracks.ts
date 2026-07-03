@@ -2,26 +2,83 @@ import { useState, useEffect, useCallback } from "react";
 import { ApiClient } from "../network/ApiClient";
 import { logger } from "../utils/logger";
 import { i18n } from "../i18n";
+import { type ActivePlayback } from "../context/AppSettingsContext";
+
+function mergeAndDeduplicateSubtitles(
+  existing: { id: string; label: string; srclang: string; src: string; codec?: string }[],
+  incoming: { id: string; label: string; srclang: string; src: string; codec?: string }[]
+) {
+  const seenSrc = new Set<string>();
+  const seenLabelLang = new Set<string>();
+  const merged: { id: string; label: string; srclang: string; src: string; codec?: string }[] = [];
+
+  const add = (sub: { id: string; label: string; srclang: string; src: string; codec?: string }) => {
+    const srcKey = sub.src.trim().toLowerCase();
+    const labelLangKey = `${sub.label.trim()}_${sub.srclang.trim()}`.toLowerCase();
+    if (srcKey && seenSrc.has(srcKey)) return;
+    if (labelLangKey && seenLabelLang.has(labelLangKey)) return;
+    
+    if (srcKey) seenSrc.add(srcKey);
+    if (labelLangKey) seenLabelLang.add(labelLangKey);
+    merged.push(sub);
+  };
+
+  existing.forEach(add);
+  incoming.forEach(add);
+  return merged;
+}
 
 export function usePlayerMetadataAndTracks(
   streamHash: string,
   fileIndex: string,
   initialStreamUrl: string,
-  audios?: { name: string; url: string }[]
+  audios?: { name: string; url: string }[],
+  playback?: ActivePlayback
 ) {
   const [audioTracks, setAudioTracks] = useState<{ id: number; name: string }[]>([]);
   const [currentAudioTrack, setCurrentAudioTrack] = useState(-1);
   const [subtitleTracks, setSubtitleTracks] = useState<{ id: number; name: string }[]>([]);
   const [currentSubtitleTrack, setCurrentSubtitleTrack] = useState(-1);
-  const [injectedSubtitles, setInjectedSubtitles] = useState<{ id: string; label: string; srclang: string; src: string }[]>([]);
+  const [injectedSubtitles, setInjectedSubtitles] = useState<{ id: string; label: string; srclang: string; src: string; codec?: string }[]>(() => {
+    if (playback?.subtitles && playback.subtitles.length > 0) {
+      return playback.subtitles.map((sub, idx) => ({
+        id: sub.id || `${idx}_${sub.label || sub.name || "Subtitle"}`,
+        label: sub.label || sub.name || `Sub ${idx + 1}`,
+        srclang: sub.srclang || sub.language || "custom",
+        src: sub.src || sub.url || "",
+        codec: sub.format || (sub as any).codec,
+      }));
+    }
+    return [];
+  });
   
   const [isMetadataLoading, setIsMetadataLoading] = useState(() => {
+    if (playback?.subtitles && playback.subtitles.length > 0) {
+      return false;
+    }
     return initialStreamUrl.includes("/stream") || initialStreamUrl.includes("/torrents/") || !!streamHash;
   });
-  const [metadataDuration, setMetadataDuration] = useState(0);
-  const [isMetadataFetched, setIsMetadataFetched] = useState(false);
-  const [localIntroRange, setLocalIntroRange] = useState<{ start: number; end: number } | null>(null);
-  const [localOutroRange, setLocalOutroRange] = useState<{ start: number; end: number } | null>(null);
+  const [metadataDuration, setMetadataDuration] = useState(() => {
+    if (playback?.duration && playback.duration > 0) {
+      return playback.duration;
+    }
+    return 0;
+  });
+  const [isMetadataFetched, setIsMetadataFetched] = useState(() => {
+    return !!(playback?.subtitles && playback.subtitles.length > 0);
+  });
+  const [localIntroRange, setLocalIntroRange] = useState<{ start: number; end: number } | null>(() => {
+    if (playback && typeof playback.introStart === "number" && typeof playback.introEnd === "number" && playback.introEnd > playback.introStart) {
+      return { start: playback.introStart, end: playback.introEnd };
+    }
+    return null;
+  });
+  const [localOutroRange, setLocalOutroRange] = useState<{ start: number; end: number } | null>(() => {
+    if (playback && typeof playback.outroStart === "number" && typeof playback.outroEnd === "number" && playback.outroEnd > playback.outroStart) {
+      return { start: playback.outroStart, end: playback.outroEnd };
+    }
+    return null;
+  });
 
   // Sync Native Text Tracks
   const syncNativeTextTracks = useCallback((video: HTMLVideoElement | null) => {
@@ -66,13 +123,51 @@ export function usePlayerMetadataAndTracks(
     }
   }, [audios, initialStreamUrl]);
 
+  const subtitlesJson = JSON.stringify(playback?.subtitles);
+  const durationVal = playback?.duration;
+  const introStartVal = playback?.introStart;
+  const introEndVal = playback?.introEnd;
+  const outroStartVal = playback?.outroStart;
+  const outroEndVal = playback?.outroEnd;
+
   // Sync with host metadata endpoint
   useEffect(() => {
-    setInjectedSubtitles([]);
+    const initialSubs = playback?.subtitles && playback.subtitles.length > 0
+      ? playback.subtitles.map((sub, idx) => ({
+          id: sub.id || `${idx}_${sub.label || sub.name || "Subtitle"}`,
+          label: sub.label || sub.name || `Sub ${idx + 1}`,
+          srclang: sub.srclang || sub.language || "custom",
+          src: sub.src || sub.url || "",
+        }))
+      : [];
+    setInjectedSubtitles(initialSubs);
     setSubtitleTracks([]);
     setCurrentSubtitleTrack(-1);
-    setLocalIntroRange(null);
-    setLocalOutroRange(null);
+
+    if (playback?.duration && playback.duration > 0) {
+      setMetadataDuration(playback.duration);
+    } else {
+      setMetadataDuration(0);
+    }
+
+    if (playback && typeof playback.introStart === "number" && typeof playback.introEnd === "number" && playback.introEnd > playback.introStart) {
+      setLocalIntroRange({ start: playback.introStart, end: playback.introEnd });
+    } else {
+      setLocalIntroRange(null);
+    }
+
+    if (playback && typeof playback.outroStart === "number" && typeof playback.outroEnd === "number" && playback.outroEnd > playback.outroStart) {
+      setLocalOutroRange({ start: playback.outroStart, end: playback.outroEnd });
+    } else {
+      setLocalOutroRange(null);
+    }
+
+    // If playback subtitles are provided, bypass TorrentGo metadata fetch
+    if (playback?.subtitles && playback.subtitles.length > 0) {
+      setIsMetadataLoading(false);
+      setIsMetadataFetched(true);
+      return;
+    }
 
     if (!fileIndex || !streamHash) {
       setIsMetadataLoading(false);
@@ -118,9 +213,11 @@ export function usePlayerMetadataAndTracks(
                 label: t.title,
                 srclang: t.language || "custom",
                 src: srcUrl,
+                codec: t.codec,
               };
             });
-          setInjectedSubtitles(tracksToInject);
+          
+          setInjectedSubtitles((prev) => mergeAndDeduplicateSubtitles(prev, tracksToInject));
           setIsMetadataFetched(true);
         }
       } catch (err) {
@@ -137,7 +234,7 @@ export function usePlayerMetadataAndTracks(
     return () => {
       isMounted = false;
     };
-  }, [streamHash, fileIndex]);
+  }, [streamHash, fileIndex, subtitlesJson, durationVal, introStartVal, introEndVal, outroStartVal, outroEndVal]);
 
   return {
     audioTracks,
