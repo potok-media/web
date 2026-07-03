@@ -359,7 +359,7 @@ export const AppLayout: React.FC = () => {
           </div>
         )}>
           <WebMediaPlayer
-            key={`${activePlayback.id}-${activePlayback.season || 0}-${activePlayback.episode || 0}-${activePlayback.streamUrl}`}
+            key={`${activePlayback.id}-${activePlayback.season || 0}-${activePlayback.episode || 0}`}
             playback={activePlayback}
             onClose={handleClosePlayer}
             isNetworkOffline={connectionState === "offline"}

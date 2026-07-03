@@ -337,6 +337,23 @@ export class ApiClient {
     }
   }
 
+  // Resolve the nearest video keyframe at or before `time` so a remux-seek lands exactly on
+  // a keyframe (requested start == real output start), keeping subtitles in sync. Returns
+  // null on failure so the caller can fall back to the requested time.
+  public static async getNearestKeyframe(hash: string, fileId: string | number, time: number): Promise<number | null> {
+    try {
+      const cleanBase = this.playerServerURL.replace(/\/+$/, "");
+      const res = await fetch(
+        `${cleanBase}/api/torrents/${hash.toLowerCase()}/files/${fileId}/keyframe?time=${encodeURIComponent(String(time))}`
+      );
+      if (!res.ok) return null;
+      const data = await res.json();
+      return typeof data?.keyframe === "number" && isFinite(data.keyframe) ? data.keyframe : null;
+    } catch {
+      return null;
+    }
+  }
+
   public static async fetchExtensionManifest(url: string, signal?: AbortSignal): Promise<ExtensionManifest> {
     if (!this.isWorker) {
       return DataWorkerBridge.request<ExtensionManifest>("fetchExtensionManifest", [url]);

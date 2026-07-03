@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { ApiClient } from "../network/ApiClient";
+import { buildSubtitleSrc } from "../utils/torrentGoStream";
 import { logger } from "../utils/logger";
 import { i18n } from "../i18n";
 import { type ActivePlayback } from "../context/AppSettingsContext";
@@ -37,7 +38,15 @@ export function usePlayerMetadataAndTracks(
 ) {
   const [audioTracks, setAudioTracks] = useState<{ id: number; name: string }[]>([]);
   const [currentAudioTrack, setCurrentAudioTrack] = useState(-1);
-  const [subtitleTracks, setSubtitleTracks] = useState<{ id: number; name: string }[]>([]);
+  const [subtitleTracks, setSubtitleTracks] = useState<{ id: number; name: string }[]>(() => {
+    if (playback?.subtitles && playback.subtitles.length > 0) {
+      return playback.subtitles.map((sub, idx) => ({
+        id: idx,
+        name: sub.label || sub.name || `Sub ${idx + 1}`,
+      }));
+    }
+    return [];
+  });
   const [currentSubtitleTrack, setCurrentSubtitleTrack] = useState(-1);
   const [injectedSubtitles, setInjectedSubtitles] = useState<{ id: string; label: string; srclang: string; src: string; codec?: string }[]>(() => {
     if (playback?.subtitles && playback.subtitles.length > 0) {
@@ -51,6 +60,18 @@ export function usePlayerMetadataAndTracks(
     }
     return [];
   });
+
+  // Sync subtitleTracks state from injectedSubtitles for instant UI availability
+  useEffect(() => {
+    setSubtitleTracks((prev) => {
+      const injectedTracks = injectedSubtitles.map((sub, idx) => ({
+        id: idx,
+        name: sub.label || `Sub ${idx + 1}`
+      }));
+      const inbandTracks = prev.filter(t => t.id >= injectedSubtitles.length);
+      return [...injectedTracks, ...inbandTracks];
+    });
+  }, [injectedSubtitles]);
   
   const [isMetadataLoading, setIsMetadataLoading] = useState(() => {
     if (playback?.subtitles && playback.subtitles.length > 0) {
@@ -83,21 +104,24 @@ export function usePlayerMetadataAndTracks(
   // Sync Native Text Tracks
   const syncNativeTextTracks = useCallback((video: HTMLVideoElement | null) => {
     if (!video) return;
-    const tracks: { id: number; name: string }[] = [];
-    let activeIdx = -1;
-    for (let i = 0; i < video.textTracks.length; i++) {
+    
+    const inbandTracks: { id: number; name: string }[] = [];
+    for (let i = injectedSubtitles.length; i < video.textTracks.length; i++) {
       const track = video.textTracks[i];
       if (track.kind === "subtitles" || track.kind === "captions") {
-        tracks.push({
+        inbandTracks.push({
           id: i,
           name: track.label || track.language || i18n.t("player:trackSelector.subtitlesFallback", { index: i + 1 }),
         });
-        if (track.mode === "showing") activeIdx = i;
       }
     }
-    setSubtitleTracks(tracks);
-    setCurrentSubtitleTrack(activeIdx);
-  }, []);
+
+    const injectedTracks = injectedSubtitles.map((sub, idx) => ({
+      id: idx,
+      name: sub.label || `Sub ${idx + 1}`
+    }));
+    setSubtitleTracks([...injectedTracks, ...inbandTracks]);
+  }, [injectedSubtitles]);
 
   // Audio track initializer
   useEffect(() => {
@@ -130,7 +154,18 @@ export function usePlayerMetadataAndTracks(
   const outroStartVal = playback?.outroStart;
   const outroEndVal = playback?.outroEnd;
 
-  // Sync with host metadata endpoint
+  // Reset state when the video source (file/stream) changes
+  useEffect(() => {
+    setInjectedSubtitles([]);
+    setSubtitleTracks([]);
+    setCurrentSubtitleTrack(-1);
+    setMetadataDuration(0);
+    setLocalIntroRange(null);
+    setLocalOutroRange(null);
+    setIsMetadataFetched(false);
+  }, [streamHash, fileIndex]);
+
+  // Sync static properties from playback prop to local React states
   useEffect(() => {
     const initialSubs = playback?.subtitles && playback.subtitles.length > 0
       ? playback.subtitles.map((sub, idx) => ({
@@ -138,31 +173,30 @@ export function usePlayerMetadataAndTracks(
           label: sub.label || sub.name || `Sub ${idx + 1}`,
           srclang: sub.srclang || sub.language || "custom",
           src: sub.src || sub.url || "",
+          codec: sub.format || (sub as any).codec,
         }))
       : [];
-    setInjectedSubtitles(initialSubs);
-    setSubtitleTracks([]);
-    setCurrentSubtitleTrack(-1);
+    
+    if (initialSubs.length > 0) {
+      setInjectedSubtitles((prev) => mergeAndDeduplicateSubtitles(prev, initialSubs));
+    }
 
     if (playback?.duration && playback.duration > 0) {
       setMetadataDuration(playback.duration);
-    } else {
-      setMetadataDuration(0);
     }
 
     if (playback && typeof playback.introStart === "number" && typeof playback.introEnd === "number" && playback.introEnd > playback.introStart) {
       setLocalIntroRange({ start: playback.introStart, end: playback.introEnd });
-    } else {
-      setLocalIntroRange(null);
     }
 
     if (playback && typeof playback.outroStart === "number" && typeof playback.outroEnd === "number" && playback.outroEnd > playback.outroStart) {
       setLocalOutroRange({ start: playback.outroStart, end: playback.outroEnd });
-    } else {
-      setLocalOutroRange(null);
     }
+  }, [subtitlesJson, durationVal, introStartVal, introEndVal, outroStartVal, outroEndVal]);
 
-    // If playback subtitles are provided, bypass TorrentGo metadata fetch
+  // Fetch metadata from TorrentGo exactly once when the stream/file changes
+  useEffect(() => {
+    // If playback subtitles are already provided, bypass TorrentGo metadata fetch
     if (playback?.subtitles && playback.subtitles.length > 0) {
       setIsMetadataLoading(false);
       setIsMetadataFetched(true);
@@ -203,19 +237,33 @@ export function usePlayerMetadataAndTracks(
             setCurrentAudioTrack((prev) => (prev === -1 ? torrentAudioTracks[0].id : prev));
           }
 
-          const tracksToInject = metadata.tracks
-            .filter((t) => t.type === "subtitle")
-            .map((t) => {
-              const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
-              const srcUrl = `${cleanBase}/stream/${streamHash.toLowerCase()}/${fileIndex}/subtitles/${t.relIndex}`;
-              return {
-                id: `${t.relIndex}_${t.title}`,
-                label: t.title,
-                srclang: t.language || "custom",
-                src: srcUrl,
-                codec: t.codec,
-              };
-            });
+          const subtitleMeta = metadata.tracks.filter((t) => t.type === "subtitle");
+          // Count how many tracks share each title so we can disambiguate collisions
+          // (e.g. a "Полные" RUS track and a "Полные" ENG track) by appending the language.
+          const labelCounts = new Map<string, number>();
+          subtitleMeta.forEach((t) => {
+            const key = (t.title || "").trim().toLowerCase();
+            labelCounts.set(key, (labelCounts.get(key) || 0) + 1);
+          });
+
+          const tracksToInject = subtitleMeta.map((t) => {
+            const srcUrl = buildSubtitleSrc(streamHash, fileIndex, t.relIndex);
+            const baseLabel = t.title || `Sub ${t.relIndex + 1}`;
+            const key = (t.title || "").trim().toLowerCase();
+            const lang = (t.language || "").trim();
+            const ambiguous = (labelCounts.get(key) || 0) > 1;
+            const label =
+              lang && ambiguous && !baseLabel.toLowerCase().includes(lang.toLowerCase())
+                ? `${baseLabel} (${lang.toUpperCase()})`
+                : baseLabel;
+            return {
+              id: `${t.relIndex}_${t.title}`,
+              label,
+              srclang: t.language || "custom",
+              src: srcUrl,
+              codec: t.codec,
+            };
+          });
           
           setInjectedSubtitles((prev) => mergeAndDeduplicateSubtitles(prev, tracksToInject));
           setIsMetadataFetched(true);
@@ -234,7 +282,63 @@ export function usePlayerMetadataAndTracks(
     return () => {
       isMounted = false;
     };
-  }, [streamHash, fileIndex, subtitlesJson, durationVal, introStartVal, introEndVal, outroStartVal, outroEndVal]);
+  }, [streamHash, fileIndex]);
+
+  const subtitleFetchPromises = useRef<Record<string, Promise<string> | undefined>>({});
+
+  // Pre-fetch ALL subtitle contents (ass/ssa + vtt/srt) in the main thread using shared
+  // promises so that selecting a track later requires no network round-trip.
+  useEffect(() => {
+    console.log("[SUB-PREFETCH] Hook effect fired. injectedSubtitles count:", injectedSubtitles.length);
+    if (injectedSubtitles.length === 0) return;
+
+    const prefetchTrack = (track: { id: string; label: string; src: string; codec?: string }) => {
+      if (!track.src) return;
+      // Locally-uploaded subtitles are already in-memory blob URLs — no server fetch needed.
+      if (track.src.startsWith("blob:")) return;
+      if (subtitleFetchPromises.current[track.id]) {
+        console.log(`[SUB-PREFETCH] Track "${track.label}" already has active fetch promise`);
+        return;
+      }
+
+      const isAss = track.codec === "ass" || track.codec === "ssa";
+      const format = isAss ? "ass" : "webvtt";
+      const subUrl = `${track.src}${track.src.includes("?") ? "&" : "?"}format=${format}`;
+      console.log(`[SUB-PREFETCH] Starting prefetch promise for "${track.label}" (${format}) from URL: ${subUrl}`);
+
+      subtitleFetchPromises.current[track.id] = fetch(subUrl)
+        .then((res) => {
+          console.log(`[SUB-PREFETCH] Network response for "${track.label}": status=${res.status}, ok=${res.ok}`);
+          if (!res.ok) throw new Error("Failed to fetch subtitle content");
+          return res.text();
+        })
+        .then((text) => {
+          console.log(`[SUB-PREFETCH] Content loaded for "${track.label}": ${text.length} chars`);
+          return text;
+        })
+        .catch((err) => {
+          console.error(`[SUB-PREFETCH] FAILED for "${track.label}":`, err);
+          // Remove from cache on failure so it can be retried later
+          delete subtitleFetchPromises.current[track.id];
+          throw err;
+        });
+    };
+
+    // Prioritize the currently-selected / default track so the first pick is instant,
+    // then warm the rest (they are also being pre-extracted server-side).
+    const ordered = [...injectedSubtitles];
+    if (currentSubtitleTrack >= 0 && currentSubtitleTrack < ordered.length) {
+      const [selected] = ordered.splice(currentSubtitleTrack, 1);
+      ordered.unshift(selected);
+    }
+    ordered.forEach(prefetchTrack);
+  }, [injectedSubtitles, currentSubtitleTrack]);
+
+  // Clear prefetch cache when the video source resets
+  useEffect(() => {
+    console.log("[SUB-PREFETCH] Resetting fetch promises cache");
+    subtitleFetchPromises.current = {};
+  }, [streamHash, fileIndex]);
 
   return {
     audioTracks,
@@ -255,5 +359,6 @@ export function usePlayerMetadataAndTracks(
     syncNativeTextTracks,
     localIntroRange,
     localOutroRange,
+    subtitleFetchPromises,
   };
 }

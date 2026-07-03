@@ -7,24 +7,36 @@ import { usePlayback, type ActivePlayback } from "../context/AppSettingsContext"
 import { PlayerTopBar } from "./player/PlayerTopBar";
 import { PlayerStatsHUD } from "./player/PlayerStatsHUD";
 import { PlayerControls } from "./player/PlayerControls";
-import { loadExternalSubtitle } from "../utils/SubtitleHelper";
+import { convertSrtToVtt } from "../utils/SubtitleHelper";
 import { useTimecodes } from "../hooks/useTimecodes";
 import { usePlaybackTracker } from "../hooks/usePlaybackTracker";
 
 // @ts-ignore
-import JASSUB from "jassub";
-// @ts-ignore
-import workerUrl from "jassub/dist/wasm/jassub-worker.js?url";
-// @ts-ignore
-import wasmUrl from "jassub/dist/wasm/jassub-worker.wasm?url";
+import SubtitlesOctopus from "libass-wasm";
+
+const MINIMAL_ASS_TEMPLATE = `[Script Info]
+ScriptType: v4.00+
+PlayResX: 384
+PlayResY: 288
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,1,1,1,2,10,10,10,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+`;
 
 // Helpers & Utilities
+import { getProxyUrl } from "../utils/playerHelpers";
 import {
-  getProxyUrl,
-  normalizeStreamUrlToPath,
-  updateStreamUrlParams,
-  getFileExtension,
-} from "../utils/playerHelpers";
+  parseTorrentGoRef,
+  describeStream,
+  streamNeedsRemux,
+  buildRemuxUrl,
+  stripRemuxParams,
+  resolveRemuxStart,
+} from "../utils/torrentGoStream";
 
 // Components
 import { SkipIntroButton } from "./player/SkipIntroButton";
@@ -80,41 +92,10 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [showPlaylistMenu, setShowPlaylistMenu] = useState(false);
 
-  const streamHash = useMemo(() => {
-    let hash = playback.streamHash;
-    if (!hash) {
-      const hashMatch = playback.streamUrl.match(/\/(?:stream|torrents)\/([a-f0-9]{40})/i);
-      if (hashMatch) {
-        hash = hashMatch[1];
-      } else {
-        try {
-          const parsed = new URL(playback.streamUrl);
-          hash = parsed.searchParams.get("link") || "";
-        } catch {
-          const match = playback.streamUrl.match(/[?&]link=([a-f0-9]{40})/i);
-          if (match) hash = match[1];
-        }
-      }
-    }
-    return hash ? hash.toLowerCase() : "";
-  }, [playback.streamUrl, playback.streamHash]);
-
-  const fileIndex = useMemo(() => {
-    let fileId = "";
-    const pathMatch = playback.streamUrl.match(/\/(?:stream|torrents)\/[a-f0-9]+(?:\/files)?\/(\d+)/i);
-    if (pathMatch) {
-      fileId = pathMatch[1];
-    } else {
-      try {
-        const parsed = new URL(playback.streamUrl);
-        fileId = parsed.searchParams.get("index") || "";
-      } catch {
-        const match = playback.streamUrl.match(/[?&]index=(\d+)/i);
-        if (match) fileId = match[1];
-      }
-    }
-    return fileId;
-  }, [playback.streamUrl]);
+  const { hash: streamHash, fileIndex } = useMemo(
+    () => parseTorrentGoRef(playback.streamUrl, playback.streamHash),
+    [playback.streamUrl, playback.streamHash]
+  );
 
   // Hook: Metadata and tracks (audio/subtitle)
   const {
@@ -126,6 +107,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     currentSubtitleTrack,
     setCurrentSubtitleTrack,
     injectedSubtitles,
+    setInjectedSubtitles,
     isMetadataLoading,
     setIsMetadataLoading,
     metadataDuration,
@@ -133,6 +115,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     syncNativeTextTracks,
     localIntroRange,
     localOutroRange,
+    subtitleFetchPromises,
   } = usePlayerMetadataAndTracks(streamHash, fileIndex, playback.streamUrl, playback.audios, playback);
 
   // Hook: Torrent metadata parsing & download speed tracker
@@ -229,72 +212,221 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     handleUserActivity,
   });
 
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const jassubRef = useRef<any>(null);
+  const octopusRef = useRef<any>(null);
 
-  // Track Synchronization, native track modes, and JASSUB rendering
+  // Blob URLs for non-ASS (vtt/srt) subtitle tracks, built from prefetched text so that
+  // selecting a track never triggers a network round-trip. Keyed by track.id.
+  const subtitleBlobUrls = useRef<Record<string, string>>({});
+  const [, setSubtitleBlobVersion] = useState(0);
+
+  // Build blob URLs for every non-ASS track as soon as its prefetch promise resolves.
+  // This lets the native <track> render instantly from memory instead of hitting the network.
+  useEffect(() => {
+    let active = true;
+    injectedSubtitles.forEach((track) => {
+      const isAss = track.codec === "ass" || track.codec === "ssa";
+      if (isAss || !track.src) return;
+      if (subtitleBlobUrls.current[track.id]) return;
+      const promise = subtitleFetchPromises.current[track.id];
+      if (!promise) return;
+      promise
+        .then((text: string) => {
+          if (!active || subtitleBlobUrls.current[track.id]) return;
+          const vtt = text.trimStart().startsWith("WEBVTT") ? text : convertSrtToVtt(text);
+          const blob = new Blob([vtt], { type: "text/vtt" });
+          subtitleBlobUrls.current[track.id] = URL.createObjectURL(blob);
+          setSubtitleBlobVersion((v) => v + 1);
+        })
+        .catch(() => {});
+    });
+    return () => {
+      active = false;
+    };
+  }, [injectedSubtitles]);
+
+  // Revoke blob URLs when the source resets (or on unmount) to avoid leaking memory.
+  useEffect(() => {
+    return () => {
+      Object.values(subtitleBlobUrls.current).forEach((u) => {
+        try {
+          URL.revokeObjectURL(u);
+        } catch {
+          /* noop */
+        }
+      });
+      subtitleBlobUrls.current = {};
+    };
+  }, [srcResetCounter]);
+
+  // Manage SubtitlesOctopus instance and track selection dynamically
   useEffect(() => {
     const video = videoRef.current;
-    const canvas = canvasRef.current;
     if (!video) return;
 
-    const timer = setTimeout(() => {
-      // Clean up previous JASSUB instance
-      if (jassubRef.current) {
+    const selectedTrack = currentSubtitleTrack !== -1 ? injectedSubtitles[currentSubtitleTrack] : null;
+    const isAss = selectedTrack ? (selectedTrack.codec === "ass" || selectedTrack.codec === "ssa") : false;
+
+    console.log("[OCTOPUS] Effect fired. currentSubtitleTrack:", currentSubtitleTrack, "isAss:", isAss, "octopusRef:", !!octopusRef.current);
+
+    // Set native track modes
+    for (let i = 0; i < video.textTracks.length; i++) {
+      if (i === currentSubtitleTrack) {
+        video.textTracks[i].mode = isAss ? "hidden" : "showing";
+      } else {
+        video.textTracks[i].mode = "disabled";
+      }
+    }
+
+    if (!isAss) {
+      if (octopusRef.current) {
+        console.log("[OCTOPUS] Disposing instance (no ASS track active)");
         try {
-          jassubRef.current.destroy();
+          octopusRef.current.dispose();
         } catch (e) {
-          console.error("Error destroying JASSUB instance:", e);
+          console.error("[OCTOPUS] Error disposing:", e);
         }
-        jassubRef.current = null;
+        octopusRef.current = null;
       }
+      return;
+    }
 
-      if (currentSubtitleTrack === -1 || !injectedSubtitles[currentSubtitleTrack]) {
-        for (let i = 0; i < video.textTracks.length; i++) {
-          video.textTracks[i].mode = "disabled";
-        }
-        return;
+    // Ensure SubtitlesOctopus is initialized (init with empty valid template first)
+    if (!octopusRef.current) {
+      console.log("[OCTOPUS] Initializing SubtitlesOctopus with minimal template");
+      try {
+        octopusRef.current = new SubtitlesOctopus({
+          video,
+          subContent: MINIMAL_ASS_TEMPLATE,
+          workerUrl: "/assets/subtitles-octopus/subtitles-octopus-worker.js",
+          legacyWorkerUrl: "/assets/subtitles-octopus/subtitles-octopus-worker-legacy.js",
+          fallbackFont: "/assets/subtitles-octopus/default.woff2",
+          // Remuxed output is 0-based; ASS timestamps are absolute. Offset libass by seekOffset
+          // (the real keyframe start) so subtitles line up with the seeked video.
+          timeOffset: seekOffsetRef.current,
+          debug: true,
+        });
+      } catch (err: any) {
+        console.error("[OCTOPUS] Failed to initialize SubtitlesOctopus:", err);
       }
+    }
 
-      const selectedTrack = injectedSubtitles[currentSubtitleTrack];
-      const isAss = selectedTrack.codec === "ass" || selectedTrack.codec === "ssa";
+    const subPromise = subtitleFetchPromises.current[selectedTrack!.id];
+    let active = true;
 
-      for (let i = 0; i < video.textTracks.length; i++) {
-        if (i === currentSubtitleTrack) {
-          video.textTracks[i].mode = isAss ? "hidden" : "showing";
-        } else {
-          video.textTracks[i].mode = "disabled";
-        }
-      }
+    if (!subPromise) {
+      // Fallback: If no prefetch promise exists, start one now
+      console.log("[OCTOPUS] No prefetch promise found. Starting one now for:", selectedTrack!.label);
+      const subUrl = `${selectedTrack!.src}${selectedTrack!.src.includes("?") ? "&" : "?"}format=ass`;
+      const fetchPromise = fetch(subUrl)
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch subtitle content");
+          return res.text();
+        });
+      subtitleFetchPromises.current[selectedTrack!.id] = fetchPromise;
+    }
 
-      if (isAss && canvas) {
-        const subUrl = `${selectedTrack.src}${selectedTrack.src.includes("?") ? "&" : "?"}format=ass`;
+    const currentPromise = subtitleFetchPromises.current[selectedTrack!.id];
+
+    currentPromise!.then((text: string) => {
+      if (!active) return;
+      const oct = octopusRef.current;
+      if (oct) {
+        console.log("[OCTOPUS] Loading resolved track text:", text.length, "chars");
+        // Drop whatever is currently on screen BEFORE loading the new track. Otherwise the
+        // previous track's line can linger — e.g. switching a full-dialogue track to a sparse
+        // "signs" track that has nothing at the current moment, so setTrack never repaints over
+        // the old bitmap.
         try {
-          jassubRef.current = new JASSUB({
-            video,
-            canvas,
-            subUrl,
-            workerUrl,
-            wasmUrl,
-          });
-        } catch (err) {
-          console.error("Failed to initialize JASSUB:", err);
+          oct.freeTrack();
+        } catch {
+          /* noop */
+        }
+        oct.setTrack(text);
+        // `setTrack` alone does not force a redraw — the worker only re-renders on a
+        // `video`/time message. Push the current time immediately so the new track is drawn in
+        // sync right away (critical while paused, where no timeupdate fires on its own).
+        try {
+          oct.setCurrentTime(video.currentTime + seekOffsetRef.current);
+        } catch (e) {
+          console.error("[OCTOPUS] setCurrentTime after setTrack failed:", e);
         }
       }
-    }, 100);
+    }).catch((err: any) => {
+      console.error("[OCTOPUS] Error resolving subtitle promise:", err);
+    });
 
     return () => {
-      clearTimeout(timer);
-      if (jassubRef.current) {
+      active = false;
+    };
+  }, [currentSubtitleTrack, injectedSubtitles]);
+
+  // Clean up SubtitlesOctopus on unmount or source change
+  useEffect(() => {
+    return () => {
+      if (octopusRef.current) {
+        console.log("[OCTOPUS] Cleanup on unmount/source change");
         try {
-          jassubRef.current.destroy();
+          octopusRef.current.dispose();
         } catch (e) {
-          console.error("Error destroying JASSUB instance on cleanup:", e);
+          console.error("[OCTOPUS] Error disposing:", e);
         }
-        jassubRef.current = null;
+        octopusRef.current = null;
       }
     };
-  }, [currentSubtitleTrack, injectedSubtitles, srcResetCounter]);
+  }, [srcResetCounter]);
+
+  // Keep libass (ASS) subtitle timing aligned with the remux seek offset. The remuxed output is
+  // 0-based (currentTime starts at the seeked keyframe K) while ASS timestamps are absolute, so
+  // we offset libass by seekOffset (= K) and force an immediate redraw.
+  useEffect(() => {
+    const oct = octopusRef.current;
+    const video = videoRef.current;
+    if (!oct) return;
+    oct.timeOffset = seekOffset;
+    if (video) {
+      try {
+        oct.setCurrentTime(video.currentTime + seekOffset);
+      } catch {
+        /* noop */
+      }
+    }
+  }, [seekOffset]);
+
+  // Same problem for native (vtt/srt) tracks: the browser times cues off video.currentTime,
+  // which is 0-based after a remuxed seek. Shift each cue by seekOffset. We stash each cue's
+  // original absolute time in a WeakMap so re-applying is idempotent and survives cue reloads.
+  const cueOriginalTimes = useRef<WeakMap<TextTrackCue, { s: number; e: number }>>(new WeakMap());
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const applyCueOffset = () => {
+      for (let i = 0; i < video.textTracks.length; i++) {
+        const inj = injectedSubtitles[i];
+        const isAss = inj ? (inj.codec === "ass" || inj.codec === "ssa") : false;
+        if (isAss) continue; // ASS is handled by SubtitlesOctopus timeOffset above
+        const cues = video.textTracks[i].cues;
+        if (!cues) continue;
+        for (let j = 0; j < cues.length; j++) {
+          const cue = cues[j] as TextTrackCue;
+          let orig = cueOriginalTimes.current.get(cue);
+          if (!orig) {
+            orig = { s: cue.startTime, e: cue.endTime };
+            cueOriginalTimes.current.set(cue, orig);
+          }
+          const ns = orig.s - seekOffset;
+          const ne = orig.e - seekOffset;
+          if (cue.startTime !== ns) cue.startTime = ns;
+          if (cue.endTime !== ne) cue.endTime = ne;
+        }
+      }
+    };
+
+    applyCueOffset();
+    // Cues load asynchronously after a <track> src is (re)assigned; re-apply shortly after.
+    const timers = [window.setTimeout(applyCueOffset, 150), window.setTimeout(applyCueOffset, 600)];
+    return () => timers.forEach((t) => clearTimeout(t));
+  }, [seekOffset, currentSubtitleTrack, injectedSubtitles, srcResetCounter]);
 
   // Close menus reactively on controls hide
   useEffect(() => {
@@ -377,76 +509,71 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     const video = videoRef.current;
     if (!video) return;
 
-    const normalizedUrl = normalizeStreamUrlToPath(playback.streamUrl);
-    const ext = getFileExtension(normalizedUrl);
-    const isNonNative = ext ? !["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "m4a", "mpd", "m4v"].includes(ext) : false;
+    const info = describeStream(playback.streamUrl, { streamHash: playback.streamHash, torrentHash: (playback as any).torrentHash });
+    const { normalizedUrl } = info;
+    const isM3U8 = normalizedUrl.includes(".m3u8") || normalizedUrl.includes("/hls/");
 
-    const isStreamServer = normalizedUrl.includes("/stream/") || normalizedUrl.includes("/torrents/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
-    const needsRemux = isStreamServer && (isNonNative || id > 0 || playback.streamUrl.includes("remux=true") || normalizedUrl.includes("remux=true"));
+    if (isM3U8) {
+      setCurrentAudioTrack(id);
+      setShowAudioMenu(false);
+      return;
+    }
+
+    const needsRemux = streamNeedsRemux(info, playback.streamUrl, id);
     const time = video ? (seekOffset > 0 ? seekOffset + video.currentTime : video.currentTime) : 0;
 
-    saveProgress();
+    // Explicitly write resume timecode to localStorage to bypass < 15s tracker guard
+    const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
+    localStorage.setItem(resumeKey, time.toString());
 
-    let newUrl = "";
-    if (needsRemux) {
-      setSeekOffset(time);
-      newUrl = updateStreamUrlParams(normalizedUrl, {
-        remux: "true",
-        start: Math.floor(time).toString(),
-        audio: id !== -1 ? id.toString() : "0"
+    const applyAudio = (newUrl: string) => {
+      // Trigger state change in parent to reload progressive stream cleanly
+      playVideo({
+        ...playback,
+        streamUrl: newUrl,
       });
+      setCurrentAudioTrack(id);
+      setShowAudioMenu(false);
+    };
+
+    if (needsRemux) {
+      // See handleSeek: 0-based output, so seekOffset = the real keyframe start.
+      (async () => {
+        const kf = await resolveRemuxStart(streamHash, fileIndex, time);
+        setSeekOffset(kf);
+        applyAudio(buildRemuxUrl(normalizedUrl, time, id));
+      })();
     } else {
       setSeekOffset(0);
-      newUrl = playback.audios && playback.audios[id] ? playback.audios[id].url : playback.streamUrl;
-      if (isStreamServer) {
-        try {
-          const parsed = new URL(newUrl);
-          parsed.searchParams.delete("remux");
-          parsed.searchParams.delete("start");
-          parsed.searchParams.delete("audio");
-          newUrl = parsed.toString();
-        } catch {
-          newUrl = newUrl.split("?")[0];
-        }
+      let newUrl = playback.audios && playback.audios[id] ? playback.audios[id].url : playback.streamUrl;
+      if (info.isTorrentGoStream) {
+        newUrl = stripRemuxParams(newUrl);
       }
+      applyAudio(newUrl);
     }
-
-    if (video) {
-      video.pause();
-      video.src = getProxyUrl(newUrl, ApiClient.baseURL, playback.headers);
-      video.play().then(() => {
-        if (!needsRemux) video.currentTime = time;
-        syncNativeTextTracks(video);
-      }).catch(() => {});
-    }
-
-    setCurrentAudioTrack(id);
-    setShowAudioMenu(false);
   };
 
   const handleSeek = (time: number) => {
     const video = videoRef.current;
     if (!video) return;
 
-    const normalizedUrl = normalizeStreamUrlToPath(playback.streamUrl);
-    const ext = getFileExtension(normalizedUrl);
-    const isNonNative = ext ? !["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "m4a", "mpd", "m4v"].includes(ext) : false;
-
-    const isStreamServer = normalizedUrl.includes("/stream/") || normalizedUrl.includes("/torrents/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
-    const needsRemux = isStreamServer && (isNonNative || currentAudioTrack > 0 || playback.streamUrl.includes("remux=true") || normalizedUrl.includes("remux=true"));
+    const info = describeStream(playback.streamUrl, { streamHash: playback.streamHash, torrentHash: (playback as any).torrentHash });
+    const needsRemux = streamNeedsRemux(info, playback.streamUrl, currentAudioTrack);
 
     if (needsRemux) {
       saveProgress();
-      setSeekOffset(time);
-      let newUrl = updateStreamUrlParams(normalizedUrl, {
-        remux: "true",
-        start: Math.floor(time).toString(),
-        audio: currentAudioTrack !== -1 ? currentAudioTrack.toString() : "0"
-      });
-      const proxiedUrl = getProxyUrl(newUrl, ApiClient.baseURL, playback.headers);
       video.pause();
-      video.src = proxiedUrl;
-      video.play().then(() => syncNativeTextTracks(video)).catch(() => {});
+      // video.currentTime after remux is 0-based (starts at the seeked keyframe K). Resolve the
+      // exact K so seekOffset = real start; the seek bar (seekOffset+currentTime) and subtitles
+      // (offset by seekOffset) then match. start=time → ffmpeg seeks to keyframe<=time == K.
+      (async () => {
+        const kf = await resolveRemuxStart(streamHash, fileIndex, time);
+        setSeekOffset(kf);
+        const newUrl = buildRemuxUrl(info.normalizedUrl, time, currentAudioTrack);
+        const proxiedUrl = getProxyUrl(newUrl, ApiClient.baseURL, playback.headers);
+        video.src = proxiedUrl;
+        video.play().then(() => syncNativeTextTracks(video)).catch(() => {});
+      })();
     } else {
       setSeekOffset(0);
       video.currentTime = time;
@@ -454,12 +581,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   };
 
   const switchSubtitle = (id: number) => {
-    const video = videoRef.current;
-    if (video) {
-      for (let i = 0; i < video.textTracks.length; i++) {
-        video.textTracks[i].mode = i === id ? "showing" : "disabled";
-      }
-    }
     setCurrentSubtitleTrack(id);
     setShowSubtitleMenu(false);
   };
@@ -473,13 +594,29 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   };
 
   const handleUploadSubtitle = (file: File) => {
-    const video = videoRef.current;
-    if (video) {
-      loadExternalSubtitle(video, file, (newIndex) => {
-        syncNativeTextTracks(video);
-        if (newIndex !== -1) switchSubtitle(newIndex);
-      });
-    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = (e.target?.result as string) || "";
+      const isSrt = file.name.toLowerCase().endsWith(".srt");
+      const vtt = isSrt || !content.trimStart().startsWith("WEBVTT") ? convertSrtToVtt(content) : content;
+      const url = URL.createObjectURL(new Blob([vtt], { type: "text/vtt" }));
+      const id = `upload_${file.name}_${url}`;
+      const newTrack = {
+        id,
+        label: `${file.name.replace(/\.(srt|vtt)$/i, "")} (Загруженные)`,
+        srclang: "custom",
+        src: url,
+        codec: "vtt",
+      };
+      // Register the blob for revocation on source reset, then hand the track to React
+      // state so it survives re-renders (unlike a manual video.appendChild) and shows up
+      // in the menu / native <track> render path.
+      subtitleBlobUrls.current[id] = url;
+      const newIndex = injectedSubtitles.length;
+      setInjectedSubtitles((prev) => [...prev, newTrack]);
+      switchSubtitle(newIndex);
+    };
+    reader.readAsText(file);
   };
 
   const togglePlay = () => {
@@ -546,29 +683,26 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
         autoPlay
         style={{ width: "100%", height: "100%", objectFit: "contain" }}
       >
-        {injectedSubtitles.map((track, index) => (
-          <track
-            key={track.id + "_" + srcResetCounter}
-            kind="subtitles"
-            label={track.label}
-            srcLang={track.srclang}
-            src={currentSubtitleTrack === index ? track.src : ""}
-            default={currentSubtitleTrack === index}
-          />
-        ))}
+        {injectedSubtitles.map((track, index) => {
+          const isAss = track.codec === "ass" || track.codec === "ssa";
+          // ASS/SSA tracks are rendered by SubtitlesOctopus (libass). We keep an empty
+          // <track> element to preserve textTracks index alignment, but give it NO src so
+          // the browser doesn't fetch a second, uncached webvtt demux from the backend.
+          // Non-ASS tracks render from a prefetched blob URL (falling back to the remote
+          // URL only until the blob is ready), so switching them is instant and offline-safe.
+          const src = isAss ? undefined : (subtitleBlobUrls.current[track.id] || track.src);
+          return (
+            <track
+              key={track.id + "_" + srcResetCounter}
+              kind="subtitles"
+              label={track.label}
+              srcLang={track.srclang}
+              src={src}
+              default={currentSubtitleTrack === index}
+            />
+          );
+        })}
       </video>
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          pointerEvents: "none",
-          zIndex: 2,
-        }}
-      />
     </div>
   );
 

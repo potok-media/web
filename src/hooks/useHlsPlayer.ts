@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Hls from "hls.js";
-import { getFileExtension, normalizeStreamUrlToPath, getProxyUrl, updateStreamUrlParams } from "../utils/playerHelpers";
+import { getProxyUrl, updateStreamUrlParams } from "../utils/playerHelpers";
+import { describeStream, streamNeedsRemux, stripRemuxParams } from "../utils/torrentGoStream";
 import { ApiClient } from "../network/ApiClient";
 import { type ActivePlayback } from "../context/AppSettingsContext";
 import { logger } from "../utils/logger";
@@ -35,6 +36,10 @@ export function useHlsPlayer({
   const autoRefreshCountRef = useRef<number>(0);
   const [srcResetCounter, setSrcResetCounter] = useState(0);
 
+  // Latest Ref Pattern for syncNativeTextTracks to avoid teardown loops
+  const syncNativeTextTracksRef = useRef(syncNativeTextTracks);
+  syncNativeTextTracksRef.current = syncNativeTextTracks;
+
   // Quality levels state
   const [rawLevels, setRawLevels] = useState<{ id: number; height?: number }[]>([]);
   const [hlsActiveLevel, setHlsActiveLevel] = useState(-1);
@@ -44,6 +49,15 @@ export function useHlsPlayer({
   useEffect(() => {
     handleRefreshStreamRef.current = handleRefreshStream;
   }, [handleRefreshStream]);
+
+  // Synchronously update HLS audio track without reloading player
+  useEffect(() => {
+    if (hlsRef.current && currentAudioTrack !== -1) {
+      if (hlsRef.current.audioTrack !== currentAudioTrack) {
+        hlsRef.current.audioTrack = currentAudioTrack;
+      }
+    }
+  }, [currentAudioTrack]);
 
   const cleanupActiveResources = useCallback(() => {
     playerSessionRef.current += 1;
@@ -92,10 +106,8 @@ export function useHlsPlayer({
       }
     }
 
-    const normalizedUrl = normalizeStreamUrlToPath(playback.streamUrl);
-    const isStreamServer = normalizedUrl.includes("/stream/") || normalizedUrl.includes("/torrents/") || !!(playback.streamHash || (playback as any)["torrentHash"]);
-    const ext = getFileExtension(normalizedUrl);
-    const isNonNative = ext ? !["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "m4a", "mpd", "m4v"].includes(ext) : false;
+    const info = describeStream(playback.streamUrl, { streamHash: playback.streamHash, torrentHash: (playback as any).torrentHash });
+    const { normalizedUrl, isTorrentGoStream: isStreamServer, ext, isNonNative } = info;
     const isSmartTV = /web0s|webos|tizen|smarttv|smart-tv|lg|samsung/i.test(navigator.userAgent);
 
     setPlayerError(null);
@@ -110,26 +122,20 @@ export function useHlsPlayer({
     }
 
     let finalStreamUrl = normalizedUrl;
-    const needsRemux = isStreamServer && (isNonNative || currentAudioTrack > 0 || playback.streamUrl.includes("remux=true") || normalizedUrl.includes("remux=true"));
+    const needsRemux = streamNeedsRemux(info, playback.streamUrl, currentAudioTrack);
     if (needsRemux) {
       finalStreamUrl = updateStreamUrlParams(normalizedUrl, {
         remux: "true",
         start: Math.floor(startPos).toString(),
         audio: currentAudioTrack !== -1 ? currentAudioTrack.toString() : "0"
       });
+      // Remux output is 0-based (currentTime starts at the seeked keyframe). Track the resume
+      // position as seekOffset so the seek bar and subtitles reflect the real time.
       setSeekOffset(startPos);
     } else {
       setSeekOffset(0);
       if (isStreamServer) {
-        try {
-          const parsed = new URL(normalizedUrl);
-          parsed.searchParams.delete("remux");
-          parsed.searchParams.delete("start");
-          parsed.searchParams.delete("audio");
-          finalStreamUrl = parsed.toString();
-        } catch {
-          finalStreamUrl = normalizedUrl.split("?")[0];
-        }
+        finalStreamUrl = stripRemuxParams(normalizedUrl);
       }
     }
 
@@ -176,7 +182,7 @@ export function useHlsPlayer({
         }
 
         setIsMetadataLoading(false);
-        syncNativeTextTracks(video);
+        syncNativeTextTracksRef.current(video);
       });
 
       hls.on(Hls.Events.LEVEL_SWITCHED, (_event, data) => {
@@ -223,7 +229,7 @@ export function useHlsPlayer({
           video.currentTime = startPos;
         }
         setIsMetadataLoading(false);
-        syncNativeTextTracks(video);
+        syncNativeTextTracksRef.current(video);
       };
 
       video.addEventListener("loadedmetadata", handleLoadedMetadata);
@@ -238,7 +244,7 @@ export function useHlsPlayer({
         cleanupActiveResources();
       };
     }
-  }, [playback.streamUrl, currentAudioTrack, cleanupActiveResources, syncNativeTextTracks, setPlayerError, setIsMetadataLoading, setSeekOffset]);
+  }, [playback.streamUrl, cleanupActiveResources, setPlayerError, setIsMetadataLoading, setSeekOffset]);
 
   return {
     hlsRef,
