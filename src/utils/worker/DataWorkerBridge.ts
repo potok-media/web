@@ -1,6 +1,6 @@
 import { ApiError } from "../../network/ApiTypes";
 import { WebSocketClient, webSocketClient } from "../../network/WebSocketClient";
-import { Storage } from "../StorageService";
+import { SettingsService } from "../SettingsService";
 import { logger } from "../logger";
 
 class WorkerBridge {
@@ -77,24 +77,16 @@ class WorkerBridge {
     }
   }
 
+  private collectSettings() {
+    return {
+      ...SettingsService.snapshot(),
+      potok_client_id: webSocketClient.clientId,
+    };
+  }
+
   public syncSettings() {
     if (!this.worker) return;
-    
-    const settings = {
-      activeProfileID: Storage.get<string | null>("activeProfileID", null),
-      connectionProfiles: Storage.get<any[]>("connectionProfiles", []),
-      language: Storage.get<string>("language", "en"),
-      potokToken: Storage.get<string | null>("potokToken", null),
-      traktAccessToken: Storage.get<string | null>("traktAccessToken", null),
-      syncStrategy: Storage.get<string>("syncStrategy", "none"),
-      potok_client_id: webSocketClient.clientId,
-      netDebug: Storage.get<boolean>("netDebug", true),
-
-      "potok_plugin:scoped:potok-torrents:playerServerURL": Storage.get<string>("potok_plugin:scoped:potok-torrents:playerServerURL", ""),
-      "potok_plugin:scoped:potok-torrents:torrentGoURL": Storage.get<string>("potok_plugin:scoped:potok-torrents:torrentGoURL", ""),
-    };
-
-    this.worker.postMessage({ type: "sync_settings", settings });
+    this.worker.postMessage({ type: "sync_settings", settings: this.collectSettings() });
   }
 
   public request<T>(method: string, args: any[]): Promise<T> {
@@ -105,7 +97,7 @@ class WorkerBridge {
     const id = `${method}_${++this.requestCounter}_${Math.random().toString(36).substring(2)}`;
     return new Promise<T>((resolve, reject) => {
       this.pendingRequests.set(id, { resolve, reject });
-      this.worker!.postMessage({ type: "api_request", id, method, args });
+      this.worker!.postMessage({ type: "api_request", id, method, args, settings: this.collectSettings() });
     });
   }
 

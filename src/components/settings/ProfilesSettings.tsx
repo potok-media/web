@@ -14,7 +14,13 @@ import ProfileEditorForm from "../ProfileEditorForm";
 function normalizeGateway(raw: string): { ok: boolean; url: string; error?: string } {
   let s = raw.trim().replace(/\/+$/, "");
   if (!s) return { ok: false, url: "", error: "profiles.errorEmptyGateway" };
-  if (!/^https?:\/\//i.test(s)) s = "https://" + s;
+  if (!/^https?:\/\//i.test(s)) {
+    // IPs and localhost can't have a TLS cert → default them to http (so the backend is reachable
+    // by IP the same way the frontend is); real hostnames default to https.
+    const bareHost = s.split("/")[0].split(":")[0];
+    const isIpOrLocal = bareHost === "localhost" || /^\d{1,3}(\.\d{1,3}){3}$/.test(bareHost);
+    s = (isIpOrLocal ? "http://" : "https://") + s;
+  }
   let parsed: URL;
   try {
     parsed = new URL(s);

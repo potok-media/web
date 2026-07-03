@@ -67,7 +67,7 @@ class HttpProxyThrottleManager {
                 finalUrl = rawUrl;
               }
             } else if (url.startsWith("/api/")) {
-              const gatewayBase = (activeProfile?.gatewayURL || ApiClient.baseURL || "")
+              const gatewayBase = (ApiClient.baseURL || activeProfile?.gatewayURL || "")
                 .trim()
                 .replace(/\/+$/, "");
               

@@ -80,7 +80,7 @@ export interface PotokUser {
   id?: string;
   username: string;
   syncStrategy: string;
-  traktAccessToken?: string | null;
+  traktConnected?: boolean;
 }
 
 export interface ConnectionProfile {

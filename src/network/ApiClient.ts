@@ -1,8 +1,8 @@
-import { Storage } from "../utils/StorageService";
 import { DataWorkerBridge } from "../utils/worker/DataWorkerBridge";
+import { SettingsService } from "../utils/SettingsService";
+import { MemorySafeCache } from "./MemorySafeCache";
 import { SyncApiClient } from "./SyncApiClient";
 import { ApiError } from "./ApiTypes";
-import { getEnv } from "../utils/EnvService";
 import { webSocketClient } from "./WebSocketClient";
 import type { ExtensionManifest } from "@potok/sdk-types";
 import type {
@@ -41,40 +41,12 @@ export type {
 export class ApiClient {
   private static isWorker = typeof window === "undefined";
 
-  private static getHostConfig() {
-    const envBff = getEnv("VITE_DEFAULT_BFF_URL");
-    const isLocked = getEnv("VITE_BLOCK_SETTINGS_INPUT") === "true";
-
-    return {
-      bff: envBff,
-      search: "",
-      locked: isLocked,
-      profileName: "Main profile"
-    };
-  }
-
-  private static getDefaultProfiles() {
-    const hostConfig = this.getHostConfig();
-    return [
-      {
-        id: "default-profile",
-        name: hostConfig.profileName,
-        gatewayURL: hostConfig.bff,
-        playerServerURL: "",
-        searchEngineURL: hostConfig.search,
-        playerServerAuthEnabled: false,
-        playerServerAuthLogin: "",
-      }
-    ];
-  }
-
   public static get isSettingsLocked(): boolean {
-    return getEnv("VITE_BLOCK_SETTINGS_INPUT") === "true";
+    return SettingsService.isSettingsLocked();
   }
 
-  // Active UI language from storage (works in the data worker too, where there is no React i18n).
   private static get language(): string {
-    return Storage.get<string>("language", "en");
+    return SettingsService.getLanguage();
   }
 
   private static ensureAbsoluteURL(url: string): string {
@@ -86,90 +58,26 @@ export class ApiClient {
     return normalized;
   }
 
-  private static _cachedBaseURL?: string;
-  private static _cachedSearchEngineURL?: string;
-  private static _cachedPlayerServerURL?: string;
   private static mediaDetailsCache = new Map<string, MediaCard>();
 
   public static invalidateCache(): void {
-    this._cachedBaseURL = undefined;
-    this._cachedSearchEngineURL = undefined;
-    this._cachedPlayerServerURL = undefined;
     this.mediaDetailsCache.clear();
+    MemorySafeCache.clearAll();
     if (!this.isWorker) {
       DataWorkerBridge.postToWorker({ type: "invalidate_cache" });
     }
   }
 
   public static get baseURL(): string {
-    if (!this._cachedBaseURL) {
-      const bffEnv = getEnv("VITE_DEFAULT_BFF_URL");
-      let url = "";
-      if (this.isSettingsLocked && bffEnv) {
-        url = bffEnv;
-      } else {
-        const defaultProfs = this.getDefaultProfiles();
-        const activeID = Storage.get<string | null>("activeProfileID", ApiClient.isSettingsLocked ? defaultProfs[0].id : null);
-        const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
-        const active = profiles.find((p) => p.id === activeID);
-        url = active?.gatewayURL || bffEnv || "";
-      }
-      this._cachedBaseURL = this.ensureAbsoluteURL(url);
-    }
-    return this._cachedBaseURL;
+    return SettingsService.getGatewayUrl();
   }
 
   public static get searchEngineURL(): string {
-    if (!this._cachedSearchEngineURL) {
-      const searchEnv = "";
-      let url = "";
-      if (this.isSettingsLocked) {
-        url = searchEnv;
-      } else {
-        const defaultProfs = this.getDefaultProfiles();
-        const activeID = Storage.get<string | null>("activeProfileID", ApiClient.isSettingsLocked ? defaultProfs[0].id : null);
-        const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
-        const active = profiles.find((p) => p.id === activeID);
-        url = active?.searchEngineURL || "";
-      }
-      this._cachedSearchEngineURL = this.ensureAbsoluteURL(url);
-    }
-    return this._cachedSearchEngineURL;
+    return SettingsService.getSearchEngineUrl();
   }
 
   public static get playerServerURL(): string {
-    if (!this._cachedPlayerServerURL) {
-      const psEnv = "";
-      let url = "";
-      if (this.isSettingsLocked) {
-        url = psEnv;
-      } else {
-        const defaultProfs = this.getDefaultProfiles();
-        const activeID = Storage.get<string | null>("activeProfileID", ApiClient.isSettingsLocked ? defaultProfs[0].id : null);
-        const profiles = Storage.get<any[]>("connectionProfiles", defaultProfs);
-        const active = profiles.find((p) => p.id === activeID);
-        url = active?.playerServerURL || "";
-      }
-      if (!url) {
-        try {
-          const tPluginId = "potok-tor" + "rents";
-          const oldGoKey = "tor" + "rentGoURL";
-          let pluginScopedUrl = "";
-          if (typeof localStorage !== "undefined") {
-            pluginScopedUrl = localStorage.getItem("potok_plugin:scoped:" + tPluginId + ":playerServerURL") 
-              || localStorage.getItem("potok_plugin:scoped:" + tPluginId + ":" + oldGoKey) || "";
-          } else {
-            pluginScopedUrl = Storage.get<string>("potok_plugin:scoped:" + tPluginId + ":playerServerURL", "")
-              || Storage.get<string>("potok_plugin:scoped:" + tPluginId + ":" + oldGoKey, "");
-          }
-          if (pluginScopedUrl) {
-            url = pluginScopedUrl;
-          }
-        } catch {}
-      }
-      this._cachedPlayerServerURL = this.ensureAbsoluteURL(url);
-    }
-    return this._cachedPlayerServerURL;
+    return SettingsService.getPlayerServerUrl();
   }
 
   public static get headers(): HeadersInit {
@@ -177,23 +85,13 @@ export class ApiClient {
       "Content-Type": "application/json",
       "X-Client-Id": webSocketClient.clientId,
     };
-    const defaultProfs = this.getDefaultProfiles();
-    const activeProfileID = Storage.get<string | null>("activeProfileID", this.isSettingsLocked ? defaultProfs[0].id : null);
+    const activeProfileID = SettingsService.getActiveProfileId();
     if (activeProfileID) {
       headers["X-Profile-Id"] = activeProfileID;
     }
-    const potokToken = Storage.get<string | null>("potokToken", null);
+    const potokToken = SettingsService.getToken();
     if (potokToken) {
       headers["Authorization"] = `Bearer ${potokToken}`;
-    } else {
-      const traktToken = Storage.get<string | null>("traktAccessToken", null);
-      if (traktToken) {
-        headers["Authorization"] = `Bearer ${traktToken}`;
-      }
-    }
-    const traktToken = Storage.get<string | null>("traktAccessToken", null);
-    if (traktToken) {
-      headers["Trakt-Authorization"] = `Bearer ${traktToken}`;
     }
     return headers;
   }
@@ -391,7 +289,7 @@ export class ApiClient {
     if (category.includes(".")) {
       return this.fetchMediaRow(category);
     }
-    const strategy = Storage.get<string>("syncStrategy", "none");
+    const strategy = SettingsService.getSyncStrategy();
     if (strategy === "trakt") {
       const res = await fetch(`${this.baseURL}/api/library/${category}?language=${encodeURIComponent(this.language)}`, {
         headers: this.headers,

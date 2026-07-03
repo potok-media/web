@@ -128,10 +128,13 @@ export const LibraryPage: React.FC = () => {
       setFocus("SEARCH_INPUT");
     } else if (items.length > 0) {
       focusedForKeyRef.current = resetKey;
-      // On Back, restore focus to the card the user was on; otherwise default to the first card.
-      restoreFocusOrDefault(location.key || location.pathname, "LIBRARY_FIRST_CARD");
+      // Spatial (D-pad) focus is only meaningful on TV. Forcing focus on the first card on
+      // mobile/desktop just draws an unwanted highlight ring.
+      if (isTV) {
+        restoreFocusOrDefault(location.key || location.pathname, "LIBRARY_FIRST_CARD");
+      }
     }
-  }, [loading, isSearchPage, items.length, error, resetKey, location.key, location.pathname]);
+  }, [loading, isSearchPage, items.length, error, resetKey, location.key, location.pathname, isTV]);
 
   useEffect(() => {
     if (!hasMore || loading || loadingMore) return;
@@ -158,7 +161,10 @@ export const LibraryPage: React.FC = () => {
         observer.unobserve(currentSentinel);
       }
     };
-  }, [hasMore, page, loading, loadingMore, loadNextPage]);
+    // items.length + visibleCount are in deps so this re-runs once the grid (and the
+    // pagination sentinel) actually render — setItems is deferred via startTransition, so on
+    // first load the effect would otherwise run while items is still empty and never attach.
+  }, [hasMore, page, loading, loadingMore, loadNextPage, items.length, visibleCount]);
 
   // On TV the page scrolls by transform (PageFrame → TVScrollView), which doesn't fire the
   // IntersectionObserver sentinels above — so pagination is driven by FOCUS instead: when a card

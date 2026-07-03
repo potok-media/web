@@ -1,7 +1,8 @@
 import { ApiClient } from "../network/ApiClient";
 import { SyncApiClient } from "../network/SyncApiClient";
 import { webSocketClient } from "../network/WebSocketClient";
-import { Storage } from "../utils/StorageService";
+import { SettingsService } from "../utils/SettingsService";
+import { logger } from "../utils/logger";
 
 self.onmessage = async (event: MessageEvent) => {
   const msg = event.data;
@@ -9,19 +10,17 @@ self.onmessage = async (event: MessageEvent) => {
 
   switch (msg.type) {
     case "sync_settings": {
-      const settings = msg.settings;
-      if (settings) {
-        for (const [key, val] of Object.entries(settings)) {
-          Storage.set(key, val);
-        }
-        ApiClient.invalidateCache();
+      if (msg.settings) {
+        SettingsService.applySnapshot(msg.settings);
+        logger.log(`[worker] effective baseURL: ${ApiClient.baseURL || "(empty)"}`);
       }
       break;
     }
-    
+
     case "api_request": {
-      const { id, method, args } = msg;
+      const { id, method, args, settings } = msg;
       try {
+        if (settings) SettingsService.applySnapshot(settings);
         let apiMethod;
         let context;
         if (method.startsWith("sync_")) {

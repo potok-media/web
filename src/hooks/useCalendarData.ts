@@ -16,7 +16,7 @@ export function useCalendarData() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
-  const { syncStrategy, traktToken } = useAuth();
+  const { syncStrategy, traktConnected } = useAuth();
   const { i18n } = useTranslation();
 
   const fetchCalendar = useCallback(async () => {
@@ -48,7 +48,7 @@ export function useCalendarData() {
         setLoading(false);
       }
     }
-  }, [syncStrategy, traktToken, i18n, i18n.language]);
+  }, [syncStrategy, traktConnected, i18n, i18n.language]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -63,6 +63,6 @@ export function useCalendarData() {
     loading,
     error,
     refetch: fetchCalendar,
-    isTraktConnected: !!traktToken
+    isTraktConnected: traktConnected
   };
 }

@@ -13,9 +13,18 @@ export class MemorySafeCache {
   private readonly maxSize: number;
   private gcIntervalId: any = null;
 
+  private static instances = new Set<MemorySafeCache>();
+
+  public static clearAll(): void {
+    for (const instance of MemorySafeCache.instances) {
+      instance.clear();
+    }
+  }
+
   constructor(ttlMs = 300000, maxSize = 100) { // 5 minutes TTL, max 100 elements
     this.ttlMs = ttlMs;
     this.maxSize = maxSize;
+    MemorySafeCache.instances.add(this);
     this.startGarbageCollector();
   }
 
@@ -72,5 +81,6 @@ export class MemorySafeCache {
     if (this.gcIntervalId) {
       clearInterval(this.gcIntervalId);
     }
+    MemorySafeCache.instances.delete(this);
   }
 }

@@ -16,6 +16,7 @@ import { ServerSyncActiveView } from "../components/profile/ServerSyncActiveView
 import { TraktDeviceAuthView } from "../components/profile/TraktDeviceAuthView";
 import { TraktActiveView } from "../components/profile/TraktActiveView";
 import { PotokAuthView } from "../components/profile/PotokAuthView";
+import { ApiError } from "../network/ApiTypes";
 import type { TraktProfile, DeviceCodeResponse } from "../network/ApiTypes";
 import "../styles/profile.css";
 
@@ -29,9 +30,9 @@ export const ProfilePage: React.FC = () => {
     login,
     logout,
     syncStrategy,
-    traktToken,
+    traktConnected,
     setSyncStrategy,
-    setTraktToken
+    setTraktConnected
   } = useAuth();
 
   const [traktProfile, setTraktProfile] = useState<TraktProfile | null>(null);
@@ -76,7 +77,7 @@ export const ProfilePage: React.FC = () => {
     try {
       const data = await AuthApiClient.getTraktToken(codeVal);
       if (data.access_token) {
-        setTraktToken(data.access_token);
+        setTraktConnected(true);
         setDeviceCode(null);
         showHUD("success", t("hud.traktConnected"));
       }
@@ -93,8 +94,11 @@ export const ProfilePage: React.FC = () => {
     try {
       const data: TraktProfile = await AuthApiClient.fetchTraktProfile();
       setTraktProfile(data);
-    } catch {
+    } catch (err) {
       setTraktProfile(null);
+      if (err instanceof ApiError && err.status === 401) {
+        setTraktConnected(false);
+      }
     } finally {
       setLoadingTrakt(false);
     }
@@ -104,7 +108,7 @@ export const ProfilePage: React.FC = () => {
     try {
       await AuthApiClient.traktLogout();
     } catch {}
-    setTraktToken(null);
+    setTraktConnected(false);
     setTraktProfile(null);
     showHUD("info", t("hud.traktDisconnected"));
   };
@@ -124,10 +128,10 @@ export const ProfilePage: React.FC = () => {
   }, [deviceCode]);
 
   useEffect(() => {
-    if (syncStrategy === "trakt" && traktToken) {
+    if (syncStrategy === "trakt" && traktConnected) {
       fetchTraktProfileData();
     }
-  }, [syncStrategy, traktToken]);
+  }, [syncStrategy, traktConnected]);
 
   useEffect(() => {
     const def = potokToken ? "PROFILE_LOGOUT_BTN" : "AUTH_USERNAME_INPUT";
@@ -203,7 +207,7 @@ export const ProfilePage: React.FC = () => {
                 <FocusableButton
                   onClick={() => {
                     selectStrategy("trakt");
-                    if (!traktToken) startTraktAuth();
+                    if (!traktConnected) startTraktAuth();
                   }}
                   className={`strategy-chip-btn ${syncStrategy === "trakt" ? "active" : ""}`}
                 >
@@ -256,7 +260,7 @@ export const ProfilePage: React.FC = () => {
 
       {syncStrategy === "trakt" && (
         <>
-          {traktToken ? (
+          {traktConnected ? (
             <>
               {traktProfile ? (
                 <TraktActiveView traktProfile={traktProfile} onLogout={handleTraktLogout} />

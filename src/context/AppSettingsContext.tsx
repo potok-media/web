@@ -52,6 +52,7 @@ export interface ActivePlayback {
 export interface SettingsContextType {
   connectionProfiles: ConnectionProfile[];
   activeProfileID: string | null;
+  activeGatewayURL: string;
   accentTheme: string;
   defaultPlayer: string;
   bannerQuality: string;
@@ -192,9 +193,15 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return cleanProfiles;
   });
 
-  const [activeProfileID, setActiveProfileID] = useState<string | null>(() => 
-    Storage.get<string | null>("activeProfileID", hostConfig.bff ? defaultProfiles[0].id : null)
-  );
+  const [activeProfileID, setActiveProfileID] = useState<string | null>(() => {
+    const stored = Storage.get<string | null>("activeProfileID", null);
+    const valid = !!stored && connectionProfiles.some((p) => p.id === stored);
+    const resolved = valid ? stored : (connectionProfiles[0]?.id ?? null);
+    if (resolved && resolved !== stored) {
+      Storage.set("activeProfileID", resolved);
+    }
+    return resolved;
+  });
   const [accentTheme, _setAccentTheme] = useState<string>(() => 
     Storage.get<string>("accentTheme", "nordicFrost")
   );
@@ -277,43 +284,37 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const addProfile = useCallback((profile: Omit<ConnectionProfile, "id">) => {
     const newProfile = { ...profile, id: `profile-${Date.now()}` };
-    setConnectionProfiles((prev) => {
-      const updated = [...prev, newProfile];
-      Storage.set("connectionProfiles", updated);
-      return updated;
-    });
-    ApiClient.invalidateCache();
+    const current = Storage.get<ConnectionProfile[]>("connectionProfiles", defaultProfiles);
+    const updated = [...current, newProfile];
+    Storage.set("connectionProfiles", updated);
+    setConnectionProfiles(updated);
     selectProfile(newProfile.id);
   }, [selectProfile]);
 
   const deleteProfile = useCallback((id: string) => {
-    setConnectionProfiles((prev) => {
-      const updated = prev.filter((p) => p.id !== id);
-      Storage.set("connectionProfiles", updated);
-      return updated;
-    });
-    ApiClient.invalidateCache();
-    setActiveProfileID((currentActive) => {
-      if (currentActive === id) {
-        const raw = Storage.get<ConnectionProfile[]>("connectionProfiles", defaultProfiles);
-        const nextActive = raw.length > 0 ? raw[0].id : null;
-        if (nextActive) {
-          Storage.set("activeProfileID", nextActive);
-        } else {
-          Storage.remove("activeProfileID");
-        }
-        return nextActive;
+    const current = Storage.get<ConnectionProfile[]>("connectionProfiles", defaultProfiles);
+    const updated = current.filter((p) => p.id !== id);
+    Storage.set("connectionProfiles", updated);
+    setConnectionProfiles(updated);
+
+    const currentActive = Storage.get<string | null>("activeProfileID", null);
+    if (currentActive === id) {
+      const nextActive = updated.length > 0 ? updated[0].id : null;
+      if (nextActive) {
+        Storage.set("activeProfileID", nextActive);
+      } else {
+        Storage.remove("activeProfileID");
       }
-      return currentActive;
-    });
+      setActiveProfileID(nextActive);
+    }
+    ApiClient.invalidateCache();
   }, []);
 
   const updateProfile = useCallback((profile: ConnectionProfile) => {
-    setConnectionProfiles((prev) => {
-      const updated = prev.map((p) => (p.id === profile.id ? profile : p));
-      Storage.set("connectionProfiles", updated);
-      return updated;
-    });
+    const current = Storage.get<ConnectionProfile[]>("connectionProfiles", defaultProfiles);
+    const updated = current.map((p) => (p.id === profile.id ? profile : p));
+    Storage.set("connectionProfiles", updated);
+    setConnectionProfiles(updated);
     ApiClient.invalidateCache();
   }, []);
 
@@ -364,9 +365,21 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     _setDirectPlay(val);
   }, []);
 
+  const activeGatewayURL = useMemo(() => {
+    const active = connectionProfiles.find((p) => p.id === activeProfileID);
+    return active?.gatewayURL || "";
+  }, [connectionProfiles, activeProfileID]);
+
+  useEffect(() => {
+    logger.log(
+      `[settings] locked=${ApiClient.isSettingsLocked} profiles=${connectionProfiles.length} active=${activeProfileID} baseURL=${ApiClient.baseURL || "(empty)"}`
+    );
+  }, []);
+
   const value = useMemo(() => ({
     connectionProfiles,
     activeProfileID,
+    activeGatewayURL,
     accentTheme,
     defaultPlayer,
     bannerQuality,
@@ -391,6 +404,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }), [
     connectionProfiles,
     activeProfileID,
+    activeGatewayURL,
     accentTheme,
     defaultPlayer,
     bannerQuality,
@@ -439,18 +453,19 @@ export interface AuthContextType {
   potokUser: PotokUser | null;
   multiUserMode: boolean;
   syncStrategy: string;
-  traktToken: string | null;
+  traktConnected: boolean;
   login: (token: string, user: PotokUser) => void;
   logout: () => void;
   setMultiUserMode: React.Dispatch<React.SetStateAction<boolean>>;
   setSyncStrategy: (strategy: string) => void;
-  setTraktToken: (token: string | null) => void;
+  setTraktConnected: (connected: boolean) => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [potokToken, setPotokToken] = useState<string | null>(() => 
+  const { activeProfileID, activeGatewayURL } = useSettings();
+  const [potokToken, setPotokToken] = useState<string | null>(() =>
     Storage.get<string | null>("potokToken", null)
   );
   const [potokUser, setPotokUser] = useState<PotokUser | null>(() => 
@@ -462,8 +477,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [syncStrategy, setSyncStrategyState] = useState<string>(() =>
     Storage.get<string>("syncStrategy", "none")
   );
-  const [traktToken, setTraktTokenState] = useState<string | null>(() =>
-    Storage.get<string | null>("traktAccessToken", null)
+  const [traktConnected, setTraktConnectedState] = useState<boolean>(() =>
+    Storage.get<PotokUser | null>("potokUser", null)?.traktConnected ?? false
   );
 
   const setSyncStrategy = useCallback((strategy: string) => {
@@ -471,43 +486,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSyncStrategyState(strategy);
   }, []);
 
-  const setTraktToken = useCallback((token: string | null) => {
-    if (token) {
-      Storage.set("traktAccessToken", token);
-    } else {
-      Storage.remove("traktAccessToken");
-    }
-    setTraktTokenState(token);
+  const setTraktConnected = useCallback((connected: boolean) => {
+    setTraktConnectedState(connected);
   }, []);
 
   const login = useCallback((token: string, user: PotokUser) => {
     Storage.set("potokToken", token);
     Storage.set("potokUser", user);
     const strategy = user.syncStrategy || "none";
-    const tToken = user.traktAccessToken || null;
     Storage.set("syncStrategy", strategy);
-    if (tToken) {
-      Storage.set("traktAccessToken", tToken);
-    } else {
-      Storage.remove("traktAccessToken");
-    }
     setPotokToken(token);
     setPotokUser(user);
     setSyncStrategyState(strategy);
-    setTraktTokenState(tToken);
+    setTraktConnectedState(user.traktConnected ?? false);
   }, []);
 
   const logout = useCallback(() => {
     Storage.remove("potokToken");
     Storage.remove("potokUser");
     Storage.remove("syncStrategy");
-    Storage.remove("traktAccessToken");
     Storage.remove("multiUserMode");
     setPotokToken(null);
     setPotokUser(null);
     setMultiUserMode(false);
     setSyncStrategyState("none");
-    setTraktTokenState(null);
+    setTraktConnectedState(false);
   }, []);
 
   useEffect(() => {
@@ -517,15 +520,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           Storage.set("potokUser", user);
           setPotokUser(user);
           const strategy = user.syncStrategy || "none";
-          const tToken = user.traktAccessToken || null;
           Storage.set("syncStrategy", strategy);
-          if (tToken) {
-            Storage.set("traktAccessToken", tToken);
-          } else {
-            Storage.remove("traktAccessToken");
-          }
           setSyncStrategyState(strategy);
-          setTraktTokenState(tToken);
+          setTraktConnectedState(user.traktConnected ?? false);
         })
         .catch((err) => {
           logger.error("Failed to fetch current user profile:", err);
@@ -534,30 +531,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         });
     }
-  }, [potokToken, logout]);
+  }, [potokToken, logout, activeProfileID, activeGatewayURL]);
 
   const value = useMemo(() => ({
     potokToken,
     potokUser,
     multiUserMode,
     syncStrategy,
-    traktToken,
+    traktConnected,
     login,
     logout,
     setMultiUserMode,
     setSyncStrategy,
-    setTraktToken,
+    setTraktConnected,
   }), [
     potokToken,
     potokUser,
     multiUserMode,
     syncStrategy,
-    traktToken,
+    traktConnected,
     login,
     logout,
     setMultiUserMode,
     setSyncStrategy,
-    setTraktToken,
+    setTraktConnected,
   ]);
 
   useEffect(() => {
@@ -566,7 +563,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         DataWorkerBridge.syncSettings();
       });
     }
-  }, [potokToken, traktToken, syncStrategy]);
+  }, [potokToken, syncStrategy]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

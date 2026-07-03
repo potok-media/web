@@ -1,4 +1,5 @@
 import { ApiClient } from "./ApiClient";
+import { ApiError } from "./ApiTypes";
 import type { PotokUser, DeviceCodeResponse, TraktProfile, AuthRequest, AuthResponse } from "./ApiTypes";
 
 export class AuthApiClient {
@@ -81,7 +82,7 @@ export class AuthApiClient {
     const res = await fetch(`${ApiClient.baseURL}/api/library/profile`, {
       headers: ApiClient.headers,
     });
-    if (!res.ok) throw new Error("Failed to fetch Trakt profile");
+    if (!res.ok) throw new ApiError("Failed to fetch Trakt profile", res.status);
     return res.json();
   }
 }

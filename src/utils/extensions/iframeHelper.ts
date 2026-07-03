@@ -70,16 +70,6 @@ export const createIframeHtml = (
     <html>
     <head>
       <meta charset="utf-8">
-      <script type="importmap">
-        {
-          "imports": {
-            "potok-sdk": "data:text/javascript,export const PotokSDK = window.PotokSDK;",
-            "@potok/sdk": "data:text/javascript,export const PotokSDK = window.PotokSDK;",
-            "../sdk.js": "data:text/javascript,export const PotokSDK = window.PotokSDK;",
-            "./sdk.js": "data:text/javascript,export const PotokSDK = window.PotokSDK;"
-          }
-        }
-      </script>
       <base href="${baseUrl}">
       <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
       <script>
@@ -101,15 +91,29 @@ export const createIframeHtml = (
       </script>
     </head>
     <body>
-      <script type="module">
-        const entryUrl = new URL("./${ext.manifest.entrypoint}?v=${ext.manifest.version || Date.now()}", document.baseURI).href;
-        import(entryUrl).catch(err => {
-          window.parent.postMessage({
-            source: 'potok-plugin-sdk',
-            action: 'SCRIPT_CRASH',
-            payload: { error: err.message, stack: err.stack }
-          }, window.PotokInitialState.hostOrigin);
-        });
+      <script>
+        // Fetch the plugin compiled into one IIFE by the gateway bundler and run it.
+        // Replaces native ESM import(): same single bundle format the native client uses.
+        (async function () {
+          try {
+            const cfg = window.PotokInitialState.config || {};
+            const gateway = String(cfg.gatewayURL || "").replace(/\\/+$/, "");
+            if (!gateway) throw new Error("gatewayURL not configured for plugin bundling");
+            const entry = new URL("./${ext.manifest.entrypoint}", document.baseURI).href;
+            const res = await fetch(gateway + "/api/plugins/bundle?entry=" + encodeURIComponent(entry));
+            if (!res.ok) throw new Error("bundle HTTP " + res.status);
+            const code = await res.text();
+            // ESM module (may use top-level await) → load via blob + dynamic import, not eval.
+            const blobUrl = URL.createObjectURL(new Blob([code], { type: "text/javascript" }));
+            try { await import(blobUrl); } finally { URL.revokeObjectURL(blobUrl); }
+          } catch (err) {
+            window.parent.postMessage({
+              source: 'potok-plugin-sdk',
+              action: 'SCRIPT_CRASH',
+              payload: { error: err.message, stack: err.stack }
+            }, window.PotokInitialState.hostOrigin);
+          }
+        })();
       </script>
     </body>
     </html>
