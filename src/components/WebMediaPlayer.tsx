@@ -14,9 +14,9 @@ import { usePlaybackTracker } from "../hooks/usePlaybackTracker";
 // @ts-ignore
 import JASSUB from "jassub";
 // @ts-ignore
-import workerUrl from "jassub/dist/jassub-worker.js?worker&url";
+import workerUrl from "jassub/dist/wasm/jassub-worker.js?url";
 // @ts-ignore
-import wasmUrl from "jassub/dist/jassub-worker.wasm?url";
+import wasmUrl from "jassub/dist/wasm/jassub-worker.wasm?url";
 
 // Helpers & Utilities
 import {
