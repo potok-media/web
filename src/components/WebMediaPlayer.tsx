@@ -319,7 +319,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
           subContent: MINIMAL_ASS_TEMPLATE,
           workerUrl: "/assets/subtitles-octopus/subtitles-octopus-worker.js",
           legacyWorkerUrl: "/assets/subtitles-octopus/subtitles-octopus-worker-legacy.js",
-          fallbackFont: "/assets/subtitles-octopus/default.woff2",
+          fallbackFont: "/fonts/subtitle-fallback.woff2",
           // Remuxed output is 0-based; ASS timestamps are absolute. Offset libass by seekOffset
           // (the real keyframe start) so subtitles line up with the seeked video.
           timeOffset: seekOffsetRef.current,
