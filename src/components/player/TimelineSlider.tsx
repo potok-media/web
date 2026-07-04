@@ -9,15 +9,19 @@ interface TimelineSliderProps {
   seekOffset?: number;
   streamHash?: string;
   fileIndex?: string;
+  // Target of an in-flight seek. While set, the thumb is pinned here (not driven by currentTime),
+  // so it lands where the user dropped it and never bounces back before the segment loads.
+  seekPreview?: number | null;
 }
 
-export const TimelineSlider: React.FC<TimelineSliderProps> = ({ 
-  videoRef, 
-  onSeek, 
-  initialDuration, 
+export const TimelineSlider: React.FC<TimelineSliderProps> = ({
+  videoRef,
+  onSeek,
+  initialDuration,
   seekOffset = 0,
   streamHash,
-  fileIndex
+  fileIndex,
+  seekPreview = null
 }) => {
   const { t } = useTranslation("player");
   const sliderRef = useRef<HTMLInputElement>(null);
@@ -37,7 +41,9 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
         ? initialDuration
         : (isNaN(videoDuration) || videoDuration === Infinity || videoDuration <= 0 ? 0 : videoDuration);
 
-      const tAbsolute = Math.min(seekOffset + video.currentTime, duration > 0 ? duration : Infinity);
+      // Pin to the seek target while a seek is in flight; otherwise track playback.
+      const raw = seekPreview != null ? seekPreview : seekOffset + video.currentTime;
+      const tAbsolute = Math.min(raw, duration > 0 ? duration : Infinity);
       const pct = duration > 0 ? (tAbsolute / duration) * 100 : 0;
 
       slider.max = duration.toString();
@@ -89,7 +95,7 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
       video.removeEventListener("timeupdate", handleTimeUpdate);
       video.removeEventListener("progress", updateBuffer);
     };
-  }, [videoRef, initialDuration, seekOffset]);
+  }, [videoRef, initialDuration, seekOffset, seekPreview]);
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     isDraggingRef.current = true;

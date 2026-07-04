@@ -4,9 +4,12 @@ interface TimeDisplayProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   initialDuration: number;
   seekOffset?: number;
+  // While a seek is in flight this is the target time; the readout shows it (frozen) so the clock
+  // doesn't flicker back to the old position before the segment loads.
+  seekPreview?: number | null;
 }
 
-export const TimeDisplay: React.FC<TimeDisplayProps> = ({ videoRef, initialDuration, seekOffset = 0 }) => {
+export const TimeDisplay: React.FC<TimeDisplayProps> = ({ videoRef, initialDuration, seekOffset = 0, seekPreview = null }) => {
   const displayRef = useRef<HTMLSpanElement>(null);
 
   const formatTime = (seconds: number): string => {
@@ -33,7 +36,7 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({ videoRef, initialDurat
         ? initialDuration
         : (isNaN(videoDuration) || videoDuration === Infinity || videoDuration <= 0 ? 0 : videoDuration);
 
-      const tAbsolute = seekOffset + video.currentTime;
+      const tAbsolute = seekPreview != null ? seekPreview : seekOffset + video.currentTime;
       const clampedTime = durationVal > 0 ? Math.min(tAbsolute, durationVal) : tAbsolute;
       const currentTime = formatTime(clampedTime);
       const duration = formatTime(durationVal);
@@ -51,7 +54,7 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({ videoRef, initialDurat
       video.removeEventListener("timeupdate", updateDisplay);
       video.removeEventListener("durationchange", updateDisplay);
     };
-  }, [videoRef, initialDuration, seekOffset]);
+  }, [videoRef, initialDuration, seekOffset, seekPreview]);
 
   // Initial render content with formatted initialDuration fallback
   const initialTimeStr = formatTime(seekOffset);

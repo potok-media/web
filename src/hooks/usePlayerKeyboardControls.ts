@@ -2,16 +2,14 @@ import { useEffect } from "react";
 
 interface KeyboardControlsParams {
   videoRef: React.RefObject<HTMLVideoElement | null>;
-  seekOffset: number;
-  handleSeek: (time: number) => void;
+  handleSeekBy: (delta: number) => void;
   handleClose: () => void;
   handleUserActivity: () => void;
 }
 
 export function usePlayerKeyboardControls({
   videoRef,
-  seekOffset,
-  handleSeek,
+  handleSeekBy,
   handleClose,
   handleUserActivity,
 }: KeyboardControlsParams) {
@@ -36,11 +34,11 @@ export function usePlayerKeyboardControls({
         handleUserActivity();
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        handleSeek(video.currentTime + seekOffset + 10);
+        handleSeekBy(10);
         handleUserActivity();
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
-        handleSeek(Math.max(video.currentTime + seekOffset - 10, 0));
+        handleSeekBy(-10);
         handleUserActivity();
       } else if (e.key === "Escape") {
         e.preventDefault();
@@ -55,5 +53,5 @@ export function usePlayerKeyboardControls({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [videoRef, seekOffset, handleSeek, handleClose, handleUserActivity]);
+  }, [videoRef, handleSeekBy, handleClose, handleUserActivity]);
 }

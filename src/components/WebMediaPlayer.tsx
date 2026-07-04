@@ -42,6 +42,7 @@ import { SkipOutroButton } from "./player/SkipOutroButton";
 import { PlayerResumeToast } from "./player/PlayerResumeToast";
 import { PlayerLoadingOverlay } from "./player/PlayerLoadingOverlay";
 import { PlayerErrorOverlay } from "./player/PlayerErrorOverlay";
+import { PlayerBufferingSpinner } from "./player/PlayerBufferingSpinner";
 
 // Custom Hooks
 import { useTorrentStatus } from "../hooks/useTorrentStatus";
@@ -71,6 +72,18 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [seekOffset, setSeekOffset] = useState(0);
+  // Coherent seek/buffer machine: `seekPreview` pins the UI (slider/clock) to the seek target and
+  // hides subtitles while an in-flight seek loads; `isBuffering` (+ delayed `showSpinner`) drives a
+  // mid-playback spinner. Both are settled by the video's seeked/playing/canplay events.
+  const [seekPreview, setSeekPreview] = useState<number | null>(null);
+  const [isBuffering, setIsBuffering] = useState(false);
+  const [showSpinner, setShowSpinner] = useState(false);
+  const spinnerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hiddenTracksRef = useRef<number[]>([]);
+  // Seek debounce (TV-style): rapid ±N presses accumulate into one target and commit ~once the user
+  // stops, so the backend gets a single seek instead of one request per press.
+  const pendingSeekRef = useRef<number | null>(null);
+  const seekTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [volume, setVolume] = useState<number>(() => {
     const saved = localStorage.getItem("potok_player_volume");
     return saved !== null ? Number(saved) : 0.75;
@@ -214,8 +227,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   // Hotkeys custom hook listener
   usePlayerKeyboardControls({
     videoRef,
-    seekOffset,
-    handleSeek: (time) => handleSeek(time),
+    handleSeekBy: (delta) => handleSeekBy(delta),
     handleClose,
     handleUserActivity,
   });
@@ -400,6 +412,62 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     }
   }, [seekOffset]);
 
+  // Spinner is delayed so quick in-buffer seeks (which resolve in well under this) never flash it;
+  // a genuinely cold seek or a network dip keeps buffering past the delay and shows it.
+  useEffect(() => {
+    if (isBuffering) {
+      spinnerTimerRef.current = setTimeout(() => setShowSpinner(true), 350);
+    } else {
+      if (spinnerTimerRef.current) clearTimeout(spinnerTimerRef.current);
+      spinnerTimerRef.current = null;
+      setShowSpinner(false);
+    }
+    return () => {
+      if (spinnerTimerRef.current) clearTimeout(spinnerTimerRef.current);
+    };
+  }, [isBuffering]);
+
+  // Cancel any pending debounced seek on unmount so it can't fire against a torn-down video.
+  useEffect(() => () => {
+    if (seekTimerRef.current) clearTimeout(seekTimerRef.current);
+  }, []);
+
+  // Hide subtitles while a seek is in flight (the visible frame is the old/black one), and bring
+  // them back — redrawn at the resumed position — the instant the seek settles, so subtitles never
+  // appear over the wrong frame and land in sync with the picture.
+  useEffect(() => {
+    const seeking = seekPreview != null;
+    const oct = octopusRef.current;
+    const video = videoRef.current;
+    if (oct?.canvas) {
+      (oct.canvas as HTMLElement).classList.toggle("player-subs-hidden", seeking);
+    }
+    if (!video) return;
+    if (seeking) {
+      const hidden: number[] = [];
+      Array.from(video.textTracks).forEach((tt, i) => {
+        if (tt.mode === "showing") {
+          tt.mode = "hidden";
+          hidden.push(i);
+        }
+      });
+      hiddenTracksRef.current = hidden;
+    } else {
+      hiddenTracksRef.current.forEach((i) => {
+        const tt = video.textTracks[i];
+        if (tt && tt.mode === "hidden") tt.mode = "showing";
+      });
+      hiddenTracksRef.current = [];
+      if (oct) {
+        try {
+          oct.setCurrentTime(video.currentTime + seekOffsetRef.current);
+        } catch {
+          /* noop */
+        }
+      }
+    }
+  }, [seekPreview]);
+
   // Same problem for native (vtt/srt) tracks: the browser times cues off video.currentTime,
   // which is 0-based after a remuxed seek. Shift each cue by seekOffset. We stash each cue's
   // original absolute time in a WeakMap so re-applying is idempotent and survives cue reloads.
@@ -560,12 +628,39 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     applyAudio(newUrl);
   };
 
-  const handleSeek = (time: number) => {
+  // Debounced/accumulated seeking. The UI pins to the target instantly (seekPreview), but the real
+  // `currentTime` write — the thing that makes hls.js fetch a segment — is deferred, so a burst of
+  // ±N presses or a scrub commits only its final target: one backend seek instead of one per press.
+  const SEEK_DEBOUNCE_MS = 300;
+  const commitSeek = () => {
+    seekTimerRef.current = null;
+    const t = pendingSeekRef.current;
+    pendingSeekRef.current = null;
     const video = videoRef.current;
-    if (!video) return;
-    // Whole-file VOD HLS and native files are both fully seekable, so seeking is a plain currentTime
-    // set — hls.js fetches the target segment (produced on demand server-side). No offset, no reload.
-    video.currentTime = time;
+    if (t == null || !video) return;
+    if (Math.abs(video.currentTime - t) > 0.25) {
+      // One real seek. onSeeking → buffering/spinner; onSeeked/onPlaying settle & clear seekPreview.
+      video.currentTime = t;
+    } else {
+      // No-op seek (already there): no seeked event will fire, so release the UI pin ourselves.
+      setSeekPreview(null);
+    }
+  };
+  const scheduleSeek = (target: number) => {
+    const clamped = Math.max(0, Math.min(target, displayDuration > 0 ? displayDuration : target));
+    pendingSeekRef.current = clamped;
+    setSeekPreview(clamped);
+    if (seekTimerRef.current) clearTimeout(seekTimerRef.current);
+    seekTimerRef.current = setTimeout(commitSeek, SEEK_DEBOUNCE_MS);
+  };
+  // Absolute seek (slider, skip intro/outro, resume toast).
+  const handleSeek = (time: number) => scheduleSeek(time);
+  // Relative seek (±N buttons, keyboard arrows). Accumulates off the pending target so five +10s
+  // presses land on +50s, not five separate seeks.
+  const handleSeekBy = (delta: number) => {
+    const video = videoRef.current;
+    const base = pendingSeekRef.current != null ? pendingSeekRef.current : seekOffsetRef.current + (video?.currentTime ?? 0);
+    scheduleSeek(base + delta);
   };
 
   const switchSubtitle = (id: number) => {
@@ -639,6 +734,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     <>
       {showResumeToast && <PlayerResumeToast resumeTime={resumeTime} onSeek={handleSeek} onClose={() => setShowResumeToast(false)} />}
       {isMetadataLoading && loadingState && <PlayerLoadingOverlay loadingState={loadingState} onClose={handleClose} />}
+      {showSpinner && !isMetadataLoading && !playerError && <PlayerBufferingSpinner />}
       {playerError && <PlayerErrorOverlay error={playerError} streamUrl={playback.streamUrl} onRefresh={handleRefreshStream} onClose={handleClose} />}
       {isNetworkOffline && (
         <div className="player-network-offline-banner">
@@ -655,8 +751,11 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
         ref={videoRef}
         crossOrigin="anonymous"
         onPlay={() => setIsPlaying(true)}
-        onPlaying={() => { setIsPlaying(true); setIsMetadataLoading(false); }}
-        onCanPlay={() => setIsMetadataLoading(false)}
+        onPlaying={() => { setIsPlaying(true); setIsMetadataLoading(false); setIsBuffering(false); setSeekPreview(null); }}
+        onCanPlay={() => { setIsMetadataLoading(false); setIsBuffering(false); }}
+        onSeeking={() => setIsBuffering(true)}
+        onSeeked={() => { setIsBuffering(false); setSeekPreview(null); }}
+        onWaiting={() => setIsBuffering(true)}
         onPause={() => setIsPlaying(false)}
         onDurationChange={(e) => setDuration(e.currentTarget.duration)}
         onVolumeChange={(e) => {
@@ -707,6 +806,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
         onTogglePlay={togglePlay}
         duration={displayDuration}
         onSeek={handleSeek}
+        onSeekBy={handleSeekBy}
         volume={volume}
         isMuted={isMuted}
         onVolumeChange={(vol) => { if (videoRef.current) videoRef.current.volume = vol; }}
@@ -739,6 +839,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
         seekOffset={seekOffset}
         streamHash={streamHash}
         fileIndex={fileIndex}
+        seekPreview={seekPreview}
       />
     </>
   );

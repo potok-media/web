@@ -155,6 +155,8 @@ export function useHlsPlayer({
         // A cold segment after a deep seek may need the server to reposition ffmpeg + fetch torrent
         // pieces before it can answer — give it generous time so it doesn't fail fatally.
         fragLoadingTimeOut: 60000,
+        // Be more persistent recovering from a transient buffer stall before giving up (gap-jump).
+        nudgeMaxRetry: 8,
         startPosition: startPos > 0 ? startPos : -1,
       });
       hlsRef.current = hls;

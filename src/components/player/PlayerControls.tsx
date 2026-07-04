@@ -31,6 +31,7 @@ interface PlayerControlsProps {
   onTogglePlay: () => void;
   duration: number;
   onSeek: (time: number) => void;
+  onSeekBy: (delta: number) => void;
   volume: number;
   isMuted: boolean;
   onVolumeChange: (vol: number) => void;
@@ -63,6 +64,7 @@ interface PlayerControlsProps {
   seekOffset?: number;
   streamHash?: string;
   fileIndex?: string;
+  seekPreview?: number | null;
 }
 
 export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
@@ -72,6 +74,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
   onTogglePlay,
   duration,
   onSeek,
+  onSeekBy,
   volume,
   isMuted,
   onVolumeChange,
@@ -104,6 +107,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
   seekOffset = 0,
   streamHash,
   fileIndex,
+  seekPreview = null,
 }) => {
   const { t } = useTranslation("player");
   const changeVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,25 +143,22 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
     >
       <div className="player-controller-glass-pill">
         <div className="player-timeline-wrapper">
-          <TimelineSlider 
-            videoRef={videoRef} 
-            onSeek={onSeek} 
-            initialDuration={duration} 
-            seekOffset={seekOffset} 
+          <TimelineSlider
+            videoRef={videoRef}
+            onSeek={onSeek}
+            initialDuration={duration}
+            seekOffset={seekOffset}
             streamHash={streamHash}
             fileIndex={fileIndex}
+            seekPreview={seekPreview}
           />
         </div>
 
         <div className="player-controls-row">
           <div className="controls-group left">
-            <button 
-              className="control-icon-btn" 
-              onClick={() => {
-                const currentTime = videoRef.current?.currentTime || 0;
-                const T_new = Math.max(seekOffset + currentTime - 10, 0);
-                onSeek(T_new);
-              }}
+            <button
+              className="control-icon-btn"
+              onClick={() => onSeekBy(-10)}
               title={t("controls.rewind10Title")}
               aria-label={t("controls.rewind10Aria")}
             >
@@ -168,13 +169,9 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
               {isPlaying ? <Pause size="1.25rem" fill="currentColor" /> : <Play size="1.25rem" fill="currentColor" />}
             </button>
 
-            <button 
-              className="control-icon-btn" 
-              onClick={() => {
-                const currentTime = videoRef.current?.currentTime || 0;
-                const T_new = Math.min(seekOffset + currentTime + 10, duration);
-                onSeek(T_new);
-              }}
+            <button
+              className="control-icon-btn"
+              onClick={() => onSeekBy(10)}
               title={t("controls.forward10Title")}
               aria-label={t("controls.forward10Aria")}
             >
@@ -200,7 +197,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
               />
             </div>
 
-            <TimeDisplay videoRef={videoRef} initialDuration={duration} seekOffset={seekOffset} />
+            <TimeDisplay videoRef={videoRef} initialDuration={duration} seekOffset={seekOffset} seekPreview={seekPreview} />
           </div>
 
           <div className="controls-group right">
