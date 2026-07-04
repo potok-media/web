@@ -19,26 +19,6 @@ export const getFileExtension = (url: string): string => {
   return "";
 };
 
-export const updateStreamUrlParams = (url: string, params: { remux?: string; start?: string; audio?: string }): string => {
-  try {
-    const parsed = new URL(url);
-    if (params.remux !== undefined) parsed.searchParams.set("remux", params.remux);
-    if (params.start !== undefined) parsed.searchParams.set("start", params.start);
-    if (params.audio !== undefined) {
-      if (params.audio) parsed.searchParams.set("audio", params.audio);
-      else parsed.searchParams.delete("audio");
-    }
-    return parsed.toString();
-  } catch {
-    const baseUrl = url.split("?")[0];
-    const queryParts: string[] = [];
-    if (params.remux) queryParts.push(`remux=${params.remux}`);
-    if (params.start) queryParts.push(`start=${params.start}`);
-    if (params.audio) queryParts.push(`audio=${params.audio}`);
-    return queryParts.length > 0 ? `${baseUrl}?${queryParts.join("&")}` : baseUrl;
-  }
-};
-
 export const normalizeStreamUrlToPath = (url: string): string => {
   if (!url) return url;
   try {

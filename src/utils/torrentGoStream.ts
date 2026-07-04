@@ -6,7 +6,7 @@
 // The player and TorrentGo are "native" to each other, so this module is deliberately coupled
 // to TorrentGo's URL scheme and remux protocol rather than being a generic provider interface.
 import { ApiClient } from "../network/ApiClient";
-import { getFileExtension, normalizeStreamUrlToPath, updateStreamUrlParams } from "./playerHelpers";
+import { getFileExtension, normalizeStreamUrlToPath } from "./playerHelpers";
 
 // Container/extensions the browser can play directly, without a server-side remux.
 export const NATIVE_MEDIA_EXTS = ["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "m4a", "mpd", "m4v"];
@@ -89,15 +89,6 @@ export function streamNeedsRemux(info: StreamInfo, rawStreamUrl: string, audioTr
   );
 }
 
-/** Build a remuxing stream URL (remux=true&start=<sec>&audio=<n>) from a normalized stream URL. */
-export function buildRemuxUrl(normalizedUrl: string, startSeconds: number, audioTrackId: number): string {
-  return updateStreamUrlParams(normalizedUrl, {
-    remux: "true",
-    start: startSeconds.toFixed(3),
-    audio: audioTrackId !== -1 ? audioTrackId.toString() : "0",
-  });
-}
-
 /** Strip remux/start/audio params to get the plain (non-remux) stream URL. */
 export function stripRemuxParams(url: string): string {
   try {
@@ -118,15 +109,20 @@ export function buildSubtitleSrc(hash: string, fileIndex: string | number, relIn
 }
 
 /**
- * Resolve the exact keyframe the remux will start on for a requested seek time, so the client's
- * seekOffset equals the real output start (ffmpeg -ss input seeking snaps to the preceding
- * keyframe). Falls back to the requested time when the lookup is unavailable, so seeking is
- * never blocked.
+ * Build the VOD HLS playlist URL for a TorrentGo stream. The server describes the whole file with a
+ * static VOD playlist (#EXT-X-ENDLIST) and produces segments on demand, so hls.js buffers far ahead
+ * and seeks natively over the whole-file timeline — currentTime is absolute, no seek offset.
+ * Returns the original URL if it isn't a TorrentGo stream.
  */
-export async function resolveRemuxStart(hash: string, fileIndex: string, requestedTime: number): Promise<number> {
-  if (hash && fileIndex) {
-    const resolved = await ApiClient.getNearestKeyframe(hash, fileIndex, requestedTime);
-    if (resolved !== null && resolved >= 0) return resolved;
+export function buildHlsUrl(streamUrl: string, opts?: { streamHash?: string; audioTrackId?: number }): string {
+  const { hash, fileIndex } = parseTorrentGoRef(streamUrl, opts?.streamHash);
+  if (!hash || !fileIndex) return streamUrl;
+  const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
+  let url = `${cleanBase}/api/torrents/${hash}/files/${fileIndex}/hls/master.m3u8`;
+  // Only pin an explicit audio track (segments are muxed per-track server-side); default omits it
+  // so the server uses the first audio track.
+  if (opts?.audioTrackId !== undefined && opts.audioTrackId >= 0) {
+    url += `?audio=${opts.audioTrackId}`;
   }
-  return requestedTime;
+  return url;
 }

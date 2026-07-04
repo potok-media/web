@@ -33,9 +33,7 @@ import {
   parseTorrentGoRef,
   describeStream,
   streamNeedsRemux,
-  buildRemuxUrl,
   stripRemuxParams,
-  resolveRemuxStart,
 } from "../utils/torrentGoStream";
 
 // Components
@@ -183,6 +181,15 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     }
   }, [playback]);
 
+  // Explicit HLS audio-track override (undefined = server default first track). Kept separate from
+  // currentAudioTrack so the metadata-driven initial audio selection doesn't trigger a needless HLS
+  // reload; only an explicit switch does. Switching pins the new track and reloads the source; the
+  // player resumes at the saved position (VOD playlists are fully seekable).
+  const [hlsAudioOverride, setHlsAudioOverride] = useState<number | undefined>(undefined);
+  useEffect(() => {
+    setHlsAudioOverride(undefined);
+  }, [streamHash, fileIndex]);
+
   const {
     hlsRef,
     srcResetCounter,
@@ -201,6 +208,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     setPlayerError,
     handleRefreshStream,
     setIsMetadataLoading,
+    hlsAudio: hlsAudioOverride,
   });
 
   // Hotkeys custom hook listener
@@ -537,47 +545,27 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     };
 
     if (needsRemux) {
-      // See handleSeek: 0-based output, so seekOffset = the real keyframe start.
-      (async () => {
-        const kf = await resolveRemuxStart(streamHash, fileIndex, time);
-        setSeekOffset(kf);
-        applyAudio(buildRemuxUrl(normalizedUrl, time, id));
-      })();
-    } else {
-      setSeekOffset(0);
-      let newUrl = playback.audios && playback.audios[id] ? playback.audios[id].url : playback.streamUrl;
-      if (info.isTorrentGoStream) {
-        newUrl = stripRemuxParams(newUrl);
-      }
-      applyAudio(newUrl);
+      // HLS: audio is muxed per-track server-side (one VOD playlist per audio track). Switch by
+      // pinning the new track — useHlsPlayer rebuilds the source and resumes at the saved position
+      // (written above); the VOD playlist is fully seekable so no offset math is needed.
+      setHlsAudioOverride(id);
+      setCurrentAudioTrack(id);
+      setShowAudioMenu(false);
+      return;
     }
+    let newUrl = playback.audios && playback.audios[id] ? playback.audios[id].url : playback.streamUrl;
+    if (info.isTorrentGoStream) {
+      newUrl = stripRemuxParams(newUrl);
+    }
+    applyAudio(newUrl);
   };
 
   const handleSeek = (time: number) => {
     const video = videoRef.current;
     if (!video) return;
-
-    const info = describeStream(playback.streamUrl, { streamHash: playback.streamHash, torrentHash: (playback as any).torrentHash });
-    const needsRemux = streamNeedsRemux(info, playback.streamUrl, currentAudioTrack);
-
-    if (needsRemux) {
-      saveProgress();
-      video.pause();
-      // video.currentTime after remux is 0-based (starts at the seeked keyframe K). Resolve the
-      // exact K so seekOffset = real start; the seek bar (seekOffset+currentTime) and subtitles
-      // (offset by seekOffset) then match. start=time → ffmpeg seeks to keyframe<=time == K.
-      (async () => {
-        const kf = await resolveRemuxStart(streamHash, fileIndex, time);
-        setSeekOffset(kf);
-        const newUrl = buildRemuxUrl(info.normalizedUrl, time, currentAudioTrack);
-        const proxiedUrl = getProxyUrl(newUrl, ApiClient.baseURL, playback.headers);
-        video.src = proxiedUrl;
-        video.play().then(() => syncNativeTextTracks(video)).catch(() => {});
-      })();
-    } else {
-      setSeekOffset(0);
-      video.currentTime = time;
-    }
+    // Whole-file VOD HLS and native files are both fully seekable, so seeking is a plain currentTime
+    // set — hls.js fetches the target segment (produced on demand server-side). No offset, no reload.
+    video.currentTime = time;
   };
 
   const switchSubtitle = (id: number) => {

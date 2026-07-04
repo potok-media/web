@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Hls from "hls.js";
-import { getProxyUrl, updateStreamUrlParams } from "../utils/playerHelpers";
-import { describeStream, streamNeedsRemux, stripRemuxParams } from "../utils/torrentGoStream";
+import { getProxyUrl } from "../utils/playerHelpers";
+import { describeStream, streamNeedsRemux, stripRemuxParams, buildHlsUrl } from "../utils/torrentGoStream";
 import { ApiClient } from "../network/ApiClient";
 import { type ActivePlayback } from "../context/AppSettingsContext";
 import { logger } from "../utils/logger";
@@ -17,6 +17,7 @@ interface HlsPlayerParams {
   setPlayerError: (error: string | null) => void;
   handleRefreshStream: () => void;
   setIsMetadataLoading: (loading: boolean) => void;
+  hlsAudio?: number; // explicit HLS audio-track override (undefined = server default first track)
 }
 
 export function useHlsPlayer({
@@ -30,6 +31,7 @@ export function useHlsPlayer({
   setPlayerError,
   handleRefreshStream,
   setIsMetadataLoading,
+  hlsAudio,
 }: HlsPlayerParams) {
   const hlsRef = useRef<Hls | null>(null);
   const playerSessionRef = useRef<number>(0);
@@ -89,23 +91,6 @@ export function useHlsPlayer({
     cleanupActiveResources();
     const sessionId = playerSessionRef.current;
 
-    // Parse starting position for native resume
-    let startPos = 0;
-    const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
-    const savedResume = localStorage.getItem(resumeKey);
-    if (savedResume) {
-      const parsed = Number(savedResume);
-      if (!isNaN(parsed) && parsed > 0) startPos = parsed;
-    } else {
-      try {
-        const startParam = new URL(playback.streamUrl).searchParams.get("start");
-        if (startParam) startPos = Number(startParam);
-      } catch {
-        const match = playback.streamUrl.match(/[?&]start=(\d+)/i);
-        if (match) startPos = Number(match[1]);
-      }
-    }
-
     const info = describeStream(playback.streamUrl, { streamHash: playback.streamHash, torrentHash: (playback as any).torrentHash });
     const { normalizedUrl, isTorrentGoStream: isStreamServer, ext, isNonNative } = info;
     const isSmartTV = /web0s|webos|tizen|smarttv|smart-tv|lg|samsung/i.test(navigator.userAgent);
@@ -121,33 +106,55 @@ export function useHlsPlayer({
       return;
     }
 
-    let finalStreamUrl = normalizedUrl;
     const needsRemux = streamNeedsRemux(info, playback.streamUrl, currentAudioTrack);
-    if (needsRemux) {
-      finalStreamUrl = updateStreamUrlParams(normalizedUrl, {
-        remux: "true",
-        start: Math.floor(startPos).toString(),
-        audio: currentAudioTrack !== -1 ? currentAudioTrack.toString() : "0"
-      });
-      // Remux output is 0-based (currentTime starts at the seeked keyframe). Track the resume
-      // position as seekOffset so the seek bar and subtitles reflect the real time.
-      setSeekOffset(startPos);
-    } else {
-      setSeekOffset(0);
-      if (isStreamServer) {
-        finalStreamUrl = stripRemuxParams(normalizedUrl);
+
+    // Resume position. The TorrentGo playlist is a fully-seekable VOD and native files are seekable
+    // too, so in both cases we just seek the player to the saved position (currentTime is absolute).
+    let startPos = 0;
+    {
+      const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
+      const savedResume = localStorage.getItem(resumeKey);
+      if (savedResume) {
+        const parsed = Number(savedResume);
+        if (!isNaN(parsed) && parsed > 0) startPos = parsed;
+      } else {
+        try {
+          const startParam = new URL(playback.streamUrl).searchParams.get("start");
+          if (startParam) startPos = Number(startParam);
+        } catch {
+          const match = playback.streamUrl.match(/[?&]start=(\d+)/i);
+          if (match) startPos = Number(match[1]);
+        }
       }
+    }
+
+    // VOD HLS and native files both use an absolute whole-file timeline → no seek offset ever.
+    setSeekOffset(0);
+    let finalStreamUrl = normalizedUrl;
+    if (needsRemux) {
+      finalStreamUrl = buildHlsUrl(playback.streamUrl, { streamHash: playback.streamHash, audioTrackId: hlsAudio });
+    } else if (isStreamServer) {
+      finalStreamUrl = stripRemuxParams(normalizedUrl);
     }
 
     const gatewayBase = ApiClient.baseURL;
     const proxiedUrl = getProxyUrl(finalStreamUrl, gatewayBase, playback.headers);
 
-    const isM3U8 = normalizedUrl.includes(".m3u8") || normalizedUrl.includes("/hls/");
+    const isM3U8 = finalStreamUrl.includes(".m3u8") || finalStreamUrl.includes("/hls/");
 
     if (isM3U8 && Hls.isSupported()) {
       const hls = new Hls({
         enableWorker: true,
-        lowLatencyMode: true,
+        // VOD delivery — buffer far ahead so network dips don't stall playback. lowLatencyMode must
+        // stay OFF (it shrinks the buffer).
+        lowLatencyMode: false,
+        maxBufferLength: 30,
+        maxMaxBufferLength: 120,
+        backBufferLength: 30,
+        maxBufferHole: 0.5,
+        // A cold segment after a deep seek may need the server to reposition ffmpeg + fetch torrent
+        // pieces before it can answer — give it generous time so it doesn't fail fatally.
+        fragLoadingTimeOut: 60000,
         startPosition: startPos > 0 ? startPos : -1,
       });
       hlsRef.current = hls;
@@ -244,7 +251,7 @@ export function useHlsPlayer({
         cleanupActiveResources();
       };
     }
-  }, [playback.streamUrl, cleanupActiveResources, setPlayerError, setIsMetadataLoading, setSeekOffset]);
+  }, [playback.streamUrl, hlsAudio, cleanupActiveResources, setPlayerError, setIsMetadataLoading, setSeekOffset]);
 
   return {
     hlsRef,
