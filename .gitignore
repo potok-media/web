@@ -80,5 +80,9 @@ Desktop.ini
 *.tmp
 *.bak
 
-# 🎨 Generated Assets
-public/assets/icons/
+# 🎨 Generated Assets — copied from node_modules at build time (lucide icons + subtitles-octopus
+# libass worker/wasm/fonts) by vite.config.ts buildStart. Regenerated every build; never commit.
+public/assets/
+
+# 🧩 Generated SDK bundle — compiled from src/sdk into public/sdk on every build.
+public/sdk/

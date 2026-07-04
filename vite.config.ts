@@ -37,16 +37,6 @@ function vitePotokSdkPlugin() {
         console.error('[vite-plugin-potok-sdk] Failed to copy lucide-static icons:', err);
       }
 
-      console.log('[vite-plugin-potok-sdk] Copying JASSUB static assets...');
-      try {
-        const jassubDir = resolve(__dirname, 'node_modules/jassub/dist');
-        const destDir = resolve(__dirname, 'public/assets/jassub');
-        cpSync(jassubDir, destDir, { recursive: true });
-        console.log('[vite-plugin-potok-sdk] JASSUB static assets copied successfully.');
-      } catch (err) {
-        console.error('[vite-plugin-potok-sdk] Failed to copy JASSUB static assets:', err);
-      }
-
       console.log('[vite-plugin-potok-sdk] Copying subtitles-octopus static assets...');
       try {
         const octopusDir = resolve(__dirname, 'node_modules/libass-wasm/dist/js');
