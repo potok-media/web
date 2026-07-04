@@ -6,22 +6,25 @@ import {
   Volume2, 
   VolumeX, 
   Volume1, 
-  Maximize, 
-  Minimize, 
-  Subtitles, 
-  Activity, 
-  RotateCcw, 
-  RotateCw, 
-  Settings, 
+  Maximize,
+  Minimize,
+  Captions,
+  Activity,
+  RotateCcw,
+  RotateCw,
+  Settings,
   ListVideo
 } from "lucide-react";
 import { TrackSelectorDropdown } from "./TrackSelectorDropdown";
+import { CaptionsLoadingIcon } from "./SubtitleLoadingIcons";
 import { TimelineSlider } from "./TimelineSlider";
 import { TimeDisplay } from "./TimeDisplay";
 
 interface TrackItem {
   id: number;
   name: string;
+  loading?: boolean;
+  error?: boolean;
 }
 
 interface PlayerControlsProps {
@@ -46,11 +49,13 @@ interface PlayerControlsProps {
   showAudioMenu: boolean;
   onToggleAudioMenu: () => void;
   subtitleTracks: TrackItem[];
+  subtitlesLoading?: boolean;
   currentSubtitleTrack: number;
   onSelectSubtitleTrack: (id: number) => void;
   showSubtitleMenu: boolean;
   onToggleSubtitleMenu: () => void;
   onUploadSubtitle?: (file: File) => void;
+  onAddSubtitleUrl?: (url: string) => Promise<void>;
   qualityLevels: TrackItem[];
   currentQualityLevel: number;
   onSelectQualityLevel: (id: number) => void;
@@ -89,11 +94,13 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
   showAudioMenu,
   onToggleAudioMenu,
   subtitleTracks,
+  subtitlesLoading,
   currentSubtitleTrack,
   onSelectSubtitleTrack,
   showSubtitleMenu,
   onToggleSubtitleMenu,
   onUploadSubtitle,
+  onAddSubtitleUrl,
   qualityLevels,
   currentQualityLevel,
   onSelectQualityLevel,
@@ -135,6 +142,10 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
     : fallbackAudioTracks;
 
   const displayCurrentAudio = audioTracks.length > 0 ? currentAudioTrack : -1;
+
+  // The subtitle button stays disabled until at least one track's content is actually usable, and
+  // keeps the animated captions-loading glyph while any track is still downloading.
+  const anySubReady = subtitleTracks.some((track) => !track.loading && !track.error);
 
   return (
     <div 
@@ -221,7 +232,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             />
 
             <TrackSelectorDropdown
-              icon={<Subtitles size="1.125rem" />}
+              icon={subtitlesLoading ? <CaptionsLoadingIcon size="1.125rem" /> : <Captions size="1.125rem" />}
               title={t("controls.subtitles")}
               items={subtitleTracks}
               currentItemId={currentSubtitleTrack}
@@ -231,7 +242,8 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
               showDisableOption={true}
               disableOptionLabel={t("controls.disable")}
               onUploadSubtitle={onUploadSubtitle}
-              disabled={subtitleTracks.length === 0}
+              onAddSubtitleUrl={onAddSubtitleUrl}
+              disabled={!anySubReady}
             />
 
             {playlistItems && playlistItems.length > 0 && (

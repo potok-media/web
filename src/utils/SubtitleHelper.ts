@@ -2,6 +2,26 @@
  * Subtitle parsing and HTML5 native video track helper utilities.
  */
 
+export type SubtitleKind = "ass" | "vtt" | "srt";
+
+/**
+ * Detects a subtitle's format from its filename/URL extension, falling back to sniffing the
+ * content head (ASS/SSA carry a "[Script Info]"/"[V4+ Styles]" section; VTT starts with "WEBVTT").
+ * Used to route uploads/links to the right renderer: ASS/SSA → libass (SubtitlesOctopus),
+ * VTT/SRT → native cues.
+ */
+export function detectSubtitleKind(nameOrUrl: string, content: string): SubtitleKind {
+  const lower = (nameOrUrl || "").toLowerCase().split(/[?#]/)[0];
+  if (lower.endsWith(".ass") || lower.endsWith(".ssa")) return "ass";
+  if (lower.endsWith(".vtt")) return "vtt";
+  if (lower.endsWith(".srt")) return "srt";
+
+  const head = (content || "").slice(0, 500).trimStart();
+  if (/^﻿?\[Script Info\]/i.test(head) || /\[V4\+? Styles\]/i.test(head)) return "ass";
+  if (/^﻿?WEBVTT/.test(head)) return "vtt";
+  return "srt";
+}
+
 /**
  * Converts standard SRT subtitle content to WebVTT format on the fly.
  * Replaces comma decimal separators with dots and prepends the WEBVTT header.

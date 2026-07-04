@@ -180,7 +180,12 @@
       "disable": "Disable",
       "uploadSubtitlesAria": "Upload subtitles",
       "uploadSrtVtt": "Upload SRT/VTT...",
-      "subtitlesFallback": "Subtitles {{index}}"
+      "uploadFile": "Upload file (SRT/VTT/ASS)",
+      "urlPlaceholder": "Subtitle URL",
+      "urlAdd": "Add",
+      "customLabel": "Custom",
+      "subtitlesFallback": "Subtitles {{index}}",
+      "loadError": "Failed to load"
     },
     "resume": {
       "continuedFrom": "Resumed from {{time}}",

@@ -7,7 +7,7 @@ import { usePlayback, type ActivePlayback } from "../context/AppSettingsContext"
 import { PlayerTopBar } from "./player/PlayerTopBar";
 import { PlayerStatsHUD } from "./player/PlayerStatsHUD";
 import { PlayerControls } from "./player/PlayerControls";
-import { convertSrtToVtt } from "../utils/SubtitleHelper";
+import { convertSrtToVtt, detectSubtitleKind, type SubtitleKind } from "../utils/SubtitleHelper";
 import { useTimecodes } from "../hooks/useTimecodes";
 import { usePlaybackTracker } from "../hooks/usePlaybackTracker";
 
@@ -239,30 +239,69 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   const subtitleBlobUrls = useRef<Record<string, string>>({});
   const [, setSubtitleBlobVersion] = useState(0);
 
-  // Build blob URLs for every non-ASS track as soon as its prefetch promise resolves.
-  // This lets the native <track> render instantly from memory instead of hitting the network.
+  // Per-track readiness ("content actually usable"), keyed by the stable string track id.
+  // Absent = still loading, "ready" = displayable now, "error" = fetch failed. Drives the
+  // subtitle button spinner/disabled state and per-row spinners in the dropdown.
+  const [subtitleState, setSubtitleState] = useState<Record<string, "ready" | "error">>({});
+  // Generation guard: an in-flight fetch from a previous source must not mark a track of the new
+  // source ready (synthesized ids like `${relIndex}_${title}` can collide across sources).
+  const subtitleGen = useRef(0);
+  useEffect(() => {
+    subtitleGen.current++;
+    setSubtitleState({});
+  }, [srcResetCounter]);
+  const markSubtitle = useCallback((id: string, val: "ready" | "error", gen: number) => {
+    setSubtitleState((prev) => {
+      if (gen !== subtitleGen.current) return prev;
+      if (prev[id] === val) return prev;
+      return { ...prev, [id]: val };
+    });
+  }, []);
+
+  // Build blob URLs for every non-ASS track as soon as its prefetch promise resolves, and record
+  // per-track readiness. Native (vtt/srt) counts as "ready" only once its blob URL exists — until
+  // then the <track> would fall back to the remote URL (the select-but-broken case). ASS is "ready"
+  // as soon as its content resolves (SubtitlesOctopus loads the text directly). A failed fetch marks
+  // "error" so the row stops spinning instead of hanging. Uploads/URL tracks are marked ready
+  // synchronously in addSubtitleTrack.
   useEffect(() => {
     let active = true;
+    const gen = subtitleGen.current;
     injectedSubtitles.forEach((track) => {
+      if (!track.src) return;
       const isAss = track.codec === "ass" || track.codec === "ssa";
-      if (isAss || !track.src) return;
-      if (subtitleBlobUrls.current[track.id]) return;
       const promise = subtitleFetchPromises.current[track.id];
+
+      if (isAss) {
+        if (!promise) return;
+        promise
+          .then(() => { if (active) markSubtitle(track.id, "ready", gen); })
+          .catch(() => { if (active) markSubtitle(track.id, "error", gen); });
+        return;
+      }
+
+      if (subtitleBlobUrls.current[track.id]) {
+        markSubtitle(track.id, "ready", gen);
+        return;
+      }
       if (!promise) return;
       promise
         .then((text: string) => {
-          if (!active || subtitleBlobUrls.current[track.id]) return;
-          const vtt = text.trimStart().startsWith("WEBVTT") ? text : convertSrtToVtt(text);
-          const blob = new Blob([vtt], { type: "text/vtt" });
-          subtitleBlobUrls.current[track.id] = URL.createObjectURL(blob);
-          setSubtitleBlobVersion((v) => v + 1);
+          if (!active) return;
+          if (!subtitleBlobUrls.current[track.id]) {
+            const vtt = text.trimStart().startsWith("WEBVTT") ? text : convertSrtToVtt(text);
+            const blob = new Blob([vtt], { type: "text/vtt" });
+            subtitleBlobUrls.current[track.id] = URL.createObjectURL(blob);
+            setSubtitleBlobVersion((v) => v + 1);
+          }
+          markSubtitle(track.id, "ready", gen);
         })
-        .catch(() => {});
+        .catch(() => { if (active) markSubtitle(track.id, "error", gen); });
     });
     return () => {
       active = false;
     };
-  }, [injectedSubtitles]);
+  }, [injectedSubtitles, markSubtitle]);
 
   // Revoke blob URLs when the source resets (or on unmount) to avoid leaking memory.
   useEffect(() => {
@@ -676,30 +715,56 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     setShowQualityMenu(false);
   };
 
+  // Add a manually-provided subtitle (from a file or a URL) as a selectable track. ASS/SSA are kept
+  // raw and rendered by libass (codec "ass"); SRT is normalized to WebVTT; VTT passes through — both
+  // go through a blob URL on the native <track> path. Registers the blob for revocation on reset.
+  const addSubtitleTrack = (displayName: string, rawContent: string, kind: SubtitleKind) => {
+    const isAss = kind === "ass";
+    const content = isAss ? rawContent : kind === "srt" ? convertSrtToVtt(rawContent) : rawContent;
+    const url = URL.createObjectURL(new Blob([content], { type: isAss ? "text/plain" : "text/vtt" }));
+    const id = `upload_${displayName}_${url}`;
+    const newTrack = {
+      id,
+      label: `${displayName || t("trackSelector.subtitlesFallback", { index: injectedSubtitles.length + 1 })} (${t("trackSelector.customLabel")})`,
+      srclang: "custom",
+      src: url,
+      codec: isAss ? "ass" : "vtt",
+    };
+    subtitleBlobUrls.current[id] = url;
+    // libass renders ASS from text: pre-store the resolved text so the octopus effect uses it
+    // directly instead of fetching `${src}?format=ass` — a blob URL rejects an appended query.
+    if (isAss) subtitleFetchPromises.current[id] = Promise.resolve(rawContent);
+    // Manually-added tracks are fully in memory → ready immediately (no spinner).
+    markSubtitle(id, "ready", subtitleGen.current);
+    const newIndex = injectedSubtitles.length;
+    setInjectedSubtitles((prev) => [...prev, newTrack]);
+    switchSubtitle(newIndex);
+  };
+
   const handleUploadSubtitle = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = (e.target?.result as string) || "";
-      const isSrt = file.name.toLowerCase().endsWith(".srt");
-      const vtt = isSrt || !content.trimStart().startsWith("WEBVTT") ? convertSrtToVtt(content) : content;
-      const url = URL.createObjectURL(new Blob([vtt], { type: "text/vtt" }));
-      const id = `upload_${file.name}_${url}`;
-      const newTrack = {
-        id,
-        label: `${file.name.replace(/\.(srt|vtt)$/i, "")} (Загруженные)`,
-        srclang: "custom",
-        src: url,
-        codec: "vtt",
-      };
-      // Register the blob for revocation on source reset, then hand the track to React
-      // state so it survives re-renders (unlike a manual video.appendChild) and shows up
-      // in the menu / native <track> render path.
-      subtitleBlobUrls.current[id] = url;
-      const newIndex = injectedSubtitles.length;
-      setInjectedSubtitles((prev) => [...prev, newTrack]);
-      switchSubtitle(newIndex);
+      const kind = detectSubtitleKind(file.name, content);
+      addSubtitleTrack(file.name.replace(/\.(srt|vtt|ass|ssa)$/i, ""), content, kind);
     };
     reader.readAsText(file);
+  };
+
+  // Load a subtitle by URL (through the app's HTTP proxy to dodge CORS), detect its format, and add
+  // it as a track. Throws on failure so the caller can surface an error inline.
+  const handleAddSubtitleUrl = async (rawUrl: string): Promise<void> => {
+    const url = rawUrl.trim();
+    if (!url) return;
+    const res = await fetch(getProxyUrl(url, ApiClient.baseURL));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const content = await res.text();
+    const kind = detectSubtitleKind(url, content);
+    let name = "";
+    try {
+      name = decodeURIComponent(new URL(url, window.location.href).pathname.split("/").pop() || "").replace(/\.(srt|vtt|ass|ssa)$/i, "");
+    } catch { /* keep empty → fallback label */ }
+    addSubtitleTrack(name, content, kind);
   };
 
   const togglePlay = () => {
@@ -713,6 +778,15 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     const autoLabel = activeLevel?.height ? t("quality.autoWithHeight", { height: activeLevel.height }) : t("quality.auto");
     return [{ id: -1, name: autoLabel }, ...rawLevels.map((l) => ({ id: l.id, name: l.height ? `${l.height}p` : t("quality.levelNumbered", { number: l.id + 1 }) }))];
   }, [rawLevels, hlsActiveLevel, t]);
+
+  // Attach per-track loading/error flags (joined by the stable string id, not the positional index)
+  // and a single "still loading" flag for the button icon. In-band native tracks have no stableId and
+  // are treated as ready.
+  const subtitleTracksUi = useMemo(() => subtitleTracks.map((item) => {
+    const st = item.stableId ? subtitleState[item.stableId] : "ready";
+    return { ...item, loading: !st, error: st === "error" };
+  }), [subtitleTracks, subtitleState]);
+  const subtitlesLoading = isMetadataLoading || subtitleTracksUi.some((t) => t.loading);
 
   const { introRange: remoteIntro, outroRange: remoteOutro } = useTimecodes(playback.id, playback.season, playback.episode, playback.mediaType === "tv", displayDuration);
   const introRange = localIntroRange || remoteIntro;
@@ -820,12 +894,14 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
         onSelectAudioTrack={switchAudio}
         showAudioMenu={showAudioMenu}
         onToggleAudioMenu={() => { setShowAudioMenu(!showAudioMenu); setShowSubtitleMenu(false); setShowQualityMenu(false); setShowPlaylistMenu(false); }}
-        subtitleTracks={subtitleTracks}
+        subtitleTracks={subtitleTracksUi}
+        subtitlesLoading={subtitlesLoading}
         currentSubtitleTrack={currentSubtitleTrack}
         onSelectSubtitleTrack={switchSubtitle}
         showSubtitleMenu={showSubtitleMenu}
         onToggleSubtitleMenu={() => { setShowSubtitleMenu(!showSubtitleMenu); setShowAudioMenu(false); setShowQualityMenu(false); setShowPlaylistMenu(false); }}
         onUploadSubtitle={handleUploadSubtitle}
+        onAddSubtitleUrl={handleAddSubtitleUrl}
         qualityLevels={displayQualityLevels}
         currentQualityLevel={currentQualityLevel}
         onSelectQualityLevel={switchQuality}

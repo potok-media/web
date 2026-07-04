@@ -180,7 +180,12 @@
       "disable": "Отключить",
       "uploadSubtitlesAria": "Загрузить субтитры",
       "uploadSrtVtt": "Загрузить SRT/VTT...",
-      "subtitlesFallback": "Субтитры {{index}}"
+      "uploadFile": "Загрузить файл (SRT/VTT/ASS)",
+      "urlPlaceholder": "Ссылка на субтитры",
+      "urlAdd": "Добавить",
+      "customLabel": "Свои",
+      "subtitlesFallback": "Субтитры {{index}}",
+      "loadError": "Не удалось загрузить"
     },
     "resume": {
       "continuedFrom": "Продолжено с {{time}}",

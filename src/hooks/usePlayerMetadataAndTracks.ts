@@ -38,11 +38,12 @@ export function usePlayerMetadataAndTracks(
 ) {
   const [audioTracks, setAudioTracks] = useState<{ id: number; name: string }[]>([]);
   const [currentAudioTrack, setCurrentAudioTrack] = useState(-1);
-  const [subtitleTracks, setSubtitleTracks] = useState<{ id: number; name: string }[]>(() => {
+  const [subtitleTracks, setSubtitleTracks] = useState<{ id: number; name: string; stableId?: string }[]>(() => {
     if (playback?.subtitles && playback.subtitles.length > 0) {
       return playback.subtitles.map((sub, idx) => ({
         id: idx,
         name: sub.label || sub.name || `Sub ${idx + 1}`,
+        stableId: sub.id || `${idx}_${sub.label || sub.name || "Subtitle"}`,
       }));
     }
     return [];
@@ -66,7 +67,8 @@ export function usePlayerMetadataAndTracks(
     setSubtitleTracks((prev) => {
       const injectedTracks = injectedSubtitles.map((sub, idx) => ({
         id: idx,
-        name: sub.label || `Sub ${idx + 1}`
+        name: sub.label || `Sub ${idx + 1}`,
+        stableId: sub.id,
       }));
       const inbandTracks = prev.filter(t => t.id >= injectedSubtitles.length);
       return [...injectedTracks, ...inbandTracks];
@@ -105,7 +107,7 @@ export function usePlayerMetadataAndTracks(
   const syncNativeTextTracks = useCallback((video: HTMLVideoElement | null) => {
     if (!video) return;
     
-    const inbandTracks: { id: number; name: string }[] = [];
+    const inbandTracks: { id: number; name: string; stableId?: string }[] = [];
     for (let i = injectedSubtitles.length; i < video.textTracks.length; i++) {
       const track = video.textTracks[i];
       if (track.kind === "subtitles" || track.kind === "captions") {
@@ -118,7 +120,8 @@ export function usePlayerMetadataAndTracks(
 
     const injectedTracks = injectedSubtitles.map((sub, idx) => ({
       id: idx,
-      name: sub.label || `Sub ${idx + 1}`
+      name: sub.label || `Sub ${idx + 1}`,
+      stableId: sub.id,
     }));
     setSubtitleTracks([...injectedTracks, ...inbandTracks]);
   }, [injectedSubtitles]);
