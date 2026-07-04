@@ -8,6 +8,7 @@ import { PlayerTopBar } from "./player/PlayerTopBar";
 import { PlayerStatsHUD } from "./player/PlayerStatsHUD";
 import { PlayerControls } from "./player/PlayerControls";
 import { convertSrtToVtt, detectSubtitleKind, type SubtitleKind } from "../utils/SubtitleHelper";
+import { logger } from "../utils/logger"; // [HLS-DIAG] temporary — remove with the diagnostics
 import { useTimecodes } from "../hooks/useTimecodes";
 import { usePlaybackTracker } from "../hooks/usePlaybackTracker";
 
@@ -147,11 +148,33 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     duration: displayDuration,
   });
 
+  // Fire-and-forget teardown so the backend kills this file's ffmpeg producer the moment we leave,
+  // instead of letting it transcode ahead until the idle reaper. sendBeacon survives page unload
+  // (tab close / navigation), which a fetch in an unmount handler would not.
+  const stopBackendSession = useCallback((hash: string, fidx: string) => {
+    if (!hash || !fidx) return;
+    const base = ApiClient.playerServerURL.replace(/\/+$/, "");
+    try {
+      navigator.sendBeacon(`${base}/api/torrents/${hash.toLowerCase()}/files/${fidx}/hls/stop`);
+    } catch {
+      /* noop */
+    }
+  }, []);
+
   const handleClose = useCallback(() => {
     saveProgress();
+    stopBackendSession(streamHash, fileIndex);
     setIsClosed(true);
     onClose?.();
-  }, [onClose, saveProgress]);
+  }, [onClose, saveProgress, stopBackendSession, streamHash, fileIndex]);
+
+  // Tab close / navigate-away: handleClose (the X button) and React unmount don't reliably fire, so
+  // beacon the teardown on pagehide too.
+  useEffect(() => {
+    const onLeave = () => stopBackendSession(streamHash, fileIndex);
+    window.addEventListener("pagehide", onLeave);
+    return () => window.removeEventListener("pagehide", onLeave);
+  }, [streamHash, fileIndex, stopBackendSession]);
 
   // Hook: Inactivity fade-out manager
   const {
@@ -585,6 +608,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   const playPlaylistItem = (index: number) => {
     if (!playback.playlist || index < 0 || index >= playback.playlist.length) return;
     const item = playback.playlist[index];
+    // Kill the outgoing episode's producer before loading the next one (different file → no race).
+    stopBackendSession(streamHash, fileIndex);
     playVideo({
       ...playback,
       streamUrl: item.streamUrl,
@@ -677,6 +702,15 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     pendingSeekRef.current = null;
     const video = videoRef.current;
     if (t == null || !video) return;
+    // [HLS-DIAG] Temporary: capture the seek target vs the player's real timeline (seekable/buffered)
+    // to diagnose post-seek segment loading. Remove after diagnosis.
+    const rng = (tr: TimeRanges) => Array.from({ length: tr.length }, (_, i) => [Number(tr.start(i).toFixed(1)), Number(tr.end(i).toFixed(1))]);
+    logger.warn("[HLS-DIAG] commitSeek", {
+      target: Number(t.toFixed(2)),
+      curr: Number(video.currentTime.toFixed(2)),
+      seekable: rng(video.seekable),
+      buffered: rng(video.buffered),
+    });
     if (Math.abs(video.currentTime - t) > 0.25) {
       // One real seek. onSeeking → buffering/spinner; onSeeked/onPlaying settle & clear seekPreview.
       video.currentTime = t;
@@ -829,7 +863,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
         onCanPlay={() => { setIsMetadataLoading(false); setIsBuffering(false); }}
         onSeeking={() => setIsBuffering(true)}
         onSeeked={() => { setIsBuffering(false); setSeekPreview(null); }}
-        onWaiting={() => setIsBuffering(true)}
+        onWaiting={() => { logger.warn("[HLS-DIAG] waiting", { curr: Number((videoRef.current?.currentTime ?? 0).toFixed(2)), readyState: videoRef.current?.readyState }); setIsBuffering(true); }}
+        onStalled={() => logger.warn("[HLS-DIAG] stalled", { curr: Number((videoRef.current?.currentTime ?? 0).toFixed(2)), readyState: videoRef.current?.readyState })}
         onPause={() => setIsPlaying(false)}
         onDurationChange={(e) => setDuration(e.currentTarget.duration)}
         onVolumeChange={(e) => {

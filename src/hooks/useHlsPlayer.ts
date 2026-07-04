@@ -161,6 +161,33 @@ export function useHlsPlayer({
       });
       hlsRef.current = hls;
 
+      // [HLS-DIAG] Temporary instrumentation for the post-seek / post-audio-switch segment-loading
+      // regression. Logs via logger.warn so entries also land in the in-app history buffer
+      // (retrievable on-device where the browser console isn't reachable). Remove after diagnosis.
+      logger.warn("[HLS-DIAG] init", { version: Hls.version, audioTrack: hlsAudio });
+      hls.on(Hls.Events.FRAG_LOADING, (_e, data) => {
+        logger.warn("[HLS-DIAG] FRAG_LOADING", { sn: data.frag.sn, url: data.frag.url });
+      });
+      hls.on(Hls.Events.FRAG_LOADED, (_e, data) => {
+        const st: any = data.frag.stats;
+        const ms = st?.loading ? Math.round(st.loading.end - st.loading.start) : -1;
+        logger.warn("[HLS-DIAG] FRAG_LOADED", { sn: data.frag.sn, ms });
+      });
+      hls.on(Hls.Events.BUFFER_APPENDED, () => {
+        const b = video.buffered;
+        const end = b.length ? b.end(b.length - 1) : 0;
+        logger.warn("[HLS-DIAG] BUFFER_APPENDED", { bufferEnd: Number(end.toFixed(2)), curr: Number(video.currentTime.toFixed(2)) });
+      });
+      hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_e, data: any) => {
+        logger.warn("[HLS-DIAG] AUDIO_TRACKS_UPDATED", { count: data.audioTracks?.length });
+      });
+      hls.on(Hls.Events.AUDIO_TRACK_SWITCHING, (_e, data: any) => {
+        logger.warn("[HLS-DIAG] AUDIO_TRACK_SWITCHING", { id: data.id });
+      });
+      hls.on(Hls.Events.AUDIO_TRACK_SWITCHED, (_e, data: any) => {
+        logger.warn("[HLS-DIAG] AUDIO_TRACK_SWITCHED", { id: data.id });
+      });
+
       hls.loadSource(proxiedUrl);
       hls.attachMedia(video);
 
@@ -202,6 +229,17 @@ export function useHlsPlayer({
 
       hls.on(Hls.Events.ERROR, (_event, data) => {
         if (playerSessionRef.current !== sessionId) return;
+        // [HLS-DIAG] log every error (fatal or not) with frag + audio-track context. Remove after diagnosis.
+        logger.warn("[HLS-DIAG] ERROR", {
+          type: data.type,
+          details: data.details,
+          fatal: data.fatal,
+          code: (data as any).response?.code,
+          sn: (data as any).frag?.sn,
+          url: (data as any).frag?.url,
+          audioTracks: hls.audioTracks?.length,
+          audioTrack: hls.audioTrack,
+        });
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
