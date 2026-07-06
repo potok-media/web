@@ -255,7 +255,7 @@ export function registerSlotContribution(cfg: any) {
 export function initPotokSDK(): void {
   if (typeof window === 'undefined') return;
 
-  const win = window;
+  const win = window as any;
   win.PotokSDK = win.PotokSDK || {};
 
   const initialState = win.PotokInitialState || {};
@@ -266,6 +266,19 @@ export function initPotokSDK(): void {
   win.PotokSDK.config = initialState.config || {};
   win.PotokSDK.i18n = i18n;
   win.PotokSDK.typings = SDK_TYPINGS;
+  
+  win.PotokSDK.onSettingsChanged = (cb: (key: string, value: any, currentSettings: any) => void) => {
+    win.PotokSettingsChangedListener = cb;
+  };
+
+  win.PotokSDK.updateSettingsForm = (updates: Record<string, any>) => {
+    window.parent.postMessage({
+      source: 'potok-plugin-sdk',
+      action: 'UPDATE_SETTINGS_FORM_FIELDS',
+      payload: { updates }
+    }, getHostOrigin());
+  };
+
   initSdkI18n(initialState);
 
   // uses a global window initialization flag to prevent duplicate side-effect registrations.
@@ -336,6 +349,16 @@ export function initPotokSDK(): void {
       win.PotokInitialState = win.PotokInitialState || {};
       win.PotokInitialState.language = msg.payload?.language;
       handleLanguageChanged(msg.payload || {});
+    } else if (msg.action === 'SETTINGS_FIELD_CHANGED') {
+      const { key, value, settings } = msg.payload;
+      win.PotokSDK.config = settings;
+      if (win.PotokSettingsChangedListener) {
+        try {
+          win.PotokSettingsChangedListener(key, value, settings);
+        } catch (e) {
+          console.error("[SDK] Error in onSettingsChanged listener:", e);
+        }
+      }
     }
   });
 }

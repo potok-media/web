@@ -18,6 +18,9 @@ interface StreamFilterBarProps {
   setSortOption?: (opt: string) => void;
   trackerLabel?: string;
   allTrackersLabel?: string;
+  seasonFilter?: string;
+  setSeasonFilter?: (season: string) => void;
+  availableSeasons?: number[];
 }
 
 const SORT_KEYS = ["seedersDesc", "publishDateDesc", "sizeDesc", "sizeAsc"] as const;
@@ -38,6 +41,9 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
   showSort = true,
   trackerLabel,
   allTrackersLabel,
+  seasonFilter = "all",
+  setSeasonFilter,
+  availableSeasons = [],
 }) => {
   const { t } = useTranslation("streams");
   const sortLabels: Record<string, string> = {
@@ -179,7 +185,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
             <Filter size="0.875rem" />
             <span className="filter-btn-text">{t("filter.title")}</span>
             <ChevronDown size="0.875rem" />
-            {(qualityFilter !== "all" || activeTracker !== "all") && (
+            {(qualityFilter !== "all" || activeTracker !== "all" || seasonFilter !== "all") && (
               <span className="filter-badge-dot" />
             )}
           </FocusableButton>
@@ -211,12 +217,51 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
               ))}
             </div>
 
+            {availableSeasons && availableSeasons.length > 0 && (
+              <>
+                <div className="filter-popover-divider" />
+                <div className="filter-section-title">{t("filter.season", "Season")}</div>
+                <div className="filter-popover-column">
+                  <FocusableButton
+                    focusKey="FILTER_SEASON_all"
+                    className={`popover-item ${seasonFilter === "all" ? "active" : ""}`}
+                    onClick={() => setSeasonFilter?.("all")}
+                    style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                  >
+                    <span>{t("filter.allSeasons", "All seasons")}</span>
+                    {seasonFilter === "all" && <Check size="0.875rem" className="filter-popover-check" />}
+                  </FocusableButton>
+                  {availableSeasons.map((s) => (
+                    <FocusableButton
+                      key={s}
+                      focusKey={`FILTER_SEASON_${s}`}
+                      className={`popover-item ${seasonFilter === String(s) ? "active" : ""}`}
+                      onClick={() => setSeasonFilter?.(String(s))}
+                      style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                    >
+                      <span>{t("filter.seasonNumber", { number: s, defaultValue: `Season ${s}` })}</span>
+                      {seasonFilter === String(s) && <Check size="0.875rem" className="filter-popover-check" />}
+                    </FocusableButton>
+                  ))}
+                  <FocusableButton
+                    focusKey="FILTER_SEASON_none"
+                    className={`popover-item ${seasonFilter === "none" ? "active" : ""}`}
+                    onClick={() => setSeasonFilter?.("none")}
+                    style={{ width: "100%", background: "none", border: "none", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                  >
+                    <span>{t("filter.noSeason", "No season")}</span>
+                    {seasonFilter === "none" && <Check size="0.875rem" className="filter-popover-check" />}
+                  </FocusableButton>
+                </div>
+              </>
+            )}
+
             <div className="filter-popover-divider" />
 
             <div className="filter-section-title">
               {resolvedTrackerLabel}
             </div>
-            <div className="filter-popover-scroll-area">
+            <div className="filter-popover-scroll-area" style={{ maxHeight: "10rem", overflowY: "auto" }}>
               <FocusableButton
                 focusKey="FILTER_TRACKER_all"
                 className={`popover-item ${activeTracker === "all" ? "active" : ""}`}
@@ -242,7 +287,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
               ))}
             </div>
 
-            {(qualityFilter !== "all" || activeTracker !== "all") && (
+            {(qualityFilter !== "all" || activeTracker !== "all" || seasonFilter !== "all") && (
               <>
                 <div className="filter-popover-divider" />
                 <FocusableButton
@@ -251,6 +296,7 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
                   onClick={() => {
                     setQualityFilter("all");
                     setActiveTracker("all");
+                    setSeasonFilter?.("all");
                     setFilterOpen(false);
                   }}
                   style={{ width: "100%" }}

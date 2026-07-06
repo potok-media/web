@@ -197,7 +197,7 @@ export const ManifestDoc = {
             <tr>
               <td><code>type</code></td>
               <td>string (required)</td>
-              <td>Тип значения настройки. Поддерживаемые типы: <code>"string"</code>, <code>"boolean"</code>, <code>"number"</code>.</td>
+              <td>Тип значения настройки. Поддерживаемые типы: <code>"string"</code>, <code>"boolean"</code> (рендерится как тумблер), <code>"number"</code>, <code>"select"</code> (выпадающий список опций) и <code>"notice"</code> (подсвечиваемая оранжевая инфо-плашка для вывода предупреждений).</td>
             </tr>
             <tr>
               <td><code>default</code></td>

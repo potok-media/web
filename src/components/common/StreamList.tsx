@@ -83,9 +83,22 @@ export const StreamList: React.FC<StreamListProps> = ({
   const [sortOption, setSortOption] = useState<string>("seedersDesc");
   const [qualityFilter, setQualityFilter] = useState<string>("all");
   const [activeTracker, setActiveTracker] = useState<string>("all");
+  const [seasonFilter, setSeasonFilter] = useState<string>("all");
 
   const trackers = useMemo(() => {
     return Array.from(new Set(streams.map((s) => s.provider || (s as any).tracker).filter((p): p is string => !!p)));
+  }, [streams]);
+
+  const availableSeasons = useMemo(() => {
+    const set = new Set<number>();
+    streams.forEach((s: any) => {
+      if (s.seasons) {
+        s.seasons.forEach((num: number) => set.add(num));
+      } else if (s.season !== undefined && s.season !== null && s.season !== 0) {
+        set.add(s.season);
+      }
+    });
+    return Array.from(set).sort((a, b) => a - b);
   }, [streams]);
 
   const processedStreams = useMemo(() => {
@@ -95,7 +108,11 @@ export const StreamList: React.FC<StreamListProps> = ({
         || t.title.toLowerCase().includes(qualityFilter.toLowerCase())
         || (t.quality && t.quality.toLowerCase().includes(qualityFilter.toLowerCase()));
       const matchesTracker = activeTracker === "all" || provider === activeTracker;
-      return matchesQuality && matchesTracker;
+      const matchesSeason = seasonFilter === "all"
+        || (t as any).seasons?.includes(Number(seasonFilter))
+        || (t as any).season === Number(seasonFilter)
+        || (seasonFilter === "none" && !(t as any).seasons && ((t as any).season === undefined || (t as any).season === null || (t as any).season === 0));
+      return matchesQuality && matchesTracker && matchesSeason;
     });
 
     const sorted = [...filtered].sort((a, b) => {
@@ -121,7 +138,7 @@ export const StreamList: React.FC<StreamListProps> = ({
       raw: stream,
       ui: mapStreamToUI(stream, index, t)
     }));
-  }, [streams, qualityFilter, activeTracker, sortOption, t]);
+  }, [streams, qualityFilter, activeTracker, seasonFilter, sortOption, t]);
 
   const displayStreams = useMemo(() => {
     if (PlatformManager.isTV() && processedStreams.length > 25) {
@@ -167,6 +184,9 @@ export const StreamList: React.FC<StreamListProps> = ({
           setSortOption={setSortOption}
           trackerLabel={t("filter.providerLabel")}
           allTrackersLabel={t("filter.allSources")}
+          seasonFilter={seasonFilter}
+          setSeasonFilter={setSeasonFilter}
+          availableSeasons={availableSeasons}
         />
       )}
 

@@ -114,6 +114,15 @@ export const i18n = {
         putBundle(lng, ns, bundlesByLng[lng][ns]);
       }
     }
+    if (typeof window !== "undefined" && window.parent) {
+      const stateObj = (window as any).PotokInitialState;
+      const hostOrigin = stateObj?.hostOrigin || "*";
+      window.parent.postMessage({
+        source: "potok-plugin-sdk",
+        action: "REGISTER_TRANSLATIONS",
+        payload: bundlesByLng
+      }, hostOrigin);
+    }
   },
   onLanguageChange(cb: (lng: string) => void): () => void {
     state.listeners.add(cb);

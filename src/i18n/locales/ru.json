@@ -300,7 +300,11 @@
       "allTrackers": "Все трекеры",
       "providerLabel": "Провайдер",
       "allSources": "Все источники",
-      "resetAll": "Сбросить всё"
+      "resetAll": "Сбросить всё",
+      "season": "Сезон",
+      "allSeasons": "Все сезоны",
+      "seasonNumber": "{{number}} сезон",
+      "noSeason": "Без сезона"
     },
     "row": {
       "watch": "Смотреть",

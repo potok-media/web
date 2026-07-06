@@ -209,8 +209,8 @@ export const ExtensionsManager: React.FC = () => {
                 >
                   <div className="ext-row-icon">{getExtensionIcon(ext.manifest)}</div>
                   <div className="ext-row-main">
-                    <span className="ext-row-name">{ext.manifest.name}</span>
-                    {ext.manifest.description && <span className="ext-row-desc">{ext.manifest.description}</span>}
+                    <span className="ext-row-name">{ext.manifest.name ? t(ext.manifest.name) : ""}</span>
+                    {ext.manifest.description && <span className="ext-row-desc">{t(ext.manifest.description)}</span>}
                   </div>
                   <span className={`ext-row-status ${ext.enabled ? "on" : "off"}`}>{ext.enabled ? t("status.on") : t("status.off")}</span>
                   <ChevronRight size="1.25rem" className="ext-row-chevron" />
@@ -237,7 +237,7 @@ export const ExtensionsManager: React.FC = () => {
               <div className="ext-action-head">
                 <div className="ext-row-icon">{getExtensionIcon(selected.manifest)}</div>
                 <div>
-                  <h3 className="manifest-modal-title">{selected.manifest.name}</h3>
+                  <h3 className="manifest-modal-title">{selected.manifest.name ? t(selected.manifest.name) : ""}</h3>
                   <span className="ext-action-sub">{getSourceLabel(selected.url)} · {selected.id}</span>
                 </div>
               </div>
@@ -275,7 +275,7 @@ export const ExtensionsManager: React.FC = () => {
               {selected.manifest.description && (
                 <div className="ext-action-section">
                   <span className="ext-action-label">{t("section.description")}</span>
-                  <p className="ext-action-text">{selected.manifest.description}</p>
+                  <p className="ext-action-text">{t(selected.manifest.description)}</p>
                 </div>
               )}
 

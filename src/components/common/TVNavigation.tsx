@@ -370,6 +370,7 @@ export const FocusableInput = React.forwardRef<HTMLInputElement, FocusableInputP
   value,
   onChange,
   type,
+  checked,
   ...config
 }, forwardedRef) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -446,6 +447,7 @@ export const FocusableInput = React.forwardRef<HTMLInputElement, FocusableInputP
       value={value}
       onChange={onChange}
       type={type}
+      checked={checked}
     />
   );
 });

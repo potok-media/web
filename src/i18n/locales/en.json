@@ -300,7 +300,11 @@
       "allTrackers": "All trackers",
       "providerLabel": "Provider",
       "allSources": "All sources",
-      "resetAll": "Reset all"
+      "resetAll": "Reset all",
+      "season": "Season",
+      "allSeasons": "All seasons",
+      "seasonNumber": "Season {{number}}",
+      "noSeason": "No season"
     },
     "row": {
       "watch": "Watch",

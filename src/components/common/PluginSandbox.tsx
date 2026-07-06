@@ -35,6 +35,7 @@ export const PluginSandbox: React.FC = () => {
   const shuttingDownRefs = useRef<Set<string>>(new Set());
   const iframeRefs = useRef<Map<string, HTMLIFrameElement>>(new Map());
   const [iframeSrcDocs, setIframeSrcDocs] = useState<Record<string, string>>({});
+  const [settingsVersion, setSettingsVersion] = useState<Record<string, number>>({});
 
 
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || connectionProfiles[0] || null;
@@ -114,8 +115,12 @@ export const PluginSandbox: React.FC = () => {
           ApiClient.invalidateCache();
         }
         
-        // Force unregister and clear previous sandbox info in ExtensionRegistry
-        ExtensionRegistry.unregisterSandbox(pluginId);
+        // Increment settings version to force React to unmount the old iframe and mount a new one.
+        // This ensures the ref function fires with null (clearing the registry) and then with the new element.
+        setSettingsVersion((prev) => ({
+          ...prev,
+          [pluginId]: (prev[pluginId] || 0) + 1
+        }));
         
         // Regenerate srcDoc with new scoped localStorage configuration
         setIframeSrcDocs((prev) => ({
@@ -318,6 +323,16 @@ export const PluginSandbox: React.FC = () => {
       const { action, payload } = msg;
 
       switch (action) {
+        case "REGISTER_TRANSLATIONS": {
+          if (payload) {
+            Object.keys(payload).forEach((lng) => {
+              Object.keys(payload[lng]).forEach((ns) => {
+                i18n.addResourceBundle(lng, ns, payload[lng][ns], true, true);
+              });
+            });
+          }
+          break;
+        }
         case "REGISTER_THEMES": {
           const themesList: any[] = Array.isArray(payload) ? payload : (payload?.themes || []);
           let styleTag = document.getElementById("potok-plugin-custom-themes") as HTMLStyleElement;
@@ -428,6 +443,17 @@ export const PluginSandbox: React.FC = () => {
         case "STREAM_SOURCE_GET_PLAYBACK_INFO_RESPONSE":
           ExtensionRegistry.handleSandboxResponse(payload.requestId, payload.data, payload.error);
           break;
+        case "UPDATE_SETTINGS_FORM_FIELDS": {
+          const { updates } = payload;
+          if (updates) {
+            window.dispatchEvent(
+              new CustomEvent("potok_plugin_update_settings_fields", {
+                detail: { pluginId, updates }
+              })
+            );
+          }
+          break;
+        }
         case "STORAGE_GET": {
           if (!permissions.includes("storage")) {
             (event.source as any).postMessage({ source: "potok-host", action: "STORAGE_GET_RESPONSE", payload: { requestId: payload.requestId, value: null } }, "*");
@@ -483,7 +509,7 @@ export const PluginSandbox: React.FC = () => {
     <div style={{ display: "none" }} aria-hidden="true">
       {renderedExtensions.map((ext) => (
         <iframe
-          key={ext.id}
+          key={`${ext.id}-${settingsVersion[ext.id] || 0}`}
           ref={(el) => {
             if (el) {
               iframeRefs.current.set(ext.id, el);

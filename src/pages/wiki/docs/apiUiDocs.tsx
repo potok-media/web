@@ -110,6 +110,14 @@ ui.navigateTo("/library", { filter: "watchlist" });`}
               <td><code>registerSlotContribution(config)</code></td>
               <td>Регистрирует графический вклад в указанный интерфейсный слот (например, в кнопки действий или под описание медиафайла).</td>
             </tr>
+            <tr>
+              <td><code>onSettingsChanged(callback)</code></td>
+              <td>Подписывает плагин на интерактивное изменение полей формы его настроек на хосте в реальном времени. В коллбек передаются <code>(key, value, currentSettings)</code>.</td>
+            </tr>
+            <tr>
+              <td><code>updateSettingsForm(updates)</code></td>
+              <td>Отправляет команду хосту обновить значения полей формы настроек в реальном времени (например, для автозаполнения пресетов, сброса или валидации). Принимает объект обновлений <code>{"{ updates }"}</code>.</td>
+            </tr>
           </tbody>
         </table>
       </div>

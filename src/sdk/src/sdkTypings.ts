@@ -806,6 +806,14 @@ export const SDK_TYPINGS = `
      * Регистрирует вкладку или виджет в слоты приложения (например: 'extension-page', 'sidebar-menu').
      */
     registerSlotContribution(cfg: any): void;
+    /**
+     * Подписывает плагин на интерактивное изменение полей его настроек.
+     */
+    onSettingsChanged(cb: (key: string, value: any, currentSettings: any) => void): void;
+    /**
+     * Отправляет на хост команду для динамического обновления полей формы настроек в реальном времени.
+     */
+    updateSettingsForm(updates: Record<string, any>): void;
   }
 
   declare const PotokSDK: PotokSDKInstance;

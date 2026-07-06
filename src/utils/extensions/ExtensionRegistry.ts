@@ -313,6 +313,17 @@ class ExtensionRegistryManager {
       record.resolve(data);
     }
   }
+
+  notifySettingsFieldChanged(pluginId: string, key: string, value: any, currentSettings: any) {
+    const iframe = this.sandboxIframes.get(pluginId);
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.postMessage({
+        source: "potok-host",
+        action: "SETTINGS_FIELD_CHANGED",
+        payload: { key, value, settings: currentSettings }
+      }, "*");
+    }
+  }
 }
 
 export const ExtensionRegistry = new ExtensionRegistryManager();

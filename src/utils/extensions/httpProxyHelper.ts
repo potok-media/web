@@ -66,6 +66,16 @@ class HttpProxyThrottleManager {
               if (rawUrl) {
                 finalUrl = rawUrl;
               }
+            } else if (!shouldBypass && /^https?:\/\//i.test(url) && !url.startsWith(window.location.origin)) {
+              // Wrap external URL in gateway proxy to bypass CORS when direct requests are disabled
+              const gatewayBase = (ApiClient.baseURL || activeProfile?.gatewayURL || "")
+                .trim()
+                .replace(/\/+$/, "");
+              let absoluteGateway = gatewayBase;
+              if (absoluteGateway && !/^https?:\/\//i.test(absoluteGateway)) {
+                absoluteGateway = `http://${absoluteGateway}`;
+              }
+              finalUrl = `${absoluteGateway}/api/proxy?url=${encodeURIComponent(url)}`;
             } else if (url.startsWith("/api/")) {
               const gatewayBase = (ApiClient.baseURL || activeProfile?.gatewayURL || "")
                 .trim()

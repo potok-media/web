@@ -103,12 +103,12 @@ export const SettingsPage: React.FC = () => {
         <button className={`settings-tab-chip ${activeTab === "console" ? "active" : ""}`} onClick={() => setActiveTab("console")}>{t("nav.console")}</button>
         {slotContributions.map((c) => (
           <button key={c.contribution.id} className={`settings-tab-chip ${activeTab === c.contribution.id ? "active" : ""}`} onClick={() => setActiveTab(c.contribution.id)}>
-            {c.contribution.title || c.contribution.id}
+            {t(c.contribution.title || c.contribution.id)}
           </button>
         ))}
         {configExtensions.map((ext) => (
           <button key={`config-${ext.id}`} className={`settings-tab-chip ${activeTab === `config-${ext.id}` ? "active" : ""}`} onClick={() => setActiveTab(`config-${ext.id}`)}>
-            {ext.manifest.name || ext.id}
+            {t(ext.manifest.name || ext.id)}
           </button>
         ))}
       </div>
@@ -182,7 +182,7 @@ export const SettingsPage: React.FC = () => {
               onClick={() => setActiveTab(`config-${ext.id}`)}
             >
               <Puzzle size="1rem" />
-              <span>{ext.manifest.name || ext.id}</span>
+              <span>{t(ext.manifest.name || ext.id)}</span>
             </FocusableButton>
           ))}
         </>

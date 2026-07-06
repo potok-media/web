@@ -1,4 +1,5 @@
 import potokSdkRaw from "../../../public/sdk/potok-sdk.js?raw";
+import { Storage } from "../StorageService";
 
 export const normalizeUrl = (url: string): string => {
   let clean = url.trim();
@@ -52,6 +53,7 @@ export const createIframeHtml = (
   configPayload.playerServerAuthEnabled = !!activeProfile?.playerServerAuthEnabled;
   configPayload.playerServerAuthLogin = activeProfile?.playerServerAuthLogin || "";
   configPayload.playerServerAuthPassword = activeProfile?.playerServerAuthPassword || "";
+  configPayload.disableHttpProxy = Storage.get<boolean>("disableHttpProxy", true);
 
   const torGoKey = "tor" + "rentGoURL";
   const torGoAuthEnabled = "tor" + "rentGoAuthEnabled";
