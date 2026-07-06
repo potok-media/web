@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Star, Film, Tv } from "lucide-react";
 import { FilmOff } from "./common/FilmOff";
 import { Focusable } from "./common/TVNavigation";
 import { useSettings } from "../context/AppSettingsContext";
@@ -93,6 +94,7 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
     const [hasError, setHasError] = useState(false);
     const cardRef = useRef<HTMLAnchorElement>(null);
     const { bannerQuality } = useSettings();
+    const { t } = useTranslation("media");
     // Upscale the TMDB poster URL to the user's image-quality setting (no-op for non-TMDB URLs /
     // "auto"). Covers every card surface — home, library, search — in one place.
     const posterSrc = resizeTmdbImage(item.posterSrc, posterSizeForQuality(bannerQuality, PlatformManager.isTV()));
@@ -176,6 +178,12 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
                 )}
                 
                 <div className="media-card-overlay">
+                  <span
+                    className="media-glass-pill media-type-pill"
+                    aria-label={t(item.mediaType === "tv" ? "card.typeSeries" : "card.typeMovie")}
+                  >
+                    {item.mediaType === "tv" ? <Tv size="0.6875rem" /> : <Film size="0.6875rem" />}
+                  </span>
                   <div className="media-card-pills-row">
                     {epInfo && (
                       <span className="media-glass-pill episode-pill">{epInfo}</span>

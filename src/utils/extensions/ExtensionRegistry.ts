@@ -257,6 +257,10 @@ class ExtensionRegistryManager {
     if (finalTimeoutMs === undefined) {
       if (action === "STREAM_SOURCE_SEARCH") {
         finalTimeoutMs = 60000;
+      } else if (action === "STREAM_SOURCE_GET_PLAYBACK_METADATA") {
+        // Deferred background probe (subtitles/duration) — the player is already open and playing, so nobody
+        // is blocked. Give it plenty of room for a cold TorrentGo /metadata probe (libav, up to ~45s).
+        finalTimeoutMs = 60000;
       } else if (
         action === "STREAM_SOURCE_GET_EPISODES" ||
         action === "STREAM_SOURCE_GET_SEASONS" ||

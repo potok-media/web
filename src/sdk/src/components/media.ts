@@ -1795,6 +1795,34 @@ export function initDeclarativeStreamListeners(): void {
           payload: { requestId, data: null, error: 'Method getPlaybackInfo not implemented' }
         }, hostOrigin);
       }
+    } else if (msg.action === 'STREAM_SOURCE_GET_PLAYBACK_METADATA') {
+      // Deferred slow half of the descriptor (subtitles + duration). The host fires this AFTER the player is
+      // already open, so a slow probe never blocks player-open. Optional method → empty result if absent.
+      const { requestId, stream, episode, context, sourceId } = msg.payload;
+      const source = (sourceId && registeredStreamSources.get(sourceId)) || Array.from(registeredStreamSources.values())[0];
+      if (source && source.getPlaybackMetadata) {
+        try {
+          const data = await source.getPlaybackMetadata(stream, episode, context);
+          window.parent.postMessage({
+            source: 'potok-plugin-sdk',
+            action: 'STREAM_SOURCE_GET_PLAYBACK_METADATA_RESPONSE',
+            payload: { requestId, data, error: null }
+          }, hostOrigin);
+        } catch (err: any) {
+          window.parent.postMessage({
+            source: 'potok-plugin-sdk',
+            action: 'STREAM_SOURCE_GET_PLAYBACK_METADATA_RESPONSE',
+            payload: { requestId, data: null, error: err.message || 'Failed to get playback metadata' }
+          }, hostOrigin);
+        }
+      } else {
+        // Not implemented → empty (no enrichment). Not an error: getPlaybackInfo already fully described it.
+        window.parent.postMessage({
+          source: 'potok-plugin-sdk',
+          action: 'STREAM_SOURCE_GET_PLAYBACK_METADATA_RESPONSE',
+          payload: { requestId, data: {}, error: null }
+        }, hostOrigin);
+      }
     } else if (msg.action === 'REFRESH_STREAM_URL') {
       const source = Array.from(registeredStreamSources.values())[0];
       if (source && source.refreshStreamUrl) {

@@ -7,7 +7,7 @@ import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import type { GenericEpisodeItem } from "../components/common/EpisodeSelectorPopup";
 import { ApiClient } from "../network/ApiClient";
 import type { MediaCard } from "../network/ApiTypes";
-import type { RawStreamPayload, StreamEpisode, PlaybackInfo } from "@potok/sdk-types";
+import type { RawStreamPayload, StreamEpisode, PlaybackInfo, PlaybackMetadata } from "@potok/sdk-types";
 import type { ActivePlayback } from "../context/AppSettingsContext";
 import { logger } from "../utils/logger";
 import { SyncApiClient, type UserHistoryEntry } from "../network/SyncApiClient";
@@ -74,7 +74,7 @@ interface UseMediaStreamsParams {
 export function useMediaStreams({ mediaType, mediaId, season, episode, initialMedia, activeTab: activeTabParam }: UseMediaStreamsParams) {
   const { show: showHUD } = useHUD();
   const { i18n } = useTranslation();
-  const { playVideo } = usePlayback();
+  const { playVideo, enrichPlayback } = usePlayback();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -331,6 +331,25 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
     episode,
   }), [mediaType, mediaId, mediaTitle, season, episode]);
 
+  // Two-phase play: getPlaybackInfo opens the player INSTANTLY (no /metadata probe). This fires the deferred
+  // getPlaybackMetadata in the background and merges subtitles/duration into the LIVE playback once the (slow)
+  // probe resolves — the player is already reactive to late subtitles. Torrent-only; no-op for online sources
+  // (they return a complete descriptor and don't implement getPlaybackMetadata → empty result).
+  const deferMetadata = useCallback((pluginId: string, stream: RawStreamPayload, episode: unknown, info: PlaybackInfo) => {
+    if (!info.torrentHash) return;
+    ExtensionRegistry.sendSandboxRequest<PlaybackMetadata>(pluginId, "STREAM_SOURCE_GET_PLAYBACK_METADATA", { stream, episode, context })
+      .then((meta) => {
+        if (!meta) return;
+        const patch: Partial<ActivePlayback> = {};
+        if (meta.subtitles) patch.subtitles = meta.subtitles;
+        if (typeof meta.duration === "number") patch.duration = meta.duration;
+        if (Object.keys(patch).length > 0) {
+          enrichPlayback(patch, { streamHash: info.torrentHash, fileIndex: info.fileIndex });
+        }
+      })
+      .catch(() => { /* degraded — player keeps playing, just without track menus */ });
+  }, [context, enrichPlayback]);
+
   const handleSelectStream = useCallback((stream: RawStreamPayload) => {
     if (!activeSource) return;
     setActionLoading(true);
@@ -375,6 +394,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
                   season: mediaType === "tv" ? singleEp.season : undefined,
                   episode: mediaType === "tv" ? singleEp.episode : undefined,
                 }));
+                deferMetadata(activeSource.pluginId, stream, singleEp, info);
                 setClickedStream(null);
               });
           } else {
@@ -398,7 +418,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
         .catch(handleOnError)
         .finally(() => setActionLoading(false));
     }
-  }, [activeSource, mediaType, context, mediaId, currentMedia, playVideo, handleOnError, season, episode, mapEpisodesWithWatched, setSearchParams, i18n]);
+  }, [activeSource, mediaType, context, mediaId, currentMedia, playVideo, deferMetadata, handleOnError, season, episode, mapEpisodesWithWatched, setSearchParams, i18n]);
 
   const handlePlayEpisode = useCallback((ep: GenericEpisodeItem) => {
     if (!activeSource || !clickedStream) return;
@@ -424,12 +444,23 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
           const src = activeSource;
           const stream = clickedStream;
           const ctx = context;
-          (window as any).potok_playlist_resolve = async (item: any): Promise<PlaybackInfo> =>
-            ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(src.pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", {
-              stream,
-              episode: { id: item.id, season: item.season, episode: item.episode, title: item.title, url: item.streamUrl, audios: [] },
-              context: ctx,
+          (window as any).potok_playlist_resolve = async (item: any): Promise<PlaybackInfo> => {
+            const nextEp = { id: item.id, season: item.season, episode: item.episode, title: item.title, url: item.streamUrl, audios: [] };
+            const nextInfo = await ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(src.pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", {
+              stream, episode: nextEp, context: ctx,
             });
+            // Next-episode is a WARM path (torrent already connected) → fold the deferred metadata in inline so
+            // the switched-to episode keeps its subtitles/duration (getPlaybackInfo alone omits them now).
+            try {
+              const meta = await ExtensionRegistry.sendSandboxRequest<PlaybackMetadata>(src.pluginId, "STREAM_SOURCE_GET_PLAYBACK_METADATA", {
+                stream, episode: nextEp, context: ctx,
+              }, 15000); // next-episode switch is inline → cap the wait (warm path; degrades to no-subs on timeout)
+              if (meta && nextInfo) {
+                return { ...nextInfo, subtitles: meta.subtitles ?? nextInfo.subtitles, duration: meta.duration ?? nextInfo.duration };
+              }
+            } catch { /* degraded — play without track menus */ }
+            return nextInfo;
+          };
         } else {
           (window as any).potok_playlist_resolve = null;
         }
@@ -448,10 +479,11 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
           playlist,
           playlistIndex,
         }));
+        deferMetadata(activeSource.pluginId, clickedStream, ep, info);
       })
       .catch(handleOnError)
       .finally(() => setActionLoading(false));
-  }, [activeSource, clickedStream, context, currentMedia, mediaId, playVideo, handleOnError, mediaType, i18n]);
+  }, [activeSource, clickedStream, context, currentMedia, mediaId, playVideo, deferMetadata, handleOnError, mediaType, i18n]);
 
   const handleStartEditing = useCallback(() => {
     if (!activeSource || !clickedStream) return;

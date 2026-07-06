@@ -710,6 +710,9 @@ export const useConnectionLatency = () => {
 export interface PlaybackContextType {
   activePlayback: ActivePlayback | null;
   playVideo: (playback: ActivePlayback) => void;
+  /** Non-destructive patch of the LIVE playback (e.g. deferred subtitles/duration arriving after the player
+   *  opened). Guarded by `match` so a late patch for a since-replaced video is dropped. Does not reload. */
+  enrichPlayback: (patch: Partial<ActivePlayback>, match?: { streamHash?: string; fileIndex?: string }) => void;
   stopVideo: () => void;
 }
 
@@ -827,6 +830,18 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [defaultPlayer, showHUD]);
 
+  const enrichPlayback = useCallback((patch: Partial<ActivePlayback>, match?: { streamHash?: string; fileIndex?: string }) => {
+    setActivePlayback((prev) => {
+      if (!prev) return prev;
+      // Drop a late patch that belongs to a video the user already switched away from.
+      if (match && ((match.streamHash !== undefined && match.streamHash !== prev.streamHash) ||
+                    (match.fileIndex !== undefined && match.fileIndex !== prev.fileIndex))) {
+        return prev;
+      }
+      return { ...prev, ...patch };
+    });
+  }, []);
+
   const stopVideo = useCallback(() => {
     setActivePlayback(null);
   }, []);
@@ -842,10 +857,12 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const value = useMemo(() => ({
     activePlayback,
     playVideo,
+    enrichPlayback,
     stopVideo,
   }), [
     activePlayback,
     playVideo,
+    enrichPlayback,
     stopVideo,
   ]);
 

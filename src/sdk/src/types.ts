@@ -828,6 +828,14 @@ export interface StreamSourceEpisodesResult {
   tmdbSeasonsCount: number;
 }
 
+/** Deferred slow half of a playback descriptor. getPlaybackInfo returns instantly (so the player opens with
+ *  a waiting overlay); this fills in the fields that need a slow probe. The host merges it into the live
+ *  playback and the player reacts to the late subtitles/duration. */
+export interface PlaybackMetadata {
+  subtitles?: PlaybackInfo['subtitles'];
+  duration?: number;
+}
+
 export interface DeclarativeStreamSource {
   id: string;
   name: string;
@@ -837,6 +845,9 @@ export interface DeclarativeStreamSource {
   getSeasonsMetadata?(stream: RawStreamPayload, context: LookupQuery): Promise<Record<string, unknown>[]>;
   saveMetadataOverride?(stream: RawStreamPayload, context: LookupQuery, seasonNum: number, episodeOffset: number): Promise<void>;
   getPlaybackInfo(stream: RawStreamPayload, episode?: StreamEpisode, context?: LookupQuery): Promise<PlaybackInfo>;
+  /** Deferred enrichment (subtitles + duration) fetched AFTER getPlaybackInfo so a slow probe never blocks
+   *  player-open. Optional: if absent, the descriptor from getPlaybackInfo is treated as complete. */
+  getPlaybackMetadata?(stream: RawStreamPayload, episode?: StreamEpisode, context?: LookupQuery): Promise<PlaybackMetadata>;
   refreshStreamUrl?(payload: {
     providerId: string;
     mediaId: number;
