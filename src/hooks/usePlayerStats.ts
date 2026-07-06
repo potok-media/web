@@ -18,7 +18,7 @@ export function usePlayerStats(
   isPlaying: boolean,
   showStats: boolean,
   streamUrl: string,
-  streamHash: string,
+  statusUrl: string,
   duration: number
 ) {
   const [downloadSpeed, setDownloadSpeed] = useState("0.0");
@@ -72,14 +72,16 @@ export function usePlayerStats(
           setBitrate((lvl.bitrate / 1000 / 1000).toFixed(1));
           setResolution(`${lvl.width}x${lvl.height}`);
         }
-      } else if (streamHash) {
-        // PlayerServer direct download speed (Bytes/sec -> MB/s)
-        const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
-        fetch(`${cleanBase}/api/torrents/${streamHash.toLowerCase()}`)
+      } else if (statusUrl) {
+        // Direct/progressive throughput via the plugin-supplied GENERIC status endpoint (no backend URL
+        // knowledge here). Reads the neutral `bytesPerSec`, falling back to legacy `downloadSpeed`.
+        fetch(statusUrl, { mode: "cors" })
           .then((res) => res.json())
           .then((data) => {
-            if (data && typeof data.downloadSpeed === "number") {
-              setDownloadSpeed((data.downloadSpeed / 1024 / 1024).toFixed(1));
+            const bps = typeof data.bytesPerSec === "number" ? data.bytesPerSec
+              : typeof data.downloadSpeed === "number" ? data.downloadSpeed : null;
+            if (bps !== null) {
+              setDownloadSpeed((bps / 1024 / 1024).toFixed(1));
             }
           })
           .catch(() => {});
@@ -98,7 +100,7 @@ export function usePlayerStats(
     return () => {
       clearInterval(statsInterval);
     };
-  }, [videoRef, hlsRef, isPlaying, showStats, streamHash]);
+  }, [videoRef, hlsRef, isPlaying, showStats, statusUrl]);
 
   return { downloadSpeed, bitrate, resolution, fps };
 }

@@ -30,12 +30,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 // Helpers & Utilities
 import { getProxyUrl } from "../utils/playerHelpers";
-import {
-  parseTorrentGoRef,
-  describeStream,
-  streamNeedsRemux,
-  stripRemuxParams,
-} from "../utils/torrentGoStream";
+import type { PlaybackInfo } from "@potok/sdk-types";
 
 // Components
 import { SkipIntroButton } from "./player/SkipIntroButton";
@@ -46,8 +41,8 @@ import { PlayerErrorOverlay } from "./player/PlayerErrorOverlay";
 import { PlayerBufferingSpinner } from "./player/PlayerBufferingSpinner";
 
 // Custom Hooks
-import { useTorrentStatus } from "../hooks/useTorrentStatus";
-import { usePlayerMetadataAndTracks } from "../hooks/usePlayerMetadataAndTracks";
+import { usePlaybackStatus } from "../hooks/usePlaybackStatus";
+import { usePlayerMetadataAndTracks, SUBTITLE_WINDOW_SEC } from "../hooks/usePlayerMetadataAndTracks";
 import { usePlayerInactivity } from "../hooks/usePlayerInactivity";
 import { usePlayerFullscreen } from "../hooks/usePlayerFullscreen";
 import { usePlayerKeyboardControls } from "../hooks/usePlayerKeyboardControls";
@@ -104,10 +99,9 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [showPlaylistMenu, setShowPlaylistMenu] = useState(false);
 
-  const { hash: streamHash, fileIndex } = useMemo(
-    () => parseTorrentGoRef(playback.streamUrl, playback.streamHash),
-    [playback.streamUrl, playback.streamHash]
-  );
+  // Identity comes straight from the plugin descriptor — the player never parses it out of a URL.
+  const streamHash = useMemo(() => (playback.streamHash || "").toLowerCase(), [playback.streamHash]);
+  const fileIndex = playback.fileIndex || "";
 
   // Hook: Metadata and tracks (audio/subtitle)
   const {
@@ -128,14 +122,16 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     localIntroRange,
     localOutroRange,
     subtitleFetchPromises,
+    fetchSubtitleWindow,
   } = usePlayerMetadataAndTracks(streamHash, fileIndex, playback.streamUrl, playback.audios, playback);
 
-  // Hook: Torrent metadata parsing & download speed tracker
+  // Hook: generic warm-up status. The plugin supplies session.statusUrl; the player polls it and reads a
+  // provider-neutral shape (connected/bytesPerSec) — no backend URL or "torrent" knowledge in the player.
   const {
-    torrentPeers,
-    torrentDownloadSpeed,
-    hasPositivePeersTime,
-  } = useTorrentStatus(streamHash, isMetadataLoading);
+    connected,
+    bytesPerSec,
+    hasProgressSince,
+  } = usePlaybackStatus(playback.session, isMetadataLoading);
 
   const displayDuration = metadataDuration > 0 ? metadataDuration : (duration || 100);
 
@@ -148,33 +144,38 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     duration: displayDuration,
   });
 
-  // Fire-and-forget teardown so the backend kills this file's ffmpeg producer the moment we leave,
-  // instead of letting it transcode ahead until the idle reaper. sendBeacon survives page unload
-  // (tab close / navigation), which a fetch in an unmount handler would not.
-  const stopBackendSession = useCallback((hash: string, fidx: string) => {
-    if (!hash || !fidx) return;
-    const base = ApiClient.playerServerURL.replace(/\/+$/, "");
+  // Stable playback-session id for this player instance — the presence key the backend refcounts
+  // torrent + ffmpeg-producer lifetime by (Jellyfin/Plex model). One uuid per open player.
+  const playSessionIdRef = useRef<string>(
+    typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`
+  );
+
+  // Explicit teardown when we leave — the backend releases our producer/torrent at once instead of
+  // waiting for the keepalive to lapse. sendBeacon survives page unload (tab close / navigation).
+  const stopBackendSession = useCallback(() => {
+    const stopUrl = playback.session?.stopUrl;
+    if (!stopUrl) return;
     try {
-      navigator.sendBeacon(`${base}/api/torrents/${hash.toLowerCase()}/files/${fidx}/hls/stop`);
+      const sep = stopUrl.includes("?") ? "&" : "?";
+      navigator.sendBeacon(`${stopUrl}${sep}sessionId=${encodeURIComponent(playSessionIdRef.current)}`);
     } catch {
       /* noop */
     }
-  }, []);
+  }, [playback.session?.stopUrl]);
 
   const handleClose = useCallback(() => {
     saveProgress();
-    stopBackendSession(streamHash, fileIndex);
+    stopBackendSession();
     setIsClosed(true);
     onClose?.();
-  }, [onClose, saveProgress, stopBackendSession, streamHash, fileIndex]);
+  }, [onClose, saveProgress, stopBackendSession]);
 
   // Tab close / navigate-away: handleClose (the X button) and React unmount don't reliably fire, so
-  // beacon the teardown on pagehide too.
+  // beacon the teardown on pagehide too. (The keepalive lapse is the crash backstop.)
   useEffect(() => {
-    const onLeave = () => stopBackendSession(streamHash, fileIndex);
-    window.addEventListener("pagehide", onLeave);
-    return () => window.removeEventListener("pagehide", onLeave);
-  }, [streamHash, fileIndex, stopBackendSession]);
+    window.addEventListener("pagehide", stopBackendSession);
+    return () => window.removeEventListener("pagehide", stopBackendSession);
+  }, [stopBackendSession]);
 
   // Hook: Inactivity fade-out manager
   const {
@@ -217,14 +218,32 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     }
   }, [playback]);
 
-  // Explicit HLS audio-track override (undefined = server default first track). Kept separate from
-  // currentAudioTrack so the metadata-driven initial audio selection doesn't trigger a needless HLS
-  // reload; only an explicit switch does. Switching pins the new track and reloads the source; the
-  // player resumes at the saved position (VOD playlists are fully seekable).
-  const [hlsAudioOverride, setHlsAudioOverride] = useState<number | undefined>(undefined);
+  const sendKeepalive = useCallback(() => {
+    // The plugin (coupled to its backend) supplies the endpoint + identity; the player is provider-
+    // agnostic. No session → nothing to keep alive. No JSON Content-Type → CORS-simple (no preflight).
+    // Audio is NOT part of the session identity anymore — renditions are per-track HLS playlists the
+    // backend produces lazily on request; the session only owns torrent lifetime.
+    const session = playback.session;
+    if (!session?.keepaliveUrl) return;
+    fetch(session.keepaliveUrl, {
+      method: "POST",
+      body: JSON.stringify({
+        sessionId: playSessionIdRef.current,
+        hash: (session.hash || streamHash || "").toLowerCase(),
+        file: session.file || fileIndex,
+      }),
+      keepalive: true,
+    }).catch(() => {});
+  }, [playback.session, streamHash, fileIndex]);
+
+  // Ping immediately (registers the session before the first segment → startup grace), then on interval.
   useEffect(() => {
-    setHlsAudioOverride(undefined);
-  }, [streamHash, fileIndex]);
+    if (!playback.session?.keepaliveUrl) return;
+    sendKeepalive();
+    const ms = (playback.session.intervalSec || 7) * 1000;
+    const id = setInterval(sendKeepalive, ms);
+    return () => clearInterval(id);
+  }, [sendKeepalive, playback.session?.keepaliveUrl, playback.session?.intervalSec]);
 
   const {
     hlsRef,
@@ -244,7 +263,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     setPlayerError,
     handleRefreshStream,
     setIsMetadataLoading,
-    hlsAudio: hlsAudioOverride,
   });
 
   // Hotkeys custom hook listener
@@ -324,7 +342,9 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     return () => {
       active = false;
     };
-  }, [injectedSubtitles, markSubtitle]);
+    // currentSubtitleTrack is a dep because content is now fetched lazily on selection — the
+    // selected track's promise appears only after it is picked, so re-run to build its blob then.
+  }, [injectedSubtitles, markSubtitle, currentSubtitleTrack]);
 
   // Revoke blob URLs when the source resets (or on unmount) to avoid leaking memory.
   useEffect(() => {
@@ -392,50 +412,33 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
       }
     }
 
-    const subPromise = subtitleFetchPromises.current[selectedTrack!.id];
+    // Uploaded / URL ASS carries its full text in memory (subtitleFetchPromises) — load it directly.
+    // Backend torrent ASS streams in per-window via the windowed feeder effect below, so we do NOT
+    // fetch a full document here — that would be exactly the whole-file demux we're eliminating.
     let active = true;
-
-    if (!subPromise) {
-      // Fallback: If no prefetch promise exists, start one now
-      console.log("[OCTOPUS] No prefetch promise found. Starting one now for:", selectedTrack!.label);
-      const subUrl = `${selectedTrack!.src}${selectedTrack!.src.includes("?") ? "&" : "?"}format=ass`;
-      const fetchPromise = fetch(subUrl)
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to fetch subtitle content");
-          return res.text();
-        });
-      subtitleFetchPromises.current[selectedTrack!.id] = fetchPromise;
+    const isUpload = selectedTrack!.src.startsWith("blob:");
+    if (isUpload) {
+      const currentPromise = subtitleFetchPromises.current[selectedTrack!.id];
+      currentPromise?.then((text: string) => {
+        if (!active) return;
+        const oct = octopusRef.current;
+        if (oct) {
+          try {
+            oct.freeTrack();
+          } catch {
+            /* noop */
+          }
+          oct.setTrack(text);
+          try {
+            oct.setCurrentTime(video.currentTime + seekOffsetRef.current);
+          } catch (e) {
+            console.error("[OCTOPUS] setCurrentTime after setTrack failed:", e);
+          }
+        }
+      }).catch((err: any) => {
+        console.error("[OCTOPUS] Error resolving subtitle promise:", err);
+      });
     }
-
-    const currentPromise = subtitleFetchPromises.current[selectedTrack!.id];
-
-    currentPromise!.then((text: string) => {
-      if (!active) return;
-      const oct = octopusRef.current;
-      if (oct) {
-        console.log("[OCTOPUS] Loading resolved track text:", text.length, "chars");
-        // Drop whatever is currently on screen BEFORE loading the new track. Otherwise the
-        // previous track's line can linger — e.g. switching a full-dialogue track to a sparse
-        // "signs" track that has nothing at the current moment, so setTrack never repaints over
-        // the old bitmap.
-        try {
-          oct.freeTrack();
-        } catch {
-          /* noop */
-        }
-        oct.setTrack(text);
-        // `setTrack` alone does not force a redraw — the worker only re-renders on a
-        // `video`/time message. Push the current time immediately so the new track is drawn in
-        // sync right away (critical while paused, where no timeupdate fires on its own).
-        try {
-          oct.setCurrentTime(video.currentTime + seekOffsetRef.current);
-        } catch (e) {
-          console.error("[OCTOPUS] setCurrentTime after setTrack failed:", e);
-        }
-      }
-    }).catch((err: any) => {
-      console.error("[OCTOPUS] Error resolving subtitle promise:", err);
-    });
 
     return () => {
       active = false;
@@ -566,6 +569,120 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     return () => timers.forEach((t) => clearTimeout(t));
   }, [seekOffset, currentSubtitleTrack, injectedSubtitles, srcResetCounter]);
 
+  // ── Windowed subtitle feeder ──────────────────────────────────────────────────────────────────
+  // For the SELECTED backend (torrent) track, stream subtitles ~2 min at a time as playback moves,
+  // instead of demuxing the whole file. Each window is fetched with ?start=<bucket>; the backend seeks
+  // straight to it (only pieces playback already has) and returns cues with ABSOLUTE timestamps.
+  //   VTT/SRT: accumulate via addCue, deduped across the small window overlap.
+  //   ASS:     swap the current window's document into libass on each bucket crossing (overlap keeps
+  //            on-screen lines across the swap).
+  // Uploaded/URL subs (blob: src) are untouched here — the native-track / octopus paths handle them.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const trackIndex = currentSubtitleTrack;
+    const sel = trackIndex !== -1 ? injectedSubtitles[trackIndex] : null;
+    if (!sel || !sel.src || sel.src.startsWith("blob:")) return;
+
+    const isAss = sel.codec === "ass" || sel.codec === "ssa";
+    const gen = subtitleGen.current;
+    const W = SUBTITLE_WINDOW_SEC;
+    let cancelled = false;
+
+    const requested = new Set<number>();          // buckets a fetch was kicked off for
+    const fedVtt = new Set<number>();             // buckets whose cues were added
+    const vttKeys = new Set<string>();            // cue dedup across overlapping windows
+    const windowText = new Map<number, string>(); // bucket → resolved doc (used by ASS)
+    let assBucket = -1;                           // bucket currently loaded into libass
+    let firstReady = false;
+
+    const tt = !isAss ? video.textTracks[trackIndex] : null;
+    // Re-selecting a track must not double-add cues from a prior mount.
+    if (tt && tt.cues) {
+      Array.from(tt.cues).forEach((c) => {
+        try { tt.removeCue(c as TextTrackCue); } catch { /* noop */ }
+      });
+    }
+
+    const parseTs = (s: string): number => {
+      const m = s.trim().match(/(?:(\d+):)?(\d{1,2}):(\d{2})[.,](\d{1,3})/);
+      if (!m) return NaN;
+      return (+(m[1] || 0)) * 3600 + (+m[2]) * 60 + (+m[3]) + (+m[4]) / 1000;
+    };
+    const addVttCues = (text: string) => {
+      if (!tt) return;
+      const lines = text.replace(/\r/g, "").split("\n");
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].indexOf("-->") === -1) continue;
+        const [a, b] = lines[i].split("-->");
+        const start = parseTs(a);
+        const end = parseTs((b || "").trim().split(/\s+/)[0] || "");
+        i++;
+        const body: string[] = [];
+        while (i < lines.length && lines[i].trim() !== "") { body.push(lines[i]); i++; }
+        if (!isFinite(start) || !isFinite(end) || end <= start) continue;
+        const textBody = body.join("\n");
+        const key = `${start.toFixed(3)}-${end.toFixed(3)}-${textBody}`;
+        if (vttKeys.has(key)) continue;
+        vttKeys.add(key);
+        try {
+          const cue = new VTTCue(start, end, textBody);
+          cueOriginalTimes.current.set(cue, { s: start, e: end });
+          tt.addCue(cue);
+        } catch { /* noop */ }
+      }
+    };
+    const applyAss = () => {
+      if (!isAss || cancelled) return;
+      const cur = Math.floor(video.currentTime / W) * W;
+      if (cur === assBucket) return;
+      const doc = windowText.get(cur);
+      if (doc == null) return;
+      const oct = octopusRef.current;
+      if (!oct) return;
+      assBucket = cur;
+      try { oct.freeTrack(); } catch { /* noop */ }
+      try {
+        oct.setTrack(doc);
+        oct.setCurrentTime(video.currentTime + seekOffsetRef.current);
+      } catch { /* noop */ }
+    };
+    const fetchBucket = (bucket: number) => {
+      if (bucket < 0 || requested.has(bucket)) return;
+      requested.add(bucket);
+      const p = fetchSubtitleWindow(sel, bucket);
+      if (!p) { requested.delete(bucket); return; }
+      p.then((text) => {
+        if (cancelled) return;
+        windowText.set(bucket, text);
+        if (!isAss && !fedVtt.has(bucket)) { fedVtt.add(bucket); addVttCues(text); }
+        if (!firstReady) { firstReady = true; markSubtitle(sel.id, "ready", gen); }
+        applyAss();
+      }).catch(() => {
+        // Cold-ahead window (pieces not down yet) — allow a retry on the next tick.
+        requested.delete(bucket);
+      });
+    };
+    const tick = () => {
+      if (cancelled) return;
+      const t = video.currentTime;
+      const cur = Math.floor(t / W) * W;
+      fetchBucket(cur);
+      if (t - cur > W - 20) fetchBucket(cur + W); // prefetch the next window near the seam
+      applyAss();
+    };
+
+    tick();
+    const iv = window.setInterval(tick, 1000);
+    const onSeeked = () => tick();
+    video.addEventListener("seeked", onSeeked);
+    return () => {
+      cancelled = true;
+      window.clearInterval(iv);
+      video.removeEventListener("seeked", onSeeked);
+    };
+  }, [currentSubtitleTrack, injectedSubtitles, fetchSubtitleWindow, markSubtitle]);
+
   // Close menus reactively on controls hide
   useEffect(() => {
     if (!controlsVisible) {
@@ -605,11 +722,49 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
     }
   }, [srcResetCounter]);
 
-  const playPlaylistItem = (index: number) => {
+  const playPlaylistItem = async (index: number) => {
     if (!playback.playlist || index < 0 || index >= playback.playlist.length) return;
     const item = playback.playlist[index];
-    // Kill the outgoing episode's producer before loading the next one (different file → no race).
-    stopBackendSession(streamHash, fileIndex);
+
+    // Lazy re-fetch a FRESH descriptor (session/subtitles/audios) for the next episode via the host
+    // bridge — the pre-built playlist item carries only identity, no session/subs, so replaying it would
+    // silently break subtitles + the keepalive/session for episode 2+. Same player instance → same
+    // session id; the next keepalive reports the new file and the backend reconciles the old producer.
+    const resolve = (window as any).potok_playlist_resolve as ((it: any) => Promise<PlaybackInfo>) | undefined;
+    if (typeof resolve === "function") {
+      try {
+        const info = await resolve(item);
+        if (info) {
+          const st = info.streamType;
+          playVideo({
+            ...playback,
+            streamUrl: info.streamUrl,
+            streamType: (st === "m3u8" || st === "hls" || st === "mp4" || st === "dash") ? st : undefined,
+            streamHash: info.torrentHash,
+            fileIndex: info.fileIndex,
+            audios: info.audios?.map((a) => ({ name: a.name, url: a.url })),
+            headers: info.headers,
+            subtitles: info.subtitles,
+            session: info.session,
+            duration: info.duration,
+            introStart: info.introStart,
+            introEnd: info.introEnd,
+            outroStart: info.outroStart,
+            outroEnd: info.outroEnd,
+            season: item.season,
+            episode: item.episode,
+            title: `${item.title} - S${item.season}E${item.episode}`,
+            voice: item.voice,
+            playlistIndex: index,
+          });
+          return;
+        }
+      } catch {
+        /* fall through to the stale pre-built item */
+      }
+    }
+
+    // Fallback: no bridge (e.g. a non-torrent source) → replay the pre-built item as-is.
     playVideo({
       ...playback,
       streamUrl: item.streamUrl,
@@ -619,7 +774,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
       title: `${item.title} - S${item.season}E${item.episode}`,
       audios: item?.audios,
       voice: item.voice,
-      playlistIndex: index
+      playlistIndex: index,
     });
   };
 
@@ -632,6 +787,14 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   const handleVideoError = () => {
     const video = videoRef.current;
     if (!video) return;
+    // In HLS mode hls.js's own ERROR handler owns recovery + fatal reporting (useHlsPlayer). The raw
+    // <video onError> must NOT independently declare a fatal error or probe the URL — that raced with
+    // hls.js recovery and turned recoverable stalls into a fatal overlay (the ?remux=true cascade).
+    // Native progressive is the only mode where <video onError> is the sole error signal. (Matches the
+    // isHls decision in useHlsPlayer, including the legacy no-streamType .m3u8 sniff fallback.)
+    const isHls = playback.streamType === "m3u8" || playback.streamType === "hls"
+      || (!playback.streamType && (playback.streamUrl.includes(".m3u8") || playback.streamUrl.includes("/hls/")));
+    if (isHls) return;
     const gatewayBase = ApiClient.baseURL;
     const diagnosticUrl = getProxyUrl(playback.streamUrl, gatewayBase, playback.headers);
     fetch(diagnosticUrl, { method: "HEAD" })
@@ -646,50 +809,26 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
 
   // Helper seeks, switches and uploads
   const switchAudio = (id: number) => {
-    const video = videoRef.current;
-    if (!video) return;
+    setShowAudioMenu(false);
 
-    const info = describeStream(playback.streamUrl, { streamHash: playback.streamHash, torrentHash: (playback as any).torrentHash });
-    const { normalizedUrl } = info;
-    const isM3U8 = normalizedUrl.includes(".m3u8") || normalizedUrl.includes("/hls/");
-
-    if (isM3U8) {
+    const isHls = playback.streamType === "m3u8" || playback.streamType === "hls";
+    if (isHls && hlsRef.current) {
+      // Native multivariant switch: the manifest carries every audio rendition (EXT-X-MEDIA), so hls.js
+      // swaps ONLY the audio SourceBuffer in place — video buffer untouched, no source reload, no black
+      // frame. currentAudioTrack is confirmed by the AUDIO_TRACK_SWITCHED event (useHlsPlayer).
+      hlsRef.current.audioTrack = id;
       setCurrentAudioTrack(id);
-      setShowAudioMenu(false);
       return;
     }
 
-    const needsRemux = streamNeedsRemux(info, playback.streamUrl, id);
+    // Non-HLS providers (per-track progressive URLs): swap the source and resume in place.
+    const video = videoRef.current;
     const time = video ? (seekOffset > 0 ? seekOffset + video.currentTime : video.currentTime) : 0;
-
-    // Explicitly write resume timecode to localStorage to bypass < 15s tracker guard
     const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
     localStorage.setItem(resumeKey, time.toString());
-
-    const applyAudio = (newUrl: string) => {
-      // Trigger state change in parent to reload progressive stream cleanly
-      playVideo({
-        ...playback,
-        streamUrl: newUrl,
-      });
-      setCurrentAudioTrack(id);
-      setShowAudioMenu(false);
-    };
-
-    if (needsRemux) {
-      // HLS: audio is muxed per-track server-side (one VOD playlist per audio track). Switch by
-      // pinning the new track — useHlsPlayer rebuilds the source and resumes at the saved position
-      // (written above); the VOD playlist is fully seekable so no offset math is needed.
-      setHlsAudioOverride(id);
-      setCurrentAudioTrack(id);
-      setShowAudioMenu(false);
-      return;
-    }
-    let newUrl = playback.audios && playback.audios[id] ? playback.audios[id].url : playback.streamUrl;
-    if (info.isTorrentGoStream) {
-      newUrl = stripRemuxParams(newUrl);
-    }
-    applyAudio(newUrl);
+    setCurrentAudioTrack(id);
+    const newUrl = playback.audios && playback.audios[id] ? playback.audios[id].url : playback.streamUrl;
+    playVideo({ ...playback, streamUrl: newUrl });
   };
 
   // Debounced/accumulated seeking. The UI pins to the target instantly (seekPreview), but the real
@@ -818,8 +957,11 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
   // are treated as ready.
   const subtitleTracksUi = useMemo(() => subtitleTracks.map((item) => {
     const st = item.stableId ? subtitleState[item.stableId] : "ready";
-    return { ...item, loading: !st, error: st === "error" };
-  }), [subtitleTracks, subtitleState]);
+    // Content is fetched lazily only for the selected track, so a row spins ONLY while it is the
+    // selected one and its content isn't ready yet. Unselected tracks are pickable, not loading.
+    const loading = item.id === currentSubtitleTrack && !!item.stableId && !st;
+    return { ...item, loading, error: st === "error" };
+  }), [subtitleTracks, subtitleState, currentSubtitleTrack]);
   const subtitlesLoading = isMetadataLoading || subtitleTracksUi.some((t) => t.loading);
 
   const { introRange: remoteIntro, outroRange: remoteOutro } = useTimecodes(playback.id, playback.season, playback.episode, playback.mediaType === "tv", displayDuration);
@@ -828,14 +970,15 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
 
   const loadingState = useMemo(() => {
     if (!isMetadataLoading) return null;
-    if (!playback.streamUrl.includes("/stream/") && !playback.streamHash) return { title: t("loading.init.title"), subtitle: t("loading.init.loadingStream"), step: 4 };
-    if (torrentPeers === null || torrentPeers === 0) return { title: t("loading.peers.title"), subtitle: t("loading.peers.subtitle"), step: 1 };
-    if (!isMetadataFetched && !(hasPositivePeersTime && (Date.now() - hasPositivePeersTime > 3000))) {
-      return { title: t("loading.preparing.title"), subtitle: t("loading.preparing.subtitle", { peers: torrentPeers, speed: (torrentDownloadSpeed ? torrentDownloadSpeed / 1024 / 1024 : 0).toFixed(1) }), step: 2 };
+    // Non-buffering sources (CDN/instant) skip the warm-up steps → straight to the generic init spinner.
+    if (!playback.requiresBuffering) return { title: t("loading.init.title"), subtitle: t("loading.init.loadingStream"), step: 4 };
+    if (connected === null || connected === 0) return { title: t("loading.peers.title"), subtitle: t("loading.peers.subtitle"), step: 1 };
+    if (!isMetadataFetched && !(hasProgressSince && (Date.now() - hasProgressSince > 3000))) {
+      return { title: t("loading.preparing.title"), subtitle: t("loading.preparing.subtitle", { peers: connected, speed: (bytesPerSec ? bytesPerSec / 1024 / 1024 : 0).toFixed(1) }), step: 2 };
     }
     if (!isMetadataFetched) return { title: t("loading.tracks.title"), subtitle: t("loading.tracks.subtitle"), step: 3 };
     return { title: t("loading.init.title"), subtitle: t("loading.init.subtitle"), step: 4 };
-  }, [isMetadataLoading, playback.streamUrl, playback.streamHash, torrentPeers, torrentDownloadSpeed, isMetadataFetched, hasPositivePeersTime, t]);
+  }, [isMetadataLoading, playback.requiresBuffering, connected, bytesPerSec, isMetadataFetched, hasProgressSince, t]);
 
   // Sub-renders to limit direct JSX to ≤ 60 lines
   const renderOverlays = () => (
@@ -881,12 +1024,13 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
       >
         {injectedSubtitles.map((track, index) => {
           const isAss = track.codec === "ass" || track.codec === "ssa";
-          // ASS/SSA tracks are rendered by SubtitlesOctopus (libass). We keep an empty
-          // <track> element to preserve textTracks index alignment, but give it NO src so
-          // the browser doesn't fetch a second, uncached webvtt demux from the backend.
-          // Non-ASS tracks render from a prefetched blob URL (falling back to the remote
-          // URL only until the blob is ready), so switching them is instant and offline-safe.
-          const src = isAss ? undefined : (subtitleBlobUrls.current[track.id] || track.src);
+          const isUpload = track.src?.startsWith("blob:");
+          // ASS/SSA → rendered by SubtitlesOctopus (libass), no native src. Backend torrent VTT/SRT →
+          // cues are fed PROGRAMMATICALLY per-window (VTTCue/addCue) by the windowed feeder, so we give
+          // NO src — a src would make the browser fetch the whole-file demux we're eliminating. Only
+          // uploads/URL subs keep a native blob-doc src. The empty <track> preserves textTracks index
+          // alignment and gives us the TextTrack object to addCue into.
+          const src = isAss ? undefined : (isUpload ? (subtitleBlobUrls.current[track.id] || track.src) : undefined);
           return (
             <track
               key={track.id + "_" + srcResetCounter}
@@ -907,7 +1051,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
       <PlayerTopBar title={playback.title} mediaType={playback.mediaType} season={playback.season} episode={playback.episode} onClose={handleClose} visible={controlsVisible} />
       <SkipIntroButton videoRef={videoRef} seekOffset={seekOffset} introRange={introRange} displayDuration={displayDuration} onSeek={handleSeek} />
       <SkipOutroButton videoRef={videoRef} seekOffset={seekOffset} outroRange={outroRange} displayDuration={displayDuration} onSeek={handleSeek} />
-      <PlayerStatsHUD showStats={showStats} videoRef={videoRef} hlsRef={hlsRef} isPlaying={isPlaying} streamUrl={playback.streamUrl} streamHash={playback.streamHash || ""} duration={displayDuration} onClose={() => setShowStats(false)} />
+      <PlayerStatsHUD showStats={showStats} videoRef={videoRef} hlsRef={hlsRef} isPlaying={isPlaying} streamUrl={playback.streamUrl} statusUrl={playback.session?.statusUrl || ""} duration={displayDuration} onClose={() => setShowStats(false)} />
       <PlayerControls
         videoRef={videoRef}
         controlsVisible={controlsVisible}
@@ -948,8 +1092,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
         showPlaylistMenu={showPlaylistMenu}
         onTogglePlaylistMenu={() => { setShowPlaylistMenu(!showPlaylistMenu); setShowAudioMenu(false); setShowSubtitleMenu(false); setShowQualityMenu(false); }}
         seekOffset={seekOffset}
-        streamHash={streamHash}
-        fileIndex={fileIndex}
+        thumbnails={playback.thumbnails}
         seekPreview={seekPreview}
       />
     </>

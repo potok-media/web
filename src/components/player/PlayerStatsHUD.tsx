@@ -10,7 +10,7 @@ interface PlayerStatsHUDProps {
   hlsRef: React.RefObject<Hls | null>;
   isPlaying: boolean;
   streamUrl: string;
-  streamHash: string;
+  statusUrl: string;
   duration: number;
   onClose?: () => void;
 }
@@ -21,7 +21,7 @@ export const PlayerStatsHUD: React.FC<PlayerStatsHUDProps> = ({
   hlsRef,
   isPlaying,
   streamUrl,
-  streamHash,
+  statusUrl,
   duration,
   onClose,
 }) => {
@@ -34,7 +34,7 @@ export const PlayerStatsHUD: React.FC<PlayerStatsHUDProps> = ({
     isPlaying,
     showStats,
     streamUrl,
-    streamHash,
+    statusUrl,
     duration
   );
 

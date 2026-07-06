@@ -1,25 +1,26 @@
 import React, { useEffect, useState, useRef } from "react";
-import { ApiClient } from "../../network/ApiClient";
+import type { SDKThumbnails } from "../../sdk/src/types";
 
 interface TimelinePreviewTooltipProps {
   time: number;
   x: number;
-  streamHash?: string;
-  fileIndex?: string;
+  // Generic, plugin-supplied scrub-preview source. `urlTemplate` carries a `{time}` placeholder. Absent →
+  // time-only tooltip. The player never builds a backend URL, so it stays provider-agnostic.
+  thumbnails?: SDKThumbnails;
 }
 
 export const TimelinePreviewTooltip: React.FC<TimelinePreviewTooltipProps> = ({
   time,
   x,
-  streamHash,
-  fileIndex,
+  thumbnails,
 }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Round time to nearest 5 seconds for backend cache reuse
-  const roundedTime = Math.max(0, Math.round(time / 5) * 5);
+  // Round to the provider's bucket (default 5s) for cache reuse.
+  const interval = (thumbnails?.intervalSec && thumbnails.intervalSec > 0) ? thumbnails.intervalSec : 5;
+  const roundedTime = Math.max(0, Math.round(time / interval) * interval);
 
   useEffect(() => {
     // Clear any pending state updates
@@ -27,7 +28,7 @@ export const TimelinePreviewTooltip: React.FC<TimelinePreviewTooltipProps> = ({
       clearTimeout(timeoutRef.current);
     }
 
-    if (!streamHash || !fileIndex) {
+    if (!thumbnails?.urlTemplate) {
       setImageUrl(null);
       setIsLoading(false);
       return;
@@ -37,9 +38,9 @@ export const TimelinePreviewTooltip: React.FC<TimelinePreviewTooltipProps> = ({
 
     // Debounce image request by 25ms
     timeoutRef.current = setTimeout(() => {
-      const cleanBase = ApiClient.playerServerURL.replace(/\/+$/, "");
-      const newUrl = `${cleanBase}/api/torrents/${streamHash}/files/${fileIndex}/thumbnail?time=${roundedTime}`;
-      
+      // Generic: substitute {time} in the plugin-supplied template.
+      const newUrl = thumbnails.urlTemplate.replace("{time}", String(roundedTime));
+
       setImageUrl((prev) => {
         if (prev === newUrl) return prev;
         setIsLoading(true);
@@ -52,7 +53,7 @@ export const TimelinePreviewTooltip: React.FC<TimelinePreviewTooltipProps> = ({
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [roundedTime, streamHash, fileIndex]);
+  }, [roundedTime, thumbnails?.urlTemplate]);
 
   const handleImageLoad = () => {
     setIsLoading(false);

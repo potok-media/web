@@ -1,9 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ApiClient } from "../network/ApiClient";
-import { buildSubtitleSrc } from "../utils/torrentGoStream";
-import { logger } from "../utils/logger";
 import { i18n } from "../i18n";
 import { type ActivePlayback } from "../context/AppSettingsContext";
+
+// Subtitle window size (seconds). MUST match the backend `subtitleWindowSec` bucket so the client and
+// server agree on window boundaries (immutable-cacheable, dedupable). Kept SMALL so each window stays
+// within the player's read-ahead (~100-120s) — the backend reads that window's whole interleaved
+// container to collect the sparse subtitle packets, so a window bigger than the buffer would pull an
+// un-downloaded tail over the network and time out. 30s = cache hits, instant.
+export const SUBTITLE_WINDOW_SEC = 15;
 
 function mergeAndDeduplicateSubtitles(
   existing: { id: string; label: string; srclang: string; src: string; codec?: string }[],
@@ -75,12 +79,12 @@ export function usePlayerMetadataAndTracks(
     });
   }, [injectedSubtitles]);
   
-  const [isMetadataLoading, setIsMetadataLoading] = useState(() => {
-    if (playback?.subtitles && playback.subtitles.length > 0) {
-      return false;
-    }
-    return initialStreamUrl.includes("/stream") || initialStreamUrl.includes("/torrents/") || !!streamHash;
-  });
+  // A TorrentGo stream shows the loading overlay until the HLS manifest/first frame is ready (cleared by
+  // the video's canplay/playing events). Track metadata itself is no longer fetched here — the plugin
+  // owns it and hands it in via `playback` — so this only gates the initial overlay.
+  // Generic warm-up gate: show the loading overlay for streams the plugin flagged as buffering-backed
+  // (torrent/live) — no URL-sniffing. Cleared by the video's canplay/playing events.
+  const [isMetadataLoading, setIsMetadataLoading] = useState(() => !!playback?.requiresBuffering);
   const [metadataDuration, setMetadataDuration] = useState(() => {
     if (playback?.duration && playback.duration > 0) {
       return playback.duration;
@@ -157,7 +161,9 @@ export function usePlayerMetadataAndTracks(
   const outroStartVal = playback?.outroStart;
   const outroEndVal = playback?.outroEnd;
 
-  // Reset state when the video source (file/stream) changes
+  // Reset state when the video source (file/stream) changes. The new descriptor is already on `playback`
+  // by now (playVideo set it), so tracks are immediately "fetched" — the sync effect below repopulates
+  // subtitles/duration from it.
   useEffect(() => {
     setInjectedSubtitles([]);
     setSubtitleTracks([]);
@@ -165,7 +171,7 @@ export function usePlayerMetadataAndTracks(
     setMetadataDuration(0);
     setLocalIntroRange(null);
     setLocalOutroRange(null);
-    setIsMetadataFetched(false);
+    setIsMetadataFetched(true);
   }, [streamHash, fileIndex]);
 
   // Sync static properties from playback prop to local React states
@@ -195,152 +201,53 @@ export function usePlayerMetadataAndTracks(
     if (playback && typeof playback.outroStart === "number" && typeof playback.outroEnd === "number" && playback.outroEnd > playback.outroStart) {
       setLocalOutroRange({ start: playback.outroStart, end: playback.outroEnd });
     }
+
+    // The plugin owns track metadata now (single `/metadata` fetch in getPlaybackInfo). By the time
+    // `playback` reaches us the descriptor is complete, so tracks are "fetched" — no player-side fetch.
+    setIsMetadataFetched(true);
   }, [subtitlesJson, durationVal, introStartVal, introEndVal, outroStartVal, outroEndVal]);
 
-  // Fetch metadata from TorrentGo exactly once when the stream/file changes
-  useEffect(() => {
-    // If playback subtitles are already provided, bypass TorrentGo metadata fetch
-    if (playback?.subtitles && playback.subtitles.length > 0) {
-      setIsMetadataLoading(false);
-      setIsMetadataFetched(true);
-      return;
-    }
-
-    if (!fileIndex || !streamHash) {
-      setIsMetadataLoading(false);
-      return;
-    }
-
-    let isMounted = true;
-    setIsMetadataLoading(true);
-    setIsMetadataFetched(false);
-    
-    (async () => {
-      let fetchedSuccessfully = false;
-      try {
-        const metadata = await ApiClient.getStreamMetadata(streamHash, fileIndex);
-        if (!isMounted) return;
-        if (metadata && metadata.success) {
-          fetchedSuccessfully = true;
-          if (metadata.duration > 0) setMetadataDuration(metadata.duration);
-
-          if (typeof metadata.introStart === "number" && typeof metadata.introEnd === "number" && metadata.introEnd > metadata.introStart) {
-            setLocalIntroRange({ start: metadata.introStart, end: metadata.introEnd });
-          }
-          if (typeof metadata.outroStart === "number" && typeof metadata.outroEnd === "number" && metadata.outroEnd > metadata.outroStart) {
-            setLocalOutroRange({ start: metadata.outroStart, end: metadata.outroEnd });
-          }
-
-          const torrentAudioTracks = metadata.tracks
-            .filter((t) => t.type === "audio")
-            .map((t) => ({ id: t.index, name: t.title }));
-          
-          if (torrentAudioTracks.length > 0) {
-            setAudioTracks(torrentAudioTracks);
-            setCurrentAudioTrack((prev) => (prev === -1 ? torrentAudioTracks[0].id : prev));
-          }
-
-          const subtitleMeta = metadata.tracks.filter((t) => t.type === "subtitle");
-          // Count how many tracks share each title so we can disambiguate collisions
-          // (e.g. a "Полные" RUS track and a "Полные" ENG track) by appending the language.
-          const labelCounts = new Map<string, number>();
-          subtitleMeta.forEach((t) => {
-            const key = (t.title || "").trim().toLowerCase();
-            labelCounts.set(key, (labelCounts.get(key) || 0) + 1);
-          });
-
-          const tracksToInject = subtitleMeta.map((t) => {
-            const srcUrl = buildSubtitleSrc(streamHash, fileIndex, t.relIndex);
-            const baseLabel = t.title || `Sub ${t.relIndex + 1}`;
-            const key = (t.title || "").trim().toLowerCase();
-            const lang = (t.language || "").trim();
-            const ambiguous = (labelCounts.get(key) || 0) > 1;
-            const label =
-              lang && ambiguous && !baseLabel.toLowerCase().includes(lang.toLowerCase())
-                ? `${baseLabel} (${lang.toUpperCase()})`
-                : baseLabel;
-            return {
-              id: `${t.relIndex}_${t.title}`,
-              label,
-              srclang: t.language || "custom",
-              src: srcUrl,
-              codec: t.codec,
-            };
-          });
-          
-          setInjectedSubtitles((prev) => mergeAndDeduplicateSubtitles(prev, tracksToInject));
-          setIsMetadataFetched(true);
-        }
-      } catch (err) {
-        logger.warn("Failed to load stream metadata:", err);
-      } finally {
-        if (isMounted) {
-          if (!fetchedSuccessfully) {
-            setIsMetadataLoading(false);
-          }
-        }
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [streamHash, fileIndex]);
-
+  // Full-document promises — kept ONLY for locally-uploaded / URL subtitles (already in memory) and
+  // as the transparent fallback the backend serves when a container can't be seeked. Backend torrent
+  // subtitles no longer populate this; they stream in windows via `fetchSubtitleWindow` below.
   const subtitleFetchPromises = useRef<Record<string, Promise<string> | undefined>>({});
 
-  // Pre-fetch ALL subtitle contents (ass/ssa + vtt/srt) in the main thread using shared
-  // promises so that selecting a track later requires no network round-trip.
+  // Per-(trackId, windowBucket) fetch cache for windowed subtitle slices. The player calls
+  // fetchSubtitleWindow(track, bucket) as playback approaches each ~2-min window of the SELECTED track;
+  // the backend seeks straight to that slice (reading only pieces playback already has) and returns
+  // WebVTT/ASS with ABSOLUTE timestamps. Memoized so re-entering a window (or seeking back) is instant.
+  const subtitleWindowPromises = useRef<Record<string, Promise<string>>>({});
+  const fetchSubtitleWindow = useCallback((track: { id: string; src: string; codec?: string }, bucket: number) => {
+    // Uploads (blob: URLs) carry their own content and don't go through the windowed backend path.
+    if (!track?.src || track.src.startsWith("blob:")) return null;
+    const key = `${track.id}:${bucket}`;
+    const existing = subtitleWindowPromises.current[key];
+    if (existing) return existing;
+
+    const isAss = track.codec === "ass" || track.codec === "ssa";
+    const format = isAss ? "ass" : "webvtt";
+    const url = `${track.src}${track.src.includes("?") ? "&" : "?"}format=${format}&start=${bucket}`;
+    const p = fetch(url)
+      .then((res) => {
+        // 202 = the region isn't downloaded yet (backend didn't spawn ffmpeg into a cold zone). Treat as
+        // "not ready" so it's NOT cached as an empty window — the feeder retries as playback nears it.
+        if (res.status === 202) throw new Error("subtitle window not ready");
+        if (!res.ok) throw new Error("Failed to fetch subtitle window");
+        return res.text();
+      })
+      .catch((err) => {
+        // Drop from cache so a cold-ahead window retries once playback nears it.
+        delete subtitleWindowPromises.current[key];
+        throw err;
+      });
+    subtitleWindowPromises.current[key] = p;
+    return p;
+  }, []);
+
+  // Clear both caches when the video source resets.
   useEffect(() => {
-    console.log("[SUB-PREFETCH] Hook effect fired. injectedSubtitles count:", injectedSubtitles.length);
-    if (injectedSubtitles.length === 0) return;
-
-    const prefetchTrack = (track: { id: string; label: string; src: string; codec?: string }) => {
-      if (!track.src) return;
-      // Locally-uploaded subtitles are already in-memory blob URLs — no server fetch needed.
-      if (track.src.startsWith("blob:")) return;
-      if (subtitleFetchPromises.current[track.id]) {
-        console.log(`[SUB-PREFETCH] Track "${track.label}" already has active fetch promise`);
-        return;
-      }
-
-      const isAss = track.codec === "ass" || track.codec === "ssa";
-      const format = isAss ? "ass" : "webvtt";
-      const subUrl = `${track.src}${track.src.includes("?") ? "&" : "?"}format=${format}`;
-      console.log(`[SUB-PREFETCH] Starting prefetch promise for "${track.label}" (${format}) from URL: ${subUrl}`);
-
-      subtitleFetchPromises.current[track.id] = fetch(subUrl)
-        .then((res) => {
-          console.log(`[SUB-PREFETCH] Network response for "${track.label}": status=${res.status}, ok=${res.ok}`);
-          if (!res.ok) throw new Error("Failed to fetch subtitle content");
-          return res.text();
-        })
-        .then((text) => {
-          console.log(`[SUB-PREFETCH] Content loaded for "${track.label}": ${text.length} chars`);
-          return text;
-        })
-        .catch((err) => {
-          console.error(`[SUB-PREFETCH] FAILED for "${track.label}":`, err);
-          // Remove from cache on failure so it can be retried later
-          delete subtitleFetchPromises.current[track.id];
-          throw err;
-        });
-    };
-
-    // Prioritize the currently-selected / default track so the first pick is instant,
-    // then warm the rest (they are also being pre-extracted server-side).
-    const ordered = [...injectedSubtitles];
-    if (currentSubtitleTrack >= 0 && currentSubtitleTrack < ordered.length) {
-      const [selected] = ordered.splice(currentSubtitleTrack, 1);
-      ordered.unshift(selected);
-    }
-    ordered.forEach(prefetchTrack);
-  }, [injectedSubtitles, currentSubtitleTrack]);
-
-  // Clear prefetch cache when the video source resets
-  useEffect(() => {
-    console.log("[SUB-PREFETCH] Resetting fetch promises cache");
     subtitleFetchPromises.current = {};
+    subtitleWindowPromises.current = {};
   }, [streamHash, fileIndex]);
 
   return {
@@ -363,5 +270,6 @@ export function usePlayerMetadataAndTracks(
     localIntroRange,
     localOutroRange,
     subtitleFetchPromises,
+    fetchSubtitleWindow,
   };
 }

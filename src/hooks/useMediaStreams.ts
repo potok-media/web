@@ -8,6 +8,7 @@ import type { GenericEpisodeItem } from "../components/common/EpisodeSelectorPop
 import { ApiClient } from "../network/ApiClient";
 import type { MediaCard } from "../network/ApiTypes";
 import type { RawStreamPayload, StreamEpisode, PlaybackInfo } from "@potok/sdk-types";
+import type { ActivePlayback } from "../context/AppSettingsContext";
 import { logger } from "../utils/logger";
 import { SyncApiClient, type UserHistoryEntry } from "../network/SyncApiClient";
 import { Storage } from "../utils/StorageService";
@@ -17,6 +18,48 @@ const mapEpisode = (ep: StreamEpisode): GenericEpisodeItem => ({
   id: ep.id, season: ep.season, episode: ep.episode, title: ep.title,
   stillPath: ep.stillPath, airDate: ep.airDate,
   audios: ep.audios || [], url: ep.url,
+});
+
+const ALLOWED_STREAM_TYPES = ["m3u8", "hls", "mp4", "dash"] as const;
+
+// Turn a plugin's PlaybackInfo into an ActivePlayback, forwarding the FULL descriptor (subtitles,
+// duration, intro/outro, fileIndex, session) that used to be dropped here — the plugin now owns all
+// TorrentGo-shaped data and the player just consumes it.
+const buildPlaybackFromInfo = (
+  info: PlaybackInfo,
+  base: {
+    mediaType: "movie" | "tv"; id: number; title?: string; originalTitle?: string; englishTitle?: string;
+    season?: number; episode?: number; playlist?: ActivePlayback["playlist"]; playlistIndex?: number;
+  }
+): ActivePlayback => ({
+  streamUrl: info.streamUrl,
+  title: info.title || base.title || "",
+  originalTitle: base.originalTitle,
+  englishTitle: base.englishTitle,
+  mediaType: base.mediaType,
+  id: base.id,
+  season: base.season,
+  episode: base.episode,
+  streamHash: info.torrentHash,
+  fileIndex: info.fileIndex,
+  streamType: ALLOWED_STREAM_TYPES.includes(info.streamType as typeof ALLOWED_STREAM_TYPES[number])
+    ? (info.streamType as ActivePlayback["streamType"])
+    : undefined,
+  audios: info.audios?.map((a) => ({ name: a.name, url: a.url })),
+  headers: info.headers,
+  providerId: info.providerId,
+  voice: info.voice,
+  subtitles: info.subtitles,
+  session: info.session,
+  duration: info.duration,
+  introStart: info.introStart,
+  introEnd: info.introEnd,
+  outroStart: info.outroStart,
+  outroEnd: info.outroEnd,
+  thumbnails: info.thumbnails,
+  requiresBuffering: info.requiresBuffering,
+  playlist: base.playlist,
+  playlistIndex: base.playlistIndex,
 });
 
 interface UseMediaStreamsParams {
@@ -299,22 +342,13 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
           if (!info) {
             throw new Error(i18n.t("media:streams.playbackInfoEmpty"));
           }
-          playVideo({
-            streamUrl: info.streamUrl,
-            title: info.title || currentMedia?.title || "",
-            originalTitle: currentMedia?.originalTitle || currentMedia?.title || "",
-            englishTitle: currentMedia?.englishTitle || "",
+          playVideo(buildPlaybackFromInfo(info, {
             mediaType: "movie",
             id: mediaId,
-            season: undefined,
-            episode: undefined,
-            streamHash: info.torrentHash,
-            streamType: (info.streamType === "m3u8" || info.streamType === "mp4" || info.streamType === "dash") ? info.streamType : undefined,
-            audios: info.audios?.map((a) => ({ name: a.name, url: a.url })),
-            headers: info.headers,
-            providerId: info.providerId,
-            voice: info.voice,
-          });
+            title: currentMedia?.title || "",
+            originalTitle: currentMedia?.originalTitle || currentMedia?.title || "",
+            englishTitle: currentMedia?.englishTitle || "",
+          }));
         })
         .catch(handleOnError)
         .finally(() => setActionLoading(false));
@@ -332,22 +366,15 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
                 if (!info) {
                   throw new Error(i18n.t("media:streams.playbackInfoEmpty"));
                 }
-                playVideo({
-                  streamUrl: info.streamUrl,
-                  title: info.title || currentMedia?.title || "",
-                  originalTitle: currentMedia?.originalTitle || currentMedia?.title || "",
-                  englishTitle: currentMedia?.englishTitle || "",
+                playVideo(buildPlaybackFromInfo(info, {
                   mediaType: mediaType as "movie" | "tv",
                   id: mediaId,
+                  title: currentMedia?.title || "",
+                  originalTitle: currentMedia?.originalTitle || currentMedia?.title || "",
+                  englishTitle: currentMedia?.englishTitle || "",
                   season: mediaType === "tv" ? singleEp.season : undefined,
                   episode: mediaType === "tv" ? singleEp.episode : undefined,
-                  streamHash: info.torrentHash,
-                  streamType: (info.streamType === "m3u8" || info.streamType === "mp4" || info.streamType === "dash") ? info.streamType : undefined,
-                  audios: info.audios?.map((a) => ({ name: a.name, url: a.url })),
-                  headers: info.headers,
-                  providerId: info.providerId,
-                  voice: info.voice,
-                });
+                }));
                 setClickedStream(null);
               });
           } else {
@@ -389,27 +416,38 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
           (window as any).potok_playlist_override = null;
         }
 
+        // Lazy re-fetch bridge: the player has no plugin handle, so expose a resolver it can call on
+        // episode switch to get a FRESH full descriptor (session/subtitles/audios) for the next item —
+        // instead of replaying the stale pre-built playlist URL (which carries no session/subs). Captures
+        // this torrent's source/stream/context for the whole playlist session.
+        if (playlist) {
+          const src = activeSource;
+          const stream = clickedStream;
+          const ctx = context;
+          (window as any).potok_playlist_resolve = async (item: any): Promise<PlaybackInfo> =>
+            ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(src.pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", {
+              stream,
+              episode: { id: item.id, season: item.season, episode: item.episode, title: item.title, url: item.streamUrl, audios: [] },
+              context: ctx,
+            });
+        } else {
+          (window as any).potok_playlist_resolve = null;
+        }
+
         if (!info) {
           throw new Error(i18n.t("media:streams.playbackInfoEmpty"));
         }
-        playVideo({
-          streamUrl: info.streamUrl,
-          title: info.title || currentMedia?.title || "",
-          originalTitle: currentMedia?.originalTitle || currentMedia?.title || "",
-          englishTitle: currentMedia?.englishTitle || "",
+        playVideo(buildPlaybackFromInfo(info, {
           mediaType: mediaType as "movie" | "tv",
           id: mediaId,
+          title: currentMedia?.title || "",
+          originalTitle: currentMedia?.originalTitle || currentMedia?.title || "",
+          englishTitle: currentMedia?.englishTitle || "",
           season: mediaType === "tv" ? ep.season : undefined,
           episode: mediaType === "tv" ? ep.episode : undefined,
-          streamHash: info.torrentHash,
-          streamType: (info.streamType === "m3u8" || info.streamType === "mp4" || info.streamType === "dash") ? info.streamType : undefined,
-          audios: info.audios?.map((a) => ({ name: a.name, url: a.url })),
-          headers: info.headers,
-          providerId: info.providerId,
-          voice: info.voice,
           playlist,
-          playlistIndex
-        });
+          playlistIndex,
+        }));
       })
       .catch(handleOnError)
       .finally(() => setActionLoading(false));

@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import type { SDKThumbnails } from "../../sdk/src/types";
 import {
   Play,
   Pause, 
@@ -67,8 +68,7 @@ interface PlayerControlsProps {
   showPlaylistMenu?: boolean;
   onTogglePlaylistMenu?: () => void;
   seekOffset?: number;
-  streamHash?: string;
-  fileIndex?: string;
+  thumbnails?: SDKThumbnails;
   seekPreview?: number | null;
 }
 
@@ -112,8 +112,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
   showPlaylistMenu,
   onTogglePlaylistMenu,
   seekOffset = 0,
-  streamHash,
-  fileIndex,
+  thumbnails,
   seekPreview = null,
 }) => {
   const { t } = useTranslation("player");
@@ -159,8 +158,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             onSeek={onSeek}
             initialDuration={duration}
             seekOffset={seekOffset}
-            streamHash={streamHash}
-            fileIndex={fileIndex}
+            thumbnails={thumbnails}
             seekPreview={seekPreview}
           />
         </div>

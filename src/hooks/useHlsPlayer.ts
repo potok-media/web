@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Hls from "hls.js";
-import { getProxyUrl } from "../utils/playerHelpers";
-import { describeStream, streamNeedsRemux, stripRemuxParams, buildHlsUrl } from "../utils/torrentGoStream";
+import { getProxyUrl, getFileExtension } from "../utils/playerHelpers";
 import { ApiClient } from "../network/ApiClient";
 import { type ActivePlayback } from "../context/AppSettingsContext";
 import { logger } from "../utils/logger";
@@ -17,21 +16,19 @@ interface HlsPlayerParams {
   setPlayerError: (error: string | null) => void;
   handleRefreshStream: () => void;
   setIsMetadataLoading: (loading: boolean) => void;
-  hlsAudio?: number; // explicit HLS audio-track override (undefined = server default first track)
 }
 
 export function useHlsPlayer({
   videoRef,
   playback,
-  currentAudioTrack,
-  setCurrentAudioTrack: _setCurrentAudioTrack,
-  setAudioTracks: _setAudioTracks,
+  currentAudioTrack: _currentAudioTrack,
+  setCurrentAudioTrack,
+  setAudioTracks,
   syncNativeTextTracks,
   setSeekOffset,
   setPlayerError,
   handleRefreshStream,
   setIsMetadataLoading,
-  hlsAudio,
 }: HlsPlayerParams) {
   const hlsRef = useRef<Hls | null>(null);
   const playerSessionRef = useRef<number>(0);
@@ -51,15 +48,6 @@ export function useHlsPlayer({
   useEffect(() => {
     handleRefreshStreamRef.current = handleRefreshStream;
   }, [handleRefreshStream]);
-
-  // Synchronously update HLS audio track without reloading player
-  useEffect(() => {
-    if (hlsRef.current && currentAudioTrack !== -1) {
-      if (hlsRef.current.audioTrack !== currentAudioTrack) {
-        hlsRef.current.audioTrack = currentAudioTrack;
-      }
-    }
-  }, [currentAudioTrack]);
 
   const cleanupActiveResources = useCallback(() => {
     playerSessionRef.current += 1;
@@ -91,25 +79,37 @@ export function useHlsPlayer({
     cleanupActiveResources();
     const sessionId = playerSessionRef.current;
 
-    const info = describeStream(playback.streamUrl, { streamHash: playback.streamHash, torrentHash: (playback as any).torrentHash });
-    const { normalizedUrl, isTorrentGoStream: isStreamServer, ext, isNonNative } = info;
-    const isSmartTV = /web0s|webos|tizen|smarttv|smart-tv|lg|samsung/i.test(navigator.userAgent);
-
     setPlayerError(null);
 
-    // If format is not natively supported by the browser and we cannot remux it on the server, block playback
-    if (isNonNative && !isStreamServer && !isSmartTV) {
-      setPlayerError(
-        `Формат файла (${ext ? "." + ext : "видео"}) не поддерживается вашим браузером. Пожалуйста, откройте видео во внешнем плеере (VLC, Infuse) или воспользуйтесь Smart TV.`
-      );
-      setIsMetadataLoading(false);
-      return;
+    const isSmartTV = /web0s|webos|tizen|smarttv|smart-tv|lg|samsung/i.test(navigator.userAgent);
+
+    // Multivariant HLS: ONE master URL carries every audio/subtitle rendition (EXT-X-MEDIA). Audio is
+    // switched NATIVELY via hls.audioTrack (see switchAudio in WebMediaPlayer) — no per-track URLs, no
+    // source reload. Only non-HLS providers still swap the source URL per track.
+    const audioUrl = playback.streamUrl;
+
+    // streamType is authoritative (the plugin decides). A URL sniff is only a backward-compat fallback
+    // for legacy sources that hand an .m3u8 URL WITHOUT a streamType — otherwise Chrome (no native HLS)
+    // would wrongly play it as a progressive <video src>.
+    const isHls = playback.streamType === "m3u8" || playback.streamType === "hls"
+      || (!playback.streamType && (audioUrl.includes(".m3u8") || audioUrl.includes("/hls/")));
+
+    // Guard a genuinely-unplayable direct file (a non-HLS plugin handing a non-native container we can't
+    // remux). TorrentGo streams are always HLS, so this never fires for them.
+    if (!isHls && !isSmartTV) {
+      const ext = getFileExtension(audioUrl);
+      const NATIVE = ["mp4", "m3u8", "webm", "ogg", "mp3", "wav", "mpd", "m4v", "m4a"];
+      if (ext && !NATIVE.includes(ext)) {
+        setPlayerError(
+          `Формат файла (.${ext}) не поддерживается вашим браузером. Пожалуйста, откройте видео во внешнем плеере (VLC, Infuse) или воспользуйтесь Smart TV.`
+        );
+        setIsMetadataLoading(false);
+        return;
+      }
     }
 
-    const needsRemux = streamNeedsRemux(info, playback.streamUrl, currentAudioTrack);
-
-    // Resume position. The TorrentGo playlist is a fully-seekable VOD and native files are seekable
-    // too, so in both cases we just seek the player to the saved position (currentTime is absolute).
+    // Resume position from the saved timecode. VOD HLS + native files share an absolute whole-file
+    // timeline → currentTime is absolute, no seek offset ever.
     let startPos = 0;
     {
       const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
@@ -117,32 +117,14 @@ export function useHlsPlayer({
       if (savedResume) {
         const parsed = Number(savedResume);
         if (!isNaN(parsed) && parsed > 0) startPos = parsed;
-      } else {
-        try {
-          const startParam = new URL(playback.streamUrl).searchParams.get("start");
-          if (startParam) startPos = Number(startParam);
-        } catch {
-          const match = playback.streamUrl.match(/[?&]start=(\d+)/i);
-          if (match) startPos = Number(match[1]);
-        }
       }
     }
-
-    // VOD HLS and native files both use an absolute whole-file timeline → no seek offset ever.
     setSeekOffset(0);
-    let finalStreamUrl = normalizedUrl;
-    if (needsRemux) {
-      finalStreamUrl = buildHlsUrl(playback.streamUrl, { streamHash: playback.streamHash, audioTrackId: hlsAudio });
-    } else if (isStreamServer) {
-      finalStreamUrl = stripRemuxParams(normalizedUrl);
-    }
 
     const gatewayBase = ApiClient.baseURL;
-    const proxiedUrl = getProxyUrl(finalStreamUrl, gatewayBase, playback.headers);
+    const proxiedUrl = getProxyUrl(audioUrl, gatewayBase, playback.headers);
 
-    const isM3U8 = finalStreamUrl.includes(".m3u8") || finalStreamUrl.includes("/hls/");
-
-    if (isM3U8 && Hls.isSupported()) {
+    if (isHls && Hls.isSupported()) {
       const hls = new Hls({
         enableWorker: true,
         // VOD delivery — buffer far ahead so network dips don't stall playback. lowLatencyMode must
@@ -164,27 +146,50 @@ export function useHlsPlayer({
       // [HLS-DIAG] Temporary instrumentation for the post-seek / post-audio-switch segment-loading
       // regression. Logs via logger.warn so entries also land in the in-app history buffer
       // (retrievable on-device where the browser console isn't reachable). Remove after diagnosis.
-      logger.warn("[HLS-DIAG] init", { version: Hls.version, audioTrack: hlsAudio });
+      logger.warn("[HLS-DIAG] init", { version: Hls.version });
+      const rngs = (tr?: TimeRanges) => tr
+        ? Array.from({ length: tr.length }, (_, i) => [Number(tr.start(i).toFixed(1)), Number(tr.end(i).toFixed(1))])
+        : null;
       hls.on(Hls.Events.FRAG_LOADING, (_e, data) => {
-        logger.warn("[HLS-DIAG] FRAG_LOADING", { sn: data.frag.sn, url: data.frag.url });
+        logger.warn("[HLS-DIAG] FRAG_LOADING", { type: data.frag.type, sn: data.frag.sn, start: Number(data.frag.start.toFixed(1)), dur: Number(data.frag.duration.toFixed(2)) });
       });
-      hls.on(Hls.Events.FRAG_LOADED, (_e, data) => {
-        const st: any = data.frag.stats;
-        const ms = st?.loading ? Math.round(st.loading.end - st.loading.start) : -1;
-        logger.warn("[HLS-DIAG] FRAG_LOADED", { sn: data.frag.sn, ms });
+      hls.on(Hls.Events.FRAG_BUFFERED, (_e, data: any) => {
+        // Where hls.js believes this fragment LANDED (post-append mapping) — the key drift signal.
+        logger.warn("[HLS-DIAG] FRAG_BUFFERED", {
+          type: data.frag.type, sn: data.frag.sn,
+          start: Number(data.frag.start.toFixed(2)),
+          startPTS: data.frag.startPTS != null ? Number(data.frag.startPTS.toFixed(2)) : null,
+          endPTS: data.frag.endPTS != null ? Number(data.frag.endPTS.toFixed(2)) : null,
+        });
       });
-      hls.on(Hls.Events.BUFFER_APPENDED, () => {
-        const b = video.buffered;
-        const end = b.length ? b.end(b.length - 1) : 0;
-        logger.warn("[HLS-DIAG] BUFFER_APPENDED", { bufferEnd: Number(end.toFixed(2)), curr: Number(video.currentTime.toFixed(2)) });
+      hls.on(Hls.Events.BUFFER_APPENDED, (_e, data: any) => {
+        // Per-SourceBuffer ranges (audio vs video), not just the element intersection.
+        logger.warn("[HLS-DIAG] BUFFER_APPENDED", {
+          type: data.type,
+          audio: rngs(data.timeRanges?.audio),
+          video: rngs(data.timeRanges?.video),
+          curr: Number(video.currentTime.toFixed(2)),
+        });
       });
+      // Audio renditions come from the manifest's EXT-X-MEDIA (name/language set by the backend master).
+      // They populate the player's audio menu; switching assigns hls.audioTrack — hls.js swaps only the
+      // audio SourceBuffer in place (video untouched → no reload, no black frame).
       hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_e, data: any) => {
-        logger.warn("[HLS-DIAG] AUDIO_TRACKS_UPDATED", { count: data.audioTracks?.length });
+        if (playerSessionRef.current !== sessionId) return;
+        const tracks = (data.audioTracks || []).map((t: any, i: number) => ({
+          id: i,
+          name: t.name || t.lang || `Audio ${i + 1}`,
+        }));
+        setAudioTracks(tracks);
+        setCurrentAudioTrack(hls.audioTrack);
+        logger.warn("[HLS-DIAG] AUDIO_TRACKS_UPDATED", { count: tracks.length, active: hls.audioTrack });
       });
       hls.on(Hls.Events.AUDIO_TRACK_SWITCHING, (_e, data: any) => {
         logger.warn("[HLS-DIAG] AUDIO_TRACK_SWITCHING", { id: data.id });
       });
       hls.on(Hls.Events.AUDIO_TRACK_SWITCHED, (_e, data: any) => {
+        if (playerSessionRef.current !== sessionId) return;
+        setCurrentAudioTrack(data.id);
         logger.warn("[HLS-DIAG] AUDIO_TRACK_SWITCHED", { id: data.id });
       });
 
@@ -203,19 +208,9 @@ export function useHlsPlayer({
         setCurrentQualityLevel(hls.currentLevel);
         setHlsActiveLevel(hls.currentLevel);
 
-        // Set HLS audio tracks
-        if (hls.audioTracks && hls.audioTracks.length > 0) {
-          const tracks = hls.audioTracks.map((t) => ({
-            id: t.id,
-            name: t.name || t.lang || `Дорожка ${t.id + 1}`,
-            lang: t.lang,
-          }));
-          _setAudioTracks(tracks);
-          
-          if (currentAudioTrack !== -1) {
-            hls.audioTrack = currentAudioTrack;
-          }
-        }
+        // NOTE: audio tracks come from the plugin (playback.audios), NOT hls.audioTracks — each TorrentGo
+        // HLS master is single-audio (one producer per ?audio=N), so hls.audioTracks is empty. Switching
+        // audio reloads the source with a different plugin URL (see the audioUrl resolution above).
 
         setIsMetadataLoading(false);
         syncNativeTextTracksRef.current(video);
@@ -291,7 +286,7 @@ export function useHlsPlayer({
         cleanupActiveResources();
       };
     }
-  }, [playback.streamUrl, hlsAudio, cleanupActiveResources, setPlayerError, setIsMetadataLoading, setSeekOffset]);
+  }, [playback.streamUrl, playback.streamType, cleanupActiveResources, setPlayerError, setIsMetadataLoading, setSeekOffset, setAudioTracks, setCurrentAudioTrack]);
 
   return {
     hlsRef,

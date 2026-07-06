@@ -5,7 +5,7 @@ import { SettingsService } from "../utils/SettingsService";
 import { useHUD } from "./HUDContext";
 import { ApiClient } from "../network/ApiClient";
 import type { ServiceStatus, ConnectionProfile, PotokUser } from "../network/ApiTypes";
-import type { SDKSubtitleInfo } from "../sdk/src/types";
+import type { SDKSubtitleInfo, SDKPlaybackSession, SDKThumbnails } from "../sdk/src/types";
 import { webSocketClient } from "../network/WebSocketClient";
 import { AuthApiClient } from "../network/AuthApiClient";
 import { getEnv } from "../utils/EnvService";
@@ -17,11 +17,15 @@ import { i18n, LANGUAGE_STORAGE_KEY } from "../i18n";
 export type ConnectionState = "checking" | "connected" | "offline" | "setupRequired";
 
 export interface PlaylistItem {
+  // `id` = the source's per-episode identity (e.g. torrent file index). Kept so the player can lazily
+  // re-fetch a FRESH playback descriptor (session/subtitles/audios) for the next episode instead of
+  // reusing a stale pre-built URL. Playlist items stay lean — the full descriptor comes from the re-fetch.
+  id?: string;
   season: number;
   episode: number;
   title?: string;
   streamUrl: string;
-  streamType?: "m3u8" | "mp4" | "dash";
+  streamType?: "m3u8" | "mp4" | "hls" | "dash";
   audios?: { name: string; url: string }[];
   headers?: Record<string, string>;
   providerId?: string;
@@ -38,12 +42,17 @@ export interface ActivePlayback {
   season?: number;
   episode?: number;
   streamHash?: string;
-  streamType?: "m3u8" | "mp4" | "dash";
+  // Explicit source file index — supplied by the plugin so the player never parses it out of the URL.
+  fileIndex?: string;
+  streamType?: "m3u8" | "mp4" | "hls" | "dash";
   audios?: { name: string; url: string }[];
   audioNames?: string[];
   headers?: Record<string, string>;
   providerId?: string;
   voice?: string;
+  // Backend presence session (keepalive/stop URLs) supplied by the plugin. The player drives it as a
+  // generic heartbeat and never hardcodes a backend URL. Absent → no session heartbeat.
+  session?: SDKPlaybackSession;
   playlist?: PlaylistItem[];
   playlistIndex?: number;
   subtitles?: SDKSubtitleInfo[];
@@ -52,6 +61,10 @@ export interface ActivePlayback {
   introEnd?: number;
   outroStart?: number;
   outroEnd?: number;
+  // Generic scrub-preview thumbnails (plugin-supplied). Player builds preview URLs from the template.
+  thumbnails?: SDKThumbnails;
+  // Stream warms up (torrent/live) → player shows the loading/progress overlay until first frame.
+  requiresBuffering?: boolean;
 }
 
 // --------------------------------------------------

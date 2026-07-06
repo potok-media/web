@@ -1,14 +1,14 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { TimelinePreviewTooltip } from "./TimelinePreviewTooltip";
+import type { SDKThumbnails } from "../../sdk/src/types";
 
 interface TimelineSliderProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   onSeek: (time: number) => void;
   initialDuration: number;
   seekOffset?: number;
-  streamHash?: string;
-  fileIndex?: string;
+  thumbnails?: SDKThumbnails;
   // Target of an in-flight seek. While set, the thumb is pinned here (not driven by currentTime),
   // so it lands where the user dropped it and never bounces back before the segment loads.
   seekPreview?: number | null;
@@ -19,8 +19,7 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
   onSeek,
   initialDuration,
   seekOffset = 0,
-  streamHash,
-  fileIndex,
+  thumbnails,
   seekPreview = null
 }) => {
   const { t } = useTranslation("player");
@@ -168,8 +167,7 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
         <TimelinePreviewTooltip
           time={hoverTime}
           x={hoverX}
-          streamHash={streamHash}
-          fileIndex={fileIndex}
+          thumbnails={thumbnails}
         />
       )}
     </div>

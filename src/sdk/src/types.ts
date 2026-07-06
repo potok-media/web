@@ -125,23 +125,59 @@ export interface SDKSubtitleInfo {
   url?: string;
 }
 
+// A backend "presence session" the player drives as a plain heartbeat, without knowing which backend
+// it is. The plugin (coupled to its backend) supplies the URLs + the identity to echo; the player POSTs
+// keepalive on a timer while open and stop (sendBeacon) on close. Keeps the player provider-agnostic.
+export interface SDKPlaybackSession {
+  keepaliveUrl: string;
+  stopUrl: string;
+  intervalSec?: number;
+  hash?: string;
+  file?: string;
+  // Generic status endpoint the player MAY poll for warm-up/buffering progress. Provider-agnostic: the
+  // player reads the SDKPlaybackStatus shape (with legacy peers/downloadSpeed fallbacks) and never learns
+  // the backend kind. The plugin supplies the URL; omit for instant/CDN sources.
+  statusUrl?: string;
+  statusIntervalSec?: number;
+}
+
+// Generic warm-up/buffering status the player polls `SDKPlaybackSession.statusUrl` for. All fields are
+// optional so any provider fills what it has; the player renders progress without backend specifics.
+export interface SDKPlaybackStatus {
+  ready?: boolean;        // backend considers the stream serviceable
+  connected?: number;     // generic "sources connected" (e.g. torrent peers)
+  bytesPerSec?: number;   // generic download throughput
+}
+
+// Generic scrub-preview thumbnails. `urlTemplate` carries a `{time}` placeholder the player substitutes
+// with the (rounded) position in seconds. Any provider that can render a frame at a time offset fills it.
+export interface SDKThumbnails {
+  urlTemplate: string;
+  intervalSec?: number;   // rounding bucket in seconds (cache-friendly); default 5
+}
+
 export interface SDKPlaybackInfo {
   streamUrl: string;
-  streamType?: 'mp4' | 'm3u8' | 'dash' | string;
+  streamType?: 'mp4' | 'm3u8' | 'hls' | 'dash' | string;
   title: string;
   season?: number;
   episode?: number;
   torrentHash?: string;
+  fileIndex?: string;
   audios?: { id: string; name: string; url: string }[];
   headers?: Record<string, string>;
   providerId?: string;
   voice?: string;
   subtitles?: SDKSubtitleInfo[];
+  session?: SDKPlaybackSession;
   duration?: number;
+  /** @deprecated intro/outro now come from the player's own timecode source (introdb); providers may omit. */
   introStart?: number;
   introEnd?: number;
   outroStart?: number;
   outroEnd?: number;
+  thumbnails?: SDKThumbnails;
+  requiresBuffering?: boolean; // stream warms up → player shows the loading/progress overlay until first frame
 }
 
 export interface SDKRawStreamPayload {
@@ -765,21 +801,26 @@ export interface StreamEpisode {
 
 export interface PlaybackInfo {
   streamUrl: string;
-  streamType?: 'mp4' | 'm3u8' | 'dash' | string;
+  streamType?: 'mp4' | 'm3u8' | 'hls' | 'dash' | string;
   title: string;
   season?: number;
   episode?: number;
   torrentHash?: string;
+  fileIndex?: string;
   audios?: { id: string; name: string; url: string }[];
   headers?: Record<string, string>;
   providerId?: string;
   voice?: string;
   subtitles?: SDKSubtitleInfo[];
+  session?: SDKPlaybackSession;
   duration?: number;
+  /** @deprecated intro/outro now come from the player's own timecode source (introdb); providers may omit. */
   introStart?: number;
   introEnd?: number;
   outroStart?: number;
   outroEnd?: number;
+  thumbnails?: SDKThumbnails;
+  requiresBuffering?: boolean; // stream warms up → player shows the loading/progress overlay until first frame
 }
 
 export interface StreamSourceEpisodesResult {

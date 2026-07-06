@@ -19,39 +19,6 @@ export const getFileExtension = (url: string): string => {
   return "";
 };
 
-export const normalizeStreamUrlToPath = (url: string): string => {
-  if (!url) return url;
-  try {
-    const parsed = new URL(url);
-    const linkParam = parsed.searchParams.get("link");
-    const indexParam = parsed.searchParams.get("index");
-    if (linkParam && indexParam) {
-      const baseUrl = url.split("/stream/")[0];
-      const filename = parsed.pathname.split("/").pop() || "video.mkv";
-      return `${baseUrl}/stream/${linkParam.toLowerCase()}/${indexParam}/${filename}`;
-    }
-  } catch {
-    // Ignore URL parsing errors
-  }
-  return url;
-};
-
-export const getHlsStreamUrl = (url: string): string => {
-  if (!url) return url;
-  try {
-    const parsed = new URL(url);
-    const pathMatch = parsed.pathname.match(/\/(?:stream|torrents)\/([a-f0-9]{40})(?:\/files)?\/(\d+)/i);
-    if (pathMatch) {
-      const hash = pathMatch[1].toLowerCase();
-      const fileIndex = pathMatch[2];
-      return `${parsed.origin}/api/torrents/${hash}/files/${fileIndex}/hls/master.m3u8`;
-    }
-  } catch {
-    // Ignore URL parsing errors
-  }
-  return url;
-};
-
 export const formatTime = (seconds: number): string => {
   if (isNaN(seconds) || seconds === Infinity || seconds <= 0) return "00:00";
   const h = Math.floor(seconds / 3600);

@@ -544,6 +544,8 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
     const mappedPlaylist = episodes.map((ep) => {
       const streamUrl = getStreamUrl(ep);
       return {
+        // `id` (torrent file index) lets the player lazily re-fetch a fresh descriptor per episode.
+        id: ep.id,
         season: ep.season,
         episode: ep.episode,
         title: ep.title || t("episode.fallbackName", { number: ep.episode }),
