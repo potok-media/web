@@ -134,9 +134,41 @@ export function useHlsPlayer({
         maxMaxBufferLength: 120,
         backBufferLength: 30,
         maxBufferHole: 0.5,
+        // The audio + video renditions are produced INDEPENDENTLY (HLS4), so their SourceBuffers can end a
+        // hair apart on the shared timeline. The server now stamps exact per-sample durations (gapless
+        // segments), but this bridges any residual sub-frame drift instead of stalling at the shorter edge.
+        stretchShortVideoTrack: true,
         // A cold segment after a deep seek may need the server to reposition ffmpeg + fetch torrent
         // pieces before it can answer — give it generous time so it doesn't fail fatally.
         fragLoadingTimeOut: 60000,
+        // The PLAYLIST (.m3u8) requests are just as cold: serving v/index.m3u8 (and the audio a/{rel}/
+        // index.m3u8) blocks on the backend building the segment grid — duration probe + codec-layout
+        // probe + keyframe-index (Cues) read — which on a freshly-added torrent legitimately takes tens
+        // of seconds. hls.js 1.6.16 defaults playlistLoadPolicy to maxTimeToFirstByteMs 10000 → the cold
+        // build blows it → levelLoadTimeOut / audioTrackLoadTimeOut, which then starve the buffer into a
+        // real hole hls.js seeks over (bufferSeekOverHole) and hard-stalls. Both the video LEVEL and the
+        // AUDIO-TRACK playlists resolve to this ONE policy (1.6.16 has no separate audioTrackLoadPolicy),
+        // so raising it fixes both. Must be the NESTED object, not the flat levelLoadingTimeOut key — in
+        // 1.6.16 a flat key is a silent no-op once any nested loadPolicy is present. Retry sub-blocks are
+        // the hls.js stock defaults; only the timeouts are raised to match the 60s frag budget.
+        playlistLoadPolicy: {
+          default: {
+            maxTimeToFirstByteMs: 60000,
+            maxLoadTimeMs: 60000,
+            timeoutRetry: { maxNumRetry: 2, retryDelayMs: 0, maxRetryDelayMs: 0 },
+            errorRetry: { maxNumRetry: 2, retryDelayMs: 1000, maxRetryDelayMs: 8000 },
+          },
+        },
+        // Parity for the initial master-manifest load (default maxLoadTimeMs 20000), which a cold
+        // instant-open can also exceed. TTFB stays Infinity (the manifest default — no first-byte cap).
+        manifestLoadPolicy: {
+          default: {
+            maxTimeToFirstByteMs: Infinity,
+            maxLoadTimeMs: 60000,
+            timeoutRetry: { maxNumRetry: 2, retryDelayMs: 0, maxRetryDelayMs: 0 },
+            errorRetry: { maxNumRetry: 1, retryDelayMs: 1000, maxRetryDelayMs: 8000 },
+          },
+        },
         // Be more persistent recovering from a transient buffer stall before giving up (gap-jump).
         nudgeMaxRetry: 8,
         startPosition: startPos > 0 ? startPos : -1,
@@ -146,7 +178,14 @@ export function useHlsPlayer({
       // [HLS-DIAG] Temporary instrumentation for the post-seek / post-audio-switch segment-loading
       // regression. Logs via logger.warn so entries also land in the in-app history buffer
       // (retrievable on-device where the browser console isn't reachable). Remove after diagnosis.
-      logger.warn("[HLS-DIAG] init", { version: Hls.version });
+      // Read back the EFFECTIVE playlist timeout: hls.js 1.6.16 silently ignores a flat legacy key once a
+      // nested loadPolicy is present, so this confirms on-device that our 60000 actually took effect (should
+      // print playlistTTFB: 60000, not the 10000 default) — the proof the config-shape trap didn't bite.
+      logger.warn("[HLS-DIAG] init", {
+        version: Hls.version,
+        playlistTTFB: hls.config.playlistLoadPolicy?.default?.maxTimeToFirstByteMs,
+        playlistMaxLoad: hls.config.playlistLoadPolicy?.default?.maxLoadTimeMs,
+      });
       const rngs = (tr?: TimeRanges) => tr
         ? Array.from({ length: tr.length }, (_, i) => [Number(tr.start(i).toFixed(1)), Number(tr.end(i).toFixed(1))])
         : null;
