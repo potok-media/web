@@ -11,6 +11,9 @@ export interface GenericEpisodeItem {
   id: string;
   season: number;
   episode: number;
+  // RAW parsed season/episode BEFORE any override remap — the per-season editor computes offsets against these.
+  rawSeason?: number;
+  rawEpisode?: number;
   title?: string;
   stillPath?: string;
   airDate?: string;
@@ -459,7 +462,8 @@ interface EpisodeSelectorPopupProps {
   onPlay: (episode: GenericEpisodeItem, audioId: string) => void;
   
   onStartEditing?: () => void;
-  onApplyOverride?: (seasonNum: number, epNum: number) => void;
+  onApplyOverride?: (sourceSeason: number | null, targetSeason: number, offset: number) => void;
+  seasonMap?: Record<string, { season: number; offset: number }>;
   seasons?: any[];
   seasonsLoading?: boolean;
   isSaving?: boolean;
@@ -478,6 +482,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
   onPlay,
   onStartEditing,
   onApplyOverride,
+  seasonMap = {},
   seasons = [],
   seasonsLoading = false,
   isSaving = false,
@@ -489,10 +494,22 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
   const { t } = useTranslation("media");
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [isEditing, setIsEditing] = useState(false);
+  // Which DISPLAYED section's pencil was clicked → the SOURCE season being remapped + its RAW first episode (the
+  // baseline the offset is computed against, so a re-edit never compounds).
+  const [editingSource, setEditingSource] = useState<{ sourceSeason: number | null; rawFirstEp: number } | null>(null);
 
   const uniqueSeasons = React.useMemo(() => {
     return Array.from(new Set(episodes.map((e) => e.season))).sort((a, b) => a - b);
   }, [episodes]);
+
+  // The very first episode row across ALL season sections gets the initial-focus key (Overlay lands here on open).
+  const firstEpId = React.useMemo(() => {
+    for (const s of uniqueSeasons) {
+      const first = episodes.find((e) => e.season === s);
+      if (first) return first.id;
+    }
+    return episodes[0]?.id;
+  }, [uniqueSeasons, episodes]);
 
   useEffect(() => {
     if (uniqueSeasons.length > 0 && !uniqueSeasons.includes(selectedSeason)) {
@@ -503,6 +520,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
   useEffect(() => {
     if (!isOpen) {
       setIsEditing(false);
+      setEditingSource(null);
     }
   }, [isOpen]);
 
@@ -516,22 +534,32 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
     return () => clearTimeout(t);
   }, [isOpen, isEditing, selectedSeason, episodes.length]);
 
-  const currentSeasonEpisodes = React.useMemo(() => {
-    return episodes.filter((e) => e.season === selectedSeason);
-  }, [episodes, selectedSeason]);
-
-  const handleStartEditing = () => {
+  // Pencil on a season section → open the TMDB picker scoped to THAT displayed section. The source season is the
+  // raw parsed season of the section's files; the baseline is their RAW first episode.
+  const handleEditSection = (sectionSeason: number) => {
+    const inSection = episodes.filter((e) => e.season === sectionSeason);
+    const sourceSeasonRaw = inSection.find((e) => e.rawSeason !== undefined)?.rawSeason;
+    const rawEps = inSection.map((e) => e.rawEpisode).filter((n): n is number => n !== undefined);
+    const rawFirstEp = rawEps.length ? Math.min(...rawEps) : 1;
+    setEditingSource({ sourceSeason: sourceSeasonRaw ?? null, rawFirstEp });
     setIsEditing(true);
-    if (onStartEditing) {
-      onStartEditing();
-    }
+    if (onStartEditing) onStartEditing();
   };
 
-  const handleApplyOverrideInternal = (seasonNum: number, epNum: number) => {
+  const handleCancelEditing = () => {
+    setIsEditing(false);
+    setEditingSource(null);
+  };
+
+  // Picker returns the TMDB (targetSeason, targetEpisode) the section's FIRST file maps to → offset against the
+  // RAW baseline (no compounding). onApplyOverride replaces this source season's mapping.
+  const handleApplyOverrideInternal = (targetSeason: number, targetEp: number) => {
     if (onApplyOverride) {
-      onApplyOverride(seasonNum, epNum);
+      const rawFirstEp = editingSource?.rawFirstEp ?? 1;
+      onApplyOverride(editingSource?.sourceSeason ?? null, targetSeason, targetEp - rawFirstEp);
     }
-    setSelectedSeason(seasonNum);
+    setSelectedSeason(targetSeason);
+    setEditingSource(null);
     setIsEditing(false);
   };
 
@@ -594,7 +622,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
         <EpisodeSelectorHeader
           isEditing={isEditing}
           onClose={onClose}
-          onBackToFiles={() => setIsEditing(false)}
+          onBackToFiles={handleCancelEditing}
           title={title}
           subtitle={subtitle}
           mediaType={mediaType}
@@ -602,7 +630,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
           totalCount={totalCount}
           percentage={percentage}
           parsingFailed={parsingFailed}
-          onStartEditing={onStartEditing ? handleStartEditing : undefined}
+          onStartEditing={undefined}
           onOpenAsPlaylist={handleOpenAsPlaylist}
         />
         <div className="episode-popup-body" style={{ flex: 1, overflowY: "auto", position: "relative" }}>
@@ -614,34 +642,53 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
             />
           ) : (
             <div className="files-list-container" style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-              {uniqueSeasons.length > 1 && (
-                <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", padding: "0.75rem 1.25rem", borderBottom: "1px solid rgba(255, 255, 255, 0.05)" }}>
-                  {uniqueSeasons.map((sNum) => (
-                    <FocusableButton
-                      key={sNum}
-                      className={`potok-badge ${selectedSeason === sNum ? "potok-badge-info" : "potok-badge-secondary"}`}
-                      style={{ cursor: "pointer", border: "none", padding: "0.5rem 1.125rem", borderRadius: "1.25rem", fontSize: "0.85rem" }}
-                      onClick={() => setSelectedSeason(sNum)}
-                    >
-                      {t("selector.season", { number: sNum })}
-                    </FocusableButton>
-                  ))}
-                </div>
-              )}
-
+              {/* All seasons in ONE scroll, grouped as sections ("Сезон 1" + its episodes, then "Сезон 2" …) —
+                  in season/episode order, instead of top tabs that show only one season at a time. */}
               <div className="episode-popup-rows-list" style={{ padding: "1.25rem", flex: 1, overflowY: "auto" }}>
-                {currentSeasonEpisodes.length > 0 ? (
-                  currentSeasonEpisodes.map((ep, idx) => (
-                    <EpisodeSelectorRow
-                      key={ep.id}
-                      episodeItem={ep}
-                      mediaType={mediaType}
-                      backdropSrc={backdropSrc}
-                      posterSrc={posterSrc}
-                      onPlay={() => onPlay(ep, "default")}
-                      focusKey={idx === 0 ? "EPISODE_SELECTOR_FIRST_ROW" : undefined}
-                    />
-                  ))
+                {totalCount > 0 ? (
+                  uniqueSeasons.map((sNum) => {
+                    const seasonEpisodes = episodes.filter((e) => e.season === sNum);
+                    if (seasonEpisodes.length === 0) return null;
+                    // Source season this displayed section came from (raw parse) + its current override entry.
+                    const srcRaw = seasonEpisodes.find((e) => e.rawSeason !== undefined)?.rawSeason;
+                    const mapKey = srcRaw !== undefined ? String(srcRaw) : "_";
+                    const mapEntry = seasonMap[mapKey];
+                    return (
+                      <div key={sNum} className="episode-season-group">
+                        {mediaType === "tv" && (
+                          <div className="season-section-header">
+                            <h3 className="season-section-title">{t("selector.season", { number: sNum })}</h3>
+                            {mapEntry && (
+                              <span className="season-map-badge">
+                                {srcRaw !== undefined && srcRaw !== sNum ? `S${srcRaw}→ ` : ""}
+                                {mapEntry.offset >= 0 ? "+" : ""}{mapEntry.offset}
+                              </span>
+                            )}
+                            <FocusableButton
+                              focusKey={`SEASON_EDIT_${sNum}`}
+                              className="season-edit-pencil"
+                              onClick={() => handleEditSection(sNum)}
+                              onEnterPress={() => handleEditSection(sNum)}
+                              aria-label={t("selector.editSeasonMapping")}
+                            >
+                              <Pencil size="0.9375rem" />
+                            </FocusableButton>
+                          </div>
+                        )}
+                        {seasonEpisodes.map((ep) => (
+                          <EpisodeSelectorRow
+                            key={ep.id}
+                            episodeItem={ep}
+                            mediaType={mediaType}
+                            backdropSrc={backdropSrc}
+                            posterSrc={posterSrc}
+                            onPlay={() => onPlay(ep, "default")}
+                            focusKey={ep.id === firstEpId ? "EPISODE_SELECTOR_FIRST_ROW" : undefined}
+                          />
+                        ))}
+                      </div>
+                    );
+                  })
                 ) : (
                   <div className="episode-popup-empty-files">
                     {t("selector.noEpisodes")}

@@ -1746,11 +1746,13 @@ export function initDeclarativeStreamListeners(): void {
         }, hostOrigin);
       }
     } else if (msg.action === 'STREAM_SOURCE_SAVE_OVERRIDE') {
-      const { requestId, stream, context, seasonNum, episodeOffset, sourceId } = msg.payload;
+      // Per-season override: map ONE source season → a TMDB (targetSeason, offset). sourceSeason may be null
+      // (the sentinel bucket for files with no parseable season). offset was computed on RAW parsed episodes.
+      const { requestId, stream, context, sourceSeason, targetSeason, offset, sourceId } = msg.payload;
       const source = (sourceId && registeredStreamSources.get(sourceId)) || Array.from(registeredStreamSources.values())[0];
-      if (source && source.saveMetadataOverride) {
+      if (source && source.saveSeasonOverride) {
         try {
-          await source.saveMetadataOverride(stream, context, seasonNum, episodeOffset);
+          await source.saveSeasonOverride(stream, context, sourceSeason, targetSeason, offset);
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_SAVE_OVERRIDE_RESPONSE',
@@ -1760,14 +1762,14 @@ export function initDeclarativeStreamListeners(): void {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_SAVE_OVERRIDE_RESPONSE',
-            payload: { requestId, data: null, error: err.message || 'Failed to save metadata override' }
+            payload: { requestId, data: null, error: err.message || 'Failed to save season override' }
           }, hostOrigin);
         }
       } else {
         window.parent.postMessage({
           source: 'potok-plugin-sdk',
           action: 'STREAM_SOURCE_SAVE_OVERRIDE_RESPONSE',
-          payload: { requestId, data: null, error: 'Method saveMetadataOverride not implemented' }
+          payload: { requestId, data: null, error: 'Method saveSeasonOverride not implemented' }
         }, hostOrigin);
       }
     } else if (msg.action === 'STREAM_SOURCE_GET_PLAYBACK_INFO') {

@@ -16,6 +16,7 @@ import type { PlaybackProgress } from "./usePlaybackTracker";
 
 const mapEpisode = (ep: StreamEpisode): GenericEpisodeItem => ({
   id: ep.id, season: ep.season, episode: ep.episode, title: ep.title,
+  rawSeason: ep.rawSeason, rawEpisode: ep.rawEpisode,
   stillPath: ep.stillPath, airDate: ep.airDate,
   audios: ep.audios || [], url: ep.url,
 });
@@ -82,6 +83,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
   const shouldForceNextSearchRef = useRef(false);
   const [episodeSelectorData, setEpisodeSelectorData] = useState<{
     title: string; episodes: GenericEpisodeItem[]; tmdbSeasonsCount: number;
+    seasonMap?: Record<string, { season: number; offset: number }>;
   } | null>(null);
 
   const hasPopupParam = searchParams.get("popup") === "true";
@@ -374,7 +376,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
     } else {
       // Torrents always fetch files list first to know what they contain
       setClickedStream(stream);
-      ExtensionRegistry.sendSandboxRequest<{ episodes: StreamEpisode[]; tmdbSeasonsCount: number }>(activeSource.pluginId, "STREAM_SOURCE_GET_EPISODES", { stream, context })
+      ExtensionRegistry.sendSandboxRequest<{ episodes: StreamEpisode[]; tmdbSeasonsCount: number; seasonMap?: Record<string, { season: number; offset: number }> }>(activeSource.pluginId, "STREAM_SOURCE_GET_EPISODES", { stream, context })
         .then((res) => {
           const eps = res.episodes || [];
           if (eps.length === 1) {
@@ -403,6 +405,7 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
               title: stream.title || (mediaType === "movie" ? i18n.t("media:streams.fileSelection") : i18n.t("media:streams.episodeSelection")),
               episodes: mapEpisodesWithWatched(eps),
               tmdbSeasonsCount: res.tmdbSeasonsCount || currentMedia?.numberOfSeasons || 1,
+              seasonMap: res.seasonMap || {},
             };
             sessionStorage.setItem("potok_popup_stream", JSON.stringify(stream));
             sessionStorage.setItem("potok_popup_data", JSON.stringify(data));
@@ -494,17 +497,19 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
       .finally(() => setSeasonsLoading(false));
   }, [activeSource, clickedStream, context, handleOnError]);
 
-  const handleApplyOverride = useCallback((seasonNum: number, epNum: number) => {
+  // Per-season override: remap one SOURCE season → a TMDB (targetSeason, offset). sourceSeason is null for the
+  // sentinel bucket (files with no parseable season). offset is computed by the popup on RAW parsed episodes
+  // (offset = targetEpisode − rawSectionFirstEpisode), so it never compounds on a previous mapping.
+  const handleApplyOverride = useCallback((sourceSeason: number | null, targetSeason: number, offset: number) => {
     if (!activeSource || !clickedStream) return;
-    // Convert 1-based episode number to zero-based offset
-    const offset = Math.max(0, epNum - 1);
     setIsSaving(true);
-    ExtensionRegistry.sendSandboxRequest<void>(activeSource.pluginId, "STREAM_SOURCE_SAVE_OVERRIDE", { stream: clickedStream, context, seasonNum, episodeOffset: offset })
-      .then(() => ExtensionRegistry.sendSandboxRequest<{ episodes: StreamEpisode[]; tmdbSeasonsCount: number }>(activeSource.pluginId, "STREAM_SOURCE_GET_EPISODES", { stream: clickedStream, context }))
+    ExtensionRegistry.sendSandboxRequest<void>(activeSource.pluginId, "STREAM_SOURCE_SAVE_OVERRIDE", { stream: clickedStream, context, sourceSeason, targetSeason, offset })
+      .then(() => ExtensionRegistry.sendSandboxRequest<{ episodes: StreamEpisode[]; tmdbSeasonsCount: number; seasonMap?: Record<string, { season: number; offset: number }> }>(activeSource.pluginId, "STREAM_SOURCE_GET_EPISODES", { stream: clickedStream, context }))
       .then((res) => {
         const data = {
           title: clickedStream.title || i18n.t("media:streams.episodeSelection"), episodes: mapEpisodesWithWatched(res.episodes || []),
           tmdbSeasonsCount: res.tmdbSeasonsCount || currentMedia?.numberOfSeasons || 1,
+          seasonMap: res.seasonMap || {},
         };
         sessionStorage.setItem("potok_popup_data", JSON.stringify(data));
         setEpisodeSelectorData(data);

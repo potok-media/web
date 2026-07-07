@@ -211,9 +211,9 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
           ExtensionRegistry.triggerUIEvent(pluginId, events.onPlay, { episode, audioId });
         }
       };
-      const handleApplyOverride = (seasonNum: number, epNum: number) => {
+      const handleApplyOverride = (sourceSeason: number | null, targetSeason: number, offset: number) => {
         if (events?.onApplyOverride) {
-          ExtensionRegistry.triggerUIEvent(pluginId, events.onApplyOverride, { seasonNum, epNum });
+          ExtensionRegistry.triggerUIEvent(pluginId, events.onApplyOverride, { sourceSeason, targetSeason, offset });
         }
       };
       const handleStartEditing = () => {

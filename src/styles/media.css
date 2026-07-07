@@ -2635,6 +2635,55 @@
   gap: 0.75rem;
 }
 
+/* One season section: its title + its episode rows, stacked in order. Consecutive seasons get top spacing. */
+.episode-season-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.episode-season-group + .episode-season-group {
+  margin-top: 1.5rem;
+}
+.episode-season-group .season-section-title {
+  margin-bottom: 0.25rem;
+}
+/* Section header row: title + optional mapping badge + a pencil to remap this season. */
+.season-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 0.25rem;
+}
+.season-section-header .season-section-title {
+  margin-bottom: 0;
+}
+.season-map-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  padding: 0.125rem 0.5rem;
+  border-radius: 1rem;
+}
+.season-edit-pencil {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.season-edit-pencil:hover,
+.season-edit-pencil.focused {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
 .episode-popup-empty-files {
   text-align: center;
   color: var(--text-secondary);

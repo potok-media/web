@@ -791,6 +791,10 @@ export interface StreamEpisode {
   id: string;
   season: number;
   episode: number;
+  /** RAW parsed season/episode BEFORE any override remap — lets the per-season override editor compute an offset
+   * against the raw baseline (offset = targetEpisode − rawSectionFirstEpisode) so it never compounds. */
+  rawSeason?: number;
+  rawEpisode?: number;
   title: string;
   stillPath?: string;
   airDate?: string;
@@ -823,9 +827,13 @@ export interface PlaybackInfo {
   requiresBuffering?: boolean; // stream warms up → player shows the loading/progress overlay until first frame
 }
 
+export interface SeasonOverrideEntry { season: number; offset: number; }
+
 export interface StreamSourceEpisodesResult {
   episodes: StreamEpisode[];
   tmdbSeasonsCount: number;
+  /** Current per-season overrides for this release: source-season key (or "_" sentinel) → {targetSeason, offset}. */
+  seasonMap?: Record<string, SeasonOverrideEntry>;
 }
 
 /** Deferred slow half of a playback descriptor. getPlaybackInfo returns instantly (so the player opens with
@@ -843,7 +851,7 @@ export interface DeclarativeStreamSource {
   search(query: StreamSearchQuery): Promise<RawStreamPayload[]>;
   getEpisodes?(stream: RawStreamPayload, context: LookupQuery): Promise<StreamSourceEpisodesResult>;
   getSeasonsMetadata?(stream: RawStreamPayload, context: LookupQuery): Promise<Record<string, unknown>[]>;
-  saveMetadataOverride?(stream: RawStreamPayload, context: LookupQuery, seasonNum: number, episodeOffset: number): Promise<void>;
+  saveSeasonOverride?(stream: RawStreamPayload, context: LookupQuery, sourceSeason: number | null, targetSeason: number, offset: number): Promise<void>;
   getPlaybackInfo(stream: RawStreamPayload, episode?: StreamEpisode, context?: LookupQuery): Promise<PlaybackInfo>;
   /** Deferred enrichment (subtitles + duration) fetched AFTER getPlaybackInfo so a slow probe never blocks
    *  player-open. Optional: if absent, the descriptor from getPlaybackInfo is treated as complete. */
