@@ -1772,6 +1772,32 @@ export function initDeclarativeStreamListeners(): void {
           payload: { requestId, data: null, error: 'Method saveSeasonOverride not implemented' }
         }, hostOrigin);
       }
+    } else if (msg.action === 'STREAM_SOURCE_CLEAR_OVERRIDE') {
+      // Reset ONE source season's override (delete the entry). sourceSeason may be null (sentinel bucket).
+      const { requestId, stream, context, sourceSeason, sourceId } = msg.payload;
+      const source = (sourceId && registeredStreamSources.get(sourceId)) || Array.from(registeredStreamSources.values())[0];
+      if (source && source.clearSeasonOverride) {
+        try {
+          await source.clearSeasonOverride(stream, context, sourceSeason);
+          window.parent.postMessage({
+            source: 'potok-plugin-sdk',
+            action: 'STREAM_SOURCE_CLEAR_OVERRIDE_RESPONSE',
+            payload: { requestId, data: null, error: null }
+          }, hostOrigin);
+        } catch (err: any) {
+          window.parent.postMessage({
+            source: 'potok-plugin-sdk',
+            action: 'STREAM_SOURCE_CLEAR_OVERRIDE_RESPONSE',
+            payload: { requestId, data: null, error: err.message || 'Failed to clear season override' }
+          }, hostOrigin);
+        }
+      } else {
+        window.parent.postMessage({
+          source: 'potok-plugin-sdk',
+          action: 'STREAM_SOURCE_CLEAR_OVERRIDE_RESPONSE',
+          payload: { requestId, data: null, error: 'Method clearSeasonOverride not implemented' }
+        }, hostOrigin);
+      }
     } else if (msg.action === 'STREAM_SOURCE_GET_PLAYBACK_INFO') {
       const { requestId, stream, episode, context, sourceId } = msg.payload;
       const source = (sourceId && registeredStreamSources.get(sourceId)) || Array.from(registeredStreamSources.values())[0];

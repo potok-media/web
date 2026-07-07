@@ -367,6 +367,7 @@
       "openAsPlaylist": "Open as playlist",
       "editMapping": "Edit mapping",
       "editSeasonMapping": "Remap this season",
+      "resetSeasonMapping": "Reset to auto",
       "back": "Back",
       "close": "Close",
       "mainStream": "Main stream",

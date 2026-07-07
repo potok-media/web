@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Play, Check, CheckCircle2, ArrowLeft, Pencil, ListVideo, MoreHorizontal } from "lucide-react";
+import { Play, Check, CheckCircle2, ArrowLeft, Pencil, ListVideo, MoreHorizontal, RotateCcw } from "lucide-react";
 import { FilmOff } from "./FilmOff";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { Focusable, FocusableButton } from "./TVNavigation";
@@ -15,6 +15,8 @@ export interface GenericEpisodeItem {
   rawSeason?: number;
   rawEpisode?: number;
   title?: string;
+  // The ORIGINAL torrent file name (before TMDB overwrote `title` with the episode name) — shown subtly below.
+  fileName?: string;
   stillPath?: string;
   airDate?: string;
   isWatched?: boolean;
@@ -122,6 +124,9 @@ const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
         <h4 className="file-card-title">{displayTitle}</h4>
         {displaySubtitle && displaySubtitle !== displayTitle && (
           <span className="file-card-subtitle">{displaySubtitle}</span>
+        )}
+        {episodeItem.fileName && episodeItem.fileName !== displayTitle && (
+          <span className="file-card-filename" title={episodeItem.fileName}>{episodeItem.fileName}</span>
         )}
       </div>
 
@@ -463,6 +468,7 @@ interface EpisodeSelectorPopupProps {
   
   onStartEditing?: () => void;
   onApplyOverride?: (sourceSeason: number | null, targetSeason: number, offset: number) => void;
+  onResetOverride?: (sourceSeason: number | null) => void;
   seasonMap?: Record<string, { season: number; offset: number }>;
   seasons?: any[];
   seasonsLoading?: boolean;
@@ -482,6 +488,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
   onPlay,
   onStartEditing,
   onApplyOverride,
+  onResetOverride,
   seasonMap = {},
   seasons = [],
   seasonsLoading = false,
@@ -502,14 +509,32 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
     return Array.from(new Set(episodes.map((e) => e.season))).sort((a, b) => a - b);
   }, [episodes]);
 
-  // The very first episode row across ALL season sections gets the initial-focus key (Overlay lands here on open).
-  const firstEpId = React.useMemo(() => {
-    for (const s of uniqueSeasons) {
-      const first = episodes.find((e) => e.season === s);
-      if (first) return first.id;
+  // Group by SOURCE (raw) season, not the displayed one — so two source seasons remapped onto the same target
+  // (e.g. S3→S1 when S1 already exists) stay SEPARATE, editable/resettable sections instead of merging into one.
+  const SENTINEL_KEY = "_";
+  const sourceSections = React.useMemo(() => {
+    const groups = new Map<string, GenericEpisodeItem[]>();
+    for (const e of episodes) {
+      const key = e.rawSeason !== undefined ? String(e.rawSeason) : SENTINEL_KEY;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(e);
     }
-    return episodes[0]?.id;
-  }, [uniqueSeasons, episodes]);
+    const arr = Array.from(groups.entries()).map(([key, eps]) => {
+      const raws = eps.map((e) => e.rawEpisode).filter((n): n is number => n !== undefined);
+      return {
+        key,
+        rawSeason: eps[0].rawSeason as number | undefined,
+        displayedSeason: eps[0].season,
+        rawFirstEp: raws.length ? Math.min(...raws) : 1,
+        episodes: eps,
+      };
+    });
+    arr.sort((a, b) => (a.displayedSeason - b.displayedSeason) || ((a.rawSeason ?? 0) - (b.rawSeason ?? 0)));
+    return arr;
+  }, [episodes]);
+
+  // The very first episode row across ALL sections gets the initial-focus key (Overlay lands here on open).
+  const firstEpId = React.useMemo(() => sourceSections[0]?.episodes[0]?.id, [sourceSections]);
 
   useEffect(() => {
     if (uniqueSeasons.length > 0 && !uniqueSeasons.includes(selectedSeason)) {
@@ -536,12 +561,8 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
 
   // Pencil on a season section → open the TMDB picker scoped to THAT displayed section. The source season is the
   // raw parsed season of the section's files; the baseline is their RAW first episode.
-  const handleEditSection = (sectionSeason: number) => {
-    const inSection = episodes.filter((e) => e.season === sectionSeason);
-    const sourceSeasonRaw = inSection.find((e) => e.rawSeason !== undefined)?.rawSeason;
-    const rawEps = inSection.map((e) => e.rawEpisode).filter((n): n is number => n !== undefined);
-    const rawFirstEp = rawEps.length ? Math.min(...rawEps) : 1;
-    setEditingSource({ sourceSeason: sourceSeasonRaw ?? null, rawFirstEp });
+  const handleEditSection = (section: { rawSeason: number | undefined; rawFirstEp: number }) => {
+    setEditingSource({ sourceSeason: section.rawSeason ?? null, rawFirstEp: section.rawFirstEp });
     setIsEditing(true);
     if (onStartEditing) onStartEditing();
   };
@@ -646,36 +667,43 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
                   in season/episode order, instead of top tabs that show only one season at a time. */}
               <div className="episode-popup-rows-list" style={{ padding: "1.25rem", flex: 1, overflowY: "auto" }}>
                 {totalCount > 0 ? (
-                  uniqueSeasons.map((sNum) => {
-                    const seasonEpisodes = episodes.filter((e) => e.season === sNum);
-                    if (seasonEpisodes.length === 0) return null;
-                    // Source season this displayed section came from (raw parse) + its current override entry.
-                    const srcRaw = seasonEpisodes.find((e) => e.rawSeason !== undefined)?.rawSeason;
-                    const mapKey = srcRaw !== undefined ? String(srcRaw) : "_";
-                    const mapEntry = seasonMap[mapKey];
+                  sourceSections.map((section) => {
+                    const mapEntry = seasonMap[section.key];
+                    const srcRaw = section.rawSeason;
                     return (
-                      <div key={sNum} className="episode-season-group">
+                      <div key={section.key} className="episode-season-group">
                         {mediaType === "tv" && (
                           <div className="season-section-header">
-                            <h3 className="season-section-title">{t("selector.season", { number: sNum })}</h3>
+                            <h3 className="season-section-title">{t("selector.season", { number: section.displayedSeason })}</h3>
                             {mapEntry && (
                               <span className="season-map-badge">
-                                {srcRaw !== undefined && srcRaw !== sNum ? `S${srcRaw}→ ` : ""}
+                                {srcRaw !== undefined && srcRaw !== section.displayedSeason ? `S${srcRaw}→ ` : ""}
                                 {mapEntry.offset >= 0 ? "+" : ""}{mapEntry.offset}
                               </span>
                             )}
                             <FocusableButton
-                              focusKey={`SEASON_EDIT_${sNum}`}
+                              focusKey={`SEASON_EDIT_${section.key}`}
                               className="season-edit-pencil"
-                              onClick={() => handleEditSection(sNum)}
-                              onEnterPress={() => handleEditSection(sNum)}
+                              onClick={() => handleEditSection(section)}
+                              onEnterPress={() => handleEditSection(section)}
                               aria-label={t("selector.editSeasonMapping")}
                             >
                               <Pencil size="0.9375rem" />
                             </FocusableButton>
+                            {mapEntry && onResetOverride && (
+                              <FocusableButton
+                                focusKey={`SEASON_RESET_${section.key}`}
+                                className="season-edit-pencil"
+                                onClick={() => onResetOverride(srcRaw ?? null)}
+                                onEnterPress={() => onResetOverride(srcRaw ?? null)}
+                                aria-label={t("selector.resetSeasonMapping")}
+                              >
+                                <RotateCcw size="0.9375rem" />
+                              </FocusableButton>
+                            )}
                           </div>
                         )}
-                        {seasonEpisodes.map((ep) => (
+                        {section.episodes.map((ep) => (
                           <EpisodeSelectorRow
                             key={ep.id}
                             episodeItem={ep}

@@ -265,6 +265,7 @@ class ExtensionRegistryManager {
         action === "STREAM_SOURCE_GET_EPISODES" ||
         action === "STREAM_SOURCE_GET_SEASONS" ||
         action === "STREAM_SOURCE_SAVE_OVERRIDE" ||
+        action === "STREAM_SOURCE_CLEAR_OVERRIDE" ||
         action === "STREAM_SOURCE_GET_PLAYBACK_INFO"
       ) {
         finalTimeoutMs = 15000;

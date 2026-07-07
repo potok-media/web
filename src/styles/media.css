@@ -2203,6 +2203,17 @@
   overflow: hidden;
 }
 
+/* The original torrent file name, shown subtly under the episode so the file↔episode mapping is verifiable. */
+.file-card-filename {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: 0.75rem;
+  color: var(--text-tertiary, rgba(255, 255, 255, 0.38));
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 .file-card-details-panel {
   display: flex;
   flex-direction: column;

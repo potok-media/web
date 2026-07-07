@@ -440,6 +440,7 @@ export const PluginSandbox: React.FC = () => {
         case "STREAM_SOURCE_GET_EPISODES_RESPONSE":
         case "STREAM_SOURCE_GET_SEASONS_RESPONSE":
         case "STREAM_SOURCE_SAVE_OVERRIDE_RESPONSE":
+        case "STREAM_SOURCE_CLEAR_OVERRIDE_RESPONSE":
         case "STREAM_SOURCE_GET_PLAYBACK_INFO_RESPONSE":
         case "STREAM_SOURCE_GET_PLAYBACK_METADATA_RESPONSE":
           ExtensionRegistry.handleSandboxResponse(payload.requestId, payload.data, payload.error);

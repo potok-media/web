@@ -39,6 +39,7 @@ export const MediaStreamsPage: React.FC = () => {
     handlePlayEpisode,
     handleStartEditing,
     handleApplyOverride,
+    handleResetOverride,
     seasons,
     seasonsLoading,
     isSaving,
@@ -99,6 +100,7 @@ export const MediaStreamsPage: React.FC = () => {
         onPlay={handlePlayEpisode}
         onStartEditing={handleStartEditing}
         onApplyOverride={handleApplyOverride}
+        onResetOverride={handleResetOverride}
         seasonMap={episodeSelectorData.seasonMap}
         seasons={seasons}
         seasonsLoading={seasonsLoading}

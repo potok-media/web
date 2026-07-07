@@ -796,6 +796,8 @@ export interface StreamEpisode {
   rawSeason?: number;
   rawEpisode?: number;
   title: string;
+  /** Original torrent file name (title is overwritten with the TMDB episode name when matched). */
+  fileName?: string;
   stillPath?: string;
   airDate?: string;
   url: string;
@@ -852,6 +854,7 @@ export interface DeclarativeStreamSource {
   getEpisodes?(stream: RawStreamPayload, context: LookupQuery): Promise<StreamSourceEpisodesResult>;
   getSeasonsMetadata?(stream: RawStreamPayload, context: LookupQuery): Promise<Record<string, unknown>[]>;
   saveSeasonOverride?(stream: RawStreamPayload, context: LookupQuery, sourceSeason: number | null, targetSeason: number, offset: number): Promise<void>;
+  clearSeasonOverride?(stream: RawStreamPayload, context: LookupQuery, sourceSeason: number | null): Promise<void>;
   getPlaybackInfo(stream: RawStreamPayload, episode?: StreamEpisode, context?: LookupQuery): Promise<PlaybackInfo>;
   /** Deferred enrichment (subtitles + duration) fetched AFTER getPlaybackInfo so a slow probe never blocks
    *  player-open. Optional: if absent, the descriptor from getPlaybackInfo is treated as complete. */

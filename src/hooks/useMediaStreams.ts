@@ -16,7 +16,7 @@ import type { PlaybackProgress } from "./usePlaybackTracker";
 
 const mapEpisode = (ep: StreamEpisode): GenericEpisodeItem => ({
   id: ep.id, season: ep.season, episode: ep.episode, title: ep.title,
-  rawSeason: ep.rawSeason, rawEpisode: ep.rawEpisode,
+  rawSeason: ep.rawSeason, rawEpisode: ep.rawEpisode, fileName: ep.fileName,
   stillPath: ep.stillPath, airDate: ep.airDate,
   audios: ep.audios || [], url: ep.url,
 });
@@ -518,10 +518,29 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
       .finally(() => setIsSaving(false));
   }, [activeSource, clickedStream, context, currentMedia, handleOnError, mapEpisodesWithWatched, i18n]);
 
+  // Reset one source season's override (delete the entry → it falls back to auto-parse), then refetch.
+  const handleResetOverride = useCallback((sourceSeason: number | null) => {
+    if (!activeSource || !clickedStream) return;
+    setIsSaving(true);
+    ExtensionRegistry.sendSandboxRequest<void>(activeSource.pluginId, "STREAM_SOURCE_CLEAR_OVERRIDE", { stream: clickedStream, context, sourceSeason })
+      .then(() => ExtensionRegistry.sendSandboxRequest<{ episodes: StreamEpisode[]; tmdbSeasonsCount: number; seasonMap?: Record<string, { season: number; offset: number }> }>(activeSource.pluginId, "STREAM_SOURCE_GET_EPISODES", { stream: clickedStream, context }))
+      .then((res) => {
+        const data = {
+          title: clickedStream.title || i18n.t("media:streams.episodeSelection"), episodes: mapEpisodesWithWatched(res.episodes || []),
+          tmdbSeasonsCount: res.tmdbSeasonsCount || currentMedia?.numberOfSeasons || 1,
+          seasonMap: res.seasonMap || {},
+        };
+        sessionStorage.setItem("potok_popup_data", JSON.stringify(data));
+        setEpisodeSelectorData(data);
+      })
+      .catch(handleOnError)
+      .finally(() => setIsSaving(false));
+  }, [activeSource, clickedStream, context, currentMedia, handleOnError, mapEpisodesWithWatched, i18n]);
+
   return {
     loadingMediaDetails, currentMedia, sources, activeTab, setActiveTab, streams, loading, error, handleRefresh,
     handleSelectStream, clickedStream, setClickedStream, episodeSelectorData, setEpisodeSelectorData,
-    handlePlayEpisode, handleStartEditing, handleApplyOverride, seasons, seasonsLoading, isSaving, actionLoading,
+    handlePlayEpisode, handleStartEditing, handleApplyOverride, handleResetOverride, seasons, seasonsLoading, isSaving, actionLoading,
     handleClosePopup,
   };
 }
