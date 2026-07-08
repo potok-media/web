@@ -249,6 +249,8 @@
       "episodeNumbered": "Серия {{number}}",
       "rewind10Title": "Назад на 10 сек.",
       "rewind10Aria": "Назад на 10 секунд",
+      "prevEpisode": "Предыдущая серия",
+      "nextEpisode": "Следующая серия",
       "forward10Title": "Вперед на 10 сек.",
       "forward10Aria": "Вперед на 10 секунд",
       "pause": "Пауза",

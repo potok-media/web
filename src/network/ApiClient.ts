@@ -333,20 +333,6 @@ export class ApiClient {
     return [];
   }
 
-  public static async getStreamMetadata(hash: string, fileId: string | number): Promise<ClientMetadata | null> {
-    if (!this.isWorker) {
-      return DataWorkerBridge.request<ClientMetadata | null>("getStreamMetadata", [hash, fileId]);
-    }
-    try {
-      const cleanBase = this.playerServerURL.replace(/\/+$/, "");
-      const res = await fetch(`${cleanBase}/api/torrents/${hash.toLowerCase()}/files/${fileId}/metadata`);
-      if (!res.ok) return null;
-      return res.json();
-    } catch {
-      return null;
-    }
-  }
-
   public static async fetchExtensionManifest(url: string, signal?: AbortSignal): Promise<ExtensionManifest> {
     if (!this.isWorker) {
       return DataWorkerBridge.request<ExtensionManifest>("fetchExtensionManifest", [url]);

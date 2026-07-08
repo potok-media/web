@@ -98,9 +98,7 @@ export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.mem
       localStorage.setItem(localStorageKey, String(value));
     });
 
-    if (ext.id === "potok-torrents") {
-      ApiClient.invalidateCache();
-    }
+    ApiClient.invalidateCache();
 
     window.dispatchEvent(
       new CustomEvent("potok_plugin_settings_updated", {

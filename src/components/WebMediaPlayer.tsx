@@ -711,6 +711,18 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = ({
 
   useEffect(() => {
     setIsClosed(false);
+    setIsPlaying(false);
+    setDuration(0);
+    setSeekPreview(null);
+    setIsBuffering(false);
+    setShowSpinner(false);
+    setPlayerError(null);
+    setShowResumeToast(false);
+    setResumeTime(0);
+    setShowAudioMenu(false);
+    setShowSubtitleMenu(false);
+    setShowQualityMenu(false);
+    setShowPlaylistMenu(false);
   }, [playback.streamUrl]);
 
   // Sync volume and muted state to native video element

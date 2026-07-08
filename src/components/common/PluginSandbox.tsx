@@ -111,9 +111,7 @@ export const PluginSandbox: React.FC = () => {
       
       const ext = activeExtensions.find(x => x.id === pluginId);
       if (ext) {
-        if (pluginId === "potok-torrents") {
-          ApiClient.invalidateCache();
-        }
+        ApiClient.invalidateCache();
         
         // Increment settings version to force React to unmount the old iframe and mount a new one.
         // This ensures the ref function fires with null (clearing the registry) and then with the new element.

@@ -156,12 +156,14 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
 
   return (
     <section className="season-episodes-section">
-      <div className="seasons-row-header">
-        {/* Season Picker Trigger Button */}
-        <div className="season-picker-wrapper">
+      <h2 className="season-episodes-title">{t("seasons.episodeSelection")}</h2>
+
+      <div className="season-selector-row">
+        {/* Season Selector Popover */}
+        <div className="season-select-wrapper">
           <button
             type="button"
-            className="season-picker-trigger-btn"
+            className="season-select-trigger-btn"
             onClick={() => setShowSeasonPopover(prev => !prev)}
             aria-expanded={showSeasonPopover}
           >

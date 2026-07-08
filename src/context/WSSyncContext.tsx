@@ -105,34 +105,16 @@ export const WSSyncProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     };
 
-    const handleTorrentProgress = (dataStr: string) => {
-      try {
-        const payload = typeof dataStr === "string" ? JSON.parse(dataStr) : dataStr;
-        const key = `torrent:${payload.hash}`;
-        listenersRef.current[key]?.forEach(cb => {
-          try {
-            cb("torrent:stream:progress", payload, new Date().toISOString());
-          } catch (err) {
-            logger.error(`[WSSync] Error in torrent progress subscriber:`, err);
-          }
-        });
-      } catch (e) {
-        logger.error("[WSSync] failed to parse torrent:stream:progress payload", e);
-      }
-    };
-
     const unsubHistory = webSocketClient.subscribe("sync:history:changed", handleHistoryChanged);
     const unsubHistoryBatch = webSocketClient.subscribe("sync:history:batch_changed", handleHistoryBatchChanged);
     const unsubProgress = webSocketClient.subscribe("sync:progress:changed", handleProgressChanged);
     const unsubLibrary = webSocketClient.subscribe("sync:library:updated", handleLibraryUpdated);
-    const unsubTorrent = webSocketClient.subscribe("torrent:stream:progress", handleTorrentProgress);
 
     return () => {
       unsubHistory();
       unsubHistoryBatch();
       unsubProgress();
       unsubLibrary();
-      unsubTorrent();
     };
   }, [clientId, dispatchToMedia]);
 

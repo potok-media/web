@@ -80,6 +80,8 @@ export function useHlsPlayer({
     const sessionId = playerSessionRef.current;
 
     setPlayerError(null);
+    setIsMetadataLoading(true);
+    setSrcResetCounter((p) => p + 1);
 
     const isSmartTV = /web0s|webos|tizen|smarttv|smart-tv|lg|samsung/i.test(navigator.userAgent);
 
@@ -302,7 +304,6 @@ export function useHlsPlayer({
       // Native progressive / native HLS (e.g. Safari)
       video.setAttribute("crossorigin", "anonymous");
       video.src = proxiedUrl;
-      setSrcResetCounter((p) => p + 1);
 
       const handleLoadedMetadata = () => {
         if (playerSessionRef.current !== sessionId) return;

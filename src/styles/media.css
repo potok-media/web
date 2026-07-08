@@ -235,6 +235,68 @@
   display: flex;
   gap: var(--space-m);
   box-sizing: border-box;
+  width: 100%;
+}
+
+.carousel-row .media-card {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+}
+
+/* Base constraints: show up to 10 items (nth-child(11) onwards is hidden) */
+.carousel-row .media-card:nth-child(n+11) {
+  display: none;
+}
+
+/* Wide screens (FullHD) and above (>=1920px): show up to 10 items */
+/* Screens < 1920px: show up to 9 items */
+@media (max-width: 1919px) {
+  .carousel-row .media-card:nth-child(n+10) {
+    display: none;
+  }
+}
+
+/* Screens < 1700px: show up to 8 items */
+@media (max-width: 1699px) {
+  .carousel-row .media-card:nth-child(n+9) {
+    display: none;
+  }
+}
+
+/* Screens < 1480px (typical laptop): show up to 7 items */
+@media (max-width: 1479px) {
+  .carousel-row .media-card:nth-child(n+8) {
+    display: none;
+  }
+}
+
+/* Screens < 1280px (HD/split screen): show up to 6 items */
+@media (max-width: 1279px) {
+  .carousel-row .media-card:nth-child(n+7) {
+    display: none;
+  }
+}
+
+/* Screens < 1024px: show up to 5 items */
+@media (max-width: 1023px) {
+  .carousel-row .media-card:nth-child(n+6) {
+    display: none;
+  }
+}
+
+/* Screens < 768px (Mobile): show up to 4 items */
+@media (max-width: 767px) {
+  .carousel-row .media-card:nth-child(n+5) {
+    display: none;
+  }
+}
+
+/* Small screens < 480px: show up to 3 items */
+@media (max-width: 479px) {
+  .carousel-row .media-card:nth-child(n+4) {
+    display: none;
+  }
 }
 
 /* Viewport: owns horizontal scroll (native on desktop, transform-clipped on TV). The

@@ -452,16 +452,29 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
             const nextInfo = await ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(src.pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", {
               stream, episode: nextEp, context: ctx,
             });
-            // Next-episode is a WARM path (torrent already connected) → fold the deferred metadata in inline so
-            // the switched-to episode keeps its subtitles/duration (getPlaybackInfo alone omits them now).
-            try {
-              const meta = await ExtensionRegistry.sendSandboxRequest<PlaybackMetadata>(src.pluginId, "STREAM_SOURCE_GET_PLAYBACK_METADATA", {
+
+            if (nextInfo) {
+              const fileIdx = nextInfo.fileIndex;
+              const torrHash = nextInfo.torrentHash;
+              ExtensionRegistry.sendSandboxRequest<PlaybackMetadata>(src.pluginId, "STREAM_SOURCE_GET_PLAYBACK_METADATA", {
                 stream, episode: nextEp, context: ctx,
-              }, 15000); // next-episode switch is inline → cap the wait (warm path; degrades to no-subs on timeout)
-              if (meta && nextInfo) {
-                return { ...nextInfo, subtitles: meta.subtitles ?? nextInfo.subtitles, duration: meta.duration ?? nextInfo.duration };
-              }
-            } catch { /* degraded — play without track menus */ }
+              }, 15000)
+              .then((meta) => {
+                if (meta) {
+                  enrichPlayback({
+                    subtitles: meta.subtitles,
+                    duration: meta.duration,
+                  }, {
+                    streamHash: torrHash,
+                    fileIndex: fileIdx,
+                  });
+                }
+              })
+              .catch((err) => {
+                logger.error("[useMediaStreams] Background metadata fetch failed:", err);
+              });
+            }
+
             return nextInfo;
           };
         } else {

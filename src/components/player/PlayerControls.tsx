@@ -14,7 +14,9 @@ import {
   RotateCcw,
   RotateCw,
   Settings,
-  ListVideo
+  ListVideo,
+  SkipBack,
+  SkipForward
 } from "lucide-react";
 import { TrackSelectorDropdown } from "./TrackSelectorDropdown";
 import { CaptionsLoadingIcon } from "./SubtitleLoadingIcons";
@@ -120,6 +122,10 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
     onVolumeChange(parseFloat(e.target.value));
   };
 
+  const hasPlaylist = playlist && playlist.length > 1;
+  const hasPrev = hasPlaylist && playlistIndex !== undefined && playlistIndex > 0;
+  const hasNext = hasPlaylist && playlistIndex !== undefined && playlistIndex + 1 < playlist.length;
+
   // Fallback constant array prevents re-rendering allocations
   const fallbackAudioTracks = React.useMemo(
     () => [{ id: -1, name: t("controls.defaultAudioTrack") }],
@@ -165,6 +171,19 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
 
         <div className="player-controls-row">
           <div className="controls-group left">
+            {hasPlaylist && (
+              <button
+                className="control-icon-btn"
+                onClick={() => hasPrev && onSelectPlaylistItem?.(playlistIndex - 1)}
+                disabled={!hasPrev}
+                style={{ opacity: hasPrev ? 1 : 0.4, cursor: hasPrev ? "pointer" : "not-allowed" }}
+                title={t("controls.prevEpisode", { defaultValue: "Previous episode" })}
+                aria-label={t("controls.prevEpisode", { defaultValue: "Previous episode" })}
+              >
+                <SkipBack size="1.25rem" />
+              </button>
+            )}
+
             <button
               className="control-icon-btn"
               onClick={() => onSeekBy(-10)}
@@ -186,6 +205,19 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             >
               <RotateCw size="1.125rem" />
             </button>
+
+            {hasPlaylist && (
+              <button
+                className="control-icon-btn"
+                onClick={() => hasNext && onSelectPlaylistItem?.(playlistIndex + 1)}
+                disabled={!hasNext}
+                style={{ opacity: hasNext ? 1 : 0.4, cursor: hasNext ? "pointer" : "not-allowed" }}
+                title={t("controls.nextEpisode", { defaultValue: "Next episode" })}
+                aria-label={t("controls.nextEpisode", { defaultValue: "Next episode" })}
+              >
+                <SkipForward size="1.25rem" />
+              </button>
+            )}
             
             <div className="volume-control-wrapper">
               <button className="control-icon-btn" onClick={onToggleMuted} aria-label={t("controls.toggleMute")}>
