@@ -58,8 +58,8 @@
     },
     "language": {
       "label": "Sprache",
-      "incomplete": "",
-      "helpTranslate": ""
+      "incomplete": "Diese Sprache ist {{percent}}% übersetzt.",
+      "helpTranslate": "Hilf bei Crowdin →"
     },
     "nav": {
       "brandTitle": "Einstellungen",
@@ -180,7 +180,12 @@
       "disable": "Deaktivieren",
       "uploadSubtitlesAria": "Untertitel hochladen",
       "uploadSrtVtt": "SRT/VTT...",
-      "subtitlesFallback": ""
+      "uploadFile": "Datei hochladen (SRT/VTT/ASS)",
+      "urlPlaceholder": "Untertitel-URL",
+      "urlAdd": "Neu",
+      "customLabel": "Eigene",
+      "subtitlesFallback": "",
+      "loadError": "Laden fehlgeschlagen"
     },
     "resume": {
       "continuedFrom": "Fortgesetzt von {{time}}",
@@ -295,7 +300,11 @@
       "allTrackers": "Alle Tracker",
       "providerLabel": "Anbieter",
       "allSources": "Alle Quellen",
-      "resetAll": "Alle zurücksetzen"
+      "resetAll": "Alle zurücksetzen",
+      "season": "Saison",
+      "allSeasons": "Alle Jahreszeiten",
+      "seasonNumber": "",
+      "noSeason": "Keine Saison"
     },
     "row": {
       "watch": "Beobachten",
@@ -312,11 +321,42 @@
     }
   },
   "media": {
+    "card": {
+      "typeMovie": "Film",
+      "typeSeries": "Serie"
+    },
     "common": {
       "retry": "Wiederholen"
     },
     "cast": {
       "title": "Cast"
+    },
+    "actor": {
+      "biography": "Biographie",
+      "asActor": "Acting Credits",
+      "director": "Regie Credits",
+      "writer": "Schreibe Credits",
+      "producer": "Credits produzieren",
+      "emptyFilmography": "Filmographie ist derzeit leer",
+      "emptyFilmographyDesc": "Wir haben noch keine Aufzeichnungen von Werken mit {{name}}.",
+      "movies": "Filme",
+      "ageAtDeath_one": "im Alter von {{count}} Jahr",
+      "ageAtDeath_other": "im Alter von {{count}} Jahren",
+      "years_one": "jahr",
+      "years_other": "jahre",
+      "episodeCount_one": "{{count}} Episode",
+      "episodeCount_other": "{{count}} Episoden",
+      "Acting": "Handeln",
+      "Directing": "Regie",
+      "Writing": "Schreiben",
+      "Production": "Produktion",
+      "genre_35": "Komödien",
+      "genre_action_adventure": "Aktion & Abenteuer",
+      "genre_18": "Dramen",
+      "genre_scifi_fantasy": "Sci-Fi & Fantasy",
+      "genre_thriller_horror": "Thriller & Horror",
+      "genre_kids_family": "Kinder & Familie",
+      "categoryTitle": "{{actorName}} — {{category}}"
     },
     "episode": {
       "fallbackName": "Episode {{number}}",
@@ -353,6 +393,8 @@
       "more": "Mehr",
       "openAsPlaylist": "Als Playlist öffnen",
       "editMapping": "Mapping bearbeiten",
+      "editSeasonMapping": "Diese Saison Remap",
+      "resetSeasonMapping": "Auf Auto zurücksetzen",
       "back": "Zurück",
       "close": "Schließen",
       "mainStream": "Hauptstrom",
