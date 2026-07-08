@@ -180,7 +180,12 @@
       "disable": "",
       "uploadSubtitlesAria": "",
       "uploadSrtVtt": "",
-      "subtitlesFallback": ""
+      "uploadFile": "",
+      "urlPlaceholder": "",
+      "urlAdd": "",
+      "customLabel": "",
+      "subtitlesFallback": "",
+      "loadError": ""
     },
     "resume": {
       "continuedFrom": "",
@@ -295,7 +300,11 @@
       "allTrackers": "",
       "providerLabel": "",
       "allSources": "",
-      "resetAll": ""
+      "resetAll": "",
+      "season": "",
+      "allSeasons": "",
+      "seasonNumber": "",
+      "noSeason": ""
     },
     "row": {
       "watch": "",
@@ -312,11 +321,42 @@
     }
   },
   "media": {
+    "card": {
+      "typeMovie": "",
+      "typeSeries": ""
+    },
     "common": {
       "retry": ""
     },
     "cast": {
       "title": ""
+    },
+    "actor": {
+      "biography": "",
+      "asActor": "",
+      "director": "",
+      "writer": "",
+      "producer": "",
+      "emptyFilmography": "",
+      "emptyFilmographyDesc": "",
+      "movies": "",
+      "ageAtDeath_one": "",
+      "ageAtDeath_other": "",
+      "years_one": "",
+      "years_other": "",
+      "episodeCount_one": "",
+      "episodeCount_other": "",
+      "Acting": "",
+      "Directing": "",
+      "Writing": "",
+      "Production": "",
+      "genre_35": "",
+      "genre_action_adventure": "",
+      "genre_18": "",
+      "genre_scifi_fantasy": "",
+      "genre_thriller_horror": "",
+      "genre_kids_family": "",
+      "categoryTitle": ""
     },
     "episode": {
       "fallbackName": "",
@@ -353,6 +393,8 @@
       "more": "",
       "openAsPlaylist": "",
       "editMapping": "",
+      "editSeasonMapping": "",
+      "resetSeasonMapping": "",
       "back": "",
       "close": "",
       "mainStream": "",

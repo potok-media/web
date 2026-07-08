@@ -58,8 +58,8 @@
     },
     "language": {
       "label": "Język",
-      "incomplete": "",
-      "helpTranslate": ""
+      "incomplete": "Ten język jest przetłumaczony {{percent}}%.",
+      "helpTranslate": "Pomóż dokończyć to na Crowdin →"
     },
     "nav": {
       "brandTitle": "Ustawienia",
@@ -180,7 +180,12 @@
       "disable": "Wyłącz",
       "uploadSubtitlesAria": "Prześlij napisy",
       "uploadSrtVtt": "Prześlij SRT/VT...",
-      "subtitlesFallback": "Napisy {{index}}"
+      "uploadFile": "Prześlij plik (SRT/VTT/ASS)",
+      "urlPlaceholder": "Adres URL napisów",
+      "urlAdd": "Dodaj",
+      "customLabel": "Własny",
+      "subtitlesFallback": "Napisy {{index}}",
+      "loadError": "Nie udało się załadować"
     },
     "resume": {
       "continuedFrom": "Wznowiono z {{time}}",
@@ -295,7 +300,11 @@
       "allTrackers": "Wszystkie trackery",
       "providerLabel": "Dostawca",
       "allSources": "Wszystkie źródła",
-      "resetAll": "Zresetuj wszystko"
+      "resetAll": "Zresetuj wszystko",
+      "season": "Sezon",
+      "allSeasons": "Wszystkie sezony",
+      "seasonNumber": "Sezon {{number}}",
+      "noSeason": "Brak sezonu"
     },
     "row": {
       "watch": "Obejrzyj",
@@ -312,11 +321,42 @@
     }
   },
   "media": {
+    "card": {
+      "typeMovie": "Film",
+      "typeSeries": "Seria"
+    },
     "common": {
       "retry": "Ponów próbę"
     },
     "cast": {
       "title": "Sztaby i pręty ze stali nierdzewnej"
+    },
+    "actor": {
+      "biography": "Biografia",
+      "asActor": "Aktywne Kredyty",
+      "director": "Kierunek Kredytów",
+      "writer": "Pisanie Kredytów",
+      "producer": "Produkcja Kredytów",
+      "emptyFilmography": "Filmografia jest obecnie pusta",
+      "emptyFilmographyDesc": "Nie mamy jeszcze żadnych zapisów dzieł z {{name}}.",
+      "movies": "Filmy",
+      "ageAtDeath_one": "w wieku {{count}} roku",
+      "ageAtDeath_other": "w wieku {{count}} lat",
+      "years_one": "rok",
+      "years_other": "lata",
+      "episodeCount_one": "{{count}} odcinek",
+      "episodeCount_other": "{{count}} odcinków",
+      "Acting": "Działaj",
+      "Directing": "Kierunek",
+      "Writing": "Pisanie",
+      "Production": "Produkcja",
+      "genre_35": "Komentarze",
+      "genre_action_adventure": "Akcja i Przygoda",
+      "genre_18": "Dramas",
+      "genre_scifi_fantasy": "Sci-Fi & Fantasy",
+      "genre_thriller_horror": "Dźwigacz & Horror",
+      "genre_kids_family": "Dzieci i Rodzina",
+      "categoryTitle": "{{actorName}} — {{category}}"
     },
     "episode": {
       "fallbackName": "Odcinek {{number}}",
@@ -353,6 +393,8 @@
       "more": "Więcej",
       "openAsPlaylist": "Otwórz jako playlistę",
       "editMapping": "Edytuj mapowanie",
+      "editSeasonMapping": "Pamiętaj w tym sezonie",
+      "resetSeasonMapping": "Zresetuj do automatycznego",
       "back": "Powrót",
       "close": "Zamknij",
       "mainStream": "Główny strumień",

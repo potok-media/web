@@ -58,8 +58,8 @@
     },
     "language": {
       "label": "Мова:",
-      "incomplete": "",
-      "helpTranslate": ""
+      "incomplete": "Ця мова складає {{percent}}% перекладених.",
+      "helpTranslate": "Допоможіть завершити це на Crowdin →"
     },
     "nav": {
       "brandTitle": "Налаштування",
@@ -180,7 +180,12 @@
       "disable": "Вимкнено",
       "uploadSubtitlesAria": "Відвантажити субтитри",
       "uploadSrtVtt": "Вивантажити SRT/VTT...",
-      "subtitlesFallback": "Субтитри {{index}}"
+      "uploadFile": "Файл (SRT/VTT/ASS)",
+      "urlPlaceholder": "URL-адреса субтитрів",
+      "urlAdd": "Додати",
+      "customLabel": "Користувацька",
+      "subtitlesFallback": "Субтитри {{index}}",
+      "loadError": "Не вдалося завантажити"
     },
     "resume": {
       "continuedFrom": "Відновлено з {{time}}",
@@ -295,7 +300,11 @@
       "allTrackers": "Всі трекери",
       "providerLabel": "Постачальник",
       "allSources": "Всі джерела",
-      "resetAll": "Скинути все"
+      "resetAll": "Скинути все",
+      "season": "Сезон",
+      "allSeasons": "Всі пори року",
+      "seasonNumber": "Сезон {{number}}",
+      "noSeason": "Немає сезону"
     },
     "row": {
       "watch": "Дивитися",
@@ -312,11 +321,42 @@
     }
   },
   "media": {
+    "card": {
+      "typeMovie": "Фільми",
+      "typeSeries": "Серія"
+    },
     "common": {
       "retry": "Повторити спробу"
     },
     "cast": {
       "title": "Транслювати"
+    },
+    "actor": {
+      "biography": "Біографія",
+      "asActor": "Діючи кредити",
+      "director": "Направлення кредитів",
+      "writer": "Написання кредитів",
+      "producer": "Виготовлення кредитів",
+      "emptyFilmography": "Фільмографія наразі пуста",
+      "emptyFilmographyDesc": "У нас ще немає записів з функцією виконання {{name}}.",
+      "movies": "Фільми",
+      "ageAtDeath_one": "у вік {{count}} року",
+      "ageAtDeath_other": "",
+      "years_one": "рік",
+      "years_other": "років",
+      "episodeCount_one": "{{count}} епізод",
+      "episodeCount_other": "{{count}} епізодів",
+      "Acting": "Діючи",
+      "Directing": "Направлення",
+      "Writing": "Письмо",
+      "Production": "Виробництво",
+      "genre_35": "Комедії",
+      "genre_action_adventure": "Бойовики та пригоди",
+      "genre_18": "Драмас",
+      "genre_scifi_fantasy": "Sci-Fi & Fantasy",
+      "genre_thriller_horror": "Трилер і жах",
+      "genre_kids_family": "Діти і сім'я",
+      "categoryTitle": "{{actorName}} — {{category}}"
     },
     "episode": {
       "fallbackName": "Епізод {{number}}",
@@ -353,6 +393,8 @@
       "more": "Більше",
       "openAsPlaylist": "Відкрити як плейліст",
       "editMapping": "Редагувати відображення",
+      "editSeasonMapping": "Видалити цей сезон",
+      "resetSeasonMapping": "Скинути до авто",
       "back": "Відмінити",
       "close": "Закрити",
       "mainStream": "Основний потік",

@@ -59,7 +59,7 @@
     "language": {
       "label": "Lingua",
       "incomplete": "",
-      "helpTranslate": ""
+      "helpTranslate": "Aiuta a completarlo su Crowdin →"
     },
     "nav": {
       "brandTitle": "Impostazioni",
@@ -180,7 +180,12 @@
       "disable": "Disabilita",
       "uploadSubtitlesAria": "Carica sottotitoli",
       "uploadSrtVtt": "Carica SRT/VTT...",
-      "subtitlesFallback": "Sottotitoli {{index}}"
+      "uploadFile": "Carica file (SRT/VTT/ASS)",
+      "urlPlaceholder": "Url Sottotitoli",
+      "urlAdd": "Aggiungi",
+      "customLabel": "Personalizzato",
+      "subtitlesFallback": "Sottotitoli {{index}}",
+      "loadError": "Impossibile caricare"
     },
     "resume": {
       "continuedFrom": "Ripreso da {{time}}",
@@ -295,7 +300,11 @@
       "allTrackers": "Tutti i tracker",
       "providerLabel": "Provider",
       "allSources": "Tutte le fonti",
-      "resetAll": "Reimposta tutto"
+      "resetAll": "Reimposta tutto",
+      "season": "Stagione",
+      "allSeasons": "Tutte le stagioni",
+      "seasonNumber": "Stagione {{number}}",
+      "noSeason": "Nessuna stagione"
     },
     "row": {
       "watch": "Osserva",
@@ -312,11 +321,42 @@
     }
   },
   "media": {
+    "card": {
+      "typeMovie": "Film",
+      "typeSeries": "Serie"
+    },
     "common": {
       "retry": "Riprova"
     },
     "cast": {
       "title": "Trasmetti"
+    },
+    "actor": {
+      "biography": "Biografia",
+      "asActor": "Crediti Agenti",
+      "director": "Crediti Direttivi",
+      "writer": "Crediti Di Scrittura",
+      "producer": "Crediti Di Produzione",
+      "emptyFilmography": "La filmografia è attualmente vuota",
+      "emptyFilmographyDesc": "Non abbiamo ancora alcun record di opere con {{name}}.",
+      "movies": "Film",
+      "ageAtDeath_one": "all'età di {{count}} anno",
+      "ageAtDeath_other": "all'età di {{count}} anni",
+      "years_one": "anno",
+      "years_other": "anni",
+      "episodeCount_one": "{{count}} episodio",
+      "episodeCount_other": "{{count}} episodi",
+      "Acting": "Agire",
+      "Directing": "Direzione",
+      "Writing": "Scrittura",
+      "Production": "Produzione",
+      "genre_35": "Commedie",
+      "genre_action_adventure": "Azione E Avventura",
+      "genre_18": "Dramas",
+      "genre_scifi_fantasy": "Sci-Fi & Fantasy",
+      "genre_thriller_horror": "Thriller & Horror",
+      "genre_kids_family": "Bambini E Famiglia",
+      "categoryTitle": "{{actorName}} — {{category}}"
     },
     "episode": {
       "fallbackName": "Episodio {{number}}",
@@ -353,6 +393,8 @@
       "more": "Altro",
       "openAsPlaylist": "Apri come playlist",
       "editMapping": "Modifica mappatura",
+      "editSeasonMapping": "Remap questa stagione",
+      "resetSeasonMapping": "Ripristina automaticamente",
       "back": "Indietro",
       "close": "Chiudi",
       "mainStream": "Stream principale",

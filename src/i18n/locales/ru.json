@@ -331,6 +331,33 @@
     "cast": {
       "title": "Актерский состав"
     },
+    "actor": {
+      "biography": "Биография",
+      "asActor": "Фильмография",
+      "director": "Режиссура",
+      "writer": "Сценарист",
+      "producer": "Продюсирование",
+      "emptyFilmography": "Фильмография в настоящее время пуста",
+      "emptyFilmographyDesc": "У нас пока нет записей о работах с {{name}}.",
+      "movies": "Фильмы",
+      "ageAtDeath_one": "в возрасте {{count}} года",
+      "ageAtDeath_other": "в возрасте {{count}} лет",
+      "years_one": "год",
+      "years_other": "лет",
+      "episodeCount_one": "{{count}} эпизод",
+      "episodeCount_other": "{{count}} эпизодов",
+      "Acting": "Исполняющий обязанности",
+      "Directing": "Направление",
+      "Writing": "Написание",
+      "Production": "Производство",
+      "genre_35": "Комедии",
+      "genre_action_adventure": "Действия и Приключения",
+      "genre_18": "Драмы",
+      "genre_scifi_fantasy": "Научная фантастика и фэнтези",
+      "genre_thriller_horror": "Триллер и ужас",
+      "genre_kids_family": "Дети и семья",
+      "categoryTitle": "{{actorName}} — {{category}}"
+    },
     "episode": {
       "fallbackName": "Серия {{number}}",
       "noOverview": "Описание эпизода отсутствует.",

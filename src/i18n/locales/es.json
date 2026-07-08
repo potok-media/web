@@ -58,8 +58,8 @@
     },
     "language": {
       "label": "Idioma",
-      "incomplete": "",
-      "helpTranslate": ""
+      "incomplete": "Este idioma está traducido al {{percent}}.",
+      "helpTranslate": "Ayuda a completarlo en Crowdin →"
     },
     "nav": {
       "brandTitle": "Ajustes",
@@ -180,7 +180,12 @@
       "disable": "Desactivar",
       "uploadSubtitlesAria": "Subir subtítulos",
       "uploadSrtVtt": "Subir SRT/VTT...",
-      "subtitlesFallback": "Subtítulos {{index}}"
+      "uploadFile": "Subir archivo (SRT/VTT/ASS)",
+      "urlPlaceholder": "URL de subtítulos",
+      "urlAdd": "Añadir",
+      "customLabel": "Personalizado",
+      "subtitlesFallback": "Subtítulos {{index}}",
+      "loadError": "Error al cargar"
     },
     "resume": {
       "continuedFrom": "Reanudado de {{time}}",
@@ -295,7 +300,11 @@
       "allTrackers": "Todos los rastreadores",
       "providerLabel": "Proveedor",
       "allSources": "Todas las fuentes",
-      "resetAll": "Restablecer todo"
+      "resetAll": "Restablecer todo",
+      "season": "Temporada",
+      "allSeasons": "Todas las temporadas",
+      "seasonNumber": "Temporada {{number}}",
+      "noSeason": "Sin temporada"
     },
     "row": {
       "watch": "Vigilar",
@@ -312,11 +321,42 @@
     }
   },
   "media": {
+    "card": {
+      "typeMovie": "Película",
+      "typeSeries": "Series"
+    },
     "common": {
       "retry": "Reintentar"
     },
     "cast": {
       "title": "Emitir"
+    },
+    "actor": {
+      "biography": "Biografía",
+      "asActor": "Créditos en Acción",
+      "director": "Dirigir créditos",
+      "writer": "Créditos de escritura",
+      "producer": "Producción de créditos",
+      "emptyFilmography": "La filmografía está actualmente vacía",
+      "emptyFilmographyDesc": "Todavía no tenemos ningún registro de trabajos con {{name}}.",
+      "movies": "Películas",
+      "ageAtDeath_one": "a la edad de {{count}} año",
+      "ageAtDeath_other": "",
+      "years_one": "año",
+      "years_other": "años",
+      "episodeCount_one": "Episodio {{count}}",
+      "episodeCount_other": "Episodios {{count}}",
+      "Acting": "Actuando",
+      "Directing": "Dirección",
+      "Writing": "Escribir",
+      "Production": "Producción",
+      "genre_35": "Comedias",
+      "genre_action_adventure": "Acción y aventura",
+      "genre_18": "Dramas",
+      "genre_scifi_fantasy": "Sci-Fi & Fantasy",
+      "genre_thriller_horror": "Thriller & Horror",
+      "genre_kids_family": "Niños y familia",
+      "categoryTitle": "{{actorName}} — {{category}}"
     },
     "episode": {
       "fallbackName": "Episodio {{number}}",
@@ -353,6 +393,8 @@
       "more": "Más",
       "openAsPlaylist": "Abrir como lista",
       "editMapping": "Editar mapeo",
+      "editSeasonMapping": "Remover esta temporada",
+      "resetSeasonMapping": "Restablecer a auto",
       "back": "Atrás",
       "close": "Cerrar",
       "mainStream": "Flujo principal",
