@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Play, Check, CheckCircle2, ArrowLeft, Pencil, ListVideo, MoreHorizontal, RotateCcw } from "lucide-react";
 import { FilmOff } from "./FilmOff";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { Focusable, FocusableButton } from "./TVNavigation";
 import { Overlay } from "./Overlay";
 
@@ -198,13 +197,6 @@ const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo((
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  // TV: move focus into the menu when it opens so the remote can reach its items.
-  useEffect(() => {
-    if (!showPopover) return;
-    const t = setTimeout(() => setFocus("ESEL_MENU_FIRST"), 50);
-    return () => clearTimeout(t);
-  }, [showPopover]);
 
   const hasOptions = !isEditing && mediaType === "tv" && totalCount > 0 && (onOpenAsPlaylist || onStartEditing);
 
@@ -548,16 +540,6 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
       setEditingSource(null);
     }
   }, [isOpen]);
-
-  // Re-land focus on the first episode row when the season changes (Overlay owns
-  // the initial focus on open).
-  useEffect(() => {
-    if (!isOpen || isEditing) return;
-    const t = setTimeout(() => {
-      setFocus("EPISODE_SELECTOR_FIRST_ROW");
-    }, 60);
-    return () => clearTimeout(t);
-  }, [isOpen, isEditing, selectedSeason, episodes.length]);
 
   // Pencil on a season section → open the TMDB picker scoped to THAT displayed section. The source season is the
   // raw parsed season of the section's files; the baseline is their RAW first episode.
