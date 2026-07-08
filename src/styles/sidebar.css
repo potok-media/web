@@ -320,6 +320,18 @@
   color: var(--text-primary);
 }
 
+/* Custom styling for profile button when rendered as an icon inside header */
+.sidebar-profile-header-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0 !important;
+  border-left: none !important;
+  justify-content: center;
+  border-radius: var(--radius-s) !important;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
 @media (max-width: 768px) {
   .sidebar {
     display: none !important;

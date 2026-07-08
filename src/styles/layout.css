@@ -9,6 +9,7 @@
 
 .main-content {
   flex-grow: 1;
+  min-width: 0;
   height: 100vh;
   height: 100dvh;
   overflow-y: auto;

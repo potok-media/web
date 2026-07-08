@@ -11,12 +11,11 @@
   box-sizing: border-box;
 }
 
-/* Two-Pane Layout Container (Breathable fluid alignment) */
 .settings-container {
   display: grid;
   grid-template-columns: 17.5rem minmax(0, 52rem);
   max-width: 71.5rem; /* 17.5rem (sidebar) + 52rem (content) + gap (2rem) = 71.5rem */
-  margin: var(--space-m) auto 0 clamp(var(--space-xl), 10vw, 18rem);
+  margin: var(--space-m) auto 0 auto;
   gap: var(--space-xl);
   width: 100%;
 }

@@ -183,6 +183,11 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
           >
             {isCollapsed ? <PanelLeft size="1.125rem" /> : <PanelLeftClose size="1.125rem" />}
           </FocusableButton>
+          {!isCollapsed && (
+            <FocusableNavLink to="/profile" focusKey="SIDEBAR_PROFILE" className={({ isActive }) => getNavLinkClass(isActive, "sidebar-profile-header-btn")}>
+              <User size="1.125rem" />
+            </FocusableNavLink>
+          )}
         </div>
 
         <nav className="sidebar-nav">
@@ -197,10 +202,12 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
               onBlur={() => setIsSearchFocused(false)}
             />
 
-            <FocusableNavLink to="/profile" focusKey="SIDEBAR_PROFILE" className={({ isActive }) => getNavLinkClass(isActive)}>
-              <User size="1.125rem" />
-              <span>{t("profile")}</span>
-            </FocusableNavLink>
+            {isCollapsed && (
+              <FocusableNavLink to="/profile" focusKey="SIDEBAR_PROFILE" className={({ isActive }) => getNavLinkClass(isActive)}>
+                <User size="1.125rem" />
+                <span>{t("profile")}</span>
+              </FocusableNavLink>
+            )}
             <FocusableNavLink to="/" focusKey="SIDEBAR_HOME" className={({ isActive }) => getNavLinkClass(isActive)} end>
               <Home size="1.125rem" />
               <span>{t("home")}</span>
