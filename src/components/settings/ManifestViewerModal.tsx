@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { X, Copy, Check } from "lucide-react";
 import type { ExtensionManifest } from "@potok/sdk-types";
 import { useHUD } from "../../context/HUDContext";
-import { FocusableButton } from "../common/TVNavigation";
 import { Overlay } from "../common/Overlay";
 
 interface Props {
@@ -33,8 +32,6 @@ export const ManifestViewerModal: React.FC<Props> = ({ manifest, onClose }) => {
     <Overlay
       open
       onClose={onClose}
-      focusKey="MANIFEST_MODAL"
-      initialFocusKey="MANIFEST_MODAL_CLOSE"
       styled={false}
       backdropClassName="manifest-modal-overlay"
       className="manifest-modal"
@@ -46,9 +43,9 @@ export const ManifestViewerModal: React.FC<Props> = ({ manifest, onClose }) => {
             {t("manifest.nameWithId", { name: manifest.name, id: manifest.id })}
           </span>
         </div>
-        <FocusableButton onClick={onClose} className="manifest-modal-close" title={t("manifest.close")}>
+        <button type="button" onClick={onClose} className="manifest-modal-close" title={t("manifest.close")}>
           <X size="1.25rem" />
-        </FocusableButton>
+        </button>
       </div>
 
       <div className="manifest-modal-body">
@@ -58,13 +55,13 @@ export const ManifestViewerModal: React.FC<Props> = ({ manifest, onClose }) => {
       </div>
 
       <div className="manifest-modal-footer">
-        <FocusableButton onClick={handleCopy} className="settings-btn-primary" style={{ fontSize: "0.9rem", padding: "0.5rem 1rem" }}>
+        <button type="button" onClick={handleCopy} className="settings-btn-primary" style={{ fontSize: "0.9rem", padding: "0.5rem 1rem" }}>
           {copied ? <Check size="1rem" style={{ color: "#4f9e71" }} /> : <Copy size="1rem" />}
           <span>{copied ? t("manifest.copied") : t("manifest.copy")}</span>
-        </FocusableButton>
-        <FocusableButton focusKey="MANIFEST_MODAL_CLOSE" onClick={onClose} className="settings-btn-primary settings-form-btn-cancel" style={{ fontSize: "0.9rem", padding: "0.5rem 1rem" }}>
+        </button>
+        <button type="button" onClick={onClose} className="settings-btn-primary settings-form-btn-cancel" style={{ fontSize: "0.9rem", padding: "0.5rem 1rem" }}>
           {t("manifest.close")}
-        </FocusableButton>
+        </button>
       </div>
     </Overlay>
   );

@@ -1057,8 +1057,21 @@
   margin-bottom: var(--space-m);
 }
 
-.cast-grid {
-  margin-top: var(--space-l);
+.cast-scroll-viewport {
+  flex: 1;
+  min-width: 0;
+}
+
+.cast-scroll-container {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-m);
+  padding: var(--space-xs) 0;
+}
+
+.cast-scroll-container .cast-member-card {
+  flex: 0 0 7.5rem;
+  width: 7.5rem;
 }
 
 .cast-member-card {

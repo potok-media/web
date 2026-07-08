@@ -5,86 +5,59 @@ import { Info, Plus, Check } from "lucide-react";
 import type { HeroItem } from "../network/ApiTypes";
 import { SyncApiClient } from "../network/SyncApiClient";
 import { useHUD } from "../context/HUDContext";
-import { Focusable, FocusableButton } from "./common/TVNavigation";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
-import { PlatformManager } from "../utils/PlatformManager";
 
 interface HeroSpotlightProps {
   items: HeroItem[];
-  onPlay: (item: HeroItem) => void;
+  onPlay?: (item: HeroItem) => void;
   onDetails: (item: HeroItem) => void;
-  // When false, the hero won't grab focus on mount — the host page owns initial focus (so it can
-  // restore the remembered card on Back instead of being overridden by the hero button). Default true.
   autoFocus?: boolean;
 }
 
-const areHeroSpotlightsEqual = (
-  prevProps: HeroSpotlightProps,
-  nextProps: HeroSpotlightProps
-): boolean => {
+export function areHeroSpotlightsEqual(prevProps: HeroSpotlightProps, nextProps: HeroSpotlightProps): boolean {
+  if (prevProps.items === nextProps.items) return true;
   if (prevProps.items.length !== nextProps.items.length) return false;
   for (let i = 0; i < prevProps.items.length; i++) {
-    const pItem = prevProps.items[i];
-    const nItem = nextProps.items[i];
-    if (pItem.id !== nItem.id) return false;
-    if (pItem.card?.id !== nItem.card?.id) return false;
-    if (pItem.card?.title !== nItem.card?.title) return false;
-    if (pItem.card?.isInWatchlist !== nItem.card?.isInWatchlist) return false;
+    const a = prevProps.items[i];
+    const b = nextProps.items[i];
+    if (a.card.id !== b.card.id) return false;
+    if (a.card.isInWatchlist !== b.card.isInWatchlist) return false;
   }
   return true;
-};
+}
 
 export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) => {
+  const { items: heroItems, onDetails } = props;
   const { t } = useTranslation("media");
-  const { items, onDetails } = props;
+  const { show: showHUD } = useHUD();
 
-  interface SlideState {
-    activeIndex: number;
-    displayedIndex: number;
-    prevIndex: number | null;
-  }
-
-  const [slideState, setSlideState] = useState<SlideState>({
+  const [slideState, setSlideState] = useState({
     activeIndex: 0,
+    prevIndex: null as number | null,
     displayedIndex: 0,
-    prevIndex: null,
   });
-  const { activeIndex, displayedIndex, prevIndex } = slideState;
+
+  const { activeIndex, prevIndex, displayedIndex } = slideState;
+  const activeItem = heroItems[displayedIndex];
 
   const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
   const [watchlistStates, setWatchlistStates] = useState<Record<number, boolean>>({});
-  const [isVisible, setIsVisible] = useState(true);
-
-  const heroItems = React.useMemo(() => items.slice(0, 10), [items]);
-  const displayIndexToUse = displayedIndex;
-  const activeItem = heroItems[displayIndexToUse];
-  const { show: showHUD } = useHUD();
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const hasFocusRef = useRef(false);
-  // Tracks which slide indices have already had their images requested, so the
-  // preload effect never re-creates Image objects when loadedImages updates.
-  const requestedImagesRef = useRef<Set<number>>(new Set());
+  const isVisible = true;
 
-  const [prevHeroItems, setPrevHeroItems] = useState<HeroItem[]>([]);
-  if (heroItems !== prevHeroItems) {
-    setPrevHeroItems(heroItems);
-    setLoadedImages({});
-    requestedImagesRef.current = new Set();
-    setSlideState({
-      activeIndex: 0,
-      displayedIndex: 0,
-      prevIndex: null,
+  // Sync watchlist states
+  useEffect(() => {
+    const states: Record<number, boolean> = {};
+    heroItems.forEach((item, index) => {
+      states[index] = !!item.card.isInWatchlist;
     });
-  }
+    setWatchlistStates(states);
+  }, [heroItems]);
 
-  const changeActiveIndex = (newIndex: number | ((prev: number) => number)) => {
-    const hadFocus = containerRef.current?.contains(document.activeElement);
-    if (hadFocus) {
-      hasFocusRef.current = true;
-    }
+  const changeActiveIndex = (nextIndex: number | ((prev: number) => number)) => {
     setSlideState((prev) => {
-      const idx = typeof newIndex === "function" ? newIndex(prev.activeIndex) : newIndex;
+      const idx = typeof nextIndex === "function" ? nextIndex(prev.activeIndex) : nextIndex;
+      if (idx === prev.activeIndex) return prev;
       return {
         ...prev,
         activeIndex: idx,
@@ -92,47 +65,19 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
     });
   };
 
-  // Setup IntersectionObserver for visibility tracking
+  // Slideshow auto-rotation timer.
   useEffect(() => {
-    const currentRef = containerRef.current;
-    if (!currentRef) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsVisible(entry.isIntersecting);
-      },
-      { threshold: 0 }
-    );
-    observer.observe(currentRef);
-    return () => {
-      observer.unobserve(currentRef);
-      observer.disconnect();
-    };
-  }, []);
-
-  // Sync watchlist states for all items
-  useEffect(() => {
-    const initial: Record<number, boolean> = {};
-    heroItems.forEach((item, index) => {
-      initial[index] = item.card?.isInWatchlist || false;
-    });
-    setWatchlistStates(initial);
-  }, [heroItems]);
-
-  // Slideshow auto-rotation timer. Disabled on TV — a periodic full-screen
-  // backdrop crossfade + image decode causes visible hitches on weak GPUs.
-  useEffect(() => {
-    if (heroItems.length <= 1 || !isVisible || PlatformManager.isTV()) return;
+    if (heroItems.length <= 1 || !isVisible) return;
 
     const interval = setInterval(() => {
       changeActiveIndex((prev) => (prev + 1) % heroItems.length);
     }, 15000); // 15 seconds slide duration
 
     return () => clearInterval(interval);
-  }, [activeIndex, heroItems.length, isVisible]);
+  }, [heroItems.length, isVisible]);
 
-  // Preload only active and next backdrop/logo images to save memory and network.
-  // Requested indices are tracked in a ref so loadedImages updates never re-trigger
-  // this effect or re-create Image objects.
+  // Image preloading logic
+  const requestedImagesRef = useRef<Set<number>>(new Set());
   useEffect(() => {
     if (heroItems.length === 0) return;
 
@@ -197,22 +142,6 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
       }
     }
   }, [activeIndex, loadedImages, displayedIndex]);
-
-  useEffect(() => {
-    if (props.autoFocus !== false && PlatformManager.isTV() && heroItems.length > 0) {
-      setFocus("HERO_DETAILS_BUTTON");
-    }
-  }, [heroItems.length, props.autoFocus]);
-
-  useEffect(() => {
-    if (hasFocusRef.current) {
-      const detailsBtn = containerRef.current?.querySelector<HTMLAnchorElement>(".btn-accent");
-      if (detailsBtn) {
-        detailsBtn.focus();
-      }
-      hasFocusRef.current = false;
-    }
-  }, [activeIndex]);
 
   const handleToggleWatchlist = async (card: any, index: number) => {
     if (!card) return;
@@ -294,43 +223,27 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
                 <p className="hero-overview">{card.overview}</p>
 
                 <div className="hero-buttons">
-                  <Focusable
-                    focusKey="HERO_DETAILS_BUTTON"
-                    focusable={isCurrent}
-                    onEnterPress={() => {
-                      onDetails(item);
+                  <Link 
+                    to={`/media/${card.mediaType}/${card.id}`}
+                    className="btn-accent"
+                    onClick={(e) => {
+                      if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+                        e.preventDefault();
+                        onDetails(item);
+                      }
                     }}
                   >
-                    {({ ref: detailsRef, focused }) => {
-                      const setRefs = (node: HTMLAnchorElement | null) => {
-                        (detailsRef as React.MutableRefObject<HTMLAnchorElement | null>).current = node;
-                      };
-                      return (
-                        <Link 
-                          ref={setRefs}
-                          to={`/media/${card.mediaType}/${card.id}`}
-                          className={`btn-accent ${focused ? "focused" : ""}`}
-                          onClick={(e) => {
-                            if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
-                              e.preventDefault();
-                              onDetails(item);
-                            }
-                          }}
-                        >
-                          <Info size="1.125rem" />
-                          <span>{t("hero.details")}</span>
-                        </Link>
-                      );
-                    }}
-                  </Focusable>
-                  <FocusableButton 
+                    <Info size="1.125rem" />
+                    <span>{t("hero.details")}</span>
+                  </Link>
+                  <button 
+                    type="button"
                     className="btn-glass" 
                     onClick={() => handleToggleWatchlist(card, index)}
-                    focusable={isCurrent}
                   >
                     {watchlistStates[index] ? <Check size="1.125rem" className="hero-btn-success-check" /> : <Plus size="1.125rem" />}
                     <span>{watchlistStates[index] ? t("hero.inWatchlist") : t("hero.addToWatchlist")}</span>
-                  </FocusableButton>
+                  </button>
                 </div>
               </div>
             );
@@ -340,8 +253,9 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
         {heroItems.length > 1 && (
           <div className="hero-dots">
             {heroItems.map((_, index) => (
-              <FocusableButton
+              <button
                 key={index}
+                type="button"
                 className={`hero-dot ${index === activeIndex ? "active" : ""}`}
                 onClick={() => changeActiveIndex(index)}
                 aria-label={t("hero.slide", { number: index + 1 })}

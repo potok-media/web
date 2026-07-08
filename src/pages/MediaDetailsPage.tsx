@@ -1,12 +1,9 @@
 import React, { useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { Star, Eye, Bookmark } from "lucide-react";
 import { useHUD } from "../context/HUDContext";
 import { Slot } from "../components/common/extension/Slot";
-import { restoreFocusOrDefault } from "../utils/focusMemory";
-import { Focusable, FocusableButton } from "../components/common/TVNavigation";
-import { PlatformManager } from "../utils/PlatformManager";
 
 import { useMediaDetails } from "../hooks/useMediaDetails";
 import { SeasonEpisodesSection } from "../components/SeasonEpisodesSection";
@@ -22,35 +19,40 @@ interface SelectedEpisodeState {
   seasonNumber: number;
 }
 
+const ErrorView: React.FC<{ error: string; onRetry: () => void }> = ({ error, onRetry }) => {
+  const { t } = useTranslation("media");
+  return (
+    <div className="media-not-found-container">
+      <h2 className="media-not-found-title">{error}</h2>
+      <button type="button" className="overlay-btn" onClick={onRetry}>{t("common.retry")}</button>
+    </div>
+  );
+};
+
 export const MediaDetailsPage: React.FC = () => {
   const { mediaType, id } = useParams<{ mediaType: string; id: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const location = useLocation();
+
   const mediaId = Number(id);
   const tmdbId = mediaId;
 
   const { t } = useTranslation("media");
   const { show: showHUD } = useHUD();
 
-  const isTV = PlatformManager.isTV();
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768 && !isTV);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
 
   useEffect(() => {
-    if (isTV) return;
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [isTV]);
+  }, []);
 
-  const layoutModifier = isTV 
-    ? "details-layout--tv" 
-    : isMobile 
-      ? "details-layout--mobile" 
-      : "details-layout--desktop";
-
+  const layoutModifier = isMobile 
+    ? "details-layout--mobile" 
+    : "details-layout--desktop";
 
   const mediaRef = useRef<MediaCard | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<SelectedEpisodeState | null>(null);
@@ -58,65 +60,74 @@ export const MediaDetailsPage: React.FC = () => {
 
   const handleNavigateToStreams = useCallback((tab?: string, season?: number, episode?: number) => {
     const path = tab 
-      ? `/media/${mediaType}/${mediaId}/watch/${tab}` 
-      : `/media/${mediaType}/${mediaId}/watch`;
-    navigate(path, {
-      state: { season, episode, media: mediaRef.current }
-    });
-  }, [navigate, mediaType, mediaId]);
-
-  const handleDeepLinkNavigate = useCallback((season?: number, episode?: number) => {
-    handleNavigateToStreams("potok-torrents", season, episode);
-  }, [handleNavigateToStreams]);
+      ? `/media/${mediaType}/${mediaId}/streams/${tab}` 
+      : `/media/${mediaType}/${mediaId}/streams`;
+    
+    const params = new URLSearchParams();
+    if (season !== undefined) params.set("season", String(season));
+    if (episode !== undefined) params.set("episode", String(episode));
+    
+    const searchStr = params.toString();
+    const targetPath = searchStr ? `${path}?${searchStr}` : path;
+    
+    navigate(targetPath, { state: { media: mediaRef.current } });
+  }, [mediaType, mediaId, navigate]);
 
   const {
     media,
     loading,
     error,
-    inWatchlist,
+    refetch,
     isFavorite,
+    inWatchlist,
     isWatched,
-    toggleWatchlist,
     toggleFavorite,
+    toggleWatchlist,
     toggleWatched,
     toggleEpisodeWatched,
     toggleSeasonWatched,
     saveEpisodeSelection,
-    refetch,
   } = useMediaDetails({
     mediaType,
     mediaId,
     playParam: searchParams.get("play"),
-    onNavigateToStreams: handleDeepLinkNavigate,
+    onNavigateToStreams: (season, episode) => handleNavigateToStreams(undefined, season, episode),
     showHUD,
   });
 
-  mediaRef.current = media;
-
-  // Reset selected episode when route details target changes
+  // Keep mediaRef.current in sync with the loaded media
   useEffect(() => {
-    setSelectedEpisode(null);
-  }, [mediaId, mediaType]);
+    mediaRef.current = media;
+  }, [media]);
 
+  // Auto-play / Deep-link to streams trigger
   useEffect(() => {
-    if (media) {
-      // Restore focus on Back (e.g. from the streams page); default to the Watch button.
-      restoreFocusOrDefault(location.key || location.pathname, "DETAILS_WATCHED_BTN");
+    if (loading || !media) return;
+    const shouldPlay = searchParams.get("play") === "true";
+    if (shouldPlay) {
+      if (media.mediaType === "movie") {
+        handleNavigateToStreams();
+      } else {
+        // Deep-link to specified or last watched/first episode
+        const deepSeason = searchParams.get("season") ? Number(searchParams.get("season")) : undefined;
+        const deepEpisode = searchParams.get("episode") ? Number(searchParams.get("episode")) : undefined;
+        
+        if (deepSeason !== undefined && deepEpisode !== undefined) {
+          handleNavigateToStreams(undefined, deepSeason, deepEpisode);
+        } else if (media.progress?.nextSeason && media.progress?.nextEpisode) {
+          handleNavigateToStreams(undefined, media.progress.nextSeason, media.progress.nextEpisode);
+        } else if (media.progress?.lastSeason && media.progress?.lastEpisode) {
+          handleNavigateToStreams(undefined, media.progress.lastSeason, media.progress.lastEpisode);
+        } else {
+          // Fallback to S1E1 if no progress is found
+          handleNavigateToStreams(undefined, 1, 1);
+        }
+      }
     }
-  }, [media, location.key, location.pathname]);
+  }, [loading, media, searchParams, handleNavigateToStreams]);
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
-
-  if (error || !media) {
-    return (
-      <div className="media-not-found-container">
-        <h2 className="media-not-found-title">{error || t("details.notFound")}</h2>
-        <FocusableButton className="overlay-btn" onClick={refetch}>{t("common.retry")}</FocusableButton>
-      </div>
-    );
-  }
+  if (loading) return <LoadingSpinner />;
+  if (error || !media) return <ErrorView error={error || t("details.loadError")} onRetry={refetch} />;
 
   const cast = media.cast || [];
 
@@ -145,7 +156,7 @@ export const MediaDetailsPage: React.FC = () => {
               )}
 
               <div className="details-actions-container">
-                {/* Dynamically Rendered Plugin Extension Slot for Media Actions (Plugins contribute their watch buttons here) */}
+                {/* Dynamically Rendered Plugin Extension Slot for Media Actions */}
                 <Slot
                   name="media-actions"
                   props={{
@@ -162,51 +173,32 @@ export const MediaDetailsPage: React.FC = () => {
 
                 {/* Social and Watchlist row */}
                 <div id="social-actions-row" className="details-actions-row">
-                  <Focusable
-                    focusKey="DETAILS_WATCHED_BTN"
-                    onEnterPress={toggleWatched}
+                  <button
+                    type="button"
+                    className={`action-btn-circle ${isWatched ? "active" : ""}`}
+                    onClick={toggleWatched}
+                    title={isWatched ? t("details.removeFromHistory") : t("details.markWatched")}
                   >
-                    {({ ref: focusRef, focused }) => (
-                      <button
-                        ref={focusRef}
-                        className={`action-btn-circle ${isWatched ? "active" : ""} ${focused ? "focused" : ""}`}
-                        onClick={toggleWatched}
-                        title={isWatched ? t("details.removeFromHistory") : t("details.markWatched")}
-                      >
-                        <Eye size="1.125rem" />
-                      </button>
-                    )}
-                  </Focusable>
+                    <Eye size="1.125rem" />
+                  </button>
 
-                  <Focusable
-                    onEnterPress={toggleWatchlist}
+                  <button
+                    type="button"
+                    className={`action-btn-circle ${inWatchlist ? "active" : ""}`}
+                    onClick={toggleWatchlist}
+                    title={inWatchlist ? t("details.removeFromWatchlist") : t("details.addToWatchlist")}
                   >
-                    {({ ref: focusRef, focused }) => (
-                      <button
-                        ref={focusRef}
-                        className={`action-btn-circle ${inWatchlist ? "active" : ""} ${focused ? "focused" : ""}`}
-                        onClick={toggleWatchlist}
-                        title={inWatchlist ? t("details.removeFromWatchlist") : t("details.addToWatchlist")}
-                      >
-                        <Bookmark size="1.125rem" fill={inWatchlist ? "var(--accent)" : "none"} />
-                      </button>
-                    )}
-                  </Focusable>
+                    <Bookmark size="1.125rem" fill={inWatchlist ? "var(--accent)" : "none"} />
+                  </button>
 
-                  <Focusable
-                    onEnterPress={toggleFavorite}
+                  <button
+                    type="button"
+                    className={`action-btn-circle ${isFavorite ? "active" : ""}`}
+                    onClick={toggleFavorite}
+                    title={isFavorite ? t("details.removeFromFavorites") : t("details.addToFavorites")}
                   >
-                    {({ ref: focusRef, focused }) => (
-                      <button
-                        ref={focusRef}
-                        className={`action-btn-circle ${isFavorite ? "active" : ""} ${focused ? "focused" : ""}`}
-                        onClick={toggleFavorite}
-                        title={isFavorite ? t("details.removeFromFavorites") : t("details.addToFavorites")}
-                      >
-                        <Star size="1.125rem" fill={isFavorite ? "var(--accent)" : "none"} />
-                      </button>
-                    )}
-                  </Focusable>
+                    <Star size="1.125rem" fill={isFavorite ? "var(--accent)" : "none"} />
+                  </button>
                 </div>
               </div>
             </div>
@@ -222,11 +214,11 @@ export const MediaDetailsPage: React.FC = () => {
       </div>
 
       <div className="details-bottom-sections">
-        {media.mediaType === "tv" && media.numberOfSeasons && (
+        {media.mediaType === "tv" && media.numberOfSeasons !== undefined && media.numberOfSeasons > 0 && (
           <div className="details-fullwidth-section">
             <SeasonEpisodesSection
               mediaId={media.id}
-              numberOfSeasons={media.numberOfSeasons}
+              numberOfSeasons={media.numberOfSeasons!}
               selectedEpisode={selectedEpisode}
               onEpisodeClick={(ep, seasonNum) => {
                 setSelectedEpisode({ episode: ep, seasonNumber: seasonNum });
@@ -237,16 +229,13 @@ export const MediaDetailsPage: React.FC = () => {
               onOpenMultiPicker={() => setIsMultiPickerOpen(true)}
             />
 
-            {/* Multi-picker popup is disabled on TV — it renders every episode of
-                every season and tanks FPS. On TV the season-watch button toggles the
-                whole season instead (see SeasonEpisodesSection). */}
-            {!PlatformManager.isTV() && (
+            {isMultiPickerOpen && (
               <EpisodeMultiPickerModal
                 isOpen={isMultiPickerOpen}
                 onClose={() => setIsMultiPickerOpen(false)}
                 mediaId={media.id}
                 mediaTitle={media.title}
-                numberOfSeasons={media.numberOfSeasons}
+                numberOfSeasons={media.numberOfSeasons!}
                 initialSelected={media.progress?.watchedEpisodes || []}
                 onSave={saveEpisodeSelection}
               />

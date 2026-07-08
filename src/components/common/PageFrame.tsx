@@ -1,47 +1,24 @@
 import React from "react";
-import { TVScrollView } from "./TVScrollView";
-import "../../styles/page-frame.css";
 
 interface PageFrameProps {
-  /** Fixed header region (title, tabs, filters). Never scrolls. */
-  header?: React.ReactNode;
-  /** Optional fixed left column. Scrolls independently. */
-  sidebar?: React.ReactNode;
-  /** The single scrollable region — D-pad/touch scrolls THIS, not the page. */
+  title?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
-  /** Extra class for the scrollable body (e.g. padding/grid). */
-  bodyClassName?: string;
+  header?: React.ReactNode;
+  sidebar?: React.ReactNode;
 }
 
-/**
- * "Pinned" page layout for TV and mobile: the page itself never scrolls — only the
- * inner body (and optional sidebar) does. Rendered ONLY inside isTV/isMobile
- * branches, so it never affects the desktop layout.
- *
- * Scroll regions carry `data-tv-scroll="vertical"`, the generic marker
- * TVNavigation.scrollIntoView looks for — so focus stays centered with no per-page
- * wiring.
- */
-export const PageFrame: React.FC<PageFrameProps> = ({
-  header,
-  sidebar,
-  children,
-  className = "",
-  bodyClassName = "",
-}) => {
+export const PageFrame: React.FC<PageFrameProps> = ({ title, children, className = "", header, sidebar }) => {
   return (
     <div className={`page-frame ${className}`.trim()}>
-      {header && <div className="page-frame-header">{header}</div>}
-      <div className="page-frame-row">
-        {sidebar && (
-          <TVScrollView orientation="vertical" className="page-frame-sidebar">
-            {sidebar}
-          </TVScrollView>
-        )}
-        <TVScrollView orientation="vertical" className={`page-frame-body ${bodyClassName}`.trim()}>
-          {children}
-        </TVScrollView>
+      {header || (title && (
+        <header className="page-frame-header">
+          <h1 className="page-frame-title">{title}</h1>
+        </header>
+      ))}
+      <div className="page-frame-body-wrapper" style={{ display: "flex", gap: "var(--space-l)" }}>
+        {sidebar && <div className="page-frame-sidebar">{sidebar}</div>}
+        <div className="page-frame-content" style={{ flex: 1, minWidth: 0 }}>{children}</div>
       </div>
     </div>
   );

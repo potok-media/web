@@ -2,7 +2,6 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Star } from "lucide-react";
 import type { MediaCard } from "../network/ApiClient";
-import { FocusableButton } from "./common/TVNavigation";
 
 interface StreamSidebarProps {
   media: MediaCard;
@@ -18,13 +17,14 @@ export const StreamSidebar: React.FC<StreamSidebarProps> = React.memo(({
   const { t } = useTranslation("streams");
   return (
     <aside className="streams-page-sidebar">
-      <FocusableButton
+      <button
+        type="button"
         className="streams-sidebar-back-btn"
         onClick={onBack}
         title={t("actions.back")}
       >
         <ArrowLeft size="1.125rem" />
-      </FocusableButton>
+      </button>
 
       <div className="streams-sidebar-poster">
         <img src={media.posterSrc || ""} alt={media.title} />

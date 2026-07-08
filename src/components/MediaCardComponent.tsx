@@ -1,21 +1,19 @@
 import React, { useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Star, Film, Tv } from "lucide-react";
 import { FilmOff } from "./common/FilmOff";
-import { Focusable } from "./common/TVNavigation";
 import { useSettings } from "../context/AppSettingsContext";
 import { resizeTmdbImage, posterSizeForQuality } from "../utils/mediaUtils";
-import { PlatformManager } from "../utils/PlatformManager";
 import type { MediaCard } from "../network/ApiClient";
 
 interface MediaCardComponentProps {
   item: MediaCard;
   onClick?: (item: MediaCard) => void;
-  onFocus?: () => void;
   style?: React.CSSProperties;
   delay?: number;
   focusKey?: string;
+  onFocus?: () => void;
 }
 
 export function areProgressEqual(
@@ -82,7 +80,6 @@ const areMediaCardComponentsEqual = (
   nextProps: MediaCardComponentProps
 ): boolean => {
   return (
-    prevProps.focusKey === nextProps.focusKey &&
     prevProps.delay === nextProps.delay &&
     shallowCompareStyles(prevProps.style, nextProps.style) &&
     areMediaCardsEqual(prevProps.item, nextProps.item)
@@ -90,14 +87,12 @@ const areMediaCardComponentsEqual = (
 };
 
 export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
-  ({ item, onClick, onFocus, style, focusKey }) => {
+  ({ item, onClick, style }) => {
     const [hasError, setHasError] = useState(false);
     const cardRef = useRef<HTMLAnchorElement>(null);
     const { bannerQuality } = useSettings();
     const { t } = useTranslation("media");
-    // Upscale the TMDB poster URL to the user's image-quality setting (no-op for non-TMDB URLs /
-    // "auto"). Covers every card surface — home, library, search — in one place.
-    const posterSrc = resizeTmdbImage(item.posterSrc, posterSizeForQuality(bannerQuality, PlatformManager.isTV()));
+    const posterSrc = resizeTmdbImage(item.posterSrc, posterSizeForQuality(bannerQuality));
 
     const handleImageError = () => {
       setHasError(true);
@@ -130,88 +125,68 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
     };
 
     return (
-      <Focusable
-        focusKey={focusKey}
-        onFocus={onFocus}
-        onEnterPress={() => {
-          if (onClick) {
-            onClick(item);
-          } else {
-            cardRef.current?.click();
-          }
-        }}
+      <RouterLink
+        ref={cardRef}
+        to={`/media/${item.mediaType}/${item.id}`}
+        className="media-card is-visible"
+        onClick={handleCardClick}
+        style={style}
       >
-        {({ ref: focusRef, focused }) => {
-          const setRefs = (node: HTMLAnchorElement | null) => {
-            cardRef.current = node;
-            (focusRef as React.MutableRefObject<HTMLAnchorElement | null>).current = node;
-          };
-          return (
-            <Link
-              ref={setRefs}
-              to={`/media/${item.mediaType}/${item.id}`}
-              className={`media-card is-visible ${focused ? "focused" : ""}`}
-              onClick={handleCardClick}
-              style={style}
+        <div className="media-poster-wrap">
+          {posterSrc && !hasError ? (
+            <img
+              src={posterSrc}
+              className="media-poster"
+              alt={item.title}
+              loading="lazy"
+              decoding="async"
+              onLoad={(e) => {
+                e.currentTarget.style.opacity = "1";
+              }}
+              onError={handleImageError}
+              style={{
+                opacity: 0,
+                transition: "opacity 0.2s ease-in-out"
+              }}
+            />
+          ) : (
+            <div className="media-poster-fallback-placeholder">
+              <FilmOff size="2.25rem" />
+            </div>
+          )}
+          
+          <div className="media-card-overlay">
+            <span
+              className="media-glass-pill media-type-pill"
+              aria-label={t(item.mediaType === "tv" ? "card.typeSeries" : "card.typeMovie")}
             >
-              <div className="media-poster-wrap">
-                {posterSrc && !hasError ? (
-                  <img
-                    src={posterSrc}
-                    className="media-poster"
-                    alt={item.title}
-                    loading="lazy"
-                    decoding="async"
-                    onLoad={(e) => {
-                      e.currentTarget.style.opacity = "1";
-                    }}
-                    onError={handleImageError}
-                    style={{
-                      opacity: 0,
-                      transition: "opacity 0.2s ease-in-out"
-                    }}
-                  />
-                ) : (
-                  <div className="media-poster-fallback-placeholder">
-                    <FilmOff size="2.25rem" />
-                  </div>
-                )}
-                
-                <div className="media-card-overlay">
-                  <span
-                    className="media-glass-pill media-type-pill"
-                    aria-label={t(item.mediaType === "tv" ? "card.typeSeries" : "card.typeMovie")}
-                  >
-                    {item.mediaType === "tv" ? <Tv size="0.6875rem" /> : <Film size="0.6875rem" />}
-                  </span>
-                  <div className="media-card-pills-row">
-                    {epInfo && (
-                      <span className="media-glass-pill episode-pill">{epInfo}</span>
-                    )}
-                    <div className="media-card-spacer" />
-                    {rating && (
-                      <span className="media-glass-pill rating-pill">
-                        <Star size="0.6875rem" fill="var(--warning)" stroke="var(--warning)" className="rating-star-icon" />
-                        <span className="rating-value-text">{rating.toFixed(1)}</span>
-                      </span>
-                    )}
-                  </div>
-                  {showProgress && (
-                    <div className="media-card-progress-container">
-                      <div 
-                        className="media-card-progress-bar" 
-                        style={{ width: `${item.progress!.percentage}%` }}
-                      />
-                    </div>
-                  )}
-                </div>
+              {item.mediaType === "tv" ? <Tv size="0.6875rem" /> : <Film size="0.6875rem" />}
+            </span>
+            <div className="media-card-pills-row">
+              {epInfo && (
+                <span className="media-glass-pill episode-pill">{epInfo}</span>
+              )}
+              <div className="media-card-spacer" />
+              {rating && (
+                <span className="media-glass-pill rating-pill">
+                  <Star size="0.6875rem" fill="var(--warning)" stroke="var(--warning)" className="rating-star-icon" />
+                  <span className="rating-value-text">{rating.toFixed(1)}</span>
+                </span>
+              )}
+            </div>
+            {showProgress && (
+              <div className="media-card-progress-container">
+                <div 
+                  className="media-card-progress-bar" 
+                  style={{ width: `${item.progress!.percentage}%` }}
+                />
               </div>
-              <h3 className="media-card-title">{item.title}</h3>
-              {item.subtitle && <p className="media-card-subtitle">{item.subtitle}</p>}
-            </Link>
-          );
-        }}
-      </Focusable>
+            )}
+          </div>
+        </div>
+        <h3 className="media-card-title">{item.title}</h3>
+        {item.subtitle && <p className="media-card-subtitle">{item.subtitle}</p>}
+      </RouterLink>
     );
   },
   areMediaCardComponentsEqual

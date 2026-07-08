@@ -133,7 +133,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [uiFontScale, _setUiFontScale] = useState<number>(() =>
     // TV defaults bigger than desktop for 10-foot viewing (matches the "Стандарт" preset);
     // PlatformManager.init applies the same default synchronously pre-paint.
-    Storage.get<number>("uiFontScale", PlatformManager.isTV() ? 1.4 : 1.0)
+    Storage.get<number>("uiFontScale", 1.0)
   );
   const [developerMode, _setDeveloperMode] = useState<boolean>(() => 
     Storage.get<boolean>("developerMode", false)
@@ -189,10 +189,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // One scale lever for every platform: bump the root font-size. The whole UI is rem-based, so
     // this enlarges it crisply at the panel's native resolution (TV presets just pick a bigger
     // multiplier than desktop — see AccessibilitySettings). No transform/zoom of the canvas.
-    // On TV, normalize by viewport width so the UI is the same PHYSICAL size on panels that report
-    // different CSS viewports (Apple TV ≈1920 vs Android TV ≈960–1280). See tvFontFactor.
-    const factor = PlatformManager.isTV() ? PlatformManager.tvFontFactor() : 1;
-    document.documentElement.style.setProperty("font-size", `${scale * factor * 100}%`);
+    document.documentElement.style.setProperty("font-size", `${scale * 100}%`);
   }, [uiFontScale]);
 
   const selectProfile = useCallback((id: string) => {

@@ -5,9 +5,6 @@ import { useTranslation } from "react-i18next";
 import { ApiClient } from "../network/ApiClient";
 import { MediaRow } from "../components/MediaRow";
 import { LoadingSpinner } from "../components/LoadingSpinner";
-import { FocusableButton } from "../components/common/TVNavigation";
-import { PlatformManager } from "../utils/PlatformManager";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import "../styles/actor.css";
 
 interface ActorState {
@@ -63,12 +60,7 @@ export const ActorPage: React.FC = () => {
     };
   }, [actorId]);
 
-  // Auto focus back button on TV mount
-  useEffect(() => {
-    if (PlatformManager.isTV()) {
-      setFocus("ACTOR_BACK_BTN");
-    }
-  }, [loading]);
+
 
   const handleBack = () => {
     navigate(-1);
@@ -275,13 +267,13 @@ export const ActorPage: React.FC = () => {
 
       <div className="actor-page-content-wrapper">
         <header className="actor-header-row">
-          <FocusableButton
-            focusKey="ACTOR_BACK_BTN"
+          <button
+            type="button"
             className="actor-circle-back-btn"
             onClick={handleBack}
           >
             <ArrowLeft size="1.25rem" />
-          </FocusableButton>
+          </button>
         </header>
 
         <div className="actor-main-info-section">

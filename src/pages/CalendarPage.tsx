@@ -1,14 +1,11 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Clock, AlertCircle, RefreshCw, BookmarkCheck, Star } from "lucide-react";
 import { useCalendarData } from "../hooks/useCalendarData";
 import type { MediaCard } from "../network/ApiTypes";
 import { FilmOff } from "../components/common/FilmOff";
-import { restoreFocusOrDefault } from "../utils/focusMemory";
 import { Focusable, FocusableButton } from "../components/common/TVNavigation";
-import { PageFrame } from "../components/common/PageFrame";
-import { usePlatform } from "../hooks/usePlatform";
 import "../styles/media.css";
 
 const CalendarSkeleton: React.FC = () => (
@@ -29,16 +26,11 @@ const CalendarSkeleton: React.FC = () => (
 
 export const CalendarPage: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+
   const { t } = useTranslation("media");
   const { items, loading, error, refetch, isTraktConnected } = useCalendarData();
   const [activeFilter, setActiveFilter] = useState<"all" | "today" | "tomorrow" | "this-week">("all");
-  const { isTV } = usePlatform();
 
-  useEffect(() => {
-    // On Back, restore the row/tab the user was on; otherwise default to the first filter tab.
-    restoreFocusOrDefault(location.key || location.pathname, "CALENDAR_FIRST_TAB");
-  }, [location.key, location.pathname, loading]);
 
   const filterChips = [
     { key: "all", label: t("calendar.filters.all") },
@@ -309,14 +301,7 @@ export const CalendarPage: React.FC = () => {
     </>
   );
 
-  // TV: pin the title + filter chips; only the release feed scrolls.
-  if (isTV) {
-    return (
-      <PageFrame className="calendar-frame-tv" header={<div className="calendar-container calendar-frame-header">{calendarHeader}</div>}>
-        <div className="calendar-container calendar-frame-body">{calendarBody}</div>
-      </PageFrame>
-    );
-  }
+
 
   return (
     <main className="calendar-container">

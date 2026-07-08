@@ -50,8 +50,8 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
     (/Mac|iPad|iPhone|iPod/.test(navigator.userAgent) ||
      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
 
-  const { isTV, isMobile } = usePlatform();
-  const touchUI = isTV || isMobile;
+  const { isMobile } = usePlatform();
+  const touchUI = isMobile;
 
   const playerOptions: TVSelectOption<string>[] = [
     { value: "native", label: t("player.native") },

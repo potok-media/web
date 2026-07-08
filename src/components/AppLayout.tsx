@@ -14,8 +14,6 @@ import { FocusTrap } from "./FocusTrap";
 import { PluginSandbox } from "./common/PluginSandbox";
 import { PlatformManager } from "../utils/PlatformManager";
 import { useIsMobile } from "../hooks/useIsMobile";
-import { getCurrentFocusKey, setFocus } from "@noriginmedia/norigin-spatial-navigation";
-import { setActiveRoute, recallFocus } from "../utils/focusMemory";
 import "../styles/layout.css";
 import { logger } from "../utils/logger";
 
@@ -24,9 +22,6 @@ const DeveloperInspector = React.lazy(() => import("./common/extension/Developer
 export const AppLayout: React.FC = () => {
   const { t } = useTranslation("common");
   const location = useLocation();
-  // Tag the active route during render (before child pages mount/focus) so focusMemory records
-  // each focus change under the correct route — enabling focus restoration on Back.
-  setActiveRoute(location.key || location.pathname);
   const mainContentRef = React.useRef<HTMLDivElement>(null);
   const scrollPositions = React.useRef<Record<string, number>>({});
 
@@ -52,27 +47,6 @@ export const AppLayout: React.FC = () => {
     return () => clearTimeout(timer);
   }, [location.pathname, location.key]);
 
-  // Universal focus restoration on Back — covers EVERY route, including pages created by plugins
-  // via the SDK (which we can't wire individually). Pages render their focusables asynchronously
-  // and may set their own default focus, so we retry briefly until the remembered element exists,
-  // then stop (no re-asserting → never fights the user once restored). Routes visited fresh
-  // (forward nav) have no saved key → this no-ops and the page's own default focus stands.
-  React.useEffect(() => {
-    if (!PlatformManager.isTV()) return;
-    const saved = recallFocus(location.key || location.pathname);
-    if (!saved) return;
-    let raf = 0;
-    const deadline = Date.now() + 1500;
-    const attempt = () => {
-      if (getCurrentFocusKey() === saved) return;       // restored (here or by the page itself)
-      setFocus(saved);
-      if (getCurrentFocusKey() === saved || Date.now() > deadline) return;
-      raf = requestAnimationFrame(attempt);             // element not mounted yet → keep trying
-    };
-    raf = requestAnimationFrame(attempt);
-    return () => cancelAnimationFrame(raf);
-  }, [location.key, location.pathname]);
-
   const {
     connectionState,
     checkConnection,
@@ -91,7 +65,7 @@ export const AppLayout: React.FC = () => {
     setIsInspectorActive
   } = useInspector();
 
-  const isDesktop = !PlatformManager.isTV() && window.innerWidth > 768;
+  const isDesktop = window.innerWidth > 768;
 
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -113,32 +87,6 @@ export const AppLayout: React.FC = () => {
       window.removeEventListener("potok-back-pressed", handleBackPressed);
     };
   }, [location.pathname, navigate]);
-
-  // Driven by AppSidebar's norigin `hasFocusedChild` (via onFocusChange) — the
-  // authoritative signal for whether spatial-navigation focus is inside the sidebar.
-  const [isSidebarFocused, setIsSidebarFocused] = React.useState(false);
-
-  // TV: pressing LEFT with nowhere left to go (left edge of content) opens the
-  // sidebar on the active section. Deterministic — only fires when LEFT did NOT move
-  // focus, and never while a modal/popover holds focus.
-  React.useEffect(() => {
-    if (!PlatformManager.isTV()) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key !== "ArrowLeft" && e.keyCode !== 37) return;
-      // Any open Overlay tags itself with data-tv-overlay; the trailing legacy
-      // selectors cover the non-React PWA update prompt.
-      if (document.querySelector("[data-tv-overlay], .potok-update-modal-overlay")) return;
-      const before = getCurrentFocusKey();
-      if (!before || (typeof before === "string" && before.startsWith("SIDEBAR"))) return;
-      requestAnimationFrame(() => {
-        if (getCurrentFocusKey() === before) {
-          setFocus("SIDEBAR");
-        }
-      });
-    };
-    window.addEventListener("keydown", handler, true);
-    return () => window.removeEventListener("keydown", handler, true);
-  }, []);
 
   const {
     activePlayback,
@@ -233,9 +181,6 @@ export const AppLayout: React.FC = () => {
   }
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(() => {
-    if (PlatformManager.isTV()) {
-      return true;
-    }
     const saved = localStorage.getItem("isSidebarCollapsed");
     return saved === null ? false : saved === "true";
   });
@@ -277,17 +222,14 @@ export const AppLayout: React.FC = () => {
     }, 150);
   };
 
-  const isSidebarCollapsedEffective = isSidebarCollapsed && !isSidebarFocused;
-
   return (
-    <div className={`app-container ${isSidebarCollapsedEffective ? "sidebar-collapsed" : ""} ${isMobile ? "mobile-layout" : ""}`}>
+    <div className={`app-container ${isSidebarCollapsed ? "sidebar-collapsed" : ""} ${isMobile ? "mobile-layout" : ""}`}>
       {!isMobile && (
         <AppSidebar
-          isCollapsed={isSidebarCollapsedEffective}
+          isCollapsed={isSidebarCollapsed}
           onToggle={toggleSidebar}
           pathname={location.pathname}
           search={location.search}
-          onFocusChange={setIsSidebarFocused}
         />
       )}
       <main

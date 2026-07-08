@@ -2,28 +2,8 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Eye, BookOpen } from "lucide-react";
 import "../../styles/extensions.css";
-import { Focusable, FocusableButton, FocusableInput } from "../common/TVNavigation";
-import { TVSelect } from "../common/TVSelect";
-import { usePlatform } from "../../hooks/usePlatform";
 
 const FONT_SCALE_VALUES = [0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5] as const;
-
-// On TV the UI scale is the root font-size multiplier (everything is rem-based, so this enlarges the
-// whole UI crisply at native resolution — see AppSettingsContext). 3 plain presets instead of the
-// desktop font-percent steps; values are bigger than desktop because of the 10-foot viewing distance.
-const TV_SIZE_PRESET_VALUES = [
-  { value: 1.6, labelKey: "accessibility.tvSizeLarger" },
-  { value: 1.4, labelKey: "accessibility.tvSizeStandard" },
-  { value: 1.2, labelKey: "accessibility.tvSizeCompact" },
-] as const;
-
-// Snap a stored uiFontScale to the nearest preset so the control always shows a selected option.
-function nearestTvPreset(scale: number): number {
-  return TV_SIZE_PRESET_VALUES.reduce<number>(
-    (best, p) => (Math.abs(p.value - scale) < Math.abs(best - scale) ? p.value : best),
-    TV_SIZE_PRESET_VALUES[1].value
-  );
-}
 
 interface AccessibilitySettingsProps {
   uiFontScale: number;
@@ -42,9 +22,7 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
   disableHttpProxy,
   setDisableHttpProxy,
 }) => {
-  const { isTV, isMobile } = usePlatform();
   const { t } = useTranslation("settings");
-  const touchUI = isTV || isMobile;
 
   const fontScaleOptions = React.useMemo(
     () =>
@@ -52,11 +30,6 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
         value,
         label: t(`accessibility.fontScale.${Math.round(value * 100)}`),
       })),
-    [t]
-  );
-
-  const tvSizePresets = React.useMemo(
-    () => TV_SIZE_PRESET_VALUES.map((p) => ({ value: p.value, label: t(p.labelKey) })),
     [t]
   );
 
@@ -69,43 +42,22 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
         </h2>
 
         <div className="settings-form-group settings-preference-group">
-          <label className="settings-label">{isTV ? t("accessibility.uiSize") : t("accessibility.uiScale")}</label>
-          {isTV ? (
-            <TVSelect
-              value={nearestTvPreset(uiFontScale)}
-              options={tvSizePresets}
-              onChange={(v) => setUiFontScale(v)}
-              focusKeyPrefix="SETTINGS_TVSIZE_"
-            />
-          ) : touchUI ? (
-            <TVSelect
-              value={Number(uiFontScale.toFixed(1))}
-              options={fontScaleOptions}
-              onChange={(v) => setUiFontScale(v)}
-              focusKeyPrefix="SETTINGS_FONTSCALE_"
-            />
-          ) : (
-            <Focusable>
-              {({ ref, focused }) => (
-                <select
-                  ref={ref}
-                  className={`settings-select ${focused ? "focused" : ""}`}
-                  value={uiFontScale.toFixed(1)}
-                  onChange={(e) => setUiFontScale(parseFloat(e.target.value))}
-                >
-                  {fontScaleOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value.toFixed(1)}>{opt.label}</option>
-                  ))}
-                </select>
-              )}
-            </Focusable>
-          )}
+          <label className="settings-label">{t("accessibility.uiScale")}</label>
+          <select
+            className="settings-select"
+            value={uiFontScale.toFixed(1)}
+            onChange={(e) => setUiFontScale(parseFloat(e.target.value))}
+          >
+            {fontScaleOptions.map((opt) => (
+              <option key={opt.value} value={opt.value.toFixed(1)}>{opt.label}</option>
+            ))}
+          </select>
         </div>
 
         <div className="potok-toggle-group" style={{ marginTop: "var(--space-l)", maxWidth: "30rem", width: "100%" }}>
           <span className="settings-label" style={{ margin: 0 }}>{t("accessibility.developerMode")}</span>
           <label className="potok-switch" style={{ flexShrink: 0 }}>
-            <FocusableInput
+            <input
               type="checkbox"
               checked={developerMode}
               onChange={(e) => setDeveloperMode(e.target.checked)}
@@ -117,7 +69,7 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
         <div className="potok-toggle-group" style={{ marginTop: "var(--space-l)", maxWidth: "30rem", width: "100%" }}>
           <span className="settings-label" style={{ margin: 0 }}>{t("accessibility.directRequests")}</span>
           <label className="potok-switch" style={{ flexShrink: 0 }}>
-            <FocusableInput
+            <input
               type="checkbox"
               checked={disableHttpProxy}
               onChange={(e) => setDisableHttpProxy(e.target.checked)}
@@ -132,14 +84,15 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
             <span style={{ fontSize: "var(--font-size-caption, 0.75rem)", color: "var(--text-muted)", marginBottom: "0.5rem" }}>
               {t("accessibility.docsDescription")}
             </span>
-            <FocusableButton
+            <button
+              type="button"
               onClick={() => window.open("/wiki", "_blank")}
               className="settings-btn-primary"
               style={{ alignSelf: "flex-start", padding: "0.625rem 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}
             >
               <BookOpen size="1rem" />
               <span>{t("accessibility.openWiki")}</span>
-            </FocusableButton>
+            </button>
           </div>
         )}
       </section>

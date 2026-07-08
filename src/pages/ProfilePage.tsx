@@ -8,9 +8,7 @@ import { useHUD } from "../context/HUDContext";
 import { useAuth } from "../context/AppSettingsContext";
 import { restoreFocusOrDefault } from "../utils/focusMemory";
 import { FocusableButton } from "../components/common/TVNavigation";
-import { FitFrame } from "../components/common/FitFrame";
 import { useIsMobile } from "../hooks/useIsMobile";
-import { PlatformManager } from "../utils/PlatformManager";
 import { SyncStrategySelectionView } from "../components/profile/SyncStrategySelectionView";
 import { ServerSyncActiveView } from "../components/profile/ServerSyncActiveView";
 import { TraktDeviceAuthView } from "../components/profile/TraktDeviceAuthView";
@@ -39,7 +37,7 @@ export const ProfilePage: React.FC = () => {
   const [deviceCode, setDeviceCode] = useState<DeviceCodeResponse | null>(null);
   const [loadingTrakt, setLoadingTrakt] = useState(false);
   const isMobile = useIsMobile();
-  const isTV = PlatformManager.isTV();
+
 
   const pollingRef = useRef<any>(null);
 
@@ -191,8 +189,8 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       {syncStrategy !== "none" && syncStrategy !== "localDevice" && (
-        (isMobile || PlatformManager.isTV()) ? (
-          /* Segmented chips — focusable, used on mobile and TV (a native <select>
+        isMobile ? (
+          /* Segmented chips — focusable, used on mobile (a native <select>
              can't be reached by the D-pad). */
           <div className="profile-dropdown-wrap mobile-only">
             <div className="strategy-chips-container">
@@ -313,11 +311,6 @@ export const ProfilePage: React.FC = () => {
     </div>
   );
 
-  // TV: a profile is not a list — scale it to fit so every element is visible at once
-  // (no scrolling).
-  if (isTV) {
-    return <FitFrame className="profile-frame-tv">{profileContent}</FitFrame>;
-  }
   return profileContent;
 };
 

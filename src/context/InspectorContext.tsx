@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useSettings } from "./AppSettingsContext";
 
-import { PlatformManager } from "../utils/PlatformManager";
+
 
 interface InspectorContextType {
   isInspectorActive: boolean;
@@ -40,7 +40,7 @@ export const InspectorProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 };
 
 export const useInspector = () => {
-  const isDesktop = typeof window !== "undefined" && !PlatformManager.isTV() && window.innerWidth > 768;
+  const isDesktop = typeof window !== "undefined" && window.innerWidth > 768;
   if (!isDesktop) {
     return {
       isInspectorActive: false,

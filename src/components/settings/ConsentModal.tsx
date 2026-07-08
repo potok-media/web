@@ -2,7 +2,6 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { X, ShieldAlert } from "lucide-react";
 import type { ExtensionManifest } from "@potok/sdk-types";
-import { FocusableButton } from "../common/TVNavigation";
 import { Overlay } from "../common/Overlay";
 
 interface Props {
@@ -25,8 +24,6 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
     <Overlay
       open
       onClose={onClose}
-      focusKey="CONSENT_MODAL"
-      initialFocusKey="CONSENT_MODAL_CONFIRM"
       styled={false}
       backdropClassName="manifest-modal-overlay"
       className="manifest-modal"
@@ -44,9 +41,9 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
             </span>
           </div>
         </div>
-        <FocusableButton onClick={onClose} className="manifest-modal-close" title={t("consent.close")}>
+        <button type="button" onClick={onClose} className="manifest-modal-close" title={t("consent.close")}>
           <X size="1.25rem" />
-        </FocusableButton>
+        </button>
       </div>
 
       <div className="manifest-modal-body" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
@@ -80,21 +77,22 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
       </div>
 
       <div className="manifest-modal-footer" style={{ padding: "1.25rem 1.5rem", borderTop: "1px solid rgba(255, 255, 255, 0.08)", display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
-        <FocusableButton
-          focusKey="CONSENT_MODAL_CONFIRM"
+        <button
+          type="button"
           onClick={onConfirm}
           className="potok-btn potok-btn-primary"
           style={{ fontSize: "0.85rem", padding: "0.6rem 1.2rem", background: "#ff9f1a", borderColor: "#ff9f1a", color: "#000", fontWeight: "bold" }}
         >
           {t("consent.confirm")}
-        </FocusableButton>
-        <FocusableButton
+        </button>
+        <button
+          type="button"
           onClick={onClose}
           className="potok-btn potok-btn-ghost"
           style={{ fontSize: "0.85rem", padding: "0.6rem 1.2rem", border: "1px solid rgba(255, 255, 255, 0.15)", borderRadius: "0.375rem", color: "var(--text-primary)" }}
         >
           {t("consent.cancel")}
-        </FocusableButton>
+        </button>
       </div>
     </Overlay>
   );

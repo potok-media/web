@@ -1,6 +1,4 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
-import { FocusableButton } from "./common/TVNavigation";
 import { logger } from "../utils/logger";
 import { i18n } from "../i18n";
 
@@ -26,8 +24,6 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     logger.error("Uncaught error inside ErrorBoundary:", error, errorInfo);
-    // Land D-pad focus on the retry button when the default fallback is shown.
-    setTimeout(() => setFocus("ERROR_RETRY"), 80);
   }
 
   private resetError = () => {
@@ -63,8 +59,8 @@ export class ErrorBoundary extends Component<Props, State> {
           <p style={{ opacity: 0.8, marginBottom: "1.5rem" }}>
             {this.state.error?.message || i18n.t("common:errorBoundary.message")}
           </p>
-          <FocusableButton
-            focusKey="ERROR_RETRY"
+          <button
+            type="button"
             onClick={this.resetError}
             style={{
               padding: "0.5rem 1.5rem",
@@ -77,7 +73,7 @@ export class ErrorBoundary extends Component<Props, State> {
             }}
           >
             {i18n.t("common:errorBoundary.retry")}
-          </FocusableButton>
+          </button>
         </div>
       );
     }

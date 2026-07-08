@@ -11,8 +11,6 @@ import DeclarativeSettings from "../components/settings/DeclarativeSettings";
 import AccessibilitySettings from "../components/settings/AccessibilitySettings";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import type { RegisteredExtension } from "@potok/sdk-types";
-import { useLocation } from "react-router-dom";
-import { restoreFocusOrDefault } from "../utils/focusMemory";
 import { FocusableButton } from "../components/common/TVNavigation";
 import { PageFrame } from "../components/common/PageFrame";
 import { usePlatform } from "../hooks/usePlatform";
@@ -40,13 +38,9 @@ export const SettingsPage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<string>("general");
   const [, setTick] = useState(0);
-  const { isTV, isMobile } = usePlatform();
+  const { isMobile } = usePlatform();
   const { t } = useTranslation("settings");
-  const location = useLocation();
 
-  useEffect(() => {
-    restoreFocusOrDefault(location.key || location.pathname, "SETTINGS_TAB_GENERAL");
-  }, [location.key, location.pathname]);
 
   // Setup extensions state from localStorage and keep it in sync
   const [extensions, setExtensions] = useState<RegisteredExtension[]>(() => {
@@ -228,17 +222,7 @@ export const SettingsPage: React.FC = () => {
     </>
   );
 
-  // ── TV: pinned frame — sidebar + the single scrolling panel ─────────────────
-  if (isTV) {
-    return (
-      <PageFrame
-        className="settings-frame-tv"
-        sidebar={<aside className="settings-sidebar">{sidebarNav}</aside>}
-      >
-        <main className="settings-main-content">{panel}</main>
-      </PageFrame>
-    );
-  }
+
 
   // ── Mobile: pinned frame — tabs header + the single scrolling panel ─────────
   if (isMobile) {

@@ -7,8 +7,8 @@ import type { StreamUIItem } from "../../network/ApiTypes";
 import { StreamFilterBar } from "../StreamFilterBar";
 import StreamRowComponent from "../StreamRowComponent";
 import StreamSkeletonList from "../StreamSkeletonList";
-import { TVScrollView } from "./TVScrollView";
-import { PlatformManager } from "../../utils/PlatformManager";
+import { ScrollView } from "./ScrollView";
+
 
 export interface StreamListProps {
   streams: RawStreamPayload[];
@@ -140,12 +140,7 @@ export const StreamList: React.FC<StreamListProps> = ({
     }));
   }, [streams, qualityFilter, activeTracker, seasonFilter, sortOption, t]);
 
-  const displayStreams = useMemo(() => {
-    if (PlatformManager.isTV() && processedStreams.length > 25) {
-      return processedStreams.slice(0, 25);
-    }
-    return processedStreams;
-  }, [processedStreams]);
+  const displayStreams = processedStreams;
 
   // Map UI item id -> raw payload so a single stable onClick can resolve the raw
   // stream, keeping StreamRowComponent's React.memo intact during D-pad scrolling.
@@ -190,7 +185,7 @@ export const StreamList: React.FC<StreamListProps> = ({
         />
       )}
 
-      <TVScrollView orientation="vertical" className="streams-results-list" trackClassName="streams-results-track">
+      <ScrollView orientation="vertical" className="streams-results-list" trackClassName="streams-results-track">
         {loading ? (
           <StreamSkeletonList />
         ) : displayStreams.length > 0 ? (
@@ -212,7 +207,7 @@ export const StreamList: React.FC<StreamListProps> = ({
             </span>
           </div>
         )}
-      </TVScrollView>
+      </ScrollView>
     </div>
   );
 };

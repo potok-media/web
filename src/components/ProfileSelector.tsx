@@ -2,7 +2,6 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Trash2, Settings as SettingsIcon } from "lucide-react";
 import type { ConnectionProfile } from "../network/ApiTypes";
-import { Focusable, FocusableButton } from "./common/TVNavigation";
 
 interface ProfileSelectorProps {
   connectionProfiles: ConnectionProfile[];
@@ -26,6 +25,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = React.memo(({
   isSettingsLocked = false,
 }) => {
   const { t } = useTranslation("settings");
+
   const handleDeleteClick = (e: React.MouseEvent, profileId: string) => {
     e.stopPropagation();
     if (connectionProfiles.length <= 1) {
@@ -45,52 +45,44 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = React.memo(({
 
       <div className="profiles-list">
         {connectionProfiles.map((p) => (
-          <Focusable
+          <div
             key={p.id}
-            onEnterPress={() => {
+            className={`profile-card ${p.id === activeProfileID ? "active" : ""}`}
+            onClick={() => {
               onSelectProfile(p.id);
               onStartEdit(p);
             }}
           >
-            {({ ref, focused }) => (
-              <div
-                ref={ref}
-                className={`profile-card ${p.id === activeProfileID ? "active" : ""} ${focused ? "focused" : ""}`}
-                onClick={() => {
-                  onSelectProfile(p.id);
-                  onStartEdit(p);
-                }}
-              >
-                <div className="profile-card-info">
-                  <span className="profile-card-name">{p.name}</span>
-                  <span className="profile-card-url">{p.gatewayURL}</span>
-                </div>
-                {!isSettingsLocked && (
-                  <div className="profile-actions">
-                    <FocusableButton
-                      className="profile-btn delete"
-                      onClick={(e) => handleDeleteClick(e, p.id)}
-                      title={t("profileSelector.deleteProfile")}
-                    >
-                      <Trash2 size="1rem" />
-                    </FocusableButton>
-                  </div>
-                )}
+            <div className="profile-card-info">
+              <span className="profile-card-name">{p.name}</span>
+              <span className="profile-card-url">{p.gatewayURL}</span>
+            </div>
+            {!isSettingsLocked && (
+              <div className="profile-actions">
+                <button
+                  type="button"
+                  className="profile-btn delete"
+                  onClick={(e) => handleDeleteClick(e, p.id)}
+                  title={t("profileSelector.deleteProfile")}
+                >
+                  <Trash2 size="1rem" />
+                </button>
               </div>
             )}
-          </Focusable>
+          </div>
         ))}
       </div>
 
       {!isSettingsLocked && (
-        <FocusableButton
+        <button
+          type="button"
           className="settings-btn-primary settings-add-profile-btn"
           onClick={onStartAdd}
           disabled={connectionProfiles.length >= 5}
         >
           <Plus size="1rem" />
           <span>{t("profileSelector.addProfile")}</span>
-        </FocusableButton>
+        </button>
       )}
     </section>
   );

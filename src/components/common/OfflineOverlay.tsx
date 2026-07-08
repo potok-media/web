@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import type { ConnectionState } from "../../context/AppSettingsContext";
 import { FocusTrap } from "./FocusTrap";
 import { Server, WifiOff, Settings2, Loader2, ArrowRight } from "lucide-react";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
-import { FocusableButton, FocusableInput, FocusableContainer } from "./TVNavigation";
 
 export interface OfflineOverlayProps {
   state: ConnectionState;
@@ -20,20 +18,9 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
 }) => {
   const [inputUrl, setInputUrl] = useState(gatewayURL);
 
-  // Sync state if gatewayURL changes externally
   useEffect(() => {
     setInputUrl(gatewayURL);
   }, [gatewayURL]);
-
-  // TV: default focus on the URL input when an interactive state is shown
-  useEffect(() => {
-    if (state === "offline" || state === "setupRequired") {
-      const t = setTimeout(() => {
-        setFocus("OFFLINE_OVERLAY_INPUT");
-      }, 60);
-      return () => clearTimeout(t);
-    }
-  }, [state]);
 
   if (state === "connected") return null;
 
@@ -44,7 +31,6 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
     }
   };
 
-  // Content helper
   const getLocales = () => {
     switch (state) {
       case "checking":
@@ -93,7 +79,6 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
   return (
     <FocusTrap active={true}>
       <div className="potok-overlay-backdrop">
-        {/* Modern ambient blurred orbs for premium macOS/Vercel feel */}
         <div className="potok-ambient-glow" style={{ "--glow-color": current.themeColor } as React.CSSProperties} />
         <div className="potok-ambient-glow second" style={{ "--glow-color": current.themeColor } as React.CSSProperties} />
 
@@ -125,11 +110,10 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
           )}
 
           {(state === "offline" || state === "setupRequired") && (
-            <FocusableContainer focusKey="OFFLINE_OVERLAY" isFocusBoundary>
+            <div className="potok-overlay-form-container">
               <form onSubmit={handleSubmit} className="potok-overlay-form-container">
                 <div className="potok-input-wrapper">
-                  <FocusableInput
-                    focusKey="OFFLINE_OVERLAY_INPUT"
+                  <input
                     type="text"
                     className="potok-premium-input"
                     placeholder="Например: http://192.168.1.100:8080"
@@ -141,29 +125,28 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
                 </div>
 
                 <div className="potok-action-buttons">
-                  <FocusableButton type="submit" className="potok-btn-primary">
+                  <button type="submit" className="potok-btn-primary">
                     <span>
                       {state === "offline" ? "Применить и повторить попытку" : "Сохранить и подключиться"}
                     </span>
                     <ArrowRight size="1rem" className="arrow-icon" />
-                  </FocusableButton>
+                  </button>
 
                   {state === "offline" && onRetry && (
-                    <FocusableButton
+                    <button
                       type="button"
                       className="potok-btn-secondary"
                       onClick={onRetry}
                     >
                       Проверить снова
-                    </FocusableButton>
+                    </button>
                   )}
                 </div>
               </form>
-            </FocusableContainer>
+            </div>
           )}
         </div>
 
-        {/* Local styled component to guarantee zero-conflict premium styling */}
         <style dangerouslySetInnerHTML={{ __html: `
           .potok-overlay-backdrop {
             position: fixed;

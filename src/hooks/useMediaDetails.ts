@@ -4,7 +4,6 @@ import { ApiClient } from "../network/ApiClient";
 import { SyncApiClient } from "../network/SyncApiClient";
 import { Storage } from "../utils/StorageService";
 import { useWSSync } from "../context/WSSyncContext";
-import { PlatformManager } from "../utils/PlatformManager";
 import { resizeTmdbImage, backdropSizeForQuality } from "../utils/mediaUtils";
 import type { MediaCard } from "../network/ApiTypes";
 
@@ -77,7 +76,7 @@ export function useMediaDetails({
         const bannerQuality = Storage.get<string>("bannerQuality", "auto");
         data.backdropSrc = resizeTmdbImage(
           data.backdropSrc,
-          backdropSizeForQuality(bannerQuality, PlatformManager.isTV())
+          backdropSizeForQuality(bannerQuality)
         );
       }
 

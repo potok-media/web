@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useLocation, Link, useNavigate } from "react-router-dom";
 import { 
@@ -13,12 +13,8 @@ import { MediaCardComponent } from "../components/MediaCardComponent";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { CATEGORY_MAP, DYNAMIC_CATEGORY_TITLES } from "./LibraryConfig";
 import { Grid } from "../components/common/Grid";
-import { PlatformManager } from "../utils/PlatformManager";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
-import { restoreFocusOrDefault } from "../utils/focusMemory";
+
 import { FocusableInput, FocusableButton } from "../components/common/TVNavigation";
-import { PageFrame } from "../components/common/PageFrame";
-import { usePlatform } from "../hooks/usePlatform";
 import "../styles/media.css";
  
 export const LibraryPage: React.FC = () => {
@@ -27,7 +23,7 @@ export const LibraryPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation("media");
 
-  const { isTV } = usePlatform();
+
   const isSearchPage = location.pathname === "/search";
   const collectionType = isSearchPage ? "search" : (routeType || "");
  
@@ -102,7 +98,7 @@ export const LibraryPage: React.FC = () => {
   // the window as the user scrolls toward the end. This keeps the DOM small for large
   // collections without unmounting items (spatial navigation needs focusable nodes to
   // stay mounted, so true windowing is avoided).
-  const renderChunk = PlatformManager.isTV() ? 18 : 36;
+  const renderChunk = 36;
   const [visibleCount, setVisibleCount] = useState(renderChunk);
   const renderSentinelRef = useRef<HTMLDivElement>(null);
 
@@ -133,28 +129,7 @@ export const LibraryPage: React.FC = () => {
     };
   }, [visibleCount, items.length, renderChunk]);
 
-  // Set the INITIAL focus once per collection/query. Keyed by resetKey so it doesn't re-fire on
-  // every items.length change — otherwise each pagination append would yank focus back to the top.
-  const focusedForKeyRef = useRef("");
-  useEffect(() => {
-    if (error && !loading) {
-      setFocus("LIBRARY_ERROR_RETRY");
-      return;
-    }
-    if (loading) return;
-    if (focusedForKeyRef.current === resetKey) return;
-    if (isSearchPage) {
-      focusedForKeyRef.current = resetKey;
-      setFocus("SEARCH_INPUT");
-    } else if (items.length > 0) {
-      focusedForKeyRef.current = resetKey;
-      // Spatial (D-pad) focus is only meaningful on TV. Forcing focus on the first card on
-      // mobile/desktop just draws an unwanted highlight ring.
-      if (isTV) {
-        restoreFocusOrDefault(location.key || location.pathname, "LIBRARY_FIRST_CARD");
-      }
-    }
-  }, [loading, isSearchPage, items.length, error, resetKey, location.key, location.pathname, isTV]);
+
 
   useEffect(() => {
     if (!hasMore || loading || loadingMore) return;
@@ -192,17 +167,7 @@ export const LibraryPage: React.FC = () => {
   // page. A ref keeps the latest paging state so the per-card onFocus handler can stay stable.
   const pagingRef = useRef({ visibleCount, itemsLength: items.length, hasMore, page, loading, loadingMore });
   pagingRef.current = { visibleCount, itemsLength: items.length, hasMore, page, loading, loadingMore };
-  const NEAR_END = 8; // ≈ one grid row ahead
-  const handleCardFocus = useCallback((index: number) => {
-    if (!PlatformManager.isTV()) return;
-    const p = pagingRef.current;
-    if (index >= p.visibleCount - NEAR_END && p.visibleCount < p.itemsLength) {
-      setVisibleCount((prev) => Math.min(prev + renderChunk, p.itemsLength));
-    }
-    if (index >= p.itemsLength - NEAR_END && p.hasMore && !p.loading && !p.loadingMore) {
-      loadNextPage();
-    }
-  }, [renderChunk, loadNextPage]);
+
 
   if (error === "trakt_unauthorized") {
     return (
@@ -333,7 +298,6 @@ export const LibraryPage: React.FC = () => {
                 item={item}
                 // Stable per-card focusKey so focus restores to THIS card on Back.
                 focusKey={index === 0 ? "LIBRARY_FIRST_CARD" : `LIBRARY_CARD_${item.id}`}
-                onFocus={() => handleCardFocus(index)}
               />
             ))}
           </Grid>
@@ -388,14 +352,7 @@ export const LibraryPage: React.FC = () => {
     return null;
   };
 
-  // TV: pin the header (title / search field); only the grid scrolls.
-  if (isTV) {
-    return (
-      <PageFrame className="library-frame-tv" header={<div className="library-page-container library-frame-header">{renderHeader()}</div>}>
-        <main className="library-content-area library-frame-body">{renderContent()}</main>
-      </PageFrame>
-    );
-  }
+
 
   return (
     <div className="library-page-container">

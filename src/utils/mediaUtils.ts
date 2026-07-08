@@ -8,24 +8,19 @@ export const resizeTmdbImage = (url: string | undefined | null, size: string): s
   return url.replace(/\/t\/p\/(w\d+|h\d+|original)\//, `/t/p/${size}/`);
 };
 
-/**
- * TMDB backdrop size for the user's "banner quality" setting (Settings → Внешний вид).
- * "auto" keeps the perf-friendly per-platform default (TV smaller); "high"/"max" override it.
- */
-export const backdropSizeForQuality = (quality: string, isTV: boolean): string => {
+export const backdropSizeForQuality = (quality: string): string => {
   if (quality === "max") return "original";
-  if (quality === "high") return "w1280";
-  return isTV ? "w780" : "w1280"; // auto
+  return "w1280"; // auto/high default
 };
 
 /**
  * TMDB poster size for the "image quality" setting. Capped at w780 — posters are small cards, so
- * "original" (≈2000px) would just waste bandwidth. "auto" keeps the per-platform default.
+ * "original" (≈2000px) would just waste bandwidth.
  */
-export const posterSizeForQuality = (quality: string, isTV: boolean): string => {
+export const posterSizeForQuality = (quality: string): string => {
   if (quality === "max") return "w780";
   if (quality === "high") return "w500";
-  return isTV ? "w185" : "w342"; // auto
+  return "w342"; // auto default
 };
 
 /**

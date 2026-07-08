@@ -4,7 +4,6 @@ import { ApiClient } from "../network/ApiClient";
 import { ApiError } from "../network/ApiTypes";
 import type { HomeResponse } from "../network/ApiTypes";
 import { useSettings, useAuth } from "../context/AppSettingsContext";
-import { PlatformManager } from "../utils/PlatformManager";
 import { backdropSizeForQuality } from "../utils/mediaUtils";
 import { logger } from "../utils/logger";
 
@@ -60,8 +59,8 @@ export function useHomeFeed(onError: (msg: string) => void) {
     try {
       if (shouldShowLoading) setLoading(true);
       
-      const posterSize = PlatformManager.isTV() ? "w185" : "w342";
-      const backdropSize = backdropSizeForQuality(bannerQuality, PlatformManager.isTV());
+      const posterSize = "w342";
+      const backdropSize = backdropSizeForQuality(bannerQuality);
       const data = await ApiClient.fetchHomeFeed(posterSize, backdropSize);
 
       const isFeedEqual = (a: HomeResponse | null, b: HomeResponse | null): boolean => {

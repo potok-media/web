@@ -6,8 +6,6 @@ import { useAuth } from "../context/AppSettingsContext";
 import { useHUD } from "../context/HUDContext";
 import SidebarStatus from "./SidebarStatus";
 import SidebarSearch from "./SidebarSearch";
-import { Focusable, FocusableButton } from "./common/TVNavigation";
-import { useFocusable, FocusContext, setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { Slot } from "./common/extension/Slot";
 import "../styles/sidebar.css";
 
@@ -17,37 +15,18 @@ interface FocusableNavLinkProps {
   onClick?: (e: React.MouseEvent) => void;
   children: React.ReactNode;
   end?: boolean;
-  focusKey?: string;
 }
 
-const FocusableNavLink: React.FC<FocusableNavLinkProps> = ({ to, className, onClick, children, end, focusKey }) => {
-  const linkRef = useRef<HTMLAnchorElement>(null);
-
+const FocusableNavLink: React.FC<FocusableNavLinkProps> = ({ to, className, onClick, children, end }) => {
   return (
-    <Focusable
-      focusKey={focusKey}
-      onEnterPress={() => {
-        linkRef.current?.click();
-      }}
+    <NavLink
+      to={to}
+      end={end}
+      className={className}
+      onClick={onClick}
     >
-      {({ ref: focusRef, focused }) => {
-        const setRefs = (node: HTMLAnchorElement | null) => {
-          linkRef.current = node;
-          (focusRef as React.MutableRefObject<HTMLAnchorElement | null>).current = node;
-        };
-        return (
-          <NavLink
-            ref={setRefs}
-            to={to}
-            end={end}
-            className={(props) => `${className(props)} ${focused ? "focused" : ""}`}
-            onClick={onClick}
-          >
-            {children}
-          </NavLink>
-        );
-      }}
-    </Focusable>
+      {children}
+    </NavLink>
   );
 };
 
@@ -56,11 +35,10 @@ interface AppSidebarProps {
   onToggle: () => void;
   pathname: string;
   search: string;
-  onFocusChange?: (focused: boolean) => void;
 }
 
 export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
-  ({ isCollapsed, onToggle, pathname, search, onFocusChange }) => {
+  ({ isCollapsed, onToggle, pathname, search }) => {
   const { potokToken } = useAuth();
   const { show: showHUD } = useHUD();
   const { t } = useTranslation("sidebar");
@@ -70,46 +48,6 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Which nav item maps to the current route.
-  const activeKey = useMemo(() => {
-    if (pathname.startsWith("/profile")) return "SIDEBAR_PROFILE";
-    if (pathname === "/") return "SIDEBAR_HOME";
-    if (pathname.startsWith("/library/up-next")) return "SIDEBAR_UPNEXT";
-    if (pathname.startsWith("/calendar")) return "SIDEBAR_CALENDAR";
-    if (pathname.startsWith("/library/watchlist")) return "SIDEBAR_WATCHLIST";
-    if (pathname.startsWith("/library/favorites")) return "SIDEBAR_FAVORITES";
-    if (pathname.startsWith("/library/history")) return "SIDEBAR_HISTORY";
-    if (pathname.startsWith("/settings")) return "SIDEBAR_SETTINGS";
-    return "SIDEBAR_HOME";
-  }, [pathname]);
-
-  // The sidebar is a spatial-navigation container. `hasFocusedChild` is the single,
-  // authoritative "is the sidebar focused" signal (norigin tracks subtree focus
-  // correctly across blur/focus ordering — no manual counting/debouncing needed).
-  const { ref: sidebarRef, hasFocusedChild } = useFocusable({
-    focusKey: "SIDEBAR",
-    trackChildren: true,
-    focusable: false,
-    saveLastFocusedChild: false,
-    isFocusBoundary: false,
-    preferredChildFocusKey: activeKey,
-  });
-
-  // Drive the expand/collapse state in the parent layout.
-  useEffect(() => {
-    onFocusChange?.(hasFocusedChild);
-  }, [hasFocusedChild, onFocusChange]);
-
-  // On ENTRY (focus crosses into the sidebar from outside), jump to the active
-  // section's item.
-  const prevHasFocus = useRef(false);
-  useEffect(() => {
-    if (hasFocusedChild && !prevHasFocus.current) {
-      setFocus(activeKey);
-    }
-    prevHasFocus.current = hasFocusedChild;
-  }, [hasFocusedChild, activeKey]);
-
   const getNavLinkClass = (isActive: boolean, extraClasses = "") => {
     const isLinkActive = isActive && !isSearchFocused;
     return `sidebar-nav-item ${isLinkActive ? "active" : ""} ${extraClasses}`.trim();
@@ -117,7 +55,6 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
 
   const navigateDebounceTimer = useRef<any>(null);
 
-  // Sync sidebar search input with URL search param when on search page
   const queryParam = useMemo(() => {
     return new URLSearchParams(search).get("q") || "";
   }, [search]);
@@ -173,110 +110,104 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
   };
 
   return (
-    <FocusContext.Provider value="SIDEBAR">
-      <aside ref={sidebarRef as React.RefObject<HTMLElement>} className="sidebar">
-        <div className="sidebar-header">
-          <FocusableButton
-            className="sidebar-toggle-btn"
-            onClick={onToggle}
-            title={isCollapsed ? t("expandMenu") : t("collapseMenu")}
-          >
-            {isCollapsed ? <PanelLeft size="1.125rem" /> : <PanelLeftClose size="1.125rem" />}
-          </FocusableButton>
-          {!isCollapsed && (
-            <FocusableNavLink to="/profile" focusKey="SIDEBAR_PROFILE" className={({ isActive }) => getNavLinkClass(isActive, "sidebar-profile-header-btn")}>
+    <aside className="sidebar">
+      <div className="sidebar-header">
+        <button
+          type="button"
+          className="sidebar-toggle-btn"
+          onClick={onToggle}
+          title={isCollapsed ? t("expandMenu") : t("collapseMenu")}
+        >
+          {isCollapsed ? <PanelLeft size="1.125rem" /> : <PanelLeftClose size="1.125rem" />}
+        </button>
+        {!isCollapsed && (
+          <FocusableNavLink to="/profile" className={({ isActive }) => getNavLinkClass(isActive, "sidebar-profile-header-btn")}>
+            <User size="1.125rem" />
+          </FocusableNavLink>
+        )}
+      </div>
+
+      <nav className="sidebar-nav">
+        <div className="sidebar-section">
+          <SidebarSearch
+            isCollapsed={isCollapsed}
+            sidebarSearch={sidebarSearch}
+            onSearchChange={handleSidebarSearchChange}
+            onClear={handleClearSidebarSearch}
+            inputRef={inputRef}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
+          />
+
+          {isCollapsed && (
+            <FocusableNavLink to="/profile" className={({ isActive }) => getNavLinkClass(isActive)}>
               <User size="1.125rem" />
+              <span>{t("profile")}</span>
             </FocusableNavLink>
           )}
+          <FocusableNavLink to="/" className={({ isActive }) => getNavLinkClass(isActive)} end>
+            <Home size="1.125rem" />
+            <span>{t("home")}</span>
+          </FocusableNavLink>
+          <Slot name="sidebar-menu-home" props={{ isCollapsed }} />
         </div>
 
-        <nav className="sidebar-nav">
-          <div className="sidebar-section">
-            <SidebarSearch
-              isCollapsed={isCollapsed}
-              sidebarSearch={sidebarSearch}
-              onSearchChange={handleSidebarSearchChange}
-              onClear={handleClearSidebarSearch}
-              inputRef={inputRef}
-              onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => setIsSearchFocused(false)}
-            />
+        <div className="sidebar-section">
+          <div className="sidebar-section-title">{t("library")}</div>
+          <FocusableNavLink
+            to="/library/up-next"
+            className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
+            onClick={handleProtectedClick}
+          >
+            <Play size="1.125rem" />
+            <span>{t("upNext")}</span>
+          </FocusableNavLink>
+          <FocusableNavLink
+            to="/calendar"
+            className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
+            onClick={handleProtectedClick}
+          >
+            <Calendar size="1.125rem" />
+            <span>{t("calendar")}</span>
+          </FocusableNavLink>
+          <FocusableNavLink
+            to="/library/watchlist"
+            className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
+            onClick={handleProtectedClick}
+          >
+            <Bookmark size="1.125rem" />
+            <span>{t("watchlist")}</span>
+          </FocusableNavLink>
+          <FocusableNavLink
+            to="/library/favorites"
+            className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
+            onClick={handleProtectedClick}
+          >
+            <Star size="1.125rem" />
+            <span>{t("favorites")}</span>
+          </FocusableNavLink>
+          <FocusableNavLink
+            to="/library/history"
+            className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
+            onClick={handleProtectedClick}
+          >
+            <Clock size="1.125rem" />
+            <span>{t("history")}</span>
+          </FocusableNavLink>
+          <Slot name="sidebar-menu-library" props={{ isCollapsed }} />
+        </div>
 
-            {isCollapsed && (
-              <FocusableNavLink to="/profile" focusKey="SIDEBAR_PROFILE" className={({ isActive }) => getNavLinkClass(isActive)}>
-                <User size="1.125rem" />
-                <span>{t("profile")}</span>
-              </FocusableNavLink>
-            )}
-            <FocusableNavLink to="/" focusKey="SIDEBAR_HOME" className={({ isActive }) => getNavLinkClass(isActive)} end>
-              <Home size="1.125rem" />
-              <span>{t("home")}</span>
-            </FocusableNavLink>
-            <Slot name="sidebar-menu-home" props={{ isCollapsed }} />
-          </div>
+        <div className="sidebar-section">
+          <FocusableNavLink to="/settings" className={({ isActive }) => getNavLinkClass(isActive)}>
+            <Settings size="1.125rem" />
+            <span>{t("settings")}</span>
+          </FocusableNavLink>
+          <Slot name="sidebar-menu" props={{ isCollapsed }} />
+        </div>
+      </nav>
 
-          <div className="sidebar-section">
-            <div className="sidebar-section-title">{t("library")}</div>
-            <FocusableNavLink
-              to="/library/up-next"
-              focusKey="SIDEBAR_UPNEXT"
-              className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
-              onClick={handleProtectedClick}
-            >
-              <Play size="1.125rem" />
-              <span>{t("upNext")}</span>
-            </FocusableNavLink>
-            <FocusableNavLink
-              to="/calendar"
-              focusKey="SIDEBAR_CALENDAR"
-              className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
-              onClick={handleProtectedClick}
-            >
-              <Calendar size="1.125rem" />
-              <span>{t("calendar")}</span>
-            </FocusableNavLink>
-            <FocusableNavLink
-              to="/library/watchlist"
-              focusKey="SIDEBAR_WATCHLIST"
-              className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
-              onClick={handleProtectedClick}
-            >
-              <Bookmark size="1.125rem" />
-              <span>{t("watchlist")}</span>
-            </FocusableNavLink>
-            <FocusableNavLink
-              to="/library/favorites"
-              focusKey="SIDEBAR_FAVORITES"
-              className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
-              onClick={handleProtectedClick}
-            >
-              <Star size="1.125rem" />
-              <span>{t("favorites")}</span>
-            </FocusableNavLink>
-            <FocusableNavLink
-              to="/library/history"
-              focusKey="SIDEBAR_HISTORY"
-              className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
-              onClick={handleProtectedClick}
-            >
-              <Clock size="1.125rem" />
-              <span>{t("history")}</span>
-            </FocusableNavLink>
-            <Slot name="sidebar-menu-library" props={{ isCollapsed }} />
-          </div>
-
-          <div className="sidebar-section">
-            <FocusableNavLink to="/settings" focusKey="SIDEBAR_SETTINGS" className={({ isActive }) => getNavLinkClass(isActive)}>
-              <Settings size="1.125rem" />
-              <span>{t("settings")}</span>
-            </FocusableNavLink>
-            <Slot name="sidebar-menu" props={{ isCollapsed }} />
-          </div>
-        </nav>
-
-        <SidebarStatus />
-      </aside>
-    </FocusContext.Provider>
+      <SidebarStatus />
+    </aside>
   );
 }, (prevProps, nextProps) => {
   const isSearchRouteTransition =

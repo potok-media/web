@@ -5,9 +5,6 @@ import { ShieldAlert, ArrowLeft } from "lucide-react";
 import { StreamList } from "../components/common/StreamList";
 import { StreamSidebar } from "../components/StreamSidebar";
 import { EpisodeSelectorPopup } from "../components/common/EpisodeSelectorPopup";
-import { FocusableButton } from "../components/common/TVNavigation";
-import { restoreFocusOrDefault } from "../utils/focusMemory";
-import { PlatformManager } from "../utils/PlatformManager";
 import { useMediaStreams } from "../hooks/useMediaStreams";
 import type { MediaCard } from "../network/ApiTypes";
 import "../styles/media.css";
@@ -26,22 +23,22 @@ export const MediaStreamsPage: React.FC = () => {
   const initialMedia = state?.media;
 
   const {
-    loadingMediaDetails,
     currentMedia,
+    loadingMediaDetails,
     streams,
     loading,
     error,
-    handleRefresh,
-    handleSelectStream,
-    clickedStream,
+    seasons,
+    seasonsLoading,
     episodeSelectorData,
-    handleClosePopup,
+    clickedStream,
+    handleSelectStream,
     handlePlayEpisode,
+    handleClosePopup,
+    handleRefresh,
     handleStartEditing,
     handleApplyOverride,
     handleResetOverride,
-    seasons,
-    seasonsLoading,
     isSaving,
     actionLoading,
   } = useMediaStreams({
@@ -53,22 +50,13 @@ export const MediaStreamsPage: React.FC = () => {
     activeTab: tab,
   });
 
-  // TV: land focus on the first stream row once results arrive (otherwise focus is
-  // stranded on entry).
-  React.useEffect(() => {
-    if (!PlatformManager.isTV()) return;
-    if (loading || streams.length === 0) return;
-    const t = setTimeout(() => restoreFocusOrDefault(location.key || location.pathname, "STREAM_FIRST_ROW"), 80);
-    return () => clearTimeout(t);
-  }, [loading, streams.length, location.key, location.pathname]);
-
   const renderSidebar = () => {
     if (currentMedia) {
       return <StreamSidebar media={currentMedia} season={season} episode={episode} onBack={() => navigate(-1)} />;
     }
     return (
       <aside className="streams-page-sidebar skeleton-loading">
-        <FocusableButton className="streams-sidebar-back-btn" onClick={() => navigate(-1)}><ArrowLeft size="1.125rem" /></FocusableButton>
+        <button type="button" className="streams-sidebar-back-btn" onClick={() => navigate(-1)}><ArrowLeft size="1.125rem" /></button>
         <div className="streams-sidebar-poster skeleton" style={{ height: "22.5rem", borderRadius: "0.75rem", background: "rgba(255,255,255,0.05)" }} />
       </aside>
     );
@@ -76,7 +64,7 @@ export const MediaStreamsPage: React.FC = () => {
 
   const renderContent = () => (
     <section className="streams-page-content" style={{ display: "flex", flexDirection: "column" }}>
-      <div className="streams-scroll-area" data-tv-scroll="vertical">
+      <div className="streams-scroll-area">
         <StreamList
           streams={streams}
           loading={loading}
@@ -118,7 +106,7 @@ export const MediaStreamsPage: React.FC = () => {
       <div className="media-not-found-container">
         <ShieldAlert size="3rem" className="media-not-found-icon" />
         <h2 className="media-not-found-title">{t("notFound.title")}</h2>
-        <FocusableButton className="btn-glass" onClick={() => navigate(-1)}>{t("actions.back")}</FocusableButton>
+        <button type="button" className="btn-glass" onClick={() => navigate(-1)}>{t("actions.back")}</button>
       </div>
     );
   }
