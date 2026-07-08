@@ -331,6 +331,33 @@
     "cast": {
       "title": "Cast"
     },
+    "actor": {
+      "biography": "Biography",
+      "asActor": "Acting Credits",
+      "director": "Directing Credits",
+      "writer": "Writing Credits",
+      "producer": "Producing Credits",
+      "emptyFilmography": "Filmography is currently empty",
+      "emptyFilmographyDesc": "We do not have any records of works featuring {{name}} yet.",
+      "movies": "Movies",
+      "ageAtDeath_one": "at the age of {{count}} year",
+      "ageAtDeath_other": "at the age of {{count}} years",
+      "years_one": "year",
+      "years_other": "years",
+      "episodeCount_one": "{{count}} episode",
+      "episodeCount_other": "{{count}} episodes",
+      "Acting": "Acting",
+      "Directing": "Directing",
+      "Writing": "Writing",
+      "Production": "Production",
+      "genre_35": "Comedies",
+      "genre_action_adventure": "Action & Adventure",
+      "genre_18": "Dramas",
+      "genre_scifi_fantasy": "Sci-Fi & Fantasy",
+      "genre_thriller_horror": "Thriller & Horror",
+      "genre_kids_family": "Kids & Family",
+      "categoryTitle": "{{actorName}} — {{category}}"
+    },
     "episode": {
       "fallbackName": "Episode {{number}}",
       "noOverview": "No episode description available.",

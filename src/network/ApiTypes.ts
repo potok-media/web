@@ -161,6 +161,7 @@ export interface TraktSyncRequest {
 }
 
 export interface CastMember {
+  id?: number;
   name?: string;
   Name?: string;
   character?: string;

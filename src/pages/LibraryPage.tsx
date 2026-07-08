@@ -8,6 +8,7 @@ import {
   X
 } from "lucide-react";
 import { useLibraryPage } from "../hooks/useLibraryPage";
+import type { MediaCard } from "../network/ApiTypes";
 import { MediaCardComponent } from "../components/MediaCardComponent";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { CATEGORY_MAP, DYNAMIC_CATEGORY_TITLES } from "./LibraryConfig";
@@ -33,12 +34,17 @@ export const LibraryPage: React.FC = () => {
   const params = new URLSearchParams(location.search);
   const initialQuery = params.get("q") || params.get("query") || "";
  
+  const stateData = location.state as { items?: MediaCard[]; title?: string } | null;
+  const hasStateData = !!stateData?.items;
+
   const isDynamicCategory = collectionType.includes(".");
   const dynamicTitleKey = DYNAMIC_CATEGORY_TITLES[collectionType];
   const rawCategory = CATEGORY_MAP[collectionType];
-  const categoryTitle = isDynamicCategory
-    ? (dynamicTitleKey ? t(dynamicTitleKey) : t("library.category"))
-    : (rawCategory ? t(rawCategory.title) : t("library.category"));
+  const categoryTitle = hasStateData
+    ? (stateData.title || t("library.category"))
+    : (isDynamicCategory
+      ? (dynamicTitleKey ? t(dynamicTitleKey) : t("library.category"))
+      : (rawCategory ? t(rawCategory.title) : t("library.category")));
 
   // Static categories store i18next keys in LibraryConfig; resolve them here so downstream
   // rendering gets localized strings (and re-renders on language change).
@@ -48,6 +54,14 @@ export const LibraryPage: React.FC = () => {
         title: t(rawCategory.title),
         emptyText: t(rawCategory.emptyText),
         emptySub: t(rawCategory.emptySub),
+      }
+    : hasStateData
+    ? {
+        title: categoryTitle,
+        endpoint: collectionType,
+        icon: Film,
+        emptyText: t("library.nothingFound"),
+        emptySub: t("library.emptyCategorySub"),
       }
     : isDynamicCategory
     ? {
@@ -60,21 +74,27 @@ export const LibraryPage: React.FC = () => {
     : null;
  
   const {
-    items,
+    items: hookItems,
     query,
     setQuery,
-    loading,
-    error,
+    loading: hookLoading,
+    error: hookError,
     refetch,
     page,
-    hasMore,
-    loadingMore,
+    hasMore: hookHasMore,
+    loadingMore: hookLoadingMore,
     loadNextPage,
   } = useLibraryPage({
-    collectionType: category?.endpoint || "",
+    collectionType: hasStateData ? "" : (category?.endpoint || ""),
     isSearchPage,
     initialQuery,
   });
+
+  const items = hasStateData ? stateData.items! : hookItems;
+  const loading = hasStateData ? false : hookLoading;
+  const error = hasStateData ? null : hookError;
+  const hasMore = hasStateData ? false : hookHasMore;
+  const loadingMore = hasStateData ? false : hookLoadingMore;
 
   const sentinelRef = useRef<HTMLDivElement>(null);
 

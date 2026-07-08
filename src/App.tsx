@@ -16,6 +16,7 @@ const ExtensionPage = React.lazy(() => import("./pages/ExtensionPage").then(m =>
 const MediaDetailsPage = React.lazy(() => import("./pages/MediaDetailsPage").then(m => ({ default: m.MediaDetailsPage })));
 const MediaStreamsPage = React.lazy(() => import("./pages/MediaStreamsPage").then(m => ({ default: m.MediaStreamsPage })));
 const WikiPage = React.lazy(() => import("./pages/WikiPage").then(m => ({ default: m.WikiPage })));
+const ActorPage = React.lazy(() => import("./pages/ActorPage").then(m => ({ default: m.ActorPage })));
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { LoadingSpinner } from "./components/LoadingSpinner";
 import "./index.css";
@@ -41,6 +42,7 @@ export const App: React.FC = () => {
                       <Route path="media/:mediaType/:id" element={<MediaDetailsPage />} />
                       <Route path="media/:mediaType/:id/watch/:tab?" element={<MediaStreamsPage />} />
                       <Route path="library/:collectionType" element={<LibraryPage />} />
+                      <Route path="actor/:id" element={<ActorPage />} />
                     </Route>
                     <Route path="wiki" element={<WikiPage />} />
                   </Routes>

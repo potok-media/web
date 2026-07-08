@@ -232,6 +232,16 @@ export class ApiClient {
     return this.handleResponse<TvSeason>(res, "Failed to fetch season details");
   }
 
+  public static async fetchPersonDetails(personId: number): Promise<any> {
+    if (!this.isWorker) {
+      return DataWorkerBridge.request<any>("fetchPersonDetails", [personId]);
+    }
+    const res = await fetch(`${this.baseURL}/api/tmdb/person/${personId}?append_to_response=combined_credits&language=${encodeURIComponent(this.language)}`, {
+      headers: this.headers,
+    });
+    return this.handleResponse<any>(res, "Failed to fetch person details");
+  }
+
   public static async saveInfuseItemAndGetStreams(request: InfuseSaveRequest): Promise<string[]> {
     if (!this.isWorker) {
       return DataWorkerBridge.request<string[]>("saveInfuseItemAndGetStreams", [request]);
