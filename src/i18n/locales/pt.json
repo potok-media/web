@@ -249,6 +249,8 @@
       "episodeNumbered": "Episódio {{number}}",
       "rewind10Title": "Voltar 10 seg.",
       "rewind10Aria": "Voltar 10 segundos",
+      "prevEpisode": "",
+      "nextEpisode": "",
       "forward10Title": "Avance 10 seg.",
       "forward10Aria": "Avançar 10 segundos",
       "pause": "Suspender",
