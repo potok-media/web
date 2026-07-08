@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useSearchParams, useNavigate } from "react-router-dom";
 import { useHUD } from "../context/HUDContext";
 import { usePlayback } from "../context/AppSettingsContext";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
@@ -76,8 +75,6 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
   const { show: showHUD } = useHUD();
   const { i18n } = useTranslation();
   const { playVideo, enrichPlayback } = usePlayback();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
 
   const [clickedStream, setClickedStream] = useState<RawStreamPayload | null>(null);
   const shouldForceNextSearchRef = useRef(false);
@@ -86,49 +83,12 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
     seasonMap?: Record<string, { season: number; offset: number }>;
   } | null>(null);
 
-  const hasPopupParam = searchParams.get("popup") === "true";
-
-  useEffect(() => {
-    if (hasPopupParam) {
-      if (!clickedStream || !episodeSelectorData) {
-        try {
-          const savedStream = sessionStorage.getItem("potok_popup_stream");
-          const savedData = sessionStorage.getItem("potok_popup_data");
-          if (savedStream && savedData) {
-            setClickedStream(JSON.parse(savedStream));
-            setEpisodeSelectorData(JSON.parse(savedData));
-          } else {
-            setSearchParams(prev => {
-              const next = new URLSearchParams(prev);
-              next.delete("popup");
-              return next;
-            }, { replace: true });
-          }
-        } catch (e) {
-          logger.error("Failed to restore popup state from sessionStorage", e);
-        }
-      }
-    } else {
-      if (clickedStream || episodeSelectorData) {
-        setClickedStream(null);
-        setEpisodeSelectorData(null);
-        sessionStorage.removeItem("potok_popup_stream");
-        sessionStorage.removeItem("potok_popup_data");
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasPopupParam]);
-
   const handleClosePopup = useCallback(() => {
-    if (searchParams.get("popup") === "true") {
-      navigate(-1);
-    } else {
-      setEpisodeSelectorData(null);
-      setClickedStream(null);
-      sessionStorage.removeItem("potok_popup_stream");
-      sessionStorage.removeItem("potok_popup_data");
-    }
-  }, [searchParams, navigate]);
+    setEpisodeSelectorData(null);
+    setClickedStream(null);
+    sessionStorage.removeItem("potok_popup_stream");
+    sessionStorage.removeItem("potok_popup_data");
+  }, []);
 
   const [remoteHistory, setRemoteHistory] = useState<UserHistoryEntry[]>([]);
 
@@ -400,7 +360,6 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
                 setClickedStream(null);
               });
           } else {
-            // Multiple files: show files list selector popup
             const data = {
               title: stream.title || (mediaType === "movie" ? i18n.t("media:streams.fileSelection") : i18n.t("media:streams.episodeSelection")),
               episodes: mapEpisodesWithWatched(eps),
@@ -411,17 +370,12 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
             sessionStorage.setItem("potok_popup_data", JSON.stringify(data));
             setClickedStream(stream);
             setEpisodeSelectorData(data);
-            setSearchParams(prev => {
-              const next = new URLSearchParams(prev);
-              next.set("popup", "true");
-              return next;
-            });
           }
         })
         .catch(handleOnError)
         .finally(() => setActionLoading(false));
     }
-  }, [activeSource, mediaType, context, mediaId, currentMedia, playVideo, deferMetadata, handleOnError, season, episode, mapEpisodesWithWatched, setSearchParams, i18n]);
+  }, [activeSource, mediaType, context, mediaId, currentMedia, playVideo, deferMetadata, handleOnError, season, episode, mapEpisodesWithWatched, i18n]);
 
   const handlePlayEpisode = useCallback((ep: GenericEpisodeItem) => {
     if (!activeSource || !clickedStream) return;
@@ -439,10 +393,6 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
           (window as any).potok_playlist_override = null;
         }
 
-        // Lazy re-fetch bridge: the player has no plugin handle, so expose a resolver it can call on
-        // episode switch to get a FRESH full descriptor (session/subtitles/audios) for the next item —
-        // instead of replaying the stale pre-built playlist URL (which carries no session/subs). Captures
-        // this torrent's source/stream/context for the whole playlist session.
         if (playlist) {
           const src = activeSource;
           const stream = clickedStream;
@@ -510,9 +460,6 @@ export function useMediaStreams({ mediaType, mediaId, season, episode, initialMe
       .finally(() => setSeasonsLoading(false));
   }, [activeSource, clickedStream, context, handleOnError]);
 
-  // Per-season override: remap one SOURCE season → a TMDB (targetSeason, offset). sourceSeason is null for the
-  // sentinel bucket (files with no parseable season). offset is computed by the popup on RAW parsed episodes
-  // (offset = targetEpisode − rawSectionFirstEpisode), so it never compounds on a previous mapping.
   const handleApplyOverride = useCallback((sourceSeason: number | null, targetSeason: number, offset: number) => {
     if (!activeSource || !clickedStream) return;
     setIsSaving(true);

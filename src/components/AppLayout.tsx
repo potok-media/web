@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { Outlet, useLocation, useSearchParams, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSettings, useConnectionHealth, usePlayback } from "../context/AppSettingsContext";
 import { useInspector } from "../context/InspectorContext";
@@ -67,7 +67,6 @@ export const AppLayout: React.FC = () => {
 
   const isDesktop = window.innerWidth > 768;
 
-  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -94,79 +93,29 @@ export const AppLayout: React.FC = () => {
     stopVideo,
   } = usePlayback();
 
-  const hasPlayingParam = searchParams.get("playing") === "true";
-
-  // Use refs to avoid dependencies in effects causing loops/races
-  const activePlaybackRef = React.useRef(activePlayback);
-  const playVideoRef = React.useRef(playVideo);
-  const stopVideoRef = React.useRef(stopVideo);
-  const setSearchParamsRef = React.useRef(setSearchParams);
-  const hasPlayingParamRef = React.useRef(hasPlayingParam);
-
   React.useEffect(() => {
-    activePlaybackRef.current = activePlayback;
-    playVideoRef.current = playVideo;
-    stopVideoRef.current = stopVideo;
-    setSearchParamsRef.current = setSearchParams;
-    hasPlayingParamRef.current = hasPlayingParam;
-  });
-
-  // URL -> State Synchronization
-  React.useEffect(() => {
-    if (hasPlayingParam) {
-      if (!activePlaybackRef.current) {
-        try {
-          const saved = sessionStorage.getItem("potok_last_playback");
-          if (saved) {
-            playVideoRef.current(JSON.parse(saved));
-          } else {
-            setSearchParamsRef.current(prev => {
-              const next = new URLSearchParams(prev);
-              next.delete("playing");
-              return next;
-            }, { replace: true });
-          }
-        } catch (e) {
-          logger.error("Failed to restore playback state from sessionStorage", e);
-        }
-      }
-    } else {
-      if (activePlaybackRef.current) {
-        stopVideoRef.current();
+    const saved = sessionStorage.getItem("potok_last_playback");
+    if (saved && !activePlayback) {
+      try {
+        playVideo(JSON.parse(saved));
+      } catch (e) {
+        logger.error("Failed to restore playback from sessionStorage", e);
+        sessionStorage.removeItem("potok_last_playback");
       }
     }
-  }, [hasPlayingParam]);
+  }, []);
 
-  // State -> URL Synchronization
   React.useEffect(() => {
     if (activePlayback) {
       sessionStorage.setItem("potok_last_playback", JSON.stringify(activePlayback));
-      if (!hasPlayingParamRef.current) {
-        setSearchParamsRef.current(prev => {
-          const next = new URLSearchParams(prev);
-          next.set("playing", "true");
-          return next;
-        });
-      }
     } else {
-      sessionStorage.removeItem("potok_last_playback");
-      if (hasPlayingParamRef.current) {
-        setSearchParamsRef.current(prev => {
-          const next = new URLSearchParams(prev);
-          next.delete("playing");
-          return next;
-        });
-      }
     }
   }, [activePlayback]);
 
   const handleClosePlayer = React.useCallback(() => {
-    if (searchParams.get("playing") === "true") {
-      navigate(-1);
-    } else {
-      stopVideo();
-    }
-  }, [searchParams, navigate, stopVideo]);
+    sessionStorage.removeItem("potok_last_playback");
+    stopVideo();
+  }, [stopVideo]);
 
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
   const [inputUrl, setInputUrl] = React.useState(
