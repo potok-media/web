@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import type { ConnectionState } from "../context/AppSettingsContext";
 import type { ConnectionProfile } from "../network/ApiTypes";
+import { Button, Field, Input } from "./ui";
 
 interface OfflineOverlayProps {
   connectionState: ConnectionState;
@@ -42,17 +43,17 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
           <p className="overlay-text">{t("setup.hint")}</p>
 
           <form onSubmit={handleSaveAndConnect} className="overlay-form">
-            <input
+            <Input
               type="text"
-              className="settings-input overlay-input"
+              className="overlay-input"
               placeholder={t("bffPlaceholder")}
               value={inputUrl}
               onChange={(e) => setInputUrl(e.target.value)}
               required
             />
-            <button type="submit" className="overlay-btn wide">
+            <Button type="submit" variant="primary" fullWidth className="overlay-btn wide">
               {t("saveAndConnect")}
-            </button>
+            </Button>
           </form>
         </div>
       </div>
@@ -69,27 +70,29 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
           </p>
 
           <form onSubmit={handleSaveAndConnect} className="overlay-form offline">
-            <label className="settings-label overlay-label">{t("offline.otherAddress")}</label>
-            <input
-              type="text"
-              className="settings-input overlay-input"
-              placeholder={t("bffPlaceholder")}
-              value={inputUrl}
-              onChange={(e) => setInputUrl(e.target.value)}
-              required
-            />
-            <button type="submit" className="overlay-btn wide">
+            <Field label={t("offline.otherAddress")} className="overlay-label">
+              <Input
+                type="text"
+                className="overlay-input"
+                placeholder={t("bffPlaceholder")}
+                value={inputUrl}
+                onChange={(e) => setInputUrl(e.target.value)}
+                required
+              />
+            </Field>
+            <Button type="submit" variant="primary" fullWidth className="overlay-btn wide">
               {t("applyRetry")}
-            </button>
+            </Button>
           </form>
 
-          <button
+          <Button
             type="button"
+            variant="secondary"
             className="overlay-btn secondary"
             onClick={() => checkConnection()}
           >
             {t("checkAgain")}
-          </button>
+          </Button>
         </div>
       </div>
     );

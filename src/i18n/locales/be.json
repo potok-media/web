@@ -346,19 +346,19 @@
       "ageAtDeath_other": "",
       "years_one": "",
       "years_other": "",
-      "episodeCount_one": "",
-      "episodeCount_other": "",
-      "Acting": "",
-      "Directing": "",
-      "Writing": "",
-      "Production": "",
       "genre_35": "",
       "genre_action_adventure": "",
       "genre_18": "",
       "genre_scifi_fantasy": "",
       "genre_thriller_horror": "",
       "genre_kids_family": "",
-      "categoryTitle": ""
+      "categoryTitle": "",
+      "departments": {
+        "acting": "Acting",
+        "directing": "Directing",
+        "writing": "Writing",
+        "production": "Production"
+      }
     },
     "episode": {
       "fallbackName": "",

@@ -1,5 +1,6 @@
 import potokSdkRaw from "../../../public/sdk/potok-sdk.js?raw";
 import { Storage } from "../StorageService";
+import type { PluginConfigPayload, RegisteredExtension, ConnectionProfile } from "./extensionHostTypes";
 
 export const normalizeUrl = (url: string): string => {
   let clean = url.trim();
@@ -14,17 +15,17 @@ export const normalizeUrl = (url: string): string => {
 };
 
 export const createIframeHtml = (
-  ext: any,
-  activeProfile: any,
+  ext: RegisteredExtension,
+  activeProfile: ConnectionProfile | null,
   scopedStorage: Record<string, string>,
   hostOrigin: string,
   language?: string,
-  hostStrings?: Record<string, unknown>
+  hostStrings?: Record<string, unknown>,
 ): string => {
   const normalizedDirUrl = normalizeUrl(ext.url);
   const baseUrl = normalizedDirUrl.endsWith("/") ? normalizedDirUrl : `${normalizedDirUrl}/`;
   const manifestConfig = ext.manifest?.config || {};
-  const configPayload: Record<string, any> = {};
+  const configPayload: PluginConfigPayload = {};
 
   // 1. Load default values from manifest config
   Object.keys(manifestConfig).forEach((key) => {

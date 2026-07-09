@@ -1,14 +1,15 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { webSocketClient } from "../network/WebSocketClient";
 import { logger } from "../utils/logger";
 import { Storage } from "../utils/StorageService";
+import {
+  type MediaSyncCallback,
+  type SyncEventPayload,
+  parseSyncPayload,
+  passesSyncFilters,
+} from "./syncEventTypes";
 
-interface WSSyncContextType {
-  clientId: string;
-  subscribeToMedia: (mediaId: number, mediaType: string, callback: (event: string, payload: any, timestamp: string) => void) => () => void;
-}
-
-const WSSyncContext = createContext<WSSyncContextType | null>(null);
+import { WSSyncContext, type WSSyncContextType } from "./wsSyncContextState";
 
 export const WSSyncProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [clientId] = useState(() => {
@@ -22,9 +23,9 @@ export const WSSyncProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   });
 
   // Keep a set of active listeners by mediaId
-  const listenersRef = React.useRef<Record<string, Set<(event: string, payload: any, timestamp: string) => void>>>({});
+  const listenersRef = React.useRef<Record<string, Set<MediaSyncCallback>>>({});
 
-  const subscribeToMedia = useCallback((mediaId: number, mediaType: string, callback: (event: string, payload: any, timestamp: string) => void) => {
+  const subscribeToMedia = useCallback((mediaId: number, mediaType: string, callback: MediaSyncCallback) => {
     const key = `${mediaType}:${mediaId}`;
     if (!listenersRef.current[key]) {
       listenersRef.current[key] = new Set();
@@ -38,7 +39,7 @@ export const WSSyncProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   }, []);
 
-  const dispatchToMedia = useCallback((mediaId: number, mediaType: string, event: string, payload: any, timestamp: string) => {
+  const dispatchToMedia = useCallback((mediaId: number, mediaType: string, event: string, payload: SyncEventPayload, timestamp: string) => {
     const key = `${mediaType}:${mediaId}`;
     listenersRef.current[key]?.forEach(cb => {
       try {
@@ -52,24 +53,27 @@ export const WSSyncProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     const activeID = Storage.get<string | null>("activeProfileID", null);
 
-    const checkFilters = (payload: any): boolean => {
-      // Pitfall 1: Self-Loop (echo) prevention
-      if (payload.senderId && payload.senderId === clientId) {
-        return false;
+    const dispatchParsed = (event: string, data: string | unknown) => {
+      const payload = parseSyncPayload(data);
+      if (!payload) return;
+      if (!passesSyncFilters(payload, clientId, activeID)) {
+        if (payload.profileId && activeID && payload.profileId !== activeID) {
+          logger.log(`[WSSync] Ignoring event because profile ID ${payload.profileId} does not match active profile ID ${activeID}`);
+        }
+        return;
       }
-      // Pitfall 17: Profile Bleeding prevention
-      if (payload.profileId && activeID && payload.profileId !== activeID) {
-        logger.log(`[WSSync] Ignoring event because profile ID ${payload.profileId} does not match active profile ID ${activeID}`);
-        return false;
-      }
-      return true;
+      dispatchToMedia(
+        Number(payload.mediaId),
+        payload.mediaType,
+        event,
+        payload,
+        payload.timestamp || new Date().toISOString(),
+      );
     };
 
     const handleHistoryChanged = (dataStr: string) => {
       try {
-        const payload = typeof dataStr === "string" ? JSON.parse(dataStr) : dataStr;
-        if (!checkFilters(payload)) return;
-        dispatchToMedia(Number(payload.mediaId), payload.mediaType, "sync:history:changed", payload, payload.timestamp || new Date().toISOString());
+        dispatchParsed("sync:history:changed", dataStr);
       } catch (e) {
         logger.error("[WSSync] failed to parse sync:history:changed payload", e);
       }
@@ -77,9 +81,7 @@ export const WSSyncProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const handleHistoryBatchChanged = (dataStr: string) => {
       try {
-        const payload = typeof dataStr === "string" ? JSON.parse(dataStr) : dataStr;
-        if (!checkFilters(payload)) return;
-        dispatchToMedia(Number(payload.mediaId), payload.mediaType, "sync:history:batch_changed", payload, payload.timestamp || new Date().toISOString());
+        dispatchParsed("sync:history:batch_changed", dataStr);
       } catch (e) {
         logger.error("[WSSync] failed to parse sync:history:batch_changed payload", e);
       }
@@ -87,9 +89,7 @@ export const WSSyncProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const handleProgressChanged = (dataStr: string) => {
       try {
-        const payload = typeof dataStr === "string" ? JSON.parse(dataStr) : dataStr;
-        if (!checkFilters(payload)) return;
-        dispatchToMedia(Number(payload.mediaId), payload.mediaType, "sync:progress:changed", payload, payload.timestamp || new Date().toISOString());
+        dispatchParsed("sync:progress:changed", dataStr);
       } catch (e) {
         logger.error("[WSSync] failed to parse sync:progress:changed payload", e);
       }
@@ -97,9 +97,7 @@ export const WSSyncProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const handleLibraryUpdated = (dataStr: string) => {
       try {
-        const payload = typeof dataStr === "string" ? JSON.parse(dataStr) : dataStr;
-        if (!checkFilters(payload)) return;
-        dispatchToMedia(Number(payload.mediaId), payload.mediaType, "sync:library:updated", payload, payload.timestamp || new Date().toISOString());
+        dispatchParsed("sync:library:updated", dataStr);
       } catch (e) {
         logger.error("[WSSync] failed to parse sync:library:updated payload", e);
       }
@@ -128,12 +126,4 @@ export const WSSyncProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       {children}
     </WSSyncContext.Provider>
   );
-};
-
-export const useWSSync = () => {
-  const context = useContext(WSSyncContext);
-  if (!context) {
-    throw new Error("useWSSync must be used within a WSSyncProvider");
-  }
-  return context;
 };

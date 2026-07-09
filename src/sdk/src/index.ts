@@ -180,7 +180,11 @@ export const ui = {
 
     const onCloseCallbackId = scope.register(() => {
       if (cfg.onClose) {
-        try { cfg.onClose(); } catch (e) {}
+        try {
+          cfg.onClose();
+        } catch (e) {
+          console.error("[SDK] Episode selector onClose failed:", e);
+        }
       }
       scope.dispose();
       if (ui._activeEpisodeSelectorScope === scope) {

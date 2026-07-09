@@ -2,9 +2,8 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Sliders } from "lucide-react";
 import { ExtensionRegistry } from "../../utils/extensions/ExtensionRegistry";
-import { Focusable } from "../common/TVNavigation";
-import { TVSelect, type TVSelectOption } from "../common/TVSelect";
-import { usePlatform } from "../../hooks/usePlatform";
+import { Field, Pressable, Select } from "../ui";
+import type { SelectOption } from "../ui";
 import { Slot } from "../common/extension/Slot";
 import { AVAILABLE_LANGUAGES, getLanguageCoverage } from "../../i18n";
 
@@ -21,7 +20,6 @@ interface GeneralSettingsProps {
   setLanguage: (lng: string) => void;
 }
 
-// Endonyms (the language's own name) — conventionally NOT translated.
 const LANGUAGE_ENDONYMS: Record<string, string> = {
   en: "English",
   ru: "Русский",
@@ -48,28 +46,24 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
   const { t } = useTranslation("settings");
   const isApple = typeof window !== "undefined" &&
     (/Mac|iPad|iPhone|iPod/.test(navigator.userAgent) ||
-     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
 
-  const { isMobile } = usePlatform();
-  const touchUI = isMobile;
-
-  const playerOptions: TVSelectOption<string>[] = [
+  const playerOptions: SelectOption<string>[] = [
     { value: "native", label: t("player.native") },
     ...(isApple ? [{ value: "infuse", label: "Infuse" }] : []),
   ];
 
-  const bannerQualityOptions: TVSelectOption<string>[] = [
+  const bannerQualityOptions: SelectOption<string>[] = [
     { value: "auto", label: t("imageQuality.auto") },
     { value: "high", label: t("imageQuality.high") },
     { value: "max", label: t("imageQuality.max") },
   ];
 
-  const languageOptions: TVSelectOption<string>[] = AVAILABLE_LANGUAGES.map((code) => ({
+  const languageOptions: SelectOption<string>[] = AVAILABLE_LANGUAGES.map((code) => ({
     value: code,
     label: LANGUAGE_ENDONYMS[code] || code.toUpperCase(),
   }));
 
-  // Translation coverage of the selected language — drives a "help translate" hint when < 100%.
   const [langCoverage, setLangCoverage] = React.useState<number | null>(null);
   React.useEffect(() => {
     let active = true;
@@ -105,6 +99,16 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
     };
   }, []);
 
+  const langHint =
+    langCoverage !== null && langCoverage < 100 ? (
+      <>
+        {t("language.incomplete", { percent: langCoverage })}{" "}
+        <a href={CROWDIN_URL} target="_blank" rel="noopener noreferrer">
+          {t("language.helpTranslate")}
+        </a>
+      </>
+    ) : undefined;
+
   return (
     <div className="settings-pane">
       <section className="settings-section">
@@ -112,130 +116,56 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
           <Sliders size={20} />
           <span>{t("appearance.title")}</span>
         </h2>
-        
+
         {hasAccentContribution ? (
           <Slot name="settings-color-accent" props={{ accentTheme }} />
         ) : (
-          <div className="settings-form-group">
-            <label className="settings-label">{t("accent.label")}</label>
+          <Field label={t("accent.label")} className="settings-form-group">
             <div className="theme-options-grid">
-              {themes.map((t) => (
-                <Focusable
-                  key={t.id}
-                  onEnterPress={() => setAccentTheme(t.id)}
+              {themes.map((theme) => (
+                <Pressable
+                  key={theme.id}
+                  className={`theme-card-option ${accentTheme === theme.id ? "active" : ""}`}
+                  onPress={() => setAccentTheme(theme.id)}
+                  aria-pressed={accentTheme === theme.id}
                 >
-                  {({ ref, focused }) => (
-                    <div
-                      ref={ref}
-                      className={`theme-card-option ${accentTheme === t.id ? "active" : ""} ${focused ? "focused" : ""}`}
-                      onClick={() => setAccentTheme(t.id)}
-                    >
-                      <span className="theme-dot" style={{ backgroundColor: t.color }} />
-                      <span className="theme-option-name">{t.name}</span>
-                    </div>
-                  )}
-                </Focusable>
+                  <span className="theme-dot" style={{ "--theme-color": theme.color } as React.CSSProperties} />
+                  <span className="theme-option-name">{theme.name}</span>
+                </Pressable>
               ))}
             </div>
-          </div>
+          </Field>
         )}
 
-        <div className="settings-form-group settings-preference-group">
-          <label className="settings-label">{t("player.label")}</label>
-          {touchUI ? (
-            <TVSelect
-              value={defaultPlayer || "native"}
-              options={playerOptions}
-              onChange={(v) => setDefaultPlayer(v)}
-              focusKeyPrefix="SETTINGS_PLAYER_"
-            />
-          ) : (
-            <Focusable>
-              {({ ref, focused }) => (
-                <select
-                  ref={ref}
-                  className={`settings-select ${focused ? "focused" : ""}`}
-                  value={defaultPlayer || "native"}
-                  onChange={(e) => setDefaultPlayer(e.target.value)}
-                >
-                  <option value="native">{t("player.native")}</option>
-                  {isApple && <option value="infuse">Infuse</option>}
-                </select>
-              )}
-            </Focusable>
-          )}
-        </div>
+        <Field
+          label={t("player.label")}
+          className="settings-form-group settings-preference-group"
+        >
+          <Select
+            value={defaultPlayer || "native"}
+            options={playerOptions}
+            onChange={setDefaultPlayer}
+          />
+        </Field>
 
-        <div className="settings-form-group settings-preference-group">
-          <label className="settings-label">{t("imageQuality.label")}</label>
-          {touchUI ? (
-            <TVSelect
-              value={bannerQuality || "auto"}
-              options={bannerQualityOptions}
-              onChange={(v) => setBannerQuality(v)}
-              focusKeyPrefix="SETTINGS_BANNER_"
-            />
-          ) : (
-            <Focusable>
-              {({ ref, focused }) => (
-                <select
-                  ref={ref}
-                  className={`settings-select ${focused ? "focused" : ""}`}
-                  value={bannerQuality || "auto"}
-                  onChange={(e) => setBannerQuality(e.target.value)}
-                >
-                  <option value="auto">{t("imageQuality.auto")}</option>
-                  <option value="high">{t("imageQuality.high")}</option>
-                  <option value="max">{t("imageQuality.max")}</option>
-                </select>
-              )}
-            </Focusable>
-          )}
-        </div>
+        <Field
+          label={t("imageQuality.label")}
+          className="settings-form-group settings-preference-group"
+        >
+          <Select
+            value={bannerQuality || "auto"}
+            options={bannerQualityOptions}
+            onChange={setBannerQuality}
+          />
+        </Field>
 
-        <div className="settings-form-group settings-preference-group">
-          <label className="settings-label">{t("language.label")}</label>
-          {touchUI ? (
-            <TVSelect
-              value={language}
-              options={languageOptions}
-              onChange={(v) => setLanguage(v)}
-              focusKeyPrefix="SETTINGS_LANGUAGE_"
-            />
-          ) : (
-            <Focusable>
-              {({ ref, focused }) => (
-                <select
-                  ref={ref}
-                  className={`settings-select ${focused ? "focused" : ""}`}
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
-                >
-                  {languageOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              )}
-            </Focusable>
-          )}
-
-          {langCoverage !== null && langCoverage < 100 && (
-            <p
-              className="settings-lang-incomplete"
-              style={{ marginTop: "0.4rem", fontSize: "0.8rem", opacity: 0.7, lineHeight: 1.4 }}
-            >
-              {t("language.incomplete", { percent: langCoverage })}{" "}
-              <a
-                href={CROWDIN_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: "var(--accent, #3b82f6)", fontWeight: 600 }}
-              >
-                {t("language.helpTranslate")}
-              </a>
-            </p>
-          )}
-        </div>
+        <Field
+          label={t("language.label")}
+          hint={langHint}
+          className="settings-form-group settings-preference-group"
+        >
+          <Select value={language} options={languageOptions} onChange={setLanguage} />
+        </Field>
       </section>
     </div>
   );

@@ -7,7 +7,6 @@ import { formatBytes, formatPublishDate } from "../utils/formatters";
 interface StreamRowComponentProps {
   stream: StreamUIItem;
   onClick: (stream: StreamUIItem) => void;
-  focusKey?: string;
 }
 
 export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(({ stream, onClick }) => {
@@ -63,8 +62,8 @@ export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(
 
         <div className="stream-footer-right">
           {(stream.seeders === undefined || stream.seeders === null) && (stream.leechers === undefined || stream.leechers === null) ? (
-            <span className="stream-play-action" style={{ display: "flex", alignItems: "center", gap: "0.375rem", color: "var(--color-accent, #007aff)", fontWeight: 600 }}>
-              <span style={{ fontSize: "0.5625rem" }}>▶</span> {t("row.watch")}
+            <span className="stream-play-action">
+              <span className="stream-play-icon">▶</span> {t("row.watch")}
             </span>
           ) : (
             <>

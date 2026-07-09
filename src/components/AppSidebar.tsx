@@ -3,13 +3,14 @@ import { useTranslation } from "react-i18next";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Home, Calendar, User, Settings, Play, Bookmark, Star, Clock, PanelLeft, PanelLeftClose } from "lucide-react";
 import { useAuth } from "../context/AppSettingsContext";
-import { useHUD } from "../context/HUDContext";
+import { useHUD } from "../context/useHUD";
 import SidebarStatus from "./SidebarStatus";
 import SidebarSearch from "./SidebarSearch";
 import { Slot } from "./common/extension/Slot";
 import "../styles/sidebar.css";
+import { IconButton } from "./ui";
 
-interface FocusableNavLinkProps {
+interface SidebarNavLinkProps {
   to: string;
   className: (props: { isActive: boolean }) => string;
   onClick?: (e: React.MouseEvent) => void;
@@ -17,7 +18,7 @@ interface FocusableNavLinkProps {
   end?: boolean;
 }
 
-const FocusableNavLink: React.FC<FocusableNavLinkProps> = ({ to, className, onClick, children, end }) => {
+const SidebarNavLink: React.FC<SidebarNavLinkProps> = ({ to, className, onClick, children, end }) => {
   return (
     <NavLink
       to={to}
@@ -53,7 +54,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
     return `sidebar-nav-item ${isLinkActive ? "active" : ""} ${extraClasses}`.trim();
   };
 
-  const navigateDebounceTimer = useRef<any>(null);
+  const navigateDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const queryParam = useMemo(() => {
     return new URLSearchParams(search).get("q") || "";
@@ -112,19 +113,14 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <button
-          type="button"
+        <IconButton
           className="sidebar-toggle-btn"
           onClick={onToggle}
           title={isCollapsed ? t("expandMenu") : t("collapseMenu")}
+          aria-label={isCollapsed ? t("expandMenu") : t("collapseMenu")}
         >
           {isCollapsed ? <PanelLeft size="1.125rem" /> : <PanelLeftClose size="1.125rem" />}
-        </button>
-        {!isCollapsed && (
-          <FocusableNavLink to="/profile" className={({ isActive }) => getNavLinkClass(isActive, "sidebar-profile-header-btn")}>
-            <User size="1.125rem" />
-          </FocusableNavLink>
-        )}
+        </IconButton>
       </div>
 
       <nav className="sidebar-nav">
@@ -139,69 +135,67 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
             onBlur={() => setIsSearchFocused(false)}
           />
 
-          {isCollapsed && (
-            <FocusableNavLink to="/profile" className={({ isActive }) => getNavLinkClass(isActive)}>
-              <User size="1.125rem" />
-              <span>{t("profile")}</span>
-            </FocusableNavLink>
-          )}
-          <FocusableNavLink to="/" className={({ isActive }) => getNavLinkClass(isActive)} end>
+          <SidebarNavLink to="/" className={({ isActive }) => getNavLinkClass(isActive)} end>
             <Home size="1.125rem" />
             <span>{t("home")}</span>
-          </FocusableNavLink>
+          </SidebarNavLink>
           <Slot name="sidebar-menu-home" props={{ isCollapsed }} />
         </div>
 
         <div className="sidebar-section">
           <div className="sidebar-section-title">{t("library")}</div>
-          <FocusableNavLink
+          <SidebarNavLink
             to="/library/up-next"
             className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
             onClick={handleProtectedClick}
           >
             <Play size="1.125rem" />
             <span>{t("upNext")}</span>
-          </FocusableNavLink>
-          <FocusableNavLink
+          </SidebarNavLink>
+          <SidebarNavLink
             to="/calendar"
             className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
             onClick={handleProtectedClick}
           >
             <Calendar size="1.125rem" />
             <span>{t("calendar")}</span>
-          </FocusableNavLink>
-          <FocusableNavLink
+          </SidebarNavLink>
+          <SidebarNavLink
             to="/library/watchlist"
             className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
             onClick={handleProtectedClick}
           >
             <Bookmark size="1.125rem" />
             <span>{t("watchlist")}</span>
-          </FocusableNavLink>
-          <FocusableNavLink
+          </SidebarNavLink>
+          <SidebarNavLink
             to="/library/favorites"
             className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
             onClick={handleProtectedClick}
           >
             <Star size="1.125rem" />
             <span>{t("favorites")}</span>
-          </FocusableNavLink>
-          <FocusableNavLink
+          </SidebarNavLink>
+          <SidebarNavLink
             to="/library/history"
             className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
             onClick={handleProtectedClick}
           >
             <Clock size="1.125rem" />
             <span>{t("history")}</span>
-          </FocusableNavLink>
+          </SidebarNavLink>
           <Slot name="sidebar-menu-library" props={{ isCollapsed }} />
         </div>
 
         <div className="sidebar-section">
-          <FocusableNavLink to="/settings" className={({ isActive }) => getNavLinkClass(isActive)}>
+          <SidebarNavLink to="/profile" className={({ isActive }) => getNavLinkClass(isActive)}>
+            <User size="1.125rem" />
+            <span>{t("profile")}</span>
+          </SidebarNavLink>
+          <SidebarNavLink to="/settings" className={({ isActive }) => getNavLinkClass(isActive)}>
             <Settings size="1.125rem" />
             <span>{t("settings")}</span>
-          </FocusableNavLink>
+          </SidebarNavLink>
           <Slot name="sidebar-menu" props={{ isCollapsed }} />
         </div>
       </nav>

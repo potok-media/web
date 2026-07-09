@@ -157,91 +157,196 @@
   flex-grow: 1;
 }
 
-/* Controls */
-.potok-btn {
-  display: inline-flex;
+.safe-select-theme-dot {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  border: 1px solid var(--text-tertiary);
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--theme-accent) 50%, var(--theme-bg) 50%);
+}
+
+.sdk-btn-mask-icon {
+  display: inline-block;
+  width: 1.125rem;
+  height: 1.125rem;
+  background-color: currentColor;
+  mask-image: var(--mask-url);
+  -webkit-mask-image: var(--mask-url);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  flex-shrink: 0;
+}
+
+/* SDK dynamic layout props via CSS custom properties */
+.potok-sdk-props {
+  width: var(--sdk-width, unset);
+  height: var(--sdk-height, unset);
+  flex: var(--sdk-flex, unset);
+  padding: var(--sdk-padding, unset);
+  margin: var(--sdk-margin, unset);
+  margin-bottom: var(--sdk-margin-bottom, unset);
+  margin-top: var(--sdk-margin-top, unset);
+  margin-left: var(--sdk-margin-left, unset);
+  margin-right: var(--sdk-margin-right, unset);
+  gap: var(--sdk-gap, unset);
+  align-items: var(--sdk-align-items, unset);
+  justify-content: var(--sdk-justify-content, unset);
+}
+
+.potok-extension-slot-container,
+.potok-extension-slot-contents {
+  display: contents;
+}
+
+.potok-extension-slot-inspector-empty {
+  border: 1.5px dashed #a855f7;
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  background: rgba(168, 85, 247, 0.05);
+  cursor: pointer;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.125rem;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #a855f7;
+  margin: 0.5rem 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.potok-extension-slot-inspector-active {
+  position: relative;
+  border: 2px dashed #a855f7;
   border-radius: 0.5rem;
-  font-size: 0.9rem;
-  font-weight: 500;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
   cursor: pointer;
-  border: none;
-  transition: var(--transition-interactive);
-  outline: none;
-  color: var(--text-accent, #fff);
-  width: fit-content;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.potok-btn-primary {
-  background: var(--accent);
-  color: var(--text-accent);
-}
-.potok-btn-primary:hover:not(:disabled) {
-  background: var(--accent-hover);
-  transform: scale(1.02);
-}
-
-.potok-btn-secondary {
-  background: var(--bg-surface-high);
-  border: var(--glass-border);
-}
-.potok-btn-secondary:hover:not(:disabled) {
-  background: var(--bg-surface-highest);
+.potok-extension-slot-inspector-badge {
+  position: absolute;
+  top: -1.125rem;
+  left: 0.25rem;
+  background: #a855f7;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: bold;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  z-index: 10;
+  pointer-events: none;
 }
 
-.potok-btn-danger {
-  background: #ff4d4f;
-}
-.potok-btn-danger:hover:not(:disabled) {
-  background: #d9363e;
-}
-
-.potok-btn-ghost {
-  background: transparent;
-}
-.potok-btn-ghost:hover:not(:disabled) {
-  background: var(--bg-surface-high);
-}
-
-.potok-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Forms */
-.potok-input-group {
+.potok-input-group--full {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
-  width: 100%;
 }
 
-.potok-label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-.potok-input {
-  background: var(--bg-surface-high);
-  border: var(--glass-border);
+.safe-code-editor-shell {
+  position: relative;
+  flex: 1;
+  min-height: 7.5rem;
+  resize: vertical;
+  overflow: hidden;
   border-radius: 0.5rem;
-  padding: 0.625rem 0.875rem;
-  color: var(--text-primary);
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.2s ease-in-out;
-  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: #1e1e1e;
+  height: var(--sdk-height, 12.5rem);
 }
 
-.potok-input:focus {
-  border-color: var(--accent);
+.safe-code-editor-loading,
+.safe-code-editor-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-family: var(--font-family, sans-serif);
+  z-index: 10;
 }
 
-.potok-select {
+.safe-code-editor-loading {
+  color: rgba(255, 255, 255, 0.6);
+  background-color: rgba(30, 30, 30, 0.8);
+}
+
+.safe-code-editor-loading-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.safe-code-editor-spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--color-primary, #6366f1);
+  border-radius: 50%;
+  animation: potok-spin 1s linear infinite;
+}
+
+.safe-code-editor-error {
+  color: #ef4444;
+  padding: 1rem;
+  text-align: center;
+}
+
+.safe-code-editor-mount {
+  width: 100%;
+  height: 100%;
+}
+
+.sidebar-search-form--sdk {
+  width: 100%;
+  margin: 0;
+}
+
+.sidebar-search-wrap--flush {
+  margin: 0;
+}
+
+.potok-label--spaced {
+  margin-bottom: 0.375rem;
+}
+
+.potok-select-wrap--relative {
+  position: relative;
+}
+
+.host-media-card-wrap {
+  width: 10rem;
+}
+
+.host-hero-spotlight-wrap {
+  width: 100%;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.host-episode-card-wrap {
+  width: 17.5rem;
+}
+
+/* Extension sandbox: glass overrides (canonical controls live in ui.css) */
+.potok-sandbox .ui-btn--secondary,
+.potok-sandbox .potok-btn-secondary,
+.potok-page-emu .ui-btn--secondary,
+.potok-page-emu .potok-btn-secondary,
+.potok-sandbox .ui-btn.ui-select.potok-select,
+.potok-page-emu .ui-btn.ui-select.potok-select {
   background: var(--bg-surface-high) !important;
   border: var(--glass-border) !important;
   color: var(--text-primary) !important;
@@ -250,28 +355,14 @@
   backdrop-filter: var(--blur-glass, blur(20px));
   font-weight: 600 !important;
   transition: var(--transition-interactive) !important;
-  cursor: pointer;
-  outline: none;
-  box-sizing: border-box;
 }
 
-.potok-select:hover:not(:disabled) {
-  background: var(--bg-surface-highest) !important;
-  transform: translateY(-2px);
-}
-
-.potok-btn-secondary {
-  background: var(--bg-surface-high) !important;
-  border: var(--glass-border) !important;
-  color: var(--text-primary) !important;
-  padding: 0.625rem 1.125rem !important;
-  border-radius: var(--radius-m, 0.75rem) !important;
-  backdrop-filter: var(--blur-glass, blur(20px));
-  font-weight: 600 !important;
-  transition: var(--transition-interactive) !important;
-}
-
-.potok-btn-secondary:hover:not(:disabled) {
+.potok-sandbox .ui-btn--secondary:hover:not(:disabled),
+.potok-sandbox .potok-btn-secondary:hover:not(:disabled),
+.potok-page-emu .ui-btn--secondary:hover:not(:disabled),
+.potok-page-emu .potok-btn-secondary:hover:not(:disabled),
+.potok-sandbox .ui-btn.ui-select.potok-select:hover:not(:disabled),
+.potok-page-emu .ui-btn.ui-select.potok-select:hover:not(:disabled) {
   background: var(--bg-surface-highest) !important;
   transform: translateY(-2px);
 }

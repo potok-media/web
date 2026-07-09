@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import type { ToggleSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
-import { Focusable } from "../TVNavigation";
+import { Switch } from "../../ui";
+import { sdkStyleVars } from "./componentRendererUtils";
 
 interface SafeToggleProps {
   schema: ToggleSchema;
@@ -27,34 +28,33 @@ export const SafeToggle: React.FC<SafeToggleProps> = ({ schema, pluginId, baseSt
   };
 
   return (
-    <Focusable
-      disabled={componentProps.disabled}
-      onEnterPress={handleToggleChange}
+    <div
+      key={id}
+      className="potok-toggle-group potok-sdk-props"
+      style={sdkStyleVars(baseStyle)}
+      onClick={handleToggleChange}
+      role="button"
+      tabIndex={componentProps.disabled ? undefined : 0}
+      onKeyDown={(e) => {
+        if (componentProps.disabled) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleToggleChange();
+        }
+      }}
     >
-      {({ ref, focused }) => (
-        <label
-          ref={ref}
-          key={id}
-          className={`potok-toggle-group ${focused ? "focused" : ""}`}
-          style={baseStyle}
-          onClick={handleToggleChange}
-        >
-          <div className="potok-toggle-label-wrap">
-            <span className="potok-label">{componentProps.label}</span>
-            {componentProps.description && <span className="potok-toggle-desc">{componentProps.description}</span>}
-          </div>
-          <div className="potok-switch">
-            <input
-              type="checkbox"
-              checked={localChecked}
-              disabled={componentProps.disabled}
-              readOnly
-            />
-            <span className="potok-slider" />
-          </div>
-        </label>
-      )}
-    </Focusable>
+      <div className="potok-toggle-label-wrap">
+        <span className="potok-label">{componentProps.label}</span>
+        {componentProps.description && <span className="potok-toggle-desc">{componentProps.description}</span>}
+      </div>
+      <Switch
+        checked={localChecked}
+        disabled={componentProps.disabled}
+        readOnly
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
   );
 };
 export default SafeToggle;

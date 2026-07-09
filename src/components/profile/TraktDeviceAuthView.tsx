@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Key, ExternalLink, Copy, RefreshCw } from "lucide-react";
-import { Focusable, FocusableButton } from "../common/TVNavigation";
+import { Button, IconButton } from "../ui";
 
 interface TraktDeviceAuthViewProps {
   deviceCode: {
@@ -41,20 +41,15 @@ export const TraktDeviceAuthView: React.FC<TraktDeviceAuthViewProps> = ({
             <span className="device-auth-step-title">
               {t("traktDeviceAuth.step1")}
             </span>
-            <Focusable>
-              {({ ref, focused }) => (
-                <a
-                  ref={ref}
-                  href={deviceCode.verification_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`device-auth-link ${focused ? "focused" : ""}`}
-                >
-                  <ExternalLink size={14} />
-                  <span>{deviceCode.verification_url.replace("https://", "")}</span>
-                </a>
-              )}
-            </Focusable>
+            <a
+              href={deviceCode.verification_url}
+              target="_blank"
+              rel="noreferrer"
+              className="device-auth-link"
+            >
+              <ExternalLink size={14} />
+              <span>{deviceCode.verification_url.replace("https://", "")}</span>
+            </a>
           </div>
         </div>
 
@@ -70,12 +65,16 @@ export const TraktDeviceAuthView: React.FC<TraktDeviceAuthViewProps> = ({
               <span className="device-auth-code-text">
                 {deviceCode.user_code}
               </span>
-              <FocusableButton
+              <IconButton
+                type="button"
                 onClick={onCopyCode}
                 className="device-auth-copy-btn"
+                size="sm"
+                aria-label={t("traktDeviceAuth.copyCode")}
+                title={t("traktDeviceAuth.copyCode")}
               >
                 <Copy size={14} />
-              </FocusableButton>
+              </IconButton>
             </div>
           </div>
         </div>
@@ -88,12 +87,9 @@ export const TraktDeviceAuthView: React.FC<TraktDeviceAuthViewProps> = ({
         </span>
       </div>
 
-      <FocusableButton
-        onClick={onCancel}
-        className="device-auth-cancel-btn"
-      >
+      <Button type="button" variant="ghost" onClick={onCancel} className="device-auth-cancel-btn">
         {t("traktDeviceAuth.backToSelection")}
-      </FocusableButton>
+      </Button>
     </div>
   );
 };

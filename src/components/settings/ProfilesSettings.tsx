@@ -1,37 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../../context/AppSettingsContext";
-import { useHUD } from "../../context/HUDContext";
-import { ApiClient } from "../../network/ApiClient";
+import { useHUD } from "../../context/useHUD";
+import { useProfileHandshake } from "../../hooks/useProfileHandshake";
 import ProfileSelector from "../ProfileSelector";
 import ProfileEditorForm from "../ProfileEditorForm";
-
-/**
- * Normalize + validate a gateway URL: add https:// if the scheme is missing, strip a trailing
- * slash, and reject garbage — it must parse to an http(s) URL with a real host (domain, IP or
- * localhost). Returns the cleaned URL or an error message.
- */
-function normalizeGateway(raw: string): { ok: boolean; url: string; error?: string } {
-  let s = raw.trim().replace(/\/+$/, "");
-  if (!s) return { ok: false, url: "", error: "profiles.errorEmptyGateway" };
-  if (!/^https?:\/\//i.test(s)) {
-    // IPs and localhost can't have a TLS cert → default them to http (so the backend is reachable
-    // by IP the same way the frontend is); real hostnames default to https.
-    const bareHost = s.split("/")[0].split(":")[0];
-    const isIpOrLocal = bareHost === "localhost" || /^\d{1,3}(\.\d{1,3}){3}$/.test(bareHost);
-    s = (isIpOrLocal ? "http://" : "https://") + s;
-  }
-  let parsed: URL;
-  try {
-    parsed = new URL(s);
-  } catch {
-    return { ok: false, url: "", error: "profiles.errorInvalidAddressExample" };
-  }
-  const host = parsed.hostname;
-  const isValidHost = host === "localhost" || /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.includes(".");
-  if (!isValidHost) return { ok: false, url: "", error: "profiles.errorInvalidServer" };
-  return { ok: true, url: s };
-}
 
 export const ProfilesSettings: React.FC = () => {
   const {
@@ -46,6 +19,7 @@ export const ProfilesSettings: React.FC = () => {
 
   const { show: showHUD } = useHUD();
   const { t } = useTranslation("settings");
+  const { checkReachable, normalizeGateway } = useProfileHandshake();
   const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
 
   const [isAdding, setIsAdding] = useState(false);
@@ -53,21 +27,13 @@ export const ProfilesSettings: React.FC = () => {
   const [formGateway, setFormGateway] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Mirror the selected profile into the form. While composing a NEW profile (isAdding) we leave
-  // the form alone so the user's input isn't wiped. Keyed on the active profile's actual fields so
-  // a save/select reflects immediately, but typing into an existing profile isn't overwritten
-  // (activeProfile only changes on save).
   useEffect(() => {
     if (isAdding) return;
     setFormName(activeProfile?.name || "");
     setFormGateway(activeProfile?.gatewayURL || "");
   }, [activeProfileID, isAdding, activeProfile?.name, activeProfile?.gatewayURL]);
 
-  const startEdit = () => {
-    // ProfileSelector already calls onSelectProfile; we just exit add-mode and the effect above
-    // loads the selected profile's fields into the form.
-    setIsAdding(false);
-  };
+  const startEdit = () => setIsAdding(false);
 
   const startAdd = () => {
     setIsAdding(true);
@@ -75,9 +41,7 @@ export const ProfilesSettings: React.FC = () => {
     setFormGateway("");
   };
 
-  const cancelAdd = () => {
-    setIsAdding(false); // the effect re-syncs the form to the active profile
-  };
+  const cancelAdd = () => setIsAdding(false);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,27 +52,17 @@ export const ProfilesSettings: React.FC = () => {
       showHUD("warning", t("profiles.errorEmptyName"));
       return;
     }
+
     const v = normalizeGateway(formGateway);
     if (!v.ok) {
       showHUD("error", v.error ? t(v.error) : t("profiles.errorInvalidAddress"));
       return;
     }
 
-    // Verify the gateway actually responds before saving — no more silently storing dead URLs.
     setSaving(true);
-    let reachable = false;
-    try {
-      await ApiClient.performHandshake(v.url);
-      reachable = true;
-    } catch {
-      reachable = false;
-    }
+    const reachable = await checkReachable(v.url);
     setSaving(false);
-
-    if (!reachable) {
-      showHUD("error", t("profiles.errorUnreachable"));
-      return;
-    }
+    if (!reachable) return;
 
     if (isAdding) {
       addProfile({
@@ -119,7 +73,7 @@ export const ProfilesSettings: React.FC = () => {
         playerServerAuthEnabled: false,
         playerServerAuthLogin: "",
       });
-      setIsAdding(false); // effect loads the newly-added (auto-selected) profile into the form
+      setIsAdding(false);
       showHUD("success", t("profiles.profileAdded"));
     } else if (activeProfile) {
       updateProfile({ ...activeProfile, name, gatewayURL: v.url });

@@ -334,6 +334,9 @@
       "title": "Cast"
     },
     "actor": {
+      "nameFallback": "Actor",
+      "loadErrorTitle": "Failed to load actor profile",
+      "retry": "Retry",
       "biography": "Biography",
       "asActor": "Acting Credits",
       "director": "Directing Credits",
@@ -346,12 +349,12 @@
       "ageAtDeath_other": "at the age of {{count}} years",
       "years_one": "year",
       "years_other": "years",
-      "episodeCount_one": "{{count}} episode",
-      "episodeCount_other": "{{count}} episodes",
-      "Acting": "Acting",
-      "Directing": "Directing",
-      "Writing": "Writing",
-      "Production": "Production",
+      "departments": {
+        "acting": "Acting",
+        "directing": "Directing",
+        "writing": "Writing",
+        "production": "Production"
+      },
       "genre_35": "Comedies",
       "genre_action_adventure": "Action & Adventure",
       "genre_18": "Dramas",

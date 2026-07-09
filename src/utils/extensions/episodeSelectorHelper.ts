@@ -1,5 +1,46 @@
-export function handleShowEpisodeSelector(payload: any, source: any) {
-  const detail: any = {};
+import type { SDKTvSeason } from "../../sdk/src/types";
+import type { GenericEpisodeItem } from "../../components/common/episodeSelector/types";
+import { asPostMessageSource } from "./extensionHostTypes";
+
+export interface ShowEpisodeSelectorPayload {
+  title?: string;
+  episodes?: GenericEpisodeItem[];
+  seasons?: SDKTvSeason[];
+  seasonsLoading?: boolean;
+  isSaving?: boolean;
+  tmdbSeasonsCount?: number;
+  onPlayCallbackId?: string;
+  onStartEditingCallbackId?: string;
+  onApplyOverrideCallbackId?: string;
+  onCloseCallbackId?: string;
+}
+
+interface EpisodeSelectorDetail {
+  title?: string;
+  episodes?: GenericEpisodeItem[];
+  seasons?: SDKTvSeason[];
+  seasonsLoading?: boolean;
+  isSaving?: boolean;
+  tmdbSeasonsCount?: number;
+  onPlay?: (episode: GenericEpisodeItem, audioId: string) => void;
+  onStartEditing?: () => void;
+  onApplyOverride?: (seasonNum: number, epNum: number) => void;
+  onClose?: () => void;
+}
+
+function postUiEvent(source: MessageEventSource, callbackId: string, eventData: unknown) {
+  asPostMessageSource(source)?.postMessage(
+    {
+      source: "potok-host",
+      action: "TRIGGER_UI_EVENT",
+      payload: { callbackId, eventData },
+    },
+    "*",
+  );
+}
+
+export function handleShowEpisodeSelector(payload: ShowEpisodeSelectorPayload, source: MessageEventSource) {
+  const detail: EpisodeSelectorDetail = {};
   if (payload.title !== undefined) detail.title = payload.title;
   if (payload.episodes !== undefined) detail.episodes = payload.episodes;
   if (payload.seasons !== undefined) detail.seasons = payload.seasons;
@@ -8,54 +49,26 @@ export function handleShowEpisodeSelector(payload: any, source: any) {
   if (payload.tmdbSeasonsCount !== undefined) detail.tmdbSeasonsCount = payload.tmdbSeasonsCount;
 
   if (payload.onPlayCallbackId) {
-    detail.onPlay = (episode: any, audioId: string) => {
-      source.postMessage({
-        source: "potok-host",
-        action: "TRIGGER_UI_EVENT",
-        payload: {
-          callbackId: payload.onPlayCallbackId,
-          eventData: { episode, audioId }
-        }
-      }, "*");
+    detail.onPlay = (episode: GenericEpisodeItem, audioId: string) => {
+      postUiEvent(source, payload.onPlayCallbackId!, { episode, audioId });
     };
   }
 
   if (payload.onStartEditingCallbackId) {
     detail.onStartEditing = () => {
-      source.postMessage({
-        source: "potok-host",
-        action: "TRIGGER_UI_EVENT",
-        payload: {
-          callbackId: payload.onStartEditingCallbackId,
-          eventData: {}
-        }
-      }, "*");
+      postUiEvent(source, payload.onStartEditingCallbackId!, {});
     };
   }
 
   if (payload.onApplyOverrideCallbackId) {
     detail.onApplyOverride = (seasonNum: number, epNum: number) => {
-      source.postMessage({
-        source: "potok-host",
-        action: "TRIGGER_UI_EVENT",
-        payload: {
-          callbackId: payload.onApplyOverrideCallbackId,
-          eventData: { seasonNum, epNum }
-        }
-      }, "*");
+      postUiEvent(source, payload.onApplyOverrideCallbackId!, { seasonNum, epNum });
     };
   }
 
   if (payload.onCloseCallbackId) {
     detail.onClose = () => {
-      source.postMessage({
-        source: "potok-host",
-        action: "TRIGGER_UI_EVENT",
-        payload: {
-          callbackId: payload.onCloseCallbackId,
-          eventData: {}
-        }
-      }, "*");
+      postUiEvent(source, payload.onCloseCallbackId!, {});
     };
   }
 

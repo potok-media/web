@@ -2,7 +2,7 @@ import React from "react";
 
 interface GridProps {
   children: React.ReactNode;
-  minWidth: string;
+  minWidth?: string;
   gap?: string;
   className?: string;
   style?: React.CSSProperties;
@@ -12,18 +12,17 @@ export const Grid: React.FC<GridProps> = ({
   children,
   minWidth,
   gap,
-  className,
+  className = "",
   style,
 }) => {
-  const gridStyle: React.CSSProperties = {
-    display: "grid",
-    gridTemplateColumns: `repeat(auto-fill, minmax(${minWidth}, 1fr))`,
-    gap: gap,
+  const gridVars: React.CSSProperties = {
+    ...(minWidth ? { "--grid-min-width": minWidth } : {}),
+    ...(gap ? { "--grid-gap": gap } : {}),
     ...style,
-  };
+  } as React.CSSProperties;
 
   return (
-    <div className={className} style={gridStyle}>
+    <div className={`potok-grid ${className}`.trim()} style={gridVars}>
       {children}
     </div>
   );

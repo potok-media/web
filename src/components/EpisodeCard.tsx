@@ -129,7 +129,7 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
         {isSelectMode ? (
           <div className="episode-checkbox-overlay">
             <div className="episode-select-checkbox">
-              {isWatched && <Check size="1rem" strokeWidth={3} style={{ color: "#fff" }} />}
+              {isWatched && <Check size="1rem" strokeWidth={3} className="episode-select-checkbox-icon" />}
             </div>
           </div>
         ) : (

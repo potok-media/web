@@ -6,53 +6,15 @@ import { FilmOff } from "./common/FilmOff";
 import { useSettings } from "../context/AppSettingsContext";
 import { resizeTmdbImage, posterSizeForQuality } from "../utils/mediaUtils";
 import type { MediaCard } from "../network/ApiClient";
+import { areMediaCardsEqual } from "./mediaCardCompare";
 
 interface MediaCardComponentProps {
   item: MediaCard;
   onClick?: (item: MediaCard) => void;
   style?: React.CSSProperties;
   delay?: number;
-  focusKey?: string;
-  onFocus?: () => void;
-}
-
-export function areProgressEqual(
-  a: MediaCard["progress"],
-  b: MediaCard["progress"]
-): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  return (
-    a.completed === b.completed &&
-    a.aired === b.aired &&
-    a.percentage === b.percentage &&
-    a.lastEpisodeTitle === b.lastEpisodeTitle &&
-    a.lastSeason === b.lastSeason &&
-    a.lastEpisode === b.lastEpisode &&
-    a.nextEpisodeTitle === b.nextEpisodeTitle &&
-    a.nextSeason === b.nextSeason &&
-    a.nextEpisode === b.nextEpisode
-  );
-}
-
-export function areMediaCardsEqual(a: MediaCard, b: MediaCard): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  return (
-    a.id === b.id &&
-    a.title === b.title &&
-    a.subtitle === b.subtitle &&
-    a.mediaType === b.mediaType &&
-    a.posterSrc === b.posterSrc &&
-    a.tmdbRating === b.tmdbRating &&
-    a.kpRating === b.kpRating &&
-    a.imdbRating === b.imdbRating &&
-    a.nextEpisodeSeason === b.nextEpisodeSeason &&
-    a.nextEpisodeNumber === b.nextEpisodeNumber &&
-    a.isInWatchlist === b.isInWatchlist &&
-    a.isFavorite === b.isFavorite &&
-    areProgressEqual(a.progress, b.progress)
-  );
+  /** Episode badge + watch progress bar — only for the Continue (up-next) library tab. */
+  showContinueOverlay?: boolean;
 }
 
 const shallowCompareStyles = (
@@ -81,13 +43,14 @@ const areMediaCardComponentsEqual = (
 ): boolean => {
   return (
     prevProps.delay === nextProps.delay &&
+    prevProps.showContinueOverlay === nextProps.showContinueOverlay &&
     shallowCompareStyles(prevProps.style, nextProps.style) &&
     areMediaCardsEqual(prevProps.item, nextProps.item)
   );
 };
 
 export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
-  ({ item, onClick, style }) => {
+  ({ item, onClick, style, showContinueOverlay = false }) => {
     const [hasError, setHasError] = useState(false);
     const cardRef = useRef<HTMLAnchorElement>(null);
     const { bannerQuality } = useSettings();
@@ -112,8 +75,8 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
     };
 
     const rating = item.tmdbRating || item.kpRating || item.imdbRating;
-    const epInfo = getEpisodeInfo();
-    const showProgress = item.progress && item.progress.percentage > 0;
+    const epInfo = showContinueOverlay ? getEpisodeInfo() : null;
+    const showProgress = showContinueOverlay && item.progress && item.progress.percentage > 0;
 
     const handleCardClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
       if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && e.altKey === false) {
@@ -136,18 +99,14 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
           {posterSrc && !hasError ? (
             <img
               src={posterSrc}
-              className="media-poster"
               alt={item.title}
               loading="lazy"
               decoding="async"
               onLoad={(e) => {
-                e.currentTarget.style.opacity = "1";
+                e.currentTarget.classList.add("is-visible");
               }}
               onError={handleImageError}
-              style={{
-                opacity: 0,
-                transition: "opacity 0.2s ease-in-out"
-              }}
+              className="media-poster media-poster--fade-in"
             />
           ) : (
             <div className="media-poster-fallback-placeholder">
@@ -176,9 +135,9 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
             </div>
             {showProgress && (
               <div className="media-card-progress-container">
-                <div 
-                  className="media-card-progress-bar" 
-                  style={{ width: `${item.progress!.percentage}%` }}
+                <div
+                  className="media-card-progress-bar"
+                  style={{ "--progress-width": `${item.progress!.percentage}%` } as React.CSSProperties}
                 />
               </div>
             )}

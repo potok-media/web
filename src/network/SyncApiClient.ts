@@ -2,6 +2,7 @@ import { Storage } from "../utils/StorageService";
 import { ApiClient } from "./ApiClient";
 import type { MediaCard } from "./ApiClient";
 import { DataWorkerBridge } from "../utils/worker/DataWorkerBridge";
+import { traktBulkHistoryPayload, traktMediaPayload } from "./syncTraktPayloads";
 
 export interface UserHistoryEntry {
   tmdbId: string;
@@ -102,20 +103,7 @@ export class SyncApiClient {
       });
       if (!res.ok) throw new Error(`Failed to save progress on server (Status ${res.status})`);
     } else if (this.syncStrategy === "trakt") {
-      const payload = {
-        movies: mediaType === "movie" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
-        shows: (mediaType === "tv" && seasonNumber !== undefined && episodeNumber !== undefined)
-          ? [{
-              ids: { tmdb: Number(tmdbId) },
-              seasons: [{
-                number: seasonNumber,
-                episodes: [{ number: episodeNumber }]
-              }]
-            }]
-          : (mediaType === "tv" ? [{ ids: { tmdb: Number(tmdbId) } }] : []),
-        episodes: mediaType === "episode" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
-      };
-      await ApiClient.syncTraktAction("history", payload);
+      await ApiClient.syncTraktAction("history", traktMediaPayload(tmdbId, mediaType, seasonNumber, episodeNumber));
     }
   }
 
@@ -146,20 +134,7 @@ export class SyncApiClient {
       });
       if (!res.ok) throw new Error(`Failed to remove progress on server (Status ${res.status})`);
     } else if (this.syncStrategy === "trakt") {
-      const payload = {
-        movies: mediaType === "movie" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
-        shows: (mediaType === "tv" && seasonNumber !== undefined && episodeNumber !== undefined)
-          ? [{
-              ids: { tmdb: Number(tmdbId) },
-              seasons: [{
-                number: seasonNumber,
-                episodes: [{ number: episodeNumber }]
-              }]
-            }]
-          : (mediaType === "tv" ? [{ ids: { tmdb: Number(tmdbId) } }] : []),
-        episodes: mediaType === "episode" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
-      };
-      await ApiClient.syncTraktAction("history/remove", payload);
+      await ApiClient.syncTraktAction("history/remove", traktMediaPayload(tmdbId, mediaType, seasonNumber, episodeNumber));
     }
   }
 
@@ -196,11 +171,7 @@ export class SyncApiClient {
       });
       if (!res.ok) throw new Error(`Failed to add favorite on server (Status ${res.status})`);
     } else if (this.syncStrategy === "trakt") {
-      const payload = {
-        movies: mediaType === "movie" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
-        shows: mediaType === "tv" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
-      };
-      await ApiClient.syncTraktAction("favorites", payload);
+      await ApiClient.syncTraktAction("favorites", traktMediaPayload(tmdbId, mediaType));
     }
   }
 
@@ -216,11 +187,7 @@ export class SyncApiClient {
       });
       if (!res.ok) throw new Error(`Failed to remove favorite on server (Status ${res.status})`);
     } else if (this.syncStrategy === "trakt") {
-      const payload = {
-        movies: mediaType === "movie" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
-        shows: mediaType === "tv" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
-      };
-      await ApiClient.syncTraktAction("favorites/remove", payload);
+      await ApiClient.syncTraktAction("favorites/remove", traktMediaPayload(tmdbId, mediaType));
     }
   }
 
@@ -257,11 +224,7 @@ export class SyncApiClient {
       });
       if (!res.ok) throw new Error(`Failed to add watchlist on server (Status ${res.status})`);
     } else if (this.syncStrategy === "trakt") {
-      const payload = {
-        movies: mediaType === "movie" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
-        shows: mediaType === "tv" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
-      };
-      await ApiClient.syncTraktAction("watchlist", payload);
+      await ApiClient.syncTraktAction("watchlist", traktMediaPayload(tmdbId, mediaType));
     }
   }
 
@@ -277,11 +240,7 @@ export class SyncApiClient {
       });
       if (!res.ok) throw new Error(`Failed to remove watchlist on server (Status ${res.status})`);
     } else if (this.syncStrategy === "trakt") {
-      const payload = {
-        movies: mediaType === "movie" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
-        shows: mediaType === "tv" ? [{ ids: { tmdb: Number(tmdbId) } }] : [],
-      };
-      await ApiClient.syncTraktAction("watchlist/remove", payload);
+      await ApiClient.syncTraktAction("watchlist/remove", traktMediaPayload(tmdbId, mediaType));
     }
   }
 
@@ -309,45 +268,11 @@ export class SyncApiClient {
       const toRemove = changes.filter(c => !c.isWatched);
 
       if (toAdd.length > 0) {
-        const seasonMap: Record<number, number[]> = {};
-        for (const item of toAdd) {
-          if (!seasonMap[item.seasonNumber]) seasonMap[item.seasonNumber] = [];
-          seasonMap[item.seasonNumber].push(item.episodeNumber);
-        }
-        const seasons = Object.keys(seasonMap).map(Number).map(sNum => ({
-          number: sNum,
-          episodes: seasonMap[sNum].map(eNum => ({ number: eNum }))
-        }));
-        const payload = {
-          movies: [],
-          shows: [{
-            ids: { tmdb: Number(tmdbId) },
-            seasons
-          }],
-          episodes: []
-        };
-        await ApiClient.syncTraktAction("history", payload);
+        await ApiClient.syncTraktAction("history", traktBulkHistoryPayload(tmdbId, toAdd));
       }
 
       if (toRemove.length > 0) {
-        const seasonMap: Record<number, number[]> = {};
-        for (const item of toRemove) {
-          if (!seasonMap[item.seasonNumber]) seasonMap[item.seasonNumber] = [];
-          seasonMap[item.seasonNumber].push(item.episodeNumber);
-        }
-        const seasons = Object.keys(seasonMap).map(Number).map(sNum => ({
-          number: sNum,
-          episodes: seasonMap[sNum].map(eNum => ({ number: eNum }))
-        }));
-        const payload = {
-          movies: [],
-          shows: [{
-            ids: { tmdb: Number(tmdbId) },
-            seasons
-          }],
-          episodes: []
-        };
-        await ApiClient.syncTraktAction("history/remove", payload);
+        await ApiClient.syncTraktAction("history/remove", traktBulkHistoryPayload(tmdbId, toRemove));
       }
     }
   }

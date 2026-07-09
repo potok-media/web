@@ -41,7 +41,7 @@ export const CaptionsLoadingIcon: React.FC<IconProps> = ({ size = 24, className 
       </g>
       <path
         d="M18.5 15.5A3 3 0 1 1 15.5 18.5"
-        style={{ animation: "spin 0.9s linear infinite", transformBox: "view-box", transformOrigin: "18.5px 18.5px" }}
+        className="subtitle-spinner-path"
       />
     </svg>
   );
@@ -62,7 +62,7 @@ export const SpinnerIcon: React.FC<IconProps> = ({ size = 16, className }) => (
   >
     <path
       d="M12 4A8 8 0 1 1 4 12"
-      style={{ animation: "spin 0.8s linear infinite", transformBox: "view-box", transformOrigin: "12px 12px" }}
+      className="subtitle-spinner-path subtitle-spinner-path--sm"
     />
   </svg>
 );

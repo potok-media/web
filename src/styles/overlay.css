@@ -1,7 +1,8 @@
 /* ==========================================================================
-   Overlay — the single modal / sheet / popover primitive.
+   Overlay — modal / sheet / popover primitive.
    ========================================================================== */
 
+.overlay,
 .tv-overlay {
   position: fixed;
   inset: 0;
@@ -9,6 +10,7 @@
   display: flex;
 }
 
+.overlay--modal,
 .tv-overlay--modal {
   align-items: center;
   justify-content: center;
@@ -16,18 +18,19 @@
   padding: var(--space-l, 1.25rem);
 }
 
+.overlay--sheet,
 .tv-overlay--sheet {
   align-items: flex-end;
   justify-content: center;
   background: rgba(0, 0, 0, 0.6);
 }
 
-/* Popover: transparent full-screen catcher for outside-clicks; panel is positioned
-   by inline popoverStyle from the caller. */
+.overlay--popover,
 .tv-overlay--popover {
   background: transparent;
 }
 
+.overlay-panel,
 .tv-overlay-panel {
   background: var(--bg-window, #161616);
   border: var(--glass-border, 1px solid rgba(255, 255, 255, 0.12));
@@ -38,6 +41,7 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
 }
 
+.overlay-panel--modal,
 .tv-overlay-panel--modal {
   width: 100%;
   max-width: 40rem;
@@ -46,6 +50,7 @@
   border-radius: var(--radius-l, 1rem);
 }
 
+.overlay-panel--sheet,
 .tv-overlay-panel--sheet {
   width: 100%;
   max-width: 45rem;
@@ -55,6 +60,7 @@
   padding: var(--space-l, 1.25rem);
 }
 
+.overlay-panel--popover,
 .tv-overlay-panel--popover {
   position: fixed;
   min-width: 13.75rem;
@@ -64,13 +70,9 @@
   padding: var(--space-s, 0.5rem);
 }
 
+.overlay-title,
 .tv-overlay-title {
   font-size: var(--font-size-h3, 1.1rem);
   font-weight: 600;
   padding: 0 0 var(--space-s, 0.5rem);
-}
-
-/* TV: drop the heavy shadow (cheap paint) and keep scroll snappy. */
-body.is-tv .tv-overlay-panel {
-  box-shadow: none;
 }

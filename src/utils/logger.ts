@@ -25,8 +25,10 @@ export const addLogEntry = (type: "info" | "warn" | "error", message: string) =>
   listeners.forEach((l) => {
     try {
       l(entry);
-    } catch {
-      // Ignore listener errors
+    } catch (listenerError) {
+      if (isDev) {
+        console.warn("Log listener failed:", listenerError);
+      }
     }
   });
 };
@@ -45,26 +47,35 @@ if (typeof window !== "undefined") {
   });
 }
 
+const formatLogArg = (value: unknown): string => {
+  if (value instanceof Error) return `${value.message}\n${value.stack ?? ""}`;
+  if (typeof value === "object" && value !== null) {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+  return String(value);
+};
+
 export const logger = {
-  log: (...args: any[]) => {
-    const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+  log: (...args: unknown[]) => {
+    const msg = args.map(formatLogArg).join(" ");
     addLogEntry("info", msg);
     if (isDev) {
       console.log(...args);
     }
   },
-  warn: (...args: any[]) => {
-    const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+  warn: (...args: unknown[]) => {
+    const msg = args.map(formatLogArg).join(" ");
     addLogEntry("warn", msg);
     if (isDev) {
       console.warn(...args);
     }
   },
-  error: (...args: any[]) => {
-    const msg = args.map(a => {
-      if (a instanceof Error) return `${a.message}\n${a.stack}`;
-      return typeof a === 'object' ? JSON.stringify(a) : String(a);
-    }).join(' ');
+  error: (...args: unknown[]) => {
+    const msg = args.map(formatLogArg).join(" ");
     addLogEntry("error", msg);
     console.error(...args);
   },
@@ -80,7 +91,11 @@ export const logger = {
     listeners.forEach((l) => {
       try {
         l(clearEntry);
-      } catch {}
+      } catch (listenerError) {
+        if (isDev) {
+          console.warn("Log listener failed on clear:", listenerError);
+        }
+      }
     });
   },
   subscribe: (listener: (entry: LogEntry) => void) => {

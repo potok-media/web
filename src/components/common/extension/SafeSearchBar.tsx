@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Search, X } from "lucide-react";
 import type { SearchBarSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
-import { FocusableButton, FocusableInput } from "../TVNavigation";
+import { IconButton, Input } from "../../ui";
+import { sdkStyleVars } from "./componentRendererUtils";
 
 interface SafeSearchBarProps {
   schema: SearchBarSchema;
@@ -36,10 +37,10 @@ export const SafeSearchBar: React.FC<SafeSearchBarProps> = ({ schema, pluginId, 
   };
 
   return (
-    <div key={id} className="sidebar-search-form" style={{ ...baseStyle, width: "100%", margin: 0 }}>
-      <div className="sidebar-search-wrap" style={{ margin: 0 }}>
+    <div key={id} className="sidebar-search-form sidebar-search-form--sdk potok-sdk-props" style={sdkStyleVars(baseStyle)}>
+      <div className="sidebar-search-wrap sidebar-search-wrap--flush">
         <Search size="1rem" className="sidebar-search-icon" />
-        <FocusableInput
+        <Input
           type="text"
           placeholder={(componentProps.placeholder as string) || t("safe.searchPlaceholder")}
           value={localVal}
@@ -48,15 +49,16 @@ export const SafeSearchBar: React.FC<SafeSearchBarProps> = ({ schema, pluginId, 
           className="sidebar-search-input"
         />
         {localVal && (
-          <FocusableButton 
-            type="button" 
-            onClick={handleClear} 
+          <IconButton
+            type="button"
+            onClick={handleClear}
             disabled={componentProps.disabled}
             className="sidebar-search-clear"
             title={t("safe.clear")}
+            aria-label={t("safe.clear")}
           >
             <X size="0.875rem" />
-          </FocusableButton>
+          </IconButton>
         )}
       </div>
     </div>

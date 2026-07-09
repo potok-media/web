@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Search } from "lucide-react";
+import { Input } from "../ui";
 
 interface WikiHeaderProps {
   searchQuery: string;
@@ -25,9 +26,9 @@ export const WikiHeader: React.FC<WikiHeaderProps> = ({
       <div className="wiki-header-right">
         <form className="wiki-search-form" onSubmit={handleSearch}>
           <Search size="0.875rem" className="wiki-search-icon-inside" />
-          <input 
-            type="text" 
-            className="wiki-search-input-field" 
+          <Input
+            type="text"
+            className="wiki-search-input-field"
             placeholder="Быстрый поиск по Wiki..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

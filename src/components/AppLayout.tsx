@@ -1,133 +1,43 @@
 import React from "react";
-import ReactDOM from "react-dom";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useSettings, useConnectionHealth, usePlayback } from "../context/AppSettingsContext";
-import { useInspector } from "../context/InspectorContext";
+import { useSettings } from "../context/AppSettingsContext";
+import { useInspector } from "../context/useInspector";
 import { AppSidebar } from "./AppSidebar";
 import { MobileBottomNavigation } from "./MobileBottomNavigation";
-import { getEnv } from "../utils/EnvService";
-import { WebMediaPlayer } from "./WebMediaPlayer";
-import { ErrorBoundary } from "./ErrorBoundary";
-import { OfflineOverlay } from "./OfflineOverlay";
-import { FocusTrap } from "./FocusTrap";
 import { PluginSandbox } from "./common/PluginSandbox";
-import { PlatformManager } from "../utils/PlatformManager";
+import { AppLayoutPlayerOverlay } from "./appLayout/AppLayoutPlayerOverlay";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { useAppLayoutScroll } from "../hooks/useAppLayoutScroll";
+import { useAppLayoutPlayback } from "../hooks/useAppLayoutPlayback";
+import { useAppLayoutBackNavigation } from "../hooks/useAppLayoutBackNavigation";
+import { useAppLayoutOfflineForm } from "../hooks/useAppLayoutOfflineForm";
 import "../styles/layout.css";
-import { logger } from "../utils/logger";
+import { Button, cx } from "./ui";
 
 const DeveloperInspector = React.lazy(() => import("./common/extension/DeveloperInspector"));
 
 export const AppLayout: React.FC = () => {
   const { t } = useTranslation("common");
   const location = useLocation();
-  const mainContentRef = React.useRef<HTMLDivElement>(null);
-  const scrollPositions = React.useRef<Record<string, number>>({});
-
   const isMobile = useIsMobile();
+  const { mainContentRef, handleScroll } = useAppLayoutScroll(location);
 
-  const handleScroll = React.useCallback(() => {
-    if (mainContentRef.current) {
-      scrollPositions.current[location.key || location.pathname] = mainContentRef.current.scrollTop;
-    }
-  }, [location.pathname, location.key]);
+  useAppLayoutBackNavigation();
 
-  React.useEffect(() => {
-    const container = mainContentRef.current;
-    if (!container) return;
+  const { developerMode } = useSettings();
+  const { isInspectorActive, setIsInspectorActive } = useInspector();
+  const isDesktop = window.innerWidth > 768;
 
-    const savedPos = scrollPositions.current[location.key || location.pathname] || 0;
-    
-    // We use a small timeout to let the DOM render before restoring scroll position
-    const timer = setTimeout(() => {
-      container.scrollTo(0, savedPos);
-    }, 50);
-
-    return () => clearTimeout(timer);
-  }, [location.pathname, location.key]);
-
+  const { activePlayback, handleClosePlayer } = useAppLayoutPlayback();
   const {
     connectionState,
     checkConnection,
-  } = useConnectionHealth();
-
-  const {
-    connectionProfiles,
-    activeProfileID,
-    updateProfile,
-    addProfile,
-    developerMode,
-  } = useSettings();
-
-  const {
-    isInspectorActive,
-    setIsInspectorActive
-  } = useInspector();
-
-  const isDesktop = window.innerWidth > 768;
-
-  const navigate = useNavigate();
-
-  React.useEffect(() => {
-    const handleBackPressed = (e: Event) => {
-      if (e.defaultPrevented) return;
-
-      const isHome = location.pathname === "/";
-      if (isHome) {
-        PlatformManager.exitApp();
-      } else {
-        navigate(-1);
-      }
-    };
-
-    window.addEventListener("potok-back-pressed", handleBackPressed);
-    return () => {
-      window.removeEventListener("potok-back-pressed", handleBackPressed);
-    };
-  }, [location.pathname, navigate]);
-
-  const {
-    activePlayback,
-    playVideo,
-    stopVideo,
-  } = usePlayback();
-
-  React.useEffect(() => {
-    const saved = sessionStorage.getItem("potok_last_playback");
-    if (saved && !activePlayback) {
-      try {
-        playVideo(JSON.parse(saved));
-      } catch (e) {
-        logger.error("Failed to restore playback from sessionStorage", e);
-        sessionStorage.removeItem("potok_last_playback");
-      }
-    }
-  }, []);
-
-  React.useEffect(() => {
-    if (activePlayback) {
-      sessionStorage.setItem("potok_last_playback", JSON.stringify(activePlayback));
-    } else {
-    }
-  }, [activePlayback]);
-
-  const handleClosePlayer = React.useCallback(() => {
-    sessionStorage.removeItem("potok_last_playback");
-    stopVideo();
-  }, [stopVideo]);
-
-  const activeProfile = connectionProfiles.find((p) => p.id === activeProfileID) || null;
-  const [inputUrl, setInputUrl] = React.useState(
-    activeProfile?.gatewayURL || getEnv("VITE_DEFAULT_BFF_URL") || ""
-  );
-
-  const [prevActiveProfileID, setPrevActiveProfileID] = React.useState<string | null>(activeProfileID);
-
-  if (activeProfileID !== prevActiveProfileID) {
-    setPrevActiveProfileID(activeProfileID);
-    setInputUrl(activeProfile?.gatewayURL || getEnv("VITE_DEFAULT_BFF_URL") || "");
-  }
+    activeProfile,
+    inputUrl,
+    setInputUrl,
+    handleSaveAndConnect,
+  } = useAppLayoutOfflineForm();
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(() => {
     const saved = localStorage.getItem("isSidebarCollapsed");
@@ -139,36 +49,7 @@ export const AppLayout: React.FC = () => {
       const next = !prev;
       localStorage.setItem("isSidebarCollapsed", String(next));
       return next;
-      });
-  };
-
-  const handleSaveAndConnect = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputUrl.trim()) return;
-
-    const targetUrl = inputUrl.trim().replace(/\/$/, "");
-
-    if (activeProfile) {
-      updateProfile({
-        ...activeProfile,
-        gatewayURL: targetUrl,
-        playerServerURL: activeProfile.playerServerURL,
-        searchEngineURL: activeProfile.searchEngineURL,
-      });
-    } else {
-      addProfile({
-        name: "Local BFF",
-        gatewayURL: targetUrl,
-        playerServerURL: "",
-        searchEngineURL: "",
-        playerServerAuthEnabled: false,
-        playerServerAuthLogin: "",
-      });
-    }
-
-    setTimeout(() => {
-      checkConnection();
-    }, 150);
+    });
   };
 
   return (
@@ -194,118 +75,33 @@ export const AppLayout: React.FC = () => {
 
       {isMobile && <MobileBottomNavigation />}
 
-      {activePlayback && (
-        <ErrorBoundary fallback={(error, resetError) => (
-          <div style={{
-            position: "fixed",
-            bottom: "1.25rem",
-            right: "1.25rem",
-            zIndex: 9999,
-            width: "21.875rem",
-            padding: "1rem",
-            background: "rgba(20, 20, 20, 0.95)",
-            backdropFilter: "blur(25px)",
-            borderRadius: "0.75rem",
-            border: "1px solid var(--error, #ef4444)",
-            color: "#fff",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.5)"
-          }}>
-            <h4 style={{ color: "var(--error, #ef4444)", margin: "0 0 0.5rem 0" }}>{t("playerError")}</h4>
-            <p style={{ fontSize: "0.85rem", opacity: 0.8, margin: "0 0 1rem 0" }}>
-              {error.message || t("playbackFailed")}
-            </p>
-            <div style={{ display: "flex", gap: "0.625rem" }}>
-              <button
-                onClick={resetError}
-                style={{
-                  flex: 1,
-                  padding: "0.4rem",
-                  background: "var(--error, #ef4444)",
-                  border: "none",
-                  borderRadius: "0.25rem",
-                  color: "#fff",
-                  cursor: "pointer",
-                  fontSize: "0.85rem",
-                  fontWeight: 600
-                }}
-              >
-                {t("actions.retry")}
-              </button>
-              <button
-                onClick={handleClosePlayer}
-                style={{
-                  flex: 1,
-                  padding: "0.4rem",
-                  background: "rgba(255,255,255,0.1)",
-                  border: "none",
-                  borderRadius: "0.25rem",
-                  color: "#fff",
-                  cursor: "pointer",
-                  fontSize: "0.85rem"
-                }}
-              >
-                {t("actions.close")}
-              </button>
-            </div>
-          </div>
-        )}>
-          <WebMediaPlayer
-            key={activePlayback.id}
-            playback={activePlayback}
-            onClose={handleClosePlayer}
-            isNetworkOffline={connectionState === "offline"}
-          />
-        </ErrorBoundary>
-      )}
+      <AppLayoutPlayerOverlay
+        activePlayback={activePlayback}
+        connectionState={connectionState}
+        onClosePlayer={handleClosePlayer}
+        inputUrl={inputUrl}
+        setInputUrl={setInputUrl}
+        handleSaveAndConnect={handleSaveAndConnect}
+        activeProfile={activeProfile}
+        checkConnection={checkConnection}
+      />
 
-      {connectionState !== "connected" && ReactDOM.createPortal(
-        <FocusTrap>
-          <OfflineOverlay
-            connectionState={connectionState}
-            inputUrl={inputUrl}
-            setInputUrl={setInputUrl}
-            handleSaveAndConnect={handleSaveAndConnect}
-            activeProfile={activeProfile}
-            checkConnection={checkConnection}
-          />
-        </FocusTrap>,
-        document.body
-      )}
-
-      {/* Inspector toggle button */}
       {isDesktop && developerMode && (
-        <button
+        <Button
           onClick={() => setIsInspectorActive(!isInspectorActive)}
-          style={{
-            position: "fixed",
-            bottom: "1.5rem",
-            right: "1.5rem",
-            zIndex: 99999,
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            padding: "0.625rem 1rem",
-            borderRadius: "1.875rem",
-            border: "none",
-            background: isInspectorActive ? "#ef4444" : "var(--accent, #3b82f6)",
-            color: "#fff",
-            fontWeight: "bold",
-            fontSize: "0.85rem",
-            cursor: "pointer",
-            boxShadow: "0 4px 14px rgba(0,0,0,0.3)",
-            transition: "all 0.2s ease",
-            transform: "translateY(0)"
-          }}
+          variant="primary"
+          size="sm"
+          className={cx("inspector-toggle-btn", isInspectorActive && "inspector-toggle-btn--active")}
         >
           <svg width="1rem" height="1rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
           <span>{isInspectorActive ? t("inspector.disable") : t("inspector.enable")}</span>
-        </button>
+        </Button>
       )}
       {isDesktop && developerMode && isInspectorActive && (
-        <React.Suspense fallback={<div className="inspector-loading" style={{ position: "fixed", bottom: "1.5rem", right: "1.5rem", zIndex: 99999, color: "#fff" }}>{t("loadingEditor")}</div>}>
+        <React.Suspense fallback={<div className="inspector-loading">{t("loadingEditor")}</div>}>
           <DeveloperInspector />
         </React.Suspense>
       )}

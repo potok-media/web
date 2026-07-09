@@ -8,10 +8,10 @@ interface CacheEntry<T> {
  * Utilized by hooks such as useSeasonEpisodes.ts to eliminate skeletal flashing and minimize network overhead.
  */
 export class MemorySafeCache {
-  private cache = new Map<string, CacheEntry<any>>();
+  private cache = new Map<string, CacheEntry<unknown>>();
   private readonly ttlMs: number;
   private readonly maxSize: number;
-  private gcIntervalId: any = null;
+  private gcIntervalId: ReturnType<typeof setInterval> | null = null;
 
   private static instances = new Set<MemorySafeCache>();
 
@@ -40,7 +40,7 @@ export class MemorySafeCache {
     // LRU update: refresh position in Map
     this.cache.delete(key);
     this.cache.set(key, entry);
-    return entry.value;
+    return entry.value as T;
   }
 
   public set<T>(key: string, value: T): void {

@@ -1,7 +1,8 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Popcorn, Server, ChevronRight } from "lucide-react";
-import { FocusableButton } from "../common/TVNavigation";
+import { Pressable } from "../ui";
+
 
 interface SyncStrategySelectionViewProps {
   onSelectStrategy: (strategy: string) => void;
@@ -25,12 +26,13 @@ export const SyncStrategySelectionView: React.FC<SyncStrategySelectionViewProps>
       </div>
 
       <div className="strategy-options-list">
-        <FocusableButton
-          onClick={() => {
+        <Pressable
+          onPress={() => {
             onSelectStrategy("trakt");
             onStartTraktAuth();
           }}
           className="strategy-option-card trakt"
+          role="button"
         >
           <div className="strategy-icon-badge trakt">
             <Popcorn size={18} />
@@ -42,11 +44,12 @@ export const SyncStrategySelectionView: React.FC<SyncStrategySelectionViewProps>
             </span>
           </div>
           <ChevronRight size={12} className="card-arrow strategy-option-arrow" />
-        </FocusableButton>
+        </Pressable>
 
-        <FocusableButton
-          onClick={() => onSelectStrategy("server")}
+        <Pressable
+          onPress={() => onSelectStrategy("server")}
           className="strategy-option-card server"
+          role="button"
         >
           <div className="strategy-icon-badge server">
             <Server size={18} />
@@ -58,7 +61,7 @@ export const SyncStrategySelectionView: React.FC<SyncStrategySelectionViewProps>
             </span>
           </div>
           <ChevronRight size={12} className="card-arrow strategy-option-arrow" />
-        </FocusableButton>
+        </Pressable>
       </div>
     </div>
   );

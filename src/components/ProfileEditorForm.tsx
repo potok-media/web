@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Save, Play, Info } from "lucide-react";
-import { FocusableButton, FocusableInput } from "./common/TVNavigation";
+import { Button, Field, Input } from "./ui";
 
 interface ProfileEditorFormProps {
   isAdding: boolean;
@@ -42,11 +42,9 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
           </div>
         )}
 
-        <form onSubmit={onSave} className="settings-form-wrapper" style={{ display: "flex", flexDirection: "column", gap: "var(--space-m)" }}>
-          <div className="settings-form-group">
-            <label className="settings-label">{t("profileEditor.nameLabel")}</label>
-            <FocusableInput
-              className="settings-input"
+        <form onSubmit={onSave} className="ui-form-stack">
+          <Field label={t("profileEditor.nameLabel")} className="settings-form-group">
+            <Input
               type="text"
               placeholder={t("profileEditor.namePlaceholder")}
               value={formName}
@@ -54,12 +52,10 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
               disabled={isSettingsLocked || saving}
               required
             />
-          </div>
+          </Field>
 
-          <div className="settings-form-group">
-            <label className="settings-label">{t("profileEditor.gatewayLabel")}</label>
-            <FocusableInput
-              className="settings-input"
+          <Field label={t("profileEditor.gatewayLabel")} className="settings-form-group">
+            <Input
               type="text"
               placeholder={t("profileEditor.gatewayPlaceholder")}
               value={formGateway}
@@ -67,23 +63,24 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
               disabled={isSettingsLocked || saving}
               required
             />
-          </div>
+          </Field>
 
           {!isSettingsLocked && (
-            <div className="settings-form-buttons-row" style={{ marginTop: "var(--space-s)" }}>
-              <FocusableButton type="submit" className="settings-btn-primary cursor-pointer btn-gap-s" disabled={saving}>
+            <div className="ui-form-actions">
+              <Button type="submit" variant="primary" className="btn-gap-s" disabled={saving}>
                 <Save size="1rem" />
                 <span>{saving ? t("profileEditor.checking") : isAdding ? t("profileEditor.createProfile") : t("profileEditor.saveChanges")}</span>
-              </FocusableButton>
+              </Button>
               {isAdding && (
-                <FocusableButton
+                <Button
                   type="button"
-                  className="settings-btn-primary settings-form-btn-cancel"
+                  variant="secondary"
+                  className="settings-form-btn-cancel"
                   onClick={onCancel}
                   disabled={saving}
                 >
                   {t("profileEditor.cancel")}
-                </FocusableButton>
+                </Button>
               )}
             </div>
           )}

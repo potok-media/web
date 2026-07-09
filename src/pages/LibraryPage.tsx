@@ -1,35 +1,30 @@
-import React, { useRef, useEffect, useState } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import { useParams, useLocation, Link, useNavigate } from "react-router-dom";
-import { 
-  Film, 
-  Search as SearchIcon, 
-  AlertTriangle,
-  X
-} from "lucide-react";
+import { useParams, useLocation, Link } from "react-router-dom";
+import { Film, Search as SearchIcon, AlertTriangle } from "lucide-react";
 import { useLibraryPage } from "../hooks/useLibraryPage";
+import { useLibraryPageRendering } from "../hooks/useLibraryPageRendering";
 import type { MediaCard } from "../network/ApiTypes";
 import { MediaCardComponent } from "../components/MediaCardComponent";
 import { LoadingSpinner } from "../components/LoadingSpinner";
+import { LibraryPageHeader } from "../components/library/LibraryPageHeader";
 import { CATEGORY_MAP, DYNAMIC_CATEGORY_TITLES } from "./LibraryConfig";
 import { Grid } from "../components/common/Grid";
+import { Button, cx } from "../components/ui";
 
-import { FocusableInput, FocusableButton } from "../components/common/TVNavigation";
-import "../styles/media.css";
- 
+
+
 export const LibraryPage: React.FC = () => {
   const { collectionType: routeType } = useParams<{ collectionType: string }>();
   const location = useLocation();
-  const navigate = useNavigate();
   const { t } = useTranslation("media");
-
 
   const isSearchPage = location.pathname === "/search";
   const collectionType = isSearchPage ? "search" : (routeType || "");
- 
+
   const params = new URLSearchParams(location.search);
   const initialQuery = params.get("q") || params.get("query") || "";
- 
+
   const stateData = location.state as { items?: MediaCard[]; title?: string } | null;
   const hasStateData = !!stateData?.items;
 
@@ -42,33 +37,14 @@ export const LibraryPage: React.FC = () => {
       ? (dynamicTitleKey ? t(dynamicTitleKey) : t("library.category"))
       : (rawCategory ? t(rawCategory.title) : t("library.category")));
 
-  // Static categories store i18next keys in LibraryConfig; resolve them here so downstream
-  // rendering gets localized strings (and re-renders on language change).
   const category = rawCategory
-    ? {
-        ...rawCategory,
-        title: t(rawCategory.title),
-        emptyText: t(rawCategory.emptyText),
-        emptySub: t(rawCategory.emptySub),
-      }
+    ? { ...rawCategory, title: t(rawCategory.title), emptyText: t(rawCategory.emptyText), emptySub: t(rawCategory.emptySub) }
     : hasStateData
-    ? {
-        title: categoryTitle,
-        endpoint: collectionType,
-        icon: Film,
-        emptyText: t("library.nothingFound"),
-        emptySub: t("library.emptyCategorySub"),
-      }
+    ? { title: categoryTitle, endpoint: collectionType, icon: Film, emptyText: t("library.nothingFound"), emptySub: t("library.emptyCategorySub") }
     : isDynamicCategory
-    ? {
-        title: categoryTitle,
-        endpoint: collectionType,
-        icon: Film,
-        emptyText: t("library.nothingFound"),
-        emptySub: t("library.emptyCategorySub"),
-      }
+    ? { title: categoryTitle, endpoint: collectionType, icon: Film, emptyText: t("library.nothingFound"), emptySub: t("library.emptyCategorySub") }
     : null;
- 
+
   const {
     items: hookItems,
     query,
@@ -92,94 +68,25 @@ export const LibraryPage: React.FC = () => {
   const hasMore = hasStateData ? false : hookHasMore;
   const loadingMore = hasStateData ? false : hookLoadingMore;
 
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  // Progressive (chunked) rendering: cap how many cards are mounted at once and grow
-  // the window as the user scrolls toward the end. This keeps the DOM small for large
-  // collections without unmounting items (spatial navigation needs focusable nodes to
-  // stay mounted, so true windowing is avoided).
-  const renderChunk = 36;
-  const [visibleCount, setVisibleCount] = useState(renderChunk);
-  const renderSentinelRef = useRef<HTMLDivElement>(null);
-
-  // Reset the render window when the collection or the search query changes
-  // (React's recommended "adjust state during render" pattern — no effect needed).
-  const resetKey = `${collectionType}|${isSearchPage ? query : ""}`;
-  const [prevResetKey, setPrevResetKey] = useState(resetKey);
-  if (resetKey !== prevResetKey) {
-    setPrevResetKey(resetKey);
-    setVisibleCount(renderChunk);
-  }
-
-  // Grow the render window ahead of the viewport.
-  useEffect(() => {
-    if (visibleCount >= items.length) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + renderChunk, items.length));
-        }
-      },
-      { rootMargin: "600px" }
-    );
-    const el = renderSentinelRef.current;
-    if (el) observer.observe(el);
-    return () => {
-      if (el) observer.unobserve(el);
-    };
-  }, [visibleCount, items.length, renderChunk]);
-
-
-
-  useEffect(() => {
-    if (!hasMore || loading || loadingMore) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry && entry.isIntersecting) {
-          loadNextPage();
-        }
-      },
-      {
-        rootMargin: "1200px",
-      }
-    );
-
-    const currentSentinel = sentinelRef.current;
-    if (currentSentinel) {
-      observer.observe(currentSentinel);
-    }
-
-    return () => {
-      if (currentSentinel) {
-        observer.unobserve(currentSentinel);
-      }
-    };
-    // items.length + visibleCount are in deps so this re-runs once the grid (and the
-    // pagination sentinel) actually render — setItems is deferred via startTransition, so on
-    // first load the effect would otherwise run while items is still empty and never attach.
-  }, [hasMore, page, loading, loadingMore, loadNextPage, items.length, visibleCount]);
-
-  // On TV the page scrolls by transform (PageFrame → TVScrollView), which doesn't fire the
-  // IntersectionObserver sentinels above — so pagination is driven by FOCUS instead: when a card
-  // near the end of the mounted window gets focused, grow the render window and/or fetch the next
-  // page. A ref keeps the latest paging state so the per-card onFocus handler can stay stable.
-  const pagingRef = useRef({ visibleCount, itemsLength: items.length, hasMore, page, loading, loadingMore });
-  pagingRef.current = { visibleCount, itemsLength: items.length, hasMore, page, loading, loadingMore };
-
+  const { visibleCount, renderSentinelRef, sentinelRef } = useLibraryPageRendering(
+    items.length,
+    collectionType,
+    isSearchPage,
+    query,
+    hasMore,
+    page,
+    loading,
+    loadingMore,
+    loadNextPage,
+  );
 
   if (error === "trakt_unauthorized") {
     return (
       <div className="library-empty-view">
         <AlertTriangle size="3rem" className="library-empty-icon warning" />
         <h2 className="library-empty-title">{t("library.traktNotConfiguredTitle")}</h2>
-        <p className="library-empty-subtitle">
-          {t("library.traktNotConfiguredSub")}
-        </p>
-        <Link className="btn-accent" to="/settings">
-          {t("library.goToSettings")}
-        </Link>
+        <p className="library-empty-subtitle">{t("library.traktNotConfiguredSub")}</p>
+        <Link className={cx("ui-btn", "ui-btn--accent")} to="/settings">{t("library.goToSettings")}</Link>
       </div>
     );
   }
@@ -189,100 +96,16 @@ export const LibraryPage: React.FC = () => {
       <div className="library-empty-view">
         <AlertTriangle size="3rem" className="library-empty-icon error" />
         <h2 className="library-empty-title">{error}</h2>
-        <FocusableButton focusKey="LIBRARY_ERROR_RETRY" className="overlay-btn" onClick={refetch}>{t("common.retry")}</FocusableButton>
+        <Button variant="primary" className="overlay-btn" onClick={refetch}>{t("common.retry")}</Button>
       </div>
     );
   }
 
-  const renderHeader = () => {
-    if (isSearchPage) {
-      return (
-        <header className="library-header">
-          <h1 className="library-large-title">{t("library.searchTitle")}</h1>
-          <div className="search-input-wrapper">
-            <SearchIcon size="1.125rem" className="search-input-icon" />
-            <FocusableInput
-              focusKey="SEARCH_INPUT"
-              type="text"
-              className="search-page-input"
-              placeholder={t("library.searchPlaceholder")}
-              value={query}
-              onChange={(e) => {
-                const val = e.target.value;
-                setQuery(val);
-                if (val.trim()) {
-                  navigate(`/search?q=${encodeURIComponent(val.trim())}`, { replace: true });
-                } else {
-                  navigate("/search", { replace: true });
-                }
-              }}
-            />
-            {query && (
-              <FocusableButton
-                className="search-input-clear-btn"
-                onClick={() => {
-                  setQuery("");
-                  navigate("/search", { replace: true });
-                }}
-                title={t("library.clearSearch")}
-              >
-                <X size="1.125rem" />
-              </FocusableButton>
-            )}
-          </div>
-          {query.trim() && (
-            <p className="library-metadata-count">{t("library.foundCount", { count: items.length })}</p>
-          )}
-        </header>
-      );
-    }
-
-    if (category) {
-      return (
-        <header className="library-header">
-          <h1 className="library-large-title">{category.title}</h1>
-          <p className="library-metadata-count">{t("library.totalCount", { count: items.length })}</p>
-        </header>
-      );
-    }
-
-    return null;
-  };
-
-  const categoriesList = [
-    { id: "up-next", label: t("library.tabs.upNext") },
-    { id: "watchlist", label: t("library.tabs.watchlist") },
-    { id: "favorites", label: t("library.tabs.favorites") },
-    { id: "history", label: t("library.tabs.history") }
-  ];
-
-  const renderMobileCategories = () => {
-    if (isSearchPage) return null;
-    return (
-      <div className="library-mobile-tabs-container">
-        <div className="library-mobile-tabs-scroll">
-          {categoriesList.map((cat) => {
-            const isActive = collectionType === cat.id;
-            return (
-              <FocusableButton
-                key={cat.id}
-                onClick={() => navigate(`/library/${cat.id}`)}
-                className={`library-mobile-tab-chip ${isActive ? "active" : ""}`}
-              >
-                {cat.label}
-              </FocusableButton>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
   const renderContent = () => {
     if (loading && items.length === 0) {
       return (
-        <LoadingSpinner 
-          height="50vh" 
+        <LoadingSpinner
+          height="50vh"
           message={isSearchPage ? t("library.searching") : t("library.loadingCollection")}
         />
       );
@@ -291,13 +114,12 @@ export const LibraryPage: React.FC = () => {
     if (items.length > 0) {
       return (
         <>
-          <Grid minWidth="10.625rem" className="library-grid">
-            {items.slice(0, visibleCount).map((item, index) => (
+          <Grid className="library-grid">
+            {items.slice(0, visibleCount).map((item) => (
               <MediaCardComponent
                 key={item.id}
                 item={item}
-                // Stable per-card focusKey so focus restores to THIS card on Back.
-                focusKey={index === 0 ? "LIBRARY_FIRST_CARD" : `LIBRARY_CARD_${item.id}`}
+                showContinueOverlay={collectionType === "up-next"}
               />
             ))}
           </Grid>
@@ -308,8 +130,6 @@ export const LibraryPage: React.FC = () => {
 
           {hasMore && (
             <div className="library-pagination-wrapper">
-              {/* Always auto-load on scroll: desktop via this IntersectionObserver sentinel,
-                  TV via focus-driven handleCardFocus. No manual "Load more" button. */}
               <div ref={sentinelRef} className="pagination-sentinel-loader">
                 {loadingMore && <LoadingSpinner height="4rem" message={t("library.loadingMore")} size="small" />}
               </div>
@@ -352,15 +172,17 @@ export const LibraryPage: React.FC = () => {
     return null;
   };
 
-
-
   return (
     <div className="library-page-container">
-      {renderHeader()}
-      {renderMobileCategories()}
-      <main className="library-content-area">
-        {renderContent()}
-      </main>
+      <LibraryPageHeader
+        isSearchPage={isSearchPage}
+        category={category}
+        query={query}
+        setQuery={setQuery}
+        itemsCount={items.length}
+        collectionType={collectionType}
+      />
+      <main className="library-content-area">{renderContent()}</main>
     </div>
   );
 };

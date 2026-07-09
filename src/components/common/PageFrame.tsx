@@ -16,9 +16,9 @@ export const PageFrame: React.FC<PageFrameProps> = ({ title, children, className
           <h1 className="page-frame-title">{title}</h1>
         </header>
       ))}
-      <div className="page-frame-body-wrapper" style={{ display: "flex", gap: "var(--space-l)" }}>
+      <div className="page-frame-body-wrapper">
         {sidebar && <div className="page-frame-sidebar">{sidebar}</div>}
-        <div className="page-frame-content" style={{ flex: 1, minWidth: 0 }}>{children}</div>
+        <div className="page-frame-content">{children}</div>
       </div>
     </div>
   );

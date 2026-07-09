@@ -1,4 +1,5 @@
 import { Play } from "lucide-react";
+import { Button } from "../../../components/ui";
 import { CodeBlock } from "../../../components/wiki/CodeBlock";
 import metadataRaw from "../docs-metadata.json";
 
@@ -163,7 +164,7 @@ export function createComponentDoc(name: string, category: string) {
                       {methodMeta.default !== undefined && (
                         <>
                           <br />
-                          <small style={{ color: "var(--text-muted)" }}>
+                          <small className="doc-text-muted">
                             Значение по умолчанию: <code>{methodMeta.default}</code>
                           </small>
                         </>
@@ -193,13 +194,14 @@ export function createComponentDoc(name: string, category: string) {
         <h2 className="doc-section-h2" id="example">Пример использования</h2>
         <CodeBlock language="javascript" code={meta.example} />
 
-        <button 
-          className="doc-sandbox-btn" 
+        <Button
+          variant="primary"
+          className="doc-sandbox-btn"
           onClick={() => openInSandbox(meta.example)}
         >
           <Play size="0.75rem" />
           <span>Запустить в Sandbox</span>
-        </button>
+        </Button>
       </div>
     )
   };

@@ -1,19 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { ApiClient } from "../network/ApiClient";
-import { SyncApiClient } from "../network/SyncApiClient";
-import { Storage } from "../utils/StorageService";
-import { useWSSync } from "../context/WSSyncContext";
-import { resizeTmdbImage, backdropSizeForQuality } from "../utils/mediaUtils";
 import type { MediaCard } from "../network/ApiTypes";
+import { useWSSync } from "../context/useWSSync";
+import { fetchMediaDetailsData } from "./mediaDetails/mediaDetailsFetch";
+import { applyMediaWsSyncEvent } from "./mediaDetails/mediaDetailsWsSync";
+import { useMediaDetailsActions } from "./mediaDetails/useMediaDetailsActions";
+import type { UseMediaDetailsProps } from "./mediaDetails/mediaDetailsTypes";
 
-interface UseMediaDetailsProps {
-  mediaType?: string;
-  mediaId?: number;
-  playParam?: string | null;
-  onNavigateToStreams: (season?: number, episode?: number) => void;
-  showHUD: (type: "success" | "error" | "info" | "warning", msg: string) => void;
-}
+export type { UseMediaDetailsProps } from "./mediaDetails/mediaDetailsTypes";
 
 export function useMediaDetails({
   mediaType,
@@ -25,375 +19,95 @@ export function useMediaDetails({
   const [media, setMedia] = useState<MediaCard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const [inWatchlist, setInWatchlist] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isWatched, setIsWatched] = useState(false);
-  const { i18n } = useTranslation();
 
-  const lastFetchTimeRef = useRef<number>(0);
-  // Mirror of `media` for synchronous reads inside the WebSocket handler, so we can
-  // compute the next state once and call setMedia/setIsWatched with concrete values
-  // (no setState nested inside a setMedia updater).
+  const { t } = useTranslation("media");
+  const { subscribeToMedia } = useWSSync();
+
+  const lastFetchTimeRef = useRef(0);
   const mediaRef = useRef<MediaCard | null>(null);
+  const onNavigateToStreamsRef = useRef(onNavigateToStreams);
+  const showHUDRef = useRef(showHUD);
+
   useEffect(() => {
     mediaRef.current = media;
   }, [media]);
-  const { subscribeToMedia } = useWSSync();
-
-  const onNavigateToStreamsRef = useRef(onNavigateToStreams);
-  const showHUDRef = useRef(showHUD);
 
   useEffect(() => {
     onNavigateToStreamsRef.current = onNavigateToStreams;
     showHUDRef.current = showHUD;
   }, [onNavigateToStreams, showHUD]);
 
-  const checkIsWatched = useCallback((item: MediaCard) => {
-    if (!item.progress) return false;
-    return item.mediaType === "movie"
-      ? item.progress.completed > 0
-      : item.progress.completed >= item.progress.aired;
-  }, []);
-
-  const fetchDetails = useCallback(async (silent: boolean | any = false) => {
-    if (!mediaType || !mediaId) return;
-    try {
-      if (silent !== true) {
-        setLoading(true);
-        // Tolerate small client-server time drift
-        lastFetchTimeRef.current = Date.now() - 5000;
-      }
-      setError(null);
-      if (silent === true) {
-        ApiClient.invalidateCache();
-      }
-      const data = await ApiClient.fetchMediaDetails(mediaType, mediaId);
-
-      // Size the full-screen hero backdrop by the user's banner-quality setting (default "auto"
-      // keeps the perf-friendly w780 on TV / w1280 on desktop).
-      if (data.backdropSrc) {
-        const bannerQuality = Storage.get<string>("bannerQuality", "auto");
-        data.backdropSrc = resizeTmdbImage(
-          data.backdropSrc,
-          backdropSizeForQuality(bannerQuality)
-        );
-      }
-
-      const strategy = Storage.get<string>("syncStrategy", "none");
-      if (strategy === "server") {
-        const [favs, watch, hist] = await Promise.all([
-          SyncApiClient.fetchSyncFavorites(),
-          SyncApiClient.fetchSyncWatchlist(),
-          SyncApiClient.fetchSyncHistory()
-        ]);
-        const favActive = favs.some((f) => f.tmdbId === mediaId.toString() && f.mediaType === mediaType);
-        const watchActive = watch.some((w) => w.tmdbId === mediaId.toString() && w.mediaType === mediaType);
-        const watchedActive = hist.some((h) => h.tmdbId === mediaId.toString() && (h.mediaType === mediaType || (mediaType === "tv" && h.mediaType === "episode")));
-        
-        const watchedEpisodes = hist
-          .filter((h) => h.tmdbId === mediaId.toString() && h.seasonNumber !== undefined && h.episodeNumber !== undefined)
-          .map((h) => ({ season: h.seasonNumber!, number: h.episodeNumber! }));
-
-        data.progress = {
-          ...data.progress,
-          watchedEpisodes,
-          completed: mediaType === "movie" ? (watchedActive ? 100 : 0) : watchedEpisodes.length,
-          percentage: data.progress?.percentage || 0
-        } as any;
-
-        data.isFavorite = favActive;
-        data.isInWatchlist = watchActive;
-
-        setMedia(data);
-        setInWatchlist(watchActive);
-        setIsFavorite(favActive);
-        setIsWatched(watchedActive);
-      } else {
-        setMedia(data);
-        setInWatchlist(data.isInWatchlist || false);
-        setIsFavorite(data.isFavorite || false);
-        setIsWatched(checkIsWatched(data));
-      }
-
-      if (playParam === "true") {
-        if (data.mediaType === "tv") {
-          const s = data.progress?.nextSeason || 1;
-          const e = data.progress?.nextEpisode || 1;
-          onNavigateToStreamsRef.current(s, e);
-        } else {
-          onNavigateToStreamsRef.current();
+  const fetchDetails = useCallback(
+    async (silent = false) => {
+      if (!mediaType || !mediaId) return;
+      try {
+        if (!silent) {
+          setLoading(true);
+          lastFetchTimeRef.current = Date.now() - 5000;
         }
+        setError(null);
+
+        const result = await fetchMediaDetailsData(mediaType, mediaId, silent);
+        setMedia(result.media);
+        setInWatchlist(result.inWatchlist);
+        setIsFavorite(result.isFavorite);
+        setIsWatched(result.isWatched);
+
+        if (playParam === "true") {
+          if (result.media.mediaType === "tv") {
+            const s = result.media.progress?.nextSeason || 1;
+            const e = result.media.progress?.nextEpisode || 1;
+            onNavigateToStreamsRef.current(s, e);
+          } else {
+            onNavigateToStreamsRef.current();
+          }
+        }
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : t("details.loadFailed"));
+      } finally {
+        setLoading(false);
       }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : i18n.t("media:details.loadFailed"));
-    } finally {
-      setLoading(false);
-    }
-  }, [mediaType, mediaId, playParam, checkIsWatched, i18n, i18n.language]);
+    },
+    [mediaType, mediaId, playParam, t],
+  );
 
   useEffect(() => {
-    fetchDetails(false);
+    void fetchDetails(false);
   }, [fetchDetails]);
 
-  // Subscribe to real-time events and update UI state reactively (Pitfall 19: Bootstrap Race Condition)
   useEffect(() => {
     if (!mediaId || !mediaType) return;
 
     const unsubscribe = subscribeToMedia(mediaId, mediaType, (event, payload, timestamp) => {
       const eventTime = new Date(timestamp).getTime();
-      if (eventTime < lastFetchTimeRef.current) {
-        // Ignore events that are older than our last HTTP fetch start time
-        return;
-      }
+      if (eventTime < lastFetchTimeRef.current) return;
 
-      // Invalidate the cache to ensure future loads fetch fresh data
-      ApiClient.invalidateCache();
-
-      if (event === "sync:history:changed") {
-        const { seasonNumber, episodeNumber, isWatched: watchState } = payload;
-        const prev = mediaRef.current;
-        if (!prev) return;
-        let watchedEpisodes = [...(prev.progress?.watchedEpisodes || [])];
-        if (mediaType === "tv" && seasonNumber !== undefined && episodeNumber !== undefined) {
-          if (watchState) {
-            if (!watchedEpisodes.some(ep => ep.season === seasonNumber && ep.number === episodeNumber)) {
-              watchedEpisodes.push({ season: seasonNumber, number: episodeNumber });
-            }
-          } else {
-            watchedEpisodes = watchedEpisodes.filter(ep => !(ep.season === seasonNumber && ep.number === episodeNumber));
-          }
-        }
-        const updatedMedia = {
-          ...prev,
-          progress: {
-            ...prev.progress,
-            watchedEpisodes,
-            completed: mediaType === "movie"
-              ? (watchState ? 100 : 0)
-              : watchedEpisodes.length
-          } as any
-        };
-        mediaRef.current = updatedMedia;
-        setMedia(updatedMedia);
-        setIsWatched(mediaType === "movie" ? watchState : checkIsWatched(updatedMedia));
-      }
-      else if (event === "sync:history:batch_changed") {
-        const { changes } = payload;
-        const prev = mediaRef.current;
-        if (!prev) return;
-        let watchedEpisodes = [...(prev.progress?.watchedEpisodes || [])];
-        for (const ch of changes) {
-          const { seasonNumber, episodeNumber, isWatched: watchState } = ch;
-          if (watchState) {
-            if (!watchedEpisodes.some(ep => ep.season === seasonNumber && ep.number === episodeNumber)) {
-              watchedEpisodes.push({ season: seasonNumber, number: episodeNumber });
-            }
-          } else {
-            watchedEpisodes = watchedEpisodes.filter(ep => !(ep.season === seasonNumber && ep.number === episodeNumber));
-          }
-        }
-        const updatedMedia = {
-          ...prev,
-          progress: {
-            ...prev.progress,
-            watchedEpisodes,
-            completed: watchedEpisodes.length
-          } as any
-        };
-        mediaRef.current = updatedMedia;
-        setMedia(updatedMedia);
-        setIsWatched(checkIsWatched(updatedMedia));
-      }
-      else if (event === "sync:library:updated") {
-        const { listType, action } = payload;
-        if (listType === "watchlist") {
-          setInWatchlist(action === "add");
-        } else if (listType === "favorites") {
-          setIsFavorite(action === "add");
-        }
-      }
+      applyMediaWsSyncEvent(event, payload, mediaType, mediaRef, {
+        setMedia,
+        setIsWatched,
+        setInWatchlist,
+        setIsFavorite,
+      });
     });
 
-    return () => {
-      unsubscribe();
-    };
-  }, [mediaId, mediaType, subscribeToMedia, checkIsWatched]);
+    return unsubscribe;
+  }, [mediaId, mediaType, subscribeToMedia]);
 
-  const toggleWatchlist = async () => {
-    if (!media) return;
-    try {
-      const nextState = !inWatchlist;
-      setInWatchlist(nextState);
-      const strategy = Storage.get<string>("syncStrategy", "none");
-      if (strategy === "server") {
-        if (nextState) {
-          await SyncApiClient.addSyncWatchlist(media.id.toString(), media.mediaType);
-        } else {
-          await SyncApiClient.removeSyncWatchlist(media.id.toString(), media.mediaType);
-        }
-      } else {
-        const payload = {
-          movies: media.mediaType === "movie" ? [{ ids: { tmdb: media.id } }] : [],
-          shows: media.mediaType === "tv" ? [{ ids: { tmdb: media.id } }] : []
-        };
-        await ApiClient.syncTraktAction(nextState ? "watchlist" : "watchlist/remove", payload);
-      }
-      showHUDRef.current("success", nextState ? i18n.t("media:watchlist.added") : i18n.t("media:watchlist.removed"));
-      fetchDetails(true);
-    } catch {
-      setInWatchlist(media.isInWatchlist || false);
-      showHUDRef.current("error", i18n.t("media:details.toasts.watchlistError"));
-    }
-  };
-
-  const toggleFavorite = async () => {
-    if (!media) return;
-    try {
-      const nextState = !isFavorite;
-      setIsFavorite(nextState);
-      const strategy = Storage.get<string>("syncStrategy", "none");
-      if (strategy === "server") {
-        if (nextState) {
-          await SyncApiClient.addSyncFavorite(media.id.toString(), media.mediaType);
-        } else {
-          await SyncApiClient.removeSyncFavorite(media.id.toString(), media.mediaType);
-        }
-      } else {
-        const payload = {
-          movies: media.mediaType === "movie" ? [{ ids: { tmdb: media.id } }] : [],
-          shows: media.mediaType === "tv" ? [{ ids: { tmdb: media.id } }] : []
-        };
-        await ApiClient.syncTraktAction(nextState ? "favorites" : "favorites/remove", payload);
-      }
-      showHUDRef.current("success", nextState ? i18n.t("media:details.toasts.favoriteAdded") : i18n.t("media:details.toasts.favoriteRemoved"));
-      fetchDetails(true);
-    } catch {
-      setIsFavorite(media.isFavorite || false);
-      showHUDRef.current("error", i18n.t("media:details.toasts.favoriteError"));
-    }
-  };
-
-  const toggleWatched = async () => {
-    if (!media) return;
-    try {
-      const nextState = !isWatched;
-      setIsWatched(nextState);
-      const strategy = Storage.get<string>("syncStrategy", "none");
-      if (strategy === "server") {
-        if (nextState) {
-          await SyncApiClient.saveSyncProgress(media.id.toString(), media.mediaType, undefined, undefined, 100, 100);
-        } else {
-          await SyncApiClient.removeSyncProgress(media.id.toString(), media.mediaType, undefined, undefined);
-        }
-      } else {
-        const payload = {
-          movies: media.mediaType === "movie" ? [{ ids: { tmdb: media.id } }] : [],
-          shows: media.mediaType === "tv" ? [{ ids: { tmdb: media.id } }] : []
-        };
-        await ApiClient.syncTraktAction(nextState ? "history" : "history/remove", payload);
-      }
-      showHUDRef.current("success", nextState ? i18n.t("media:details.toasts.historyMarked") : i18n.t("media:details.toasts.historyRemoved"));
-      fetchDetails(true);
-    } catch {
-      setIsWatched(checkIsWatched(media));
-      showHUDRef.current("error", i18n.t("media:details.toasts.historyError"));
-    }
-  };
-
-  const toggleEpisodeWatched = async (seasonNumber: number, episodeNumber: number, nextState: boolean) => {
-    if (!media) return;
-    try {
-      const strategy = Storage.get<string>("syncStrategy", "none");
-      if (strategy === "server") {
-        if (nextState) {
-          await SyncApiClient.saveSyncProgress(media.id.toString(), "tv", seasonNumber, episodeNumber, 100, 100);
-        } else {
-          await SyncApiClient.removeSyncProgress(media.id.toString(), "tv", seasonNumber, episodeNumber);
-        }
-      } else {
-        const payload = {
-          movies: [],
-          shows: [{
-            ids: { tmdb: media.id },
-            seasons: [{
-              number: seasonNumber,
-              episodes: [{ number: episodeNumber }]
-            }]
-          }],
-          episodes: []
-        };
-        await ApiClient.syncTraktAction(nextState ? "history" : "history/remove", payload);
-      }
-      showHUDRef.current("success", nextState ? i18n.t("media:details.toasts.episodeMarked", { number: episodeNumber }) : i18n.t("media:details.toasts.episodeRemoved", { number: episodeNumber }));
-      fetchDetails(true);
-    } catch {
-      showHUDRef.current("error", i18n.t("media:details.toasts.episodeError"));
-    }
-  };
-
-  const toggleSeasonWatched = async (seasonNumber: number, episodesList: { episodeNumber: number }[], nextState: boolean) => {
-    if (!media) return;
-    try {
-      const strategy = Storage.get<string>("syncStrategy", "none");
-      if (strategy === "server") {
-        if (nextState) {
-          await Promise.all(
-            episodesList.map(ep =>
-              SyncApiClient.saveSyncProgress(media.id.toString(), "tv", seasonNumber, ep.episodeNumber, 100, 100)
-            )
-          );
-        } else {
-          await Promise.all(
-            episodesList.map(ep =>
-              SyncApiClient.removeSyncProgress(media.id.toString(), "tv", seasonNumber, ep.episodeNumber)
-            )
-          );
-        }
-      } else {
-        const payload = {
-          movies: [],
-          shows: [{
-            ids: { tmdb: media.id },
-            seasons: [{
-              number: seasonNumber,
-              episodes: episodesList.map(ep => ({ number: ep.episodeNumber }))
-            }]
-          }],
-          episodes: []
-        };
-        await ApiClient.syncTraktAction(nextState ? "history" : "history/remove", payload);
-      }
-      showHUDRef.current("success", nextState ? i18n.t("media:details.toasts.seasonMarked", { number: seasonNumber }) : i18n.t("media:details.toasts.seasonRemoved", { number: seasonNumber }));
-      fetchDetails(true);
-    } catch {
-      showHUDRef.current("error", i18n.t("media:details.toasts.seasonError"));
-    }
-  };
-
-  const saveEpisodeSelection = async (newSelection: { season: number; number: number }[]) => {
-    if (!media) return;
-    try {
-      const initial = media.progress?.watchedEpisodes || [];
-      
-      const toAdd = newSelection.filter(ns => !initial.some(init => init.season === ns.season && init.number === ns.number));
-      const toRemove = initial.filter(init => !newSelection.some(ns => ns.season === init.season && ns.number === init.number));
-      
-      if (toAdd.length === 0 && toRemove.length === 0) return;
-
-      const changes = [
-        ...toAdd.map(item => ({ seasonNumber: item.season, episodeNumber: item.number, isWatched: true })),
-        ...toRemove.map(item => ({ seasonNumber: item.season, episodeNumber: item.number, isWatched: false }))
-      ];
-
-      await SyncApiClient.saveSyncBulkProgress(media.id.toString(), "tv", changes);
-      
-      showHUDRef.current("success", i18n.t("media:details.toasts.historyUpdated"));
-      fetchDetails(true);
-    } catch {
-      showHUDRef.current("error", i18n.t("media:details.toasts.historySaveError"));
-    }
-  };
+  const actions = useMediaDetailsActions({
+    media,
+    inWatchlist,
+    isFavorite,
+    isWatched,
+    setInWatchlist,
+    setIsFavorite,
+    setIsWatched,
+    showHUDRef,
+    refetch: fetchDetails,
+    t,
+  });
 
   return {
     media,
@@ -402,12 +116,7 @@ export function useMediaDetails({
     inWatchlist,
     isFavorite,
     isWatched,
-    toggleWatchlist,
-    toggleFavorite,
-    toggleWatched,
-    toggleEpisodeWatched,
-    toggleSeasonWatched,
-    saveEpisodeSelection,
+    ...actions,
     refetch: fetchDetails,
   };
 }

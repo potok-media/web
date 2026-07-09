@@ -346,19 +346,19 @@
       "ageAtDeath_other": "",
       "years_one": "рік",
       "years_other": "років",
-      "episodeCount_one": "{{count}} епізод",
-      "episodeCount_other": "{{count}} епізодів",
-      "Acting": "Діючи",
-      "Directing": "Направлення",
-      "Writing": "Письмо",
-      "Production": "Виробництво",
       "genre_35": "Комедії",
       "genre_action_adventure": "Бойовики та пригоди",
       "genre_18": "Драмас",
       "genre_scifi_fantasy": "Sci-Fi & Fantasy",
       "genre_thriller_horror": "Трилер і жах",
       "genre_kids_family": "Діти і сім'я",
-      "categoryTitle": "{{actorName}} — {{category}}"
+      "categoryTitle": "{{actorName}} — {{category}}",
+      "departments": {
+        "acting": "Acting",
+        "directing": "Directing",
+        "writing": "Writing",
+        "production": "Production"
+      }
     },
     "episode": {
       "fallbackName": "Епізод {{number}}",

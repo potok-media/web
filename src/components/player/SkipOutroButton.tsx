@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Button } from "../ui";
 
 interface SkipOutroButtonProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -44,7 +45,8 @@ export const SkipOutroButton: React.FC<SkipOutroButtonProps> = ({
   if (!visible || !outroRange) return null;
 
   return (
-    <button
+    <Button
+      variant="glass"
       className="skip-intro-overlay-btn outro-btn"
       onClick={(e) => {
         e.stopPropagation();
@@ -53,6 +55,6 @@ export const SkipOutroButton: React.FC<SkipOutroButtonProps> = ({
     >
       <span>{t("skip.outro")}</span>
       <ChevronRight size={18} />
-    </button>
+    </Button>
   );
 };

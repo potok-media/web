@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import type { InputSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
-import { Focusable } from "../TVNavigation";
-import { PlatformManager } from "../../../utils/PlatformManager";
+import { Field, Input } from "../../ui";
+import { sdkStyleVars } from "./componentRendererUtils";
 
 interface SafeInputProps {
   schema: InputSchema;
@@ -20,7 +20,7 @@ export const SafeInput: React.FC<SafeInputProps> = ({ schema, pluginId, baseStyl
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const val = e.target.value;
-    setLocalValue(val); // Update local state synchronously for smooth 120fps typing
+    setLocalValue(val);
     if (events?.onChange) {
       ExtensionRegistry.triggerUIEvent(pluginId, events.onChange, val);
     }
@@ -29,42 +29,18 @@ export const SafeInput: React.FC<SafeInputProps> = ({ schema, pluginId, baseStyl
   const isTextArea = componentProps.inputType === "textarea";
 
   return (
-    <div key={id} className="potok-input-group" style={baseStyle}>
-      {componentProps.label && <label className="potok-label">{componentProps.label}</label>}
-      <Focusable
-        disabled={componentProps.disabled}
-        onEnterPress={() => {
-          const inputEl = document.getElementById(`input-${id}`) as HTMLInputElement | HTMLTextAreaElement | null;
-          inputEl?.focus();
-          PlatformManager.openNativeKeyboard(); // native tvOS keyboard on Apple TV (Luxo); no-op elsewhere
-        }}
-      >
-        {({ ref, focused }) => {
-          const className = `${isTextArea ? "potok-input potok-textarea" : "potok-input"} ${focused ? "focused" : ""}`;
-          return isTextArea ? (
-            <textarea
-              ref={ref}
-              id={`input-${id}`}
-              className={className}
-              placeholder={componentProps.placeholder}
-              value={localValue}
-              disabled={componentProps.disabled}
-              onChange={handleInputChange}
-            />
-          ) : (
-            <input
-              ref={ref}
-              id={`input-${id}`}
-              className={className}
-              type={componentProps.inputType || "text"}
-              placeholder={componentProps.placeholder}
-              value={localValue}
-              disabled={componentProps.disabled}
-              onChange={handleInputChange}
-            />
-          );
-        }}
-      </Focusable>
+    <div key={id} className="potok-input-group potok-sdk-props" style={sdkStyleVars(baseStyle)}>
+      <Field label={componentProps.label || undefined} htmlFor={`input-${id}`}>
+        <Input
+          id={`input-${id}`}
+          multiline={isTextArea}
+          placeholder={componentProps.placeholder}
+          value={localValue}
+          disabled={componentProps.disabled}
+          type={isTextArea ? undefined : (componentProps.inputType || "text")}
+          onChange={handleInputChange}
+        />
+      </Field>
     </div>
   );
 };

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { SDK_TYPINGS } from "../sdk/src/sdkTypings";
 import { createState } from "../sdk/src/core/state";
 import { CallbackRegistry } from "../sdk/src/core/registry";
 import { INITIAL_SANDBOX_CODE } from "../pages/wiki/wikiData";
 import { getSandboxComponents } from "./sandboxComponents";
 import { logger } from "../utils/logger";
+import type { UIComponentSchema } from "@potok/sdk-types";
+import { useMonacoEditor } from "./useMonacoEditor";
 
 export interface LogEntry {
   id: string;
@@ -15,25 +16,32 @@ export interface LogEntry {
 
 export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
   const [sandboxTab, setSandboxTab] = useState<"editor" | "result">("editor");
-  const [editorLoaded, setEditorLoaded] = useState(false);
-  const [editorError, setEditorError] = useState<string | null>(null);
-  const [compiledLayout, setCompiledLayout] = useState<any>(null);
+  const [compiledLayout, setCompiledLayout] = useState<UIComponentSchema | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [sandboxCode, setSandboxCode] = useState<string>(INITIAL_SANDBOX_CODE);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const editorRef = useRef<any>(null);
   const mockStorageRef = useRef<Record<string, string>>({});
-  const onSandboxEventRef = useRef<((callbackId: string, eventData: any) => void) | null>(null);
+  const onSandboxEventRef = useRef<((callbackId: string, eventData: unknown) => void) | null>(null);
+
+  const editorEnabled = activePage === "sandbox" && sandboxTab === "editor";
+
+  const { loaded: editorLoaded, error: editorError, containerRef, getValue, setValue } = useMonacoEditor({
+    enabled: editorEnabled,
+    theme: theme === "light" ? "vs" : "vs-dark",
+    value: sandboxCode,
+    configureSdk: true,
+    includeTypeScriptDefaults: false,
+  });
 
   useEffect(() => {
-    (window as any).PotokSandboxTriggerUIEvent = (callbackId: string, eventData: any) => {
-      if (onSandboxEventRef.current) {
-        onSandboxEventRef.current(callbackId, eventData);
-      }
+    const win = window as Window & {
+      PotokSandboxTriggerUIEvent?: (callbackId: string, eventData: unknown) => void;
+    };
+    win.PotokSandboxTriggerUIEvent = (callbackId: string, eventData: unknown) => {
+      onSandboxEventRef.current?.(callbackId, eventData);
     };
     return () => {
-      delete (window as any).PotokSandboxTriggerUIEvent;
+      delete win.PotokSandboxTriggerUIEvent;
     };
   }, []);
 
@@ -41,7 +49,7 @@ export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
     const time = new Date().toLocaleTimeString();
     setLogs((prev) => [
       { id: Math.random().toString(36).substring(7), timestamp: time, type, message },
-      ...prev.slice(0, 49)
+      ...prev.slice(0, 49),
     ]);
   };
 
@@ -50,12 +58,13 @@ export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
       CallbackRegistry.startRenderScope("sandbox-root");
       CallbackRegistry.commitRenderScope("sandbox-root");
 
-      onSandboxEventRef.current = (callbackId: string, eventData: any) => {
+      onSandboxEventRef.current = (callbackId: string, eventData: unknown) => {
         addLog("EVENT", `UI Event -> callbackId: ${callbackId} (payload: ${JSON.stringify(eventData)})`);
         try {
           CallbackRegistry.trigger(callbackId, eventData);
-        } catch (err: any) {
-          addLog("RUNTIME_ERROR", `Callback failed: ${err.message}`);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          addLog("RUNTIME_ERROR", `Callback failed: ${message}`);
         }
       };
 
@@ -65,31 +74,38 @@ export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
         config: { theme },
         createState,
         ui: {
-          render: (layout: any) => {
-            const payload = layout && typeof layout.compile === "function" ? layout.compile("sandbox-root") : layout;
+          render: (layout: { compile?: (id: string) => UIComponentSchema } | UIComponentSchema | null) => {
+            const payload =
+              layout && typeof layout === "object" && "compile" in layout && typeof layout.compile === "function"
+                ? layout.compile("sandbox-root")
+                : (layout as UIComponentSchema | null);
             setCompiledLayout(payload);
-            addLog("RENDER", `RENDER_UI -> ${payload?.children?.length || 0} top-level nodes.`);
+            const childCount =
+              payload && "children" in payload && Array.isArray(payload.children)
+                ? payload.children.length
+                : 0;
+            addLog("RENDER", `RENDER_UI -> ${childCount} top-level nodes.`);
           },
           showHUD: (type: string, message: string) => {
             addLog("HUD", `[${type.toUpperCase()}] ${message}`);
           },
-          navigateTo: (to: string, state?: any) => {
+          navigateTo: (to: string, state?: unknown) => {
             addLog("NAVIGATE", `NAVIGATE to "${to}" ${state ? `with state: ${JSON.stringify(state)}` : ""}`);
           },
-          playVideo: (playback: any) => {
+          playVideo: (playback: { title?: string; streamUrl?: string }) => {
             addLog("PLAY_VIDEO", `PLAY_VIDEO: "${playback.title}" (${playback.streamUrl})`);
           },
           setAccentTheme: (themeId: string) => {
             addLog("THEME", `setAccentTheme: "${themeId}"`);
           },
-          registerThemes: (themes: any[]) => {
+          registerThemes: (themes: unknown[]) => {
             addLog("THEME", `registerThemes: ${themes.length} themes`);
           },
-          onBlockContextUpdate: (_cb: Function) => {
+          onBlockContextUpdate: () => {
             addLog("CONTEXT", "Subscribed to context updates");
             return () => {};
           },
-          components: getSandboxComponents()
+          components: getSandboxComponents(),
         },
         storage: {
           local: {
@@ -98,180 +114,106 @@ export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
               addLog("STORAGE", `getItem('${key}') -> '${val}'`);
               return val;
             },
-            setItem: async (key: string, value: any) => {
+            setItem: async (key: string, value: unknown) => {
               mockStorageRef.current[key] = String(value);
               addLog("STORAGE", `setItem('${key}', '${value}')`);
-            }
-          }
+            },
+          },
         },
         http: {
-          get: async (url: string, headers?: any) => {
+          get: async (url: string, headers?: Record<string, string>) => {
             addLog("HTTP", `GET ${url}`);
             try {
               const res = await fetch(url, { headers });
               const text = await res.text();
-              let data;
-              try { data = JSON.parse(text); } catch { data = text; }
+              let data: unknown;
+              try {
+                data = JSON.parse(text);
+              } catch {
+                data = text;
+              }
               return { status: res.status, data };
-            } catch (err: any) {
-              addLog("HTTP_ERROR", `GET ${url} failed: ${err.message}`);
+            } catch (err) {
+              const message = err instanceof Error ? err.message : String(err);
+              addLog("HTTP_ERROR", `GET ${url} failed: ${message}`);
               throw err;
             }
           },
-          post: async (url: string, body?: any, headers?: any) => {
+          post: async (url: string, body?: unknown, headers?: Record<string, string>) => {
             addLog("HTTP", `POST ${url}`);
             try {
               const res = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", ...headers },
-                body: typeof body === "string" ? body : JSON.stringify(body)
+                body: typeof body === "string" ? body : JSON.stringify(body),
               });
               const text = await res.text();
-              let data;
-              try { data = JSON.parse(text); } catch { data = text; }
+              let data: unknown;
+              try {
+                data = JSON.parse(text);
+              } catch {
+                data = text;
+              }
               return { status: res.status, data };
-            } catch (err: any) {
-              addLog("HTTP_ERROR", `POST ${url} failed: ${err.message}`);
+            } catch (err) {
+              const message = err instanceof Error ? err.message : String(err);
+              addLog("HTTP_ERROR", `POST ${url} failed: ${message}`);
               throw err;
             }
-          }
-        }
+          },
+        },
       };
 
       const builders = mockPotokSDK.ui.components;
 
       const sandboxRunner = new Function(
-        "window", "document", "localStorage", "sessionStorage", "PotokSDK", "context",
+        "window",
+        "document",
+        "localStorage",
+        "sessionStorage",
+        "PotokSDK",
+        "context",
         `
           const {
             VStack, HStack, Grid, Card, Heading, Text, Markdown, Badge, StatusRow, Divider, Spacer, Button, Input, Toggle, Select, CodeEditor,
             StreamSkeletonList, StreamRow, StreamList, MediaCard, HeroSpotlight, LoadingSpinner, EpisodesSection, MediaCast, MediaOverview, MediaRow, MediaPlayer, ProfileSelector, SearchBar, StreamFilterBar, EpisodeSelector, EpisodeCard
           } = context;
           ${code}
-        `
+        `,
       );
 
-      sandboxRunner(
-        undefined, undefined, undefined, undefined, mockPotokSDK, builders
-      );
+      sandboxRunner(undefined, undefined, undefined, undefined, mockPotokSDK, builders);
 
       addLog("SYSTEM", "Код плагина успешно выполнен!");
-
-    } catch (err: any) {
-      addLog("COMPILE_ERROR", err.message || "Ошибка компиляции.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Ошибка компиляции.";
+      addLog("COMPILE_ERROR", message);
+      logger.error("[MonacoSandbox] Compile error:", err);
     }
   };
 
   useEffect(() => {
-    if (activePage !== "sandbox") return;
-
-    if ((window as any).monaco) {
-      setEditorLoaded(true);
-      return;
+    if (editorLoaded && editorEnabled) {
+      runSandboxCode(sandboxCode);
     }
-
-    let loaderScript = document.querySelector('script[src*="monaco-editor/0.45.0/min/vs/loader.js"]') as HTMLScriptElement;
-    
-    const handleMonacoLoad = () => {
-      const require = (window as any).require;
-      if (require) {
-        require.config({ paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs" } });
-        require(["vs/editor/editor.main"], () => {
-          setEditorLoaded(true);
-        }, (err: any) => {
-          setEditorError("Не удалось инициализировать Monaco.");
-          logger.error(err);
-        });
-      }
-    };
-
-    if (loaderScript) {
-      if ((window as any).require && (window as any).require.config) {
-        handleMonacoLoad();
-      } else {
-        loaderScript.addEventListener("load", handleMonacoLoad);
-      }
-    } else {
-      loaderScript = document.createElement("script");
-      loaderScript.src = "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.js";
-      loaderScript.async = true;
-      loaderScript.onload = handleMonacoLoad;
-      loaderScript.onerror = () => {
-        setEditorError("Не удалось скачать Monaco.");
-      };
-      document.head.appendChild(loaderScript);
-    }
-  }, [activePage]);
-
-  useEffect(() => {
-    if (!editorLoaded || !containerRef.current || activePage !== "sandbox" || sandboxTab !== "editor") return;
-
-    const monaco = (window as any).monaco;
-
-    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-      target: monaco.languages.typescript.ScriptTarget.ESNext,
-      allowJs: true,
-      checkJs: true,
-      allowNonTsExtensions: true,
-      moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-      typeRoots: ["file:///node_modules/@types"]
-    });
-
-    if (!(window as any)._monacoSandboxSdkLibAdded) {
-      try {
-        monaco.languages.typescript.javascriptDefaults.addExtraLib(SDK_TYPINGS, "file:///node_modules/@types/potok-sdk/index.d.ts");
-        (window as any)._monacoSandboxSdkLibAdded = true;
-      } catch (err) {
-        logger.warn("Failed to inject types:", err);
-      }
-    }
-
-    editorRef.current = monaco.editor.create(containerRef.current, {
-      value: sandboxCode,
-      language: "javascript",
-      theme: theme === "light" ? "vs" : "vs-dark",
-      automaticLayout: true,
-      minimap: { enabled: false },
-      fontSize: 13,
-      fontFamily: "Fira Code, Menlo, Monaco, monospace",
-      lineHeight: 18,
-      scrollbar: {
-        verticalScrollbarSize: 6,
-        horizontalScrollbarSize: 6
-      }
-    });
-
-    runSandboxCode(sandboxCode);
-
-    return () => {
-      if (editorRef.current) {
-        editorRef.current.dispose();
-      }
-    };
-  }, [editorLoaded, activePage, sandboxTab, theme]);
+  }, [editorLoaded, editorEnabled, theme]);
 
   const handleRun = () => {
-    if (editorRef.current) {
-      const val = editorRef.current.getValue();
-      setSandboxCode(val);
-      runSandboxCode(val);
-    }
+    const val = getValue();
+    setSandboxCode(val);
+    runSandboxCode(val);
   };
 
   const handleReset = () => {
     setSandboxCode(INITIAL_SANDBOX_CODE);
     mockStorageRef.current = {};
-    if (editorRef.current) {
-      editorRef.current.setValue(INITIAL_SANDBOX_CODE);
-    }
+    setValue(INITIAL_SANDBOX_CODE);
     runSandboxCode(INITIAL_SANDBOX_CODE);
   };
 
   const updateSandboxCode = (code: string) => {
     setSandboxCode(code);
-    if (editorRef.current) {
-      editorRef.current.setValue(code);
-    }
+    setValue(code);
     runSandboxCode(code);
   };
 

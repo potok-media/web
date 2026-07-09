@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { RangeInput } from "../ui";
 import { TimelinePreviewTooltip } from "./TimelinePreviewTooltip";
 import type { SDKThumbnails } from "../../sdk/src/types";
 
@@ -151,9 +152,8 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      <input
+      <RangeInput
         ref={sliderRef}
-        type="range"
         min={0}
         max={initialDuration}
         defaultValue={seekOffset + (videoRef.current?.currentTime || 0)}

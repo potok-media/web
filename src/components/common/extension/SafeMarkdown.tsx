@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import DOMPurify from "dompurify";
 import { Marked } from "marked";
 import Prism from "prismjs";
-import { useHUD } from "../../../context/HUDContext";
+import { useHUD } from "../../../context/useHUD";
 
 interface SafeMarkdownProps {
   content: string;
@@ -54,7 +54,7 @@ export const SafeMarkdown: React.FC<SafeMarkdownProps> = ({ content }) => {
       <span class="dot green"></span>
     </div>
     <span class="potok-terminal-lang">${lang || "js"}</span>
-    <button class="potok-terminal-copy-btn" data-code="${dataCodeAttr}">${t("safe.copy")}</button>
+    <button type="button" class="potok-terminal-copy-btn ui-btn ui-btn--ghost" data-code="${dataCodeAttr}">${t("safe.copy")}</button>
   </div>
   <div class="potok-terminal-body">
     <pre class="potok-terminal-line-numbers">${lineNumbersHtml}</pre>

@@ -89,7 +89,7 @@ export const FocusTrap: React.FC<FocusTrapProps> = ({ children, active = true })
     <div
       ref={containerRef}
       tabIndex={-1}
-      style={{ outline: "none", width: "100%", height: "100%", display: "contents" }}
+      className="focus-trap-root"
     >
       {children}
     </div>

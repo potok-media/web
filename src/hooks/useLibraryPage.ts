@@ -44,7 +44,7 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
     return !isSearchPage && collectionType.includes(".");
   });
   const [loadingMore, setLoadingMore] = useState(false);
-  const searchDebounceTimer = useRef<any>(null);
+  const searchDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadData = useCallback(
     async (showLoading = true, currentQuery = "") => {

@@ -120,6 +120,46 @@
   color: var(--text-tertiary);
 }
 
+.actor-details-layout--error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.actor-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-m);
+  text-align: center;
+  padding: var(--space-xl);
+}
+
+.actor-error-icon {
+  color: var(--error);
+}
+
+.actor-error-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.actor-error-message {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.actor-retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-s);
+  margin-top: var(--space-s);
+}
+
 .actor-details-column {
   flex: 1;
   display: flex;

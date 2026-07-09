@@ -1,4 +1,7 @@
 @import "./styles/variables.css";
+@import "./styles/ui.css";
+@import "./styles/media.css";
+/* After ui + media so player chrome wins over .ui-btn / .ui-icon-btn */
 @import "./styles/player.css";
 
 /* Modern Box Model Reset */

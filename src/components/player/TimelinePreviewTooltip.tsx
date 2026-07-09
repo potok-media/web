@@ -81,18 +81,8 @@ export const TimelinePreviewTooltip: React.FC<TimelinePreviewTooltipProps> = ({
 
   return (
     <div
-      className="timeline-preview-tooltip"
-      style={{
-        left: `${x}px`,
-        transform: "translateX(-50%)",
-        position: "absolute",
-        bottom: "100%",
-        marginBottom: "0.75rem",
-        pointerEvents: "none",
-        padding: imageUrl ? "0.375rem" : "0.3125rem 0.625rem",
-        borderRadius: imageUrl ? "0.625rem" : "0.375rem",
-        gap: imageUrl ? "0.5rem" : "0",
-      }}
+      className={`timeline-preview-tooltip ${imageUrl ? "timeline-preview-tooltip--with-image" : "timeline-preview-tooltip--text-only"}`}
+      style={{ "--tooltip-left": `${x}px` } as React.CSSProperties}
     >
       {imageUrl && (
         <div className="preview-thumbnail-frame">
@@ -102,11 +92,7 @@ export const TimelinePreviewTooltip: React.FC<TimelinePreviewTooltipProps> = ({
           <img
             src={imageUrl}
             alt="Preview Frame"
-            className="preview-thumbnail-img"
-            style={{
-              opacity: isLoading ? 0 : 1,
-              transition: "opacity 0.2s ease-in-out",
-            }}
+            className={`preview-thumbnail-img${isLoading ? "" : " is-loaded"}`}
             onLoad={handleImageLoad}
             onError={handleImageError}
           />

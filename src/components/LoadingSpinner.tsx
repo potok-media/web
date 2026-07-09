@@ -2,8 +2,9 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { FocusableButton } from "./common/TVNavigation";
-import "../styles/media.css";
+
+
+import { IconButton } from "./ui";
 
 interface LoadingSpinnerProps {
   message?: string;
@@ -31,13 +32,14 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         <div className="streams-page-backdrop spinner-backdrop" />
 
         {showBackButton && (
-          <FocusableButton
+          <IconButton
             className="streams-sidebar-back-btn spinner-back-btn-pos"
             onClick={() => navigate(-1)}
             title={t("back")}
+            aria-label={t("back")}
           >
             <ArrowLeft size="1.125rem" />
-          </FocusableButton>
+          </IconButton>
         )}
 
         <div className="loading-glass-card">
@@ -52,7 +54,10 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   }
 
   return (
-    <div className={`spinner-flex-container ${size === "small" ? "size-small" : ""}`} style={{ height: resolvedHeight }}>
+    <div
+      className={`spinner-flex-container spinner-flex-container--custom-height ${size === "small" ? "size-small" : ""}`}
+      style={{ "--spinner-height": resolvedHeight } as React.CSSProperties}
+    >
       <div className={`premium-spinner ${size === "small" ? "size-small" : ""}`}>
         <div className="spinner-outer" />
         <div className="spinner-inner" />
