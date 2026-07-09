@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Input } from "../ui";
 
 interface WikiHeaderProps {
@@ -12,6 +13,8 @@ export const WikiHeader: React.FC<WikiHeaderProps> = ({
   searchQuery,
   setSearchQuery,
 }) => {
+  const { t } = useTranslation("wiki");
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
   };
@@ -19,8 +22,8 @@ export const WikiHeader: React.FC<WikiHeaderProps> = ({
   return (
     <header className="wiki-header-nav">
       <div className="wiki-header-left">
-        <img src="/favicon.svg" className="wiki-wolf-logo" alt="Potok Logo" />
-        <Link to="/" className="wiki-brand-title">Potok</Link>
+        <img src="/favicon.svg" className="wiki-wolf-logo" alt={t("header.logoAlt")} />
+        <Link to="/" className="wiki-brand-title">{t("header.brand")}</Link>
       </div>
 
       <div className="wiki-header-right">
@@ -29,7 +32,7 @@ export const WikiHeader: React.FC<WikiHeaderProps> = ({
           <Input
             type="text"
             className="wiki-search-input-field"
-            placeholder="Быстрый поиск по Wiki..."
+            placeholder={t("header.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />

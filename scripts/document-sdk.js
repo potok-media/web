@@ -659,6 +659,7 @@ const streams = [
 ui.render(
   StreamList()
     .streams(streams)
+    .loading(false)
     .showFilters(true)
     .emptyText("Потоки не найдены")
     .nounPlurals(["раздача", "раздачи", "раздач"])
@@ -707,6 +708,7 @@ ui.render(
   LoadingSpinner()
     .message("Пожалуйста, подождите...")
     .fullscreen(true)
+    .height(200)
 );`,
     methods: {
       message: {
@@ -863,19 +865,60 @@ const { ui } = PotokSDK;
 ui.render(
   MediaPlayer()
     .playback({
-      title: "Мультитрековое тестовое видео",
-      streamUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+      streamUrl: "http://example.com/video.m3u8",
+      streamType: "m3u8",
+      title: "Название фильма",
+      season: 1,
+      episode: 3,
+      torrentHash: "abc123def456",
+      fileIndex: "0",
       audios: [
-        { name: "Русский дубляж", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-        { name: "Английский оригинал", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" }
-      ]
+        { id: "ru", name: "Русский дубляж", url: "http://example.com/video_ru.m3u8" },
+        { id: "en", name: "Английский оригинал", url: "http://example.com/video_en.m3u8" }
+      ],
+      headers: { "User-Agent": "PotokPlayer" },
+      providerId: "my-torrents",
+      voice: "dub",
+      subtitles: [
+        {
+          id: "ru-vtt",
+          src: "http://example.com/subs_ru.vtt",
+          label: "Русские",
+          language: "ru",
+          isDefault: true,
+          format: "vtt",
+          name: "Русские",
+          srclang: "ru",
+          url: "http://example.com/subs_ru.vtt"
+        }
+      ],
+      session: {
+        keepaliveUrl: "http://example.com/session/keepalive",
+        stopUrl: "http://example.com/session/stop",
+        intervalSec: 30,
+        hash: "abc123def456",
+        file: "0",
+        statusUrl: "http://example.com/session/status",
+        statusIntervalSec: 5
+      },
+      duration: 7200,
+      introStart: 0,
+      introEnd: 90,
+      outroStart: 7080,
+      outroEnd: 7200,
+      thumbnails: {
+        urlTemplate: "http://example.com/thumbs/{time}.jpg",
+        intervalSec: 5
+      },
+      requiresBuffering: false
     })
+    .isNetworkOffline(false)
     .height(400)
 );`,
     methods: {
       playback: {
         argument: "object",
-        description: "Метаданные воспроизводимого потока. Должен содержать: title, streamUrl, position (sec), headers (http), audios ({name, url}[]) для альтернативных дорожек."
+        description: "Метаданные воспроизводимого потока (SDKPlaybackInfo): streamUrl, streamType, title, season, episode, torrentHash, fileIndex, audios ({id, name, url}[]), headers, providerId, voice, subtitles, session, duration, introStart/End, outroStart/End, thumbnails, requiresBuffering."
       },
       isNetworkOffline: {
         argument: "boolean",
@@ -891,15 +934,34 @@ ui.render(
 const { ui } = PotokSDK;
 
 const profiles = [
-  { id: "p1", gatewayURL: "http://localhost:5000", name: "Локальный шлюз" }
+  {
+    id: "p1",
+    name: "Локальный шлюз",
+    gatewayURL: "http://localhost:5000",
+    playerServerURL: "http://localhost:8080",
+    searchEngineURL: "http://localhost:7000",
+    playerServerAuthEnabled: false,
+    playerServerAuthLogin: "",
+    playerServerAuthPassword: ""
+  }
 ];
 
 ui.render(
   ProfileSelector()
     .connectionProfiles(profiles)
     .activeProfileID("p1")
+    .isSettingsLocked(false)
     .onSelectProfile((p) => {
       ui.showHUD("success", "Выбран профиль: " + p.name);
+    })
+    .onStartEdit((p) => {
+      ui.showHUD("info", "Редактирование: " + p.name);
+    })
+    .onDeleteProfile((p) => {
+      ui.showHUD("warning", "Удаление: " + p.name);
+    })
+    .onStartAdd(() => {
+      ui.showHUD("info", "Добавление профиля");
     })
 );`,
     methods: {
@@ -988,8 +1050,14 @@ function draw() {
   ui.render(
     StreamFilterBar()
       .countLabel("Всего найдено: 8 торрентов")
+      .qualityFilter("1080p")
+      .activeTracker("Rutracker")
       .trackers(["Rutracker", "Kinozal"])
+      .showSort(true)
       .sortOption(state.sort)
+      .onRefresh(() => ui.showHUD("info", "Обновление поиска"))
+      .onQualityChange((q) => ui.showHUD("info", "Качество: " + q))
+      .onTrackerChange((t) => ui.showHUD("info", "Трекер: " + t))
       .onSortChange((s) => {
         state.sort = s;
         ui.showHUD("success", "Сортировка: " + s);
@@ -1050,10 +1118,21 @@ const { ui, createState } = PotokSDK;
 const state = createState({ open: false });
 
 const mockEp = {
-  episodeNumber: 1,
-  seasonNumber: 1,
-  name: "Зима близко",
-  stillPath: "https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg"
+  id: "s01e01",
+  season: 1,
+  episode: 1,
+  rawSeason: 1,
+  rawEpisode: 1,
+  title: "Зима близко",
+  fileName: "Show.S01E01.mkv",
+  stillPath: "https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg",
+  airDate: "2011-04-17",
+  isWatched: false,
+  sizeLabel: "1.2 GB",
+  audios: [
+    { id: "ru", name: "Русский дубляж", url: "http://example.com/s01e01_ru.m3u8" }
+  ],
+  url: "http://example.com/s01e01.m3u8"
 };
 
 function draw() {
@@ -1064,12 +1143,34 @@ function draw() {
         EpisodeSelector()
           .isOpen(state.open)
           .title("Игра Престолов")
-          .seasons([{ id: 1, seasonNumber: 1, name: "Сезон 1" }])
+          .subtitle("Выберите серию для просмотра")
+          .backdropSrc("https://image.tmdb.org/t/p/original/example.jpg")
+          .seasonsLoading(false)
+          .seasons([{
+            id: 1,
+            seasonNumber: 1,
+            season_number: 1,
+            episodes: [{
+              id: 101,
+              episodeNumber: 1,
+              episode_number: 1,
+              name: "Зима близко",
+              stillPath: "https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg",
+              airDate: "2011-04-17",
+              overview: "Описание серии"
+            }]
+          }])
           .episodes([mockEp])
           .onClose(() => state.open = false)
-          .onPlay((ep) => {
+          .onPlay((ep, audioId) => {
             state.open = false;
-            ui.showHUD("success", "Запускаем: " + ep.name);
+            ui.showHUD("success", "Запускаем: " + ep.title + " (" + audioId + ")");
+          })
+          .onApplyOverride((sourceSeason, targetSeason, offset) => {
+            ui.showHUD("info", "Override: " + sourceSeason + " -> " + targetSeason);
+          })
+          .onStartEditing(() => {
+            ui.showHUD("info", "Редактирование сезонов");
           })
       )
   );

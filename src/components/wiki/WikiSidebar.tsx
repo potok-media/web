@@ -1,24 +1,60 @@
 import React, { useState, useEffect } from "react";
-import { 
-  FileCode, 
-  Sliders, 
-  Terminal, 
-  ChevronDown, 
-  Moon, 
+import { useTranslation } from "react-i18next";
+import {
+  FileCode,
+  Sliders,
+  Terminal,
+  ChevronDown,
+  Moon,
   Sun,
   Layout,
   Type,
   CheckSquare,
   Film,
-  PlayCircle
+  PlayCircle,
 } from "lucide-react";
+import { WIKI_CATEGORY_KEYS, type WikiCategoryKey } from "../../pages/wiki/wikiCategories";
+import { WikiNavButton } from "./WikiNavButton";
 
 interface WikiSidebarProps {
   activePage: string;
   setActivePage: (page: string) => void;
-  filteredPages: [string, { title: string; category: string }][];
+  filteredPages: [string, { title: string; category: string; categoryKey: string }][];
   theme: "light" | "dark";
   setTheme: (theme: "light" | "dark") => void;
+}
+
+const UI_GROUP_CONFIG: {
+  categoryKey: WikiCategoryKey;
+  sidebarKey: string;
+  icon: React.ReactNode;
+}[] = [
+  { categoryKey: WIKI_CATEGORY_KEYS.uiContainers, sidebarKey: "uiContainers", icon: <Layout size="0.875rem" /> },
+  { categoryKey: WIKI_CATEGORY_KEYS.uiText, sidebarKey: "uiText", icon: <Type size="0.875rem" /> },
+  { categoryKey: WIKI_CATEGORY_KEYS.uiForms, sidebarKey: "uiForms", icon: <CheckSquare size="0.875rem" /> },
+  { categoryKey: WIKI_CATEGORY_KEYS.uiMedia, sidebarKey: "uiMedia", icon: <Film size="0.875rem" /> },
+  { categoryKey: WIKI_CATEGORY_KEYS.uiStreaming, sidebarKey: "uiStreaming", icon: <PlayCircle size="0.875rem" /> },
+];
+
+function SidebarPageItem({
+  pageKey,
+  title,
+  icon,
+  isActive,
+  onSelect,
+}: {
+  pageKey: string;
+  title: string;
+  icon: React.ReactNode;
+  isActive: boolean;
+  onSelect: (key: string) => void;
+}) {
+  return (
+    <WikiNavButton isActive={isActive} onClick={() => onSelect(pageKey)}>
+      {icon}
+      <span>{title}</span>
+    </WikiNavButton>
+  );
 }
 
 export const WikiSidebar: React.FC<WikiSidebarProps> = ({
@@ -28,241 +64,136 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
   theme,
   setTheme,
 }) => {
+  const { t } = useTranslation("wiki");
+
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    "API": true,
-    "UI: Контейнеры": false,
-    "UI: Текст и Инфо": false,
-    "UI: Формы и Ввод": false,
-    "UI: Медиа": false,
-    "UI: Рендеринг и Стриминг": false,
+    [WIKI_CATEGORY_KEYS.api]: true,
+    [WIKI_CATEGORY_KEYS.uiContainers]: false,
+    [WIKI_CATEGORY_KEYS.uiText]: false,
+    [WIKI_CATEGORY_KEYS.uiForms]: false,
+    [WIKI_CATEGORY_KEYS.uiMedia]: false,
+    [WIKI_CATEGORY_KEYS.uiStreaming]: false,
   });
 
   const toggleGroup = (group: string) => {
-    setExpandedGroups(prev => ({
-      ...prev,
-      [group]: !prev[group]
-    }));
+    setExpandedGroups((prev) => ({ ...prev, [group]: !prev[group] }));
   };
 
   useEffect(() => {
     const activeItem = filteredPages.find(([key]) => key === activePage);
     if (activeItem) {
-      const activeCat = activeItem[1].category;
+      const activeCat = activeItem[1].categoryKey;
       if (activeCat && expandedGroups[activeCat] === false) {
-        setExpandedGroups(prev => ({
-          ...prev,
-          [activeCat]: true
-        }));
+        setExpandedGroups((prev) => ({ ...prev, [activeCat]: true }));
       }
     }
   }, [activePage, filteredPages, expandedGroups]);
 
+  const pagesByCategory = (categoryKey: WikiCategoryKey) =>
+    filteredPages.filter(([, info]) => info.categoryKey === categoryKey);
+
   return (
     <aside className="wiki-sidebar-nav">
       <div className="wiki-sidebar-scroll-content">
-        {/* Введение */}
-        <div className="wiki-sidebar-group">
-          <div className="wiki-sidebar-group-title">Введение</div>
-          {filteredPages
-            .filter(([, info]) => info.category === "Введение")
-            .map(([key, info]) => (
-              <div 
-                className={`wiki-sidebar-item ${activePage === key ? "active" : ""}`}
+        <nav aria-label={t("sidebar.intro")}>
+          <div className="wiki-sidebar-group">
+            <div className="wiki-sidebar-group-title">{t("sidebar.intro")}</div>
+            {pagesByCategory(WIKI_CATEGORY_KEYS.intro).map(([key, info]) => (
+              <SidebarPageItem
                 key={key}
-                onClick={() => setActivePage(key)}
-              >
-                <FileCode size="0.875rem" />
-                <span>{info.title}</span>
-              </div>
+                pageKey={key}
+                title={info.title}
+                icon={<FileCode size="0.875rem" />}
+                isActive={activePage === key}
+                onSelect={setActivePage}
+              />
             ))}
-        </div>
+          </div>
 
-        {/* API методы */}
-        <div className="wiki-sidebar-group">
-          <div 
-            className="wiki-sidebar-group-title" 
-            onClick={() => toggleGroup("API")}
-          >
-            <span>API методы</span>
-            <ChevronDown
-              size="0.875rem"
-              className={`wiki-sidebar-chevron${expandedGroups["API"] ? " is-expanded" : ""}`}
+          <div className="wiki-sidebar-group">
+            <button
+              type="button"
+              className="wiki-sidebar-group-title"
+              onClick={() => toggleGroup(WIKI_CATEGORY_KEYS.api)}
+              aria-expanded={expandedGroups[WIKI_CATEGORY_KEYS.api]}
+            >
+              <span>{t("sidebar.api")}</span>
+              <ChevronDown
+                size="0.875rem"
+                className={`wiki-sidebar-chevron${expandedGroups[WIKI_CATEGORY_KEYS.api] ? " is-expanded" : ""}`}
+              />
+            </button>
+
+            {expandedGroups[WIKI_CATEGORY_KEYS.api] &&
+              pagesByCategory(WIKI_CATEGORY_KEYS.api).map(([key, info]) => (
+                <SidebarPageItem
+                  key={key}
+                  pageKey={key}
+                  title={info.title}
+                  icon={<Sliders size="0.875rem" />}
+                  isActive={activePage === key}
+                  onSelect={setActivePage}
+                />
+              ))}
+          </div>
+
+          {UI_GROUP_CONFIG.map((group) => (
+            <div className="wiki-sidebar-group" key={group.categoryKey}>
+              <button
+                type="button"
+                className="wiki-sidebar-group-title"
+                onClick={() => toggleGroup(group.categoryKey)}
+                aria-expanded={expandedGroups[group.categoryKey]}
+              >
+                <span>{t(`sidebar.${group.sidebarKey}`)}</span>
+                <ChevronDown
+                  size="0.875rem"
+                  className={`wiki-sidebar-chevron${expandedGroups[group.categoryKey] ? " is-expanded" : ""}`}
+                />
+              </button>
+              {expandedGroups[group.categoryKey] &&
+                pagesByCategory(group.categoryKey).map(([key, info]) => (
+                  <SidebarPageItem
+                    key={key}
+                    pageKey={key}
+                    title={info.title}
+                    icon={group.icon}
+                    isActive={activePage === key}
+                    onSelect={setActivePage}
+                  />
+                ))}
+            </div>
+          ))}
+
+          <div className="wiki-sidebar-group">
+            <div className="wiki-sidebar-group-title">{t("sidebar.development")}</div>
+            <SidebarPageItem
+              pageKey="sandbox"
+              title={t("sidebar.sandbox")}
+              icon={<Terminal size="0.875rem" />}
+              isActive={activePage === "sandbox"}
+              onSelect={setActivePage}
             />
           </div>
-          
-          {expandedGroups["API"] && filteredPages
-            .filter(([, info]) => info.category === "API")
-            .map(([key, info]) => (
-              <div 
-                className={`wiki-sidebar-item ${activePage === key ? "active" : ""}`}
-                key={key}
-                onClick={() => setActivePage(key)}
-              >
-                <Sliders size="0.875rem" />
-                <span>{info.title}</span>
-              </div>
-            ))}
-        </div>
-
-        {/* UI: Контейнеры */}
-        <div className="wiki-sidebar-group">
-          <div 
-            className="wiki-sidebar-group-title" 
-            onClick={() => toggleGroup("UI: Контейнеры")}
-          >
-            <span>UI: Разметка и Сетки</span>
-            <ChevronDown
-              size="0.875rem"
-              className={`wiki-sidebar-chevron${expandedGroups["UI: Контейнеры"] ? " is-expanded" : ""}`}
-            />
-          </div>
-          {expandedGroups["UI: Контейнеры"] && filteredPages
-            .filter(([, info]) => info.category === "UI: Контейнеры")
-            .map(([key, info]) => (
-              <div 
-                className={`wiki-sidebar-item ${activePage === key ? "active" : ""}`}
-                key={key}
-                onClick={() => setActivePage(key)}
-              >
-                <Layout size="0.875rem" />
-                <span>{info.title}</span>
-              </div>
-            ))}
-        </div>
-
-        {/* UI: Текст и Инфо */}
-        <div className="wiki-sidebar-group">
-          <div 
-            className="wiki-sidebar-group-title" 
-            onClick={() => toggleGroup("UI: Текст и Инфо")}
-          >
-            <span>UI: Текст и Инфо</span>
-            <ChevronDown
-              size="0.875rem"
-              className={`wiki-sidebar-chevron${expandedGroups["UI: Текст и Инфо"] ? " is-expanded" : ""}`}
-            />
-          </div>
-          {expandedGroups["UI: Текст и Инфо"] && filteredPages
-            .filter(([, info]) => info.category === "UI: Текст и Инфо")
-            .map(([key, info]) => (
-              <div 
-                className={`wiki-sidebar-item ${activePage === key ? "active" : ""}`}
-                key={key}
-                onClick={() => setActivePage(key)}
-              >
-                <Type size="0.875rem" />
-                <span>{info.title}</span>
-              </div>
-            ))}
-        </div>
-
-        {/* UI: Формы и Ввод */}
-        <div className="wiki-sidebar-group">
-          <div 
-            className="wiki-sidebar-group-title" 
-            onClick={() => toggleGroup("UI: Формы и Ввод")}
-          >
-            <span>UI: Формы и Ввод</span>
-            <ChevronDown
-              size="0.875rem"
-              className={`wiki-sidebar-chevron${expandedGroups["UI: Формы и Ввод"] ? " is-expanded" : ""}`}
-            />
-          </div>
-          {expandedGroups["UI: Формы и Ввод"] && filteredPages
-            .filter(([, info]) => info.category === "UI: Формы и Ввод")
-            .map(([key, info]) => (
-              <div 
-                className={`wiki-sidebar-item ${activePage === key ? "active" : ""}`}
-                key={key}
-                onClick={() => setActivePage(key)}
-              >
-                <CheckSquare size="0.875rem" />
-                <span>{info.title}</span>
-              </div>
-            ))}
-        </div>
-
-        {/* UI: Медиа */}
-        <div className="wiki-sidebar-group">
-          <div 
-            className="wiki-sidebar-group-title" 
-            onClick={() => toggleGroup("UI: Медиа")}
-          >
-            <span>UI: Медиа компоненты</span>
-            <ChevronDown
-              size="0.875rem"
-              className={`wiki-sidebar-chevron${expandedGroups["UI: Медиа"] ? " is-expanded" : ""}`}
-            />
-          </div>
-          {expandedGroups["UI: Медиа"] && filteredPages
-            .filter(([, info]) => info.category === "UI: Медиа")
-            .map(([key, info]) => (
-              <div 
-                className={`wiki-sidebar-item ${activePage === key ? "active" : ""}`}
-                key={key}
-                onClick={() => setActivePage(key)}
-              >
-                <Film size="0.875rem" />
-                <span>{info.title}</span>
-              </div>
-            ))}
-        </div>
-
-        {/* UI: Рендеринг и Стриминг */}
-        <div className="wiki-sidebar-group">
-          <div 
-            className="wiki-sidebar-group-title" 
-            onClick={() => toggleGroup("UI: Рендеринг и Стриминг")}
-          >
-            <span>UI: Плееры и Потоки</span>
-            <ChevronDown
-              size="0.875rem"
-              className={`wiki-sidebar-chevron${expandedGroups["UI: Рендеринг и Стриминг"] ? " is-expanded" : ""}`}
-            />
-          </div>
-          {expandedGroups["UI: Рендеринг и Стриминг"] && filteredPages
-            .filter(([, info]) => info.category === "UI: Рендеринг и Стриминг")
-            .map(([key, info]) => (
-              <div 
-                className={`wiki-sidebar-item ${activePage === key ? "active" : ""}`}
-                key={key}
-                onClick={() => setActivePage(key)}
-              >
-                <PlayCircle size="0.875rem" />
-                <span>{info.title}</span>
-              </div>
-            ))}
-        </div>
-
-        {/* Разработка */}
-        <div className="wiki-sidebar-group">
-          <div className="wiki-sidebar-group-title">Разработка</div>
-          <div 
-            className={`wiki-sidebar-item ${activePage === "sandbox" ? "active" : ""}`}
-            onClick={() => setActivePage("sandbox")}
-          >
-            <Terminal size="0.875rem" />
-            <span>Песочница / Sandbox</span>
-          </div>
-        </div>
+        </nav>
       </div>
 
-      <div 
+      <WikiNavButton
         className="wiki-theme-toggle"
         onClick={() => setTheme(theme === "light" ? "dark" : "light")}
       >
         {theme === "light" ? (
           <>
             <Moon size="0.875rem" />
-            <span>Темная тема</span>
+            <span>{t("sidebar.themeDark")}</span>
           </>
         ) : (
           <>
             <Sun size="0.875rem" />
-            <span>Светлая тема</span>
+            <span>{t("sidebar.themeLight")}</span>
           </>
         )}
-      </div>
+      </WikiNavButton>
     </aside>
   );
 };

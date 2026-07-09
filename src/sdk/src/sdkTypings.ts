@@ -623,23 +623,42 @@ export const SDK_TYPINGS = `
     url?: string;
   }
 
+  interface SDKPlaybackSession {
+    keepaliveUrl: string;
+    stopUrl: string;
+    intervalSec?: number;
+    hash?: string;
+    file?: string;
+    statusUrl?: string;
+    statusIntervalSec?: number;
+  }
+
+  interface SDKThumbnails {
+    urlTemplate: string;
+    intervalSec?: number;
+  }
+
   interface SDKPlaybackInfo {
     streamUrl: string;
-    streamType?: 'mp4' | 'm3u8' | 'dash' | string;
+    streamType?: 'mp4' | 'm3u8' | 'hls' | 'dash' | string;
     title: string;
     season?: number;
     episode?: number;
     torrentHash?: string;
+    fileIndex?: string;
     audios?: { id: string; name: string; url: string }[];
     headers?: Record<string, string>;
     providerId?: string;
     voice?: string;
     subtitles?: SDKSubtitleInfo[];
+    session?: SDKPlaybackSession;
     duration?: number;
     introStart?: number;
     introEnd?: number;
     outroStart?: number;
     outroEnd?: number;
+    thumbnails?: SDKThumbnails;
+    requiresBuffering?: boolean;
   }
 
   /**

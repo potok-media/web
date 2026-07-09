@@ -181,6 +181,11 @@
   justify-content: space-between;
   cursor: pointer;
   user-select: none;
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
 }
 
 .wiki-sidebar-group-title:hover {
@@ -208,6 +213,11 @@
   display: flex;
   align-items: center;
   gap: 0.625rem;
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
 }
 
 .wiki-sidebar-item:hover {
@@ -278,6 +288,10 @@
   color: var(--text-primary);
   margin: 2.5rem 0 1rem 0;
   letter-spacing: -0.02em;
+}
+
+.doc-body-text--flush {
+  margin-bottom: 0;
 }
 
 .doc-body-text {
@@ -433,6 +447,13 @@
   cursor: pointer;
   transition: color 0.15s;
   line-height: 1.25rem;
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  padding: 0;
 }
 
 .toc-item:hover {
@@ -737,6 +758,11 @@
   cursor: pointer;
   text-decoration: underline;
   color: var(--accent);
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0;
 }
 
 .wiki-breadcrumb-current {

@@ -1,287 +1,162 @@
+import type { TFunction } from "i18next";
 import { Play } from "lucide-react";
 import { Button } from "../../../components/ui";
 import { CodeBlock } from "../../../components/wiki/CodeBlock";
+import { getWikiSections } from "../wikiDocUtils";
+import {
+  easyPluginIndexJsExample,
+  playVideoExample,
+  showEpisodeSelectorExample,
+  uiMethodsSandboxExample,
+} from "../wikiExamples";
 
-export const UiMethodsDoc = {
-  title: "Глобальные методы UI",
-  category: "API",
-  toc: [
-    { id: "render", text: "ui.render()" },
-    { id: "hud", text: "ui.showHUD()" },
-    { id: "player", text: "ui.playVideo()" },
-    { id: "ep-selector", text: "ui.showEpisodeSelector()" },
-    { id: "navigation", text: "Навигация (ui.navigateTo)" },
-    { id: "themes", text: "Темы оформления" },
-    { id: "registration", text: "Регистрация плагина и слотов" }
-  ],
-  render: (openInSandbox: (code: string) => void) => (
+interface UiMethodsSections {
+  title: string;
+  intro: string;
+  renderTitle: string;
+  renderText: string;
+  hudTitle: string;
+  hudText: string;
+  playerTitle: string;
+  playerText: string;
+  epSelectorTitle: string;
+  epSelectorText: string;
+  navigationTitle: string;
+  navigationText: string;
+  navigationCode: string;
+  themesTitle: string;
+  themesIntro: string;
+  themesItems: string[];
+  blockTitle: string;
+  blockText: string;
+  blockItems: string[];
+  onBlockContextUpdateTitle: string;
+  onBlockContextUpdateText: string;
+  registrationTitle: string;
+  registrationIntro: string;
+  registrationTable: {
+    api: string;
+    description: string;
+    rows: { api: string; desc: string }[];
+  };
+  registerSlotTitle: string;
+  registerSlotIntro: string;
+  registerSlotConfigIntro: string;
+  registerSlotParams: string[];
+  registerSlotRenderFields: string[];
+  easyPluginTitle: string;
+  easyPluginIntro: string;
+  easyPluginStep1: string;
+  easyPluginStep2: string;
+  easyPluginStep3: string;
+  folderStructure: string;
+  manifestJson: string;
+  sandboxButton: string;
+}
+
+export function buildUiMethodsDoc(t: TFunction<"wiki">, lang?: string) {
+  const s = getWikiSections<UiMethodsSections>(t, "uiMethods");
+
+  return (openInSandbox: (code: string) => void) => (
     <div>
-      <h1 className="wiki-doc-title" id="render">Глобальный объект ui</h1>
-      <p className="doc-body-text">
-        Помимо сборщиков разметки, <code>PotokSDK.ui</code> предоставляет набор методов для управления состоянием хост-приложения, навигации, вызова плеера и регистрации расширения в системе.
-      </p>
+      <h1 className="wiki-doc-title" id="render">{s.title}</h1>
+      <p className="doc-body-text">{s.intro}</p>
 
-      <h2 className="doc-section-h2" id="render-method">Метод ui.render()</h2>
-      <p className="doc-body-text">
-        Метод <code>ui.render(component, slotId?)</code> компилирует декларативную разметку плагина и отправляет её на рендеринг хосту. Если указан <code>slotId</code>, разметка проецируется в конкретный слот, иначе рендерится на основной экран песочницы.
-      </p>
+      <h2 className="doc-section-h2" id="render-method">{s.renderTitle}</h2>
+      <p className="doc-body-text">{s.renderText}</p>
 
-      <h2 className="doc-section-h2" id="hud">Уведомления HUD</h2>
-      <p className="doc-body-text">
-        Метод <code>ui.showHUD(type: string, message: string)</code> вызывает кратковременный системный баннер в углу экрана. Поддерживаемые типы: <code>"success"</code>, <code>"error"</code>, <code>"info"</code>, <code>"warning"</code>.
-      </p>
+      <h2 className="doc-section-h2" id="hud">{s.hudTitle}</h2>
+      <p className="doc-body-text">{s.hudText}</p>
 
-      <h2 className="doc-section-h2" id="player">Запуск Видеоплеера</h2>
-      <p className="doc-body-text">
-        Метод <code>ui.playVideo(playbackInfo)</code> запускает полноэкранный видеоплеер. Объект воспроизведения должен содержать следующие поля:
-      </p>
-      <CodeBlock 
-        language="javascript" 
-        code={`ui.playVideo({
-  title: "Название фильма",
-  streamUrl: "http://example.com/video.m3u8",
-  audios: [
-    { name: "Русский дубляж", url: "http://example.com/video_ru.m3u8" },
-    { name: "Английский оригинал", url: "http://example.com/video_en.m3u8" }
-  ], // Опционально: альтернативные озвучки/дорожки
-  headers: { "User-Agent": "PotokPlayer" }, // Опционально
-  position: 3600 // Начать воспроизведение с секунды (опционально)
-});`} 
-      />
+      <h2 className="doc-section-h2" id="player">{s.playerTitle}</h2>
+      <p className="doc-body-text">{s.playerText}</p>
+      <CodeBlock language="javascript" code={playVideoExample(lang)} />
 
-      <h2 className="doc-section-h2" id="ep-selector">Селектор Серий</h2>
-      <p className="doc-body-text">
-        Метод <code>ui.showEpisodeSelector(config)</code> вызывает системное всплывающее окно для выбора сезонов и серий, разработанное специально для сериалов.
-      </p>
-      <CodeBlock 
-        language="javascript" 
-        code={`ui.showEpisodeSelector({
-  title: "Имя сериала",
-  seasons: [{ seasonNumber: 1, name: "Сезон 1" }],
-  episodes: [{ episodeNumber: 1, name: "Серия 1", seasonNumber: 1 }],
-  onPlay: (ep) => {
-    // Вызывается при клике на серию
-    console.log("Играем:", ep.seasonNumber, ep.episodeNumber);
-  }
-});`} 
-      />
+      <h2 className="doc-section-h2" id="ep-selector">{s.epSelectorTitle}</h2>
+      <p className="doc-body-text">{s.epSelectorText}</p>
+      <CodeBlock language="javascript" code={showEpisodeSelectorExample(lang)} />
 
-      <h2 className="doc-section-h2" id="navigation">Навигация</h2>
-      <p className="doc-body-text">
-        Метод <code>ui.navigateTo(to: string, state?: any)</code> позволяет плагину программно перенаправить пользователя на другой раздел хост-приложения (например, в настройки, медиатеку или на главную страницу):
-      </p>
-      <CodeBlock 
-        language="javascript" 
-        code={`ui.navigateTo("/settings");
-ui.navigateTo("/library", { filter: "watchlist" });`} 
-      />
+      <h2 className="doc-section-h2" id="navigation">{s.navigationTitle}</h2>
+      <p className="doc-body-text">{s.navigationText}</p>
+      <CodeBlock language="javascript" code={s.navigationCode} />
 
-      <h2 className="doc-section-h2" id="themes">Темы оформления</h2>
-      <p className="doc-body-text">
-        Визуальные плагины могут регистрировать кастомные цветовые схемы и управлять активным акцентом оформления с помощью методов:
-      </p>
+      <h2 className="doc-section-h2" id="themes">{s.themesTitle}</h2>
+      <p className="doc-body-text">{s.themesIntro}</p>
       <ul className="doc-bullet-list">
-        <li><code>ui.registerThemes(themes: Theme[])</code> — регистрирует массив кастомных цветовых тем оформления на хосте.</li>
-        <li><code>ui.setAccentTheme(themeId: string)</code> — динамически переключает активный цветовой акцент хоста на указанную тему.</li>
+        {s.themesItems.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
       </ul>
 
-      <h2 className="doc-section-h2" id="registration">Регистрация в системе</h2>
-      <p className="doc-body-text">
-        Для интеграции в жизненный цикл хост-приложения используются глобальные функции SDK:
-      </p>
-      
+      <h2 className="doc-section-h2" id="block">{s.blockTitle}</h2>
+      <p className="doc-body-text">{s.blockText}</p>
+      <ul className="doc-bullet-list">
+        {s.blockItems.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+
+      <h2 className="doc-section-h2" id="block-context">{s.onBlockContextUpdateTitle}</h2>
+      <p className="doc-body-text">{s.onBlockContextUpdateText}</p>
+
+      <h2 className="doc-section-h2" id="registration">{s.registrationTitle}</h2>
+      <p className="doc-body-text">{s.registrationIntro}</p>
+
       <div className="doc-table-wrapper doc-table-wrapper--spaced">
         <table className="doc-table">
           <thead>
             <tr>
-              <th>Функция API</th>
-              <th>Описание</th>
+              <th>{s.registrationTable.api}</th>
+              <th>{s.registrationTable.description}</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td><code>registerPlugin(meta)</code></td>
-              <td>Регистрирует базовые метаданные плагина (уникальный <code>id</code>, отображаемое имя <code>name</code> и версию). Должна вызываться первой при загрузке скрипта.</td>
-            </tr>
-            <tr>
-              <td><code>registerSource(config)</code></td>
-              <td>Регистрирует плагин как поисковый провайдер (источник медиа-потоков). Хост обращается к зарегистрированному источнику при поиске видеофайлов.</td>
-            </tr>
-            <tr>
-              <td><code>registerSlotContribution(config)</code></td>
-              <td>Регистрирует графический вклад в указанный интерфейсный слот (например, в кнопки действий или под описание медиафайла).</td>
-            </tr>
-            <tr>
-              <td><code>onSettingsChanged(callback)</code></td>
-              <td>Подписывает плагин на интерактивное изменение полей формы его настроек на хосте в реальном времени. В коллбек передаются <code>(key, value, currentSettings)</code>.</td>
-            </tr>
-            <tr>
-              <td><code>updateSettingsForm(updates)</code></td>
-              <td>Отправляет команду хосту обновить значения полей формы настроек в реальном времени (например, для автозаполнения пресетов, сброса или валидации). Принимает объект обновлений <code>{"{ updates }"}</code>.</td>
-            </tr>
+            {s.registrationTable.rows.map((row) => (
+              <tr key={row.api}>
+                <td><code>{row.api}</code></td>
+                <td>{row.desc}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
-      <h3 className="doc-section-h3 doc-section-h3--spaced" id="register-slot-docs">Детальное описание <code>registerSlotContribution</code></h3>
-      <p className="doc-body-text">
-        Эта функция позволяет плагину динамически внедрять собственный интерфейс в предопределенные области приложения. Хост вызывает рендер-функцию плагина при монтировании соответствующего экрана и отрисовывает возвращаемый макет.
-      </p>
-      
-      <p className="doc-body-text">
-        Аргумент <code>config</code> представляет собой объект со следующими параметрами:
-      </p>
+      <h3 className="doc-section-h3 doc-section-h3--spaced" id="register-slot-docs">
+        {s.registerSlotTitle}
+      </h3>
+      <p className="doc-body-text">{s.registerSlotIntro}</p>
+      <p className="doc-body-text">{s.registerSlotConfigIntro}</p>
       <ul className="doc-bullet-list">
-        <li><code>id</code> (string, обязательное) — Уникальный идентификатор вклада в рамках плагина (должен соответствовать <code>id</code> из массива <code>slots</code> в манифесте).</li>
-        <li><code>slotName</code> (string, обязательное) — Целевая точка встраивания (например, <code>"media-actions"</code>, <code>"details-bottom"</code>, <code>"extension-page"</code>).</li>
-        <li><code>render(props)</code> (function, обязательное) — Функция, возвращающая UI. Принимает <code>props</code> (данные текущего контекста хоста, например, информацию о просматриваемом фильме) и должна возвращать объект:
-          <ul className="doc-bullet-list doc-bullet-list--indented">
-            <li><code>label</code> (string) — Название/подпись для вклада.</li>
-            <li><code>icon</code> (string, опционально) — Имя иконки Lucide.</li>
-            <li><code>layout</code> (UIComponent) — Дерево UI компонентов (создается с помощью билдеров <code>Card()</code>, <code>VStack()</code>, <code>Button()</code> и т.д.).</li>
-          </ul>
-        </li>
+        {s.registerSlotParams.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+      <ul className="doc-bullet-list doc-bullet-list--indented">
+        {s.registerSlotRenderFields.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
       </ul>
 
-      <h3 className="doc-section-h3 doc-section-h3--spaced">Пример простого плагина (Easy Plugin)</h3>
-      <p className="doc-body-text">
-        Ниже приведена структура и файлы минимального рабочего расширения, которое добавляет кастомную кнопку запуска трейлера и информационный блок на страницу деталей фильма:
-      </p>
+      <h3 className="doc-section-h3 doc-section-h3--spaced">{s.easyPluginTitle}</h3>
+      <p className="doc-body-text">{s.easyPluginIntro}</p>
 
-      <h4 className="doc-h4-step">1. Структура папки плагина:</h4>
-      <CodeBlock
-        language="text"
-        code={`my-easy-plugin/
-├── manifest.json   # Метаданные и объявление слотов
-└── index.js        # Исполняемый JS код плагина`}
-      />
+      <h4 className="doc-h4-step">{s.easyPluginStep1}</h4>
+      <CodeBlock language="text" code={s.folderStructure} />
 
-      <h4 className="doc-h4-step">2. Файл <code>manifest.json</code>:</h4>
-      <CodeBlock
-        language="json"
-        code={`{
-  "id": "my-easy-plugin",
-  "name": "Простой Просмотрщик",
-  "version": "1.0.0",
-  "description": "Добавляет кнопку просмотра трейлера и блок в деталях",
-  "permissions": ["ui-notifications"],
-  "slots": [
-    {
-      "id": "trailer-action-button",
-      "slotName": "media-actions",
-      "title": "Кнопка Трейлера"
-    },
-    {
-      "id": "extra-details-info",
-      "slotName": "details-bottom",
-      "title": "Блок Информации"
-    }
-  ]
-}`}
-      />
+      <h4 className="doc-h4-step">{s.easyPluginStep2}</h4>
+      <CodeBlock language="json" code={s.manifestJson} />
 
-      <h4 className="doc-h4-step">3. Файл <code>index.js</code>:</h4>
-      <CodeBlock
-        language="javascript"
-        code={`import { PotokSDK } from 'potok-sdk';
+      <h4 className="doc-h4-step">{s.easyPluginStep3}</h4>
+      <CodeBlock language="javascript" code={easyPluginIndexJsExample(lang)} />
 
-// А. Регистрируем плагин в системе
-PotokSDK.registerPlugin({
-  id: "my-easy-plugin",
-  name: "Простой Просмотрщик"
-});
-
-// Б. Внедряем кнопку в слот действий "media-actions"
-PotokSDK.registerSlotContribution({
-  id: "trailer-action-button",
-  slotName: "media-actions",
-  render(props) {
-    const { Button } = PotokSDK.ui.components;
-    return {
-      label: "Смотреть Трейлер",
-      layout: Button("Смотреть Трейлер")
-        .variant("primary")
-        .onClick(() => {
-          // Запуск встроенного плеера хоста с тестовым видео
-          PotokSDK.ui.playVideo({
-            title: \`Трейлер к \${props.title}\`,
-            streamUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-          });
-        })
-    };
-  }
-});
-
-// В. Внедряем информационную карточку в слот под описанием "details-bottom"
-PotokSDK.registerSlotContribution({
-  id: "extra-details-info",
-  slotName: "details-bottom",
-  render(props) {
-    const { Card, VStack, Text, Badge, HStack } = PotokSDK.ui.components;
-    return {
-      label: "Дополнительно",
-      layout: Card()
-        .title("Рекомендовано плагином")
-        .subtitle(\`Кинопоиск ID: \${props.mediaId}\`)
-        .child(
-          VStack()
-            .spacing(8)
-            .child(Text(\`Вы просматриваете страницу "\${props.title}". Этот блок встроил кастомный плагин.\`).variant("secondary"))
-            .child(
-              HStack()
-                .spacing(6)
-                .child(Badge("Качество 1080p").color("success"))
-                .child(Badge("Лицензия").color("info"))
-            )
-        )
-    };
-  }
-});`}
-      />
-
-      <Button variant="primary" className="doc-sandbox-btn" onClick={() => openInSandbox(`// Пример вызова системного плеера и селекторов
-const { ui } = PotokSDK;
-
-ui.render(
-  Card()
-    .title("Системные оверлеи")
-    .child(
-      VStack()
-        .spacing(12)
-        .child(
-          Button("Воспроизвести видео")
-            .variant("primary")
-            .onClick(() => {
-              ui.playVideo({
-                title: "Трейлер Большого Стэна",
-                streamUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-              });
-            })
-        )
-        .child(
-          Button("Показать селектор серий")
-            .onClick(() => {
-              ui.showEpisodeSelector({
-                title: "Игра Престолов",
-                seasons: [
-                  { seasonNumber: 1, name: "Сезон 1" },
-                  { seasonNumber: 2, name: "Сезон 2" }
-                ],
-                episodes: [
-                  { episodeNumber: 1, name: "Зима близко", seasonNumber: 1 },
-                  { episodeNumber: 2, name: "Королевский тракт", seasonNumber: 1 }
-                ],
-                onPlay: (ep) => {
-                  ui.showHUD("success", "Играем эпизод " + ep.episodeNumber);
-                }
-              });
-            })
-        )
-    )
-);`)}>
+      <Button
+        variant="primary"
+        className="doc-sandbox-btn"
+        onClick={() => openInSandbox(uiMethodsSandboxExample(lang))}
+      >
         <Play size="0.75rem" />
-        <span>Протестировать оверлеи в Sandbox</span>
+        <span>{s.sandboxButton}</span>
       </Button>
     </div>
-  )
-};
+  );
+}

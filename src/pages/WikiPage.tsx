@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { PAGES } from "./wiki/wikiData";
+import { useWikiPages } from "./wiki/useWikiPages";
 import { SandboxPanel } from "../components/wiki/SandboxPanel";
 import { WikiHeader } from "../components/wiki/WikiHeader";
 import { WikiSidebar } from "../components/wiki/WikiSidebar";
@@ -9,10 +9,10 @@ import { useMonacoSandbox } from "../hooks/useMonacoSandbox";
 import "../styles/wiki.css";
 
 export const WikiPage: React.FC = () => {
+  const pages = useWikiPages();
   const [activePage, setActivePage] = useState<string>("intro");
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [searchQuery, setSearchQuery] = useState<string>("");
-
   const [referrerPage, setReferrerPage] = useState<string>("intro");
 
   const {
@@ -36,19 +36,20 @@ export const WikiPage: React.FC = () => {
     updateSandboxCode(code);
   };
 
-  const filteredPages = Object.entries(PAGES).filter(([_, info]) => {
+  const filteredPages = Object.entries(pages).filter(([_, info]) => {
     if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
     return (
-      info.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      info.category.toLowerCase().includes(searchQuery.toLowerCase())
+      info.title.toLowerCase().includes(q) ||
+      info.category.toLowerCase().includes(q)
     );
   });
 
   return (
     <div className={`wiki-container theme-${theme}`}>
-      <WikiHeader 
-        searchQuery={searchQuery} 
-        setSearchQuery={setSearchQuery} 
+      <WikiHeader
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
       />
 
       <div className={`wiki-body-layout ${activePage === "sandbox" ? "layout-sandbox-view" : ""}`}>
@@ -65,6 +66,7 @@ export const WikiPage: React.FC = () => {
             activePage={activePage}
             referrerPage={referrerPage}
             setActivePage={setActivePage}
+            pages={pages}
           />
 
           {activePage === "sandbox" ? (
@@ -81,11 +83,11 @@ export const WikiPage: React.FC = () => {
               compiledLayout={compiledLayout}
             />
           ) : (
-            PAGES[activePage]?.render(openInSandbox)
+            pages[activePage]?.render(openInSandbox)
           )}
         </main>
 
-        <WikiRightSidebar activePage={activePage} />
+        <WikiRightSidebar activePage={activePage} pages={pages} />
       </div>
     </div>
   );

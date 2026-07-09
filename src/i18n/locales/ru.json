@@ -810,5 +810,1364 @@
       "placeholder": "[Слот расширения: {{name}}]",
       "active": "Слот: {{name}} (Активно)"
     }
+  },
+  "wiki": {
+    "header": {
+      "brand": "Potok",
+      "searchPlaceholder": "Быстрый поиск по Wiki...",
+      "logoAlt": "Логотип Potok"
+    },
+    "sidebar": {
+      "intro": "Введение",
+      "api": "API методы",
+      "uiContainers": "UI: Разметка и Сетки",
+      "uiText": "UI: Текст и Инфо",
+      "uiForms": "UI: Формы и Ввод",
+      "uiMedia": "UI: Медиа компоненты",
+      "uiStreaming": "UI: Плееры и Потоки",
+      "development": "Разработка",
+      "sandbox": "Песочница / Sandbox",
+      "themeDark": "Темная тема",
+      "themeLight": "Светлая тема"
+    },
+    "breadcrumbs": {
+      "docs": "Документация",
+      "sandbox": "Песочница",
+      "backToDoc": "Назад к документу"
+    },
+    "sandbox": {
+      "editorTab": "Редактор кода (JavaScript)",
+      "previewTab": "Превью результата",
+      "run": "Запустить",
+      "reset": "Сбросить",
+      "connected": "CONNECTED",
+      "mainFile": "main.js",
+      "logsTitle": "КОНСОЛЬ ЛОГОВ",
+      "clearLogs": "Очистить",
+      "logsEmpty": "Логи пусты. Запустите код и совершите действия.",
+      "previewTitle": "Эмулируемый Экран Potok",
+      "previewContext": "Контекст: Свободный рендер",
+      "previewEmpty": "Интерфейс не скомпилирован. Вернитесь во вкладку \"Редактор\" и нажмите \"Запустить\".",
+      "pageTitle": "Интерактивная песочница"
+    },
+    "toc": {
+      "title": "На этой странице"
+    },
+    "theme": {
+      "light": "Светлая",
+      "dark": "Тёмная"
+    },
+    "categories": {
+      "intro": "Введение",
+      "api": "API",
+      "uiContainers": "UI: Контейнеры",
+      "uiText": "UI: Текст и Инфо",
+      "uiForms": "UI: Формы и Ввод",
+      "uiMedia": "UI: Медиа",
+      "uiStreaming": "UI: Рендеринг и Стриминг",
+      "sandbox": "Песочница"
+    },
+    "pages": {
+      "intro": {
+        "title": "О проекте Potok",
+        "category": "Введение",
+        "toc": [
+          {
+            "id": "overview",
+            "text": "Описание архитектуры"
+          },
+          {
+            "id": "declarative",
+            "text": "Декларативный UI"
+          },
+          {
+            "id": "sandbox-details",
+            "text": "Безопасность и песочница"
+          }
+        ],
+        "sections": {
+          "overviewTitle": "О проекте Potok",
+          "overviewP1": "Potok — это расширяемая платформа для создания децентрализованных плагинов и интерфейсных модулей медиа-экосистемы Potok. Её архитектура построена на принципах строгой безопасности, декларативного проектирования интерфейсов и изолированного выполнения кода в клиентской песочнице.",
+          "overviewP2": "В отличие от традиционных плагинов, которые могут нарушить стабильность работы или безопасность клиентского приложения, Potok гарантирует полную изоляцию расширений и предоставляет высокопроизводительный декларативный движок рендеринга.",
+          "calloutTitle": "Ключевые архитектурные решения:",
+          "calloutItems": [
+            "Декларативное описание интерфейсов: Разметка собирается на базе JS-билдеров и компилируется в защищенную JSON-схему, которая нативно отрисовывается основным приложением.",
+            "Изолированная песочница: Код плагина выполняется в изолированном контексте, предотвращая несанкционированный доступ к глобальным объектам браузера.",
+            "Глобальный реестр слотов: Плагины динамически проецируются через React Portals по CSS-селекторам из единого реестра, не засоряя разметку.",
+            "Инспектор слотов: Встроенный визуальный отладчик для быстрого тестирования кода на лету."
+          ],
+          "declarativeTitle": "Декларативный UI",
+          "declarativeP": "Вместо прямого манипулирования DOM-деревом или выполнения недоверенного HTML, плагины описывают свой интерфейс с помощью цепочек билдеров (SwiftUI-like синтаксис). По завершении сборки объект компилируется в защищенную JSON-схему, передается основному приложению и отрисовывается нативным движком:",
+          "sandboxTitle": "Безопасность и Песочница",
+          "sandboxP": "Каждый плагин выполняется внутри изолированного контекста JS-песочницы:",
+          "sandboxItems": [
+            "Глобальные объекты window, document, localStorage затенены значением undefined.",
+            "Любое сетевое взаимодействие осуществляется строго через прокси-клиент Potok.http.",
+            "Локальное хранилище данных изолировано и шифруется персонально для каждого плагина."
+          ],
+          "runExample": "Запустить этот пример в Sandbox"
+        }
+      },
+      "install": {
+        "title": "Установка и Docker Compose",
+        "category": "Введение",
+        "toc": [
+          {
+            "id": "compose",
+            "text": "Конфигурация Docker Compose"
+          },
+          {
+            "id": "variables",
+            "text": "Переменные окружения"
+          },
+          {
+            "id": "nginx",
+            "text": "Настройка Nginx Proxy"
+          }
+        ],
+        "sections": {
+          "title": "Развертывание Potok",
+          "intro": "Для работы Potok обязательны два сервиса: веб-клиент и API-шлюз (BFF). PostgreSQL включён в стек, так как шлюз зависит от базы. SearchEngine и TorrentGo — опциональные дополнения: добавляйте их в тот же docker-compose.yml только при установке плагина potok-torrents.",
+          "requiredTitle": "Обязательный стек (docker-compose.yml)",
+          "requiredDesc": "Веб-клиент, шлюз и PostgreSQL. Минимальная установка для просмотра медиа, плагинов и SDK-вики.",
+          "optionalTitle": "Опционально: сервисы для торрент-плагина",
+          "optionalDesc": "Добавьте эти сервисы в тот же compose-файл, если нужны поиск и стриминг торрентов (плагин potok-torrents). Адреса searchEngineURL и torrentGoURL задаются в манифесте плагина / профиле подключения — не через env шлюза.",
+          "optionalNote": "Без SearchEngine и TorrentGo Potok работает для метаданных, медиатеки и плагинов без торрентов. Плагин torrents обращается к этим сервисам напрямую из браузера.",
+          "runCommand": "Запустите в директории с docker-compose.yml:",
+          "dockerUp": "docker compose up -d",
+          "envTitle": "Переменные окружения",
+          "envDesc": "Настройте параметры в файле .env рядом с docker-compose.yml:",
+          "envTable": {
+            "variable": "Переменная",
+            "service": "Сервис",
+            "description": "Описание",
+            "rows": [
+              {
+                "var": "WEB_PORT",
+                "service": "web",
+                "desc": "Порт веб-клиента на хосте (по умолчанию 3000)."
+              },
+              {
+                "var": "VITE_DEFAULT_BFF_URL",
+                "service": "web",
+                "desc": "Публичный URL potok-gateway для обращений из браузера."
+              },
+              {
+                "var": "VITE_BLOCK_SETTINGS_INPUT",
+                "service": "web",
+                "desc": "При true пользователи не могут менять URL шлюза вручную."
+              },
+              {
+                "var": "GATEWAY_PORT",
+                "service": "gateway",
+                "desc": "Порт шлюза BFF (по умолчанию 5000)."
+              },
+              {
+                "var": "GATEWAY_TMDB_API_KEY",
+                "service": "gateway",
+                "desc": "Ключ API TheMovieDB для метаданных фильмов и сериалов."
+              },
+              {
+                "var": "GATEWAY_MULTI_USER_MODE",
+                "service": "gateway",
+                "desc": "Многопользовательский режим с регистрацией (true/false)."
+              },
+              {
+                "var": "DB_HOST",
+                "service": "db, gateway",
+                "desc": "Хост PostgreSQL. Для встроенного контейнера — db."
+              },
+              {
+                "var": "DB_PORT",
+                "service": "db",
+                "desc": "Порт PostgreSQL (по умолчанию 5432)."
+              },
+              {
+                "var": "DB_NAME",
+                "service": "db",
+                "desc": "Имя базы данных (по умолчанию potok)."
+              },
+              {
+                "var": "DB_USER",
+                "service": "db",
+                "desc": "Пользователь БД (по умолчанию potok)."
+              },
+              {
+                "var": "DB_PASSWORD",
+                "service": "db",
+                "desc": "Пароль базы данных."
+              },
+              {
+                "var": "SEARCH_ENGINE_PORT",
+                "service": "searchengine (опционально)",
+                "desc": "Порт SearchEngine (по умолчанию 6000)."
+              },
+              {
+                "var": "TORRENTGO_PORT",
+                "service": "torrentgo (опционально)",
+                "desc": "Порт TorrentGo (по умолчанию 5282)."
+              },
+              {
+                "var": "GPU_DEVICE",
+                "service": "torrentgo (опционально)",
+                "desc": "Опциональная передача GPU для аппаратного транскодирования (например /dev/dri:/dev/dri)."
+              }
+            ]
+          },
+          "nginxTitle": "Nginx Reverse Proxy",
+          "nginxDesc": "Для продакшена используйте Nginx для проксирования веб-клиента и шлюза:",
+          "nginxProxy": "server {\n    listen 80;\n    server_name wiki.potok.rip;\n\n    location / {\n        proxy_pass http://localhost:3000/wiki;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n}\n\nserver {\n    listen 80;\n    server_name app.potok.rip;\n\n    location / {\n        proxy_pass http://localhost:3000;\n        proxy_set_header Host $host;\n    }\n\n    location /api/ {\n        proxy_pass http://localhost:5000/;\n        proxy_set_header Host $host;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n    }\n}"
+        }
+      },
+      "manifest": {
+        "title": "Спецификация Манифеста",
+        "category": "API",
+        "toc": [
+          {
+            "id": "fields",
+            "text": "Обязательные и опциональные поля"
+          },
+          {
+            "id": "permissions",
+            "text": "Управление правами доступа"
+          },
+          {
+            "id": "slots-section",
+            "text": "Слоты интерфейса (Slots)"
+          },
+          {
+            "id": "config-section",
+            "text": "Конфигурация плагина (Config)"
+          },
+          {
+            "id": "manifest-example",
+            "text": "Полный пример"
+          }
+        ],
+        "sections": {
+          "title": "Манифест плагина",
+          "intro": "Каждое расширение Potok обязано содержать файл manifest.json в корневой директории. Этот файл считывается хостом для первичной инициализации, настройки интерфейсных слотов и выделения прав доступа.",
+          "fieldsTitle": "Поля манифеста",
+          "fieldsTable": {
+            "field": "Поле",
+            "type": "Тип",
+            "description": "Описание",
+            "rows": [
+              {
+                "field": "id",
+                "type": "string (required)",
+                "desc": "Уникальный строковый идентификатор плагина (например, potok-torrents)."
+              },
+              {
+                "field": "name",
+                "type": "string (required)",
+                "desc": "Название плагина для показа пользователю в интерфейсе."
+              },
+              {
+                "field": "version",
+                "type": "string (optional)",
+                "desc": "Версия плагина в формате SemVer (например, 1.0.0)."
+              },
+              {
+                "field": "description",
+                "type": "string (optional)",
+                "desc": "Краткое описание назначения и возможностей расширения."
+              },
+              {
+                "field": "author",
+                "type": "string (optional)",
+                "desc": "Автор или команда разработчиков расширения."
+              },
+              {
+                "field": "entrypoint",
+                "type": "string (required)",
+                "desc": "Путь к скомпилированному JS-файлу относительно папки плагина (обычно index.js)."
+              },
+              {
+                "field": "category",
+                "type": "string (optional)",
+                "desc": "Категория расширения: sources для источников медиа, visual для тем оформления, other для прочего."
+              },
+              {
+                "field": "permissions",
+                "type": "string[] (optional)",
+                "desc": "Список запрашиваемых разрешений безопасности (storage, http-proxy, ui-notifications)."
+              },
+              {
+                "field": "slots",
+                "type": "object[] (optional)",
+                "desc": "Список точек встраивания UI плагина. Каждый объект описывает id вклада, slotName целевого слота и title."
+              },
+              {
+                "field": "config",
+                "type": "object (optional)",
+                "desc": "Набор настраиваемых параметров расширения, доступных для редактирования в панели настроек."
+              }
+            ]
+          },
+          "permissionsTitle": "Разрешения (Permissions)",
+          "permissionsIntro": "Если плагин пытается вызвать API, на которое у него нет прав в манифесте, рантайм заблокирует выполнение операции:",
+          "permissionsItems": [
+            "storage — открывает доступ к локальной БД и хранилищу ключей через методы storage.local.",
+            "http-proxy — открывает доступ к сетевым запросам через http прокси-клиент хоста (для обхода CORS).",
+            "ui-notifications — открывает доступ к системным уведомлениям и HUD-подсказкам (например, ui.showHUD())."
+          ],
+          "slotsTitle": "Слоты интерфейса (Slots)",
+          "slotsIntro": "Каждый элемент массива slots описывает точку встраивания плагина в интерфейс хоста. Поддерживаются следующие значения для поля slotName:",
+          "slotsTable": {
+            "slot": "Слот (slotName)",
+            "description": "Описание",
+            "rows": [
+              {
+                "slot": "sidebar-menu",
+                "desc": "Верхняя секция меню боковой панели (самый верхний уровень навигации)."
+              },
+              {
+                "slot": "sidebar-menu-home",
+                "desc": "Дополнительные пункты меню рядом с разделом «Главная»."
+              },
+              {
+                "slot": "sidebar-menu-library",
+                "desc": "Дополнительные пункты меню в разделе «Медиатека»."
+              },
+              {
+                "slot": "sidebar-status",
+                "desc": "Нижняя часть боковой панели (для отображения статуса/сервисных кнопок)."
+              },
+              {
+                "slot": "media-actions",
+                "desc": "Блок действий на странице фильма или сериала (например, кнопки запуска просмотра)."
+              },
+              {
+                "slot": "details-bottom",
+                "desc": "Панель под основной информацией о медиафайле в деталях."
+              },
+              {
+                "slot": "settings-color-accent",
+                "desc": "Слот настроек для управления цветовой палитрой и оформлениями."
+              },
+              {
+                "slot": "settings-tabs",
+                "desc": "Добавление кастомных вкладок в панель настроек хост-приложения."
+              },
+              {
+                "slot": "extension-page",
+                "desc": "Страница расширения, открывающаяся во весь экран."
+              }
+            ]
+          },
+          "configTitle": "Конфигурация плагина (Config)",
+          "configIntro": "Поле config позволяет объявлять настройки плагина, которые автоматически отрисуются хостом в панели настроек. Объект config состоит из пар ключ: описание_параметра, где описание параметра имеет следующую структуру:",
+          "configTable": {
+            "property": "Поле свойства",
+            "type": "Тип",
+            "description": "Описание",
+            "rows": [
+              {
+                "property": "type",
+                "type": "string (required)",
+                "desc": "Тип значения настройки. Поддерживаемые типы: \"string\", \"boolean\" (рендерится как тумблер), \"number\", \"select\" (выпадающий список опций) и \"notice\" (подсвечиваемая оранжевая инфо-плашка для вывода предупреждений)."
+              },
+              {
+                "property": "default",
+                "type": "any (required)",
+                "desc": "Значение по умолчанию для настройки. Тип должен соответствовать указанному в поле type."
+              },
+              {
+                "property": "label",
+                "type": "string (required)",
+                "desc": "Текстовая метка (заголовок), которая будет отображаться пользователю в панели настроек."
+              },
+              {
+                "property": "dependsOn",
+                "type": "string (optional)",
+                "desc": "Имя другого параметра из config, от включения или значения которого зависит видимость текущей настройки."
+              }
+            ]
+          },
+          "manifestExampleTitle": "Пример файла manifest.json",
+          "manifestExample": "{\n  \"id\": \"potok-torrents\",\n  \"name\": \"Поиск торрентов\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Поиск и стриминг раздач из базы торрент-трекеров\",\n  \"author\": \"Potok Team\",\n  \"category\": \"sources\",\n  \"entrypoint\": \"index.js\",\n  \"permissions\": [\n    \"storage\",\n    \"http-proxy\",\n    \"ui-notifications\"\n  ],\n  \"slots\": [\n    {\n      \"id\": \"torrents-media-actions\",\n      \"slotName\": \"media-actions\",\n      \"title\": \"Смотреть\"\n    },\n    {\n      \"id\": \"torrents-sidebar-status\",\n      \"slotName\": \"sidebar-status\",\n      \"title\": \"Статус Торрентов\"\n    }\n  ],\n  \"config\": {\n    \"torrentGoURL\": {\n      \"type\": \"string\",\n      \"default\": \"https://torrent.potok.rip\",\n      \"label\": \"Адрес TorrentGo\"\n    },\n    \"searchEngineURL\": {\n      \"type\": \"string\",\n      \"default\": \"https://search.potok.rip\",\n      \"label\": \"Адрес SearchEngine\"\n    }\n  }\n}"
+        }
+      },
+      "state": {
+        "title": "Реактивность и State",
+        "category": "API",
+        "toc": [
+          {
+            "id": "state-api",
+            "text": "createState API"
+          },
+          {
+            "id": "subscription",
+            "text": "Подписка и отписка"
+          },
+          {
+            "id": "deep-reactivity",
+            "text": "Глубокая реактивность"
+          },
+          {
+            "id": "batching",
+            "text": "Пакетные обновления (Batching)"
+          },
+          {
+            "id": "reactive-example",
+            "text": "Интерактивный пример"
+          }
+        ],
+        "sections": {
+          "title": "Управление состоянием",
+          "intro": "Для динамического обновления интерфейса SDK предоставляет функцию createState. Она оборачивает переданный объект в Proxy, перехватывающий любые мутации полей и уведомляющий подписчиков.",
+          "subscriptionTitle": "Подписка и отписка",
+          "subscriptionText": "Реактивное состояние имеет встроенный метод подписки $subscribe(callback). Обычно в качестве коллбека передается функция рендеринга плагина. Метод $subscribe возвращает функцию отписки (unsubscribe), вызов которой удаляет слушатель и предотвращает утечки памяти:",
+          "subscriptionCode": "const state = createState({ title: \"Привет\" });\n\nfunction render() {\n  ui.render(Text(state.title));\n}\n\n// Подписываемся на изменения:\nconst unsubscribe = state.$subscribe(render);\n\n// Вызываем для первоначального отображения:\nrender();\n\n// Когда подписка больше не нужна (например, при выгрузке плагина):\n// unsubscribe();",
+          "deepReactivityTitle": "Глубокая реактивность",
+          "deepReactivityText": "Рантайм отслеживает изменения на любой глубине вложенности. При обращении к свойствам-объектам они динамически оборачиваются в прокси, что позволяет реактивно реагировать на изменение глубоких ключей и модификации массивов:",
+          "deepReactivityCode": "const state = createState({\n  user: {\n    profile: { name: \"Алексей\" }\n  },\n  genres: [\"Экшен\", \"Драма\"]\n});\n\n// 1. Изменение глубоко вложенного свойства (автоматически вызовет рендер)\nstate.user.profile.name = \"Иван\";\n\n// 2. Модификация массивов (добавление, удаление, сортировка)\nstate.genres.push(\"Комедия\");\nstate.genres.splice(0, 1);",
+          "batchingTitle": "Пакетные обновления (Batching)",
+          "batchingText": "Для оптимизации производительности вызовы подписчиков группируются с использованием очереди микрозадач (через Promise.resolve()). Это предотвращает множественные перерисовки интерфейса при синхронном изменении нескольких полей подряд:",
+          "batchingCode": "const state = createState({ count: 0, lastAction: \"none\" });\n\nstate.$subscribe(() => {\n  console.log(\"Рендер вызван!\");\n});\n\n// Синхронное изменение нескольких свойств:\nstate.count++;\nstate.lastAction = \"increment\";\nstate.count += 5;\n\n// В консоли отобразится ровно ОДИН вывод \"Рендер вызван!\", \n// так как все обновления объединились в один такт.",
+          "reactiveExampleTitle": "Код реактивного счетчика",
+          "reactiveExampleText": "В песочнице вы можете интерактивно протестировать работу реактивности на примере этого счетчика:",
+          "reactiveExampleCode": "const state = createState({ clicks: 0 });\n\nfunction render() {\n  ui.render(\n    VStack()\n      .child(Text(\"Кликов: \" + state.clicks))\n      .child(Button(\"Кликнуть\").onClick(() => state.clicks++))\n  );\n}",
+          "sandboxButton": "Запустить пример с реактивностью в Sandbox",
+          "sandboxCode": "// Интерактивный пример реактивности\nconst { ui, createState } = PotokSDK;\n\nconst state = createState({\n  clicks: 0,\n  lastClicked: \"Никогда\"\n});\n\nfunction draw() {\n  ui.render(\n    Card()\n      .title(\"Счетчик кликов\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(Text(\"Кликов зафиксировано: \" + state.clicks).bold(true).size(\"lg\"))\n          .child(Text(\"Последнее нажатие: \" + state.lastClicked).variant(\"secondary\"))\n          .child(\n            Button(\"Клик!\")\n              .variant(\"primary\")\n              .onClick(() => {\n                state.clicks++;\n                state.lastClicked = new Date().toLocaleTimeString();\n              })\n          )\n      )\n  );\n}\n\nstate.$subscribe(draw);\ndraw();"
+        }
+      },
+      "http": {
+        "title": "Сетевой клиент http",
+        "category": "API",
+        "toc": [
+          {
+            "id": "get",
+            "text": "http.get()"
+          },
+          {
+            "id": "post",
+            "text": "http.post()"
+          },
+          {
+            "id": "cors",
+            "text": "Обход CORS ограничений"
+          }
+        ],
+        "sections": {
+          "title": "Сетевые запросы",
+          "intro": "Поскольку плагин выполняется в изолированном iframe, прямые запросы через fetch к внешним API заблокированы политиками безопасности и CORS. SDK предоставляет прокси-обертку PotokSDK.http, которая пересылает запросы через хост.",
+          "getTitle": "HTTP GET",
+          "getSignature": "http.get(url: string, headers?: Record<string, string>): Promise<{ status: number, data: any }>",
+          "postTitle": "HTTP POST",
+          "postSignature": "http.post(url: string, body?: any, headers?: Record<string, string>): Promise<{ status: number, data: any }>",
+          "corsTitle": "Преимущества проксирования",
+          "corsItems": [
+            "Обход CORS: Запросы выполняются бэкендом Potok (или расширением браузера), что снимает любые блокировки CORS со стороны серверов-источников.",
+            "Автоматический парсинг JSON: Если сервер возвращает JSON, клиент вернет уже распарсенный объект в поле data."
+          ],
+          "sandboxButton": "Загрузить Todo по сети in Sandbox",
+          "sandboxCode": "// Пример загрузки данных по сети\nconst { ui, http, createState } = PotokSDK;\n\nconst state = createState({\n  loading: true,\n  todoTitle: \"\",\n  error: null\n});\n\nasync function loadData() {\n  try {\n    const res = await http.get(\"https://jsonplaceholder.typicode.com/todos/1\");\n    state.todoTitle = res.data.title;\n    state.loading = false;\n  } catch (err) {\n    state.error = err.message;\n    state.loading = false;\n  }\n}\n\nfunction render() {\n  ui.render(\n    Card()\n      .title(\"Загрузка по сети\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(\n            state.loading \n              ? LoadingSpinner().message(\"Загружаем TODO с сервера...\")\n              : Text(state.error ? \"Ошибка: \" + state.error : \"Задача с сервера: \" + state.todoTitle)\n          )\n          .child(\n            Button(\"Загрузить заново\")\n              .onClick(() => {\n                state.loading = true;\n                loadData();\n              })\n          )\n      )\n  );\n}\n\nstate.$subscribe(render);\nrender();\nloadData();"
+        }
+      },
+      "storage": {
+        "title": "Изолированное хранилище",
+        "category": "API",
+        "toc": [
+          {
+            "id": "storage-methods",
+            "text": "Методы работы с БД"
+          },
+          {
+            "id": "isolation",
+            "text": "Концепция изолированных пространств"
+          }
+        ],
+        "sections": {
+          "title": "Локальное хранилище",
+          "intro": "Для сохранения настроек плагина, токенов авторизации или кэша используется асинхронное локальное хранилище PotokSDK.storage.local.",
+          "methodsTitle": "Доступные методы",
+          "methodsTable": {
+            "method": "Метод",
+            "signature": "Сигнатура",
+            "description": "Описание",
+            "rows": [
+              {
+                "method": "getItem",
+                "signature": "getItem(key: string): Promise<string | null>",
+                "desc": "Асинхронно считывает значение ключа."
+              },
+              {
+                "method": "setItem",
+                "signature": "setItem(key: string, value: any): Promise<void>",
+                "desc": "Сохраняет переданное значение под указанным ключом."
+              }
+            ]
+          },
+          "isolationTitle": "Концепция изолированных пространств",
+          "isolationText": "В целях безопасности хост привязывает префикс pluginId к каждому сохраненному значению. Плагин A не имеет физического доступа к ключам плагина B. Прямой доступ к window.localStorage полностью блокируется.",
+          "sandboxButton": "Запустить пример работы с БД в Sandbox",
+          "sandboxCode": "// Пример сохранения и загрузки настроек\nconst { ui, storage, createState } = PotokSDK;\n\nconst state = createState({\n  savedValue: \"Ничего не сохранено\",\n  inputValue: \"\"\n});\n\nasync function initStorage() {\n  const saved = await storage.local.getItem(\"user_custom_note\");\n  if (saved) {\n    state.savedValue = saved;\n  }\n}\n\nfunction render() {\n  ui.render(\n    Card()\n      .title(\"Локальное хранилище\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(Text(\"Сохранено в БД: \" + state.savedValue).bold(true))\n          .child(\n            Input(\"note-input\")\n              .label(\"Новая запись\")\n              .value(state.inputValue)\n              .onChange((val) => state.inputValue = val)\n          )\n          .child(\n            Button(\"Сохранить в БД\")\n              .variant(\"primary\")\n              .onClick(async () => {\n                await storage.local.setItem(\"user_custom_note\", state.inputValue);\n                state.savedValue = state.inputValue;\n                ui.showHUD(\"success\", \"Значение успешно записано!\");\n              })\n          )\n      )\n  );\n}\n\nstate.$subscribe(render);\nrender();\ninitStorage();"
+        }
+      },
+      "uiMethods": {
+        "title": "Глобальные методы UI",
+        "category": "API",
+        "toc": [
+          {
+            "id": "render",
+            "text": "ui.render()"
+          },
+          {
+            "id": "hud",
+            "text": "ui.showHUD()"
+          },
+          {
+            "id": "player",
+            "text": "ui.playVideo()"
+          },
+          {
+            "id": "ep-selector",
+            "text": "ui.showEpisodeSelector()"
+          },
+          {
+            "id": "navigation",
+            "text": "Навигация (ui.navigateTo)"
+          },
+          {
+            "id": "themes",
+            "text": "Темы оформления"
+          },
+          {
+            "id": "block",
+            "text": "ui.block()"
+          },
+          {
+            "id": "block-context",
+            "text": "ui.onBlockContextUpdate()"
+          },
+          {
+            "id": "registration",
+            "text": "Регистрация плагина и слотов"
+          }
+        ],
+        "sections": {
+          "title": "Глобальный объект ui",
+          "intro": "Помимо сборщиков разметки, PotokSDK.ui предоставляет набор методов для управления состоянием хост-приложения, навигации, вызова плеера и регистрации расширения в системе.",
+          "renderTitle": "Метод ui.render()",
+          "renderText": "Метод ui.render(component, slotId?) компилирует декларативную разметку плагина и отправляет её на рендеринг хосту. Если указан slotId, разметка проецируется в конкретный слот, иначе рендерится на основной экран песочницы.",
+          "hudTitle": "Уведомления HUD",
+          "hudText": "Метод ui.showHUD(type: string, message: string) вызывает кратковременный системный баннер в углу экрана. Поддерживаемые типы: \"success\", \"error\", \"info\", \"warning\".",
+          "playerTitle": "Запуск Видеоплеера",
+          "playerText": "Метод ui.playVideo(playbackInfo) запускает полноэкранный видеоплеер. Объект воспроизведения должен содержать следующие поля:",
+          "epSelectorTitle": "Селектор Серий",
+          "epSelectorText": "Метод ui.showEpisodeSelector(config) вызывает системное всплывающее окно для выбора сезонов и серий, разработанное специально для сериалов.",
+          "navigationTitle": "Навигация",
+          "navigationText": "Метод ui.navigateTo(to: string, state?: any) позволяет плагину программно перенаправить пользователя на другой раздел хост-приложения (например, в настройки, медиатеку или на главную страницу):",
+          "navigationCode": "ui.navigateTo(\"/settings\");\nui.navigateTo(\"/library\", { filter: \"watchlist\" });",
+          "themesTitle": "Темы оформления",
+          "themesIntro": "Визуальные плагины могут регистрировать кастомные цветовые схемы и управлять активным акцентом оформления с помощью методов:",
+          "themesItems": [
+            "ui.registerThemes(themes: Theme[]) — регистрирует массив кастомных цветовых тем оформления на хосте.",
+            "ui.setAccentTheme(themeId: string) — динамически переключает активный цветовой акцент хоста на указанную тему."
+          ],
+          "blockTitle": "Мутации блоков ui.block()",
+          "blockText": "Метод ui.block(blockName) возвращает билдер для декларативного изменения существующих блоков интерфейса хоста. Через element(id) можно скрыть, отредактировать, вставить до/после или заменить элемент; append/prepend добавляют разметку; apply() отправляет мутации хосту.",
+          "blockItems": [
+            "element(id).hide() — скрывает элемент блока.",
+            "element(id).edit(props) — изменяет свойства элемента.",
+            "element(id).before(ui) / after(ui) / replace(ui) — вставка или замена разметки.",
+            "append(ui) / prepend(ui) — добавляет разметку в начало или конец блока.",
+            "apply() — регистрирует накопленные мутации на хосте."
+          ],
+          "onBlockContextUpdateTitle": "ui.onBlockContextUpdate()",
+          "onBlockContextUpdateText": "Метод ui.onBlockContextUpdate(callback) подписывает плагин на обновления контекста активного блока интерфейса. Коллбек получает (blockName, context) при смене данных экрана (например, при переходе к другому фильму). Возвращает функцию отписки.",
+          "registrationTitle": "Регистрация в системе",
+          "registrationIntro": "Для интеграции в жизненный цикл хост-приложения используются глобальные функции SDK:",
+          "registrationTable": {
+            "api": "Функция API",
+            "description": "Описание",
+            "rows": [
+              {
+                "api": "registerPlugin(meta)",
+                "desc": "Регистрирует базовые метаданные плагина (уникальный id, отображаемое имя name и версию). Должна вызываться первой при загрузке скрипта."
+              },
+              {
+                "api": "registerSource(config)",
+                "desc": "Регистрирует плагин как поисковый провайдер (источник медиа-потоков). Хост обращается к зарегистрированному источнику при поиске видеофайлов."
+              },
+              {
+                "api": "registerSlotContribution(config)",
+                "desc": "Регистрирует графический вклад в указанный интерфейсный слот (например, в кнопки действий или под описание медиафайла)."
+              },
+              {
+                "api": "onSettingsChanged(callback)",
+                "desc": "Подписывает плагин на интерактивное изменение полей формы его настроек на хосте в реальном времени. В коллбек передаются (key, value, currentSettings)."
+              },
+              {
+                "api": "updateSettingsForm(updates)",
+                "desc": "Отправляет команду хосту обновить значения полей формы настроек в реальном времени (например, для автозаполнения пресетов, сброса или валидации). Принимает объект обновлений { updates }."
+              }
+            ]
+          },
+          "registerSlotTitle": "Детальное описание registerSlotContribution",
+          "registerSlotIntro": "Эта функция позволяет плагину динамически внедрять собственный интерфейс в предопределенные области приложения. Хост вызывает рендер-функцию плагина при монтировании соответствующего экрана и отрисовывает возвращаемый макет.",
+          "registerSlotConfigIntro": "Аргумент config представляет собой объект со следующими параметрами:",
+          "registerSlotParams": [
+            "id (string, обязательное) — Уникальный идентификатор вклада в рамках плагина (должен соответствовать id из массива slots в манифесте).",
+            "slotName (string, обязательное) — Целевая точка встраивания (например, \"media-actions\", \"details-bottom\", \"extension-page\").",
+            "render(props) (function, обязательное) — Функция, возвращающая UI. Принимает props (данные текущего контекста хоста) и должна возвращать объект с label (string), icon (string, опционально), layout (UIComponent)."
+          ],
+          "registerSlotRenderFields": [
+            "label (string) — Название/подпись для вклада.",
+            "icon (string, опционально) — Имя иконки Lucide.",
+            "layout (UIComponent) — Дерево UI компонентов (создается с помощью билдеров Card(), VStack(), Button() и т.д.)."
+          ],
+          "easyPluginTitle": "Пример простого плагина (Easy Plugin)",
+          "easyPluginIntro": "Ниже приведена структура и файлы минимального рабочего расширения, которое добавляет кастомную кнопку запуска трейлера и информационный блок на страницу деталей фильма:",
+          "easyPluginStep1": "1. Структура папки плагина:",
+          "easyPluginStep2": "2. Файл manifest.json:",
+          "easyPluginStep3": "3. Файл index.js:",
+          "folderStructure": "my-easy-plugin/\n├── manifest.json   # Метаданные и объявление слотов\n└── index.js        # Исполняемый JS код плагина",
+          "manifestJson": "{\n  \"id\": \"my-easy-plugin\",\n  \"name\": \"Простой Просмотрщик\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Добавляет кнопку просмотра трейлера и блок в деталях\",\n  \"permissions\": [\"ui-notifications\"],\n  \"slots\": [\n    {\n      \"id\": \"trailer-action-button\",\n      \"slotName\": \"media-actions\",\n      \"title\": \"Кнопка Трейлера\"\n    },\n    {\n      \"id\": \"extra-details-info\",\n      \"slotName\": \"details-bottom\",\n      \"title\": \"Блок Информации\"\n    }\n  ]\n}",
+          "sandboxButton": "Протестировать оверлеи в Sandbox"
+        }
+      },
+      "i18n": {
+        "title": "Локализация плагинов (i18n)",
+        "category": "API",
+        "toc": [
+          {
+            "id": "t",
+            "text": "PotokSDK.i18n.t"
+          },
+          {
+            "id": "addResourceBundle",
+            "text": "addResourceBundle"
+          },
+          {
+            "id": "registerTranslations",
+            "text": "registerTranslations"
+          },
+          {
+            "id": "onLanguageChange",
+            "text": "onLanguageChange"
+          }
+        ],
+        "sections": {
+          "title": "API локализации",
+          "intro": "PotokSDK.i18n позволяет плагинам читать строки интерфейса хоста и регистрировать собственные словари. Хост передаёт текущий язык и обновляет строки при смене языка.",
+          "tDesc": "Возвращает перевод по ключу namespace:path для текущего языка. Поддерживает интерполяцию {{var}} и множественное число через { count }.",
+          "addResourceBundleDesc": "Регистрирует словарь плагина для языка и пространства имён. Пример: addResourceBundle(\"en\", \"myplugin\", { greeting: \"Hi {{name}}\" }).",
+          "registerTranslationsDesc": "Массовая регистрация: { en: { myplugin: {...} }, ru: { myplugin: {...} } }. Также уведомляет хост для сохранения переводов плагина.",
+          "onLanguageChangeDesc": "Подписка на смену языка интерфейса. Возвращает функцию отписки. Перерисуйте UI плагина при смене языка хоста.",
+          "languageNote": "Текущий язык доступен как PotokSDK.i18n.language (например, \"en\", \"ru\")."
+        }
+      },
+      "streams": {
+        "title": "Потоки и медиа-провайдеры",
+        "category": "API",
+        "toc": [
+          {
+            "id": "registerStreamSource",
+            "text": "streams.registerStreamSource"
+          },
+          {
+            "id": "searchProvider",
+            "text": "media.searchProvider"
+          }
+        ],
+        "sections": {
+          "title": "Источники потоков и поиск",
+          "intro": "Плагины могут регистрировать источники торрентов/потоков и провайдеров поиска медиа, к которым хост обращается при просмотре раздач и поиске в библиотеке.",
+          "registerStreamSourceTitle": "streams.registerStreamSource",
+          "registerStreamSourceDesc": "Регистрирует источник потоков с id, name, supportedTypes (movie | tv) и async-обработчиками: search(query), getEpisodes(stream, context), getPlaybackInfo(stream, context). Хост вызывает их при открытии страницы раздач.",
+          "searchProviderTitle": "media.searchProvider",
+          "searchProviderDesc": "Билдер для регистрации провайдера поиска в библиотеке: media.searchProvider(id, name).icon(url).onSearch(callback). Коллбек получает запрос и возвращает результаты хосту."
+        }
+      },
+      "sandbox": {
+        "title": "Интерактивная песочница",
+        "category": "Песочница",
+        "toc": []
+      }
+    },
+    "components": {
+      "VStack": {
+        "title": "VStack (Вертикальный стек)",
+        "description": "Контейнер, который выстраивает дочерние компоненты вертикально друг под другом.",
+        "methods": {}
+      },
+      "HStack": {
+        "title": "HStack (Горизонтальный стек)",
+        "description": "Контейнер, который выстраивает дочерние компоненты горизонтально слева направо.",
+        "methods": {}
+      },
+      "Grid": {
+        "title": "Grid (Сетка)",
+        "description": "Контейнер, который отрисовывает адаптивную сетку ячеек с фиксированной минимальной шириной колонки.",
+        "methods": {
+          "minWidth": {
+            "argument": "string",
+            "description": "Минимально допустимая ширина одной колонки сетки (например, '12rem').",
+            "default": "'180px'"
+          },
+          "gap": {
+            "argument": "string",
+            "description": "Зазор/отступ между ячейками сетки (например, '1rem').",
+            "default": "'var(--space-m)'"
+          }
+        }
+      },
+      "Card": {
+        "title": "Card (Стеклянная карточка)",
+        "description": "Панель-карточка с границами, размытием и эффектом матового стекла (glassmorphism). Используется для визуальной группировки логических блоков.",
+        "methods": {
+          "title": {
+            "argument": "string",
+            "description": "Заголовок карточки, выводимый в её верхней части."
+          },
+          "subtitle": {
+            "argument": "string",
+            "description": "Подзаголовок карточки, выводимый мелким приглушенным шрифтом."
+          },
+          "child": {
+            "argument": "UIComponent",
+            "description": "Вкладывает один дочерний компонент внутрь тела карточки."
+          }
+        }
+      },
+      "Divider": {
+        "title": "Divider (Разделитель)",
+        "description": "Горизонтальная тонкая линия-разделитель для визуального отделения блоков контента или строк в списках.",
+        "methods": {}
+      },
+      "Spacer": {
+        "title": "Spacer (Распорка)",
+        "description": "Пустой упругий элемент (распорка), заполняющий все доступное свободное пространство во флекс-контейнере. Полезен внутри HStack или VStack для прижатия элементов к краям.",
+        "methods": {}
+      },
+      "Heading": {
+        "title": "Heading (Заголовок)",
+        "description": "Компонент для вывода крупных структурированных заголовков разного уровня (аналог тегов h1-h4).",
+        "methods": {
+          "level": {
+            "argument": "number (1-4)",
+            "description": "Определяет размер и важность заголовка (1 — самый большой, 4 — самый маленький).",
+            "default": "1"
+          }
+        }
+      },
+      "Text": {
+        "title": "Text (Обычный текст)",
+        "description": "Основной текстовый элемент для вывода описаний, подписей, ошибок или любого другого неструктурированного контента.",
+        "methods": {
+          "variant": {
+            "argument": "'primary' | 'secondary' | 'success' | 'warning' | 'error'",
+            "description": "Цветовой вариант текста (тема). Обычный, приглушенный серый, зеленый, желтый или красный соответственно.",
+            "default": "'primary'"
+          },
+          "size": {
+            "argument": "'sm' | 'md' | 'lg' | 'xl'",
+            "description": "Задает размер шрифта текста.",
+            "default": "'md'"
+          },
+          "bold": {
+            "argument": "boolean",
+            "description": "Делает начертание шрифта жирным при значении true.",
+            "default": "false"
+          }
+        }
+      },
+      "Badge": {
+        "title": "Badge (Бейдж)",
+        "description": "Компактная закругленная метка с цветным фоном. Подходит для вывода качества видео, статусов подписки, меток «Новинка» и других тегов.",
+        "methods": {
+          "color": {
+            "argument": "'info' | 'success' | 'warning' | 'error'",
+            "description": "Цветовая схема заливки бейджа.",
+            "default": "'info'"
+          }
+        }
+      },
+      "StatusRow": {
+        "title": "StatusRow (Строка статуса)",
+        "description": "Компонент для отображения состояния внешних систем или соединений с цветным индикатором (точкой) и текстовым значением.",
+        "methods": {
+          "status": {
+            "argument": "'success' | 'warning' | 'offline'",
+            "description": "Состояние статуса (меняет цвет точки: зеленый/желтый/серый соответственно)."
+          },
+          "value": {
+            "argument": "string",
+            "description": "Текстовое значение, выравниваемое по правому краю строки (например, '24 ms' или 'v1.2.0')."
+          }
+        }
+      },
+      "Markdown": {
+        "title": "Markdown (Рендеринг разметки)",
+        "description": "Компонент для форматированного вывода текста с поддержкой списков, жирного шрифта, таблиц и гиперссылок. Безопасно парсит Markdown разметку, исключая XSS-уязвимости.",
+        "methods": {
+          "content": {
+            "argument": "string",
+            "description": "Задает или динамически обновляет текстовое содержимое Markdown разметки. Позволяет перезаписать текст после вызова конструктора."
+          }
+        }
+      },
+      "Button": {
+        "title": "Button (Кнопка)",
+        "description": "Интерактивный элемент интерфейса для выполнения различных действий, запуска воспроизведения или переходов по страницам.",
+        "methods": {
+          "variant": {
+            "argument": "'primary' | 'secondary' | 'danger' | 'ghost' | 'sidebar-item'",
+            "description": "Визуальный стиль кнопки (основной цвет акцента, нейтральный серый, красный предупреждающий, прозрачный фон или стиль элемента бокового меню).",
+            "default": "'secondary'"
+          },
+          "icon": {
+            "argument": "string",
+            "description": "Имя иконки из коллекции Lucide (например, 'play', 'settings', 'trash'). Иконка отрисовывается перед текстом."
+          },
+          "onClick": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек-функция обратного вызова, срабатывающая при клике на кнопку."
+          }
+        }
+      },
+      "Input": {
+        "title": "Input (Поле ввода)",
+        "description": "Текстовое поле ввода для заполнения данных форм, адресов серверов, ключей авторизации или фильтров.",
+        "methods": {
+          "label": {
+            "argument": "string",
+            "description": "Заголовок (ярлык), отображаемый непосредственно над полем ввода."
+          },
+          "placeholder": {
+            "argument": "string",
+            "description": "Текст подсказки, отображаемый внутри пустого поля ввода."
+          },
+          "inputType": {
+            "argument": "string ('text' | 'password' | 'number')",
+            "description": "Задает тип вводимых данных. Изменяет поведение поля и маскирует ввод для 'password'.",
+            "default": "'text'"
+          },
+          "type": {
+            "argument": "string",
+            "description": "Устаревший (deprecated) синоним для inputType."
+          },
+          "value": {
+            "argument": "string",
+            "description": "Текущее текстовое значение поля.",
+            "default": "''"
+          },
+          "onChange": {
+            "argument": "CallbackFunction",
+            "description": "Обработчик ввода текста, вызываемый при каждом изменении значения."
+          }
+        }
+      },
+      "Toggle": {
+        "title": "Toggle (Переключатель)",
+        "description": "Интерактивный переключатель (чекбокс/свитч) для активации/деактивации булевых параметров конфигурации.",
+        "methods": {
+          "label": {
+            "argument": "string",
+            "description": "Текстовый ярлык, отображаемый справа от переключателя."
+          },
+          "description": {
+            "argument": "string",
+            "description": "Дополнительное описание (текст мелким шрифтом), отображаемое под меткой переключателя."
+          },
+          "value": {
+            "argument": "boolean",
+            "description": "Текущее булево состояние переключателя (true / false).",
+            "default": "false"
+          },
+          "checked": {
+            "argument": "boolean",
+            "description": "Устаревший (deprecated) синоним для value."
+          },
+          "onChange": {
+            "argument": "CallbackFunction",
+            "description": "Обработчик клика, возвращающий новое булево состояние свитча."
+          }
+        }
+      },
+      "Select": {
+        "title": "Select (Выпадающий список)",
+        "description": "Компонент выпадающего списка (Dropdown) для выбора одного текстового значения из предопределенного массива вариантов. Поддерживает группировку элементов по категориям при помощи разделителей и заголовков.",
+        "methods": {
+          "label": {
+            "argument": "string",
+            "description": "Заголовок списка, выводимый над полем выбора."
+          },
+          "options": {
+            "argument": "{ value?: string, label?: string, type?: string }[]",
+            "description": "Массив доступных элементов списка. Опции могут содержать текстовое значение и код, а также выступать в роли разделителей ({ type: 'divider' }) или заголовков категорий ({ type: 'header', label: 'Текст' }).",
+            "default": "[]"
+          },
+          "value": {
+            "argument": "string | string[]",
+            "description": "Текущее выбранное значение или массив выбранных значений при множественном выборе (multiple).",
+            "default": "''"
+          },
+          "selected": {
+            "argument": "string | string[]",
+            "description": "Устаревший (deprecated) синоним для value."
+          },
+          "onChange": {
+            "argument": "CallbackFunction",
+            "description": "Вызывается при выборе нового элемента или элементов из списка. Передает выбранное значение или массив значений при множественном выборе (multiple)."
+          },
+          "variant": {
+            "argument": "'default' | 'glass'",
+            "description": "Визуальный стиль выпадающего списка. 'default' — стандартное поле формы, 'glass' — стильная полупрозрачная кнопка с размытием (аналогичная кнопкам в верхней панели фильтров).",
+            "default": "'default'"
+          },
+          "icon": {
+            "argument": "string",
+            "description": "Имя иконки из библиотеки Lucide для отображения внутри кнопки слева (применяется только если variant: 'glass', например: 'Flame', 'Settings', 'Filter')."
+          },
+          "closeOnSelect": {
+            "argument": "boolean",
+            "description": "Определяет, закрывать ли меню при выборе элемента. По умолчанию true для обычного выбора и false при множественном выборе (multiple).",
+            "default": "true"
+          },
+          "multiple": {
+            "argument": "boolean",
+            "description": "Включает режим множественного выбора. Выбранные значения возвращаются в виде массива, а клики по опциям переключают их активность без автоматического закрытия меню.",
+            "default": "false"
+          },
+          "resetLabel": {
+            "argument": "string",
+            "description": "Текст кнопки сброса параметров внизу поповера (если задан, кнопка сброса будет отображаться)."
+          },
+          "resetValue": {
+            "argument": "string | string[]",
+            "description": "Значение, устанавливаемое при нажатии на кнопку сброса параметров (например, пустой массив [] для множественного выбора).",
+            "default": "''"
+          }
+        }
+      },
+      "CodeEditor": {
+        "title": "CodeEditor (Редактор кода)",
+        "description": "Встроенный полнофункциональный редактор кода на базе Monaco. Поддерживает подсветку синтаксиса, автодополнение, номера строк и форматирование кода.",
+        "methods": {
+          "label": {
+            "argument": "string",
+            "description": "Заголовок-подпись над контейнером редактора."
+          },
+          "value": {
+            "argument": "string",
+            "description": "Исходный или текущий текст в редакторе.",
+            "default": "''"
+          },
+          "readOnly": {
+            "argument": "boolean",
+            "description": "Флаг блокировки редактирования. При true редактор переходит в режим просмотра.",
+            "default": "false"
+          },
+          "onChange": {
+            "argument": "CallbackFunction",
+            "description": "Срабатывает при любом изменении исходного кода в окне редактора."
+          }
+        }
+      },
+      "StreamSkeletonList": {
+        "title": "StreamSkeletonList (Плейсхолдер поиска)",
+        "description": "Вспомогательный компонент, отображающий красивую анимированную скелетную заглушку (мерцающие строки) во время ожидания парсинга раздач по торрент-трекерам.",
+        "methods": {}
+      },
+      "StreamRow": {
+        "title": "StreamRow (Строка раздачи)",
+        "description": "Строковый элемент списка торрентов. Отображает название раздачи, размер файла, имя торрент-трекера, качество видео, а также число сидов/пиров с цветовой подсветкой.",
+        "methods": {
+          "stream": {
+            "argument": "object",
+            "description": "Метаданные потока раздачи. Должен содержать: title, size, seeds, peers, quality, tracker."
+          },
+          "onClick": {
+            "argument": "CallbackFunction",
+            "description": "Обработчик клика по строительным раздачам для запуска воспроизведения."
+          }
+        }
+      },
+      "MediaCard": {
+        "title": "MediaCard (Карточка фильма)",
+        "description": "Вертикальная карточка медиаресурса. Отображает постер, рейтинг (Кинопоиск/IMDb) и накладывает название и год выпуска при наведении курсора.",
+        "methods": {
+          "item": {
+            "argument": "object",
+            "description": "Объект с метаданными фильма (title, posterUrl, year, rating)."
+          },
+          "onClick": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек-обработчик клика по карточке. Передает объект медиа."
+          }
+        }
+      },
+      "HeroSpotlight": {
+        "title": "HeroSpotlight (Промо-баннер)",
+        "description": "Огромный рекламный промо-баннер для главной страницы плагина. Выводит фоновое изображение (арт) высокого разрешения, заголовок, описание и предоставляет интерактивные кнопки «Смотреть» и «Подробнее».",
+        "methods": {
+          "items": {
+            "argument": "any[]",
+            "description": "Массив медиа-элементов для слайдера баннера (title, overview, backdropUrl)."
+          },
+          "onPlay": {
+            "argument": "CallbackFunction",
+            "description": "Обработчик клика по главной кнопке «Смотреть». Возвращает активный объект слайда."
+          },
+          "onDetails": {
+            "argument": "CallbackFunction",
+            "description": "Обработчик клика по дополнительной кнопке «Подробнее»."
+          }
+        }
+      },
+      "StreamList": {
+        "title": "StreamList (Список потоков)",
+        "description": "Готовый список раздач с интегрированной панелью фильтрации по качеству видео и весу файлов. Включает индикатор загрузки и заглушку пустого списка.",
+        "methods": {
+          "streams": {
+            "argument": "any[]",
+            "description": "Массив раздач для рендеринга. Каждая раздача должна соответствовать параметрам StreamRow.",
+            "default": "[]"
+          },
+          "loading": {
+            "argument": "boolean",
+            "description": "При true переводит список в состояние загрузки и отображает мерцающие плейсхолдеры.",
+            "default": "false"
+          },
+          "showFilters": {
+            "argument": "boolean",
+            "description": "Управляет отображением панели быстрой фильтрации по качеству и трекерам.",
+            "default": "false"
+          },
+          "emptyText": {
+            "argument": "string",
+            "description": "Сообщение, отображаемое на экране при отсутствии элементов.",
+            "default": "'Раздачи не найдены'"
+          },
+          "nounPlurals": {
+            "argument": "string[]",
+            "description": "Массив из трех склонений для правильного вывода числительных раздач (например, ['раздача', 'раздачи', 'раздач'])."
+          },
+          "onSelectStream": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек-функция, вызываемая при выборе потока. Передает выбранный объект стрима."
+          }
+        }
+      },
+      "LoadingSpinner": {
+        "title": "LoadingSpinner (Анимированный спиннер)",
+        "description": "Круговой анимированный индикатор загрузки для индикации длительного ожидания ответов сети, парсинга торрентов или отрисовки UI.",
+        "methods": {
+          "message": {
+            "argument": "string",
+            "description": "Отображает поясняющий текст ожидания непосредственно под спиннером."
+          },
+          "fullscreen": {
+            "argument": "boolean",
+            "description": "При true растягивает оверлей спиннера на весь экран поверх остальных элементов, блокируя интерфейс.",
+            "default": "false"
+          }
+        }
+      },
+      "EpisodesSection": {
+        "title": "EpisodesSection (Каталог серий)",
+        "description": "Автономный блок сериала. Он запрашивает эпизоды из API шлюза по идентификатору, разделяет их на вкладки сезонов и отрисовывает в виде сетки эпизодов.",
+        "methods": {
+          "mediaId": {
+            "argument": "string | number",
+            "description": "Уникальный идентификатор сериала в базе данных медиа."
+          },
+          "numberOfSeasons": {
+            "argument": "number",
+            "description": "Общее число сезонов сериала для отрисовки вкладок переключения."
+          },
+          "onEpisodeClick": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек при клике по конкретному эпизоду. Передает объект с параметрами серии."
+          }
+        }
+      },
+      "MediaCast": {
+        "title": "MediaCast (Актерский состав)",
+        "description": "Горизонтальный ряд с карточками создателей фильма или актерского состава. Выводит круглые фотографии (аватары), реальные имена актеров и названия их ролей.",
+        "methods": {
+          "cast": {
+            "argument": "any[]",
+            "description": "Массив объектов актеров (name, character, profilePath).",
+            "default": "[]"
+          }
+        }
+      },
+      "MediaOverview": {
+        "title": "MediaOverview (Обзор медиаресурса)",
+        "description": "Большая интерактивная панель описания фильма или сериала. Отображает постер, оригинальное название, описание, год производства, страну, рейтинг, жанры и список создателей.",
+        "methods": {
+          "media": {
+            "argument": "object",
+            "description": "Детальные метаданные фильма/сериала (title, overview, posterUrl, rating, genres, year, country)."
+          },
+          "selectedEpisode": {
+            "argument": "object",
+            "description": "Объект текущей выбранной серии для отображения информации о серии вместо описания всего сезона (если это сериал)."
+          },
+          "onResetEpisode": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек сброса выбранной серии обратно к деталям всего сезона (клик по кнопке «Вернуться к описанию»)."
+          }
+        }
+      },
+      "MediaRow": {
+        "title": "MediaRow (Горизонтальный ряд)",
+        "description": "Карусель с горизонтальной прокруткой для отображения списка карточек MediaCard. Снабжена общим заголовком и кнопкой «Показать все».",
+        "methods": {
+          "title": {
+            "argument": "string",
+            "description": "Заголовок для секции ряда (например, 'Сейчас смотрят')."
+          },
+          "items": {
+            "argument": "any[]",
+            "description": "Массив объектов фильмов для отображения в ряду в виде карточек.",
+            "default": "[]"
+          },
+          "onCardClick": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек при клике на любую карточку фильма в ряду."
+          },
+          "onSeeAllClick": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек при клике на кнопку «Показать все» / «Смотреть все»."
+          }
+        }
+      },
+      "MediaPlayer": {
+        "title": "MediaPlayer (Видеоплеер)",
+        "description": "Встроенный HTML5-видеоплеер с поддержкой форматов HLS (.m3u8), Dash (.mpd) и обычных MP4-файлов. Предоставляет полноценное управление воспроизведением, субтитрами и звуковыми дорожками.",
+        "methods": {
+          "playback": {
+            "argument": "object",
+            "description": "Метаданные воспроизводимого потока (SDKPlaybackInfo): streamUrl, streamType, title, season, episode, torrentHash, fileIndex, audios ({id, name, url}[]), headers, providerId, voice, subtitles, session, duration, introStart/End, outroStart/End, thumbnails, requiresBuffering."
+          },
+          "isNetworkOffline": {
+            "argument": "boolean",
+            "description": "Управляет оффлайн-режимом. При значении true останавливает проигрывание и выводит ошибку сети.",
+            "default": "false"
+          }
+        }
+      },
+      "ProfileSelector": {
+        "title": "ProfileSelector (Селектор профилей)",
+        "description": "Компонент управления профилями соединений (серверами) для переключения адресов шлюзов Potok Gateway с пингом статуса, добавлением, удалением и редактированием серверов.",
+        "methods": {
+          "connectionProfiles": {
+            "argument": "any[]",
+            "description": "Массив доступных серверов/профилей (id, name, gatewayURL).",
+            "default": "[]"
+          },
+          "activeProfileID": {
+            "argument": "string | null",
+            "description": "Идентификатор текущего выбранного/активного профиля подключения."
+          },
+          "isSettingsLocked": {
+            "argument": "boolean",
+            "description": "При true блокирует кнопки создания, редактирования и удаления профилей.",
+            "default": "false"
+          },
+          "onSelectProfile": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек при переключении/клике по профилю. Передает объект выбранного профиля."
+          },
+          "onStartEdit": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек при клике на иконку «Карандаш» для изменения адреса или имени профиля."
+          },
+          "onDeleteProfile": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек при клике на удаление профиля («Корзина»)."
+          },
+          "onStartAdd": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек при клике по кнопке создания нового подключения («Добавить сервер»)."
+          }
+        }
+      },
+      "SearchBar": {
+        "title": "SearchBar (Панель поиска)",
+        "description": "Специализированная поисковая строка со встроенной иконкой лупы и кнопкой быстрой очистки поля ввода. Отлично подходит для создания систем поиска контента.",
+        "methods": {
+          "value": {
+            "argument": "string",
+            "description": "Текущий текст в поисковой строке.",
+            "default": "''"
+          },
+          "placeholder": {
+            "argument": "string",
+            "description": "Подсказка ввода внутри поисковой строки.",
+            "default": "'Поиск...'"
+          },
+          "onChange": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек при изменении текста поискового запроса пользователем."
+          },
+          "onClear": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек при клике на иконку «Крестик» для сброса поисковой строки."
+          }
+        }
+      },
+      "StreamFilterBar": {
+        "title": "StreamFilterBar (Панель сортировки)",
+        "description": "Готовая панель управления сортировкой и фильтрацией найденных раздач. Позволяет быстро переключать качество видео, выбирать трекер и сортировать раздачи (по весу, по сидерам).",
+        "methods": {
+          "countLabel": {
+            "argument": "string",
+            "description": "Текстовая строка с количеством найденных раздач (выводится слева)."
+          },
+          "qualityFilter": {
+            "argument": "string",
+            "description": "Устанавливает текущее выбранное качество для фильтрации (например, '1080p')."
+          },
+          "activeTracker": {
+            "argument": "string",
+            "description": "Устанавливает активный выбранный трекер для фильтрации."
+          },
+          "trackers": {
+            "argument": "string[]",
+            "description": "Массив названий трекеров для отображения в фильтре по источникам.",
+            "default": "[]"
+          },
+          "showSort": {
+            "argument": "boolean",
+            "description": "Включает или выключает отображение выпадающего списка сортировки в правой части панели.",
+            "default": "true"
+          },
+          "sortOption": {
+            "argument": "string",
+            "description": "Текущий активный вариант сортировки (например, 'seeds' или 'size')."
+          },
+          "onRefresh": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек при клике на кнопку «Обновить поиск»."
+          },
+          "onQualityChange": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек смены выбранного разрешения видео."
+          },
+          "onTrackerChange": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек смены активного трекера."
+          },
+          "onSortChange": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек при изменении порядка сортировки раздач."
+          }
+        }
+      },
+      "EpisodeSelector": {
+        "title": "EpisodeSelector (Модальный выбор серий)",
+        "description": "Встроенный модальный селектор для детального выбора серий и сезонов сериала с прокруткой и фоновым постером.",
+        "methods": {
+          "isOpen": {
+            "argument": "boolean",
+            "description": "Управляет видимостью модального окна.",
+            "default": "false"
+          },
+          "title": {
+            "argument": "string",
+            "description": "Главный заголовок модального окна (название сериала)."
+          },
+          "subtitle": {
+            "argument": "string",
+            "description": "Подзаголовок (описание)."
+          },
+          "episodes": {
+            "argument": "any[]",
+            "description": "Массив серий выбранного в данный момент сезона.",
+            "default": "[]"
+          },
+          "backdropSrc": {
+            "argument": "string",
+            "description": "Ссылка на фоновое промо-изображение."
+          },
+          "seasonsLoading": {
+            "argument": "boolean",
+            "description": "Состояние загрузки списков серий (при true отображает спиннер загрузки).",
+            "default": "false"
+          },
+          "seasons": {
+            "argument": "any[]",
+            "description": "Массив доступных сезонов для отображения во вкладках.",
+            "default": "[]"
+          },
+          "onClose": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек, срабатывающий при закрытии модального окна."
+          },
+          "onPlay": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек при клике на воспроизведение серии в селекторе."
+          },
+          "onApplyOverride": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек при переопределении параметров серии."
+          },
+          "onStartEditing": {
+            "argument": "CallbackFunction",
+            "description": "Коллбек в начале редактирования серий."
+          }
+        }
+      },
+      "EpisodeCard": {
+        "title": "EpisodeCard (Карточка серии)",
+        "description": "Компонент отображения отдельной серии сериала. Выводит превью (кадр), номер эпизода, название и текстовое описание серии.",
+        "methods": {
+          "episode": {
+            "argument": "object",
+            "description": "Объект с описанием серии (episodeNumber, seasonNumber, name, overview, stillPath)."
+          },
+          "onClick": {
+            "argument": "CallbackFunction",
+            "description": "Обработчик клика по карточке серии. Передает выбранный объект серии."
+          }
+        }
+      }
+    },
+    "tables": {
+      "baseMethods": {
+        "method": "Базовый метод",
+        "argument": "Аргумент",
+        "description": "Описание",
+        "rows": {
+          "id": "Задает уникальный идентификатор элемента.",
+          "padding": "Внутренние отступы элемента.",
+          "margin": "Внешние отступы элемента.",
+          "width": "Ширина элемента (например, \"100%\" или 250).",
+          "height": "Высота элемента (например, \"auto\" или 100).",
+          "visible": "Управляет видимостью элемента на экране.",
+          "disabled": "Переводит элемент в неактивное состояние.",
+          "flex": "Коэффициент распределения свободного пространства (flex-grow)."
+        }
+      },
+      "layoutMethods": {
+        "method": "Метод разметки",
+        "argument": "Аргумент",
+        "description": "Описание",
+        "rows": {
+          "spacing": "Зазор между дочерними элементами в пикселях.",
+          "alignItems": "Выравнивание элементов по поперечной оси.",
+          "justifyContent": "Выравнивание элементов по главной оси.",
+          "child": "Добавляет один дочерний элемент в контейнер.",
+          "children": "Заменяет дочерние элементы массивом компонентов."
+        }
+      }
+    },
+    "componentDoc": {
+      "description": "Описание",
+      "specificMethods": "Специфичные методы",
+      "layoutMethods": "Методы разметки (наследуются от LayoutComponent)",
+      "baseMethods": "Базовые методы (наследуются от UIComponent)",
+      "example": "Пример использования",
+      "runSandbox": "Запустить в Sandbox",
+      "defaultValue": "Значение по умолчанию:",
+      "method": "Метод"
+    }
   }
 }

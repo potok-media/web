@@ -806,5 +806,1364 @@
       "placeholder": "[Extension slot: {{name}}]",
       "active": "Slot: {{name}} (Active)"
     }
+  },
+  "wiki": {
+    "header": {
+      "brand": "Potok",
+      "searchPlaceholder": "Quick wiki search...",
+      "logoAlt": "Potok Logo"
+    },
+    "sidebar": {
+      "intro": "Introduction",
+      "api": "API methods",
+      "uiContainers": "UI: Layout & Grids",
+      "uiText": "UI: Text & Info",
+      "uiForms": "UI: Forms & Input",
+      "uiMedia": "UI: Media components",
+      "uiStreaming": "UI: Players & Streams",
+      "development": "Development",
+      "sandbox": "Sandbox",
+      "themeDark": "Dark theme",
+      "themeLight": "Light theme"
+    },
+    "breadcrumbs": {
+      "docs": "Documentation",
+      "sandbox": "Sandbox",
+      "backToDoc": "Back to document"
+    },
+    "sandbox": {
+      "editorTab": "Code editor (JavaScript)",
+      "previewTab": "Result preview",
+      "run": "Run",
+      "reset": "Reset",
+      "connected": "CONNECTED",
+      "mainFile": "main.js",
+      "logsTitle": "LOG CONSOLE",
+      "clearLogs": "Clear",
+      "logsEmpty": "Logs are empty. Run code and interact with the UI.",
+      "previewTitle": "Emulated Potok Screen",
+      "previewContext": "Context: Free render",
+      "previewEmpty": "UI not compiled. Switch to the Editor tab and press Run.",
+      "pageTitle": "Interactive sandbox"
+    },
+    "toc": {
+      "title": "On this page"
+    },
+    "theme": {
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "categories": {
+      "intro": "Introduction",
+      "api": "API",
+      "uiContainers": "UI: Containers",
+      "uiText": "UI: Text & Info",
+      "uiForms": "UI: Forms & Input",
+      "uiMedia": "UI: Media",
+      "uiStreaming": "UI: Rendering & Streaming",
+      "sandbox": "Sandbox"
+    },
+    "pages": {
+      "intro": {
+        "title": "About Potok",
+        "category": "Introduction",
+        "toc": [
+          {
+            "id": "overview",
+            "text": "Architecture overview"
+          },
+          {
+            "id": "declarative",
+            "text": "Declarative UI"
+          },
+          {
+            "id": "sandbox-details",
+            "text": "Security & sandbox"
+          }
+        ],
+        "sections": {
+          "overviewTitle": "About Potok",
+          "overviewP1": "Potok is an extensible platform for decentralized plugins and UI modules in the Potok media ecosystem. Its architecture is built on strict security, declarative UI design, and isolated client-side sandbox execution.",
+          "overviewP2": "Unlike traditional plugins that can break host stability or security, Potok guarantees full extension isolation and provides a high-performance declarative rendering engine.",
+          "calloutTitle": "Key architectural decisions:",
+          "calloutItems": [
+            "Declarative UI: markup is built with JS builders, compiled to a safe JSON schema, and rendered natively by the host.",
+            "Isolated sandbox: plugin code runs in an isolated context without access to browser globals.",
+            "Global slot registry: plugins mount via React Portals using CSS selectors from a single registry.",
+            "Slot inspector: built-in visual debugger for live code testing."
+          ],
+          "declarativeTitle": "Declarative UI",
+          "declarativeP": "Instead of manipulating the DOM or injecting untrusted HTML, plugins describe UI with builder chains (SwiftUI-like syntax). The result compiles to a safe JSON schema and is rendered by the native host engine:",
+          "sandboxTitle": "Security & Sandbox",
+          "sandboxP": "Each plugin runs inside an isolated JS sandbox:",
+          "sandboxItems": [
+            "Global objects window, document, and localStorage are shadowed to undefined.",
+            "All network access goes strictly through the PotokSDK.http proxy client.",
+            "Local storage is isolated and scoped per plugin."
+          ],
+          "runExample": "Run this example in Sandbox"
+        }
+      },
+      "install": {
+        "title": "Installation & Docker Compose",
+        "category": "Introduction",
+        "toc": [
+          {
+            "id": "compose",
+            "text": "Docker Compose configuration"
+          },
+          {
+            "id": "variables",
+            "text": "Environment variables"
+          },
+          {
+            "id": "nginx",
+            "text": "Nginx proxy setup"
+          }
+        ],
+        "sections": {
+          "title": "Deploying Potok",
+          "intro": "Potok requires two services to run: the web client and the API gateway (BFF). PostgreSQL is bundled because the gateway depends on it. SearchEngine and TorrentGo are optional add-ons — add them to the same docker-compose.yml only when you install the potok-torrents plugin.",
+          "requiredTitle": "Required stack (docker-compose.yml)",
+          "requiredDesc": "Web client, gateway, and PostgreSQL. This is the minimum deployment for browsing media, plugins, and the SDK wiki.",
+          "optionalTitle": "Optional: torrent plugin services",
+          "optionalDesc": "Append these services to the same compose file when you need torrent search and streaming (potok-torrents plugin). Configure searchEngineURL and torrentGoURL in the plugin manifest / connection profile — not via Gateway env vars.",
+          "optionalNote": "Without SearchEngine and TorrentGo, Potok works normally for metadata, library, and non-torrent plugins. The torrents plugin calls these services directly from the browser.",
+          "runCommand": "Run in the directory with docker-compose.yml:",
+          "dockerUp": "docker compose up -d",
+          "envTitle": "Environment variables",
+          "envDesc": "Configure parameters in a .env file next to docker-compose.yml:",
+          "envTable": {
+            "variable": "Variable",
+            "service": "Service",
+            "description": "Description",
+            "rows": [
+              {
+                "var": "WEB_PORT",
+                "service": "web",
+                "desc": "Web client host port (default 3000)."
+              },
+              {
+                "var": "VITE_DEFAULT_BFF_URL",
+                "service": "web",
+                "desc": "Public potok-gateway URL used by the browser client."
+              },
+              {
+                "var": "VITE_BLOCK_SETTINGS_INPUT",
+                "service": "web",
+                "desc": "When true, users cannot change the gateway URL manually."
+              },
+              {
+                "var": "GATEWAY_PORT",
+                "service": "gateway",
+                "desc": "Gateway (BFF) listen port (default 5000)."
+              },
+              {
+                "var": "GATEWAY_TMDB_API_KEY",
+                "service": "gateway",
+                "desc": "TheMovieDB API key for movie/TV metadata."
+              },
+              {
+                "var": "GATEWAY_MULTI_USER_MODE",
+                "service": "gateway",
+                "desc": "Enable multi-user mode with registration (true/false)."
+              },
+              {
+                "var": "DB_HOST",
+                "service": "db, gateway",
+                "desc": "PostgreSQL host. Use db for the bundled container."
+              },
+              {
+                "var": "DB_PORT",
+                "service": "db",
+                "desc": "PostgreSQL port (default 5432)."
+              },
+              {
+                "var": "DB_NAME",
+                "service": "db",
+                "desc": "Database name (default potok)."
+              },
+              {
+                "var": "DB_USER",
+                "service": "db",
+                "desc": "Database user (default potok)."
+              },
+              {
+                "var": "DB_PASSWORD",
+                "service": "db",
+                "desc": "Database password."
+              },
+              {
+                "var": "SEARCH_ENGINE_PORT",
+                "service": "searchengine (optional)",
+                "desc": "SearchEngine listen port (default 6000)."
+              },
+              {
+                "var": "TORRENTGO_PORT",
+                "service": "torrentgo (optional)",
+                "desc": "TorrentGo listen port (default 5282)."
+              },
+              {
+                "var": "GPU_DEVICE",
+                "service": "torrentgo (optional)",
+                "desc": "Optional GPU passthrough for hardware transcoding (e.g. /dev/dri:/dev/dri)."
+              }
+            ]
+          },
+          "nginxTitle": "Nginx Reverse Proxy",
+          "nginxDesc": "For production, use Nginx to proxy the web client and gateway:",
+          "nginxProxy": "server {\n    listen 80;\n    server_name wiki.potok.rip;\n\n    location / {\n        proxy_pass http://localhost:3000/wiki;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n}\n\nserver {\n    listen 80;\n    server_name app.potok.rip;\n\n    location / {\n        proxy_pass http://localhost:3000;\n        proxy_set_header Host $host;\n    }\n\n    location /api/ {\n        proxy_pass http://localhost:5000/;\n        proxy_set_header Host $host;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n    }\n}"
+        }
+      },
+      "manifest": {
+        "title": "Manifest specification",
+        "category": "API",
+        "toc": [
+          {
+            "id": "fields",
+            "text": "Required & optional fields"
+          },
+          {
+            "id": "permissions",
+            "text": "Permissions"
+          },
+          {
+            "id": "slots-section",
+            "text": "UI slots"
+          },
+          {
+            "id": "config-section",
+            "text": "Plugin config"
+          },
+          {
+            "id": "manifest-example",
+            "text": "Full example"
+          }
+        ],
+        "sections": {
+          "title": "Plugin manifest",
+          "intro": "Every Potok extension must include manifest.json in its root. The host reads it for initialization, UI slots, and permissions.",
+          "fieldsTitle": "Manifest fields",
+          "fieldsTable": {
+            "field": "Field",
+            "type": "Type",
+            "description": "Description",
+            "rows": [
+              {
+                "field": "id",
+                "type": "string (required)",
+                "desc": "Unique plugin identifier (e.g. potok-torrents)."
+              },
+              {
+                "field": "name",
+                "type": "string (required)",
+                "desc": "Plugin name shown in the UI."
+              },
+              {
+                "field": "version",
+                "type": "string (optional)",
+                "desc": "Plugin version in SemVer format (e.g. 1.0.0)."
+              },
+              {
+                "field": "description",
+                "type": "string (optional)",
+                "desc": "Short description of the extension purpose and features."
+              },
+              {
+                "field": "author",
+                "type": "string (optional)",
+                "desc": "Author or development team."
+              },
+              {
+                "field": "entrypoint",
+                "type": "string (required)",
+                "desc": "Path to compiled JS relative to the plugin folder (usually index.js)."
+              },
+              {
+                "field": "category",
+                "type": "string (optional)",
+                "desc": "Extension category: sources for media sources, visual for themes, other for misc."
+              },
+              {
+                "field": "permissions",
+                "type": "string[] (optional)",
+                "desc": "Requested security permissions (storage, http-proxy, ui-notifications)."
+              },
+              {
+                "field": "slots",
+                "type": "object[] (optional)",
+                "desc": "UI slot contributions; each entry has id, slotName, and title."
+              },
+              {
+                "field": "config",
+                "type": "object (optional)",
+                "desc": "Configurable plugin settings rendered in the host settings panel."
+              }
+            ]
+          },
+          "permissionsTitle": "Permissions",
+          "permissionsIntro": "If a plugin calls an API without the matching manifest permission, the runtime blocks the operation:",
+          "permissionsItems": [
+            "storage — grants access to local DB/key storage via storage.local.",
+            "http-proxy — grants network requests via the host http proxy (CORS bypass).",
+            "ui-notifications — grants system notifications and HUD toasts (e.g. ui.showHUD())."
+          ],
+          "slotsTitle": "UI slots",
+          "slotsIntro": "Each slots entry describes where the plugin mounts in the host UI. Supported slotName values:",
+          "slotsTable": {
+            "slot": "Slot (slotName)",
+            "description": "Description",
+            "rows": [
+              {
+                "slot": "sidebar-menu",
+                "desc": "Top section of the sidebar menu (top-level navigation)."
+              },
+              {
+                "slot": "sidebar-menu-home",
+                "desc": "Extra menu items near Home."
+              },
+              {
+                "slot": "sidebar-menu-library",
+                "desc": "Extra menu items in Library."
+              },
+              {
+                "slot": "sidebar-status",
+                "desc": "Bottom of the sidebar (status/service buttons)."
+              },
+              {
+                "slot": "media-actions",
+                "desc": "Action block on movie/series details (e.g. play buttons)."
+              },
+              {
+                "slot": "details-bottom",
+                "desc": "Panel below main media details."
+              },
+              {
+                "slot": "settings-color-accent",
+                "desc": "Settings slot for color palette and themes."
+              },
+              {
+                "slot": "settings-tabs",
+                "desc": "Custom tabs in host settings."
+              },
+              {
+                "slot": "extension-page",
+                "desc": "Full-screen extension page."
+              }
+            ]
+          },
+          "configTitle": "Plugin config",
+          "configIntro": "The config field declares plugin settings auto-rendered in the host settings panel. Each key maps to a parameter descriptor with this structure:",
+          "configTable": {
+            "property": "Property field",
+            "type": "Type",
+            "description": "Description",
+            "rows": [
+              {
+                "property": "type",
+                "type": "string (required)",
+                "desc": "Setting value type: \"string\", \"boolean\" (toggle), \"number\", \"select\" (dropdown), or \"notice\" (orange warning banner)."
+              },
+              {
+                "property": "default",
+                "type": "any (required)",
+                "desc": "Default value; type must match the type field."
+              },
+              {
+                "property": "label",
+                "type": "string (required)",
+                "desc": "Label shown to the user in settings."
+              },
+              {
+                "property": "dependsOn",
+                "type": "string (optional)",
+                "desc": "Another config key controlling visibility of this setting."
+              }
+            ]
+          },
+          "manifestExampleTitle": "manifest.json example",
+          "manifestExample": "{\n  \"id\": \"potok-torrents\",\n  \"name\": \"Torrent search\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Search and stream torrents from tracker databases\",\n  \"author\": \"Potok Team\",\n  \"category\": \"sources\",\n  \"entrypoint\": \"index.js\",\n  \"permissions\": [\n    \"storage\",\n    \"http-proxy\",\n    \"ui-notifications\"\n  ],\n  \"slots\": [\n    {\n      \"id\": \"torrents-media-actions\",\n      \"slotName\": \"media-actions\",\n      \"title\": \"Watch\"\n    },\n    {\n      \"id\": \"torrents-sidebar-status\",\n      \"slotName\": \"sidebar-status\",\n      \"title\": \"Torrent status\"\n    }\n  ],\n  \"config\": {\n    \"torrentGoURL\": {\n      \"type\": \"string\",\n      \"default\": \"https://torrent.potok.rip\",\n      \"label\": \"TorrentGo URL\"\n    },\n    \"searchEngineURL\": {\n      \"type\": \"string\",\n      \"default\": \"https://search.potok.rip\",\n      \"label\": \"SearchEngine URL\"\n    }\n  }\n}"
+        }
+      },
+      "state": {
+        "title": "Reactivity & State",
+        "category": "API",
+        "toc": [
+          {
+            "id": "state-api",
+            "text": "createState API"
+          },
+          {
+            "id": "subscription",
+            "text": "Subscribe & unsubscribe"
+          },
+          {
+            "id": "deep-reactivity",
+            "text": "Deep reactivity"
+          },
+          {
+            "id": "batching",
+            "text": "Batch updates"
+          },
+          {
+            "id": "reactive-example",
+            "text": "Interactive example"
+          }
+        ],
+        "sections": {
+          "title": "State management",
+          "intro": "Use createState to wrap an object in a Proxy that tracks mutations and notifies subscribers for dynamic UI updates.",
+          "subscriptionTitle": "Subscribe & unsubscribe",
+          "subscriptionText": "Reactive state exposes $subscribe(callback). Typically the render function is passed. $subscribe returns an unsubscribe function to prevent memory leaks:",
+          "subscriptionCode": "const state = createState({ title: \"Hello\" });\n\nfunction render() {\n  ui.render(Text(state.title));\n}\n\n// Subscribe to changes:\nconst unsubscribe = state.$subscribe(render);\n\n// Initial render:\nrender();\n\n// When no longer needed (e.g. plugin unload):\n// unsubscribe();",
+          "deepReactivityTitle": "Deep reactivity",
+          "deepReactivityText": "The runtime tracks nested changes. Nested objects are wrapped in proxies so deep keys and array mutations trigger updates:",
+          "deepReactivityCode": "const state = createState({\n  user: {\n    profile: { name: \"Alex\" }\n  },\n  genres: [\"Action\", \"Drama\"]\n});\n\n// 1. Deep property change (triggers render)\nstate.user.profile.name = \"Ivan\";\n\n// 2. Array mutations (push, splice, sort)\nstate.genres.push(\"Comedy\");\nstate.genres.splice(0, 1);",
+          "batchingTitle": "Batch updates (Batching)",
+          "batchingText": "Subscriber calls are batched via a microtask queue (Promise.resolve()) to avoid multiple re-renders when several fields change synchronously:",
+          "batchingCode": "const state = createState({ count: 0, lastAction: \"none\" });\n\nstate.$subscribe(() => {\n  console.log(\"Render called!\");\n});\n\n// Synchronous multi-field updates:\nstate.count++;\nstate.lastAction = \"increment\";\nstate.count += 5;\n\n// Console shows exactly ONE \"Render called!\" \n// because updates are batched into one tick.",
+          "reactiveExampleTitle": "Reactive counter code",
+          "reactiveExampleText": "Test reactivity interactively in the sandbox with this counter example:",
+          "reactiveExampleCode": "const state = createState({ clicks: 0 });\n\nfunction render() {\n  ui.render(\n    VStack()\n      .child(Text(\"Clicks: \" + state.clicks))\n      .child(Button(\"Click\").onClick(() => state.clicks++))\n  );\n}",
+          "sandboxButton": "Run reactivity example in Sandbox",
+          "sandboxCode": "// Interactive reactivity example\nconst { ui, createState } = PotokSDK;\n\nconst state = createState({\n  clicks: 0,\n  lastClicked: \"Never\"\n});\n\nfunction draw() {\n  ui.render(\n    Card()\n      .title(\"Click counter\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(Text(\"Clicks recorded: \" + state.clicks).bold(true).size(\"lg\"))\n          .child(Text(\"Last click: \" + state.lastClicked).variant(\"secondary\"))\n          .child(\n            Button(\"Click!\")\n              .variant(\"primary\")\n              .onClick(() => {\n                state.clicks++;\n                state.lastClicked = new Date().toLocaleTimeString();\n              })\n          )\n      )\n  );\n}\n\nstate.$subscribe(draw);\ndraw();"
+        }
+      },
+      "http": {
+        "title": "HTTP client",
+        "category": "API",
+        "toc": [
+          {
+            "id": "get",
+            "text": "http.get()"
+          },
+          {
+            "id": "post",
+            "text": "http.post()"
+          },
+          {
+            "id": "cors",
+            "text": "CORS bypass"
+          }
+        ],
+        "sections": {
+          "title": "Network requests",
+          "intro": "Plugins run in an isolated iframe where direct fetch to external APIs is blocked. PotokSDK.http proxies requests through the host.",
+          "getTitle": "HTTP GET",
+          "getSignature": "http.get(url: string, headers?: Record<string, string>): Promise<{ status: number, data: any }>",
+          "postTitle": "HTTP POST",
+          "postSignature": "http.post(url: string, body?: any, headers?: Record<string, string>): Promise<{ status: number, data: any }>",
+          "corsTitle": "Proxy benefits",
+          "corsItems": [
+            "CORS bypass: requests run via the Potok backend (or browser extension), removing source-server CORS blocks.",
+            "Automatic JSON parsing: JSON responses are parsed into the data field."
+          ],
+          "sandboxButton": "Load Todo over network in Sandbox",
+          "sandboxCode": "// Network data loading example\nconst { ui, http, createState } = PotokSDK;\n\nconst state = createState({\n  loading: true,\n  todoTitle: \"\",\n  error: null\n});\n\nasync function loadData() {\n  try {\n    const res = await http.get(\"https://jsonplaceholder.typicode.com/todos/1\");\n    state.todoTitle = res.data.title;\n    state.loading = false;\n  } catch (err) {\n    state.error = err.message;\n    state.loading = false;\n  }\n}\n\nfunction render() {\n  ui.render(\n    Card()\n      .title(\"Network loading\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(\n            state.loading \n              ? LoadingSpinner().message(\"Loading TODO from server...\")\n              : Text(state.error ? \"Error: \" + state.error : \"Task from server: \" + state.todoTitle)\n          )\n          .child(\n            Button(\"Reload\")\n              .onClick(() => {\n                state.loading = true;\n                loadData();\n              })\n          )\n      )\n  );\n}\n\nstate.$subscribe(render);\nrender();\nloadData();"
+        }
+      },
+      "storage": {
+        "title": "Isolated storage",
+        "category": "API",
+        "toc": [
+          {
+            "id": "storage-methods",
+            "text": "Storage methods"
+          },
+          {
+            "id": "isolation",
+            "text": "Isolated namespaces"
+          }
+        ],
+        "sections": {
+          "title": "Local storage",
+          "intro": "Use PotokSDK.storage.local for async plugin settings, tokens, and cache.",
+          "methodsTitle": "Available methods",
+          "methodsTable": {
+            "method": "Method",
+            "signature": "Signature",
+            "description": "Description",
+            "rows": [
+              {
+                "method": "getItem",
+                "signature": "getItem(key: string): Promise<string | null>",
+                "desc": "Asynchronously reads a key value."
+              },
+              {
+                "method": "setItem",
+                "signature": "setItem(key: string, value: any): Promise<void>",
+                "desc": "Saves a value under the given key."
+              }
+            ]
+          },
+          "isolationTitle": "Isolated namespaces",
+          "isolationText": "For security the host prefixes every stored value with pluginId. Plugin A cannot access plugin B keys. Direct window.localStorage access is blocked.",
+          "sandboxButton": "Run storage example in Sandbox",
+          "sandboxCode": "// Save and load settings example\nconst { ui, storage, createState } = PotokSDK;\n\nconst state = createState({\n  savedValue: \"Nothing saved\",\n  inputValue: \"\"\n});\n\nasync function initStorage() {\n  const saved = await storage.local.getItem(\"user_custom_note\");\n  if (saved) {\n    state.savedValue = saved;\n  }\n}\n\nfunction render() {\n  ui.render(\n    Card()\n      .title(\"Local storage\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(Text(\"Saved in DB: \" + state.savedValue).bold(true))\n          .child(\n            Input(\"note-input\")\n              .label(\"New entry\")\n              .value(state.inputValue)\n              .onChange((val) => state.inputValue = val)\n          )\n          .child(\n            Button(\"Save to DB\")\n              .variant(\"primary\")\n              .onClick(async () => {\n                await storage.local.setItem(\"user_custom_note\", state.inputValue);\n                state.savedValue = state.inputValue;\n                ui.showHUD(\"success\", \"Value saved successfully!\");\n              })\n          )\n      )\n  );\n}\n\nstate.$subscribe(render);\nrender();\ninitStorage();"
+        }
+      },
+      "uiMethods": {
+        "title": "Global UI methods",
+        "category": "API",
+        "toc": [
+          {
+            "id": "render",
+            "text": "ui.render()"
+          },
+          {
+            "id": "hud",
+            "text": "ui.showHUD()"
+          },
+          {
+            "id": "player",
+            "text": "ui.playVideo()"
+          },
+          {
+            "id": "ep-selector",
+            "text": "ui.showEpisodeSelector()"
+          },
+          {
+            "id": "navigation",
+            "text": "Navigation (ui.navigateTo)"
+          },
+          {
+            "id": "themes",
+            "text": "Themes"
+          },
+          {
+            "id": "block",
+            "text": "ui.block()"
+          },
+          {
+            "id": "block-context",
+            "text": "ui.onBlockContextUpdate()"
+          },
+          {
+            "id": "registration",
+            "text": "Plugin & slot registration"
+          }
+        ],
+        "sections": {
+          "title": "Global ui object",
+          "intro": "Beyond UI builders, PotokSDK.ui controls host state, navigation, player, block mutations, and plugin registration.",
+          "renderTitle": "ui.render()",
+          "renderText": "ui.render(component, slotId?) compiles declarative markup and sends it to the host. With slotId it mounts into that slot; otherwise it renders on the sandbox main screen.",
+          "hudTitle": "HUD notifications",
+          "hudText": "ui.showHUD(type, message) shows a short system banner. Supported types: \"success\", \"error\", \"info\", \"warning\".",
+          "playerTitle": "Video player",
+          "playerText": "ui.playVideo(playbackInfo) opens the fullscreen player. The playback object should include:",
+          "epSelectorTitle": "Episode selector",
+          "epSelectorText": "ui.showEpisodeSelector(config) opens the system modal for picking seasons and episodes in TV shows.",
+          "navigationTitle": "Navigation",
+          "navigationText": "ui.navigateTo(to, state?) programmatically navigates the user to another host section (settings, library, home, etc.):",
+          "navigationCode": "ui.navigateTo(\"/settings\");\nui.navigateTo(\"/library\", { filter: \"watchlist\" });",
+          "themesTitle": "Themes",
+          "themesIntro": "Visual plugins can register custom color schemes and switch the host accent:",
+          "themesItems": [
+            "ui.registerThemes(themes: Theme[]) — registers custom theme presets on the host.",
+            "ui.setAccentTheme(themeId: string) — switches the active host accent theme."
+          ],
+          "blockTitle": "Block mutations ui.block()",
+          "blockText": "ui.block(blockName) returns a builder to mutate host UI blocks. Use element(id) to hide, edit, insert before/after, or replace; append/prepend add layout; apply() sends mutations to the host.",
+          "blockItems": [
+            "element(id).hide() — hides a block element.",
+            "element(id).edit(props) — edits element props.",
+            "element(id).before(ui) / after(ui) / replace(ui) — insert or replace layout.",
+            "append(ui) / prepend(ui) — add layout at block end or start.",
+            "apply() — registers accumulated mutations with the host."
+          ],
+          "onBlockContextUpdateTitle": "ui.onBlockContextUpdate()",
+          "onBlockContextUpdateText": "ui.onBlockContextUpdate(callback) subscribes to active block context updates. The callback receives (blockName, context) when screen data changes (e.g. another movie). Returns an unsubscribe function.",
+          "registrationTitle": "System registration",
+          "registrationIntro": "Global SDK functions integrate plugins into the host lifecycle:",
+          "registrationTable": {
+            "api": "API function",
+            "description": "Description",
+            "rows": [
+              {
+                "api": "registerPlugin(meta)",
+                "desc": "Registers plugin metadata (id, name, version). Call first on script load."
+              },
+              {
+                "api": "registerSource(config)",
+                "desc": "Registers a media stream lookup source for host video search."
+              },
+              {
+                "api": "registerSlotContribution(config)",
+                "desc": "Registers UI in a named slot (e.g. media-actions, details-bottom)."
+              },
+              {
+                "api": "onSettingsChanged(callback)",
+                "desc": "Subscribes to live settings form changes; callback gets (key, value, currentSettings)."
+              },
+              {
+                "api": "updateSettingsForm(updates)",
+                "desc": "Tells the host to update settings form fields in real time; accepts { updates }."
+              }
+            ]
+          },
+          "registerSlotTitle": "registerSlotContribution details",
+          "registerSlotIntro": "Lets a plugin inject UI into predefined host areas. The host calls the render function when the screen mounts and draws the returned layout.",
+          "registerSlotConfigIntro": "The config object has these parameters:",
+          "registerSlotParams": [
+            "id (string, required) — Unique contribution id matching manifest slots[].id.",
+            "slotName (string, required) — Target slot (e.g. \"media-actions\", \"details-bottom\", \"extension-page\").",
+            "render(props) (function, required) — Returns { label, icon?, layout } using UI builders."
+          ],
+          "registerSlotRenderFields": [
+            "label (string) — Contribution label.",
+            "icon (string, optional) — Lucide icon name.",
+            "layout (UIComponent) — UI tree built with Card(), VStack(), Button(), etc."
+          ],
+          "easyPluginTitle": "Simple plugin example (Easy Plugin)",
+          "easyPluginIntro": "Minimal working extension that adds a trailer button and info block on the movie details page:",
+          "easyPluginStep1": "1. Plugin folder structure:",
+          "easyPluginStep2": "2. manifest.json:",
+          "easyPluginStep3": "3. index.js:",
+          "folderStructure": "my-easy-plugin/\n├── manifest.json   # Metadata and slot declarations\n└── index.js        # Plugin executable JS",
+          "manifestJson": "{\n  \"id\": \"my-easy-plugin\",\n  \"name\": \"Simple Viewer\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Adds a trailer button and info block on the details page\",\n  \"permissions\": [\"ui-notifications\"],\n  \"slots\": [\n    {\n      \"id\": \"trailer-action-button\",\n      \"slotName\": \"media-actions\",\n      \"title\": \"Trailer button\"\n    },\n    {\n      \"id\": \"extra-details-info\",\n      \"slotName\": \"details-bottom\",\n      \"title\": \"Info block\"\n    }\n  ]\n}",
+          "sandboxButton": "Test overlays in Sandbox"
+        }
+      },
+      "i18n": {
+        "title": "Plugin i18n",
+        "category": "API",
+        "toc": [
+          {
+            "id": "t",
+            "text": "PotokSDK.i18n.t"
+          },
+          {
+            "id": "addResourceBundle",
+            "text": "addResourceBundle"
+          },
+          {
+            "id": "registerTranslations",
+            "text": "registerTranslations"
+          },
+          {
+            "id": "onLanguageChange",
+            "text": "onLanguageChange"
+          }
+        ],
+        "sections": {
+          "title": "Internationalization API",
+          "intro": "PotokSDK.i18n lets plugins read host UI strings and register their own translation bundles. The host injects the current language and pushes updates on change.",
+          "tDesc": "Returns a translated string by key namespace:path for the current language. Supports {{var}} interpolation and plural forms via { count }.",
+          "addResourceBundleDesc": "Registers a plugin dictionary for a language and namespace. Example: addResourceBundle(\"en\", \"myplugin\", { greeting: \"Hi {{name}}\" }).",
+          "registerTranslationsDesc": "Bulk registration: { en: { myplugin: {...} }, ru: { myplugin: {...} } }. Also notifies the host to persist plugin translations.",
+          "onLanguageChangeDesc": "Subscribe to UI language changes. Returns an unsubscribe function. Redraw plugin UI when the host language changes.",
+          "languageNote": "Current language is available as PotokSDK.i18n.language (e.g. \"en\", \"ru\")."
+        }
+      },
+      "streams": {
+        "title": "Streams & media providers",
+        "category": "API",
+        "toc": [
+          {
+            "id": "registerStreamSource",
+            "text": "streams.registerStreamSource"
+          },
+          {
+            "id": "searchProvider",
+            "text": "media.searchProvider"
+          }
+        ],
+        "sections": {
+          "title": "Stream sources & search",
+          "intro": "Plugins can register torrent/stream sources and media search providers that the host invokes when users browse streams or search the library.",
+          "registerStreamSourceTitle": "streams.registerStreamSource",
+          "registerStreamSourceDesc": "Registers a stream source with id, name, supportedTypes (movie | tv), and async handlers: search(query), getEpisodes(stream, context), getPlaybackInfo(stream, context). The host calls these when the user opens the streams page.",
+          "searchProviderTitle": "media.searchProvider",
+          "searchProviderDesc": "Builder for registering a library search provider: media.searchProvider(id, name).icon(url).onSearch(callback). The callback receives the query and returns search results to the host."
+        }
+      },
+      "sandbox": {
+        "title": "Interactive sandbox",
+        "category": "Sandbox",
+        "toc": []
+      }
+    },
+    "components": {
+      "VStack": {
+        "title": "VStack (Vertical Stack)",
+        "description": "Container that arranges child components vertically, one below another.",
+        "methods": {}
+      },
+      "HStack": {
+        "title": "HStack (Horizontal Stack)",
+        "description": "Container that arranges child components horizontally, left to right.",
+        "methods": {}
+      },
+      "Grid": {
+        "title": "Grid",
+        "description": "Container that renders a responsive grid of cells with a fixed minimum column width.",
+        "methods": {
+          "minWidth": {
+            "argument": "string",
+            "description": "Minimum allowed width of a grid column (e.g. '12rem').",
+            "default": "'180px'"
+          },
+          "gap": {
+            "argument": "string",
+            "description": "Gap between grid cells (e.g. '1rem').",
+            "default": "'var(--space-m)'"
+          }
+        }
+      },
+      "Card": {
+        "title": "Card (Glass Panel)",
+        "description": "Glass-style panel with borders, blur, and frosted-glass effect. Groups related UI blocks.",
+        "methods": {
+          "title": {
+            "argument": "string",
+            "description": "Card title shown at the top."
+          },
+          "subtitle": {
+            "argument": "string",
+            "description": "Card subtitle in smaller muted text."
+          },
+          "child": {
+            "argument": "UIComponent",
+            "description": "Embeds one child component inside the card body."
+          }
+        }
+      },
+      "Divider": {
+        "title": "Divider",
+        "description": "Thin horizontal divider line to separate content blocks or list rows.",
+        "methods": {}
+      },
+      "Spacer": {
+        "title": "Spacer",
+        "description": "Flexible empty spacer that fills available space in a flex container. Useful in HStack/VStack to push items to edges.",
+        "methods": {}
+      },
+      "Heading": {
+        "title": "Heading",
+        "description": "Structured heading component for h1–h4 levels.",
+        "methods": {
+          "level": {
+            "argument": "number (1-4)",
+            "description": "Heading level and size (1 = largest, 4 = smallest).",
+            "default": "1"
+          }
+        }
+      },
+      "Text": {
+        "title": "Text",
+        "description": "Primary text element for descriptions, labels, errors, and unstructured content.",
+        "methods": {
+          "variant": {
+            "argument": "'primary' | 'secondary' | 'success' | 'warning' | 'error'",
+            "description": "Text color variant: primary, muted secondary, success, warning, or error.",
+            "default": "'primary'"
+          },
+          "size": {
+            "argument": "'sm' | 'md' | 'lg' | 'xl'",
+            "description": "Sets the font size.",
+            "default": "'md'"
+          },
+          "bold": {
+            "argument": "boolean",
+            "description": "Makes the font bold when true.",
+            "default": "false"
+          }
+        }
+      },
+      "Badge": {
+        "title": "Badge",
+        "description": "Compact rounded label with colored background for quality tags, statuses, and markers.",
+        "methods": {
+          "color": {
+            "argument": "'info' | 'success' | 'warning' | 'error'",
+            "description": "Badge fill color scheme.",
+            "default": "'info'"
+          }
+        }
+      },
+      "StatusRow": {
+        "title": "StatusRow",
+        "description": "Displays external system or connection status with a colored dot and value text.",
+        "methods": {
+          "status": {
+            "argument": "'success' | 'warning' | 'offline'",
+            "description": "Status state (dot color: green/yellow/gray)."
+          },
+          "value": {
+            "argument": "string",
+            "description": "Value text aligned to the right (e.g. '24 ms' or 'v1.2.0')."
+          }
+        }
+      },
+      "Markdown": {
+        "title": "Markdown",
+        "description": "Renders formatted text with lists, bold, tables, and links. Safely parses Markdown without XSS.",
+        "methods": {
+          "content": {
+            "argument": "string",
+            "description": "Sets or updates Markdown content; can override constructor text."
+          }
+        }
+      },
+      "Button": {
+        "title": "Button",
+        "description": "Interactive button for actions, playback, and navigation.",
+        "methods": {
+          "variant": {
+            "argument": "'primary' | 'secondary' | 'danger' | 'ghost' | 'sidebar-item'",
+            "description": "Button style: primary accent, neutral, danger, ghost, or sidebar-item.",
+            "default": "'secondary'"
+          },
+          "icon": {
+            "argument": "string",
+            "description": "Lucide icon name (e.g. 'play', 'settings', 'trash'). Rendered before the label."
+          },
+          "onClick": {
+            "argument": "CallbackFunction",
+            "description": "Callback fired on button click."
+          }
+        }
+      },
+      "Input": {
+        "title": "Input",
+        "description": "Text input for forms, server addresses, auth keys, and filters.",
+        "methods": {
+          "label": {
+            "argument": "string",
+            "description": "Label shown above the input field."
+          },
+          "placeholder": {
+            "argument": "string",
+            "description": "Placeholder shown inside an empty input."
+          },
+          "inputType": {
+            "argument": "string ('text' | 'password' | 'number')",
+            "description": "Input data type; masks value for 'password'.",
+            "default": "'text'"
+          },
+          "type": {
+            "argument": "string",
+            "description": "Deprecated alias for inputType."
+          },
+          "value": {
+            "argument": "string",
+            "description": "Current text value of the field.",
+            "default": "''"
+          },
+          "onChange": {
+            "argument": "CallbackFunction",
+            "description": "Handler called on every value change."
+          }
+        }
+      },
+      "Toggle": {
+        "title": "Toggle",
+        "description": "Checkbox/switch for enabling or disabling boolean settings.",
+        "methods": {
+          "label": {
+            "argument": "string",
+            "description": "Label shown to the right of the switch."
+          },
+          "description": {
+            "argument": "string",
+            "description": "Smaller description text under the toggle label."
+          },
+          "value": {
+            "argument": "boolean",
+            "description": "Current boolean state (true/false).",
+            "default": "false"
+          },
+          "checked": {
+            "argument": "boolean",
+            "description": "Deprecated alias for value."
+          },
+          "onChange": {
+            "argument": "CallbackFunction",
+            "description": "Click handler returning the new boolean state."
+          }
+        }
+      },
+      "Select": {
+        "title": "Select",
+        "description": "Dropdown for choosing one or multiple values from predefined options, with headers and dividers.",
+        "methods": {
+          "label": {
+            "argument": "string",
+            "description": "Title shown above the select field."
+          },
+          "options": {
+            "argument": "{ value?: string, label?: string, type?: string }[]",
+            "description": "Array of options with value/label, or { type: 'divider' } / { type: 'header', label: '...' } entries.",
+            "default": "[]"
+          },
+          "value": {
+            "argument": "string | string[]",
+            "description": "Current selected value or array when multiple is enabled.",
+            "default": "''"
+          },
+          "selected": {
+            "argument": "string | string[]",
+            "description": "Deprecated alias for value."
+          },
+          "onChange": {
+            "argument": "CallbackFunction",
+            "description": "Called when selection changes; passes value or array in multiple mode."
+          },
+          "variant": {
+            "argument": "'default' | 'glass'",
+            "description": "Visual style: 'default' form field or 'glass' frosted filter-bar button.",
+            "default": "'default'"
+          },
+          "icon": {
+            "argument": "string",
+            "description": "Lucide icon for glass variant only (e.g. 'Filter')."
+          },
+          "closeOnSelect": {
+            "argument": "boolean",
+            "description": "Whether to close the menu on select (false by default in multiple mode).",
+            "default": "true"
+          },
+          "multiple": {
+            "argument": "boolean",
+            "description": "Enables multi-select; toggles options without auto-closing.",
+            "default": "false"
+          },
+          "resetLabel": {
+            "argument": "string",
+            "description": "Reset button label at the bottom of the popover."
+          },
+          "resetValue": {
+            "argument": "string | string[]",
+            "description": "Value applied when reset is pressed (e.g. [] for multiple).",
+            "default": "''"
+          }
+        }
+      },
+      "CodeEditor": {
+        "title": "CodeEditor",
+        "description": "Full-featured Monaco code editor with syntax highlighting, autocomplete, and line numbers.",
+        "methods": {
+          "label": {
+            "argument": "string",
+            "description": "Label above the editor container."
+          },
+          "value": {
+            "argument": "string",
+            "description": "Initial or current editor text.",
+            "default": "''"
+          },
+          "readOnly": {
+            "argument": "boolean",
+            "description": "When true, editor is read-only.",
+            "default": "false"
+          },
+          "onChange": {
+            "argument": "CallbackFunction",
+            "description": "Fired on any code change in the editor."
+          }
+        }
+      },
+      "StreamSkeletonList": {
+        "title": "StreamSkeletonList (Search Placeholder)",
+        "description": "Animated skeleton placeholder shown while torrent search results are loading.",
+        "methods": {}
+      },
+      "StreamRow": {
+        "title": "StreamRow",
+        "description": "Torrent list row showing title, size, tracker, quality, and seeders/peers.",
+        "methods": {
+          "stream": {
+            "argument": "object",
+            "description": "Stream metadata: title, size, seeds, peers, quality, tracker."
+          },
+          "onClick": {
+            "argument": "CallbackFunction",
+            "description": "Click handler to start playback for the torrent row."
+          }
+        }
+      },
+      "MediaCard": {
+        "title": "MediaCard",
+        "description": "Vertical media card with poster, rating, title, and year on hover.",
+        "methods": {
+          "item": {
+            "argument": "object",
+            "description": "Movie metadata object (title, posterUrl, year, rating)."
+          },
+          "onClick": {
+            "argument": "CallbackFunction",
+            "description": "Click handler; passes the media item."
+          }
+        }
+      },
+      "HeroSpotlight": {
+        "title": "HeroSpotlight (Promo Banner)",
+        "description": "Large promo banner with backdrop art, title, overview, and Watch/Details buttons.",
+        "methods": {
+          "items": {
+            "argument": "any[]",
+            "description": "Media items for the banner slider (title, overview, backdropUrl)."
+          },
+          "onPlay": {
+            "argument": "CallbackFunction",
+            "description": "Watch button handler; returns the active slide item."
+          },
+          "onDetails": {
+            "argument": "CallbackFunction",
+            "description": "Details button handler."
+          }
+        }
+      },
+      "StreamList": {
+        "title": "StreamList",
+        "description": "Ready-made torrent list with quality/size filters, loading state, and empty placeholder.",
+        "methods": {
+          "streams": {
+            "argument": "any[]",
+            "description": "Array of torrents matching StreamRow fields.",
+            "default": "[]"
+          },
+          "loading": {
+            "argument": "boolean",
+            "description": "When true, shows skeleton loading placeholders.",
+            "default": "false"
+          },
+          "showFilters": {
+            "argument": "boolean",
+            "description": "Shows/hides quick quality and tracker filters.",
+            "default": "false"
+          },
+          "emptyText": {
+            "argument": "string",
+            "description": "Message shown when the list is empty.",
+            "default": "'Раздачи не найдены'"
+          },
+          "nounPlurals": {
+            "argument": "string[]",
+            "description": "Three plural forms for torrent count (e.g. ['torrent', 'torrents', 'torrents'])."
+          },
+          "onSelectStream": {
+            "argument": "CallbackFunction",
+            "description": "Called when a stream is selected; passes the stream object."
+          }
+        }
+      },
+      "LoadingSpinner": {
+        "title": "LoadingSpinner",
+        "description": "Circular loading indicator for network waits, parsing, and UI rendering.",
+        "methods": {
+          "message": {
+            "argument": "string",
+            "description": "Waiting message shown below the spinner."
+          },
+          "fullscreen": {
+            "argument": "boolean",
+            "description": "When true, fullscreen overlay blocks the UI.",
+            "default": "false"
+          }
+        }
+      },
+      "EpisodesSection": {
+        "title": "EpisodesSection",
+        "description": "Self-contained TV block that fetches episodes by media ID and renders a season grid.",
+        "methods": {
+          "mediaId": {
+            "argument": "string | number",
+            "description": "Unique series ID in the media database."
+          },
+          "numberOfSeasons": {
+            "argument": "number",
+            "description": "Total number of seasons for season tabs."
+          },
+          "onEpisodeClick": {
+            "argument": "CallbackFunction",
+            "description": "Episode click handler; passes episode data."
+          }
+        }
+      },
+      "MediaCast": {
+        "title": "MediaCast",
+        "description": "Horizontal row of cast cards with avatars, names, and roles.",
+        "methods": {
+          "cast": {
+            "argument": "any[]",
+            "description": "Array of cast members (name, character, profilePath).",
+            "default": "[]"
+          }
+        }
+      },
+      "MediaOverview": {
+        "title": "MediaOverview",
+        "description": "Interactive movie/series overview with poster, description, year, country, rating, and genres.",
+        "methods": {
+          "media": {
+            "argument": "object",
+            "description": "Detailed media metadata (title, overview, posterUrl, rating, genres, year, country)."
+          },
+          "selectedEpisode": {
+            "argument": "object",
+            "description": "Selected episode to show instead of full-series overview."
+          },
+          "onResetEpisode": {
+            "argument": "CallbackFunction",
+            "description": "Resets episode selection back to series overview."
+          }
+        }
+      },
+      "MediaRow": {
+        "title": "MediaRow",
+        "description": "Horizontal scrolling carousel of MediaCard items with a title and See all button.",
+        "methods": {
+          "title": {
+            "argument": "string",
+            "description": "Section title (e.g. 'Trending now')."
+          },
+          "items": {
+            "argument": "any[]",
+            "description": "Array of movie objects rendered as cards.",
+            "default": "[]"
+          },
+          "onCardClick": {
+            "argument": "CallbackFunction",
+            "description": "Handler for any card click in the row."
+          },
+          "onSeeAllClick": {
+            "argument": "CallbackFunction",
+            "description": "See all button click handler."
+          }
+        }
+      },
+      "MediaPlayer": {
+        "title": "MediaPlayer",
+        "description": "HTML5 video player supporting HLS (.m3u8), DASH (.mpd), and MP4 with subtitles and audio tracks.",
+        "methods": {
+          "playback": {
+            "argument": "object",
+            "description": "Playback metadata (SDKPlaybackInfo): streamUrl, streamType, title, season, episode, torrentHash, fileIndex, audios ({id, name, url}[]), headers, providerId, voice, subtitles, session, duration, introStart/End, outroStart/End, thumbnails, requiresBuffering."
+          },
+          "isNetworkOffline": {
+            "argument": "boolean",
+            "description": "Offline mode; when true stops playback and shows a network error.",
+            "default": "false"
+          }
+        }
+      },
+      "ProfileSelector": {
+        "title": "ProfileSelector",
+        "description": "Connection profile manager for switching Potok Gateway servers with ping, add, edit, and delete.",
+        "methods": {
+          "connectionProfiles": {
+            "argument": "any[]",
+            "description": "Connection profiles (id, name, gatewayURL).",
+            "default": "[]"
+          },
+          "activeProfileID": {
+            "argument": "string | null",
+            "description": "Active connection profile ID."
+          },
+          "isSettingsLocked": {
+            "argument": "boolean",
+            "description": "When true, blocks create/edit/delete profile actions.",
+            "default": "false"
+          },
+          "onSelectProfile": {
+            "argument": "CallbackFunction",
+            "description": "Profile select handler; passes the profile object."
+          },
+          "onStartEdit": {
+            "argument": "CallbackFunction",
+            "description": "Edit profile handler."
+          },
+          "onDeleteProfile": {
+            "argument": "CallbackFunction",
+            "description": "Delete profile handler."
+          },
+          "onStartAdd": {
+            "argument": "CallbackFunction",
+            "description": "Add new connection handler."
+          }
+        }
+      },
+      "SearchBar": {
+        "title": "SearchBar",
+        "description": "Search field with magnifier icon and quick clear button.",
+        "methods": {
+          "value": {
+            "argument": "string",
+            "description": "Current search query text.",
+            "default": "''"
+          },
+          "placeholder": {
+            "argument": "string",
+            "description": "Placeholder inside the search field.",
+            "default": "'Поиск...'"
+          },
+          "onChange": {
+            "argument": "CallbackFunction",
+            "description": "Called when the search text changes."
+          },
+          "onClear": {
+            "argument": "CallbackFunction",
+            "description": "Clear button click handler."
+          }
+        }
+      },
+      "StreamFilterBar": {
+        "title": "StreamFilterBar",
+        "description": "Sorting and filtering bar for torrent results by quality, tracker, and size/seeds.",
+        "methods": {
+          "countLabel": {
+            "argument": "string",
+            "description": "Count label shown on the left."
+          },
+          "qualityFilter": {
+            "argument": "string",
+            "description": "Current quality filter (e.g. '1080p')."
+          },
+          "activeTracker": {
+            "argument": "string",
+            "description": "Active tracker filter."
+          },
+          "trackers": {
+            "argument": "string[]",
+            "description": "Tracker names for the source filter.",
+            "default": "[]"
+          },
+          "showSort": {
+            "argument": "boolean",
+            "description": "Shows/hides the sort dropdown on the right.",
+            "default": "true"
+          },
+          "sortOption": {
+            "argument": "string",
+            "description": "Active sort option (e.g. 'seeds' or 'size')."
+          },
+          "onRefresh": {
+            "argument": "CallbackFunction",
+            "description": "Refresh search button handler."
+          },
+          "onQualityChange": {
+            "argument": "CallbackFunction",
+            "description": "Quality filter change handler."
+          },
+          "onTrackerChange": {
+            "argument": "CallbackFunction",
+            "description": "Tracker change handler."
+          },
+          "onSortChange": {
+            "argument": "CallbackFunction",
+            "description": "Sort order change handler."
+          }
+        }
+      },
+      "EpisodeSelector": {
+        "title": "EpisodeSelector (Modal)",
+        "description": "Modal selector for detailed season and episode picking with backdrop poster.",
+        "methods": {
+          "isOpen": {
+            "argument": "boolean",
+            "description": "Controls modal visibility.",
+            "default": "false"
+          },
+          "title": {
+            "argument": "string",
+            "description": "Modal title (series name)."
+          },
+          "subtitle": {
+            "argument": "string",
+            "description": "Subtitle/description."
+          },
+          "episodes": {
+            "argument": "any[]",
+            "description": "Episodes for the currently selected season.",
+            "default": "[]"
+          },
+          "backdropSrc": {
+            "argument": "string",
+            "description": "Backdrop image URL."
+          },
+          "seasonsLoading": {
+            "argument": "boolean",
+            "description": "When true, shows a loading spinner for seasons/episodes.",
+            "default": "false"
+          },
+          "seasons": {
+            "argument": "any[]",
+            "description": "Available seasons for tabs.",
+            "default": "[]"
+          },
+          "onClose": {
+            "argument": "CallbackFunction",
+            "description": "Modal close handler."
+          },
+          "onPlay": {
+            "argument": "CallbackFunction",
+            "description": "Play episode handler in the selector."
+          },
+          "onApplyOverride": {
+            "argument": "CallbackFunction",
+            "description": "Episode override handler."
+          },
+          "onStartEditing": {
+            "argument": "CallbackFunction",
+            "description": "Start editing episodes handler."
+          }
+        }
+      },
+      "EpisodeCard": {
+        "title": "EpisodeCard",
+        "description": "Single episode card with still, number, title, and overview.",
+        "methods": {
+          "episode": {
+            "argument": "object",
+            "description": "Episode object (episodeNumber, seasonNumber, name, overview, stillPath)."
+          },
+          "onClick": {
+            "argument": "CallbackFunction",
+            "description": "Episode card click handler; passes the episode."
+          }
+        }
+      }
+    },
+    "tables": {
+      "baseMethods": {
+        "method": "Base method",
+        "argument": "Argument",
+        "description": "Description",
+        "rows": {
+          "id": "Sets a unique element identifier.",
+          "padding": "Inner padding of the element.",
+          "margin": "Outer margin of the element.",
+          "width": "Element width (e.g. \"100%\" or 250).",
+          "height": "Element height (e.g. \"auto\" or 100).",
+          "visible": "Controls element visibility.",
+          "disabled": "Puts the element in a disabled state.",
+          "flex": "Flex-grow ratio for free space distribution."
+        }
+      },
+      "layoutMethods": {
+        "method": "Layout method",
+        "argument": "Argument",
+        "description": "Description",
+        "rows": {
+          "spacing": "Gap between child elements in pixels.",
+          "alignItems": "Cross-axis alignment of children.",
+          "justifyContent": "Main-axis alignment of children.",
+          "child": "Adds one child component to the container.",
+          "children": "Replaces children with an array of components."
+        }
+      }
+    },
+    "componentDoc": {
+      "description": "Description",
+      "specificMethods": "Component-specific methods",
+      "layoutMethods": "Layout methods (inherited from LayoutComponent)",
+      "baseMethods": "Base methods (inherited from UIComponent)",
+      "example": "Usage example",
+      "runSandbox": "Run in Sandbox",
+      "defaultValue": "Default:",
+      "method": "Method"
+    }
   }
 }
