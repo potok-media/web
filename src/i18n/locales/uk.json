@@ -550,14 +550,22 @@
         "emptySub": "хронологічна стрічка завершених фільмів та епізодів з'явиться тут"
       },
       "dynamic": {
-        "nowPlaying": "В театрах",
-        "trendingDay": "Популярні сьогодні",
-        "trendingWeek": "Популярний цього тижня",
-        "upcoming": "Чекайте вже скоро",
-        "popularMovies": "Популярні фільми",
-        "popularTv": "Популярні серіали",
-        "topMovies": "Популярні фільми",
-        "topTv": "Популярні серіали"
+        "onTheAir": "В ефірі",
+        "airingToday": "Сьогодні в ефірі",
+        "nowPlaying": "В кінотеатрах",
+        "fridayThrills": "Адреналін",
+        "cozyEvening": "Затишний вечір",
+        "hiddenGems": "Приховані перлини",
+        "nightSession": "Нічний сеанс",
+        "comedyBreak": "Комедійна пауза",
+        "sciFiFuture": "Космос і майбутнє",
+        "sciFiSeries": "Sci-Fi серіали",
+        "nostalgia90s": "Ностальгія 90-х",
+        "koreanHits": "Корейські хіти",
+        "upcoming": "Скоро в кіно",
+        "topTv": "Найкращі серіали",
+        "anime": "Аніме",
+        "shortRuntime": "Один вечір — один фільм"
       }
     },
     "streams": {

@@ -33,12 +33,20 @@ export const CATEGORY_MAP: Record<string, { title: string; endpoint: string; ico
 };
 
 export const DYNAMIC_CATEGORY_TITLES: Record<string, string> = {
+  "tv.on-the-air": "categories.dynamic.onTheAir",
+  "tv.airing-today": "categories.dynamic.airingToday",
   "movie.now-playing": "categories.dynamic.nowPlaying",
-  "movie.trending-day": "categories.dynamic.trendingDay",
-  "movie.trending-week": "categories.dynamic.trendingWeek",
+  "mood.friday-thrills": "categories.dynamic.fridayThrills",
+  "mood.cozy-evening": "categories.dynamic.cozyEvening",
+  "discover.hidden-gems": "categories.dynamic.hiddenGems",
+  "genre.movie.27": "categories.dynamic.nightSession",
+  "genre.movie.35": "categories.dynamic.comedyBreak",
+  "genre.movie.878": "categories.dynamic.sciFiFuture",
+  "genre.tv.10765": "categories.dynamic.sciFiSeries",
+  "mood.nostalgia": "categories.dynamic.nostalgia90s",
+  "discover.korean": "categories.dynamic.koreanHits",
   "movie.upcoming": "categories.dynamic.upcoming",
-  "movie.popular": "categories.dynamic.popularMovies",
-  "tv.popular": "categories.dynamic.popularTv",
-  "movie.top-rated": "categories.dynamic.topMovies",
   "tv.top-rated": "categories.dynamic.topTv",
+  "discover.anime": "categories.dynamic.anime",
+  "movie.short-runtime": "categories.dynamic.shortRuntime",
 };

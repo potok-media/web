@@ -550,14 +550,22 @@
         "emptySub": "Tutaj pojawi się chronologiczny kanał filmów i odcinków"
       },
       "dynamic": {
-        "nowPlaying": "W teatrach",
-        "trendingDay": "Popularne dzisiaj",
-        "trendingWeek": "Popularne w tym tygodniu",
-        "upcoming": "Już wkrótce",
-        "popularMovies": "Popularne filmy",
-        "popularTv": "Popularne seriale",
-        "topMovies": "Najlepsze filmy",
-        "topTv": "Najlepsze seriale"
+        "onTheAir": "Obecnie emitowane",
+        "airingToday": "Dziś w TV",
+        "nowPlaying": "W kinach",
+        "fridayThrills": "Adrenalina",
+        "cozyEvening": "Przytulny wieczór",
+        "hiddenGems": "Ukryte perełki",
+        "nightSession": "Nocny seans",
+        "comedyBreak": "Przerwa na komedię",
+        "sciFiFuture": "Kosmos i przyszłość",
+        "sciFiSeries": "Seriale sci-fi",
+        "nostalgia90s": "Nostalgia lat 90.",
+        "koreanHits": "Koreańskie hity",
+        "upcoming": "Wkrótce w kinach",
+        "topTv": "Najlepsze seriale",
+        "anime": "Anime",
+        "shortRuntime": "Jeden wieczór, jeden film"
       }
     },
     "streams": {

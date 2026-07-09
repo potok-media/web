@@ -557,14 +557,22 @@
         "emptySub": "Здесь будет отображаться хронологическая лента завершенных фильмов и эпизодов"
       },
       "dynamic": {
+        "onTheAir": "В эфире",
+        "airingToday": "Сегодня в эфире",
         "nowPlaying": "В кинотеатрах",
-        "trendingDay": "Тренды дня",
-        "trendingWeek": "Тренды недели",
-        "upcoming": "Скоро выйдет",
-        "popularMovies": "Популярные фильмы",
-        "popularTv": "Популярные сериалы",
-        "topMovies": "Лучшие фильмы",
-        "topTv": "Лучшие сериалы"
+        "fridayThrills": "Адреналин",
+        "cozyEvening": "Уютный вечер",
+        "hiddenGems": "Скрытые жемчужины",
+        "nightSession": "Ночной сеанс",
+        "comedyBreak": "Комедийный перерыв",
+        "sciFiFuture": "Космос и будущее",
+        "sciFiSeries": "Sci-Fi сериалы",
+        "nostalgia90s": "Ностальгия 90-х",
+        "koreanHits": "Корейские хиты",
+        "upcoming": "Скоро в кино",
+        "topTv": "Лучшие сериалы",
+        "anime": "Аниме",
+        "shortRuntime": "Один вечер — один фильм"
       }
     },
     "streams": {
@@ -950,11 +958,11 @@
           "optionalTitle": "Торренты",
           "optionalDesc": "SearchEngine + TorrentGo в compose. URL — в <repo>potok-torrents</repo>.",
           "envTitle": ".env",
-          "envDesc": "",
+          "envDesc": "<code>GATEWAY_TMDB_API_KEY</code> — TMDB. <code>GATEWAY_MULTI_USER_MODE=true</code> — саморегистрация, <code>false</code> — только вход. <code>GATEWAY_JWT_SECRET</code> — сменить в проде.",
           "runTitle": "Запуск",
           "dockerUp": "docker compose up -d",
           "nginxTitle": "Nginx",
-          "nginxDesc": "",
+          "nginxDesc": "<code>potok.rip</code> → :3000, <code>api.potok.rip</code> → :5000. <code>wiki.potok.rip</code> — прокси на <code>/wiki</code> (+ <code>/assets/</code>); с корня редирект на <code>/wiki</code>. <code>VITE_DEFAULT_BFF_URL=https://api.potok.rip</code>.",
           "nginxProxy": "server {\n    listen 80;\n    server_name wiki.potok.rip;\n\n    location / {\n        proxy_pass http://localhost:3000/wiki;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n}\n\nserver {\n    listen 80;\n    server_name app.potok.rip;\n\n    location / {\n        proxy_pass http://localhost:3000;\n        proxy_set_header Host $host;\n    }\n\n    location /api/ {\n        proxy_pass http://localhost:5000/;\n        proxy_set_header Host $host;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n    }\n}"
         }
       },

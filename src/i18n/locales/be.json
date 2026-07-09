@@ -550,14 +550,22 @@
         "emptySub": ""
       },
       "dynamic": {
-        "nowPlaying": "",
-        "trendingDay": "",
-        "trendingWeek": "",
-        "upcoming": "",
-        "popularMovies": "",
-        "popularTv": "",
-        "topMovies": "",
-        "topTv": ""
+        "onTheAir": "Currently airing",
+        "airingToday": "Airing today",
+        "nowPlaying": "In theaters",
+        "fridayThrills": "Adrenaline rush",
+        "cozyEvening": "Cozy evening",
+        "hiddenGems": "Hidden gems",
+        "nightSession": "Late night horror",
+        "comedyBreak": "Comedy break",
+        "sciFiFuture": "Space and the future",
+        "sciFiSeries": "Sci-Fi series",
+        "nostalgia90s": "90s nostalgia",
+        "koreanHits": "Korean hits",
+        "upcoming": "Coming soon",
+        "topTv": "Top TV shows",
+        "anime": "Anime",
+        "shortRuntime": "One evening, one movie"
       }
     },
     "streams": {

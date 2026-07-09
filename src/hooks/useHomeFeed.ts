@@ -10,6 +10,23 @@ import { logger } from "../utils/logger";
 // In-memory feed cache mapped by profile ID to prevent profile switching data leaks!
 const profileFeedCache: Record<string, HomeResponse> = {};
 
+export function invalidateHomeFeedCache(profileKey?: string): void {
+  if (profileKey) {
+    delete profileFeedCache[profileKey];
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(`potok_cached_feed_${profileKey}`);
+    }
+    return;
+  }
+
+  Object.keys(profileFeedCache).forEach((key) => delete profileFeedCache[key]);
+  if (typeof window !== "undefined") {
+    Object.keys(localStorage)
+      .filter((key) => key.startsWith("potok_cached_feed_"))
+      .forEach((key) => localStorage.removeItem(key));
+  }
+}
+
 const getCachedFeed = (profileKey: string): HomeResponse | null => {
   if (typeof window === "undefined") return null;
   try {

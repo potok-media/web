@@ -550,14 +550,22 @@
         "emptySub": "Ein chronologischer Feed mit abgeschlossenen Filmen und Episoden wird hier erscheinen"
       },
       "dynamic": {
-        "nowPlaying": "In Theatern",
-        "trendingDay": "Heute angesagt",
-        "trendingWeek": "Diese Woche angesagt",
-        "upcoming": "Demnächst",
-        "popularMovies": "Beliebte Filme",
-        "popularTv": "Beliebte Serien",
-        "topMovies": "Top Filme",
-        "topTv": "Top Serien"
+        "onTheAir": "Aktuell auf Sendung",
+        "airingToday": "Heute im TV",
+        "nowPlaying": "Im Kino",
+        "fridayThrills": "Adrenalin",
+        "cozyEvening": "Gemütlicher Abend",
+        "hiddenGems": "Geheimtipps",
+        "nightSession": "Nachtvorstellung",
+        "comedyBreak": "Comedy-Pause",
+        "sciFiFuture": "Weltraum und Zukunft",
+        "sciFiSeries": "Sci-Fi-Serien",
+        "nostalgia90s": "90er-Nostalgie",
+        "koreanHits": "Koreanische Hits",
+        "upcoming": "Demnächst im Kino",
+        "topTv": "Top-Serien",
+        "anime": "Anime",
+        "shortRuntime": "Ein Abend, ein Film"
       }
     },
     "streams": {
