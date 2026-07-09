@@ -1,31 +1,25 @@
 import type { TFunction } from "i18next";
 import { CodeBlock } from "../../../components/wiki/CodeBlock";
 import { NGINX_PROXY, OPTIONAL_TORRENT_COMPOSE, REQUIRED_COMPOSE } from "../composeReference";
-
-interface EnvTableRow {
-  var: string;
-  service: string;
-  desc: string;
-}
+import { FULL_STACK_DOT_ENV } from "../installReference";
+import { buildInstallTorrentHint } from "./torrentServicesDocs";
+import { WikiDocP, WikiFileList, WikiRichText } from "../wikiDocUtils";
 
 interface InstallSections {
   title: string;
   intro: string;
+  quickStartTitle: string;
+  quickStartFiles: string[];
+  pluginUrlsTitle: string;
+  pluginUrlsDesc: string;
   requiredTitle: string;
   requiredDesc: string;
   optionalTitle: string;
   optionalDesc: string;
-  optionalNote: string;
-  runCommand: string;
-  dockerUp: string;
   envTitle: string;
   envDesc: string;
-  envTable: {
-    variable: string;
-    service: string;
-    description: string;
-    rows: EnvTableRow[];
-  };
+  runTitle: string;
+  dockerUp: string;
   nginxTitle: string;
   nginxDesc: string;
 }
@@ -36,46 +30,32 @@ export function buildInstallDoc(t: TFunction<"wiki">) {
   return () => (
     <div>
       <h1 className="wiki-doc-title" id="compose">{s.title}</h1>
-      <p className="doc-body-text">{s.intro}</p>
+      <WikiDocP text={s.intro} />
+
+      <h2 className="doc-section-h2" id="quick-start">{s.quickStartTitle}</h2>
+      <WikiFileList items={s.quickStartFiles} linkPage="torrentServices" />
 
       <h2 className="doc-section-h2">{s.requiredTitle}</h2>
-      <p className="doc-body-text">{s.requiredDesc}</p>
+      <WikiDocP text={s.requiredDesc} />
       <CodeBlock language="yaml" code={REQUIRED_COMPOSE} />
 
-      <h2 className="doc-section-h2">{s.optionalTitle}</h2>
-      <p className="doc-body-text">{s.optionalDesc}</p>
-      <div className="doc-callout-box">
-        <p className="doc-body-text doc-body-text--flush">{s.optionalNote}</p>
-      </div>
+      <h2 className="doc-section-h2"><WikiRichText text={s.optionalTitle} /></h2>
+      <WikiDocP text={s.optionalDesc} />
       <CodeBlock language="yaml" code={OPTIONAL_TORRENT_COMPOSE} />
+      {buildInstallTorrentHint(t)}
 
-      <p className="doc-body-text">{s.runCommand}</p>
-      <CodeBlock language="bash" code={s.dockerUp} />
+      <h3 className="doc-section-h3 doc-section-h3--spaced"><WikiRichText text={s.pluginUrlsTitle} /></h3>
+      <WikiDocP text={s.pluginUrlsDesc} />
 
       <h2 className="doc-section-h2" id="variables">{s.envTitle}</h2>
-      <p className="doc-body-text">{s.envDesc}</p>
+      <WikiDocP text={s.envDesc} />
+      <CodeBlock language="properties" code={FULL_STACK_DOT_ENV} />
 
-      <table className="doc-table">
-        <thead>
-          <tr>
-            <th>{s.envTable.variable}</th>
-            <th>{s.envTable.service}</th>
-            <th>{s.envTable.description}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {s.envTable.rows.map((row) => (
-            <tr key={row.var}>
-              <td><code>{row.var}</code></td>
-              <td>{row.service}</td>
-              <td>{row.desc}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <h2 className="doc-section-h2" id="run">{s.runTitle}</h2>
+      <CodeBlock language="bash" code={s.dockerUp} />
 
       <h2 className="doc-section-h2" id="nginx">{s.nginxTitle}</h2>
-      <p className="doc-body-text">{s.nginxDesc}</p>
+      <WikiDocP text={s.nginxDesc} />
       <CodeBlock language="nginx" code={NGINX_PROXY} />
     </div>
   );

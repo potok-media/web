@@ -4,6 +4,7 @@ import type { WikiPageEntry, WikiPagesMap } from "./wikiTypes";
 import { WIKI_CATEGORY_KEYS } from "./wikiCategories";
 import { buildIntroDoc } from "./docs/introDocs";
 import { buildInstallDoc } from "./docs/installDocs";
+import { buildTorrentServicesDoc } from "./docs/torrentServicesDocs";
 import { buildManifestDoc, buildStateDoc } from "./docs/apiCoreDocs";
 import { buildHttpDoc, buildStorageDoc } from "./docs/apiClientDocs";
 import { buildUiMethodsDoc } from "./docs/apiUiDocs";
@@ -34,6 +35,7 @@ export function useWikiPages(): WikiPagesMap {
     const pages: WikiPagesMap = {
       intro: pageMeta(t, "intro", WIKI_CATEGORY_KEYS.intro, buildIntroDoc(t)),
       install: pageMeta(t, "install", WIKI_CATEGORY_KEYS.intro, buildInstallDoc(t)),
+      torrentServices: pageMeta(t, "torrentServices", WIKI_CATEGORY_KEYS.intro, buildTorrentServicesDoc(t)),
       manifest: pageMeta(t, "manifest", WIKI_CATEGORY_KEYS.api, buildManifestDoc(t)),
       state: pageMeta(t, "state", WIKI_CATEGORY_KEYS.api, buildStateDoc(t)),
       http: pageMeta(t, "http", WIKI_CATEGORY_KEYS.api, buildHttpDoc(t)),

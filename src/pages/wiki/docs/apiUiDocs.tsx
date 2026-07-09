@@ -2,7 +2,7 @@ import type { TFunction } from "i18next";
 import { Play } from "lucide-react";
 import { Button } from "../../../components/ui";
 import { CodeBlock } from "../../../components/wiki/CodeBlock";
-import { getWikiSections } from "../wikiDocUtils";
+import { getWikiSections, WikiDocLi, WikiDocP, WikiRichText } from "../wikiDocUtils";
 import {
   easyPluginIndexJsExample,
   playVideoExample,
@@ -60,47 +60,47 @@ export function buildUiMethodsDoc(t: TFunction<"wiki">, lang?: string) {
   return (openInSandbox: (code: string) => void) => (
     <div>
       <h1 className="wiki-doc-title" id="render">{s.title}</h1>
-      <p className="doc-body-text">{s.intro}</p>
+      <WikiDocP text={s.intro} />
 
       <h2 className="doc-section-h2" id="render-method">{s.renderTitle}</h2>
-      <p className="doc-body-text">{s.renderText}</p>
+      <WikiDocP text={s.renderText} />
 
       <h2 className="doc-section-h2" id="hud">{s.hudTitle}</h2>
-      <p className="doc-body-text">{s.hudText}</p>
+      <WikiDocP text={s.hudText} />
 
       <h2 className="doc-section-h2" id="player">{s.playerTitle}</h2>
-      <p className="doc-body-text">{s.playerText}</p>
+      <WikiDocP text={s.playerText} />
       <CodeBlock language="javascript" code={playVideoExample(lang)} />
 
       <h2 className="doc-section-h2" id="ep-selector">{s.epSelectorTitle}</h2>
-      <p className="doc-body-text">{s.epSelectorText}</p>
+      <WikiDocP text={s.epSelectorText} />
       <CodeBlock language="javascript" code={showEpisodeSelectorExample(lang)} />
 
       <h2 className="doc-section-h2" id="navigation">{s.navigationTitle}</h2>
-      <p className="doc-body-text">{s.navigationText}</p>
+      <WikiDocP text={s.navigationText} />
       <CodeBlock language="javascript" code={s.navigationCode} />
 
       <h2 className="doc-section-h2" id="themes">{s.themesTitle}</h2>
-      <p className="doc-body-text">{s.themesIntro}</p>
+      <WikiDocP text={s.themesIntro} />
       <ul className="doc-bullet-list">
         {s.themesItems.map((item) => (
-          <li key={item}>{item}</li>
+          <WikiDocLi key={item} text={item} />
         ))}
       </ul>
 
       <h2 className="doc-section-h2" id="block">{s.blockTitle}</h2>
-      <p className="doc-body-text">{s.blockText}</p>
+      <WikiDocP text={s.blockText} />
       <ul className="doc-bullet-list">
         {s.blockItems.map((item) => (
-          <li key={item}>{item}</li>
+          <WikiDocLi key={item} text={item} />
         ))}
       </ul>
 
       <h2 className="doc-section-h2" id="block-context">{s.onBlockContextUpdateTitle}</h2>
-      <p className="doc-body-text">{s.onBlockContextUpdateText}</p>
+      <WikiDocP text={s.onBlockContextUpdateText} />
 
       <h2 className="doc-section-h2" id="registration">{s.registrationTitle}</h2>
-      <p className="doc-body-text">{s.registrationIntro}</p>
+      <WikiDocP text={s.registrationIntro} />
 
       <div className="doc-table-wrapper doc-table-wrapper--spaced">
         <table className="doc-table">
@@ -114,7 +114,7 @@ export function buildUiMethodsDoc(t: TFunction<"wiki">, lang?: string) {
             {s.registrationTable.rows.map((row) => (
               <tr key={row.api}>
                 <td><code>{row.api}</code></td>
-                <td>{row.desc}</td>
+                <td><WikiRichText text={row.desc} /></td>
               </tr>
             ))}
           </tbody>
@@ -124,21 +124,21 @@ export function buildUiMethodsDoc(t: TFunction<"wiki">, lang?: string) {
       <h3 className="doc-section-h3 doc-section-h3--spaced" id="register-slot-docs">
         {s.registerSlotTitle}
       </h3>
-      <p className="doc-body-text">{s.registerSlotIntro}</p>
-      <p className="doc-body-text">{s.registerSlotConfigIntro}</p>
+      <WikiDocP text={s.registerSlotIntro} />
+      <WikiDocP text={s.registerSlotConfigIntro} />
       <ul className="doc-bullet-list">
         {s.registerSlotParams.map((item) => (
-          <li key={item}>{item}</li>
+          <WikiDocLi key={item} text={item} />
         ))}
       </ul>
       <ul className="doc-bullet-list doc-bullet-list--indented">
         {s.registerSlotRenderFields.map((item) => (
-          <li key={item}>{item}</li>
+          <WikiDocLi key={item} text={item} />
         ))}
       </ul>
 
       <h3 className="doc-section-h3 doc-section-h3--spaced">{s.easyPluginTitle}</h3>
-      <p className="doc-body-text">{s.easyPluginIntro}</p>
+      <WikiDocP text={s.easyPluginIntro} />
 
       <h4 className="doc-h4-step">{s.easyPluginStep1}</h4>
       <CodeBlock language="text" code={s.folderStructure} />

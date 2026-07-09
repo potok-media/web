@@ -1010,7 +1010,7 @@ export class MediaPlayerBuilder extends UIComponent {
  *     name: "Локальный шлюз",
  *     gatewayURL: "http://localhost:5000",
  *     playerServerURL: "http://localhost:8080",
- *     searchEngineURL: "http://localhost:7000",
+ *     searchEngineURL: "http://localhost:6000",
  *     playerServerAuthEnabled: false,
  *     playerServerAuthLogin: "",
  *     playerServerAuthPassword: ""

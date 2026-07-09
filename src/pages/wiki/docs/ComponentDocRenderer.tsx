@@ -5,6 +5,7 @@ import { CodeBlock } from "../../../components/wiki/CodeBlock";
 import metadataRaw from "../docs-metadata.json";
 import type { WikiCategoryKey } from "../wikiCategories";
 import { BaseMethodsTable, LayoutMethodsTable } from "../componentDocTables";
+import { WikiDocP, WikiRichText } from "../wikiDocUtils";
 
 interface MethodMeta {
   argument: string;
@@ -73,7 +74,7 @@ export function createComponentDoc(name: string, categoryKey: WikiCategoryKey, t
     render: (openInSandbox: (code: string) => void) => (
       <div>
         <h1 className="wiki-doc-title" id="desc">{meta.title}</h1>
-        <p className="doc-body-text">{meta.description}</p>
+        <WikiDocP text={meta.description} />
 
         {hasSpecificMethods && (
           <>
@@ -94,7 +95,7 @@ export function createComponentDoc(name: string, categoryKey: WikiCategoryKey, t
                     <td><code>{methodName}(v)</code></td>
                     <td><code>{methodMeta.argument}</code></td>
                     <td>
-                      {methodMeta.description}
+                      <WikiRichText text={methodMeta.description} />
                       {methodMeta.default !== undefined && (
                         <>
                           <br />

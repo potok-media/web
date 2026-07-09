@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import { WikiRichText } from "./wikiDocUtils";
 
 interface MethodTableLabels {
   method: string;
@@ -34,7 +35,7 @@ export function BaseMethodsTable({ t }: { t: TFunction<"wiki"> }) {
           <tr key={row.key}>
             <td><code>{row.key}(v)</code></td>
             <td><code>{row.arg}</code></td>
-            <td>{tbl.rows[row.key]}</td>
+            <td><WikiRichText text={tbl.rows[row.key]} /></td>
           </tr>
         ))}
       </tbody>
@@ -66,7 +67,7 @@ export function LayoutMethodsTable({ t }: { t: TFunction<"wiki"> }) {
           <tr key={row.key}>
             <td><code>{row.key}(v)</code></td>
             <td><code>{row.arg}</code></td>
-            <td>{tbl.rows[row.key]}</td>
+            <td><WikiRichText text={tbl.rows[row.key]} /></td>
           </tr>
         ))}
       </tbody>

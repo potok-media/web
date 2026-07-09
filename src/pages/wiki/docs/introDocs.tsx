@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 import { Play } from "lucide-react";
 import { CodeBlock } from "../../../components/wiki/CodeBlock";
 import { Button } from "../../../components/ui";
+import { WikiDocLi, WikiDocP } from "../wikiDocUtils";
 
 export function buildIntroDoc(t: TFunction<"wiki">) {
   const s = t("pages.intro.sections", { returnObjects: true }) as Record<string, unknown>;
@@ -11,14 +12,14 @@ export function buildIntroDoc(t: TFunction<"wiki">) {
   return (openInSandbox: (code: string) => void) => (
     <div>
       <h1 className="wiki-doc-title" id="overview">{String(s.overviewTitle)}</h1>
-      <p className="doc-body-text">{String(s.overviewP1)}</p>
-      <p className="doc-body-text">{String(s.overviewP2)}</p>
+      <WikiDocP text={String(s.overviewP1)} />
+      <WikiDocP text={String(s.overviewP2)} />
 
       <div className="doc-callout-box">
         <h4 className="doc-callout-title">{String(s.calloutTitle)}</h4>
         <ul className="doc-bullet-list doc-bullet-list--flush">
-          {calloutItems.map((item, i) => (
-            <li key={i}>{item}</li>
+          {calloutItems.map((item) => (
+            <WikiDocLi key={item} text={item} />
           ))}
         </ul>
       </div>
@@ -26,7 +27,7 @@ export function buildIntroDoc(t: TFunction<"wiki">) {
       <hr className="wiki-divider" />
 
       <h2 className="doc-section-h2" id="declarative">{String(s.declarativeTitle)}</h2>
-      <p className="doc-body-text">{String(s.declarativeP)}</p>
+      <WikiDocP text={String(s.declarativeP)} />
 
       <CodeBlock
         language="javascript"
@@ -41,10 +42,10 @@ export function buildIntroDoc(t: TFunction<"wiki">) {
       />
 
       <h2 className="doc-section-h2" id="sandbox-details">{String(s.sandboxTitle)}</h2>
-      <p className="doc-body-text">{String(s.sandboxP)}</p>
+      <WikiDocP text={String(s.sandboxP)} />
       <ul className="doc-bullet-list">
-        {sandboxItems.map((item, i) => (
-          <li key={i}>{item}</li>
+        {sandboxItems.map((item) => (
+          <WikiDocLi key={item} text={item} />
         ))}
       </ul>
 

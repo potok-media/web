@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FileCode,
-  Sliders,
   Terminal,
   ChevronDown,
   Moon,
@@ -95,10 +94,36 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
   return (
     <aside className="wiki-sidebar-nav">
       <div className="wiki-sidebar-scroll-content">
-        <nav aria-label={t("sidebar.intro")}>
-          <div className="wiki-sidebar-group">
-            <div className="wiki-sidebar-group-title">{t("sidebar.intro")}</div>
-            {pagesByCategory(WIKI_CATEGORY_KEYS.intro).map(([key, info]) => (
+        <section className="wiki-sidebar-group" aria-label={t("sidebar.intro")}>
+          <div className="wiki-sidebar-group-title">{t("sidebar.intro")}</div>
+          {pagesByCategory(WIKI_CATEGORY_KEYS.intro).map(([key, info]) => (
+            <SidebarPageItem
+              key={key}
+              pageKey={key}
+              title={info.title}
+              icon={<FileCode size="0.875rem" />}
+              isActive={activePage === key}
+              onSelect={setActivePage}
+            />
+          ))}
+        </section>
+
+        <section className="wiki-sidebar-group" aria-label={t("sidebar.api")}>
+          <button
+            type="button"
+            className="wiki-sidebar-group-title"
+            onClick={() => toggleGroup(WIKI_CATEGORY_KEYS.api)}
+            aria-expanded={expandedGroups[WIKI_CATEGORY_KEYS.api]}
+          >
+            <span>{t("sidebar.api")}</span>
+            <ChevronDown
+              size="0.875rem"
+              className={`wiki-sidebar-chevron${expandedGroups[WIKI_CATEGORY_KEYS.api] ? " is-expanded" : ""}`}
+            />
+          </button>
+
+          {expandedGroups[WIKI_CATEGORY_KEYS.api] &&
+            pagesByCategory(WIKI_CATEGORY_KEYS.api).map(([key, info]) => (
               <SidebarPageItem
                 key={key}
                 pageKey={key}
@@ -108,74 +133,46 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
                 onSelect={setActivePage}
               />
             ))}
-          </div>
+        </section>
 
-          <div className="wiki-sidebar-group">
+        {UI_GROUP_CONFIG.map((group) => (
+          <section className="wiki-sidebar-group" key={group.categoryKey} aria-label={t(`sidebar.${group.sidebarKey}`)}>
             <button
               type="button"
               className="wiki-sidebar-group-title"
-              onClick={() => toggleGroup(WIKI_CATEGORY_KEYS.api)}
-              aria-expanded={expandedGroups[WIKI_CATEGORY_KEYS.api]}
+              onClick={() => toggleGroup(group.categoryKey)}
+              aria-expanded={expandedGroups[group.categoryKey]}
             >
-              <span>{t("sidebar.api")}</span>
+              <span>{t(`sidebar.${group.sidebarKey}`)}</span>
               <ChevronDown
                 size="0.875rem"
-                className={`wiki-sidebar-chevron${expandedGroups[WIKI_CATEGORY_KEYS.api] ? " is-expanded" : ""}`}
+                className={`wiki-sidebar-chevron${expandedGroups[group.categoryKey] ? " is-expanded" : ""}`}
               />
             </button>
-
-            {expandedGroups[WIKI_CATEGORY_KEYS.api] &&
-              pagesByCategory(WIKI_CATEGORY_KEYS.api).map(([key, info]) => (
+            {expandedGroups[group.categoryKey] &&
+              pagesByCategory(group.categoryKey).map(([key, info]) => (
                 <SidebarPageItem
                   key={key}
                   pageKey={key}
                   title={info.title}
-                  icon={<Sliders size="0.875rem" />}
+                  icon={group.icon}
                   isActive={activePage === key}
                   onSelect={setActivePage}
                 />
               ))}
-          </div>
+          </section>
+        ))}
 
-          {UI_GROUP_CONFIG.map((group) => (
-            <div className="wiki-sidebar-group" key={group.categoryKey}>
-              <button
-                type="button"
-                className="wiki-sidebar-group-title"
-                onClick={() => toggleGroup(group.categoryKey)}
-                aria-expanded={expandedGroups[group.categoryKey]}
-              >
-                <span>{t(`sidebar.${group.sidebarKey}`)}</span>
-                <ChevronDown
-                  size="0.875rem"
-                  className={`wiki-sidebar-chevron${expandedGroups[group.categoryKey] ? " is-expanded" : ""}`}
-                />
-              </button>
-              {expandedGroups[group.categoryKey] &&
-                pagesByCategory(group.categoryKey).map(([key, info]) => (
-                  <SidebarPageItem
-                    key={key}
-                    pageKey={key}
-                    title={info.title}
-                    icon={group.icon}
-                    isActive={activePage === key}
-                    onSelect={setActivePage}
-                  />
-                ))}
-            </div>
-          ))}
-
-          <div className="wiki-sidebar-group">
-            <div className="wiki-sidebar-group-title">{t("sidebar.development")}</div>
-            <SidebarPageItem
-              pageKey="sandbox"
-              title={t("sidebar.sandbox")}
-              icon={<Terminal size="0.875rem" />}
-              isActive={activePage === "sandbox"}
-              onSelect={setActivePage}
-            />
-          </div>
-        </nav>
+        <section className="wiki-sidebar-group" aria-label={t("sidebar.development")}>
+          <div className="wiki-sidebar-group-title">{t("sidebar.development")}</div>
+          <SidebarPageItem
+            pageKey="sandbox"
+            title={t("sidebar.sandbox")}
+            icon={<Terminal size="0.875rem" />}
+            isActive={activePage === "sandbox"}
+            onSelect={setActivePage}
+          />
+        </section>
       </div>
 
       <WikiNavButton

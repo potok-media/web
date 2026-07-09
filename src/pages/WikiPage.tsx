@@ -5,6 +5,7 @@ import { WikiHeader } from "../components/wiki/WikiHeader";
 import { WikiSidebar } from "../components/wiki/WikiSidebar";
 import { WikiBreadcrumbs } from "../components/wiki/WikiBreadcrumbs";
 import { WikiRightSidebar } from "../components/wiki/WikiRightSidebar";
+import { WikiPageContext } from "../components/wiki/WikiPageContext";
 import { useMonacoSandbox } from "../hooks/useMonacoSandbox";
 import "../styles/wiki.css";
 
@@ -52,6 +53,7 @@ export const WikiPage: React.FC = () => {
         setSearchQuery={setSearchQuery}
       />
 
+      <WikiPageContext.Provider value={{ openPage: setActivePage }}>
       <div className={`wiki-body-layout ${activePage === "sandbox" ? "layout-sandbox-view" : ""}`}>
         <WikiSidebar
           activePage={activePage}
@@ -89,6 +91,7 @@ export const WikiPage: React.FC = () => {
 
         <WikiRightSidebar activePage={activePage} pages={pages} />
       </div>
+      </WikiPageContext.Provider>
     </div>
   );
 };

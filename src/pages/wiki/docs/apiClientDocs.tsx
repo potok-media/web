@@ -2,7 +2,7 @@ import type { TFunction } from "i18next";
 import { Play } from "lucide-react";
 import { CodeBlock } from "../../../components/wiki/CodeBlock";
 import { Button } from "../../../components/ui";
-import { getWikiSections } from "../wikiDocUtils";
+import { getWikiSections, WikiDocLi, WikiDocP, WikiRichText } from "../wikiDocUtils";
 
 interface HttpSections {
   title: string;
@@ -39,7 +39,7 @@ export function buildHttpDoc(t: TFunction<"wiki">) {
   return (openInSandbox: (code: string) => void) => (
     <div>
       <h1 className="wiki-doc-title" id="get">{s.title}</h1>
-      <p className="doc-body-text">{s.intro}</p>
+      <WikiDocP text={s.intro} />
 
       <h2 className="doc-section-h2" id="get">{s.getTitle}</h2>
       <CodeBlock language="javascript" code={s.getSignature} />
@@ -50,7 +50,7 @@ export function buildHttpDoc(t: TFunction<"wiki">) {
       <h2 className="doc-section-h2" id="cors">{s.corsTitle}</h2>
       <ul className="doc-bullet-list">
         {s.corsItems.map((item) => (
-          <li key={item}>{item}</li>
+          <WikiDocLi key={item} text={item} />
         ))}
       </ul>
 
@@ -72,7 +72,7 @@ export function buildStorageDoc(t: TFunction<"wiki">) {
   return (openInSandbox: (code: string) => void) => (
     <div>
       <h1 className="wiki-doc-title" id="storage-methods">{s.title}</h1>
-      <p className="doc-body-text">{s.intro}</p>
+      <WikiDocP text={s.intro} />
 
       <h2 className="doc-section-h2">{s.methodsTitle}</h2>
       <table className="doc-table">
@@ -88,14 +88,14 @@ export function buildStorageDoc(t: TFunction<"wiki">) {
             <tr key={row.method}>
               <td><code>{row.method}</code></td>
               <td><code>{row.signature}</code></td>
-              <td>{row.desc}</td>
+              <td><WikiRichText text={row.desc} /></td>
             </tr>
           ))}
         </tbody>
       </table>
 
       <h2 className="doc-section-h2" id="isolation">{s.isolationTitle}</h2>
-      <p className="doc-body-text">{s.isolationText}</p>
+      <WikiDocP text={s.isolationText} />
 
       <Button
         variant="primary"

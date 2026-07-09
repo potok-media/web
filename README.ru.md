@@ -14,29 +14,56 @@
   [![Crowdin](https://badges.crowdin.net/potok/localized.svg)](https://crowdin.com/project/potok)
 </div>
 
-Браузерный клиент медиа-сервиса **Potok**. Работает через шлюз Potok Gateway (BFF): поиск
-фильмов и сериалов и стриминг через движок TorrentGo. React 19 + TypeScript + Vite.
+Браузерный клиент медиа-сервиса **Potok**. Работает через шлюз Potok Gateway (BFF): метаданные,
+медиатека, плагины. Поиск и стриминг торрентов — через опциональный плагин `potok-torrents`
+(SearchEngine + TorrentGo). React 19 + TypeScript + Vite.
 
 ## Возможности
 
-- Поиск и стриминг через шлюз Potok Gateway
-- Встроенный плеер (ArtPlayer + HLS) с отслеживанием прогресса просмотра
+- Медиатека и карточки через Potok Gateway
+- Встроенный плеер (ArtPlayer + HLS) с отслеживанием прогресса
 - Несколько профилей серверов с изоляцией кэша Trakt/медиатеки
-- Интеграция с Trakt, личная медиатека, обновления в реальном времени (WebSockets)
+- Интеграция с Trakt, обновления в реальном времени (WebSockets)
 - SDK для плагинов (`PotokSDK`) — см. [вики](https://potok.rip/wiki)
 
-## Локальный запуск
+## Полный стек (рекомендуется)
+
+Разворачивайте **web + gateway + PostgreSQL** вместе. Для торрентов добавьте SearchEngine и TorrentGo.
+
+Создайте в одной папке `docker-compose.yml`, `.env` и при необходимости `config.yml` — [вики, установка](https://potok.rip/wiki). Затем:
+
+```bash
+docker compose up -d
+```
+
+Подробности по backend: [README backend](../backend/Potok.Backend/README.ru.md).
+
+## Только web — локальная разработка
 
 ```bash
 npm install
-cp .env.example .env      # укажите адрес шлюза
 npm run dev               # http://localhost:5173
 ```
 
-## Docker
+`.env` для локальной разработки:
+
+```env
+VITE_DEFAULT_BFF_URL=http://localhost:5000
+VITE_BLOCK_SETTINGS_INPUT=false
+```
+
+## Только web — Docker
 
 ```bash
-docker compose up -d      # ghcr.io/potok-media/potok-web:latest, http://localhost:3000
+docker compose up -d      # http://localhost:3000
+```
+
+`.env` для контейнера web:
+
+```env
+WEB_PORT=3000
+VITE_DEFAULT_BFF_URL=http://localhost:5000
+VITE_BLOCK_SETTINGS_INPUT=false
 ```
 
 <details>
@@ -44,7 +71,6 @@ docker compose up -d      # ghcr.io/potok-media/potok-web:latest, http://localho
 
 ```yaml
 services:
-  # 💻 Potok web client (Frontend)
   potok-web:
     image: ghcr.io/potok-media/potok-web:latest
     container_name: potok-web
@@ -52,33 +78,25 @@ services:
     ports:
       - "${WEB_PORT:-3000}:80"
     environment:
-      - VITE_DEFAULT_BFF_URL=${VITE_DEFAULT_BFF_URL}
+      - VITE_DEFAULT_BFF_URL=${VITE_DEFAULT_BFF_URL:-http://localhost:5000}
       - VITE_BLOCK_SETTINGS_INPUT=${VITE_BLOCK_SETTINGS_INPUT:-false}
 ```
 
 </details>
 
-## Переменные окружения
-
-| Переменная | Описание | По умолчанию |
-|---|---|---|
-| `VITE_DEFAULT_BFF_URL` | Адрес шлюза Gateway (BFF) по умолчанию | `http://localhost:5000` |
-| `VITE_BLOCK_SETTINGS_INPUT` | Блокировка настроек подключения (только чтение) | `false` |
-| `WEB_PORT` | Порт хоста для Docker-контейнера | `3000` |
+> Полный `.env` (gateway, БД, торренты) — в [вики, установка](https://potok.rip/wiki).
 
 ## Переводы
 
 > [!NOTE]
-> 🌐 **Помогите с переводом Potok!** Интерфейс локализуется через [**Crowdin**](https://crowdin.com/project/potok) — без программирования. Выберите свой язык (или предложите новый) и переводите строки прямо в браузере; одобренные переводы попадут в следующий релиз.
+> 🌐 **Помогите с переводом Potok!** [**Crowdin**](https://crowdin.com/project/potok).
 >
 > 👉 **[Перевести на Crowdin →](https://crowdin.com/project/potok)**
 
 ## Часть Potok
 
-Это один из клиентов экосистемы **Potok**:
-
 - 🌐 **Web** — этот репозиторий
 - ⚙️ **Backend** — Gateway · SearchEngine · TorrentGo
-- 🧩 **Плагины и SDK** — расширение интерфейса через `PotokSDK`
+- 🧩 **Плагины и SDK** — `PotokSDK`
 
 🔗 [Сайт](https://potok.rip) · [Вики](https://potok.rip/wiki) · [GitHub](https://github.com/potok-media)

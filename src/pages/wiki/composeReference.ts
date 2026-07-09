@@ -3,6 +3,8 @@
  * Keep in sync with web/docker-compose.yml and backend/Potok.Backend/docker-compose.yml.
  */
 
+import { WEB_PLUGINS_REPO_URL } from "./wikiConstants";
+
 /** Required stack: web client + API gateway + PostgreSQL. */
 export const REQUIRED_COMPOSE = `services:
   # 💻 REQUIRED — Potok web client (Frontend + Wiki)
@@ -30,6 +32,7 @@ export const REQUIRED_COMPOSE = `services:
       - ConnectionStrings__DefaultConnection=Host=\${DB_HOST:-db};Port=\${DB_PORT:-5432};Database=\${DB_NAME:-potok};Username=\${DB_USER:-potok};Password=\${DB_PASSWORD:-potok};Timeout=30;CommandTimeout=60;
       - Gateway__TmdbApiKey=\${GATEWAY_TMDB_API_KEY}
       - Gateway__MultiUserMode=\${GATEWAY_MULTI_USER_MODE:-false}
+      - Gateway__JwtSecret=\${GATEWAY_JWT_SECRET:-default-fallback-gateway-jwt-secret-key-32-chars-long}
     depends_on:
       db:
         condition: service_healthy
@@ -64,6 +67,7 @@ volumes:
 
 /** Optional add-ons for potok-torrents plugin (SearchEngine + TorrentGo). */
 export const OPTIONAL_TORRENT_COMPOSE = `  # 🔍 OPTIONAL — Tracker search (potok-torrents plugin)
+  # ${WEB_PLUGINS_REPO_URL}
   potok-searchengine:
     image: ghcr.io/potok-media/potok-searchengine:latest
     container_name: potok-searchengine

@@ -1,0 +1,1 @@
+export const WEB_PLUGINS_REPO_URL = "https://github.com/potok-media/web-plugins";

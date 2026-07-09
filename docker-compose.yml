@@ -7,5 +7,5 @@ services:
     ports:
       - "${WEB_PORT:-3000}:80"
     environment:
-      - VITE_DEFAULT_BFF_URL=${VITE_DEFAULT_BFF_URL}
+      - VITE_DEFAULT_BFF_URL=${VITE_DEFAULT_BFF_URL:-http://localhost:5000}
       - VITE_BLOCK_SETTINGS_INPUT=${VITE_BLOCK_SETTINGS_INPUT:-false}
