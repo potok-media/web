@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronRight } from "lucide-react";
+import { Button } from "../ui";
 import type { WikiPagesMap } from "../../pages/wiki/wikiTypes";
 
 interface WikiBreadcrumbsProps {
@@ -26,13 +27,13 @@ export const WikiBreadcrumbs: React.FC<WikiBreadcrumbsProps> = ({
         <>
           <span>{pages[referrerPage]?.category ?? t("breadcrumbs.docs")}</span>
           <ChevronRight size="0.75rem" aria-hidden="true" />
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             className="wiki-breadcrumb-link"
             onClick={() => setActivePage(referrerPage)}
           >
             {pages[referrerPage]?.title ?? t("breadcrumbs.backToDoc")}
-          </button>
+          </Button>
           <ChevronRight size="0.75rem" aria-hidden="true" />
           <span className="wiki-breadcrumb-current">{t("breadcrumbs.sandbox")}</span>
         </>

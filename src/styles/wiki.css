@@ -976,6 +976,55 @@
   transform: rotate(0deg);
 }
 
+/* UI Button overrides inside wiki (ghost variant + wiki classes) */
+.wiki-sidebar-item.ui-btn,
+.wiki-theme-toggle.ui-btn,
+.wiki-sidebar-group-title.ui-btn,
+.toc-item.ui-btn,
+.wiki-breadcrumb-link.ui-btn {
+  justify-content: flex-start;
+  width: 100%;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.wiki-breadcrumb-link.ui-btn {
+  width: auto;
+  display: inline;
+  padding: 0;
+  min-height: 0;
+  border-radius: 0;
+}
+
+.wiki-sidebar-item.ui-btn--ghost:hover:not(:disabled),
+.wiki-theme-toggle.ui-btn--ghost:hover:not(:disabled),
+.wiki-sidebar-group-title.ui-btn--ghost:hover:not(:disabled),
+.toc-item.ui-btn--ghost:hover:not(:disabled),
+.wiki-breadcrumb-link.ui-btn--ghost:hover:not(:disabled) {
+  background: inherit;
+  color: inherit;
+}
+
+.wiki-sidebar-item.ui-btn--ghost:hover:not(:disabled) {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.wiki-theme-toggle.ui-btn--ghost:hover:not(:disabled) {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.toc-item.ui-btn--ghost:hover:not(:disabled) {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.wiki-breadcrumb-link.ui-btn--ghost:hover:not(:disabled) {
+  background: transparent;
+  color: var(--accent-hover);
+}
+
 .sb-editor-mount {
   height: 25rem;
   resize: vertical;

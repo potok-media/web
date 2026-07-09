@@ -12,6 +12,7 @@ import {
   Film,
   PlayCircle,
 } from "lucide-react";
+import { Button } from "../ui";
 import { WIKI_CATEGORY_KEYS, type WikiCategoryKey } from "../../pages/wiki/wikiCategories";
 import { WikiNavButton } from "./WikiNavButton";
 
@@ -109,8 +110,9 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
         </section>
 
         <section className="wiki-sidebar-group" aria-label={t("sidebar.api")}>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            fullWidth
             className="wiki-sidebar-group-title"
             onClick={() => toggleGroup(WIKI_CATEGORY_KEYS.api)}
             aria-expanded={expandedGroups[WIKI_CATEGORY_KEYS.api]}
@@ -120,7 +122,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
               size="0.875rem"
               className={`wiki-sidebar-chevron${expandedGroups[WIKI_CATEGORY_KEYS.api] ? " is-expanded" : ""}`}
             />
-          </button>
+          </Button>
 
           {expandedGroups[WIKI_CATEGORY_KEYS.api] &&
             pagesByCategory(WIKI_CATEGORY_KEYS.api).map(([key, info]) => (
@@ -137,8 +139,9 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
 
         {UI_GROUP_CONFIG.map((group) => (
           <section className="wiki-sidebar-group" key={group.categoryKey} aria-label={t(`sidebar.${group.sidebarKey}`)}>
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              fullWidth
               className="wiki-sidebar-group-title"
               onClick={() => toggleGroup(group.categoryKey)}
               aria-expanded={expandedGroups[group.categoryKey]}
@@ -148,7 +151,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
                 size="0.875rem"
                 className={`wiki-sidebar-chevron${expandedGroups[group.categoryKey] ? " is-expanded" : ""}`}
               />
-            </button>
+            </Button>
             {expandedGroups[group.categoryKey] &&
               pagesByCategory(group.categoryKey).map(([key, info]) => (
                 <SidebarPageItem

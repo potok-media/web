@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { Button } from "../ui";
 import type { WikiPagesMap } from "../../pages/wiki/wikiTypes";
 
 interface WikiRightSidebarProps {
@@ -30,14 +31,15 @@ export const WikiRightSidebar: React.FC<WikiRightSidebarProps> = ({
       <div className="toc-title">{t("toc.title")}</div>
       <nav aria-label={t("toc.title")}>
         {toc.map((item) => (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            fullWidth
             className="toc-item"
             key={item.id}
             onClick={() => scrollToAnchor(item.id)}
           >
             {item.text}
-          </button>
+          </Button>
         ))}
       </nav>
     </aside>

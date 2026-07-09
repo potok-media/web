@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { TFunction } from "i18next";
 import { Trans } from "react-i18next";
-import { WikiPageLink } from "../../components/wiki/WikiPageContext";
+import { WikiPageLink } from "../../components/wiki/WikiPageLink";
 import { WIKI_RICH_TEXT_COMPONENTS, WikiDocLi, WikiRichText } from "./wikiRichText";
 
 export { WikiDocLi, WikiDocP, WikiRichText } from "./wikiRichText";

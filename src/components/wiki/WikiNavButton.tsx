@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "../ui";
 
 interface WikiNavButtonProps {
   className?: string;
@@ -13,12 +14,13 @@ export const WikiNavButton: React.FC<WikiNavButtonProps> = ({
   onClick,
   children,
 }) => (
-  <button
-    type="button"
+  <Button
+    variant="ghost"
+    fullWidth
     className={`${className}${isActive ? " active" : ""}`}
     onClick={onClick}
     aria-current={isActive ? "page" : undefined}
   >
     {children}
-  </button>
+  </Button>
 );

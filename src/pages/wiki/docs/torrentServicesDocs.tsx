@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import { Trans } from "react-i18next";
 import { CodeBlock } from "../../../components/wiki/CodeBlock";
-import { WikiPageLink } from "../../../components/wiki/WikiPageContext";
+import { WikiPageLink } from "../../../components/wiki/WikiPageLink";
 import { SEARCH_ENGINE_CONFIG_YAML } from "../torrentServicesReference";
 import { WikiDocLi, WikiDocP } from "../wikiDocUtils";
 

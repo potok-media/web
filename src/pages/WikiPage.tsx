@@ -5,7 +5,7 @@ import { WikiHeader } from "../components/wiki/WikiHeader";
 import { WikiSidebar } from "../components/wiki/WikiSidebar";
 import { WikiBreadcrumbs } from "../components/wiki/WikiBreadcrumbs";
 import { WikiRightSidebar } from "../components/wiki/WikiRightSidebar";
-import { WikiPageContext } from "../components/wiki/WikiPageContext";
+import { WikiPageContext } from "../components/wiki/wikiPageContext";
 import { useMonacoSandbox } from "../hooks/useMonacoSandbox";
 import "../styles/wiki.css";
 
