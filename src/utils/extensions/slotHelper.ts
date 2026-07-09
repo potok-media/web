@@ -35,7 +35,7 @@ export class SlotManager {
     return this.slotRenders.get(slotId);
   }
 
-  triggerRender(slotId: string, props: any) {
+  triggerRender(slotId: string, props: Record<string, unknown>) {
     const contribution = this.contributions.get(slotId);
     if (!contribution) return;
 
@@ -52,7 +52,7 @@ export class SlotManager {
     }
   }
 
-  triggerUIEvent(pluginId: string, callbackId: string, eventData: any) {
+  triggerUIEvent(pluginId: string, callbackId: string, eventData: unknown) {
     const iframe = this.getSandboxIframe(pluginId);
     if (iframe && iframe.contentWindow) {
       iframe.contentWindow.postMessage(

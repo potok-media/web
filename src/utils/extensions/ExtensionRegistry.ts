@@ -15,8 +15,16 @@ import { LegacyLookupSearchManager } from "./legacyLookupHelper";
 import { SlotManager } from "./slotHelper";
 import { logger } from "../logger";
 import { CallbackRegistry } from "../../sdk/src/core/registry";
+import type { BlockContextPayload, PotokSandboxWindow } from "./extensionHostTypes";
 
 type RegistryListener = () => void;
+
+type SandboxPromiseRecord = {
+  resolve: (value: unknown) => void;
+  reject: (err: Error) => void;
+  timeoutId: ReturnType<typeof setTimeout>;
+  pluginId: string;
+};
 
 class ExtensionRegistryManager {
   private plugins = new Map<string, ExtensionPluginMetadata>();
@@ -28,15 +36,7 @@ class ExtensionRegistryManager {
   private streamSources = new Map<string, { id: string; name: string; supportedTypes: ('movie' | 'tv')[]; pluginId: string }>();
 
   // In-flight active promises
-  private activePromises = new Map<
-    string,
-    {
-      resolve: (value: any) => void;
-      reject: (err: Error) => void;
-      timeoutId: any;
-      pluginId: string;
-    }
-  >();
+  private activePromises = new Map<string, SandboxPromiseRecord>();
 
   // Sub-managers
   private settlementManager = new SettlementManager(() => this.notify());
@@ -75,7 +75,7 @@ class ExtensionRegistryManager {
     this.sandboxIframes.set(pluginId, iframe);
   }
 
-  broadcastBlockContext(blockName: string, context: any) {
+  broadcastBlockContext(blockName: string, context: BlockContextPayload) {
     const activeTab = context?.tab;
     for (const [pluginId, iframe] of this.sandboxIframes.entries()) {
       if (activeTab && pluginId.toLowerCase() !== String(activeTab).toLowerCase()) {
@@ -158,17 +158,18 @@ class ExtensionRegistryManager {
     return this.slotManager.getRender(slotId);
   }
 
-  triggerSlotRender(slotId: string, props: any) {
+  triggerSlotRender(slotId: string, props: Record<string, unknown>) {
     this.slotManager.triggerRender(slotId, props);
   }
 
-  triggerUIEvent(pluginId: string, callbackId: string, eventData: any) {
+  triggerUIEvent(pluginId: string, callbackId: string, eventData: unknown) {
     if (pluginId === "hot-injected-plugin") {
       CallbackRegistry.trigger(callbackId, eventData);
       return;
     }
-    if (pluginId === "potok-sandbox-plugin" && (window as any).PotokSandboxTriggerUIEvent) {
-      (window as any).PotokSandboxTriggerUIEvent(callbackId, eventData);
+    const sandboxWindow = window as PotokSandboxWindow;
+    if (pluginId === "potok-sandbox-plugin" && sandboxWindow.PotokSandboxTriggerUIEvent) {
+      sandboxWindow.PotokSandboxTriggerUIEvent(callbackId, eventData);
       return;
     }
     this.slotManager.triggerUIEvent(pluginId, callbackId, eventData);
@@ -242,8 +243,8 @@ class ExtensionRegistryManager {
   async sendSandboxRequest<T>(
     pluginId: string,
     action: string,
-    payload: any,
-    timeoutMs?: number
+    payload: Record<string, unknown>,
+    timeoutMs?: number,
   ): Promise<T> {
     const iframe = this.sandboxIframes.get(pluginId);
     const contentWindow = iframe?.contentWindow;
@@ -281,7 +282,7 @@ class ExtensionRegistryManager {
       }, finalTimeoutMs);
 
       this.activePromises.set(requestId, {
-        resolve,
+        resolve: (value) => resolve(value as T),
         reject,
         timeoutId,
         pluginId,
@@ -305,7 +306,7 @@ class ExtensionRegistryManager {
     this.notify();
   }
 
-  handleSandboxResponse(requestId: string, data: any, error: string | null) {
+  handleSandboxResponse(requestId: string, data: unknown, error: string | null) {
     const record = this.activePromises.get(requestId);
     if (!record) return;
 
@@ -319,7 +320,12 @@ class ExtensionRegistryManager {
     }
   }
 
-  notifySettingsFieldChanged(pluginId: string, key: string, value: any, currentSettings: any) {
+  notifySettingsFieldChanged(
+    pluginId: string,
+    key: string,
+    value: unknown,
+    currentSettings: Record<string, unknown>,
+  ) {
     const iframe = this.sandboxIframes.get(pluginId);
     if (iframe && iframe.contentWindow) {
       iframe.contentWindow.postMessage({

@@ -470,6 +470,7 @@
   width: 0.875rem;
   height: 0.875rem;
   border-radius: 50%;
+  background-color: var(--theme-color);
   box-shadow: 0 0 0 0.0625rem var(--text-tertiary);
   flex-shrink: 0;
 }
@@ -584,6 +585,97 @@
   padding: var(--space-m) var(--space-l);
   border-top: var(--glass-border);
   background-color: var(--bg-surface-high);
+}
+
+.consent-modal-header {
+  padding: 1.25rem 1.5rem;
+}
+
+.consent-modal-title-row {
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.consent-modal-icon {
+  color: var(--warning);
+}
+
+.consent-modal-title {
+  color: var(--warning);
+  font-weight: 700;
+}
+
+.consent-modal-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.consent-modal-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.consent-modal-lead {
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.consent-modal-permissions {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.consent-modal-permissions strong {
+  color: var(--text-primary);
+}
+
+.consent-modal-warning {
+  background: var(--warning-dim);
+  border: 1px solid var(--warning-border);
+  border-radius: var(--radius-m);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.consent-modal-warning-title {
+  color: var(--warning);
+  font-size: 0.85rem;
+}
+
+.consent-modal-warning-body {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.consent-modal-footer {
+  padding: 1.25rem 1.5rem;
+}
+
+.consent-modal-confirm {
+  background: var(--warning) !important;
+  color: var(--bg-window) !important;
+  font-weight: 700;
+}
+
+.consent-modal-confirm:hover:not(:disabled) {
+  background: var(--warning) !important;
+  filter: brightness(0.92);
+}
+
+.consent-modal-cancel {
+  border: var(--glass-border);
 }
 
 /* Extension Manager Selectable Classes */
@@ -752,4 +844,44 @@
 .settings-mobile-select option {
   background-color: var(--bg-surface-high);
   color: var(--text-primary);
+}
+
+/* Modal size modifiers */
+.manifest-modal--narrow {
+  max-width: 34rem;
+}
+
+.manifest-modal--detail {
+  max-width: 34rem;
+  width: 95%;
+}
+
+.manifest-modal-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.manifest-json-pre--scroll {
+  max-height: 40vh;
+}
+
+.manifest-copy-icon--success {
+  color: #4f9e71;
+}
+
+.install-code-accent {
+  color: var(--accent);
+}
+
+.input-full-width {
+  max-width: none;
+}
+
+.chevron-toggle-icon {
+  transition: transform 0.2s ease;
+}
+
+.chevron-toggle-icon.is-open {
+  transform: rotate(180deg);
 }

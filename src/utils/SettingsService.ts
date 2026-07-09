@@ -1,4 +1,5 @@
 import { getEnv } from "./EnvService";
+import { getActiveLanguage } from "./language";
 import { Storage } from "./StorageService";
 import type { ConnectionProfile } from "../network/ApiTypes";
 
@@ -201,7 +202,7 @@ class SettingsServiceImpl {
   }
 
   getLanguage(): string {
-    return Storage.get<string>("language", "en");
+    return getActiveLanguage();
   }
 
   getSyncStrategy(): string {

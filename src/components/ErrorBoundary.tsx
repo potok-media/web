@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { logger } from "../utils/logger";
 import { i18n } from "../i18n";
+import { Button } from "./ui";
 
 interface Props {
   children: ReactNode;
@@ -40,40 +41,14 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div style={{
-          padding: "2rem",
-          margin: "1rem",
-          background: "rgba(255, 255, 255, 0.05)",
-          backdropFilter: "blur(25px)",
-          borderRadius: "0.75rem",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-          color: "#fff",
-          textAlign: "center",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "12.5rem"
-        }}>
-          <h2 style={{ color: "var(--error, #ef4444)", marginBottom: "1rem" }}>{i18n.t("common:errorBoundary.title")}</h2>
-          <p style={{ opacity: 0.8, marginBottom: "1.5rem" }}>
+        <div className="error-boundary-fallback">
+          <h2 className="error-boundary-fallback__title">{i18n.t("common:errorBoundary.title")}</h2>
+          <p className="error-boundary-fallback__message">
             {this.state.error?.message || i18n.t("common:errorBoundary.message")}
           </p>
-          <button
-            type="button"
-            onClick={this.resetError}
-            style={{
-              padding: "0.5rem 1.5rem",
-              background: "var(--error, #ef4444)",
-              border: "none",
-              borderRadius: "0.375rem",
-              color: "#fff",
-              cursor: "pointer",
-              fontWeight: 600
-            }}
-          >
+          <Button variant="danger" onClick={this.resetError}>
             {i18n.t("common:errorBoundary.retry")}
-          </button>
+          </Button>
         </div>
       );
     }

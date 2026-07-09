@@ -325,6 +325,8 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background-color: var(--stat-bg);
+  color: var(--stat-color);
 }
 
 .profile-stat-info {
@@ -524,6 +526,9 @@
   height: 2rem;
   border-radius: var(--radius-full);
   flex-shrink: 0;
+  color: var(--benefit-color);
+  background: var(--benefit-bg);
+  border: var(--benefit-border);
 }
 
 .benefit-info-col {
@@ -649,6 +654,9 @@
   height: 3rem;
   border-radius: var(--radius-full);
   flex-shrink: 0;
+  color: var(--benefit-color);
+  background: var(--benefit-bg);
+  border: var(--benefit-border);
 }
 
 .local-benefits-grid {
@@ -1243,4 +1251,8 @@
   .profile-stat-card {
     padding: 1rem;
   }
+}
+
+.profile-slot-gap {
+  margin-bottom: 0.5rem;
 }

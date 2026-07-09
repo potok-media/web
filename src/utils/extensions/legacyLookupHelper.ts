@@ -1,4 +1,4 @@
-import type { LookupQuery, StreamResult, RawStreamPayload, StreamSearchQuery } from "@potok/sdk-types";
+import type { LookupQuery, LookupSource, StreamResult, RawStreamPayload, StreamSearchQuery } from "@potok/sdk-types";
 import { processSearchResults } from "./searchHelpers";
 import { logger } from "../logger";
 
@@ -8,7 +8,7 @@ export class LegacyLookupSearchManager {
     {
       resolve: (results: StreamResult[]) => void;
       reject: (err: Error) => void;
-      timeoutId: any;
+      timeoutId: ReturnType<typeof setTimeout>;
       expectedCount: number;
       accumulated: StreamResult[];
       receivedCount: number;
@@ -20,7 +20,7 @@ export class LegacyLookupSearchManager {
     {
       resolve: (results: RawStreamPayload[]) => void;
       reject: (err: Error) => void;
-      timeoutId: any;
+      timeoutId: ReturnType<typeof setTimeout>;
       expectedCount: number;
       accumulated: RawStreamPayload[];
       receivedCount: number;
@@ -32,14 +32,14 @@ export class LegacyLookupSearchManager {
     { pluginId: string; id: string; name: string; icon?: string; callbackId: string }
   >();
 
-  private getSources: () => any[];
-  private getSourceItem: (id: string) => any;
+  private getSources: () => LookupSource[];
+  private getSourceItem: (id: string) => { source: LookupSource; pluginId: string } | undefined;
   private getSandboxIframe: (pluginId: string) => HTMLIFrameElement | undefined;
   private notify: () => void;
 
   constructor(
-    getSources: () => any[],
-    getSourceItem: (id: string) => any,
+    getSources: () => LookupSource[],
+    getSourceItem: (id: string) => { source: LookupSource; pluginId: string } | undefined,
     getSandboxIframe: (pluginId: string) => HTMLIFrameElement | undefined,
     notify: () => void
   ) {

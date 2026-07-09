@@ -16,8 +16,6 @@ interface OverlayProps {
   title?: React.ReactNode;
   closeOnBackdrop?: boolean;
   children: React.ReactNode;
-  focusKey?: string; // Kept as optional for compatibility with callers
-  initialFocusKey?: string; // Kept as optional for compatibility
 }
 
 export const Overlay: React.FC<OverlayProps> = ({
@@ -52,10 +50,10 @@ export const Overlay: React.FC<OverlayProps> = ({
   if (!open) return null;
 
   const backdropClass = styled
-    ? `tv-overlay tv-overlay--${variant} ${backdropClassName}`.trim()
+    ? `overlay overlay--${variant} ${backdropClassName}`.trim()
     : backdropClassName;
   const panelClass = styled
-    ? `tv-overlay-panel tv-overlay-panel--${variant} ${className}`.trim()
+    ? `overlay-panel overlay-panel--${variant} ${className}`.trim()
     : className;
 
   return createPortal(
@@ -68,7 +66,7 @@ export const Overlay: React.FC<OverlayProps> = ({
         style={variant === "popover" ? { ...popoverStyle, ...style } : style}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
-        {title && <div className="tv-overlay-title">{title}</div>}
+        {title && <div className="overlay-title">{title}</div>}
         {children}
       </div>
     </div>,

@@ -1,4 +1,5 @@
 import { Play } from "lucide-react";
+import { Button } from "../../../components/ui";
 import { CodeBlock } from "../../../components/wiki/CodeBlock";
 
 export const UiMethodsDoc = {
@@ -89,7 +90,7 @@ ui.navigateTo("/library", { filter: "watchlist" });`}
         Для интеграции в жизненный цикл хост-приложения используются глобальные функции SDK:
       </p>
       
-      <div className="doc-table-wrapper" style={{ marginTop: "1rem" }}>
+      <div className="doc-table-wrapper doc-table-wrapper--spaced">
         <table className="doc-table">
           <thead>
             <tr>
@@ -122,7 +123,7 @@ ui.navigateTo("/library", { filter: "watchlist" });`}
         </table>
       </div>
 
-      <h3 className="doc-section-h3" style={{ marginTop: "1.5rem" }} id="register-slot-docs">Детальное описание <code>registerSlotContribution</code></h3>
+      <h3 className="doc-section-h3 doc-section-h3--spaced" id="register-slot-docs">Детальное описание <code>registerSlotContribution</code></h3>
       <p className="doc-body-text">
         Эта функция позволяет плагину динамически внедрять собственный интерфейс в предопределенные области приложения. Хост вызывает рендер-функцию плагина при монтировании соответствующего экрана и отрисовывает возвращаемый макет.
       </p>
@@ -134,7 +135,7 @@ ui.navigateTo("/library", { filter: "watchlist" });`}
         <li><code>id</code> (string, обязательное) — Уникальный идентификатор вклада в рамках плагина (должен соответствовать <code>id</code> из массива <code>slots</code> в манифесте).</li>
         <li><code>slotName</code> (string, обязательное) — Целевая точка встраивания (например, <code>"media-actions"</code>, <code>"details-bottom"</code>, <code>"extension-page"</code>).</li>
         <li><code>render(props)</code> (function, обязательное) — Функция, возвращающая UI. Принимает <code>props</code> (данные текущего контекста хоста, например, информацию о просматриваемом фильме) и должна возвращать объект:
-          <ul className="doc-bullet-list" style={{ marginTop: "0.25rem", paddingLeft: "1.2rem" }}>
+          <ul className="doc-bullet-list doc-bullet-list--indented">
             <li><code>label</code> (string) — Название/подпись для вклада.</li>
             <li><code>icon</code> (string, опционально) — Имя иконки Lucide.</li>
             <li><code>layout</code> (UIComponent) — Дерево UI компонентов (создается с помощью билдеров <code>Card()</code>, <code>VStack()</code>, <code>Button()</code> и т.д.).</li>
@@ -142,12 +143,12 @@ ui.navigateTo("/library", { filter: "watchlist" });`}
         </li>
       </ul>
 
-      <h3 className="doc-section-h3" style={{ marginTop: "1.5rem" }}>Пример простого плагина (Easy Plugin)</h3>
+      <h3 className="doc-section-h3 doc-section-h3--spaced">Пример простого плагина (Easy Plugin)</h3>
       <p className="doc-body-text">
         Ниже приведена структура и файлы минимального рабочего расширения, которое добавляет кастомную кнопку запуска трейлера и информационный блок на страницу деталей фильма:
       </p>
 
-      <h4 style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: "0.95rem", margin: "1rem 0 0.5rem 0" }}>1. Структура папки плагина:</h4>
+      <h4 className="doc-h4-step">1. Структура папки плагина:</h4>
       <CodeBlock
         language="text"
         code={`my-easy-plugin/
@@ -155,7 +156,7 @@ ui.navigateTo("/library", { filter: "watchlist" });`}
 └── index.js        # Исполняемый JS код плагина`}
       />
 
-      <h4 style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: "0.95rem", margin: "1rem 0 0.5rem 0" }}>2. Файл <code>manifest.json</code>:</h4>
+      <h4 className="doc-h4-step">2. Файл <code>manifest.json</code>:</h4>
       <CodeBlock
         language="json"
         code={`{
@@ -179,7 +180,7 @@ ui.navigateTo("/library", { filter: "watchlist" });`}
 }`}
       />
 
-      <h4 style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: "0.95rem", margin: "1rem 0 0.5rem 0" }}>3. Файл <code>index.js</code>:</h4>
+      <h4 className="doc-h4-step">3. Файл <code>index.js</code>:</h4>
       <CodeBlock
         language="javascript"
         code={`import { PotokSDK } from 'potok-sdk';
@@ -238,7 +239,7 @@ PotokSDK.registerSlotContribution({
 });`}
       />
 
-      <button className="doc-sandbox-btn" onClick={() => openInSandbox(`// Пример вызова системного плеера и селекторов
+      <Button variant="primary" className="doc-sandbox-btn" onClick={() => openInSandbox(`// Пример вызова системного плеера и селекторов
 const { ui } = PotokSDK;
 
 ui.render(
@@ -280,7 +281,7 @@ ui.render(
 );`)}>
         <Play size="0.75rem" />
         <span>Протестировать оверлеи в Sandbox</span>
-      </button>
+      </Button>
     </div>
   )
 };

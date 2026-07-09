@@ -1,22 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { Sliders, Puzzle, Globe, Terminal, Eye } from "lucide-react";
+import React, { useState } from "react";
 import { useSettings } from "../context/AppSettingsContext";
-import { Slot } from "../components/common/extension/Slot";
-import GeneralSettings from "../components/settings/GeneralSettings";
-import ProfilesSettings from "../components/settings/ProfilesSettings";
-import ExtensionsManager from "../components/ExtensionsManager";
-import ConsoleManager from "../components/settings/ConsoleManager";
-import DeclarativeSettings from "../components/settings/DeclarativeSettings";
-import AccessibilitySettings from "../components/settings/AccessibilitySettings";
-import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
-import type { RegisteredExtension } from "@potok/sdk-types";
-import { FocusableButton } from "../components/common/TVNavigation";
 import { PageFrame } from "../components/common/PageFrame";
 import { usePlatform } from "../hooks/usePlatform";
+import { useSettingsExtensions } from "../hooks/useSettingsExtensions";
+import { SettingsContentPanel } from "../components/settings/SettingsContentPanel";
+import { SettingsMobileTabs, SettingsSidebarNav } from "../components/settings/SettingsNavigation";
 import "../styles/settings.css";
 import "../styles/console.css";
-import { logger } from "../utils/logger";
 
 export const SettingsPage: React.FC = () => {
   const {
@@ -37,208 +27,48 @@ export const SettingsPage: React.FC = () => {
   } = useSettings();
 
   const [activeTab, setActiveTab] = useState<string>("general");
-  const [, setTick] = useState(0);
   const { isMobile } = usePlatform();
-  const { t } = useTranslation("settings");
+  const { slotContributions, configExtensions } = useSettingsExtensions();
 
+  const panelProps = {
+    activeTab,
+    accentTheme,
+    setAccentTheme,
+    defaultPlayer,
+    setDefaultPlayer,
+    bannerQuality,
+    setBannerQuality,
+    language,
+    setLanguage,
+    uiFontScale,
+    setUiFontScale,
+    developerMode,
+    setDeveloperMode,
+    disableHttpProxy,
+    setDisableHttpProxy,
+    slotContributions,
+    configExtensions,
+  };
 
-  // Setup extensions state from localStorage and keep it in sync
-  const [extensions, setExtensions] = useState<RegisteredExtension[]>(() => {
-    try {
-      const raw = localStorage.getItem("potok_extensions");
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  // Subscribe to ExtensionRegistry changes to display extension tabs reactively
-  useEffect(() => {
-    const handleRegistryChange = () => setTick((t) => t + 1);
-    ExtensionRegistry.addListener(handleRegistryChange);
-    return () => ExtensionRegistry.removeListener(handleRegistryChange);
-  }, []);
-
-  // Subscribe to storage and custom extensions updated event for hot-reloading settings
-  useEffect(() => {
-    const syncExtensions = () => {
-      try {
-        const raw = localStorage.getItem("potok_extensions");
-        setExtensions(raw ? JSON.parse(raw) : []);
-      } catch (err) {
-        logger.error("[SettingsPage] Sync failed:", err);
-      }
-    };
-
-    window.addEventListener("potok_extensions_updated", syncExtensions);
-    window.addEventListener("storage", syncExtensions);
-
-    return () => {
-      window.removeEventListener("potok_extensions_updated", syncExtensions);
-      window.removeEventListener("storage", syncExtensions);
-    };
-  }, []);
-
-  const slotContributions = ExtensionRegistry.getSlotContributions("settings-tabs");
-
-  const configExtensions = extensions.filter(
-    (ext) => ext.enabled && ext.manifest.config && Object.keys(ext.manifest.config).length > 0
-  );
-
-  // ── Shared building blocks (identical markup across platform branches) ──────
-
-  const mobileTabs = (
-    <div className="settings-mobile-tabs-bar">
-      <div className="settings-mobile-tabs-scroll">
-        <button className={`settings-tab-chip ${activeTab === "general" ? "active" : ""}`} onClick={() => setActiveTab("general")}>{t("nav.general")}</button>
-        <button className={`settings-tab-chip ${activeTab === "profiles" ? "active" : ""}`} onClick={() => setActiveTab("profiles")}>{t("nav.connectionsShort")}</button>
-        <button className={`settings-tab-chip ${activeTab === "accessibility" ? "active" : ""}`} onClick={() => setActiveTab("accessibility")}>{t("nav.accessibilityShort")}</button>
-        <button className={`settings-tab-chip ${activeTab === "extensions" ? "active" : ""}`} onClick={() => setActiveTab("extensions")}>{t("nav.extensions")}</button>
-        <button className={`settings-tab-chip ${activeTab === "console" ? "active" : ""}`} onClick={() => setActiveTab("console")}>{t("nav.console")}</button>
-        {slotContributions.map((c) => (
-          <button key={c.contribution.id} className={`settings-tab-chip ${activeTab === c.contribution.id ? "active" : ""}`} onClick={() => setActiveTab(c.contribution.id)}>
-            {t(c.contribution.title || c.contribution.id)}
-          </button>
-        ))}
-        {configExtensions.map((ext) => (
-          <button key={`config-${ext.id}`} className={`settings-tab-chip ${activeTab === `config-${ext.id}` ? "active" : ""}`} onClick={() => setActiveTab(`config-${ext.id}`)}>
-            {t(ext.manifest.name || ext.id)}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  const sidebarNav = (
-    <>
-      <div className="settings-brand">
-        <h1 className="settings-brand-title">{t("nav.brandTitle")}</h1>
-        <p className="settings-brand-desc">{t("nav.brandDesc")}</p>
-      </div>
-      <div className="settings-divider" />
-      <div className="settings-section-title">{t("nav.groupApp")}</div>
-      <FocusableButton
-        focusKey="SETTINGS_TAB_GENERAL"
-        className={`settings-nav-item ${activeTab === "general" ? "active" : ""}`}
-        onClick={() => setActiveTab("general")}
-      >
-        <Sliders size="1rem" />
-        <span>{t("nav.general")}</span>
-      </FocusableButton>
-      <FocusableButton
-        className={`settings-nav-item ${activeTab === "profiles" ? "active" : ""}`}
-        onClick={() => setActiveTab("profiles")}
-      >
-        <Globe size="1rem" />
-        <span>{t("nav.connections")}</span>
-      </FocusableButton>
-      <FocusableButton
-        className={`settings-nav-item ${activeTab === "accessibility" ? "active" : ""}`}
-        onClick={() => setActiveTab("accessibility")}
-      >
-        <Eye size="1rem" />
-        <span>{t("nav.accessibility")}</span>
-      </FocusableButton>
-
-      <div className="settings-section-title">{t("nav.groupIntegrations")}</div>
-      <FocusableButton
-        className={`settings-nav-item ${activeTab === "extensions" ? "active" : ""}`}
-        onClick={() => setActiveTab("extensions")}
-      >
-        <Puzzle size="1rem" />
-        <span>{t("nav.extensions")}</span>
-      </FocusableButton>
-      <FocusableButton
-        className={`settings-nav-item ${activeTab === "console" ? "active" : ""}`}
-        onClick={() => setActiveTab("console")}
-      >
-        <Terminal size="1rem" />
-        <span>{t("nav.console")}</span>
-      </FocusableButton>
-
-      {(slotContributions.length > 0 || configExtensions.length > 0) && (
-        <>
-          <div className="settings-section-title">{t("nav.groupPlugins")}</div>
-          {slotContributions.map((c) => (
-            <FocusableButton
-              key={c.contribution.id}
-              className={`settings-nav-item ${activeTab === c.contribution.id ? "active" : ""}`}
-              onClick={() => setActiveTab(c.contribution.id)}
-            >
-              <Puzzle size="1rem" />
-              <span>{c.contribution.title || c.contribution.id}</span>
-            </FocusableButton>
-          ))}
-          {configExtensions.map((ext) => (
-            <FocusableButton
-              key={`config-${ext.id}`}
-              className={`settings-nav-item ${activeTab === `config-${ext.id}` ? "active" : ""}`}
-              onClick={() => setActiveTab(`config-${ext.id}`)}
-            >
-              <Puzzle size="1rem" />
-              <span>{t(ext.manifest.name || ext.id)}</span>
-            </FocusableButton>
-          ))}
-        </>
-      )}
-    </>
-  );
-
-  const panel = (
-    <>
-      {activeTab === "general" && (
-        <GeneralSettings
-          accentTheme={accentTheme}
-          setAccentTheme={setAccentTheme}
-          defaultPlayer={defaultPlayer}
-          setDefaultPlayer={setDefaultPlayer}
-          bannerQuality={bannerQuality}
-          setBannerQuality={setBannerQuality}
-          language={language}
-          setLanguage={setLanguage}
-        />
-      )}
-      {activeTab === "accessibility" && (
-        <AccessibilitySettings
-          uiFontScale={uiFontScale}
-          setUiFontScale={setUiFontScale}
-          developerMode={developerMode}
-          setDeveloperMode={setDeveloperMode}
-          disableHttpProxy={disableHttpProxy}
-          setDisableHttpProxy={setDisableHttpProxy}
-        />
-      )}
-      {activeTab === "profiles" && <ProfilesSettings />}
-      {activeTab === "extensions" && <ExtensionsManager />}
-      {activeTab === "console" && <ConsoleManager />}
-      {slotContributions.some((c) => c.contribution.id === activeTab) && (
-        <Slot name="settings-tabs" contributionId={activeTab} />
-      )}
-      {configExtensions.map((ext) => (
-        activeTab === `config-${ext.id}` && (
-          <DeclarativeSettings key={ext.id} ext={ext} />
-        )
-      ))}
-    </>
-  );
-
-
-
-  // ── Mobile: pinned frame — tabs header + the single scrolling panel ─────────
   if (isMobile) {
     return (
-      <PageFrame className="settings-frame-mobile" header={mobileTabs}>
-        <main className="settings-main-content">{panel}</main>
+      <PageFrame className="settings-frame-mobile" header={<SettingsMobileTabs activeTab={activeTab} setActiveTab={setActiveTab} slotContributions={slotContributions} configExtensions={configExtensions} />}>
+        <main className="settings-main-content">
+          <SettingsContentPanel {...panelProps} />
+        </main>
       </PageFrame>
     );
   }
 
-  // ── Desktop: unchanged two-pane layout ──────────────────────────────────────
   return (
     <div className="settings-page-container">
       <div className="settings-container">
-        <aside className="settings-sidebar">{sidebarNav}</aside>
-        <main className="settings-main-content">{panel}</main>
+        <aside className="settings-sidebar">
+          <SettingsSidebarNav activeTab={activeTab} setActiveTab={setActiveTab} slotContributions={slotContributions} configExtensions={configExtensions} />
+        </aside>
+        <main className="settings-main-content">
+          <SettingsContentPanel {...panelProps} />
+        </main>
         <div className="settings-sidebar-spacer" />
       </div>
     </div>

@@ -3,6 +3,7 @@ import { Gauge, X } from "lucide-react";
 import type Hls from "hls.js";
 import { useTranslation } from "react-i18next";
 import { usePlayerStats } from "../../hooks/usePlayerStats";
+import { IconButton } from "../ui";
 
 interface PlayerStatsHUDProps {
   showStats: boolean;
@@ -67,18 +68,19 @@ export const PlayerStatsHUD: React.FC<PlayerStatsHUDProps> = ({
   return (
     <div className="player-stats-widget" onClick={(e) => e.stopPropagation()}>
       <div className="stats-header">
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div className="stats-header-title">
           <Gauge size={16} />
           <span>{t("stats.title")}</span>
         </div>
         {onClose && (
-          <button 
-            className="stats-close-btn" 
+          <IconButton
+            className="stats-close-btn"
             onClick={(e) => { e.stopPropagation(); onClose(); }}
             title={t("stats.closeTitle")}
+            aria-label={t("stats.closeTitle")}
           >
             <X size={16} />
-          </button>
+          </IconButton>
         )}
       </div>
       <div className="stats-grid">

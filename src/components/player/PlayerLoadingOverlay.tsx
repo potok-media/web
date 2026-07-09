@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { Button } from "../ui";
 
 interface PlayerLoadingOverlayProps {
   loadingState: {
@@ -50,12 +51,9 @@ export const PlayerLoadingOverlay: React.FC<PlayerLoadingOverlayProps> = ({
           })}
         </div>
 
-        <button 
-          className="player-loading-cancel-btn" 
-          onClick={onClose}
-        >
+        <Button variant="ghost" className="player-loading-cancel-btn" onClick={onClose}>
           {t("loading.cancel")}
-        </button>
+        </Button>
       </div>
     </div>
   );

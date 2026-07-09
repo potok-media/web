@@ -1,5 +1,6 @@
 import { Play } from "lucide-react";
 import { CodeBlock } from "../../../components/wiki/CodeBlock";
+import { Button } from "../../../components/ui";
 
 export const HttpDoc = {
   title: "Сетевой клиент http",
@@ -29,7 +30,7 @@ export const HttpDoc = {
         <li><strong>Автоматический парсинг JSON:</strong> Если сервер возвращает JSON, клиент вернет уже распарсенный объект в поле <code>data</code>.</li>
       </ul>
 
-      <button className="doc-sandbox-btn" onClick={() => openInSandbox(`// Пример загрузки данных по сети
+      <Button variant="primary" className="doc-sandbox-btn" onClick={() => openInSandbox(`// Пример загрузки данных по сети
 const { ui, http, createState } = PotokSDK;
 
 const state = createState({
@@ -77,7 +78,7 @@ render();
 loadData();`)}>
         <Play size="0.75rem" />
         <span>Загрузить Todo по сети in Sandbox</span>
-      </button>
+      </Button>
     </div>
   )
 };
@@ -124,7 +125,7 @@ export const StorageDoc = {
         В целях безопасности хост привязывает префикс <code>pluginId</code> к каждому сохраненному значению. Плагин <code>A</code> не имеет физического доступа к ключам плагина <code>B</code>. Прямой доступ к <code>window.localStorage</code> полностью блокируется.
       </p>
 
-      <button className="doc-sandbox-btn" onClick={() => openInSandbox(`// Пример сохранения и загрузки настроек
+      <Button variant="primary" className="doc-sandbox-btn" onClick={() => openInSandbox(`// Пример сохранения и загрузки настроек
 const { ui, storage, createState } = PotokSDK;
 
 const state = createState({
@@ -171,7 +172,7 @@ render();
 initStorage();`)}>
         <Play size="0.75rem" />
         <span>Запустить пример работы с БД в Sandbox</span>
-      </button>
+      </Button>
     </div>
   )
 };

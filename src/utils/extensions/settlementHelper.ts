@@ -3,7 +3,7 @@ import { logger } from "../logger";
 export class SettlementManager {
   settlementState: 'idle' | 'settling' | 'settled' = 'idle';
   private expectedPlugins = new Set<string>();
-  private settlementTimeoutId: any = null;
+  private settlementTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private notify: () => void;
 
   constructor(notify: () => void) {

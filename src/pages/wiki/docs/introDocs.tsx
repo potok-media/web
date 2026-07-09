@@ -1,5 +1,6 @@
 import { Play } from "lucide-react";
 import { CodeBlock } from "../../../components/wiki/CodeBlock";
+import { Button } from "../../../components/ui";
 
 export const IntroDoc = {
   title: "О проекте Potok",
@@ -19,9 +20,9 @@ export const IntroDoc = {
         В отличие от традиционных плагинов, которые могут нарушить стабильность работы или безопасность клиентского приложения, Potok гарантирует полную изоляцию расширений и предоставляет высокопроизводительный декларативный движок рендеринга.
       </p>
 
-      <div style={{ margin: "var(--space-m) 0", padding: "var(--space-m)", background: "rgba(56, 229, 255, 0.04)", border: "1px solid rgba(56, 229, 255, 0.12)", borderRadius: "var(--radius-m)" }}>
-        <h4 style={{ margin: "0 0 var(--space-xs) 0", color: "#38E5FF", fontSize: "0.95rem" }}>Ключевые архитектурные решения:</h4>
-        <ul className="doc-bullet-list" style={{ margin: 0, paddingLeft: "var(--space-m)" }}>
+      <div className="doc-callout-box">
+        <h4 className="doc-callout-title">Ключевые архитектурные решения:</h4>
+        <ul className="doc-bullet-list doc-bullet-list--flush">
           <li><strong>Декларативное описание интерфейсов:</strong> Разметка собирается на базе JS-билдеров и компилируется в защищенную JSON-схему, которая нативно отрисовывается основным приложением.</li>
           <li><strong>Изолированная песочница:</strong> Код плагина выполняется в изолированном контексте, предотвращая несанкционированный доступ к глобальным объектам браузера.</li>
           <li><strong>Глобальный реестр слотов:</strong> Плагины динамически проецируются через React Portals по CSS-селекторам из единого реестра, не засоряя разметку.</li>
@@ -59,8 +60,8 @@ export const IntroDoc = {
         <li>Локальное хранилище данных изолировано и шифруется персонально для каждого плагина.</li>
       </ul>
 
-      <div style={{ marginTop: "var(--space-l)" }}>
-        <button className="doc-sandbox-btn" onClick={() => openInSandbox(`// Быстрый пример запуска интерфейса
+      <div className="doc-section-spacer">
+        <Button variant="primary" className="doc-sandbox-btn" onClick={() => openInSandbox(`// Быстрый пример запуска интерфейса
 const { ui } = PotokSDK;
 
 ui.render(
@@ -72,7 +73,7 @@ ui.render(
 );`)}>
           <Play size="0.75rem" />
           <span>Запустить этот пример в Sandbox</span>
-        </button>
+        </Button>
       </div>
     </div>
   )

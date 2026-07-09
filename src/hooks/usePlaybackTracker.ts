@@ -31,7 +31,7 @@ export function usePlaybackTracker({
   duration,
 }: UsePlaybackTrackerParams) {
   const lastSavedTimeRef = useRef<number>(0);
-  const syncIntervalRef = useRef<any>(null);
+  const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { id, mediaType, season, episode } = playback;
 
   // Reset last saved time when media ID / episode changes

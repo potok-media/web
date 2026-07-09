@@ -1,14 +1,15 @@
 import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
 import type { BackendModule, ReadCallback } from "i18next";
-import { Storage } from "../utils/StorageService";
 import enTranslations from "./locales/en.json";
+import {
+  bootstrapLanguageIfNeeded,
+  detectInitialLanguage,
+  persistLanguage,
+  SOURCE_LANGUAGE,
+} from "../utils/language";
 
-/** Persisted settings key for the chosen language (shared with AppSettingsContext). */
-export const LANGUAGE_STORAGE_KEY = "language";
-
-/** Source / base / fallback language — always complete, always the last-resort fallback. */
-export const SOURCE_LANGUAGE = "en";
+export { LANGUAGE_STORAGE_KEY, SOURCE_LANGUAGE } from "../utils/language";
 
 // Lazy loaders for every committed locale file. Vite code-splits each into its own chunk;
 // the active non-source language is fetched on demand from our OWN origin (no third party).
@@ -31,23 +32,14 @@ export const NAMESPACES = Object.keys(enTranslations);
 
 const RTL_LANGUAGES = new Set(["ar", "he", "fa", "ur"]);
 
-/** Active language: persisted choice → browser/system language → English. */
-function detectInitialLanguage(): string {
-  const saved = Storage.get<string>(LANGUAGE_STORAGE_KEY, "");
-  if (saved && AVAILABLE_LANGUAGES.includes(saved)) return saved;
-
-  const nav =
-    typeof navigator !== "undefined" && navigator.language
-      ? navigator.language.split("-")[0]
-      : "";
-  if (nav && AVAILABLE_LANGUAGES.includes(nav)) return nav;
-
-  return SOURCE_LANGUAGE;
-}
+const initialLanguage = bootstrapLanguageIfNeeded(
+  detectInitialLanguage(AVAILABLE_LANGUAGES),
+  AVAILABLE_LANGUAGES,
+);
 
 // One memoized load per language (whole file), sliced by namespace for i18next.
-const fileCache = new Map<string, Promise<Record<string, any>>>();
-function loadLanguageFile(lng: string): Promise<Record<string, any>> {
+const fileCache = new Map<string, Promise<Record<string, unknown>>>();
+function loadLanguageFile(lng: string): Promise<Record<string, unknown>> {
   const cached = fileCache.get(lng);
   if (cached) return cached;
 
@@ -112,7 +104,7 @@ i18next
   .use(localeBackend)
   .use(initReactI18next)
   .init({
-    lng: detectInitialLanguage(),
+    lng: initialLanguage,
     fallbackLng: SOURCE_LANGUAGE,
     supportedLngs: AVAILABLE_LANGUAGES,
     load: "languageOnly",
@@ -137,7 +129,10 @@ for (const ns of NAMESPACES) {
   );
 }
 
-i18next.on("languageChanged", applyDocumentLanguage);
+i18next.on("languageChanged", (lng: string) => {
+  persistLanguage(lng);
+  applyDocumentLanguage(lng);
+});
 applyDocumentLanguage(i18next.language || SOURCE_LANGUAGE);
 
 export const i18n = i18next;

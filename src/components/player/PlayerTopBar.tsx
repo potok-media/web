@@ -1,6 +1,7 @@
 import React from "react";
 import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { IconButton } from "../ui";
 
 interface PlayerTopBarProps {
   title: string;
@@ -33,9 +34,9 @@ export const PlayerTopBar: React.FC<PlayerTopBarProps> = ({
           </span>
         )}
       </div>
-      <button className="player-close-btn" onClick={onClose} aria-label={t("topBar.closeAria")}>
+      <IconButton className="player-close-btn" onClick={onClose} aria-label={t("topBar.closeAria")}>
         <X size={20} />
-      </button>
+      </IconButton>
     </div>
   );
 };

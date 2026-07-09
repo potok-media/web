@@ -1,4 +1,5 @@
 import { Play } from "lucide-react";
+import { Button } from "../../../components/ui";
 import { CodeBlock } from "../../../components/wiki/CodeBlock";
 
 export const ManifestDoc = {
@@ -326,7 +327,7 @@ function render() {
 }`}
       />
 
-      <button className="doc-sandbox-btn" onClick={() => openInSandbox(`// Интерактивный пример реактивности
+      <Button variant="primary" className="doc-sandbox-btn" onClick={() => openInSandbox(`// Интерактивный пример реактивности
 const { ui, createState } = PotokSDK;
 
 const state = createState({
@@ -359,7 +360,7 @@ state.$subscribe(draw);
 draw();`)}>
         <Play size="0.75rem" />
         <span>Запустить пример с реактивностью в Sandbox</span>
-      </button>
+      </Button>
     </div>
   )
 };

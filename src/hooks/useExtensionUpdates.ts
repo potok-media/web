@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import type { RegisteredExtension } from "@potok/sdk-types";
-import { useHUD } from "../context/HUDContext";
+import { useHUD } from "../context/useHUD";
 import { Storage } from "../utils/StorageService";
 import { logger } from "../utils/logger";
 

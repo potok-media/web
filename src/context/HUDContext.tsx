@@ -1,19 +1,12 @@
-import React, { createContext, useContext, useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import "../../src/styles/hud.css";
-
-export type HUDType = "success" | "error" | "info" | "warning";
-
-interface HUDContextType {
-  show: (type: HUDType, message: string, durationMs?: number) => void;
-}
-
-const HUDContext = createContext<HUDContextType | undefined>(undefined);
+import { HUDContext, type HUDType } from "./hudContextState";
 
 export const HUDProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [hud, setHud] = useState<{ type: HUDType; message: string } | null>(null);
-  const timeoutRef = useRef<any>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const show = React.useCallback((type: HUDType, message: string, durationMs = 3000) => {
+  const show = useCallback((type: HUDType, message: string, durationMs = 3000) => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -29,12 +22,6 @@ export const HUDProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       <HUDView hud={hud} />
     </HUDContext.Provider>
   );
-};
-
-export const useHUD = () => {
-  const context = useContext(HUDContext);
-  if (!context) throw new Error("useHUD must be used within HUDProvider");
-  return context;
 };
 
 const HUDView: React.FC<{ hud: { type: HUDType; message: string } | null }> = ({ hud }) => {

@@ -2,6 +2,7 @@ import { DataWorkerBridge } from "../utils/worker/DataWorkerBridge";
 import { SettingsService } from "../utils/SettingsService";
 import { MemorySafeCache } from "./MemorySafeCache";
 import { SyncApiClient } from "./SyncApiClient";
+import { ensureAbsoluteURL, handleApiResponse } from "./apiClientHelpers";
 import { ApiError } from "./ApiTypes";
 import { webSocketClient } from "./WebSocketClient";
 import type { ExtensionManifest } from "@potok/sdk-types";
@@ -19,6 +20,7 @@ import type {
   ClientMetadata,
   ClientTrack,
   StreamUIItem,
+  PersonDetails,
 } from "./ApiTypes";
 
 export type {
@@ -47,15 +49,6 @@ export class ApiClient {
 
   private static get language(): string {
     return SettingsService.getLanguage();
-  }
-
-  private static ensureAbsoluteURL(url: string): string {
-    if (!url) return "";
-    let normalized = url.trim();
-    if (!/^https?:\/\//i.test(normalized)) {
-      normalized = `http://${normalized}`;
-    }
-    return normalized;
   }
 
   private static mediaDetailsCache = new Map<string, MediaCard>();
@@ -100,7 +93,7 @@ export class ApiClient {
     if (!this.isWorker) {
       return DataWorkerBridge.request<HandshakeResponse>("performHandshake", [url]);
     }
-    const absolute = this.ensureAbsoluteURL(url);
+    const absolute = ensureAbsoluteURL(url);
     const normalized = absolute.replace(/\/$/, "");
     const res = await fetch(`${normalized}/api/handshake`, { signal: AbortSignal.timeout(4000) });
     if (!res.ok) throw new Error(`Handshake failed: ${res.status}`);
@@ -133,45 +126,6 @@ export class ApiClient {
     }
   }
 
-  private static populateProgressPercentage(data: any): any {
-    if (!data) return data;
-    if (typeof data === "object") {
-      if (Array.isArray(data)) {
-        for (let i = 0; i < data.length; i++) {
-          data[i] = this.populateProgressPercentage(data[i]);
-        }
-        return data;
-      }
-      if (data.progress && typeof data.progress === "object") {
-        const p = data.progress;
-        if (p.percentage === undefined || isNaN(p.percentage)) {
-          if (p.aired && p.aired > 0) {
-            p.percentage = ((p.completed || 0) * 100) / p.aired;
-          } else if (p.completed !== undefined) {
-            p.percentage = p.completed > 0 ? 100 : 0;
-          } else {
-            p.percentage = 0;
-          }
-        }
-      }
-      for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-          data[key] = this.populateProgressPercentage(data[key]);
-        }
-      }
-    }
-    return data;
-  }
-
-  private static async handleResponse<T>(res: Response, fallbackMsg: string): Promise<T> {
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new ApiError(`${fallbackMsg} (Status ${res.status})`, res.status, errorText);
-    }
-    const json = await res.json();
-    return this.populateProgressPercentage(json) as T;
-  }
-
   public static async fetchHomeFeed(posterSize = "w342", backdropSize = "w1280"): Promise<HomeResponse> {
     if (!this.isWorker) {
       return DataWorkerBridge.request<HomeResponse>("fetchHomeFeed", [posterSize, backdropSize]);
@@ -180,7 +134,7 @@ export class ApiClient {
     const res = await fetch(url, {
       headers: this.headers,
     });
-    return this.handleResponse<HomeResponse>(res, "Failed to fetch home feed");
+    return handleApiResponse<HomeResponse>(res, "Failed to fetch home feed");
   }
 
   public static async searchMedia(query: string): Promise<MediaCard[]> {
@@ -190,7 +144,7 @@ export class ApiClient {
     const res = await fetch(`${this.baseURL}/api/media/search?query=${encodeURIComponent(query)}&language=${encodeURIComponent(this.language)}`, {
       headers: this.headers,
     });
-    return this.handleResponse<MediaCard[]>(res, "Search failed");
+    return handleApiResponse<MediaCard[]>(res, "Search failed");
   }
 
   public static getCachedMediaDetails(mediaType: string, id: number): MediaCard | null {
@@ -213,7 +167,7 @@ export class ApiClient {
     const res = await fetch(`${this.baseURL}/api/media/detail/${mediaType}/${id}?language=${encodeURIComponent(this.language)}`, {
       headers: this.headers,
     });
-    const details = await this.handleResponse<MediaCard>(res, "Failed to fetch details");
+    const details = await handleApiResponse<MediaCard>(res, "Failed to fetch details");
     this.mediaDetailsCache.set(cacheKey, details);
     return details;
   }
@@ -229,17 +183,17 @@ export class ApiClient {
         ...options?.headers,
       },
     });
-    return this.handleResponse<TvSeason>(res, "Failed to fetch season details");
+    return handleApiResponse<TvSeason>(res, "Failed to fetch season details");
   }
 
-  public static async fetchPersonDetails(personId: number): Promise<any> {
+  public static async fetchPersonDetails(personId: number): Promise<PersonDetails> {
     if (!this.isWorker) {
-      return DataWorkerBridge.request<any>("fetchPersonDetails", [personId]);
+      return DataWorkerBridge.request<PersonDetails>("fetchPersonDetails", [personId]);
     }
     const res = await fetch(`${this.baseURL}/api/tmdb/person/${personId}?append_to_response=combined_credits&language=${encodeURIComponent(this.language)}`, {
       headers: this.headers,
     });
-    return this.handleResponse<any>(res, "Failed to fetch person details");
+    return handleApiResponse<PersonDetails>(res, "Failed to fetch person details");
   }
 
   public static async saveInfuseItemAndGetStreams(request: InfuseSaveRequest): Promise<string[]> {
@@ -251,7 +205,7 @@ export class ApiClient {
       headers: this.headers,
       body: JSON.stringify(request),
     });
-    return this.handleResponse<string[]>(res, "Failed to save to library");
+    return handleApiResponse<string[]>(res, "Failed to save to library");
   }
 
   public static async syncTraktAction(path: string, request: TraktSyncRequest): Promise<void> {
@@ -276,7 +230,7 @@ export class ApiClient {
     const res = await fetch(`${this.baseURL}/api/media/row/${rowId}?page=${page}&language=${encodeURIComponent(this.language)}`, {
       headers: this.headers,
     });
-    return this.handleResponse<MediaCard[]>(res, `Failed to fetch media row: ${rowId}`);
+    return handleApiResponse<MediaCard[]>(res, `Failed to fetch media row: ${rowId}`);
   }
 
   public static async fetchBatchDetails(items: { tmdbId: number; mediaType: string }[]): Promise<MediaCard[]> {
@@ -289,7 +243,7 @@ export class ApiClient {
       headers: this.headers,
       body: JSON.stringify({ items, language: this.language }),
     });
-    return this.handleResponse<MediaCard[]>(res, "Failed to fetch batch media details");
+    return handleApiResponse<MediaCard[]>(res, "Failed to fetch batch media details");
   }
 
   public static async fetchLibraryCategory(category: string): Promise<MediaCard[]> {
@@ -304,7 +258,7 @@ export class ApiClient {
       const res = await fetch(`${this.baseURL}/api/library/${category}?language=${encodeURIComponent(this.language)}`, {
         headers: this.headers,
       });
-      return this.handleResponse<MediaCard[]>(res, `Failed to fetch library category: ${category}`);
+      return handleApiResponse<MediaCard[]>(res, `Failed to fetch library category: ${category}`);
     } else if (strategy === "server") {
       let entries: { tmdbId: string; mediaType: string }[] = [];
       if (category === "watchlist") {

@@ -251,7 +251,9 @@ body:has(.modal-overlay, .manifest-modal-overlay, .potok-update-modal-overlay) .
   }
 
   /* Prevent iOS Safari scale-up (auto-zoom) on input focus */
-  input, select, textarea, .potok-input, .settings-input, .settings-select {
+  input, select, textarea,
+  .ui-input, .ui-select, .ui-textarea,
+  .potok-input, .potok-select, .settings-input, .settings-select {
     font-size: 16px !important;
   }
 
@@ -265,6 +267,36 @@ body:has(.modal-overlay, .manifest-modal-overlay, .potok-update-modal-overlay) .
   .main-content:has(.details-layout) {
     padding-top: 0 !important;
   }
+}
+
+/* PageFrame primitive */
+.page-frame-body-wrapper {
+  display: flex;
+  gap: var(--space-l);
+}
+
+.page-frame-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.inspector-loading {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 99999;
+  color: #fff;
+}
+
+.u-hidden {
+  display: none;
+}
+
+.focus-trap-root {
+  outline: none;
+  width: 100%;
+  height: 100%;
+  display: contents;
 }
 
 

@@ -1,0 +1,40 @@
+/* ==========================================================================
+   ScrollView — viewport + track scroll primitive.
+   ========================================================================== */
+
+.scroll-view,
+.tv-scrollview {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+.scroll-view--horizontal,
+.tv-scrollview--horizontal {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.scroll-view--horizontal::-webkit-scrollbar,
+.tv-scrollview--horizontal::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-view--vertical,
+.tv-scrollview--vertical {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.scroll-view-track,
+.tv-scrollview-track {
+  overflow: visible;
+}
+
+.scroll-view--vertical > .scroll-view-track,
+.scroll-view--vertical > .tv-scrollview-track,
+.tv-scrollview--vertical > .scroll-view-track,
+.tv-scrollview--vertical > .tv-scrollview-track {
+  min-height: 100%;
+}

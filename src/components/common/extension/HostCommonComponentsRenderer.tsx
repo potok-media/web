@@ -5,7 +5,7 @@ import type {
 } from "@potok/sdk-types";
 import type { ConnectionProfile as ApiConnectionProfile } from "../../../network/ApiTypes";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
-import { useHUD } from "../../../context/HUDContext";
+import { useHUD } from "../../../context/useHUD";
 
 import StreamSkeletonList from "../../StreamSkeletonList";
 import StreamRowComponent from "../../StreamRowComponent";

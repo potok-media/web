@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { ApiClient } from "../network/ApiClient";
-import type { TvEpisode } from "../network/ApiTypes";
+import type { TvEpisode, TvSeason } from "../network/ApiTypes";
 import { MemorySafeCache } from "../network/MemorySafeCache";
 import { resizeTmdbImage } from "../utils/mediaUtils";
 // Smaller episode stills on TV — decoding 24 full-size JPEGs is the main FPS killer.
@@ -11,7 +11,7 @@ const STILL_SIZE = "w500";
 const seasonCache = new MemorySafeCache(300000, 100);
 
 interface ActiveRequest {
-  promise: Promise<any>;
+  promise: Promise<TvSeason>;
   controller: AbortController;
   refCount: number;
 }
@@ -75,7 +75,7 @@ export function useSeasonEpisodes(mediaId: number, seasonNumber: number) {
 
       try {
         const data = await active.promise;
-        const mapped: TvEpisode[] = (data.episodes || []).map((ep: any) => ({
+        const mapped: TvEpisode[] = (data.episodes || []).map((ep) => ({
           id: ep.id,
           episodeNumber: ep.episodeNumber,
           name: ep.name,
@@ -89,8 +89,8 @@ export function useSeasonEpisodes(mediaId: number, seasonNumber: number) {
         seasonCache.set(cacheKey, mapped);
 
         setEpisodes(mapped);
-      } catch (err: any) {
-        if (err.name !== "AbortError") {
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name !== "AbortError") {
           setError(err.message || i18n.t("media:seasons.loadError"));
         }
       } finally {
@@ -114,7 +114,7 @@ export function useSeasonEpisodes(mediaId: number, seasonNumber: number) {
         }
       }
     };
-  }, [mediaId, seasonNumber, i18n]);
+  }, [cacheKey, mediaId, seasonNumber, i18n]);
 
   return { episodes, loading, error };
 }

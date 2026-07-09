@@ -12,10 +12,10 @@ const BenefitRow: React.FC<{ icon: React.ReactNode; color: string; title: string
     <div
       className="benefit-card-icon-badge-local"
       style={{
-        color,
-        background: `${color}15`,
-        border: `0.0625rem solid ${color}20`,
-      }}
+        "--benefit-color": color,
+        "--benefit-bg": `${color}15`,
+        "--benefit-border": `0.0625rem solid ${color}20`,
+      } as React.CSSProperties}
     >
       {icon}
     </div>

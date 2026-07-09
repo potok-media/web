@@ -3,13 +3,16 @@ import { useTranslation } from "react-i18next";
 import { Star } from "lucide-react";
 import type { TvEpisode, MediaCard } from "../network/ApiTypes";
 
+interface SelectedEpisode {
+  episode: TvEpisode;
+  seasonNumber: number;
+}
+import { Button } from "./ui";
+
 interface MediaOverviewSectionProps {
   media: MediaCard;
-  selectedEpisode: {
-    episode: TvEpisode;
-    seasonNumber: number;
-  } | null;
-  setSelectedEpisode: (val: any) => void;
+  selectedEpisode: SelectedEpisode | null;
+  setSelectedEpisode: (val: SelectedEpisode | null) => void;
 }
 
 export const MediaOverviewSection: React.FC<MediaOverviewSectionProps> = ({
@@ -40,12 +43,13 @@ export const MediaOverviewSection: React.FC<MediaOverviewSectionProps> = ({
           {selectedEpisode.episode.overview || media.overview || t("episode.noOverview")}
         </p>
 
-        <button 
+        <Button
+          variant="ghost"
           className="details-reset-episode-btn"
           onClick={() => setSelectedEpisode(null)}
         >
           ← {t("episode.backToShow")}
-        </button>
+        </Button>
       </div>
     );
   }

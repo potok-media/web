@@ -346,19 +346,19 @@
       "ageAtDeath_other": "all'età di {{count}} anni",
       "years_one": "anno",
       "years_other": "anni",
-      "episodeCount_one": "{{count}} episodio",
-      "episodeCount_other": "{{count}} episodi",
-      "Acting": "Agire",
-      "Directing": "Direzione",
-      "Writing": "Scrittura",
-      "Production": "Produzione",
       "genre_35": "Commedie",
       "genre_action_adventure": "Azione E Avventura",
       "genre_18": "Dramas",
       "genre_scifi_fantasy": "Sci-Fi & Fantasy",
       "genre_thriller_horror": "Thriller & Horror",
       "genre_kids_family": "Bambini E Famiglia",
-      "categoryTitle": "{{actorName}} — {{category}}"
+      "categoryTitle": "{{actorName}} — {{category}}",
+      "departments": {
+        "acting": "Acting",
+        "directing": "Directing",
+        "writing": "Writing",
+        "production": "Production"
+      }
     },
     "episode": {
       "fallbackName": "Episodio {{number}}",

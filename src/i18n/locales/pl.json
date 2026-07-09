@@ -346,19 +346,19 @@
       "ageAtDeath_other": "w wieku {{count}} lat",
       "years_one": "rok",
       "years_other": "lata",
-      "episodeCount_one": "{{count}} odcinek",
-      "episodeCount_other": "{{count}} odcinków",
-      "Acting": "Działaj",
-      "Directing": "Kierunek",
-      "Writing": "Pisanie",
-      "Production": "Produkcja",
       "genre_35": "Komentarze",
       "genre_action_adventure": "Akcja i Przygoda",
       "genre_18": "Dramas",
       "genre_scifi_fantasy": "Sci-Fi & Fantasy",
       "genre_thriller_horror": "Dźwigacz & Horror",
       "genre_kids_family": "Dzieci i Rodzina",
-      "categoryTitle": "{{actorName}} — {{category}}"
+      "categoryTitle": "{{actorName}} — {{category}}",
+      "departments": {
+        "acting": "Acting",
+        "directing": "Directing",
+        "writing": "Writing",
+        "production": "Production"
+      }
     },
     "episode": {
       "fallbackName": "Odcinek {{number}}",

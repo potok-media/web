@@ -231,7 +231,43 @@ export interface SystemWakeLog {
 export interface FullscreenTrackingState {
   isFullscreenActive: boolean;
   activeElementTag: string | null;
-}export interface StreamUIItem {
+}
+
+/** TMDB combined-credits entry (movie or TV). */
+export interface TmdbCreditItem {
+  id: number;
+  title?: string;
+  name?: string;
+  original_title?: string;
+  original_name?: string;
+  poster_path?: string | null;
+  media_type?: "movie" | "tv";
+  vote_average?: number;
+  release_date?: string;
+  first_air_date?: string;
+  popularity?: number;
+  genre_ids?: number[];
+  job?: string;
+}
+
+export interface PersonCombinedCredits {
+  cast: TmdbCreditItem[];
+  crew: TmdbCreditItem[];
+}
+
+export interface PersonDetails {
+  id: number;
+  name: string;
+  profile_path?: string | null;
+  birthday?: string;
+  deathday?: string;
+  place_of_birth?: string;
+  biography?: string;
+  known_for_department?: string;
+  combined_credits?: PersonCombinedCredits;
+}
+
+export interface StreamUIItem {
   id: string;
   title: string;
   tracker?: string;

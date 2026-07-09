@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Trash2, Settings as SettingsIcon } from "lucide-react";
 import type { ConnectionProfile } from "../network/ApiTypes";
+import { Button, IconButton } from "./ui";
 
 interface ProfileSelectorProps {
   connectionProfiles: ConnectionProfile[];
@@ -59,14 +60,14 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = React.memo(({
             </div>
             {!isSettingsLocked && (
               <div className="profile-actions">
-                <button
-                  type="button"
+                <IconButton
                   className="profile-btn delete"
                   onClick={(e) => handleDeleteClick(e, p.id)}
                   title={t("profileSelector.deleteProfile")}
+                  aria-label={t("profileSelector.deleteProfile")}
                 >
                   <Trash2 size="1rem" />
-                </button>
+                </IconButton>
               </div>
             )}
           </div>
@@ -74,15 +75,15 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = React.memo(({
       </div>
 
       {!isSettingsLocked && (
-        <button
-          type="button"
-          className="settings-btn-primary settings-add-profile-btn"
+        <Button
+          variant="primary"
+          className="settings-add-profile-btn"
           onClick={onStartAdd}
           disabled={connectionProfiles.length >= 5}
         >
           <Plus size="1rem" />
           <span>{t("profileSelector.addProfile")}</span>
-        </button>
+        </Button>
       )}
     </section>
   );

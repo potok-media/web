@@ -1,9 +1,4 @@
-import { Storage } from "./StorageService";
-
-/** Active UI locale, read from storage (worker-safe — no React/i18n dependency here). */
-function currentLocale(): string {
-  return Storage.get<string>("language", "en");
-}
+import { getActiveLanguage } from "./language";
 
 const BYTE_UNITS = ["byte", "kilobyte", "megabyte", "gigabyte", "terabyte"] as const;
 
@@ -16,7 +11,7 @@ export const formatBytes = (bytes?: number): string => {
   const k = 1024;
   const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), BYTE_UNITS.length - 1);
   const val = bytes / Math.pow(k, i);
-  return new Intl.NumberFormat(currentLocale(), {
+  return new Intl.NumberFormat(getActiveLanguage(), {
     style: "unit",
     unit: BYTE_UNITS[i],
     unitDisplay: "short",
@@ -41,7 +36,7 @@ export const formatPublishDate = (dateStr?: string): string => {
   const diffMonths = Math.floor(diffDays / 30.4);
   const diffYears = Math.floor(diffDays / 365);
 
-  const rtf = new Intl.RelativeTimeFormat(currentLocale(), { numeric: "auto" });
+  const rtf = new Intl.RelativeTimeFormat(getActiveLanguage(), { numeric: "auto" });
   if (diffSec < 60) return rtf.format(-diffSec, "second");
   if (diffMin < 60) return rtf.format(-diffMin, "minute");
   if (diffHrs < 24) return rtf.format(-diffHrs, "hour");

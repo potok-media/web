@@ -8,7 +8,14 @@ import { StreamFilterBar } from "../StreamFilterBar";
 import StreamRowComponent from "../StreamRowComponent";
 import StreamSkeletonList from "../StreamSkeletonList";
 import { ScrollView } from "./ScrollView";
-
+import {
+  collectSeasonNumbers,
+  getStreamProvider,
+  getStreamSeeders,
+  getStreamSizeBytes,
+  matchesSeasonFilter,
+  type ExtendedStreamPayload,
+} from "./streamListUtils";
 
 export interface StreamListProps {
   streams: RawStreamPayload[];
@@ -19,13 +26,7 @@ export interface StreamListProps {
   onRefresh?: () => void;
 }
 
-const mapStreamToUI = (stream: RawStreamPayload & {
-  sizeBytes?: number;
-  seeders?: number;
-  leechers?: number;
-  tracker?: string;
-  publishDate?: string;
-}, index: number, t: TFunction): StreamUIItem => {
+const mapStreamToUI = (stream: ExtendedStreamPayload, index: number, t: TFunction): StreamUIItem => {
   const voiceTags = stream.voice
     ? stream.voice
         .split(/[,;]+/)
@@ -86,57 +87,46 @@ export const StreamList: React.FC<StreamListProps> = ({
   const [seasonFilter, setSeasonFilter] = useState<string>("all");
 
   const trackers = useMemo(() => {
-    return Array.from(new Set(streams.map((s) => s.provider || (s as any).tracker).filter((p): p is string => !!p)));
+    const extended = streams as ExtendedStreamPayload[];
+    return Array.from(
+      new Set(extended.map((s) => getStreamProvider(s)).filter((p) => !!p)),
+    );
   }, [streams]);
 
-  const availableSeasons = useMemo(() => {
-    const set = new Set<number>();
-    streams.forEach((s: any) => {
-      if (s.seasons) {
-        s.seasons.forEach((num: number) => set.add(num));
-      } else if (s.season !== undefined && s.season !== null && s.season !== 0) {
-        set.add(s.season);
-      }
-    });
-    return Array.from(set).sort((a, b) => a - b);
-  }, [streams]);
+  const availableSeasons = useMemo(
+    () => collectSeasonNumbers(streams as ExtendedStreamPayload[]),
+    [streams],
+  );
 
   const processedStreams = useMemo(() => {
-    const filtered = streams.filter((t) => {
-      const provider = t.provider || (t as any).tracker || "";
-      const matchesQuality = qualityFilter === "all" 
-        || t.title.toLowerCase().includes(qualityFilter.toLowerCase())
-        || (t.quality && t.quality.toLowerCase().includes(qualityFilter.toLowerCase()));
+    const extendedStreams = streams as ExtendedStreamPayload[];
+    const filtered = extendedStreams.filter((stream) => {
+      const provider = getStreamProvider(stream);
+      const matchesQuality =
+        qualityFilter === "all" ||
+        stream.title.toLowerCase().includes(qualityFilter.toLowerCase()) ||
+        (stream.quality && stream.quality.toLowerCase().includes(qualityFilter.toLowerCase()));
       const matchesTracker = activeTracker === "all" || provider === activeTracker;
-      const matchesSeason = seasonFilter === "all"
-        || (t as any).seasons?.includes(Number(seasonFilter))
-        || (t as any).season === Number(seasonFilter)
-        || (seasonFilter === "none" && !(t as any).seasons && ((t as any).season === undefined || (t as any).season === null || (t as any).season === 0));
+      const matchesSeason = matchesSeasonFilter(stream, seasonFilter);
       return matchesQuality && matchesTracker && matchesSeason;
     });
 
     const sorted = [...filtered].sort((a, b) => {
       if (sortOption === "seedersDesc") {
-        const seedsA = a.seeds !== undefined ? a.seeds : (a as any).seeders ?? 0;
-        const seedsB = b.seeds !== undefined ? b.seeds : (b as any).seeders ?? 0;
-        return seedsB - seedsA;
+        return getStreamSeeders(b) - getStreamSeeders(a);
       }
       if (sortOption === "sizeDesc") {
-        const sizeA = typeof a.size === 'number' ? a.size : (a as any).sizeBytes ?? 0;
-        const sizeB = typeof b.size === 'number' ? b.size : (b as any).sizeBytes ?? 0;
-        return sizeB - sizeA;
+        return getStreamSizeBytes(b) - getStreamSizeBytes(a);
       }
       if (sortOption === "sizeAsc") {
-        const sizeA = typeof a.size === 'number' ? a.size : (a as any).sizeBytes ?? 0;
-        const sizeB = typeof b.size === 'number' ? b.size : (b as any).sizeBytes ?? 0;
-        return sizeA - sizeB;
+        return getStreamSizeBytes(a) - getStreamSizeBytes(b);
       }
       return 0;
     });
 
     return sorted.map((stream, index) => ({
       raw: stream,
-      ui: mapStreamToUI(stream, index, t)
+      ui: mapStreamToUI(stream, index, t),
     }));
   }, [streams, qualityFilter, activeTracker, seasonFilter, sortOption, t]);
 
@@ -164,7 +154,7 @@ export const StreamList: React.FC<StreamListProps> = ({
   };
 
   return (
-    <div className="stream-list-container" style={{ display: "flex", flexDirection: "column", gap: "var(--space-m)" }}>
+    <div className="stream-list-container stream-list-container--gap">
       {showFilters && (
         <StreamFilterBar
           countLabel={t("countLabel", { count: processedStreams.length })}
@@ -195,14 +185,14 @@ export const StreamList: React.FC<StreamListProps> = ({
                 key={`${item.ui.id || "stream"}-${index}`}
                 stream={item.ui}
                 onClick={handleSelectStream}
-                focusKey={index === 0 ? "STREAM_FIRST_ROW" : undefined}
+
               />
             );
           })
         ) : (
-          <div className="stream-empty-state" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "var(--space-s)", padding: "var(--space-xl) var(--space-m)", color: "var(--text-secondary)" }}>
+          <div className="stream-empty-state stream-empty-state--padded">
             <ShieldAlert size="2.5rem" opacity={0.5} />
-            <span className="stream-empty-state-text" style={{ font: "var(--font-body)", textAlign: "center" }}>
+            <span className="stream-empty-state-text stream-empty-state-text--center">
               {resolvedEmptyText}
             </span>
           </div>

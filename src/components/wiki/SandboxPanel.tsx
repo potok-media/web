@@ -1,6 +1,8 @@
 import React from "react";
 import { Play, RefreshCw } from "lucide-react";
+import type { UIComponentSchema } from "@potok/sdk-types";
 import { ComponentRenderer } from "../common/extension/ComponentRenderer";
+import { Button, Chip } from "../ui";
 
 interface LogEntry {
   id: string;
@@ -19,7 +21,7 @@ interface SandboxPanelProps {
   clearLogs: () => void;
   handleRun: () => void;
   handleReset: () => void;
-  compiledLayout: any;
+  compiledLayout: UIComponentSchema | null;
 }
 
 export const SandboxPanel: React.FC<SandboxPanelProps> = ({
@@ -38,68 +40,61 @@ export const SandboxPanel: React.FC<SandboxPanelProps> = ({
     <div className="wiki-section sb-layout">
       <div className="sb-header">
         <div className="sb-title-group">
-          <button 
-            className={`sb-tab-btn ${sandboxTab === "editor" ? "active" : ""}`}
+          <Chip
+            active={sandboxTab === "editor"}
+            className="sb-tab-btn"
             onClick={() => setSandboxTab("editor")}
           >
             Редактор кода (JavaScript)
-          </button>
-          <button 
-            className={`sb-tab-btn ${sandboxTab === "result" ? "active" : ""}`}
+          </Chip>
+          <Chip
+            active={sandboxTab === "result"}
+            className="sb-tab-btn"
             onClick={() => setSandboxTab("result")}
           >
             Превью результата
-          </button>
+          </Chip>
         </div>
 
         <div className="sb-actions">
-          <button className="sb-btn sb-btn-run" onClick={handleRun}>
+          <Button variant="primary" className="sb-btn sb-btn-run" onClick={handleRun}>
             <Play size="0.875rem" />
             Запустить
-          </button>
-          <button className="sb-btn" onClick={handleReset}>
+          </Button>
+          <Button variant="secondary" className="sb-btn" onClick={handleReset}>
             <RefreshCw size="0.875rem" />
             Сбросить
-          </button>
+          </Button>
         </div>
       </div>
 
       {sandboxTab === "editor" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-m)" }}>
+        <div className="sb-panel-stack">
           <div className="sb-editor-panel">
             <div className="sb-editor-header">
               <span>main.js</span>
-              {editorLoaded && <span style={{ color: "var(--accent-color)", fontWeight: "bold" }}>CONNECTED</span>}
+              {editorLoaded && <span className="sb-connected-label">CONNECTED</span>}
             </div>
-            {editorError && <div style={{ padding: "var(--space-m)", color: "var(--error)" }}>{editorError}</div>}
-            <div 
-              ref={containerRef} 
-              style={{ 
-                height: "25rem", 
-                resize: "vertical", 
-                overflow: "hidden", 
-                minHeight: "15rem", 
-                borderBottom: "1px solid rgba(255, 255, 255, 0.05)" 
-              }} 
-            />
+            {editorError && <div className="sb-error-banner">{editorError}</div>}
+            <div ref={containerRef} className="sb-editor-mount" />
           </div>
 
           <div className="sb-logs-panel">
             <div className="sb-logs-header">
               <span>КОНСОЛЬ ЛОГОВ</span>
-              <span style={{ cursor: "pointer" }} onClick={clearLogs}>Очистить</span>
+              <span className="sb-clear-logs" onClick={clearLogs}>Очистить</span>
             </div>
-            <div className="sb-logs-body" style={{ height: "8.75rem" }}>
+            <div className="sb-logs-body sb-logs-body--fixed">
               {logs.length > 0 ? (
                 logs.map((log) => (
-                  <div key={log.id} style={{ display: "flex", gap: "var(--space-xs)" }}>
-                    <span style={{ color: "var(--text-muted)" }}>[{log.timestamp}]</span>
-                    <span style={{ fontWeight: 700, color: "var(--accent-color)" }}>{log.type}</span>
-                    <span style={{ color: "var(--text-secondary)" }}>{log.message}</span>
+                  <div key={log.id} className="sb-log-row">
+                    <span className="sb-log-timestamp">[{log.timestamp}]</span>
+                    <span className="sb-log-type">{log.type}</span>
+                    <span className="sb-log-message">{log.message}</span>
                   </div>
                 ))
               ) : (
-                <div style={{ color: "var(--text-muted)", fontStyle: "italic" }}>Логи пусты. Запустите код и совершите действия.</div>
+                <div className="sb-logs-empty">Логи пусты. Запустите код и совершите действия.</div>
               )}
             </div>
           </div>
@@ -107,21 +102,21 @@ export const SandboxPanel: React.FC<SandboxPanelProps> = ({
       )}
 
       {sandboxTab === "result" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-m)", width: "100%", height: "100%", minHeight: 0 }}>
-          <div className="sb-preview-panel" style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-            <div className="sb-preview-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
+        <div className="sb-preview-stack">
+          <div className="sb-preview-panel sb-preview-panel--flex">
+            <div className="sb-preview-header sb-preview-header--flex">
               <span>Эмулируемый Экран Potok</span>
-              <span style={{ fontSize: "var(--font-size-caption, 0.7rem)", color: "var(--text-muted)" }}>
+              <span className="sb-preview-hint">
                 Контекст: Свободный рендер
               </span>
             </div>
-            <div className="sb-preview-content" style={{ flex: 1, overflowY: "auto", background: "#0c1017", padding: "var(--space-m)" }}>
+            <div className="sb-preview-content sb-preview-content--scroll">
               {compiledLayout ? (
                 <div className="potok-page-emu standalone-page">
                   <ComponentRenderer schema={compiledLayout} pluginId="potok-sandbox-plugin" />
                 </div>
               ) : (
-                <div style={{ color: "var(--text-muted)", textAlign: "center", padding: "var(--space-xl)" }}>
+                <div className="sb-preview-empty">
                   Интерфейс не скомпилирован. Вернитесь во вкладку "Редактор" и нажмите "Запустить".
                 </div>
               )}

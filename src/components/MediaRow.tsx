@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import type { MediaCard } from "../network/ApiTypes";
-import { MediaCardComponent, areMediaCardsEqual } from "./MediaCardComponent";
+import { MediaCardComponent } from "./MediaCardComponent";
+import { areMediaCardsEqual } from "./mediaCardCompare";
 import { ScrollView } from "./common/ScrollView";
 
 interface MediaRowProps {

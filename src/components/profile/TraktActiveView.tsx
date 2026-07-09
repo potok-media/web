@@ -1,7 +1,8 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { User, Film, Tv, Clock, Award } from "lucide-react";
-import { FocusableButton } from "../common/TVNavigation";
+import { Button } from "../ui";
+
 
 interface TraktActiveViewProps {
   traktProfile: {
@@ -27,9 +28,9 @@ const StatCard: React.FC<{ icon: React.ReactNode; color: string; title: string; 
     <div
       className="profile-stat-icon-wrapper"
       style={{
-        backgroundColor: `${color}15`,
-        color,
-      }}
+        "--stat-bg": `${color}15`,
+        "--stat-color": color,
+      } as React.CSSProperties}
     >
       {icon}
     </div>
@@ -81,12 +82,9 @@ export const TraktActiveView: React.FC<TraktActiveViewProps> = ({ traktProfile, 
             </p>
           </div>
         </div>
-        <FocusableButton
-          onClick={onLogout}
-          className="trakt-logout-btn"
-        >
+        <Button type="button" variant="ghost" onClick={onLogout} className="trakt-logout-btn">
           {t("traktActive.disconnect")}
-        </FocusableButton>
+        </Button>
       </div>
 
       <div className="profile-stats-grid">

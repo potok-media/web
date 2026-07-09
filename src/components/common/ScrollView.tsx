@@ -1,7 +1,7 @@
 import React from "react";
-import "../../styles/tv-scrollview.css";
+import "../../styles/scroll-view.css";
 
-const TRACK_CLASS = "tv-scrollview-track";
+const TRACK_CLASS = "scroll-view-track";
 
 interface TrackRenderProps {
   trackProps: { className: string };
@@ -36,7 +36,7 @@ export const ScrollView: React.FC<ScrollViewProps> = ({
   return (
     <div
       ref={viewportRef}
-      className={`tv-scrollview tv-scrollview--${orientation} ${className}`.trim()}
+      className={`scroll-view scroll-view--${orientation} ${className}`.trim()}
       onScroll={onScroll}
     >
       {renderTrack ? (

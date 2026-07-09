@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Star } from "lucide-react";
 import type { MediaCard } from "../network/ApiClient";
+import { IconButton } from "./ui";
 
 interface StreamSidebarProps {
   media: MediaCard;
@@ -17,14 +18,14 @@ export const StreamSidebar: React.FC<StreamSidebarProps> = React.memo(({
   const { t } = useTranslation("streams");
   return (
     <aside className="streams-page-sidebar">
-      <button
-        type="button"
+      <IconButton
         className="streams-sidebar-back-btn"
         onClick={onBack}
         title={t("actions.back")}
+        aria-label={t("actions.back")}
       >
         <ArrowLeft size="1.125rem" />
-      </button>
+      </IconButton>
 
       <div className="streams-sidebar-poster">
         <img src={media.posterSrc || ""} alt={media.title} />

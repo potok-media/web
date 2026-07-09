@@ -55,7 +55,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
         }));
       }
     }
-  }, [activePage, filteredPages]);
+  }, [activePage, filteredPages, expandedGroups]);
 
   return (
     <aside className="wiki-sidebar-nav">
@@ -64,7 +64,7 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
         <div className="wiki-sidebar-group">
           <div className="wiki-sidebar-group-title">Введение</div>
           {filteredPages
-            .filter(([_, info]) => info.category === "Введение")
+            .filter(([, info]) => info.category === "Введение")
             .map(([key, info]) => (
               <div 
                 className={`wiki-sidebar-item ${activePage === key ? "active" : ""}`}
@@ -84,17 +84,14 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
             onClick={() => toggleGroup("API")}
           >
             <span>API методы</span>
-            <ChevronDown 
-              size="0.875rem" 
-              style={{ 
-                transform: expandedGroups["API"] ? "rotate(0deg)" : "rotate(-90deg)", 
-                transition: "transform 0.2s" 
-              }} 
+            <ChevronDown
+              size="0.875rem"
+              className={`wiki-sidebar-chevron${expandedGroups["API"] ? " is-expanded" : ""}`}
             />
           </div>
           
           {expandedGroups["API"] && filteredPages
-            .filter(([_, info]) => info.category === "API")
+            .filter(([, info]) => info.category === "API")
             .map(([key, info]) => (
               <div 
                 className={`wiki-sidebar-item ${activePage === key ? "active" : ""}`}
@@ -114,16 +111,13 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
             onClick={() => toggleGroup("UI: Контейнеры")}
           >
             <span>UI: Разметка и Сетки</span>
-            <ChevronDown 
-              size="0.875rem" 
-              style={{ 
-                transform: expandedGroups["UI: Контейнеры"] ? "rotate(0deg)" : "rotate(-90deg)", 
-                transition: "transform 0.2s" 
-              }} 
+            <ChevronDown
+              size="0.875rem"
+              className={`wiki-sidebar-chevron${expandedGroups["UI: Контейнеры"] ? " is-expanded" : ""}`}
             />
           </div>
           {expandedGroups["UI: Контейнеры"] && filteredPages
-            .filter(([_, info]) => info.category === "UI: Контейнеры")
+            .filter(([, info]) => info.category === "UI: Контейнеры")
             .map(([key, info]) => (
               <div 
                 className={`wiki-sidebar-item ${activePage === key ? "active" : ""}`}
@@ -143,16 +137,13 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
             onClick={() => toggleGroup("UI: Текст и Инфо")}
           >
             <span>UI: Текст и Инфо</span>
-            <ChevronDown 
-              size="0.875rem" 
-              style={{ 
-                transform: expandedGroups["UI: Текст и Инфо"] ? "rotate(0deg)" : "rotate(-90deg)", 
-                transition: "transform 0.2s" 
-              }} 
+            <ChevronDown
+              size="0.875rem"
+              className={`wiki-sidebar-chevron${expandedGroups["UI: Текст и Инфо"] ? " is-expanded" : ""}`}
             />
           </div>
           {expandedGroups["UI: Текст и Инфо"] && filteredPages
-            .filter(([_, info]) => info.category === "UI: Текст и Инфо")
+            .filter(([, info]) => info.category === "UI: Текст и Инфо")
             .map(([key, info]) => (
               <div 
                 className={`wiki-sidebar-item ${activePage === key ? "active" : ""}`}
@@ -172,16 +163,13 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
             onClick={() => toggleGroup("UI: Формы и Ввод")}
           >
             <span>UI: Формы и Ввод</span>
-            <ChevronDown 
-              size="0.875rem" 
-              style={{ 
-                transform: expandedGroups["UI: Формы и Ввод"] ? "rotate(0deg)" : "rotate(-90deg)", 
-                transition: "transform 0.2s" 
-              }} 
+            <ChevronDown
+              size="0.875rem"
+              className={`wiki-sidebar-chevron${expandedGroups["UI: Формы и Ввод"] ? " is-expanded" : ""}`}
             />
           </div>
           {expandedGroups["UI: Формы и Ввод"] && filteredPages
-            .filter(([_, info]) => info.category === "UI: Формы и Ввод")
+            .filter(([, info]) => info.category === "UI: Формы и Ввод")
             .map(([key, info]) => (
               <div 
                 className={`wiki-sidebar-item ${activePage === key ? "active" : ""}`}
@@ -201,16 +189,13 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
             onClick={() => toggleGroup("UI: Медиа")}
           >
             <span>UI: Медиа компоненты</span>
-            <ChevronDown 
-              size="0.875rem" 
-              style={{ 
-                transform: expandedGroups["UI: Медиа"] ? "rotate(0deg)" : "rotate(-90deg)", 
-                transition: "transform 0.2s" 
-              }} 
+            <ChevronDown
+              size="0.875rem"
+              className={`wiki-sidebar-chevron${expandedGroups["UI: Медиа"] ? " is-expanded" : ""}`}
             />
           </div>
           {expandedGroups["UI: Медиа"] && filteredPages
-            .filter(([_, info]) => info.category === "UI: Медиа")
+            .filter(([, info]) => info.category === "UI: Медиа")
             .map(([key, info]) => (
               <div 
                 className={`wiki-sidebar-item ${activePage === key ? "active" : ""}`}
@@ -230,16 +215,13 @@ export const WikiSidebar: React.FC<WikiSidebarProps> = ({
             onClick={() => toggleGroup("UI: Рендеринг и Стриминг")}
           >
             <span>UI: Плееры и Потоки</span>
-            <ChevronDown 
-              size="0.875rem" 
-              style={{ 
-                transform: expandedGroups["UI: Рендеринг и Стриминг"] ? "rotate(0deg)" : "rotate(-90deg)", 
-                transition: "transform 0.2s" 
-              }} 
+            <ChevronDown
+              size="0.875rem"
+              className={`wiki-sidebar-chevron${expandedGroups["UI: Рендеринг и Стриминг"] ? " is-expanded" : ""}`}
             />
           </div>
           {expandedGroups["UI: Рендеринг и Стриминг"] && filteredPages
-            .filter(([_, info]) => info.category === "UI: Рендеринг и Стриминг")
+            .filter(([, info]) => info.category === "UI: Рендеринг и Стриминг")
             .map(([key, info]) => (
               <div 
                 className={`wiki-sidebar-item ${activePage === key ? "active" : ""}`}

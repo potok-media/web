@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { formatTime } from "../../utils/playerHelpers";
+import { Button } from "../ui";
 
 interface PlayerResumeToastProps {
   resumeTime: number;
@@ -20,7 +21,8 @@ export const PlayerResumeToast: React.FC<PlayerResumeToastProps> = ({
         {t("resume.continuedFrom", { time: formatTime(resumeTime) })}
       </span>
       <div className="player-resume-toast-divider" />
-      <button
+      <Button
+        variant="ghost"
         className="player-resume-toast-btn"
         onClick={() => {
           onSeek(0);
@@ -28,7 +30,7 @@ export const PlayerResumeToast: React.FC<PlayerResumeToastProps> = ({
         }}
       >
         {t("resume.startOver")}
-      </button>
+      </Button>
     </div>
   );
 };

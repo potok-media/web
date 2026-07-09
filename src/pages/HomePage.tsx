@@ -1,21 +1,22 @@
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { useHUD } from "../context/HUDContext";
+import { useHUD } from "../context/useHUD";
 import { useHomeFeed } from "../hooks/useHomeFeed";
 import { DYNAMIC_CATEGORY_TITLES } from "./LibraryConfig";
 import HeroSpotlight from "../components/HeroSpotlight";
 import MediaRow from "../components/MediaRow";
 import { LoadingSpinner } from "../components/LoadingSpinner";
-import type { MediaCard } from "../network/ApiTypes";
-import "../styles/media.css";
+import type { HeroItem, MediaCard } from "../network/ApiTypes";
+
+import { Button } from "../components/ui";
 
 const ErrorView: React.FC<{ error: string; onRetry: () => void }> = ({ error, onRetry }) => {
   const { t } = useTranslation("media");
   return (
     <div className="media-not-found-container">
       <h2 className="media-not-found-title">{error}</h2>
-      <button type="button" className="overlay-btn" onClick={onRetry}>{t("common.retry")}</button>
+      <Button variant="primary" className="overlay-btn" onClick={onRetry}>{t("common.retry")}</Button>
     </div>
   );
 };
@@ -35,12 +36,12 @@ export const HomePage: React.FC = () => {
     navigate(`/library/${rowId}`);
   }, [navigate]);
 
-  const handleHeroPlay = useCallback((heroItem: any) => {
+  const handleHeroPlay = useCallback((heroItem: HeroItem) => {
     if (!heroItem) return;
     navigate(`/media/${heroItem.card.mediaType}/${heroItem.card.id}?play=true`);
   }, [navigate]);
 
-  const handleHeroDetails = useCallback((heroItem: any) => {
+  const handleHeroDetails = useCallback((heroItem: HeroItem) => {
     if (!heroItem) return;
     navigate(`/media/${heroItem.card.mediaType}/${heroItem.card.id}`);
   }, [navigate]);

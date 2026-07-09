@@ -1,11 +1,15 @@
 import { ApiError } from "../../network/ApiTypes";
 import { WebSocketClient, webSocketClient } from "../../network/WebSocketClient";
+import type { WorkerOutboundMessage } from "../../network/wsTypes";
 import { SettingsService } from "../SettingsService";
 import { logger } from "../logger";
 
 class WorkerBridge {
   private worker: Worker | null = null;
-  private pendingRequests = new Map<string, { resolve: (val: any) => void; reject: (err: any) => void }>();
+  private pendingRequests = new Map<string, {
+    resolve: (val: unknown) => void;
+    reject: (err: Error) => void;
+  }>();
   private requestCounter = 0;
 
   constructor() {
@@ -43,8 +47,6 @@ class WorkerBridge {
             break;
           }
           case "log": {
-            // Re-emit a log line forwarded from the worker (e.g. fetchLogger) so it
-            // reaches the main-thread console + in-app Console viewer.
             if (msg.level === "error") {
               logger.error(msg.message);
             } else {
@@ -68,12 +70,10 @@ class WorkerBridge {
         }
       };
 
-      // Set bridge delegate on webSocketClient to break circular static import dependency
       WebSocketClient.setBridgeDelegate(this);
-
       this.syncSettings();
     } catch (err) {
-      console.error("[DataWorkerBridge] Failed to initialize Web Worker:", err);
+      logger.error("[DataWorkerBridge] Failed to initialize Web Worker:", err);
     }
   }
 
@@ -89,19 +89,28 @@ class WorkerBridge {
     this.worker.postMessage({ type: "sync_settings", settings: this.collectSettings() });
   }
 
-  public request<T>(method: string, args: any[]): Promise<T> {
+  public request<T>(method: string, args: unknown[]): Promise<T> {
     if (!this.worker) {
       return Promise.reject(new Error("Worker not initialized"));
     }
 
     const id = `${method}_${++this.requestCounter}_${Math.random().toString(36).substring(2)}`;
     return new Promise<T>((resolve, reject) => {
-      this.pendingRequests.set(id, { resolve, reject });
-      this.worker!.postMessage({ type: "api_request", id, method, args, settings: this.collectSettings() });
+      this.pendingRequests.set(id, {
+        resolve: (val) => resolve(val as T),
+        reject,
+      });
+      this.worker!.postMessage({
+        type: "api_request",
+        id,
+        method,
+        args,
+        settings: this.collectSettings(),
+      });
     });
   }
 
-  public postToWorker(msg: any) {
+  public postToWorker(msg: WorkerOutboundMessage) {
     if (this.worker) {
       this.worker.postMessage(msg);
     }

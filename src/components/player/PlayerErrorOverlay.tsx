@@ -1,6 +1,7 @@
 import React from "react";
 import { AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Button } from "../ui";
 
 interface PlayerErrorOverlayProps {
   error: string;
@@ -22,15 +23,13 @@ export const PlayerErrorOverlay: React.FC<PlayerErrorOverlayProps> = ({
       <h3 className="error-title">{t("error.title")}</h3>
       <p className="error-message">{error}</p>
       <div className="error-details">{t("error.linkLabel")} <code>{streamUrl}</code></div>
-      <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
-        <button 
-          className="error-close-btn" 
-          style={{ background: "rgba(255, 255, 255, 0.15)", color: "#fff" }} 
-          onClick={onRefresh}
-        >
+      <div className="player-error-actions">
+        <Button variant="secondary" className="error-close-btn error-close-btn--refresh" onClick={onRefresh}>
           {t("error.refreshStream")}
-        </button>
-        <button className="error-close-btn" onClick={onClose}>{t("error.closePlayer")}</button>
+        </Button>
+        <Button variant="ghost" className="error-close-btn" onClick={onClose}>
+          {t("error.closePlayer")}
+        </Button>
       </div>
     </div>
   );

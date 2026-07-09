@@ -7,7 +7,8 @@ import { StreamSidebar } from "../components/StreamSidebar";
 import { EpisodeSelectorPopup } from "../components/common/EpisodeSelectorPopup";
 import { useMediaStreams } from "../hooks/useMediaStreams";
 import type { MediaCard } from "../network/ApiTypes";
-import "../styles/media.css";
+
+import { Button, IconButton } from "../components/ui";
 
 export const MediaStreamsPage: React.FC = () => {
   const { t } = useTranslation("streams");
@@ -56,14 +57,14 @@ export const MediaStreamsPage: React.FC = () => {
     }
     return (
       <aside className="streams-page-sidebar skeleton-loading">
-        <button type="button" className="streams-sidebar-back-btn" onClick={() => navigate(-1)}><ArrowLeft size="1.125rem" /></button>
-        <div className="streams-sidebar-poster skeleton" style={{ height: "22.5rem", borderRadius: "0.75rem", background: "rgba(255,255,255,0.05)" }} />
+        <IconButton className="streams-sidebar-back-btn" onClick={() => navigate(-1)} aria-label={t("actions.back")}><ArrowLeft size="1.125rem" /></IconButton>
+        <div className="streams-sidebar-poster skeleton skeleton--tall" />
       </aside>
     );
   };
 
   const renderContent = () => (
-    <section className="streams-page-content" style={{ display: "flex", flexDirection: "column" }}>
+    <section className="streams-page-content">
       <div className="streams-scroll-area">
         <StreamList
           streams={streams}
@@ -106,25 +107,28 @@ export const MediaStreamsPage: React.FC = () => {
       <div className="media-not-found-container">
         <ShieldAlert size="3rem" className="media-not-found-icon" />
         <h2 className="media-not-found-title">{t("notFound.title")}</h2>
-        <button type="button" className="btn-glass" onClick={() => navigate(-1)}>{t("actions.back")}</button>
+        <Button variant="glass" onClick={() => navigate(-1)}>{t("actions.back")}</Button>
       </div>
     );
   }
 
   return (
     <div className="streams-page-layout">
-      <div className="streams-page-backdrop" style={{ backgroundImage: `url(${currentMedia?.backdropSrc || ""})` }} />
+      <div
+        className="streams-page-backdrop"
+        style={{ "--backdrop-image": `url(${currentMedia?.backdropSrc || ""})` } as React.CSSProperties}
+      />
       {renderSidebar()}
       {renderContent()}
       {renderPopup()}
       {actionLoading && (
-        <div className="saving-overlay" style={{ position: "fixed", background: "rgba(20, 20, 25, 0.5)", backdropFilter: "blur(4px)" }}>
+        <div className="saving-overlay saving-overlay--fixed">
           <div className="saving-content">
             <div className="premium-spinner">
               <div className="spinner-outer" />
               <div className="spinner-inner" />
             </div>
-            <span style={{ marginTop: "0.75rem", fontSize: "0.95rem", color: "#fff", fontWeight: 500 }}>
+            <span className="saving-overlay-message">
               {t("loading.fetchingInfo")}
             </span>
           </div>

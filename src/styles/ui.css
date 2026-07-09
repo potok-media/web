@@ -1,0 +1,848 @@
+/* =============================================================================
+   Potok UI — atomic design system (canonical styles)
+   Legacy aliases: .potok-btn*, .settings-input, .settings-select
+   ============================================================================= */
+
+/* --- Button ---------------------------------------------------------------- */
+
+.ui-btn,
+.potok-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: 0.625rem 1.125rem;
+  border-radius: var(--radius-m);
+  font: var(--font-body-bold);
+  cursor: pointer;
+  border: none;
+  transition: var(--transition-interactive);
+  outline: none;
+  color: var(--text-accent);
+  width: fit-content;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.ui-btn--sm {
+  padding: 0.5rem 0.875rem;
+  font: var(--font-metadata);
+}
+
+.ui-btn--lg {
+  padding: 0.75rem 1.25rem;
+  font: var(--font-body-bold);
+}
+
+.ui-btn--full {
+  width: 100%;
+}
+
+.ui-btn--primary,
+.potok-btn-primary,
+.settings-btn-primary {
+  background-color: var(--accent);
+  color: var(--text-accent);
+}
+
+.ui-btn--primary:hover:not(:disabled),
+.potok-btn-primary:hover:not(:disabled),
+.settings-btn-primary:hover {
+  background-color: var(--accent-hover);
+}
+
+.ui-btn--primary:active:not(:disabled),
+.potok-btn-primary:active:not(:disabled),
+.settings-btn-primary:active {
+  background-color: var(--accent);
+}
+
+.ui-btn--secondary,
+.potok-btn-secondary {
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
+  color: var(--text-primary);
+}
+
+.ui-btn--secondary:hover:not(:disabled),
+.potok-btn-secondary:hover:not(:disabled) {
+  background: var(--bg-surface-highest);
+}
+
+.ui-btn--ghost,
+.potok-btn-ghost {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.ui-btn--ghost:hover:not(:disabled),
+.potok-btn-ghost:hover:not(:disabled) {
+  background: var(--bg-surface-high);
+}
+
+.ui-btn--danger,
+.potok-btn-danger {
+  background: var(--error);
+  color: var(--text-accent);
+}
+
+.ui-btn--danger:hover:not(:disabled),
+.potok-btn-danger:hover:not(:disabled) {
+  background: var(--error-hover);
+}
+
+.ui-btn--accent,
+.btn-accent {
+  background-color: var(--accent);
+  color: var(--text-accent);
+  box-shadow: 0 4px 14px var(--accent-dim);
+}
+
+.ui-btn--accent:hover:not(:disabled),
+.btn-accent:hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+.ui-btn--glass,
+.btn-glass {
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
+  color: var(--text-primary);
+  backdrop-filter: var(--blur-glass);
+}
+
+.ui-btn--glass:hover:not(:disabled),
+.btn-glass:hover {
+  background: var(--bg-surface-highest);
+  transform: translateY(-2px);
+}
+
+.ui-btn:disabled,
+.potok-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Icon-only button */
+.ui-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: var(--radius-s);
+  transition: var(--transition-interactive);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.ui-icon-btn--sm {
+  width: 2rem;
+  height: 2rem;
+}
+
+.ui-icon-btn--md {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.ui-icon-btn--lg {
+  width: 3rem;
+  height: 3rem;
+}
+
+.ui-icon-btn:hover:not(:disabled) {
+  background: var(--bg-surface-high);
+  color: var(--text-primary);
+}
+
+.ui-icon-btn:active:not(:disabled) {
+  background: var(--bg-surface-highest);
+}
+
+.ui-icon-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ui-icon-btn--accent.ui-icon-btn:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+/* --- Form controls --------------------------------------------------------- */
+
+.ui-input,
+.ui-textarea,
+.potok-input,
+.settings-input {
+  background-color: var(--bg-surface-high);
+  border: var(--glass-border);
+  color: var(--text-primary);
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-m);
+  font: var(--font-body);
+  outline: none;
+  transition: var(--transition-interactive);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.ui-textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.ui-input:focus,
+.ui-textarea:focus,
+.potok-input:focus,
+.settings-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 0.125rem var(--accent-dim);
+}
+
+.ui-input:disabled,
+.ui-textarea:disabled,
+.potok-input:disabled,
+.settings-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ui-select,
+.potok-select,
+.settings-select {
+  background-color: var(--bg-surface-high);
+  border: var(--glass-border);
+  color: var(--text-primary);
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-m);
+  font: var(--font-body);
+  outline: none;
+  cursor: pointer;
+  transition: var(--transition-interactive);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 30rem;
+  appearance: auto;
+}
+
+.ui-select:focus,
+.potok-select:focus,
+.settings-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 0.125rem var(--accent-dim);
+}
+
+.ui-select:disabled,
+.potok-select:disabled,
+.settings-select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Domain range/file controls — styled via player.css (timeline, volume, upload). */
+.ui-range-input,
+.ui-file-input {
+  box-sizing: border-box;
+}
+
+.ui-select--block {
+  max-width: none;
+}
+
+/* --- Field layout ---------------------------------------------------------- */
+
+.ui-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  width: 100%;
+}
+
+.ui-field__label,
+.potok-label {
+  font: var(--font-metadata);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.ui-field__hint {
+  font: var(--font-caption);
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}
+
+.ui-field__hint a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ui-field__hint a:hover {
+  text-decoration: underline;
+}
+
+.ui-input-group,
+.potok-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 100%;
+}
+
+/* --- Pressable (non-button interactive surfaces) --------------------------- */
+
+.ui-pressable {
+  cursor: pointer;
+  transition: var(--transition-interactive);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ui-pressable:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ui-pressable[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* --- Layout helpers -------------------------------------------------------- */
+
+.ui-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+}
+
+.ui-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: var(--space-s);
+}
+
+/* --- Chip / segmented filter ----------------------------------------------- */
+
+.ui-chip,
+.ext-filter-chip {
+  padding: 0.5rem 1.125rem;
+  border-radius: var(--radius-full);
+  border: var(--glass-border);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-interactive);
+}
+
+.ui-chip:hover:not(:disabled),
+.ext-filter-chip:hover:not(:disabled) {
+  background: var(--bg-surface-high);
+  color: var(--text-primary);
+}
+
+.ui-chip--active,
+.ui-chip.active,
+.ext-filter-chip.active {
+  background: var(--accent);
+  color: var(--text-accent);
+  border-color: transparent;
+}
+
+.ui-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- Menu / popover items -------------------------------------------------- */
+
+button.popover-item {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+}
+
+.ui-password-row {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  align-items: center;
+}
+
+.ui-password-row .ui-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.ui-inline-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.ui-inline-field--grow {
+  flex: 7;
+}
+
+.ui-inline-field--shrink {
+  flex: 3;
+}
+
+.settings-description {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+  line-height: 1.3;
+}
+
+.safe-select-trigger-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.ui-btn.ui-select,
+.ui-btn.potok-select {
+  justify-content: space-between;
+  width: 100%;
+}
+
+.safe-select-chevron {
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.safe-select-option-label {
+  display: flex;
+  align-items: center;
+}
+
+/* Tab underline style (calendar, media details) */
+.ui-chip.tab-btn {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0.5rem 1rem;
+  font: var(--font-body-bold);
+  color: var(--text-secondary);
+  position: relative;
+  white-space: nowrap;
+}
+
+.ui-chip.tab-btn.ui-chip--active,
+.ui-chip.tab-btn.active {
+  background: transparent;
+  color: var(--accent);
+  border-color: transparent;
+}
+
+.ui-chip.tab-btn.ui-chip--active::after,
+.ui-chip.tab-btn.active::after {
+  content: "";
+  position: absolute;
+  bottom: -0.5625rem;
+  left: 0;
+  right: 0;
+  height: 0.125rem;
+  background-color: var(--accent);
+}
+
+.player-error-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.player-error-overlay .error-close-btn--refresh {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+}
+
+.calendar-retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.inspector-toggle-btn {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 99999;
+  border-radius: 1.875rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.inspector-toggle-btn--active {
+  background: var(--error) !important;
+}
+
+.player-error-fallback {
+  padding: 1rem;
+  background: rgba(20, 20, 20, 0.95);
+  backdrop-filter: blur(25px);
+  border-radius: 0.75rem;
+  border: 1px solid var(--error);
+  color: var(--text-primary);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.player-error-fallback--toast {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  z-index: 9999;
+  width: 21.875rem;
+}
+
+.player-error-fallback__title {
+  color: var(--error);
+  margin: 0 0 0.5rem;
+}
+
+.player-error-fallback__text {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  margin: 0 0 1rem;
+}
+
+.player-error-fallback__actions {
+  display: flex;
+  gap: 0.625rem;
+}
+
+.ui-chip.console-tab-btn {
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-s);
+  padding: 0.375rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  gap: 0.375rem;
+}
+
+.ui-chip.console-tab-btn.ui-chip--active,
+.ui-chip.console-tab-btn.active {
+  background: var(--bg-surface-high);
+  color: var(--text-primary);
+}
+
+/* Settings mobile tab chips */
+.ui-chip.settings-tab-chip {
+  flex-shrink: 0;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-m);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.ui-chip.settings-tab-chip.ui-chip--active {
+  background: var(--accent-dim);
+  color: var(--text-primary);
+  border-color: var(--accent);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Library mobile category chips */
+.ui-chip.library-mobile-tab-chip {
+  flex-shrink: 0;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.ui-chip.library-mobile-tab-chip.ui-chip--active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(125, 211, 252, 0.25);
+}
+
+/* Profile sync strategy chips */
+.ui-chip.strategy-chip-btn {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-m);
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.ui-chip.strategy-chip-btn.ui-chip--active {
+  background: var(--accent-dim);
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+/* Settings sidebar nav — override ui-btn defaults */
+.settings-nav-item.ui-btn {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-m);
+  font: var(--font-caption-bold);
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.settings-nav-item.ui-btn.active {
+  background-color: var(--accent-dim);
+  color: var(--text-primary);
+  border-left: 0.1875rem solid var(--accent);
+  padding-left: 0.6875rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
+}
+
+.settings-nav-item.ui-btn.active svg {
+  color: var(--accent);
+  opacity: 1;
+}
+
+/* Error boundary fallback */
+.error-boundary-fallback {
+  padding: 2rem;
+  margin: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(25px);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 12.5rem;
+}
+
+.error-boundary-fallback__title {
+  color: var(--error, #ef4444);
+  margin: 0 0 1rem;
+}
+
+.error-boundary-fallback__message {
+  opacity: 0.8;
+  margin: 0 0 1.5rem;
+}
+
+.accessibility-wiki-section {
+  margin-top: var(--space-xl);
+  padding-top: var(--space-l);
+  border-top: var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 30rem;
+}
+
+.accessibility-wiki-desc {
+  font-size: var(--font-size-caption, 0.75rem);
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.accessibility-wiki-btn {
+  align-self: flex-start;
+}
+
+.track-selector-url-row {
+  display: flex;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  align-items: center;
+}
+
+.track-selector-url-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8rem;
+  padding: 0.4rem 0.55rem;
+}
+
+.track-selector-url-input--error {
+  border-color: var(--error) !important;
+}
+
+.track-selector-url-submit {
+  white-space: nowrap;
+}
+
+/* Settings toggle rows */
+.settings-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 30rem;
+  margin-top: var(--space-l);
+}
+
+.settings-toggle-row--config {
+  margin-top: 0;
+}
+
+.settings-toggle-label {
+  margin: 0;
+}
+
+.settings-boolean-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.settings-boolean-field--inline {
+  flex: 1;
+}
+
+.settings-notice-group {
+  margin-top: 0.5rem;
+}
+
+.settings-notice-banner {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 0.375rem;
+  padding: 0.75rem 1rem;
+  color: #f87171;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  max-width: 30rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-sizing: border-box;
+}
+
+.settings-notice-banner__text {
+  flex: 1;
+}
+
+.declarative-form-fields {
+  gap: var(--space-s);
+}
+
+.declarative-inline-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+  max-width: 30rem;
+}
+
+.declarative-inline-row {
+  display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.declarative-row-description {
+  margin-top: 0.25rem;
+  line-height: 1.3;
+}
+
+/* Hero carousel dots */
+.ui-chip.hero-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background-color: var(--text-primary);
+  opacity: 0.35;
+}
+
+.ui-chip.hero-dot:hover:not(:disabled) {
+  opacity: 0.7;
+  background-color: var(--text-primary);
+}
+
+.ui-chip.hero-dot.ui-chip--active {
+  background-color: var(--accent);
+  opacity: 1;
+  width: 1.5rem;
+  transform: scale(1.1);
+  box-shadow: 0 0 10px var(--accent-dim);
+  border-color: transparent;
+}
+
+/* Wiki sandbox tabs */
+.ui-chip.sb-tab-btn {
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-s);
+  padding: 0.5rem 0.875rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.ui-chip.sb-tab-btn.ui-chip--active {
+  background: var(--bg-surface-high);
+  color: var(--text-primary);
+}
+
+/* Developer inspector drawer */
+.inspector-drawer-close {
+  background: transparent;
+  color: #94a3b8;
+  padding: 0.25rem;
+}
+
+.inspector-template-select.ui-select {
+  width: 100%;
+  padding: 0.5rem;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.375rem;
+  color: #fff;
+}
+
+.inspector-inject-btn {
+  background: #10b981 !important;
+  font-weight: 700;
+}
+
+button.popover-menu-item,
+button.season-popover-item,
+button.watch-popover-item,
+button.context-menu-item {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.multipicker-season-toggle {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.potok-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--grid-min-width, 11.25rem), 1fr));
+  gap: var(--grid-gap, 0);
+}

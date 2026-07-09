@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Home, Calendar, Search, Play, User } from "lucide-react";
 import { useAuth } from "../context/AppSettingsContext";
-import { useHUD } from "../context/HUDContext";
+import { useHUD } from "../context/useHUD";
 
 export const MobileBottomNavigation: React.FC = () => {
   const { potokToken } = useAuth();

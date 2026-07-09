@@ -1,6 +1,7 @@
 import { HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel } from "@microsoft/signalr";
 import { logger } from "../utils/logger";
 import { Storage } from "../utils/StorageService";
+import type { WorkerBridgeDelegate, WsEventFrame } from "./wsTypes";
 
 type WSCallback = (data: string) => void;
 
@@ -12,8 +13,8 @@ export class WebSocketClient {
   private rawUrl: string | null = null;
   private listeners: Record<string, Set<WSCallback>> = {};
 
-  private static bridgeDelegate: any = null;
-  public static setBridgeDelegate(delegate: any) {
+  private static bridgeDelegate: WorkerBridgeDelegate | null = null;
+  public static setBridgeDelegate(delegate: WorkerBridgeDelegate) {
     this.bridgeDelegate = delegate;
   }
 
@@ -166,7 +167,7 @@ export class WebSocketClient {
       .configureLogging(LogLevel.Warning)
       .build();
 
-    this.connection.on("ReceiveEvent", (frame: any) => {
+    this.connection.on("ReceiveEvent", (frame: WsEventFrame) => {
       try {
         if (!frame || !frame.event) return;
         
@@ -297,7 +298,7 @@ export class WebSocketClient {
     logger.log("[WS] SignalR listener stopped completely.");
   }
 
-  public send(event: string, payload: any): void {
+  public send(event: string, payload: unknown): void {
     if (typeof window !== "undefined") {
       WebSocketClient.bridgeDelegate?.postToWorker({ type: "ws_send", event, payload });
       return;
@@ -329,7 +330,11 @@ export class WebSocketClient {
     this.state = state;
   }
 
-  private shouldProcessEvent(frame: any): boolean {
+  public requestReconnect(): void {
+    this.reconnect(true);
+  }
+
+  private shouldProcessEvent(frame: WsEventFrame): boolean {
     if (!frame) return false;
     
     // 1. Deduplicate by traceId

@@ -3,8 +3,9 @@ import { useTranslation } from "react-i18next";
 import { Terminal, Trash2, Search, AlertCircle, AlertTriangle, Info } from "lucide-react";
 import { logger } from "../../utils/logger";
 import type { LogEntry } from "../../utils/logger";
-import { FocusableButton, FocusableInput } from "../common/TVNavigation";
+
 import "../../styles/console.css";
+import { Button, Chip, Input } from "../ui";
 
 export const ConsoleManager: React.FC = () => {
   const { t } = useTranslation("settings");
@@ -81,46 +82,34 @@ export const ConsoleManager: React.FC = () => {
     <div className="potok-vstack console-manager-container">
       <div className="console-toolbar">
         <div className="console-tabs">
-          <FocusableButton
-            className={`console-tab-btn ${activeFilter === "all" ? "active" : ""}`}
-            onClick={() => setActiveFilter("all")}
-          >
+          <Chip active={activeFilter === "all"} className="console-tab-btn" onClick={() => setActiveFilter("all")}>
             <span>{t("console.filterAll")}</span>
             <span className="console-badge bg-all">{logs.length}</span>
-          </FocusableButton>
-          <FocusableButton
-            className={`console-tab-btn ${activeFilter === "info" ? "active" : ""}`}
-            onClick={() => setActiveFilter("info")}
-          >
+          </Chip>
+          <Chip active={activeFilter === "info"} className="console-tab-btn" onClick={() => setActiveFilter("info")}>
             <span>{t("console.filterInfo")}</span>
             <span className="console-badge bg-info">
               {logs.filter((l) => l.type === "info").length}
             </span>
-          </FocusableButton>
-          <FocusableButton
-            className={`console-tab-btn ${activeFilter === "warn" ? "active" : ""}`}
-            onClick={() => setActiveFilter("warn")}
-          >
+          </Chip>
+          <Chip active={activeFilter === "warn"} className="console-tab-btn" onClick={() => setActiveFilter("warn")}>
             <span>{t("console.filterWarnings")}</span>
             <span className="console-badge bg-warn">
               {logs.filter((l) => l.type === "warn").length}
             </span>
-          </FocusableButton>
-          <FocusableButton
-            className={`console-tab-btn ${activeFilter === "error" ? "active" : ""}`}
-            onClick={() => setActiveFilter("error")}
-          >
+          </Chip>
+          <Chip active={activeFilter === "error"} className="console-tab-btn" onClick={() => setActiveFilter("error")}>
             <span>{t("console.filterErrors")}</span>
             <span className="console-badge bg-error">
               {logs.filter((l) => l.type === "error").length}
             </span>
-          </FocusableButton>
+          </Chip>
         </div>
 
         <div className="console-actions">
           <div className="console-search-wrapper">
             <Search size="0.875rem" className="console-search-icon" />
-            <FocusableInput
+            <Input
               type="text"
               placeholder={t("console.searchPlaceholder")}
               value={searchQuery}
@@ -128,14 +117,15 @@ export const ConsoleManager: React.FC = () => {
               className="console-search-input"
             />
           </div>
-          <FocusableButton
-            className="potok-btn potok-btn-ghost console-clear-btn"
+          <Button
+            variant="ghost"
+            className="console-clear-btn"
             onClick={handleClear}
             title={t("console.clearConsole")}
           >
             <Trash2 size="1rem" />
             <span>{t("console.clear")}</span>
-          </FocusableButton>
+          </Button>
         </div>
       </div>
 
