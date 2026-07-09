@@ -113,8 +113,6 @@ export const InstallDoc = {
       - PORT=5000
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=potok;Username=potok;Password=potok_password
       - Gateway__TmdbApiKey=ВАШ_TMDB_API_KEY
-      - Gateway__DefaultSearchEngineUrl=http://potok-searchengine:6000
-      - Gateway__DefaultTorrServerUrl=http://potok-torrentgo:5282
       - Gateway__MultiUserMode=false
       - Gateway__JwtSecret=ВАШ_СЕКРЕТНЫЙ_КЛЮЧ_JWT_МИН_32_СИМВОЛА
 
@@ -266,14 +264,9 @@ server {
               <td>Включение многопользовательского режима с авторизацией (true/false).</td>
             </tr>
             <tr>
-              <td><code>Gateway__DefaultSearchEngineUrl</code></td>
-              <td>gateway</td>
-              <td>Внутренний или внешний URL-адрес поискового движка по трекерам (по умолчанию <code>http://potok-searchengine:6000</code>).</td>
-            </tr>
-            <tr>
-              <td><code>Gateway__DefaultTorrServerUrl</code></td>
-              <td>gateway</td>
-              <td>Внутренний или внешний URL-адрес торрент-движка TorrentGo (по умолчанию <code>http://potok-torrentgo:5282</code>).</td>
+              <td><code>searchEngineURL</code> / <code>torrentGoURL</code></td>
+              <td>torrents-plugin (профиль web)</td>
+              <td>Адреса SearchEngine и TorrentGo задаются в конфиге плагина <code>potok-torrents</code> и профиле подключения web, а не через env Gateway.</td>
             </tr>
 
             {/* --- ОСТАЛЬНЫЕ --- */}

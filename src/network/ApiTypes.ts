@@ -132,20 +132,6 @@ export interface TvSeason {
 }
 
 
-export interface InfuseSaveRequest {
-  hash: string;
-  index?: string | number;
-  originalPath?: string;
-  title: string;
-  mediaType: "movie" | "tv";
-  tmdbId: number;
-  season?: number;
-  episode?: number;
-  originalTitle?: string;
-  poster?: string;
-  link?: string;
-  magnetUri?: string;
-}
 
 
 export interface TraktSyncRequest {

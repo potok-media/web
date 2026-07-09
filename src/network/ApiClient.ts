@@ -15,7 +15,6 @@ import type {
   HeroItem,
   HomeResponse,
   TvSeason,
-  InfuseSaveRequest,
   TraktSyncRequest,
   ClientMetadata,
   ClientTrack,
@@ -32,7 +31,6 @@ export type {
   HeroItem,
   HomeResponse,
   TvSeason,
-  InfuseSaveRequest,
   TraktSyncRequest,
   ClientMetadata,
   ClientTrack,
@@ -194,18 +192,6 @@ export class ApiClient {
       headers: this.headers,
     });
     return handleApiResponse<PersonDetails>(res, "Failed to fetch person details");
-  }
-
-  public static async saveInfuseItemAndGetStreams(request: InfuseSaveRequest): Promise<string[]> {
-    if (!this.isWorker) {
-      return DataWorkerBridge.request<string[]>("saveInfuseItemAndGetStreams", [request]);
-    }
-    const res = await fetch(`${this.baseURL}/api/infuse/save`, {
-      method: "POST",
-      headers: this.headers,
-      body: JSON.stringify(request),
-    });
-    return handleApiResponse<string[]>(res, "Failed to save to library");
   }
 
   public static async syncTraktAction(path: string, request: TraktSyncRequest): Promise<void> {
