@@ -44,7 +44,8 @@ import {
   FieldBuilder,
   CarouselBuilder,
   ScrollerBuilder,
-  PageBuilder
+  PageBuilder,
+  SidebarGroupBuilder
 } from "./components/common";
 
 import {
@@ -89,6 +90,17 @@ declare global {
     PotokSDKInitialized: any;
   }
 }
+
+// Compiled layouts may embed reactive-state proxies (from createState) that structuredClone/postMessage
+// cannot clone (DataCloneError). The compiled tree is function-free (callbacks are already string ids),
+// so a JSON round-trip yields a plain, cloneable payload.
+const toCloneable = (payload: any): any => {
+  try {
+    return JSON.parse(JSON.stringify(payload));
+  } catch {
+    return payload;
+  }
+};
 
 // Helper functions for lazy/dynamic properties where needed
 const getHostOrigin = () => {
@@ -210,12 +222,13 @@ export const ui = {
     Field: () => new FieldBuilder(),
     Carousel: () => new CarouselBuilder(),
     Scroller: () => new ScrollerBuilder(),
-    Page: () => new PageBuilder()
+    Page: () => new PageBuilder(),
+    SidebarGroup: (title: string) => new SidebarGroupBuilder(title)
   },
   render(root: any, slotId?: string) {
     const scopeId = slotId || "default";
     CallbackRegistry.startRenderScope(scopeId);
-    const payload = root.compile(scopeId);
+    const payload = toCloneable(root.compile(scopeId));
     CallbackRegistry.commitRenderScope(scopeId);
     const hostOrigin = getHostOrigin();
     if (slotId) {
@@ -321,7 +334,7 @@ export function registerSlotContribution(cfg: any) {
       const res = cfg.render(msg.payload.props);
       if (res && res.layout) {
         CallbackRegistry.startRenderScope(cfg.id);
-        const layoutPayload = res.layout.compile(cfg.id);
+        const layoutPayload = toCloneable(res.layout.compile(cfg.id));
         CallbackRegistry.commitRenderScope(cfg.id);
         window.parent.postMessage({
           source: 'potok-plugin-sdk', action: 'SLOT_RENDER_RESPONSE',

@@ -1,15 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import * as Lucide from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type {
   UIComponentSchema,
   SDKContentItem,
   SDKContentBadge,
 } from "@potok/sdk-types";
+import type { MediaCard as ApiMediaCard, HeroItem } from "../../../network/ApiTypes";
 import { Chip, IconButton, Pressable, RangeInput, FileInput, PopoverItem } from "../../ui";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import ScrollView from "../ScrollView";
 import { Grid } from "../Grid";
+import MediaCardComponent from "../../MediaCardComponent";
+import MediaRow from "../../MediaRow";
+import HeroSpotlight from "../../HeroSpotlight";
 import { sdkStyleVars, toPascalCase } from "./componentRendererUtils";
+
+/** Adapts a plugin's generic SDKContentItem to the app's native MediaCard shape, so generic content
+ *  components render through the SAME cards/rows/hero the whole app uses (Potok owns the styling). */
+const adaptContentItem = (item: SDKContentItem): ApiMediaCard => {
+  const it = item as SDKContentItem & { mediaType?: "movie" | "tv"; rating?: number };
+  return {
+    id: (typeof item.id === "number" ? item.id : Number(item.id)) || 0,
+    title: item.title,
+    subtitle: item.subtitle,
+    mediaType: it.mediaType === "movie" ? "movie" : "tv",
+    posterSrc: item.image,
+    backdropSrc: item.wideImage,
+    logoSrc: item.logo,
+    tmdbRating: it.rating,
+    progress:
+      typeof item.progress === "number"
+        ? { percentage: Math.round(Math.max(0, Math.min(1, item.progress)) * 100) }
+        : undefined,
+  } as ApiMediaCard;
+};
 
 interface HostContentComponentsRendererProps {
   schema: UIComponentSchema;
@@ -73,34 +98,6 @@ const Badges: React.FC<{ badges?: SDKContentBadge[] }> = ({ badges }) => {
   );
 };
 
-/** Generic poster/landscape card driven entirely by SDKContentItem — no TMDB coupling. */
-const SdkContentCard: React.FC<{
-  item: SDKContentItem;
-  orientation?: "portrait" | "landscape";
-  onClick?: () => void;
-}> = ({ item, orientation = "portrait", onClick }) => {
-  const progress = typeof item.progress === "number" ? Math.max(0, Math.min(1, item.progress)) : undefined;
-  return (
-    <Pressable
-      className={`sdk-content-card sdk-content-card--${orientation}`}
-      onPress={onClick}
-    >
-      <div className="sdk-content-card-poster">
-        <SdkImg src={item.image || item.wideImage} alt={item.title} className="sdk-content-card-img" />
-        {typeof item.rank === "number" && <span className="sdk-content-card-rank">{item.rank}</span>}
-        <Badges badges={item.badges} />
-        {progress !== undefined && (
-          <div className="sdk-content-card-progress">
-            <span style={{ width: `${progress * 100}%` }} />
-          </div>
-        )}
-      </div>
-      <span className="sdk-content-card-title" title={item.title}>{item.title}</span>
-      {item.subtitle && <span className="sdk-content-card-subtitle">{item.subtitle}</span>}
-    </Pressable>
-  );
-};
-
 /** Self-contained dropdown: owns its ephemeral open state (not plugin data). */
 const SdkDropdown: React.FC<{
   label?: string;
@@ -142,102 +139,125 @@ const SdkDropdown: React.FC<{
   );
 };
 
+/** Poster grid with the app's native cards + infinite-scroll auto-load (same pattern as the library page). */
+const SdkPosterGrid: React.FC<{
+  cards: ApiMediaCard[];
+  minWidth?: string;
+  onCardClick: (card: ApiMediaCard) => void;
+  onLoadMore?: () => void;
+}> = ({ cards, minWidth, onCardClick, onLoadMore }) => {
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef(false);
+  const onLoadMoreRef = useRef(onLoadMore);
+  onLoadMoreRef.current = onLoadMore;
+
+  // A new page arrived (item count grew) → re-arm the sentinel for the next auto-load.
+  useEffect(() => {
+    loadingRef.current = false;
+  }, [cards.length]);
+
+  useEffect(() => {
+    if (!onLoadMore) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !loadingRef.current) {
+          loadingRef.current = true;
+          onLoadMoreRef.current?.();
+        }
+      },
+      { rootMargin: "1200px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!onLoadMore]);
+
+  return (
+    <div className="sdk-poster-grid">
+      <Grid className="library-grid" minWidth={minWidth}>
+        {cards.map((card) => (
+          <MediaCardComponent key={`${card.mediaType}-${card.id}`} item={card} onClick={onCardClick} />
+        ))}
+      </Grid>
+      {onLoadMore && <div ref={sentinelRef} className="library-pagination-wrapper" aria-hidden="true" />}
+    </div>
+  );
+};
+
 export const HostContentComponentsRenderer: React.FC<HostContentComponentsRendererProps> = ({
   schema,
   pluginId,
   baseStyle,
 }) => {
   const { id, events } = schema;
+  const navigate = useNavigate();
   const fire = (evt?: string, payload: unknown = {}) => {
     if (evt) ExtensionRegistry.triggerUIEvent(pluginId, evt, payload);
   };
   const styleVars = sdkStyleVars(baseStyle);
+  // Native card click: fire the plugin callback if it set one, else navigate to the details page.
+  const cardClick = (card: ApiMediaCard) => {
+    if (events?.onCardClick) fire(events.onCardClick, card);
+    else navigate(`/media/${card.mediaType}/${card.id}`);
+  };
 
   switch (schema.type) {
     case "ContentCard": {
-      const { item, orientation } = schema.props;
+      const { item } = schema.props;
       if (!item) return null;
       return (
-        <div id={id} className="potok-sdk-props" style={styleVars}>
-          <SdkContentCard item={item} orientation={orientation} onClick={() => fire(events?.onClick, item)} />
+        <div id={id} className="host-media-card-wrap potok-sdk-props" style={styleVars}>
+          <MediaCardComponent
+            item={adaptContentItem(item)}
+            onClick={events?.onClick ? () => fire(events?.onClick, item) : undefined}
+          />
         </div>
       );
     }
 
     case "ContentRow": {
-      const { title, items, orientation, seeAllLabel } = schema.props;
-      const list = items ?? [];
-      const showSeeAll = !!events?.onSeeAllClick;
+      const { title, items } = schema.props;
+      const cards = (items ?? []).map(adaptContentItem);
       return (
-        <div id={id} className="sdk-content-row potok-sdk-props" style={styleVars}>
-          {(title || showSeeAll) && (
-            <div className="sdk-content-row-header">
-              {title && <h3 className="sdk-content-row-title">{title}</h3>}
-              {showSeeAll && (
-                <Pressable
-                  className="sdk-content-row-seeall"
-                  onPress={() => fire(events?.onSeeAllClick, { id: schema.id, title })}
-                >
-                  {seeAllLabel || "Все"}
-                  <LucideIcon name="chevron-right" size="1rem" />
-                </Pressable>
-              )}
-            </div>
-          )}
-          <ScrollView
-            orientation="horizontal"
-            className="sdk-content-row-scroll"
-            trackClassName="sdk-content-row-track"
-          >
-            {list.map((item) => (
-              <SdkContentCard
-                key={String(item.id)}
-                item={item}
-                orientation={orientation}
-                onClick={() => fire(events?.onCardClick, item)}
-              />
-            ))}
-          </ScrollView>
-        </div>
+        <MediaRow
+          key={id}
+          id={schema.id}
+          title={title || ""}
+          items={cards}
+          onCardClick={cardClick}
+          onSeeAllClick={
+            events?.onSeeAllClick
+              ? (rid, rtitle) => fire(events.onSeeAllClick, { id: rid, title: rtitle })
+              : undefined
+          }
+        />
       );
     }
 
     case "Hero": {
-      const { items, playLabel, detailsLabel } = schema.props;
-      const item = items?.[0];
-      if (!item) return null;
+      const { items } = schema.props;
+      const heroItems: HeroItem[] = (items ?? []).map((it) => {
+        const card = adaptContentItem(it);
+        return { id: card.id, card, backdropSrc: card.backdropSrc || card.posterSrc };
+      });
+      if (!heroItems.length) return null;
       return (
-        <div id={id} className="sdk-hero potok-sdk-props" style={styleVars}>
-          {(item.wideImage || item.image) && (
-            <SdkImg
-              src={item.wideImage || item.image}
-              alt={item.title}
-              className="sdk-hero-backdrop"
-            />
-          )}
-          <div className="sdk-hero-scrim" />
-          <div className="sdk-hero-content">
-            {item.logo ? (
-              <img className="sdk-hero-logo" src={item.logo} alt={item.title} />
-            ) : (
-              <h2 className="sdk-hero-title">{item.title}</h2>
-            )}
-            <Badges badges={item.badges} />
-            {item.meta?.length ? <div className="sdk-hero-meta">{item.meta.join(" • ")}</div> : null}
-            {item.subtitle && <p className="sdk-hero-overview">{item.subtitle}</p>}
-            <div className="sdk-hero-actions">
-              <Pressable className="sdk-hero-btn sdk-hero-btn--play" onPress={() => fire(events?.onPlay, item)}>
-                <LucideIcon name="play" size="1.125rem" />
-                {playLabel || "Смотреть"}
-              </Pressable>
-              {events?.onDetails && (
-                <Pressable className="sdk-hero-btn sdk-hero-btn--ghost" onPress={() => fire(events?.onDetails, item)}>
-                  <LucideIcon name="info" size="1.125rem" />
-                  {detailsLabel || "Подробнее"}
-                </Pressable>
-              )}
-            </div>
-          </div>
+        <div id={id} className="host-hero-spotlight-wrap potok-sdk-props" style={styleVars}>
+          <HeroSpotlight
+            items={heroItems}
+            onPlay={(h) =>
+              events?.onPlay
+                ? fire(events.onPlay, h.card)
+                : navigate(`/media/${h.card.mediaType}/${h.card.id}?play=true`)
+            }
+            onDetails={(h) =>
+              events?.onDetails
+                ? fire(events.onDetails, h.card)
+                : navigate(`/media/${h.card.mediaType}/${h.card.id}`)
+            }
+          />
         </div>
       );
     }
@@ -493,62 +513,75 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
 
     case "ContinueWatchingRow": {
       const { title, items } = schema.props;
+      const cards = (items ?? []).map(adaptContentItem);
+      if (!cards.length) return null;
       return (
-        <div id={id} className="sdk-content-row potok-sdk-props" style={styleVars}>
+        <div id={id} className="carousel-container potok-sdk-props">
           {title && (
-            <div className="sdk-content-row-header">
-              <h3 className="sdk-content-row-title">{title}</h3>
+            <div className="carousel-header">
+              <h2 className="carousel-title">{title}</h2>
             </div>
           )}
-          <ScrollView orientation="horizontal" className="sdk-content-row-scroll" trackClassName="sdk-content-row-track">
-            {(items ?? []).map((item) => (
-              <SdkContentCard
-                key={String(item.id)}
-                item={item}
-                orientation="landscape"
-                onClick={() => fire(events?.onCardClick, item)}
-              />
-            ))}
-          </ScrollView>
+          <ScrollView
+            orientation="horizontal"
+            className="carousel-viewport"
+            renderTrack={({ trackProps }) => (
+              <div className={`carousel-row ${trackProps.className}`}>
+                {cards.map((card) => (
+                  <MediaCardComponent
+                    key={`${card.mediaType}-${card.id}`}
+                    item={card}
+                    showContinueOverlay
+                    onClick={cardClick}
+                  />
+                ))}
+              </div>
+            )}
+          />
         </div>
       );
     }
 
     case "TopTenRow": {
       const { title, items } = schema.props;
+      const cards = (items ?? []).slice(0, 10).map(adaptContentItem);
+      if (!cards.length) return null;
       return (
-        <div id={id} className="sdk-content-row potok-sdk-props" style={styleVars}>
+        <div id={id} className="carousel-container potok-sdk-props">
           {title && (
-            <div className="sdk-content-row-header">
-              <h3 className="sdk-content-row-title">{title}</h3>
+            <div className="carousel-header">
+              <h2 className="carousel-title">{title}</h2>
             </div>
           )}
-          <ScrollView orientation="horizontal" className="sdk-content-row-scroll" trackClassName="sdk-topten-track">
-            {(items ?? []).slice(0, 10).map((item, i) => (
-              <div key={String(item.id)} className="sdk-topten-item">
-                <span className="sdk-topten-rank">{item.rank ?? i + 1}</span>
-                <SdkContentCard item={{ ...item, rank: undefined }} orientation="portrait" onClick={() => fire(events?.onCardClick, item)} />
+          <ScrollView
+            orientation="horizontal"
+            className="carousel-viewport"
+            renderTrack={({ trackProps }) => (
+              <div className={`carousel-row sdk-topten-track ${trackProps.className}`}>
+                {cards.map((card, i) => (
+                  <div key={`${card.mediaType}-${card.id}`} className="sdk-topten-item">
+                    <span className="sdk-topten-rank">{i + 1}</span>
+                    <MediaCardComponent item={card} onClick={cardClick} />
+                  </div>
+                ))}
               </div>
-            ))}
-          </ScrollView>
+            )}
+          />
         </div>
       );
     }
 
     case "PosterGrid": {
-      const { items, minWidth, loadMoreLabel } = schema.props;
+      const { items, minWidth } = schema.props;
+      const cards = (items ?? []).map(adaptContentItem);
       return (
-        <div id={id} className="sdk-poster-grid potok-sdk-props" style={styleVars}>
-          <Grid minWidth={minWidth || "10rem"} gap="var(--space-m)">
-            {(items ?? []).map((item) => (
-              <SdkContentCard key={String(item.id)} item={item} orientation="portrait" onClick={() => fire(events?.onCardClick, item)} />
-            ))}
-          </Grid>
-          {events?.onLoadMore && (
-            <Pressable className="sdk-poster-grid-more" onPress={() => fire(events?.onLoadMore, {})}>
-              {loadMoreLabel || "Показать ещё"}
-            </Pressable>
-          )}
+        <div id={id} className="potok-sdk-props" style={styleVars}>
+          <SdkPosterGrid
+            cards={cards}
+            minWidth={minWidth}
+            onCardClick={cardClick}
+            onLoadMore={events?.onLoadMore ? () => fire(events?.onLoadMore, {}) : undefined}
+          />
         </div>
       );
     }

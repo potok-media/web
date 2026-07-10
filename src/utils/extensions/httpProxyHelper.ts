@@ -78,35 +78,26 @@ class HttpProxyThrottleManager {
             const isProxy = url.startsWith("/api/proxy?url=");
             const shouldBypass = Storage.get<boolean>("disableHttpProxy", true);
 
-            if (isProxy && shouldBypass) {
-              const searchParams = new URLSearchParams(url.slice(url.indexOf("?") + 1));
-              const rawUrl = searchParams.get("url");
-              if (rawUrl) {
-                finalUrl = rawUrl;
-              }
-            } else if (!shouldBypass && /^https?:\/\//i.test(url) && !url.startsWith(window.location.origin)) {
-              const gatewayBase = (ApiClient.baseURL || activeProfile?.gatewayURL || "")
-                .trim()
-                .replace(/\/+$/, "");
-              let absoluteGateway = gatewayBase;
-              if (absoluteGateway && !/^https?:\/\//i.test(absoluteGateway)) {
-                absoluteGateway = `http://${absoluteGateway}`;
-              }
-              finalUrl = `${absoluteGateway}/api/proxy?url=${encodeURIComponent(url)}`;
-            } else if (url.startsWith("/api/")) {
-              const gatewayBase = (ApiClient.baseURL || activeProfile?.gatewayURL || "")
-                .trim()
-                .replace(/\/+$/, "");
-
-              let absoluteGateway = gatewayBase;
-              if (absoluteGateway && !/^https?:\/\//i.test(absoluteGateway)) {
-                absoluteGateway = `http://${absoluteGateway}`;
-              }
-
-              finalUrl = `${absoluteGateway}${url}`;
+            const gatewayBase = (ApiClient.baseURL || activeProfile?.gatewayURL || "")
+              .trim()
+              .replace(/\/+$/, "");
+            let absoluteGateway = gatewayBase;
+            if (absoluteGateway && !/^https?:\/\//i.test(absoluteGateway)) {
+              absoluteGateway = `http://${absoluteGateway}`;
             }
 
-            const apiHeaders = url.startsWith("/api/") && !(isProxy && shouldBypass)
+            if (url.startsWith("/api/")) {
+              // Host-relative gateway calls — including an EXPLICIT /api/proxy?url= (a plugin opting into the
+              // server-side proxy). Always routed to the gateway so cross-origin targets bypass browser CORS,
+              // regardless of the disableHttpProxy toggle (that toggle only governs AUTO-proxying below).
+              finalUrl = `${absoluteGateway}${url}`;
+            } else if (!shouldBypass && /^https?:\/\//i.test(url) && !url.startsWith(window.location.origin)) {
+              finalUrl = `${absoluteGateway}/api/proxy?url=${encodeURIComponent(url)}`;
+            }
+
+            // Attach the app's gateway auth headers only to first-party /api/ calls — never to /api/proxy,
+            // whose headers are forwarded verbatim to the external target.
+            const apiHeaders = url.startsWith("/api/") && !isProxy
               ? (ApiClient.headers as Record<string, string>)
               : {};
             const mergedHeaders: Record<string, string> = {

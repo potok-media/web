@@ -180,7 +180,7 @@ export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
             ContentCard, ContentRow, Hero, Image, Icon, Tabs, List, Tooltip, ProgressBar, Skeleton, EmptyState, Alert, Chip, IconButton,
             Modal, Collapsible, Avatar, Rating, TagList, SectionHeader,
             Range, Segmented, ContinueWatchingRow, TopTenRow, PosterGrid, DetailHero,
-            Dropdown, FileInput, Field, Carousel, Scroller, Page
+            Dropdown, FileInput, Field, Carousel, Scroller, Page, SidebarGroup
           } = context;
           ${code}
         `,

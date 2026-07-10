@@ -851,6 +851,7 @@ export const SDK_TYPINGS = `
         Carousel(): CarouselBuilder;
         Scroller(): ScrollerBuilder;
         Page(): PageBuilder;
+        SidebarGroup(title: string): SidebarGroupBuilder;
       }
     };
     /**
@@ -865,6 +866,11 @@ export const SDK_TYPINGS = `
     http: {
       get(url: string, headers?: any): Promise<any>;
       post(url: string, body?: any, headers?: any): Promise<any>;
+      /**
+       * Запрос к ВНЕШНЕМУ (cross-origin) URL через серверный прокси шлюза — в обход CORS. GET по умолчанию,
+       * поддерживает POST и подмену Referer/Origin.
+       */
+      proxy(url: string, options?: { method?: 'GET' | 'POST'; body?: any; headers?: any; referer?: string; origin?: string }): Promise<any>;
     };
     /**
      * Локальное изолированное хранилище данных плагина.
@@ -962,6 +968,8 @@ export const SDK_TYPINGS = `
     meta?: string[];
     progress?: number;
     rank?: number;
+    rating?: number;
+    mediaType?: 'movie' | 'tv';
     href?: string;
   }
 
@@ -1371,7 +1379,18 @@ export const SDK_TYPINGS = `
   declare const Dropdown: () => DropdownBuilder;
   declare const FileInput: (name: string) => FileInputBuilder;
   declare const Field: () => FieldBuilder;
+  /** Категория боковой панели: собственная секция с заголовком и кнопками (как «МЕДИАТЕКА»). */
+  interface SidebarGroupBuilder extends UIComponent {
+    /** Заголовок категории (обычно в верхнем регистре). */
+    title(v: string): this;
+    /** Пункты категории (обычно Button().variant('sidebar-item')). */
+    children(elms: any[]): this;
+    /** Добавить один пункт. */
+    child(elm: any): this;
+  }
+
   declare const Carousel: () => CarouselBuilder;
   declare const Scroller: () => ScrollerBuilder;
   declare const Page: () => PageBuilder;
+  declare const SidebarGroup: (title: string) => SidebarGroupBuilder;
 `;

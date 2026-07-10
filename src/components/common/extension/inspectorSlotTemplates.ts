@@ -69,6 +69,25 @@ return VStack()
   );`;
   }
 
+  if (slotName === "sidebar-groups") {
+    return `// Шаблон для sidebar-groups: своя категория в боковом меню (как «МЕДИАТЕКА»)
+const { ui } = PotokSDK;
+
+return SidebarGroup("Аниме")
+  .child(
+    Button("Каталог")
+      .variant("sidebar-item")
+      .icon("clapperboard")
+      .onClick(() => ui.navigateTo("/extensions/potok-shikimori"))
+  )
+  .child(
+    Button("Случайное")
+      .variant("sidebar-item")
+      .icon("shuffle")
+      .onClick(() => ui.showHUD("info", "Случайное аниме"))
+  );`;
+  }
+
   if (slotName === "home-rows-top" || slotName === "home-rows-bottom") {
     return `// Шаблон для ${slotName}: свой ряд категории на нативной главной
 const { ui } = PotokSDK;

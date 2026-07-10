@@ -74,6 +74,7 @@ export function useWikiPages(): WikiPagesMap {
       "carousel-doc": createComponentDoc("Carousel", WIKI_CATEGORY_KEYS.uiContainers, t),
       "scroller-doc": createComponentDoc("Scroller", WIKI_CATEGORY_KEYS.uiContainers, t),
       "page-doc": createComponentDoc("Page", WIKI_CATEGORY_KEYS.uiContainers, t),
+      "sidebargroup-doc": createComponentDoc("SidebarGroup", WIKI_CATEGORY_KEYS.uiContainers, t),
 
       "button-doc": createComponentDoc("Button", WIKI_CATEGORY_KEYS.uiForms, t),
       "input-doc": createComponentDoc("Input", WIKI_CATEGORY_KEYS.uiForms, t),

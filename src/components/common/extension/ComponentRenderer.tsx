@@ -272,6 +272,16 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       );
     }
 
+    case "SidebarGroup": {
+      const componentProps = schema.props as { title?: string };
+      return (
+        <div id={schema.id} className="sidebar-section potok-sdk-props" style={sdkStyleVars(baseStyle)}>
+          {componentProps.title && <div className="sidebar-section-title">{componentProps.title}</div>}
+          {schema.children?.map((child, index) => renderChild(child, index))}
+        </div>
+      );
+    }
+
     default:
       return null;
   }

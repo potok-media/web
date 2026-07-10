@@ -70,5 +70,28 @@ export const HttpClient = {
         hostOrigin
       );
     });
+  },
+
+  /**
+   * Request an EXTERNAL (cross-origin) URL through the gateway's server-side proxy. Browser `fetch` from a
+   * plugin is CORS-limited; this routes the call server-side (no CORS), so any public API works. Supports
+   * GET (default) and POST, and optional Referer/Origin spoofing for sites that check them.
+   */
+  proxy<T = any>(
+    url: string,
+    options?: {
+      method?: 'GET' | 'POST';
+      body?: any;
+      headers?: Record<string, string>;
+      referer?: string;
+      origin?: string;
+    }
+  ): Promise<HttpResponse<T>> {
+    let target = `/api/proxy?url=${encodeURIComponent(url)}`;
+    if (options?.referer) target += `&referer=${encodeURIComponent(options.referer)}`;
+    if (options?.origin) target += `&origin=${encodeURIComponent(options.origin)}`;
+    return options?.method === 'POST'
+      ? HttpClient.post<T>(target, options?.body, options?.headers)
+      : HttpClient.get<T>(target, options?.headers);
   }
 };

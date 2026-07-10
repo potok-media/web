@@ -1377,5 +1377,11 @@
         "description": "Зазор между элементами контента в пикселях."
       }
     }
+  },
+  "SidebarGroup": {
+    "title": "SidebarGroup (Категория бокового меню)",
+    "description": "Собственная секция боковой панели с заголовком-категорией и кнопками — как встроенная «МЕДИАТЕКА». Контрибьютится в слот 'sidebar-groups' (registerSlotContribution), внутрь кладутся кнопки Button().variant('sidebar-item'). Позволяет плагину добавить ЦЕЛУЮ категорию, а не только кнопки в существующую.",
+    "example": "// Своя категория в боковом меню (в реальном плагине — layout для слота 'sidebar-groups')\nconst { ui } = PotokSDK;\n\nui.render(\n  SidebarGroup(\"Аниме\")\n    .child(\n      Button(\"Каталог\")\n        .variant(\"sidebar-item\")\n        .icon(\"clapperboard\")\n        .onClick(() => ui.navigateTo(\"/extensions/potok-shikimori\"))\n    )\n    .child(\n      Button(\"Случайное\")\n        .variant(\"sidebar-item\")\n        .icon(\"shuffle\")\n        .onClick(() => ui.showHUD(\"info\", \"Случайное аниме\"))\n    )\n);",
+    "methods": {}
   }
 }

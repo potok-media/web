@@ -2736,3 +2736,45 @@ export class PageBuilder extends LayoutComponent {
     return { ...super.getProps(), title: this._title };
   }
 }
+
+// Sidebar category group — lets a plugin add its OWN titled section (like "МЕДИАТЕКА") to the sidebar,
+// not just buttons into existing sections. Use with sidebar-item Buttons inside the 'sidebar-groups' slot.
+/**
+ * SidebarGroup (Категория бокового меню)
+ * 
+ * Собственная секция боковой панели с заголовком-категорией и кнопками — как встроенная «МЕДИАТЕКА». Контрибьютится в слот 'sidebar-groups' (registerSlotContribution), внутрь кладутся кнопки Button().variant('sidebar-item'). Позволяет плагину добавить ЦЕЛУЮ категорию, а не только кнопки в существующую.
+ * 
+ * @example
+ * // Своя категория в боковом меню (в реальном плагине — layout для слота 'sidebar-groups')
+ * const { ui } = PotokSDK;
+ * 
+ * ui.render(
+ *   SidebarGroup("Аниме")
+ *     .child(
+ *       Button("Каталог")
+ *         .variant("sidebar-item")
+ *         .icon("clapperboard")
+ *         .onClick(() => ui.navigateTo("/extensions/potok-shikimori"))
+ *     )
+ *     .child(
+ *       Button("Случайное")
+ *         .variant("sidebar-item")
+ *         .icon("shuffle")
+ *         .onClick(() => ui.showHUD("info", "Случайное аниме"))
+ *     )
+ * );
+ */
+export class SidebarGroupBuilder extends LayoutComponent {
+  private _title?: string;
+
+  constructor(title: string) {
+    super("SidebarGroup");
+    this._title = title;
+  }
+
+  title(v: string): this { this._title = v; return this; }
+
+  protected override getProps(): Record<string, any> {
+    return { title: this._title };
+  }
+}

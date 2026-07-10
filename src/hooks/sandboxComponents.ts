@@ -66,4 +66,5 @@ export const getSandboxComponents = () => ({
   Carousel: () => new uiComponents.CarouselBuilder(),
   Scroller: () => new uiComponents.ScrollerBuilder(),
   Page: () => new uiComponents.PageBuilder(),
+  SidebarGroup: (t: string) => new uiComponents.SidebarGroupBuilder(t),
 });

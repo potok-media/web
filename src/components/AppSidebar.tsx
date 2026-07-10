@@ -187,6 +187,9 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
           <Slot name="sidebar-menu-library" props={{ isCollapsed }} />
         </div>
 
+        {/* Plugin-contributed categories (each SidebarGroup renders its own titled section). */}
+        <Slot name="sidebar-groups" props={{ isCollapsed }} />
+
         <div className="sidebar-section">
           <SidebarNavLink to="/profile" className={({ isActive }) => getNavLinkClass(isActive)}>
             <User size="1.125rem" />

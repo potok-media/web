@@ -1,20 +1,19 @@
 import React, { useRef } from "react";
-import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import { Slot } from "../components/common/extension/Slot";
 
 export const ExtensionPage: React.FC = () => {
-  const { t } = useTranslation("extensions");
   const { tab } = useParams<{ tab: string }>();
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // Находим метаданные плагина, чтобы нативно и красиво отрисовать заголовок страницы
+  // Показываем шапку ТОЛЬКО когда у плагина есть непустой заголовок — иначе никакого fallback «Расширение»
+  // или сырых ключей: страница плагина рисует всё сама.
   const contributions = ExtensionRegistry.getSlotContributions("extension-page");
   const currentContribution = contributions.find((c) => c.contribution.id === tab);
   const contribution = currentContribution?.contribution;
-  const showHeader = !contribution || (contribution.hideHeader !== true && contribution.title !== "");
-  const title = contribution?.title || t("pageTitleFallback");
+  const title = (contribution?.title || "").trim();
+  const showHeader = title.length > 0 && contribution?.hideHeader !== true;
 
   return (
     <div className="extension-page-container extension-page-wrapper">

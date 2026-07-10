@@ -82,6 +82,10 @@ export interface SDKContentItem {
   progress?: number;
   /** Optional rank for numbered/top-N rows. */
   rank?: number;
+  /** Numeric rating (0..10) → shown as the native card's rating pill. */
+  rating?: number;
+  /** Media kind — drives the native card icon and the default /media/<type>/<id> navigation. */
+  mediaType?: "movie" | "tv";
   /** Navigation target used when the host performs default navigation. */
   href?: string;
 }
@@ -993,7 +997,13 @@ export interface PageSchema extends BaseSchema {
   };
 }
 
+export interface SidebarGroupSchema extends BaseSchema {
+  type: "SidebarGroup";
+  props: SDKBaseComponentProps & { title?: string };
+}
+
 export type UIComponentSchema =
+  | SidebarGroupSchema
   | DropdownSchema
   | FileInputSchema
   | FieldSchema
