@@ -456,6 +456,16 @@
   width: 100%;
   flex: none;
   min-width: 0;
+
+  /*
+   * Skip layout/paint for off-screen cards so a long catalog (dozens of paginated
+   * pages) stays cheap to render and scroll — including when the list is restored
+   * from cache on back navigation. The reserved height keeps total scroll height
+   * correct so scroll position restores instantly; `auto` swaps in each card's real
+   * measured size once it has been on screen.
+   */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 23rem;
 }
 
 .library-empty-view {

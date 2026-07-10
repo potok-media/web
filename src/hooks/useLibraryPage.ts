@@ -9,6 +9,17 @@ import { useSettings, useAuth } from "../context/AppSettingsContext";
 const profileSearchQueryCache: Record<string, string> = {};
 const profileSearchResultsCache: Record<string, MediaCard[]> = {};
 
+// Non-search category/row cache: preserves loaded (and paginated) items so navigating
+// back from a details page restores the same list, letting scroll position be restored
+// instead of resetting to page 1.
+interface RowCacheEntry {
+  items: MediaCard[];
+  page: number;
+  hasMore: boolean;
+}
+const rowCache: Record<string, RowCacheEntry> = {};
+const rowCacheKey = (profileKey: string, collectionType: string) => `${profileKey}|${collectionType}`;
+
 interface UseLibraryPageProps {
   collectionType: string;
   isSearchPage: boolean;
@@ -26,7 +37,7 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
     if (isSearchPage) {
       return profileSearchResultsCache[profileKey] || [];
     }
-    return [];
+    return rowCache[rowCacheKey(profileKey, collectionType)]?.items || [];
   });
 
   const [query, setQuery] = useState(() => {
@@ -36,12 +47,20 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
     return "";
   });
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    // Skip the loading spinner when we can hydrate synchronously from the row cache.
+    return isSearchPage ? true : !rowCache[rowCacheKey(profileKey, collectionType)];
+  });
 
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() => {
+    if (isSearchPage) return 1;
+    return rowCache[rowCacheKey(profileKey, collectionType)]?.page || 1;
+  });
   const [hasMore, setHasMore] = useState(() => {
-    return !isSearchPage && collectionType.includes(".");
+    if (isSearchPage) return false;
+    const cached = rowCache[rowCacheKey(profileKey, collectionType)];
+    return cached ? cached.hasMore : collectionType.includes(".");
   });
   const [loadingMore, setLoadingMore] = useState(false);
   const searchDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -82,8 +101,9 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
             cards = await ApiClient.fetchLibraryCategory(collectionType);
             setHasMore(false);
           }
-          
+
           setPage(1);
+          rowCache[rowCacheKey(profileKey, collectionType)] = { items: cards, page: 1, hasMore: hasMoreFlag };
           startTransition(() => {
             setItems(cards);
           });
@@ -115,17 +135,21 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
 
       if (cards.length === 0) {
         setHasMore(false);
+        const cached = rowCache[rowCacheKey(profileKey, collectionType)];
+        if (cached) cached.hasMore = false;
       } else {
+        const hasMoreFlag = cards.length >= 20;
         startTransition(() => {
           setItems(existing => {
             const uniqueNewCards = cards.filter(
               newCard => !existing.some(oldCard => oldCard.id === newCard.id)
             );
-            return [...existing, ...uniqueNewCards];
+            const merged = [...existing, ...uniqueNewCards];
+            rowCache[rowCacheKey(profileKey, collectionType)] = { items: merged, page: nextPage, hasMore: hasMoreFlag };
+            return merged;
           });
         });
         setPage(nextPage);
-        const hasMoreFlag = cards.length >= 20;
         setHasMore(hasMoreFlag);
       }
     } catch (err: unknown) {
@@ -133,7 +157,7 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
     } finally {
       setLoadingMore(false);
     }
-  }, [collectionType, page, loading, loadingMore, hasMore, i18n]);
+  }, [collectionType, page, loading, loadingMore, hasMore, i18n, profileKey]);
 
   // Synchronize component state when active profile or route section changes
   useEffect(() => {
@@ -146,16 +170,29 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
       setHasMore(false);
       setQuery(initialQuery || profileSearchQueryCache[profileKey] || "");
     } else {
-      startTransition(() => {
-        setItems([]);
-      });
-      setLoading(true);
-      setError(null);
-      setPage(1);
-      setHasMore(collectionType.includes("."));
+      const cached = rowCache[rowCacheKey(profileKey, collectionType)];
+      if (cached) {
+        // Restore the previously loaded (and paginated) list so scroll position can be
+        // restored on back navigation, instead of resetting to page 1.
+        startTransition(() => {
+          setItems(cached.items);
+        });
+        setLoading(false);
+        setError(null);
+        setPage(cached.page);
+        setHasMore(cached.hasMore);
+      } else {
+        startTransition(() => {
+          setItems([]);
+        });
+        setLoading(true);
+        setError(null);
+        setPage(1);
+        setHasMore(collectionType.includes("."));
 
-      // Always load data fresh
-      loadData(true, "");
+        // No cache for this category yet — load data fresh
+        loadData(true, "");
+      }
     }
   }, [profileKey, collectionType, isSearchPage, initialQuery, loadData]);
 

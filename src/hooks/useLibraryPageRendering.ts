@@ -2,6 +2,10 @@ import { useState, useEffect, useRef } from "react";
 
 const RENDER_CHUNK = 36;
 
+// How many cards were rendered per list, so a list restored from cache on back
+// navigation renders tall enough for the saved scroll position to be reachable.
+const visibleCountCache: Record<string, number> = {};
+
 export function useLibraryPageRendering(
   itemsLength: number,
   collectionType: string,
@@ -13,16 +17,20 @@ export function useLibraryPageRendering(
   loadingMore: boolean,
   loadNextPage: () => void,
 ) {
-  const [visibleCount, setVisibleCount] = useState(RENDER_CHUNK);
+  const resetKey = `${collectionType}|${isSearchPage ? query : ""}`;
+  const [visibleCount, setVisibleCount] = useState(() => visibleCountCache[resetKey] ?? RENDER_CHUNK);
   const renderSentinelRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const resetKey = `${collectionType}|${isSearchPage ? query : ""}`;
   const [prevResetKey, setPrevResetKey] = useState(resetKey);
   if (resetKey !== prevResetKey) {
     setPrevResetKey(resetKey);
     setVisibleCount(RENDER_CHUNK);
   }
+
+  useEffect(() => {
+    visibleCountCache[resetKey] = visibleCount;
+  }, [resetKey, visibleCount]);
 
   useEffect(() => {
     if (visibleCount >= itemsLength) return;
