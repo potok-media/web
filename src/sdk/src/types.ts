@@ -894,8 +894,8 @@ export interface ContinueWatchingRowSchema extends BaseSchema {
 
 export interface TopTenRowSchema extends BaseSchema {
   type: "TopTenRow";
-  props: SDKBaseComponentProps & { title?: string; items?: SDKContentItem[] };
-  events?: BaseSchema["events"] & { onCardClick?: string };
+  props: SDKBaseComponentProps & { title?: string; items?: SDKContentItem[]; seeAllLabel?: string };
+  events?: BaseSchema["events"] & { onCardClick?: string; onSeeAllClick?: string };
 }
 
 export interface PosterGridSchema extends BaseSchema {

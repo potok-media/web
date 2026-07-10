@@ -468,6 +468,24 @@
   contain-intrinsic-size: auto 23rem;
 }
 
+/*
+ * `content-visibility: auto` above implies `contain: paint`, which clips a card's hover
+ * scale + accent glow to its own box — rows (.carousel-row) have no such containment, which
+ * is why grid cards (catalog, Library) zoom "cropped" while row cards don't. A hovered or
+ * focused card is by definition on-screen, so it gains nothing from being skippable there:
+ * drop the containment while the elevation is active so it can paint past its bounds, exactly
+ * like in a row. No layout/spacing change — off-screen cards keep `auto` and stay virtualized.
+ */
+@media (hover: hover) {
+  .potok-grid.library-grid .media-card:hover {
+    content-visibility: visible;
+  }
+}
+
+.potok-grid.library-grid .media-card.focused {
+  content-visibility: visible;
+}
+
 .library-empty-view {
   display: flex;
   flex-direction: column;

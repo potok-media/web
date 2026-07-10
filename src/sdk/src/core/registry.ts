@@ -21,21 +21,28 @@ export class CallbackRegistry {
     }, 30000);
   }
 
-  static register(cb: CallbackFunction, stableId?: string, persistent = false): string {
+  static register(cb: CallbackFunction, stableId?: string, _persistent = false): string {
     this.cleanup();
     const id = stableId ? `stable_${stableId}` : "cb_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now();
     const slotId = this.activeSlotId || "global";
-    const isPersistent = persistent || slotId === "global";
-    
+    // Callbacks rendered inside a slot scope are LIVE UI handlers (a button's onClick, a card's click).
+    // They must survive as long as their slot is displayed — they're garbage-collected by render-scope
+    // diffing in commitRenderScope() when the slot re-renders, NOT by a wall-clock TTL. Expiring them by
+    // time made handlers in long-lived, rarely re-rendered slots (e.g. a plugin's sidebar entry) go dead
+    // after TTL until a full page reload. So everything registered here is TTL-persistent; the size cap
+    // below is the sole leak backstop.
+    const isPersistent = true;
+
     this.callbacks.set(id, { cb, slotId, createdAt: Date.now(), persistent: isPersistent });
     this.activeRenderCallbacks.add(id);
 
-    // Enforce max callback limit to prevent leaks under heavy load
+    // Enforce max callback limit to prevent leaks under heavy load. Evict the oldest entry regardless of
+    // the persistent flag — since live handlers are now persistent, skipping them would disable the cap.
     if (this.callbacks.size > this.MAX_CALLBACKS) {
       let oldestKey: string | null = null;
       let oldestTime = Infinity;
       for (const [k, v] of this.callbacks.entries()) {
-        if (!v.persistent && v.createdAt < oldestTime) {
+        if (v.createdAt < oldestTime) {
           oldestTime = v.createdAt;
           oldestKey = k;
         }

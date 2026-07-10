@@ -1,11 +1,17 @@
-import React, { useRef } from "react";
-import { useParams } from "react-router-dom";
+import React, { useRef, useMemo } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import { Slot } from "../components/common/extension/Slot";
 
 export const ExtensionPage: React.FC = () => {
   const { tab } = useParams<{ tab: string }>();
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Expose the URL query to the plugin as slot props so it can keep its view state (search/filters/tab) in
+  // the URL. That makes browser back/forward move between the plugin's states, and re-triggers a slot render
+  // whenever the query changes (the object identity is stable while the query is unchanged).
+  const [searchParams] = useSearchParams();
+  const query = useMemo(() => Object.fromEntries(searchParams.entries()), [searchParams]);
 
   // Показываем шапку ТОЛЬКО когда у плагина есть непустой заголовок — иначе никакого fallback «Расширение»
   // или сырых ключей: страница плагина рисует всё сама.
@@ -26,7 +32,7 @@ export const ExtensionPage: React.FC = () => {
       )}
 
       <div ref={contentRef}>
-        <Slot name="extension-page" contributionId={tab} />
+        <Slot name="extension-page" contributionId={tab} props={{ query }} />
       </div>
     </div>
   );

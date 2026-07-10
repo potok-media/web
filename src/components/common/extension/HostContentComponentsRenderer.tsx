@@ -186,6 +186,94 @@ const SdkPosterGrid: React.FC<{
   );
 };
 
+/** Ranked Top-10 row: big outlined rank numbers + native cards, with the same hover scroll-arrows the
+ *  episodes carousel uses (SDK ScrollView alone scrolls by wheel/drag but shows no buttons). */
+const SdkTopTenRow: React.FC<{
+  id?: string;
+  title?: string;
+  cards: ApiMediaCard[];
+  onCardClick: (card: ApiMediaCard) => void;
+  onSeeAll?: () => void;
+}> = ({ id, title, cards, onCardClick, onSeeAll }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScrollLimits = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 5);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 5);
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const timer = setTimeout(checkScrollLimits, 80);
+    const observer = new ResizeObserver(() => checkScrollLimits());
+    observer.observe(el);
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [cards.length]);
+
+  const handleScroll = (direction: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const cardEl = el.querySelector(".sdk-topten-item") as HTMLElement | null;
+    const amount = cardEl ? cardEl.clientWidth * 3 : el.clientWidth * 0.8;
+    el.scrollBy({ left: direction === "left" ? -amount : amount, behavior: "smooth" });
+  };
+
+  if (!cards.length) return null;
+
+  return (
+    <div id={id} className="carousel-container potok-sdk-props">
+      {title && (
+        <div className="carousel-header">
+          {onSeeAll ? (
+            <button type="button" className="carousel-title-link" onClick={onSeeAll}>
+              <h2 className="carousel-title">{title}</h2>
+              <Lucide.ChevronRight className="carousel-title-chevron" size="1.25rem" />
+            </button>
+          ) : (
+            <h2 className="carousel-title">{title}</h2>
+          )}
+        </div>
+      )}
+      <div className="sdk-topten-wrapper">
+        {canScrollLeft && (
+          <IconButton className="carousel-nav-btn left" onClick={() => handleScroll("left")} aria-label="Scroll back">
+            <Lucide.ChevronLeft size="1.25rem" />
+          </IconButton>
+        )}
+        <ScrollView
+          orientation="horizontal"
+          className="carousel-viewport"
+          viewportRef={scrollRef}
+          onScroll={checkScrollLimits}
+          renderTrack={({ trackProps }) => (
+            <div className={`carousel-row sdk-topten-track ${trackProps.className}`}>
+              {cards.map((card, i) => (
+                <div key={`${card.mediaType}-${card.id}`} className="sdk-topten-item">
+                  <span className="sdk-topten-rank">{i + 1}</span>
+                  <MediaCardComponent item={card} onClick={onCardClick} />
+                </div>
+              ))}
+            </div>
+          )}
+        />
+        {canScrollRight && (
+          <IconButton className="carousel-nav-btn right" onClick={() => handleScroll("right")} aria-label="Scroll forward">
+            <Lucide.ChevronRight size="1.25rem" />
+          </IconButton>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const HostContentComponentsRenderer: React.FC<HostContentComponentsRendererProps> = ({
   schema,
   pluginId,
@@ -547,27 +635,13 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
       const cards = (items ?? []).slice(0, 10).map(adaptContentItem);
       if (!cards.length) return null;
       return (
-        <div id={id} className="carousel-container potok-sdk-props">
-          {title && (
-            <div className="carousel-header">
-              <h2 className="carousel-title">{title}</h2>
-            </div>
-          )}
-          <ScrollView
-            orientation="horizontal"
-            className="carousel-viewport"
-            renderTrack={({ trackProps }) => (
-              <div className={`carousel-row sdk-topten-track ${trackProps.className}`}>
-                {cards.map((card, i) => (
-                  <div key={`${card.mediaType}-${card.id}`} className="sdk-topten-item">
-                    <span className="sdk-topten-rank">{i + 1}</span>
-                    <MediaCardComponent item={card} onClick={cardClick} />
-                  </div>
-                ))}
-              </div>
-            )}
-          />
-        </div>
+        <SdkTopTenRow
+          id={id}
+          title={title}
+          cards={cards}
+          onCardClick={cardClick}
+          onSeeAll={events?.onSeeAllClick ? () => fire(events.onSeeAllClick, {}) : undefined}
+        />
       );
     }
 

@@ -314,6 +314,18 @@
   margin: 0;
 }
 
+/* When an SDK search sits inline next to SDK glass selects (e.g. a catalog toolbar), pin both to ONE height
+ * so the row reads as a single even line. The select rule is scoped to `.potok-select-wrap--relative` (only
+ * SDK-rendered glass selects) so the native stream-filter bar is untouched. --font-size-body stays. */
+.sidebar-search-form--sdk { padding: 0; }
+.sidebar-search-form--sdk,
+.sidebar-search-form--sdk .sidebar-search-input {
+  height: 2.5rem;
+  box-sizing: border-box;
+}
+.sidebar-search-form--sdk .sidebar-search-input { font-size: 0.875rem; }
+.potok-select-wrap--relative .ui-btn.filter-btn-trigger-relative { height: 2.5rem; }
+
 .sidebar-search-wrap--flush {
   margin: 0;
 }
@@ -2485,17 +2497,30 @@ input:checked + .slider-round:before {
 }
 
 /* TopTenRow */
+/* Anchors the absolute .carousel-nav-btn scroll arrows to the row viewport. */
+.sdk-topten-wrapper { position: relative; }
 .sdk-topten-track { display: flex; gap: 1.75rem; padding: 0 0 0.25rem 1.5rem; }
 .sdk-topten-item { position: relative; display: flex; align-items: flex-end; }
 .sdk-topten-rank {
   font-size: 5.5rem;
   font-weight: 900;
   line-height: 0.8;
-  color: var(--bg-surface-highest);
-  -webkit-text-stroke: 2px var(--text-tertiary);
+  color: var(--text-tertiary);
+  opacity: 0.55;
   margin-right: -1.25rem;
   margin-bottom: -0.25rem;
   user-select: none;
+}
+
+/* The Top-10 track also carries `carousel-row` (for the horizontal scroller), whose `.carousel-row
+ * .media-card` sizing resolves its `calc(100% / slots)` against the shrink-wrapped `.sdk-topten-item`
+ * wrapper instead of the row — collapsing each card to near-zero. Pin a fixed card width for the ranked
+ * layout; the 3-class selector outranks `.carousel-row .media-card` regardless of source order. */
+.sdk-topten-track .sdk-topten-item .media-card {
+  --carousel-card-basis: 12rem;
+  flex: 0 0 12rem;
+  width: 12rem;
+  max-width: 12rem;
 }
 
 /* PosterGrid */

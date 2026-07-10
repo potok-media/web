@@ -2194,7 +2194,9 @@ export class ContinueWatchingRowBuilder extends UIComponent {
 export class TopTenRowBuilder extends UIComponent {
   private _title?: string;
   private _items: any[];
+  private _seeAllLabel?: string;
   private _onCardClick?: CallbackFunction;
+  private _onSeeAllClick?: CallbackFunction;
 
   constructor() {
     super("TopTenRow");
@@ -2215,14 +2217,26 @@ export class TopTenRowBuilder extends UIComponent {
    */
   items(v: any[]): this { this._items = v; return this; }
   /**
+   * Текст кнопки «Показать все» в заголовке (появляется только если задан onSeeAllClick).
+   *
+   * @param v Значение метода
+   */
+  seeAllLabel(v: string): this { this._seeAllLabel = v; return this; }
+  /**
    * Коллбек клика по карточке.
    *
    * @param v Значение метода
    */
   onCardClick(cb: CallbackFunction): this { this._onCardClick = cb; return this; }
+  /**
+   * Коллбек клика по заголовку/«Показать все».
+   *
+   * @param v Значение метода
+   */
+  onSeeAllClick(cb: CallbackFunction): this { this._onSeeAllClick = cb; return this; }
 
   protected override getProps(): Record<string, any> {
-    return { title: this._title, items: this._items };
+    return { title: this._title, items: this._items, seeAllLabel: this._seeAllLabel };
   }
 
   override compile(path: string = "root"): any {
@@ -2230,6 +2244,10 @@ export class TopTenRowBuilder extends UIComponent {
     if (this._onCardClick) {
       json.events = json.events || {};
       json.events.onCardClick = CallbackRegistry.register(this._onCardClick, `${path}/onCardClick`);
+    }
+    if (this._onSeeAllClick) {
+      json.events = json.events || {};
+      json.events.onSeeAllClick = CallbackRegistry.register(this._onSeeAllClick, `${path}/onSeeAllClick`);
     }
     return json;
   }
