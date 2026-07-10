@@ -54,6 +54,38 @@ export interface SDKMediaCard {
   imdbId?: string;
 }
 
+// -------------------------------------------------------------
+// Generic content model — decoupled from the TMDB-shaped SDKMediaCard so plugins can render
+// cards/rows/heroes from ANY data source (custom catalogs, music, live TV, books, …).
+// -------------------------------------------------------------
+
+export interface SDKContentBadge {
+  text: string;
+  color?: "info" | "success" | "warning" | "error" | "accent";
+}
+
+export interface SDKContentItem {
+  /** Stable id used as focus/React key and passed back to click handlers. */
+  id: string | number;
+  title: string;
+  subtitle?: string;
+  /** Vertical poster (portrait cards). */
+  image?: string;
+  /** Wide/backdrop image (landscape cards & heroes). */
+  wideImage?: string;
+  /** Optional transparent title logo (heroes). */
+  logo?: string;
+  badges?: SDKContentBadge[];
+  /** Free-form metadata lines (year, genre, duration…). */
+  meta?: string[];
+  /** Watch/read progress 0..1 → renders a progress overlay bar. */
+  progress?: number;
+  /** Optional rank for numbered/top-N rows. */
+  rank?: number;
+  /** Navigation target used when the host performs default navigation. */
+  href?: string;
+}
+
 export interface SDKTvEpisode {
   id?: number | string;
   episodeNumber?: number;
@@ -206,6 +238,13 @@ export interface SDKBaseComponentProps {
   height?: string | number;
   visible?: boolean;
   flex?: number;
+  // Curated style tokens (sanitized host-side; applied inline over any component).
+  background?: string;
+  textColor?: string;
+  borderColor?: string;
+  borderRadius?: string;
+  shadow?: string;
+  opacity?: number;
 }
 
 export interface BaseSchema {
@@ -623,7 +662,370 @@ export interface StreamFilterBarSchema extends BaseSchema {
   };
 }
 
+// -------------------------------------------------------------
+// Generic content components (SDKContentItem-based)
+// -------------------------------------------------------------
+
+export interface ContentCardSchema extends BaseSchema {
+  type: "ContentCard";
+  props: SDKBaseComponentProps & {
+    item: SDKContentItem;
+    orientation?: "portrait" | "landscape";
+  };
+  events?: BaseSchema["events"] & { onClick?: string };
+}
+
+export interface ContentRowSchema extends BaseSchema {
+  type: "ContentRow";
+  props: SDKBaseComponentProps & {
+    title?: string;
+    items?: SDKContentItem[];
+    orientation?: "portrait" | "landscape";
+    seeAllLabel?: string;
+  };
+  events?: BaseSchema["events"] & { onCardClick?: string; onSeeAllClick?: string };
+}
+
+export interface HeroSchema extends BaseSchema {
+  type: "Hero";
+  props: SDKBaseComponentProps & {
+    items?: SDKContentItem[];
+    playLabel?: string;
+    detailsLabel?: string;
+  };
+  events?: BaseSchema["events"] & { onPlay?: string; onDetails?: string };
+}
+
+// -------------------------------------------------------------
+// Generic primitives
+// -------------------------------------------------------------
+
+export interface ImageSchema extends BaseSchema {
+  type: "Image";
+  props: SDKBaseComponentProps & {
+    src?: string;
+    alt?: string;
+    aspectRatio?: string;
+    fallback?: string;
+    rounded?: boolean | string;
+    fit?: "cover" | "contain";
+  };
+  events?: BaseSchema["events"] & { onClick?: string };
+}
+
+export interface IconSchema extends BaseSchema {
+  type: "Icon";
+  props: SDKBaseComponentProps & {
+    name: string;
+    size?: string | number;
+    color?: string;
+  };
+}
+
+export interface TabsSchema extends BaseSchema {
+  type: "Tabs";
+  props: SDKBaseComponentProps & {
+    items?: { id: string; label: string; icon?: string }[];
+    value?: string;
+  };
+  events?: BaseSchema["events"] & { onChange?: string };
+}
+
+export interface ListSchema extends BaseSchema {
+  type: "List";
+  props: SDKBaseComponentProps & {
+    items?: {
+      id: string;
+      title: string;
+      subtitle?: string;
+      icon?: string;
+      badge?: string;
+      trailingIcon?: string;
+      disabled?: boolean;
+    }[];
+  };
+  events?: BaseSchema["events"] & { onItemClick?: string };
+}
+
+export interface TooltipSchema extends BaseSchema {
+  type: "Tooltip";
+  props: SDKBaseComponentProps & {
+    text?: string;
+    placement?: "top" | "bottom" | "left" | "right";
+  };
+}
+
+export interface ProgressBarSchema extends BaseSchema {
+  type: "ProgressBar";
+  props: SDKBaseComponentProps & {
+    value?: number;
+    variant?: "accent" | "success" | "warning" | "error";
+    label?: string;
+    showValue?: boolean;
+  };
+}
+
+export interface SkeletonSchema extends BaseSchema {
+  type: "Skeleton";
+  props: SDKBaseComponentProps & {
+    rounded?: boolean | string;
+    count?: number;
+  };
+}
+
+export interface EmptyStateSchema extends BaseSchema {
+  type: "EmptyState";
+  props: SDKBaseComponentProps & {
+    icon?: string;
+    title?: string;
+    description?: string;
+    actionLabel?: string;
+  };
+  events?: BaseSchema["events"] & { onAction?: string };
+}
+
+export interface AlertSchema extends BaseSchema {
+  type: "Alert";
+  props: SDKBaseComponentProps & {
+    text?: string;
+    title?: string;
+    variant?: "info" | "success" | "warning" | "error";
+    icon?: string;
+  };
+}
+
+export interface ChipSchema extends BaseSchema {
+  type: "Chip";
+  props: SDKBaseComponentProps & {
+    text: string;
+    active?: boolean;
+    icon?: string;
+  };
+  events?: BaseSchema["events"] & { onClick?: string };
+}
+
+export interface IconButtonSchema extends BaseSchema {
+  type: "IconButton";
+  props: SDKBaseComponentProps & {
+    icon: string;
+    label?: string;
+    accent?: boolean;
+    size?: "sm" | "md" | "lg";
+  };
+  events?: BaseSchema["events"] & { onClick?: string };
+}
+
+// -------------------------------------------------------------
+// Phase 2 components
+// -------------------------------------------------------------
+
+export interface ModalSchema extends BaseSchema {
+  type: "Modal";
+  props: SDKBaseComponentProps & {
+    open?: boolean;
+    title?: string;
+    variant?: "modal" | "sheet" | "popover";
+    closeOnBackdrop?: boolean;
+  };
+  events?: BaseSchema["events"] & { onClose?: string };
+}
+
+export interface CollapsibleSchema extends BaseSchema {
+  type: "Collapsible";
+  props: SDKBaseComponentProps & {
+    title?: string;
+    open?: boolean;
+  };
+  events?: BaseSchema["events"] & { onToggle?: string };
+}
+
+export interface AvatarSchema extends BaseSchema {
+  type: "Avatar";
+  props: SDKBaseComponentProps & {
+    src?: string;
+    name?: string;
+    size?: "sm" | "md" | "lg";
+    fallback?: string;
+    shape?: "circle" | "square";
+  };
+}
+
+export interface RatingSchema extends BaseSchema {
+  type: "Rating";
+  props: SDKBaseComponentProps & {
+    value?: number;
+    max?: number;
+    showValue?: boolean;
+    size?: "sm" | "md" | "lg";
+  };
+}
+
+export interface TagListSchema extends BaseSchema {
+  type: "TagList";
+  props: SDKBaseComponentProps & {
+    tags?: (string | { id?: string; label: string })[];
+  };
+  events?: BaseSchema["events"] & { onTagClick?: string };
+}
+
+export interface SectionHeaderSchema extends BaseSchema {
+  type: "SectionHeader";
+  props: SDKBaseComponentProps & {
+    title: string;
+    subtitle?: string;
+    actionLabel?: string;
+  };
+  events?: BaseSchema["events"] & { onAction?: string };
+}
+
+// -------------------------------------------------------------
+// Phase 2 batch 2
+// -------------------------------------------------------------
+
+export interface ContinueWatchingRowSchema extends BaseSchema {
+  type: "ContinueWatchingRow";
+  props: SDKBaseComponentProps & { title?: string; items?: SDKContentItem[] };
+  events?: BaseSchema["events"] & { onCardClick?: string };
+}
+
+export interface TopTenRowSchema extends BaseSchema {
+  type: "TopTenRow";
+  props: SDKBaseComponentProps & { title?: string; items?: SDKContentItem[] };
+  events?: BaseSchema["events"] & { onCardClick?: string };
+}
+
+export interface PosterGridSchema extends BaseSchema {
+  type: "PosterGrid";
+  props: SDKBaseComponentProps & {
+    items?: SDKContentItem[];
+    minWidth?: string;
+    loadMoreLabel?: string;
+  };
+  events?: BaseSchema["events"] & { onCardClick?: string; onLoadMore?: string };
+}
+
+export interface DetailHeroSchema extends BaseSchema {
+  type: "DetailHero";
+  props: SDKBaseComponentProps & {
+    item: SDKContentItem;
+    actions?: { id: string; label: string; icon?: string; variant?: string }[];
+  };
+  events?: BaseSchema["events"] & { onAction?: string };
+}
+
+export interface RangeSchema extends BaseSchema {
+  type: "Range";
+  props: SDKBaseComponentProps & {
+    name?: string;
+    value?: number;
+    min?: number;
+    max?: number;
+    step?: number;
+    label?: string;
+    showValue?: boolean;
+  };
+  events?: BaseSchema["events"] & { onChange?: string };
+}
+
+export interface SegmentedSchema extends BaseSchema {
+  type: "Segmented";
+  props: SDKBaseComponentProps & {
+    items?: { id: string; label: string }[];
+    value?: string;
+  };
+  events?: BaseSchema["events"] & { onChange?: string };
+}
+
+// -------------------------------------------------------------
+// Phase 2 batch 3
+// -------------------------------------------------------------
+
+export interface DropdownSchema extends BaseSchema {
+  type: "Dropdown";
+  props: SDKBaseComponentProps & {
+    label?: string;
+    icon?: string;
+    items?: { id: string; label: string; icon?: string }[];
+    value?: string;
+  };
+  events?: BaseSchema["events"] & { onSelect?: string };
+}
+
+export interface FileInputSchema extends BaseSchema {
+  type: "FileInput";
+  props: SDKBaseComponentProps & {
+    name?: string;
+    label?: string;
+    accept?: string;
+    multiple?: boolean;
+  };
+  events?: BaseSchema["events"] & { onChange?: string };
+}
+
+export interface FieldSchema extends BaseSchema {
+  type: "Field";
+  props: SDKBaseComponentProps & {
+    label?: string;
+    hint?: string;
+  };
+}
+
+export interface CarouselSchema extends BaseSchema {
+  type: "Carousel";
+  props: SDKBaseComponentProps & {
+    spacing?: number;
+  };
+}
+
+export interface ScrollerSchema extends BaseSchema {
+  type: "Scroller";
+  props: SDKBaseComponentProps & {
+    orientation?: "horizontal" | "vertical";
+    spacing?: number;
+  };
+}
+
+export interface PageSchema extends BaseSchema {
+  type: "Page";
+  props: SDKBaseComponentProps & {
+    title?: string;
+    spacing?: number;
+  };
+}
+
 export type UIComponentSchema =
+  | DropdownSchema
+  | FileInputSchema
+  | FieldSchema
+  | CarouselSchema
+  | ScrollerSchema
+  | PageSchema
+  | ContinueWatchingRowSchema
+  | TopTenRowSchema
+  | PosterGridSchema
+  | DetailHeroSchema
+  | RangeSchema
+  | SegmentedSchema
+  | ModalSchema
+  | CollapsibleSchema
+  | AvatarSchema
+  | RatingSchema
+  | TagListSchema
+  | SectionHeaderSchema
+  | ContentCardSchema
+  | ContentRowSchema
+  | HeroSchema
+  | ImageSchema
+  | IconSchema
+  | TabsSchema
+  | ListSchema
+  | TooltipSchema
+  | ProgressBarSchema
+  | SkeletonSchema
+  | EmptyStateSchema
+  | AlertSchema
+  | ChipSchema
+  | IconButtonSchema
   | VStackSchema
   | HStackSchema
   | GridSchema

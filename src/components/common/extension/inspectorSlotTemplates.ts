@@ -69,6 +69,38 @@ return VStack()
   );`;
   }
 
+  if (slotName === "home-rows-top" || slotName === "home-rows-bottom") {
+    return `// Шаблон для ${slotName}: свой ряд категории на нативной главной
+const { ui } = PotokSDK;
+
+const items = [
+  { id: "1", title: "Мой фильм", subtitle: "2024", image: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg" },
+  { id: "2", title: "Ещё один", subtitle: "2023", image: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg" }
+];
+
+return ContentRow()
+  .title("Подборка от плагина")
+  .items(items)
+  .onCardClick((item) => ui.navigateTo("/media/movie/" + item.id))
+  .onSeeAllClick(() => ui.navigateTo("/extensions/my-plugin"));`;
+  }
+
+  if (slotName === "home-hero") {
+    return `// Шаблон для home-hero: свой промо-баннер над нативным hero главной
+const { ui } = PotokSDK;
+
+return Hero()
+  .items([{
+    id: "feature-1",
+    title: "Премьера от плагина",
+    subtitle: "Описание рекомендованного контента.",
+    wideImage: "https://image.tmdb.org/t/p/original/il8gr7YStcrui1EM2crk14G4HjL.jpg",
+    meta: ["2024", "Драма"]
+  }])
+  .onPlay((item) => ui.showHUD("success", "Смотрим: " + item.title))
+  .onDetails((item) => ui.navigateTo("/extensions/my-plugin"));`;
+  }
+
   if (slotName === "settings-tabs") {
     return `// Шаблон для settings-tabs: Настройки кеширования плагина
 const { ui } = PotokSDK;

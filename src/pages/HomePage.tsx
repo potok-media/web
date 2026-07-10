@@ -7,6 +7,7 @@ import { DYNAMIC_CATEGORY_TITLES } from "./LibraryConfig";
 import HeroSpotlight from "../components/HeroSpotlight";
 import MediaRow from "../components/MediaRow";
 import { LoadingSpinner } from "../components/LoadingSpinner";
+import { Slot } from "../components/common/extension/Slot";
 import type { HeroItem, MediaCard } from "../network/ApiTypes";
 
 import { Button } from "../components/ui";
@@ -51,6 +52,9 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="home-page-container">
+      {/* Plugin-contributed featured banner above the native hero (renders nothing if no contributions). */}
+      <Slot name="home-hero" />
+
       {feed.hero && feed.hero.length > 0 && (
         <HeroSpotlight
           items={feed.hero}
@@ -58,6 +62,9 @@ export const HomePage: React.FC = () => {
           onDetails={handleHeroDetails}
         />
       )}
+
+      {/* Plugin-contributed rows shown ABOVE the native feed rows. */}
+      <Slot name="home-rows-top" />
 
       {feed.rows.map((row, index) => {
         const titleKey = DYNAMIC_CATEGORY_TITLES[row.id];
@@ -73,6 +80,9 @@ export const HomePage: React.FC = () => {
           />
         );
       })}
+
+      {/* Plugin-contributed rows shown BELOW the native feed rows. */}
+      <Slot name="home-rows-bottom" />
     </div>
   );
 };

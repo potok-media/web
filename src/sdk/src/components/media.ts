@@ -41,13 +41,20 @@ export class StreamSkeletonListBuilder extends UIComponent {
  * // Отдельная раздача
  * const { ui } = PotokSDK;
  * 
+ * // Форма SDKStreamUIItem: сиды/личи — seeders/leechers, размер — sizeLabel (строка) или sizeBytes (число).
  * const streamData = {
+ *   id: "rt-12345",
  *   title: "Интерстеллар (2014) BDRip [1080p]",
- *   size: "14.5 GB",
- *   seeds: 120,
- *   peers: 15,
- *   quality: "1080p",
- *   tracker: "Rutracker"
+ *   tracker: "Rutracker",
+ *   sizeLabel: "14.5 GB",
+ *   sizeBytes: 15569256448,
+ *   seeders: 120,
+ *   leechers: 15,
+ *   publishDate: "2015-03-10",
+ *   tags: [
+ *     { kind: "quality", value: "1080p" },
+ *     { kind: "voice", value: "Дубляж" }
+ *   ]
  * };
  * 
  * ui.render(
@@ -67,7 +74,7 @@ export class StreamRowBuilder extends UIComponent {
   }
 
   /**
-   * Метаданные потока раздачи. Должен содержать: title, size, seeds, peers, quality, tracker.
+   * Метаданные раздачи (форма SDKStreamUIItem): id, title, tracker, sizeLabel или sizeBytes, seeders, leechers, publishDate, tags.
    *
    * @param v Значение метода
    */
@@ -118,11 +125,20 @@ export class StreamRowComponentBuilder extends StreamRowBuilder {
  * // Карточка медиа
  * const { ui } = PotokSDK;
  * 
+ * // Форма SDKMediaCard: id + mediaType обязательны для перехода, рейтинги и постер — по именам posterSrc/tmdbRating.
  * const movie = {
+ *   id: 157336,
  *   title: "Интерстеллар",
- *   posterUrl: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg",
- *   year: 2014,
- *   rating: 8.6
+ *   subtitle: "Interstellar (2014)",
+ *   mediaType: "movie",
+ *   posterSrc: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg",
+ *   backdropSrc: "https://image.tmdb.org/t/p/original/xu9zaAevzQ5nnrsXN6JcahLnG4i.jpg",
+ *   genres: "Фантастика, Драма",
+ *   ageRating: "12+",
+ *   tmdbRating: 8.4,
+ *   kpRating: 8.6,
+ *   imdbRating: 8.7,
+ *   progress: { percentage: 45 }
  * };
  * 
  * ui.render(
@@ -185,10 +201,15 @@ export class MediaCardBuilder extends UIComponent {
  * // Промо баннер
  * const { ui } = PotokSDK;
  * 
+ * // Фон берётся из backdropSrc (обязателен, иначе баннер не отрисуется); id + mediaType нужны для перехода «Подробнее».
  * const promo = {
+ *   id: 335984,
  *   title: "Бегущий по лезвию 2049",
+ *   mediaType: "movie",
  *   overview: "В новый век репликанты выполняют самую грязную работу...",
- *   backdropUrl: "https://image.tmdb.org/t/p/original/il8gr7YStcrui1EM2crk14G4HjL.jpg"
+ *   backdropSrc: "https://image.tmdb.org/t/p/original/il8gr7YStcrui1EM2crk14G4HjL.jpg",
+ *   genres: "Фантастика, Драма",
+ *   tmdbRating: 8.0
  * };
  * 
  * ui.render(
@@ -588,8 +609,8 @@ export class LoadingSpinnerBuilder extends UIComponent {
  *   EpisodesSection()
  *     .mediaId("1399")
  *     .numberOfSeasons(8)
- *     .onEpisodeClick((ep) => {
- *       ui.showHUD("success", "Выбран эпизод " + ep.episodeNumber);
+ *     .onEpisodeClick(({ episode, seasonNumber }) => {
+ *       ui.showHUD("success", "S" + seasonNumber + " · эпизод " + episode.episodeNumber);
  *     })
  * );
  */
@@ -667,11 +688,17 @@ export class SeasonEpisodesBuilder extends EpisodesSectionBuilder {
  * // Актерский состав
  * const { ui } = PotokSDK;
  * 
+ * // Фото актёра читается из profileSrc (по форме SDKCastMember), не из profilePath.
  * const actors = [
  *   {
  *     name: "Мэттью Макконахи",
  *     character: "Купер",
- *     profilePath: "https://image.tmdb.org/t/p/w185/wD6U1N7Caw58tO43fT245U62y4a.jpg"
+ *     profileSrc: "https://image.tmdb.org/t/p/w185/wD6U1N7Caw58tO43fT245U62y4a.jpg"
+ *   },
+ *   {
+ *     name: "Энн Хэтэуэй",
+ *     character: "Амелия Брэнд",
+ *     profileSrc: "https://image.tmdb.org/t/p/w185/tLelKoPNiyJCSEtQTz1FGv4TLGc.jpg"
  *   }
  * ];
  * 
@@ -712,23 +739,37 @@ export class MediaCastBuilder extends UIComponent {
  * Большая интерактивная панель описания фильма или сериала. Отображает постер, оригинальное название, описание, год производства, страну, рейтинг, жанры и список создателей.
  * 
  * @example
- * // Описание фильма
- * const { ui } = PotokSDK;
+ * // Описание сериала. Компонент читает форму SDKMediaCard: originalTitle, subtitle, genres (СТРОКА),
+ * // ageRating, numberOfSeasons, overview, imdbRating/kpRating. selectedEpisode переключает описание на серию.
+ * const { ui, createState } = PotokSDK;
  * 
- * const movieData = {
- *   title: "Интерстеллар",
- *   overview: "Наше время на Земле подошло к концу, группа исследователей предпринимает путешествие в космос...",
- *   posterUrl: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg",
- *   rating: 8.6,
- *   genres: ["Научная фантастика", "Драма"],
- *   year: 2014,
- *   country: "США"
+ * const series = {
+ *   id: 1399,
+ *   title: "Игра престолов",
+ *   originalTitle: "Game of Thrones",
+ *   subtitle: "2011 · США",
+ *   mediaType: "tv",
+ *   overview: "Девять благородных семей ведут борьбу за контроль над мифическими землями Вестероса...",
+ *   genres: "Фэнтези, Драма, Боевик",
+ *   ageRating: "18+",
+ *   numberOfSeasons: 8,
+ *   imdbRating: 9.2,
+ *   kpRating: 9.0
  * };
  * 
- * ui.render(
- *   MediaOverview()
- *     .media(movieData)
- * );
+ * const state = createState({
+ *   selectedEpisode: { episode: { episodeNumber: 1, name: "Зима близко" }, seasonNumber: 1 }
+ * });
+ * 
+ * function draw() {
+ *   ui.render(
+ *     MediaOverview()
+ *       .media(series)
+ *       .selectedEpisode(state.selectedEpisode)
+ *       .onResetEpisode(() => state.selectedEpisode = null)
+ *   );
+ * }
+ * state.$subscribe(draw); draw();
  */
 export class MediaOverviewBuilder extends UIComponent {
   private _media: any;
@@ -795,17 +836,16 @@ export class MediaOverviewBuilder extends UIComponent {
  * // Карусель медиа
  * const { ui } = PotokSDK;
  * 
- * const movie = {
- *   title: "Интерстеллар",
- *   posterUrl: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg",
- *   year: 2014,
- *   rating: 8.6
- * };
+ * const movies = [
+ *   { id: 157336, title: "Интерстеллар", subtitle: "2014", mediaType: "movie", posterSrc: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg", tmdbRating: 8.4 },
+ *   { id: 335984, title: "Бегущий по лезвию 2049", subtitle: "2017", mediaType: "movie", posterSrc: "https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg", kpRating: 7.9 },
+ *   { id: 27205, title: "Начало", subtitle: "2010", mediaType: "movie", posterSrc: "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg", imdbRating: 8.8 }
+ * ];
  * 
  * ui.render(
  *   MediaRow()
  *     .title("Рекомендуемые фильмы")
- *     .items([movie, movie, movie])
+ *     .items(movies)
  *     .onCardClick((item) => {
  *       ui.showHUD("info", "Клик: " + item.title);
  *     })
@@ -1022,14 +1062,14 @@ export class MediaPlayerBuilder extends UIComponent {
  *     .connectionProfiles(profiles)
  *     .activeProfileID("p1")
  *     .isSettingsLocked(false)
- *     .onSelectProfile((p) => {
- *       ui.showHUD("success", "Выбран профиль: " + p.name);
+ *     .onSelectProfile((profileId) => {
+ *       ui.showHUD("success", "Выбран профиль: " + profileId);
  *     })
- *     .onStartEdit((p) => {
- *       ui.showHUD("info", "Редактирование: " + p.name);
+ *     .onStartEdit((profile) => {
+ *       ui.showHUD("info", "Редактирование: " + profile.name);
  *     })
- *     .onDeleteProfile((p) => {
- *       ui.showHUD("warning", "Удаление: " + p.name);
+ *     .onDeleteProfile((profileId) => {
+ *       ui.showHUD("warning", "Удаление профиля: " + profileId);
  *     })
  *     .onStartAdd(() => {
  *       ui.showHUD("info", "Добавление профиля");
@@ -1491,8 +1531,8 @@ export class StreamFilterBarBuilder extends UIComponent {
  *             state.open = false;
  *             ui.showHUD("success", "Запускаем: " + ep.title + " (" + audioId + ")");
  *           })
- *           .onApplyOverride((sourceSeason, targetSeason, offset) => {
- *             ui.showHUD("info", "Override: " + sourceSeason + " -> " + targetSeason);
+ *           .onApplyOverride(({ sourceSeason, targetSeason, offset }) => {
+ *             ui.showHUD("info", "Override: " + sourceSeason + " -> " + targetSeason + " (offset " + offset + ")");
  *           })
  *           .onStartEditing(() => {
  *             ui.showHUD("info", "Редактирование сезонов");
@@ -1740,6 +1780,614 @@ export class EpisodeCardBuilder extends UIComponent {
     if (this._onClick) {
       json.events = json.events || {};
       json.events.onClick = CallbackRegistry.register(this._onClick, `${path}/onClick`);
+    }
+    return json;
+  }
+}
+
+/**
+ * ContentCard (Универсальная карточка)
+ * 
+ * Карточка контента, НЕ привязанная к форме TMDB. Рисует постер, бейджи, полосу прогресса и заголовок из вашей собственной модели данных (SDKContentItem: id, title, subtitle, image, wideImage, badges, meta, progress, rank).
+ * 
+ * @example
+ * // Карточка из своих данных
+ * const { ui } = PotokSDK;
+ * 
+ * ui.render(
+ *   ContentCard()
+ *     .item({
+ *       id: "track-1",
+ *       title: "Nightcall",
+ *       subtitle: "Kavinsky",
+ *       image: "https://image.tmdb.org/t/p/w500/9O1Iy9od7uEuw6Bs4POV62Zzg2H.jpg",
+ *       badges: [{ text: "NEW", color: "accent" }],
+ *       meta: ["2010", "Synthwave"],
+ *       progress: 0.4,
+ *       rank: 1
+ *     })
+ *     .orientation("portrait")
+ *     .onClick((item) => ui.showHUD("info", "Открыто: " + item.title))
+ * );
+ */
+export class ContentCardBuilder extends UIComponent {
+  private _item: any;
+  private _orientation?: "portrait" | "landscape";
+  private _onClick?: CallbackFunction;
+
+  constructor() {
+    super("ContentCard");
+    this._item = {};
+  }
+
+  /**
+   * Объект контента: id, title, subtitle, image, wideImage, badges, meta, progress, rank, href.
+   *
+   * @param v Значение метода
+   */
+  item(v: any): this {
+    this._item = v;
+    return this;
+  }
+
+  /**
+   * Ориентация карточки: вертикальный постер или широкий кадр.
+   *
+   * @param v Значение метода
+   * @default 'portrait'
+   */
+  orientation(v: "portrait" | "landscape"): this {
+    this._orientation = v;
+    return this;
+  }
+
+  /**
+   * Коллбек клика по карточке. Передаёт объект контента.
+   *
+   * @param v Значение метода
+   */
+  onClick(cb: CallbackFunction): this {
+    this._onClick = cb;
+    return this;
+  }
+
+  protected override getProps(): Record<string, any> {
+    return { item: this._item, orientation: this._orientation };
+  }
+
+  override compile(path: string = "root"): any {
+    const json = super.compile(path);
+    if (this._onClick) {
+      json.events = json.events || {};
+      json.events.onClick = CallbackRegistry.register(this._onClick, `${path}/onClick`);
+    }
+    return json;
+  }
+}
+
+/**
+ * ContentRow (Универсальная карусель)
+ * 
+ * Горизонтальный ряд карточек ContentCard из вашей собственной модели данных (SDKContentItem[]). Обобщённая версия MediaRow без привязки к TMDB: заголовок секции, кнопка «Показать все» и D-pad-скролл.
+ * 
+ * @example
+ * // Ряд категории из своих данных
+ * const { ui } = PotokSDK;
+ * 
+ * const items = [
+ *   { id: "1", title: "Элемент 1", image: "https://image.tmdb.org/t/p/w500/9O1Iy9od7uEuw6Bs4POV62Zzg2H.jpg" },
+ *   { id: "2", title: "Элемент 2", image: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg" }
+ * ];
+ * 
+ * ui.render(
+ *   ContentRow()
+ *     .title("Моя подборка")
+ *     .items(items)
+ *     .orientation("portrait")
+ *     .seeAllLabel("Все")
+ *     .onCardClick((item) => ui.showHUD("info", "Клик: " + item.title))
+ *     .onSeeAllClick(() => ui.showHUD("success", "Показать все"))
+ * );
+ */
+export class ContentRowBuilder extends UIComponent {
+  private _title?: string;
+  private _items: any[];
+  private _orientation?: "portrait" | "landscape";
+  private _seeAllLabel?: string;
+  private _onCardClick?: CallbackFunction;
+  private _onSeeAllClick?: CallbackFunction;
+
+  constructor() {
+    super("ContentRow");
+    this._items = [];
+  }
+
+  /**
+   * Заголовок секции ряда.
+   *
+   * @param v Значение метода
+   */
+  title(v: string): this {
+    this._title = v;
+    return this;
+  }
+
+  /**
+   * Массив контента для карточек ряда.
+   *
+   * @param v Значение метода
+   * @default []
+   */
+  items(v: any[]): this {
+    this._items = v;
+    return this;
+  }
+
+  /**
+   * Ориентация карточек ряда.
+   *
+   * @param v Значение метода
+   * @default 'portrait'
+   */
+  orientation(v: "portrait" | "landscape"): this {
+    this._orientation = v;
+    return this;
+  }
+
+  /**
+   * Текст кнопки «Показать все» (кнопка появляется только если задан onSeeAllClick).
+   *
+   * @param v Значение метода
+   */
+  seeAllLabel(v: string): this {
+    this._seeAllLabel = v;
+    return this;
+  }
+
+  /**
+   * Коллбек клика по любой карточке ряда.
+   *
+   * @param v Значение метода
+   */
+  onCardClick(cb: CallbackFunction): this {
+    this._onCardClick = cb;
+    return this;
+  }
+
+  /**
+   * Коллбек клика по кнопке «Показать все».
+   *
+   * @param v Значение метода
+   */
+  onSeeAllClick(cb: CallbackFunction): this {
+    this._onSeeAllClick = cb;
+    return this;
+  }
+
+  protected override getProps(): Record<string, any> {
+    return {
+      title: this._title,
+      items: this._items,
+      orientation: this._orientation,
+      seeAllLabel: this._seeAllLabel
+    };
+  }
+
+  override compile(path: string = "root"): any {
+    const json = super.compile(path);
+    if (this._onCardClick) {
+      json.events = json.events || {};
+      json.events.onCardClick = CallbackRegistry.register(this._onCardClick, `${path}/onCardClick`);
+    }
+    if (this._onSeeAllClick) {
+      json.events = json.events || {};
+      json.events.onSeeAllClick = CallbackRegistry.register(this._onSeeAllClick, `${path}/onSeeAllClick`);
+    }
+    return json;
+  }
+}
+
+/**
+ * Hero (Универсальный промо-баннер)
+ * 
+ * Широкий промо-баннер из вашей собственной модели данных (SDKContentItem[]). Обобщённая версия HeroSpotlight без привязки к TMDB: фон wideImage, логотип/заголовок, метаданные, бейджи и кнопки «Смотреть» / «Подробнее».
+ * 
+ * @example
+ * // Промо из своих данных
+ * const { ui } = PotokSDK;
+ * 
+ * ui.render(
+ *   Hero()
+ *     .items([{
+ *       id: "feature-1",
+ *       title: "Мой контент",
+ *       subtitle: "Описание featured-элемента, которое видно поверх фона.",
+ *       wideImage: "https://image.tmdb.org/t/p/original/il8gr7YStcrui1EM2crk14G4HjL.jpg",
+ *       meta: ["2024", "Драма", "2ч 15м"],
+ *       badges: [{ text: "4K", color: "info" }]
+ *     }])
+ *     .playLabel("Смотреть")
+ *     .detailsLabel("Подробнее")
+ *     .onPlay((item) => ui.showHUD("success", "Смотрим: " + item.title))
+ *     .onDetails((item) => ui.showHUD("info", "Подробнее: " + item.title))
+ * );
+ */
+export class HeroBuilder extends UIComponent {
+  private _items: any[];
+  private _playLabel?: string;
+  private _detailsLabel?: string;
+  private _onPlay?: CallbackFunction;
+  private _onDetails?: CallbackFunction;
+
+  constructor() {
+    super("Hero");
+    this._items = [];
+  }
+
+  /**
+   * Массив featured-элементов. Отрисовывается первый элемент.
+   *
+   * @param v Значение метода
+   * @default []
+   */
+  items(v: any[]): this {
+    this._items = v;
+    return this;
+  }
+
+  /**
+   * Текст главной кнопки.
+   *
+   * @param v Значение метода
+   * @default 'Смотреть'
+   */
+  playLabel(v: string): this {
+    this._playLabel = v;
+    return this;
+  }
+
+  /**
+   * Текст дополнительной кнопки.
+   *
+   * @param v Значение метода
+   * @default 'Подробнее'
+   */
+  detailsLabel(v: string): this {
+    this._detailsLabel = v;
+    return this;
+  }
+
+  /**
+   * Коллбек клика по главной кнопке. Передаёт активный элемент.
+   *
+   * @param v Значение метода
+   */
+  onPlay(cb: CallbackFunction): this {
+    this._onPlay = cb;
+    return this;
+  }
+
+  /**
+   * Коллбек клика по кнопке «Подробнее».
+   *
+   * @param v Значение метода
+   */
+  onDetails(cb: CallbackFunction): this {
+    this._onDetails = cb;
+    return this;
+  }
+
+  protected override getProps(): Record<string, any> {
+    return {
+      items: this._items,
+      playLabel: this._playLabel,
+      detailsLabel: this._detailsLabel
+    };
+  }
+
+  override compile(path: string = "root"): any {
+    const json = super.compile(path);
+    if (this._onPlay) {
+      json.events = json.events || {};
+      json.events.onPlay = CallbackRegistry.register(this._onPlay, `${path}/onPlay`);
+    }
+    if (this._onDetails) {
+      json.events = json.events || {};
+      json.events.onDetails = CallbackRegistry.register(this._onDetails, `${path}/onDetails`);
+    }
+    return json;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 2 batch 2 — content rows/grids/hero (SDKContentItem-based). Authored bare;
+// scripts/document-sdk.js injects canonical JSDoc from componentsMetadata.
+// ---------------------------------------------------------------------------
+
+/**
+ * ContinueWatchingRow (Продолжить просмотр)
+ * 
+ * Горизонтальный ряд широких карточек с полосой прогресса — раздел «Продолжить просмотр» из вашей модели данных (SDKContentItem[], поле progress 0..1).
+ * 
+ * @example
+ * // Ряд «Продолжить просмотр»
+ * const { ui } = PotokSDK;
+ * 
+ * const items = [
+ *   { id: "1", title: "Дюна: Часть вторая", subtitle: "2024", wideImage: "https://image.tmdb.org/t/p/w780/xu9zaAevzQ5nnrsXN6JcahLnG4i.jpg", progress: 0.6 },
+ *   { id: "2", title: "Интерстеллар", subtitle: "2014", wideImage: "https://image.tmdb.org/t/p/w780/il8gr7YStcrui1EM2crk14G4HjL.jpg", progress: 0.25 }
+ * ];
+ * 
+ * ui.render(
+ *   ContinueWatchingRow()
+ *     .title("Продолжить просмотр")
+ *     .items(items)
+ *     .onCardClick((item) => ui.showHUD("info", "Продолжаем: " + item.title))
+ * );
+ */
+export class ContinueWatchingRowBuilder extends UIComponent {
+  private _title?: string;
+  private _items: any[];
+  private _onCardClick?: CallbackFunction;
+
+  constructor() {
+    super("ContinueWatchingRow");
+    this._items = [];
+  }
+
+  /**
+   * Заголовок ряда.
+   *
+   * @param v Значение метода
+   */
+  title(v: string): this { this._title = v; return this; }
+  /**
+   * Элементы с полем progress (0..1) для полосы прогресса.
+   *
+   * @param v Значение метода
+   * @default []
+   */
+  items(v: any[]): this { this._items = v; return this; }
+  /**
+   * Коллбек клика по карточке.
+   *
+   * @param v Значение метода
+   */
+  onCardClick(cb: CallbackFunction): this { this._onCardClick = cb; return this; }
+
+  protected override getProps(): Record<string, any> {
+    return { title: this._title, items: this._items };
+  }
+
+  override compile(path: string = "root"): any {
+    const json = super.compile(path);
+    if (this._onCardClick) {
+      json.events = json.events || {};
+      json.events.onCardClick = CallbackRegistry.register(this._onCardClick, `${path}/onCardClick`);
+    }
+    return json;
+  }
+}
+
+/**
+ * TopTenRow (Топ-10)
+ * 
+ * Ранжированный ряд с крупным номером позиции у каждого постера. Номер берётся из поля rank или из позиции элемента (до 10).
+ * 
+ * @example
+ * // Ранжированный ряд «Топ-10»
+ * const { ui } = PotokSDK;
+ * 
+ * const items = [
+ *   { id: "1", title: "Фильм 1", image: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg" },
+ *   { id: "2", title: "Фильм 2", image: "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg" },
+ *   { id: "3", title: "Фильм 3", image: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg" }
+ * ];
+ * 
+ * ui.render(
+ *   TopTenRow()
+ *     .title("Топ-10 сегодня")
+ *     .items(items)
+ *     .onCardClick((item) => ui.showHUD("info", item.title))
+ * );
+ */
+export class TopTenRowBuilder extends UIComponent {
+  private _title?: string;
+  private _items: any[];
+  private _onCardClick?: CallbackFunction;
+
+  constructor() {
+    super("TopTenRow");
+    this._items = [];
+  }
+
+  /**
+   * Заголовок ряда.
+   *
+   * @param v Значение метода
+   */
+  title(v: string): this { this._title = v; return this; }
+  /**
+   * До 10 элементов; номер — из поля rank или позиции.
+   *
+   * @param v Значение метода
+   * @default []
+   */
+  items(v: any[]): this { this._items = v; return this; }
+  /**
+   * Коллбек клика по карточке.
+   *
+   * @param v Значение метода
+   */
+  onCardClick(cb: CallbackFunction): this { this._onCardClick = cb; return this; }
+
+  protected override getProps(): Record<string, any> {
+    return { title: this._title, items: this._items };
+  }
+
+  override compile(path: string = "root"): any {
+    const json = super.compile(path);
+    if (this._onCardClick) {
+      json.events = json.events || {};
+      json.events.onCardClick = CallbackRegistry.register(this._onCardClick, `${path}/onCardClick`);
+    }
+    return json;
+  }
+}
+
+/**
+ * PosterGrid (Сетка постеров)
+ * 
+ * Адаптивная сетка карточек-постеров с необязательной кнопкой догрузки (бесконечный список) — для страниц каталога/категории из вашей модели данных.
+ * 
+ * @example
+ * // Сетка постеров с догрузкой
+ * const { ui } = PotokSDK;
+ * 
+ * const items = [
+ *   { id: "1", title: "Дюна", image: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg" },
+ *   { id: "2", title: "Начало", image: "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg" },
+ *   { id: "3", title: "Интерстеллар", image: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg" }
+ * ];
+ * 
+ * ui.render(
+ *   PosterGrid()
+ *     .items(items)
+ *     .minWidth("10rem")
+ *     .loadMoreLabel("Показать ещё")
+ *     .onCardClick((item) => ui.showHUD("info", item.title))
+ *     .onLoadMore(() => ui.showHUD("info", "Загрузка следующей страницы..."))
+ * );
+ */
+export class PosterGridBuilder extends UIComponent {
+  private _items: any[];
+  private _minWidth?: string;
+  private _loadMoreLabel?: string;
+  private _onCardClick?: CallbackFunction;
+  private _onLoadMore?: CallbackFunction;
+
+  constructor() {
+    super("PosterGrid");
+    this._items = [];
+  }
+
+  /**
+   * Карточки сетки.
+   *
+   * @param v Значение метода
+   * @default []
+   */
+  items(v: any[]): this { this._items = v; return this; }
+  /**
+   * Минимальная ширина колонки.
+   *
+   * @param v Значение метода
+   * @default '10rem'
+   */
+  minWidth(v: string): this { this._minWidth = v; return this; }
+  /**
+   * Текст кнопки догрузки (появляется только если задан onLoadMore).
+   *
+   * @param v Значение метода
+   */
+  loadMoreLabel(v: string): this { this._loadMoreLabel = v; return this; }
+  /**
+   * Коллбек клика по карточке.
+   *
+   * @param v Значение метода
+   */
+  onCardClick(cb: CallbackFunction): this { this._onCardClick = cb; return this; }
+  /**
+   * Коллбек догрузки следующей страницы.
+   *
+   * @param v Значение метода
+   */
+  onLoadMore(cb: CallbackFunction): this { this._onLoadMore = cb; return this; }
+
+  protected override getProps(): Record<string, any> {
+    return { items: this._items, minWidth: this._minWidth, loadMoreLabel: this._loadMoreLabel };
+  }
+
+  override compile(path: string = "root"): any {
+    const json = super.compile(path);
+    if (this._onCardClick) {
+      json.events = json.events || {};
+      json.events.onCardClick = CallbackRegistry.register(this._onCardClick, `${path}/onCardClick`);
+    }
+    if (this._onLoadMore) {
+      json.events = json.events || {};
+      json.events.onLoadMore = CallbackRegistry.register(this._onLoadMore, `${path}/onLoadMore`);
+    }
+    return json;
+  }
+}
+
+/**
+ * DetailHero (Hero детальной страницы)
+ * 
+ * Крупный баннер детальной страницы: фон, логотип/заголовок, метаданные, бейджи и настраиваемые кнопки действий. Клик по кнопке возвращает её id.
+ * 
+ * @example
+ * // Hero детальной страницы
+ * const { ui } = PotokSDK;
+ * 
+ * ui.render(
+ *   DetailHero()
+ *     .item({
+ *       id: "1",
+ *       title: "Дюна: Часть вторая",
+ *       subtitle: "Пол Атрейдес объединяется с Чани и фрименами...",
+ *       wideImage: "https://image.tmdb.org/t/p/original/xu9zaAevzQ5nnrsXN6JcahLnG4i.jpg",
+ *       meta: ["2024", "Фантастика", "2ч 46м"],
+ *       badges: [{ text: "4K", color: "info" }]
+ *     })
+ *     .actions([
+ *       { id: "play", label: "Смотреть", icon: "play" },
+ *       { id: "trailer", label: "Трейлер", icon: "film", variant: "ghost" }
+ *     ])
+ *     .onAction((actionId) => ui.showHUD("success", "Действие: " + actionId))
+ * );
+ */
+export class DetailHeroBuilder extends UIComponent {
+  private _item: any;
+  private _actions: any[];
+  private _onAction?: CallbackFunction;
+
+  constructor() {
+    super("DetailHero");
+    this._item = {};
+    this._actions = [];
+  }
+
+  /**
+   * Featured-элемент: wideImage/logo/title/subtitle/meta/badges.
+   *
+   * @param v Значение метода
+   */
+  item(v: any): this { this._item = v; return this; }
+  /**
+   * Кнопки действий. variant: 'ghost' — прозрачная.
+   *
+   * @param v Значение метода
+   * @default []
+   */
+  actions(v: any[]): this { this._actions = v; return this; }
+  /**
+   * Коллбек клика по кнопке. Передаёт id действия.
+   *
+   * @param v Значение метода
+   */
+  onAction(cb: CallbackFunction): this { this._onAction = cb; return this; }
+
+  protected override getProps(): Record<string, any> {
+    return { item: this._item, actions: this._actions };
+  }
+
+  override compile(path: string = "root"): any {
+    const json = super.compile(path);
+    if (this._onAction) {
+      json.events = json.events || {};
+      json.events.onAction = CallbackRegistry.register(this._onAction, `${path}/onAction`);
     }
     return json;
   }

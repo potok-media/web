@@ -19,6 +19,42 @@ export const SDK_TYPINGS = `
      * Управляет видимостью компонента на экране.
      */
     visible(v: boolean): this;
+    /**
+     * Внутренние отступы. Число (px) или массив [верт, гориз] / [верх, право, низ, лево].
+     */
+    padding(v: number | number[]): this;
+    /**
+     * Внешние отступы. Число (px) или массив [верт, гориз] / [верх, право, низ, лево].
+     */
+    margin(v: number | number[]): this;
+    /**
+     * Коэффициент flex-растяжения внутри стека.
+     */
+    flex(v: number): this;
+    /**
+     * Фон компонента: CSS-цвет или градиент (например, '#1e1e2e', 'rgba(0,0,0,.4)', 'linear-gradient(...)').
+     */
+    background(v: string): this;
+    /**
+     * Цвет текста (CSS-цвет).
+     */
+    textColor(v: string): this;
+    /**
+     * Цвет рамки (добавляет сплошную рамку 1px, если её не было).
+     */
+    borderColor(v: string): this;
+    /**
+     * Скругление углов (CSS-длина, например '0.75rem' или '50%').
+     */
+    borderRadius(v: string): this;
+    /**
+     * Тень (значение CSS box-shadow, например '0 8px 24px rgba(0,0,0,.3)').
+     */
+    shadow(v: string): this;
+    /**
+     * Прозрачность 0..1.
+     */
+    opacity(v: number): this;
   }
 
   /**
@@ -783,6 +819,38 @@ export const SDK_TYPINGS = `
         LoadingSpinner(): LoadingSpinnerBuilder;
         ProfileSelector(): ProfileSelectorBuilder;
         EpisodeCard(): EpisodeCardBuilder;
+        ContentCard(): ContentCardBuilder;
+        ContentRow(): ContentRowBuilder;
+        Hero(): HeroBuilder;
+        Image(src: string): ImageBuilder;
+        Icon(name: string): IconBuilder;
+        Tabs(): TabsBuilder;
+        List(): ListBuilder;
+        Tooltip(text: string): TooltipBuilder;
+        ProgressBar(): ProgressBarBuilder;
+        Skeleton(): SkeletonBuilder;
+        EmptyState(): EmptyStateBuilder;
+        Alert(text: string): AlertBuilder;
+        Chip(text: string): ChipBuilder;
+        IconButton(icon: string): IconButtonBuilder;
+        Modal(): ModalBuilder;
+        Collapsible(title: string): CollapsibleBuilder;
+        Avatar(src: string): AvatarBuilder;
+        Rating(): RatingBuilder;
+        TagList(): TagListBuilder;
+        SectionHeader(title: string): SectionHeaderBuilder;
+        Range(name: string): RangeBuilder;
+        Segmented(): SegmentedBuilder;
+        ContinueWatchingRow(): ContinueWatchingRowBuilder;
+        TopTenRow(): TopTenRowBuilder;
+        PosterGrid(): PosterGridBuilder;
+        DetailHero(): DetailHeroBuilder;
+        Dropdown(): DropdownBuilder;
+        FileInput(name: string): FileInputBuilder;
+        Field(): FieldBuilder;
+        Carousel(): CarouselBuilder;
+        Scroller(): ScrollerBuilder;
+        Page(): PageBuilder;
       }
     };
     /**
@@ -825,6 +893,13 @@ export const SDK_TYPINGS = `
      * Регистрирует вкладку или виджет в слоты приложения (например: 'extension-page', 'sidebar-menu').
      */
     registerSlotContribution(cfg: any): void;
+    /**
+     * Добавляет ряд/баннер на НАТИВНУЮ главную страницу. Обёртка над registerSlotContribution для слотов
+     * 'home-hero' | 'home-rows-top' | 'home-rows-bottom'.
+     *
+     * @param cfg { id: string, position?: 'top' | 'bottom' | 'hero', render(): { label?: string, layout: any } }
+     */
+    registerHomeSection(cfg: { id: string; position?: 'top' | 'bottom' | 'hero'; render: (props?: any) => { label?: string; layout: any } }): void;
     /**
      * Подписывает плагин на интерактивное изменение полей его настроек.
      */
@@ -871,4 +946,432 @@ export const SDK_TYPINGS = `
   declare const LoadingSpinner: () => LoadingSpinnerBuilder;
   declare const ProfileSelector: () => ProfileSelectorBuilder;
   declare const EpisodeCard: () => EpisodeCardBuilder;
+
+  /**
+   * Универсальный элемент контента (не привязан к TMDB): id, title, subtitle, image, wideImage, logo,
+   * badges, meta, progress (0..1), rank, href.
+   */
+  interface SDKContentItem {
+    id: string | number;
+    title: string;
+    subtitle?: string;
+    image?: string;
+    wideImage?: string;
+    logo?: string;
+    badges?: { text: string; color?: 'info' | 'success' | 'warning' | 'error' | 'accent' }[];
+    meta?: string[];
+    progress?: number;
+    rank?: number;
+    href?: string;
+  }
+
+  /** Универсальная карточка контента из вашей модели данных (SDKContentItem). */
+  interface ContentCardBuilder extends UIComponent {
+    /** Объект контента (SDKContentItem). */
+    item(v: SDKContentItem): this;
+    /** Ориентация карточки. */
+    orientation(v: 'portrait' | 'landscape'): this;
+    /** Коллбек клика по карточке. */
+    onClick(cb: (item: SDKContentItem) => void): this;
+  }
+
+  /** Универсальный горизонтальный ряд карточек ContentCard (SDKContentItem[]). */
+  interface ContentRowBuilder extends UIComponent {
+    /** Заголовок секции. */
+    title(v: string): this;
+    /** Массив контента. */
+    items(v: SDKContentItem[]): this;
+    /** Ориентация карточек ряда. */
+    orientation(v: 'portrait' | 'landscape'): this;
+    /** Текст кнопки «Показать все». */
+    seeAllLabel(v: string): this;
+    /** Коллбек клика по карточке. */
+    onCardClick(cb: (item: SDKContentItem) => void): this;
+    /** Коллбек клика по «Показать все». */
+    onSeeAllClick(cb: () => void): this;
+  }
+
+  /** Универсальный промо-баннер из вашей модели данных (SDKContentItem[]). */
+  interface HeroBuilder extends UIComponent {
+    /** Массив featured-элементов (рисуется первый). */
+    items(v: SDKContentItem[]): this;
+    /** Текст главной кнопки. */
+    playLabel(v: string): this;
+    /** Текст кнопки «Подробнее». */
+    detailsLabel(v: string): this;
+    /** Коллбек главной кнопки. */
+    onPlay(cb: (item: SDKContentItem) => void): this;
+    /** Коллбек кнопки «Подробнее». */
+    onDetails(cb: (item: SDKContentItem) => void): this;
+  }
+
+  /** Адаптивное изображение с ленивой загрузкой и запасной картинкой. */
+  interface ImageBuilder extends UIComponent {
+    /** Альтернативный текст. */
+    alt(v: string): this;
+    /** Соотношение сторон (например, '16/9'). */
+    aspectRatio(v: string): this;
+    /** URL запасного изображения. */
+    fallback(v: string): this;
+    /** Скругление углов. */
+    rounded(v: boolean | string): this;
+    /** Режим вписывания. */
+    fit(v: 'cover' | 'contain'): this;
+    /** Коллбек клика. */
+    onClick(cb: () => void): this;
+  }
+
+  /** Отдельная иконка Lucide. */
+  interface IconBuilder extends UIComponent {
+    /** Размер иконки. */
+    size(v: string | number): this;
+    /** Цвет иконки. */
+    color(v: string): this;
+  }
+
+  /** Горизонтальный таб-бар. */
+  interface TabsBuilder extends UIComponent {
+    /** Вкладки: { id, label, icon? }. */
+    items(v: { id: string; label: string; icon?: string }[]): this;
+    /** Активная вкладка. */
+    value(v: string): this;
+    /** Коллбек смены вкладки (id). */
+    onChange(cb: (id: string) => void): this;
+  }
+
+  /** Список кликабельных строк. */
+  interface ListBuilder extends UIComponent {
+    /** Строки списка. */
+    items(v: { id: string; title: string; subtitle?: string; icon?: string; badge?: string; trailingIcon?: string; disabled?: boolean }[]): this;
+    /** Коллбек клика по строке. */
+    onItemClick(cb: (item: any) => void): this;
+  }
+
+  /** Всплывающая подсказка вокруг дочернего элемента. */
+  interface TooltipBuilder extends UIComponent {
+    /** Позиция подсказки. */
+    placement(v: 'top' | 'bottom' | 'left' | 'right'): this;
+    /** Обёрнутый элемент. */
+    child(elm: any): this;
+  }
+
+  /** Полоса прогресса (0..1). */
+  interface ProgressBarBuilder extends UIComponent {
+    /** Значение 0..1. */
+    value(v: number): this;
+    /** Цвет полосы. */
+    variant(v: 'accent' | 'success' | 'warning' | 'error'): this;
+    /** Подпись. */
+    label(v: string): this;
+    /** Показывать процент. */
+    showValue(v: boolean): this;
+  }
+
+  /** Мерцающий плейсхолдер загрузки. */
+  interface SkeletonBuilder extends UIComponent {
+    /** Скругление углов. */
+    rounded(v: boolean | string): this;
+    /** Количество строк-плейсхолдеров. */
+    count(v: number): this;
+  }
+
+  /** Заглушка пустого состояния. */
+  interface EmptyStateBuilder extends UIComponent {
+    /** Иконка по центру. */
+    icon(v: string): this;
+    /** Заголовок. */
+    title(v: string): this;
+    /** Описание. */
+    description(v: string): this;
+    /** Текст кнопки действия. */
+    actionLabel(v: string): this;
+    /** Коллбек кнопки действия. */
+    onAction(cb: () => void): this;
+  }
+
+  /** Инлайн-уведомление (info/success/warning/error). */
+  interface AlertBuilder extends UIComponent {
+    /** Заголовок. */
+    title(v: string): this;
+    /** Цветовая схема. */
+    variant(v: 'info' | 'success' | 'warning' | 'error'): this;
+    /** Иконка. */
+    icon(v: string): this;
+  }
+
+  /** Переключаемый чип/тег. */
+  interface ChipBuilder extends UIComponent {
+    /** Активное состояние. */
+    active(v: boolean): this;
+    /** Иконка перед текстом. */
+    icon(v: string): this;
+    /** Коллбек клика. */
+    onClick(cb: () => void): this;
+  }
+
+  /** Квадратная кнопка-иконка. */
+  interface IconButtonBuilder extends UIComponent {
+    /** aria-label. */
+    label(v: string): this;
+    /** Акцентная подсветка при наведении. */
+    accent(v: boolean): this;
+    /** Размер. */
+    size(v: 'sm' | 'md' | 'lg'): this;
+    /** Коллбек клика. */
+    onClick(cb: () => void): this;
+  }
+
+  declare const ContentCard: () => ContentCardBuilder;
+  declare const ContentRow: () => ContentRowBuilder;
+  declare const Hero: () => HeroBuilder;
+  declare const Image: (src: string) => ImageBuilder;
+  declare const Icon: (name: string) => IconBuilder;
+  declare const Tabs: () => TabsBuilder;
+  declare const List: () => ListBuilder;
+  declare const Tooltip: (text: string) => TooltipBuilder;
+  declare const ProgressBar: () => ProgressBarBuilder;
+  declare const Skeleton: () => SkeletonBuilder;
+  declare const EmptyState: () => EmptyStateBuilder;
+  declare const Alert: (text: string) => AlertBuilder;
+  declare const Chip: (text: string) => ChipBuilder;
+  declare const IconButton: (icon: string) => IconButtonBuilder;
+
+  /** Модальное окно / шторка / поповер поверх приложения (переиспользует Overlay). */
+  interface ModalBuilder extends UIComponent {
+    /** Управляет видимостью окна. */
+    open(v: boolean): this;
+    /** Заголовок окна. */
+    title(v: string): this;
+    /** Тип оверлея. */
+    variant(v: 'modal' | 'sheet' | 'popover'): this;
+    /** Закрывать по клику на фон. */
+    closeOnBackdrop(v: boolean): this;
+    /** Коллбек закрытия (ESC / фон / крестик). */
+    onClose(cb: () => void): this;
+    /** Содержимое окна. */
+    children(elms: any[]): this;
+    /** Добавить один дочерний элемент. */
+    child(elm: any): this;
+  }
+
+  /** Сворачиваемая секция (заголовок + скрываемое тело). */
+  interface CollapsibleBuilder extends UIComponent {
+    /** Заголовок секции. */
+    title(v: string): this;
+    /** Раскрыта ли секция. */
+    open(v: boolean): this;
+    /** Коллбек переключения (получает новое булево состояние). */
+    onToggle(cb: (open: boolean) => void): this;
+    /** Содержимое тела секции. */
+    children(elms: any[]): this;
+    /** Добавить один дочерний элемент. */
+    child(elm: any): this;
+  }
+
+  /** Аватар: изображение с запасными инициалами по имени. */
+  interface AvatarBuilder extends UIComponent {
+    /** Имя (инициалы для запасного варианта + alt). */
+    name(v: string): this;
+    /** Размер. */
+    size(v: 'sm' | 'md' | 'lg'): this;
+    /** URL запасного изображения. */
+    fallback(v: string): this;
+    /** Форма. */
+    shape(v: 'circle' | 'square'): this;
+  }
+
+  /** Рейтинг звёздами (0..max). */
+  interface RatingBuilder extends UIComponent {
+    /** Значение рейтинга. */
+    value(v: number): this;
+    /** Максимум звёзд. */
+    max(v: number): this;
+    /** Показывать числовое значение. */
+    showValue(v: boolean): this;
+    /** Размер звёзд. */
+    size(v: 'sm' | 'md' | 'lg'): this;
+  }
+
+  /** Список тегов/жанров (статичных или кликабельных). */
+  interface TagListBuilder extends UIComponent {
+    /** Массив тегов: строки или { id?, label }. */
+    tags(v: Array<string | { id?: string; label: string }>): this;
+    /** Коллбек клика по тегу (получает id/строку). */
+    onTagClick(cb: (id: string) => void): this;
+  }
+
+  /** Заголовок секции с подзаголовком и кнопкой действия. */
+  interface SectionHeaderBuilder extends UIComponent {
+    /** Подзаголовок. */
+    subtitle(v: string): this;
+    /** Текст кнопки действия. */
+    actionLabel(v: string): this;
+    /** Коллбек кнопки действия. */
+    onAction(cb: () => void): this;
+  }
+
+  declare const Modal: () => ModalBuilder;
+  declare const Collapsible: (title: string) => CollapsibleBuilder;
+  declare const Avatar: (src: string) => AvatarBuilder;
+  declare const Rating: () => RatingBuilder;
+  declare const TagList: () => TagListBuilder;
+  declare const SectionHeader: (title: string) => SectionHeaderBuilder;
+
+  /** Ряд «Продолжить просмотр»: горизонтальные карточки с прогрессом (SDKContentItem[]). */
+  interface ContinueWatchingRowBuilder extends UIComponent {
+    /** Заголовок ряда. */
+    title(v: string): this;
+    /** Элементы (используйте поле progress 0..1). */
+    items(v: SDKContentItem[]): this;
+    /** Коллбек клика по карточке. */
+    onCardClick(cb: (item: SDKContentItem) => void): this;
+  }
+
+  /** Ранжированный ряд «Топ-10»: крупный номер + постер. */
+  interface TopTenRowBuilder extends UIComponent {
+    /** Заголовок ряда. */
+    title(v: string): this;
+    /** До 10 элементов (номер берётся из поля rank или позиции). */
+    items(v: SDKContentItem[]): this;
+    /** Коллбек клика по карточке. */
+    onCardClick(cb: (item: SDKContentItem) => void): this;
+  }
+
+  /** Адаптивная сетка постеров с бесконечной догрузкой. */
+  interface PosterGridBuilder extends UIComponent {
+    /** Элементы сетки. */
+    items(v: SDKContentItem[]): this;
+    /** Минимальная ширина колонки (например, '10rem'). */
+    minWidth(v: string): this;
+    /** Текст кнопки догрузки. */
+    loadMoreLabel(v: string): this;
+    /** Коллбек клика по карточке. */
+    onCardClick(cb: (item: SDKContentItem) => void): this;
+    /** Коллбек догрузки (кнопка появляется только если задан). */
+    onLoadMore(cb: () => void): this;
+  }
+
+  /** Hero детальной страницы: фон, логотип/заголовок, мета и кнопки действий. */
+  interface DetailHeroBuilder extends UIComponent {
+    /** Featured-элемент (SDKContentItem). */
+    item(v: SDKContentItem): this;
+    /** Кнопки действий: { id, label, icon?, variant? }. */
+    actions(v: Array<{ id: string; label: string; icon?: string; variant?: string }>): this;
+    /** Коллбек клика по кнопке (получает id действия). */
+    onAction(cb: (actionId: string) => void): this;
+  }
+
+  /** Ползунок (диапазон значений). */
+  interface RangeBuilder extends UIComponent {
+    /** Текущее значение. */
+    value(v: number): this;
+    /** Минимум. */
+    min(v: number): this;
+    /** Максимум. */
+    max(v: number): this;
+    /** Шаг. */
+    step(v: number): this;
+    /** Подпись над ползунком. */
+    label(v: string): this;
+    /** Показывать текущее значение. */
+    showValue(v: boolean): this;
+    /** Коллбек изменения (получает число). */
+    onChange(cb: (value: number) => void): this;
+  }
+
+  /** Сегмент-контрол (компактное переключение вариантов). */
+  interface SegmentedBuilder extends UIComponent {
+    /** Сегменты: { id, label }. */
+    items(v: { id: string; label: string }[]): this;
+    /** Активный сегмент. */
+    value(v: string): this;
+    /** Коллбек смены (получает id). */
+    onChange(cb: (id: string) => void): this;
+  }
+
+  declare const Range: (name: string) => RangeBuilder;
+  declare const Segmented: () => SegmentedBuilder;
+  declare const ContinueWatchingRow: () => ContinueWatchingRowBuilder;
+  declare const TopTenRow: () => TopTenRowBuilder;
+  declare const PosterGrid: () => PosterGridBuilder;
+  declare const DetailHero: () => DetailHeroBuilder;
+
+  /** Выпадающее меню: кнопка-триггер + список вариантов (внутреннее состояние открытия). */
+  interface DropdownBuilder extends UIComponent {
+    /** Текст кнопки-триггера (по умолчанию). */
+    label(v: string): this;
+    /** Иконка в триггере. */
+    icon(v: string): this;
+    /** Пункты меню: { id, label, icon? }. */
+    items(v: Array<{ id: string; label: string; icon?: string }>): this;
+    /** Выбранный пункт. */
+    value(v: string): this;
+    /** Коллбек выбора пункта (получает id). */
+    onSelect(cb: (id: string) => void): this;
+  }
+
+  /** Поле выбора файла. onChange получает { names, count }. */
+  interface FileInputBuilder extends UIComponent {
+    /** Подпись над полем. */
+    label(v: string): this;
+    /** Фильтр типов (accept), например 'image/*'. */
+    accept(v: string): this;
+    /** Разрешить выбор нескольких файлов. */
+    multiple(v: boolean): this;
+    /** Коллбек выбора файла(ов). Получает { names: string[], count }. */
+    onChange(cb: (info: { names: string[]; count: number }) => void): this;
+  }
+
+  /** Обёртка контрола с подписью и подсказкой. */
+  interface FieldBuilder extends UIComponent {
+    /** Подпись над контролом. */
+    label(v: string): this;
+    /** Подсказка под контролом. */
+    hint(v: string): this;
+    /** Вложенный контрол. */
+    children(elms: any[]): this;
+    /** Добавить один дочерний элемент. */
+    child(elm: any): this;
+  }
+
+  /** Горизонтальная карусель произвольных элементов со скролл-снапом. */
+  interface CarouselBuilder extends UIComponent {
+    /** Зазор между элементами (px). */
+    spacing(v: number): this;
+    /** Элементы карусели. */
+    children(elms: any[]): this;
+    /** Добавить один дочерний элемент. */
+    child(elm: any): this;
+  }
+
+  /** Скролл-контейнер (горизонтальный/вертикальный) для произвольных элементов. */
+  interface ScrollerBuilder extends UIComponent {
+    /** Направление прокрутки. */
+    orientation(v: 'horizontal' | 'vertical'): this;
+    /** Зазор между элементами (px). */
+    spacing(v: number): this;
+    /** Элементы. */
+    children(elms: any[]): this;
+    /** Добавить один дочерний элемент. */
+    child(elm: any): this;
+  }
+
+  /** Оболочка страницы (заголовок + контент) для кастомных страниц плагина. */
+  interface PageBuilder extends UIComponent {
+    /** Заголовок страницы. */
+    title(v: string): this;
+    /** Зазор между элементами контента (px). */
+    spacing(v: number): this;
+    /** Контент страницы. */
+    children(elms: any[]): this;
+    /** Добавить один дочерний элемент. */
+    child(elm: any): this;
+  }
+
+  declare const Dropdown: () => DropdownBuilder;
+  declare const FileInput: (name: string) => FileInputBuilder;
+  declare const Field: () => FieldBuilder;
+  declare const Carousel: () => CarouselBuilder;
+  declare const Scroller: () => ScrollerBuilder;
+  declare const Page: () => PageBuilder;
 `;

@@ -77,7 +77,7 @@
   "Text": {
     "title": "Text (Обычный текст)",
     "description": "Основной текстовый элемент для вывода описаний, подписей, ошибок или любого другого неструктурированного контента.",
-    "example": "// Оформление текстов\nconst { ui } = PotokSDK;\n\nui.render(\n  VStack()\n    .spacing(10)\n    .child(Text(\"Это стандартный основной текст (primary).\").variant(\"primary\"))\n    .child(Text(\"Это второстепенный текст описания (secondary).\").variant(\"secondary\").size(\"sm\"))\n    .child(Text(\"Успешная операция завершена (success).\").variant(\"success\").bold(true))\n    .child(Text(\"Внимание! Требуется действие (warning).\").variant(\"warning\"))\n    .child(Text(\"Критическая ошибка приложения (error).\").variant(\"error\").size(\"lg\").bold(true))\n);",
+    "example": "// Оформление текстов\nconst { ui } = PotokSDK;\n\nui.render(\n  VStack()\n    .spacing(10)\n    .child(Text(\"Это стандартный основной текст (primary).\").variant(\"primary\"))\n    .child(Text(\"Это второстепенный текст описания (secondary).\").variant(\"secondary\").size(\"sm\"))\n    .child(Text(\"Успешная операция завершена (success).\").variant(\"success\").bold(true))\n    .child(Text(\"Приглушённая подсказка (hint).\").variant(\"hint\"))\n    .child(Text(\"Критическая ошибка приложения (error).\").variant(\"error\").size(\"lg\").bold(true))\n);",
     "methods": {
       "variant": {
         "argument": "'primary' | 'secondary' | 'success' | 'warning' | 'error'",
@@ -126,7 +126,7 @@
   "Markdown": {
     "title": "Markdown (Рендеринг разметки)",
     "description": "Компонент для форматированного вывода текста с поддержкой списков, жирного шрифта, таблиц и гиперссылок. Безопасно парсит Markdown разметку, исключая XSS-уязвимости.",
-    "example": "// Рендеринг Markdown\nconst { ui } = PotokSDK;\n\nconst markdownContent = `# Описание плагина\nЭтот плагин позволяет осуществлять быстрый поиск фильмов по открытым базам.\n\n## Возможности\n* Просмотр постеров в высоком качестве\n* Быстрая фильтрация по раздачам\n* Интеграция с VLC-плеером\n`;\n\nui.render(\n  Card()\n    .title(\"Справка\")\n    .child(\n      Markdown(markdownContent)\n    )\n);",
+    "example": "// Рендеринг Markdown\nconst { ui } = PotokSDK;\n\nconst markdownContent = `# Описание плагина\nЭтот плагин позволяет осуществлять быстрый поиск фильмов по открытым базам.\n\n## Возможности\n* Просмотр постеров в высоком качестве\n* Быстрая фильтрация по раздачам\n* Интеграция с VLC-плеером\n`;\n\nui.render(\n  Card()\n    .title(\"Справка\")\n    .child(\n      // content() позволяет заменить разметку динамически уже после создания компонента\n      Markdown(\"# Загрузка…\").content(markdownContent)\n    )\n);",
     "methods": {
       "content": {
         "argument": "string",
@@ -157,7 +157,7 @@
   "Input": {
     "title": "Input (Поле ввода)",
     "description": "Текстовое поле ввода для заполнения данных форм, адресов серверов, ключей авторизации или фильтров.",
-    "example": "// Ввод данных формы\nconst { ui, createState } = PotokSDK;\n\nconst state = createState({ username: \"\" });\n\nfunction draw() {\n  ui.render(\n    Card()\n      .title(\"Авторизация\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(\n            Input(\"login\")\n              .label(\"Имя пользователя\")\n              .placeholder(\"Введите email\")\n              .value(state.username)\n              .onChange((v) => state.username = v)\n          )\n      )\n  );\n}\nstate.$subscribe(draw); draw();",
+    "example": "// Ввод данных формы\nconst { ui, createState } = PotokSDK;\n\nconst state = createState({ username: \"\", password: \"\" });\n\nfunction draw() {\n  ui.render(\n    Card()\n      .title(\"Авторизация\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(\n            Input(\"login\")\n              .label(\"Имя пользователя\")\n              .placeholder(\"Введите email\")\n              .value(state.username)\n              .onChange((v) => state.username = v)\n          )\n          .child(\n            Input(\"password\")\n              .label(\"Пароль\")\n              .placeholder(\"••••••••\")\n              .inputType(\"password\")\n              .value(state.password)\n              .onChange((v) => state.password = v)\n          )\n      )\n  );\n}\nstate.$subscribe(draw); draw();",
     "methods": {
       "label": {
         "argument": "string",
@@ -218,7 +218,7 @@
   "Select": {
     "title": "Select (Выпадающий список)",
     "description": "Компонент выпадающего списка (Dropdown) для выбора одного текстового значения из предопределенного массива вариантов. Поддерживает группировку элементов по категориям при помощи разделителей и заголовков.",
-    "example": "// Настройки фильтрации с категориями и множественным выбором\nconst { ui, createState } = PotokSDK;\nconst state = createState({ activeFilters: [\"1080p\", \"dub\"] });\n\nfunction draw() {\n  ui.render(\n    Select(\"filter-select\")\n      .variant(\"glass\")\n      .icon(\"Filter\")\n      .multiple(true)\n      .closeOnSelect(false)\n      .resetLabel(\"Сбросить всё\")\n      .resetValue([])\n      .options([\n        { type: \"header\", label: \"Разрешение\" },\n        { value: \"2160p\", label: \"4K (2160p)\" },\n        { value: \"1080p\", label: \"Full HD (1080p)\" },\n        { value: \"720p\", label: \"HD (720p)\" },\n        { type: \"divider\" },\n        { type: \"header\", label: \"Озвучка\" },\n        { value: \"dub\", label: \"Дубляж\" },\n        { value: \"sub\", label: \"Субтитры\" }\n      ])\n      .value(state.activeFilters)\n      .onChange((newVals) => {\n        state.activeFilters = newVals;\n        ui.showHUD(\"success\", \"Выбрано: \" + newVals.join(\", \"));\n      })\n  );\n}\nstate.$subscribe(draw); draw();",
+    "example": "// Настройки фильтрации с категориями и множественным выбором\nconst { ui, createState } = PotokSDK;\nconst state = createState({ activeFilters: [\"1080p\", \"dub\"] });\n\nfunction draw() {\n  ui.render(\n    Select(\"filter-select\")\n      .label(\"Фильтры поиска\")\n      .variant(\"glass\")\n      .icon(\"Filter\")\n      .multiple(true)\n      .closeOnSelect(false)\n      .resetLabel(\"Сбросить всё\")\n      .resetValue([])\n      .options([\n        { type: \"header\", label: \"Разрешение\" },\n        { value: \"2160p\", label: \"4K (2160p)\" },\n        { value: \"1080p\", label: \"Full HD (1080p)\" },\n        { value: \"720p\", label: \"HD (720p)\" },\n        { type: \"divider\" },\n        { type: \"header\", label: \"Озвучка\" },\n        { value: \"dub\", label: \"Дубляж\" },\n        { value: \"sub\", label: \"Субтитры\" }\n      ])\n      .value(state.activeFilters)\n      .onChange((newVals) => {\n        state.activeFilters = newVals;\n        ui.showHUD(\"success\", \"Выбрано: \" + newVals.join(\", \"));\n      })\n  );\n}\nstate.$subscribe(draw); draw();",
     "methods": {
       "label": {
         "argument": "string",
@@ -275,7 +275,7 @@
   "CodeEditor": {
     "title": "CodeEditor (Редактор кода)",
     "description": "Встроенный полнофункциональный редактор кода на базе Monaco. Поддерживает подсветку синтаксиса, автодополнение, номера строк и форматирование кода.",
-    "example": "// Редактор кода Monaco\nconst { ui, createState } = PotokSDK;\nconst state = createState({ code: \"console.log('Привет, мир!');\" });\n\nfunction draw() {\n  ui.render(\n    VStack()\n      .spacing(12)\n      .child(\n        CodeEditor(\"js-editor\")\n          .label(\"Редактор скриптов\")\n          .value(state.code)\n          .onChange((v) => state.code = v)\n      )\n  );\n}\nstate.$subscribe(draw); draw();",
+    "example": "// Редактор кода Monaco\nconst { ui, createState } = PotokSDK;\nconst state = createState({ code: \"console.log('Привет, мир!');\" });\n\nfunction draw() {\n  ui.render(\n    VStack()\n      .spacing(12)\n      .child(\n        CodeEditor(\"js-editor\")\n          .label(\"Редактор скриптов\")\n          .value(state.code)\n          .readOnly(false)\n          .onChange((v) => state.code = v)\n      )\n  );\n}\nstate.$subscribe(draw); draw();",
     "methods": {
       "label": {
         "argument": "string",
@@ -306,11 +306,11 @@
   "StreamRow": {
     "title": "StreamRow (Строка раздачи)",
     "description": "Строковый элемент списка торрентов. Отображает название раздачи, размер файла, имя торрент-трекера, качество видео, а также число сидов/пиров с цветовой подсветкой.",
-    "example": "// Отдельная раздача\nconst { ui } = PotokSDK;\n\nconst streamData = {\n  title: \"Интерстеллар (2014) BDRip [1080p]\",\n  size: \"14.5 GB\",\n  seeds: 120,\n  peers: 15,\n  quality: \"1080p\",\n  tracker: \"Rutracker\"\n};\n\nui.render(\n  StreamRow()\n    .stream(streamData)\n    .onClick((s) => {\n      ui.showHUD(\"success\", \"Запуск: \" + s.title);\n    })\n);",
+    "example": "// Отдельная раздача\nconst { ui } = PotokSDK;\n\n// Форма SDKStreamUIItem: сиды/личи — seeders/leechers, размер — sizeLabel (строка) или sizeBytes (число).\nconst streamData = {\n  id: \"rt-12345\",\n  title: \"Интерстеллар (2014) BDRip [1080p]\",\n  tracker: \"Rutracker\",\n  sizeLabel: \"14.5 GB\",\n  sizeBytes: 15569256448,\n  seeders: 120,\n  leechers: 15,\n  publishDate: \"2015-03-10\",\n  tags: [\n    { kind: \"quality\", value: \"1080p\" },\n    { kind: \"voice\", value: \"Дубляж\" }\n  ]\n};\n\nui.render(\n  StreamRow()\n    .stream(streamData)\n    .onClick((s) => {\n      ui.showHUD(\"success\", \"Запуск: \" + s.title);\n    })\n);",
     "methods": {
       "stream": {
         "argument": "object",
-        "description": "Метаданные потока раздачи. Должен содержать: title, size, seeds, peers, quality, tracker."
+        "description": "Метаданные раздачи (форма SDKStreamUIItem): id, title, tracker, sizeLabel или sizeBytes, seeders, leechers, publishDate, tags."
       },
       "onClick": {
         "argument": "CallbackFunction",
@@ -321,7 +321,7 @@
   "MediaCard": {
     "title": "MediaCard (Карточка фильма)",
     "description": "Вертикальная карточка медиаресурса. Отображает постер, рейтинг (Кинопоиск/IMDb) и накладывает название и год выпуска при наведении курсора.",
-    "example": "// Карточка медиа\nconst { ui } = PotokSDK;\n\nconst movie = {\n  title: \"Интерстеллар\",\n  posterUrl: \"https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg\",\n  year: 2014,\n  rating: 8.6\n};\n\nui.render(\n  MediaCard()\n    .item(movie)\n    .onClick((item) => {\n      ui.showHUD(\"success\", \"Вы выбрали: \" + item.title);\n    })\n);",
+    "example": "// Карточка медиа\nconst { ui } = PotokSDK;\n\n// Форма SDKMediaCard: id + mediaType обязательны для перехода, рейтинги и постер — по именам posterSrc/tmdbRating.\nconst movie = {\n  id: 157336,\n  title: \"Интерстеллар\",\n  subtitle: \"Interstellar (2014)\",\n  mediaType: \"movie\",\n  posterSrc: \"https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg\",\n  backdropSrc: \"https://image.tmdb.org/t/p/original/xu9zaAevzQ5nnrsXN6JcahLnG4i.jpg\",\n  genres: \"Фантастика, Драма\",\n  ageRating: \"12+\",\n  tmdbRating: 8.4,\n  kpRating: 8.6,\n  imdbRating: 8.7,\n  progress: { percentage: 45 }\n};\n\nui.render(\n  MediaCard()\n    .item(movie)\n    .onClick((item) => {\n      ui.showHUD(\"success\", \"Вы выбрали: \" + item.title);\n    })\n);",
     "methods": {
       "item": {
         "argument": "object",
@@ -336,7 +336,7 @@
   "HeroSpotlight": {
     "title": "HeroSpotlight (Промо-баннер)",
     "description": "Огромный рекламный промо-баннер для главной страницы плагина. Выводит фоновое изображение (арт) высокого разрешения, заголовок, описание и предоставляет интерактивные кнопки «Смотреть» и «Подробнее».",
-    "example": "// Промо баннер\nconst { ui } = PotokSDK;\n\nconst promo = {\n  title: \"Бегущий по лезвию 2049\",\n  overview: \"В новый век репликанты выполняют самую грязную работу...\",\n  backdropUrl: \"https://image.tmdb.org/t/p/original/il8gr7YStcrui1EM2crk14G4HjL.jpg\"\n};\n\nui.render(\n  HeroSpotlight()\n    .items([promo])\n    .onPlay((item) => ui.showHUD(\"success\", \"Смотрим \" + item.title))\n    .onDetails((item) => ui.showHUD(\"info\", \"Открываем \" + item.title))\n);",
+    "example": "// Промо баннер\nconst { ui } = PotokSDK;\n\n// Фон берётся из backdropSrc (обязателен, иначе баннер не отрисуется); id + mediaType нужны для перехода «Подробнее».\nconst promo = {\n  id: 335984,\n  title: \"Бегущий по лезвию 2049\",\n  mediaType: \"movie\",\n  overview: \"В новый век репликанты выполняют самую грязную работу...\",\n  backdropSrc: \"https://image.tmdb.org/t/p/original/il8gr7YStcrui1EM2crk14G4HjL.jpg\",\n  genres: \"Фантастика, Драма\",\n  tmdbRating: 8.0\n};\n\nui.render(\n  HeroSpotlight()\n    .items([promo])\n    .onPlay((item) => ui.showHUD(\"success\", \"Смотрим \" + item.title))\n    .onDetails((item) => ui.showHUD(\"info\", \"Открываем \" + item.title))\n);",
     "methods": {
       "items": {
         "argument": "any[]",
@@ -406,7 +406,7 @@
   "EpisodesSection": {
     "title": "EpisodesSection (Каталог серий)",
     "description": "Автономный блок сериала. Он запрашивает эпизоды из API шлюза по идентификатору, разделяет их на вкладки сезонов и отрисовывает в виде сетки эпизодов.",
-    "example": "// Сетка эпизодов сериала\nconst { ui } = PotokSDK;\n\nui.render(\n  EpisodesSection()\n    .mediaId(\"1399\")\n    .numberOfSeasons(8)\n    .onEpisodeClick((ep) => {\n      ui.showHUD(\"success\", \"Выбран эпизод \" + ep.episodeNumber);\n    })\n);",
+    "example": "// Сетка эпизодов сериала\nconst { ui } = PotokSDK;\n\nui.render(\n  EpisodesSection()\n    .mediaId(\"1399\")\n    .numberOfSeasons(8)\n    .onEpisodeClick(({ episode, seasonNumber }) => {\n      ui.showHUD(\"success\", \"S\" + seasonNumber + \" · эпизод \" + episode.episodeNumber);\n    })\n);",
     "methods": {
       "mediaId": {
         "argument": "string | number",
@@ -425,7 +425,7 @@
   "MediaCast": {
     "title": "MediaCast (Актерский состав)",
     "description": "Горизонтальный ряд с карточками создателей фильма или актерского состава. Выводит круглые фотографии (аватары), реальные имена актеров и названия их ролей.",
-    "example": "// Актерский состав\nconst { ui } = PotokSDK;\n\nconst actors = [\n  {\n    name: \"Мэттью Макконахи\",\n    character: \"Купер\",\n    profilePath: \"https://image.tmdb.org/t/p/w185/wD6U1N7Caw58tO43fT245U62y4a.jpg\"\n  }\n];\n\nui.render(\n  MediaCast()\n    .cast(actors)\n);",
+    "example": "// Актерский состав\nconst { ui } = PotokSDK;\n\n// Фото актёра читается из profileSrc (по форме SDKCastMember), не из profilePath.\nconst actors = [\n  {\n    name: \"Мэттью Макконахи\",\n    character: \"Купер\",\n    profileSrc: \"https://image.tmdb.org/t/p/w185/wD6U1N7Caw58tO43fT245U62y4a.jpg\"\n  },\n  {\n    name: \"Энн Хэтэуэй\",\n    character: \"Амелия Брэнд\",\n    profileSrc: \"https://image.tmdb.org/t/p/w185/tLelKoPNiyJCSEtQTz1FGv4TLGc.jpg\"\n  }\n];\n\nui.render(\n  MediaCast()\n    .cast(actors)\n);",
     "methods": {
       "cast": {
         "argument": "any[]",
@@ -437,7 +437,7 @@
   "MediaOverview": {
     "title": "MediaOverview (Обзор медиаресурса)",
     "description": "Большая интерактивная панель описания фильма или сериала. Отображает постер, оригинальное название, описание, год производства, страну, рейтинг, жанры и список создателей.",
-    "example": "// Описание фильма\nconst { ui } = PotokSDK;\n\nconst movieData = {\n  title: \"Интерстеллар\",\n  overview: \"Наше время на Земле подошло к концу, группа исследователей предпринимает путешествие в космос...\",\n  posterUrl: \"https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg\",\n  rating: 8.6,\n  genres: [\"Научная фантастика\", \"Драма\"],\n  year: 2014,\n  country: \"США\"\n};\n\nui.render(\n  MediaOverview()\n    .media(movieData)\n);",
+    "example": "// Описание сериала. Компонент читает форму SDKMediaCard: originalTitle, subtitle, genres (СТРОКА),\n// ageRating, numberOfSeasons, overview, imdbRating/kpRating. selectedEpisode переключает описание на серию.\nconst { ui, createState } = PotokSDK;\n\nconst series = {\n  id: 1399,\n  title: \"Игра престолов\",\n  originalTitle: \"Game of Thrones\",\n  subtitle: \"2011 · США\",\n  mediaType: \"tv\",\n  overview: \"Девять благородных семей ведут борьбу за контроль над мифическими землями Вестероса...\",\n  genres: \"Фэнтези, Драма, Боевик\",\n  ageRating: \"18+\",\n  numberOfSeasons: 8,\n  imdbRating: 9.2,\n  kpRating: 9.0\n};\n\nconst state = createState({\n  selectedEpisode: { episode: { episodeNumber: 1, name: \"Зима близко\" }, seasonNumber: 1 }\n});\n\nfunction draw() {\n  ui.render(\n    MediaOverview()\n      .media(series)\n      .selectedEpisode(state.selectedEpisode)\n      .onResetEpisode(() => state.selectedEpisode = null)\n  );\n}\nstate.$subscribe(draw); draw();",
     "methods": {
       "media": {
         "argument": "object",
@@ -456,7 +456,7 @@
   "MediaRow": {
     "title": "MediaRow (Горизонтальный ряд)",
     "description": "Карусель с горизонтальной прокруткой для отображения списка карточек MediaCard. Снабжена общим заголовком и кнопкой «Показать все».",
-    "example": "// Карусель медиа\nconst { ui } = PotokSDK;\n\nconst movie = {\n  title: \"Интерстеллар\",\n  posterUrl: \"https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg\",\n  year: 2014,\n  rating: 8.6\n};\n\nui.render(\n  MediaRow()\n    .title(\"Рекомендуемые фильмы\")\n    .items([movie, movie, movie])\n    .onCardClick((item) => {\n      ui.showHUD(\"info\", \"Клик: \" + item.title);\n    })\n    .onSeeAllClick(() => {\n      ui.showHUD(\"success\", \"Показать все!\");\n    })\n);",
+    "example": "// Карусель медиа\nconst { ui } = PotokSDK;\n\nconst movies = [\n  { id: 157336, title: \"Интерстеллар\", subtitle: \"2014\", mediaType: \"movie\", posterSrc: \"https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg\", tmdbRating: 8.4 },\n  { id: 335984, title: \"Бегущий по лезвию 2049\", subtitle: \"2017\", mediaType: \"movie\", posterSrc: \"https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg\", kpRating: 7.9 },\n  { id: 27205, title: \"Начало\", subtitle: \"2010\", mediaType: \"movie\", posterSrc: \"https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg\", imdbRating: 8.8 }\n];\n\nui.render(\n  MediaRow()\n    .title(\"Рекомендуемые фильмы\")\n    .items(movies)\n    .onCardClick((item) => {\n      ui.showHUD(\"info\", \"Клик: \" + item.title);\n    })\n    .onSeeAllClick(() => {\n      ui.showHUD(\"success\", \"Показать все!\");\n    })\n);",
     "methods": {
       "title": {
         "argument": "string",
@@ -496,7 +496,7 @@
   "ProfileSelector": {
     "title": "ProfileSelector (Селектор профилей)",
     "description": "Компонент управления профилями соединений (серверами) для переключения адресов шлюзов Potok Gateway с пингом статуса, добавлением, удалением и редактированием серверов.",
-    "example": "// Менеджер серверов\nconst { ui } = PotokSDK;\n\nconst profiles = [\n  {\n    id: \"p1\",\n    name: \"Локальный шлюз\",\n    gatewayURL: \"http://localhost:5000\",\n    playerServerURL: \"http://localhost:8080\",\n    searchEngineURL: \"http://localhost:6000\",\n    playerServerAuthEnabled: false,\n    playerServerAuthLogin: \"\",\n    playerServerAuthPassword: \"\"\n  }\n];\n\nui.render(\n  ProfileSelector()\n    .connectionProfiles(profiles)\n    .activeProfileID(\"p1\")\n    .isSettingsLocked(false)\n    .onSelectProfile((p) => {\n      ui.showHUD(\"success\", \"Выбран профиль: \" + p.name);\n    })\n    .onStartEdit((p) => {\n      ui.showHUD(\"info\", \"Редактирование: \" + p.name);\n    })\n    .onDeleteProfile((p) => {\n      ui.showHUD(\"warning\", \"Удаление: \" + p.name);\n    })\n    .onStartAdd(() => {\n      ui.showHUD(\"info\", \"Добавление профиля\");\n    })\n);",
+    "example": "// Менеджер серверов\nconst { ui } = PotokSDK;\n\nconst profiles = [\n  {\n    id: \"p1\",\n    name: \"Локальный шлюз\",\n    gatewayURL: \"http://localhost:5000\",\n    playerServerURL: \"http://localhost:8080\",\n    searchEngineURL: \"http://localhost:6000\",\n    playerServerAuthEnabled: false,\n    playerServerAuthLogin: \"\",\n    playerServerAuthPassword: \"\"\n  }\n];\n\nui.render(\n  ProfileSelector()\n    .connectionProfiles(profiles)\n    .activeProfileID(\"p1\")\n    .isSettingsLocked(false)\n    .onSelectProfile((profileId) => {\n      ui.showHUD(\"success\", \"Выбран профиль: \" + profileId);\n    })\n    .onStartEdit((profile) => {\n      ui.showHUD(\"info\", \"Редактирование: \" + profile.name);\n    })\n    .onDeleteProfile((profileId) => {\n      ui.showHUD(\"warning\", \"Удаление профиля: \" + profileId);\n    })\n    .onStartAdd(() => {\n      ui.showHUD(\"info\", \"Добавление профиля\");\n    })\n);",
     "methods": {
       "connectionProfiles": {
         "argument": "any[]",
@@ -607,7 +607,7 @@
   "EpisodeSelector": {
     "title": "EpisodeSelector (Модальный выбор серий)",
     "description": "Встроенный модальный селектор для детального выбора серий и сезонов сериала с прокруткой и фоновым постером.",
-    "example": "// Модальный селектор\nconst { ui, createState } = PotokSDK;\nconst state = createState({ open: false });\n\nconst mockEp = {\n  id: \"s01e01\",\n  season: 1,\n  episode: 1,\n  rawSeason: 1,\n  rawEpisode: 1,\n  title: \"Зима близко\",\n  fileName: \"Show.S01E01.mkv\",\n  stillPath: \"https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg\",\n  airDate: \"2011-04-17\",\n  isWatched: false,\n  sizeLabel: \"1.2 GB\",\n  audios: [\n    { id: \"ru\", name: \"Русский дубляж\", url: \"http://example.com/s01e01_ru.m3u8\" }\n  ],\n  url: \"http://example.com/s01e01.m3u8\"\n};\n\nfunction draw() {\n  ui.render(\n    VStack()\n      .child(Button(\"Выбрать серию\").onClick(() => state.open = true))\n      .child(\n        EpisodeSelector()\n          .isOpen(state.open)\n          .title(\"Игра Престолов\")\n          .subtitle(\"Выберите серию для просмотра\")\n          .backdropSrc(\"https://image.tmdb.org/t/p/original/example.jpg\")\n          .seasonsLoading(false)\n          .seasons([{\n            id: 1,\n            seasonNumber: 1,\n            season_number: 1,\n            episodes: [{\n              id: 101,\n              episodeNumber: 1,\n              episode_number: 1,\n              name: \"Зима близко\",\n              stillPath: \"https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg\",\n              airDate: \"2011-04-17\",\n              overview: \"Описание серии\"\n            }]\n          }])\n          .episodes([mockEp])\n          .onClose(() => state.open = false)\n          .onPlay((ep, audioId) => {\n            state.open = false;\n            ui.showHUD(\"success\", \"Запускаем: \" + ep.title + \" (\" + audioId + \")\");\n          })\n          .onApplyOverride((sourceSeason, targetSeason, offset) => {\n            ui.showHUD(\"info\", \"Override: \" + sourceSeason + \" -> \" + targetSeason);\n          })\n          .onStartEditing(() => {\n            ui.showHUD(\"info\", \"Редактирование сезонов\");\n          })\n      )\n  );\n}\nstate.$subscribe(draw); draw();",
+    "example": "// Модальный селектор\nconst { ui, createState } = PotokSDK;\nconst state = createState({ open: false });\n\nconst mockEp = {\n  id: \"s01e01\",\n  season: 1,\n  episode: 1,\n  rawSeason: 1,\n  rawEpisode: 1,\n  title: \"Зима близко\",\n  fileName: \"Show.S01E01.mkv\",\n  stillPath: \"https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg\",\n  airDate: \"2011-04-17\",\n  isWatched: false,\n  sizeLabel: \"1.2 GB\",\n  audios: [\n    { id: \"ru\", name: \"Русский дубляж\", url: \"http://example.com/s01e01_ru.m3u8\" }\n  ],\n  url: \"http://example.com/s01e01.m3u8\"\n};\n\nfunction draw() {\n  ui.render(\n    VStack()\n      .child(Button(\"Выбрать серию\").onClick(() => state.open = true))\n      .child(\n        EpisodeSelector()\n          .isOpen(state.open)\n          .title(\"Игра Престолов\")\n          .subtitle(\"Выберите серию для просмотра\")\n          .backdropSrc(\"https://image.tmdb.org/t/p/original/example.jpg\")\n          .seasonsLoading(false)\n          .seasons([{\n            id: 1,\n            seasonNumber: 1,\n            season_number: 1,\n            episodes: [{\n              id: 101,\n              episodeNumber: 1,\n              episode_number: 1,\n              name: \"Зима близко\",\n              stillPath: \"https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg\",\n              airDate: \"2011-04-17\",\n              overview: \"Описание серии\"\n            }]\n          }])\n          .episodes([mockEp])\n          .onClose(() => state.open = false)\n          .onPlay((ep, audioId) => {\n            state.open = false;\n            ui.showHUD(\"success\", \"Запускаем: \" + ep.title + \" (\" + audioId + \")\");\n          })\n          .onApplyOverride(({ sourceSeason, targetSeason, offset }) => {\n            ui.showHUD(\"info\", \"Override: \" + sourceSeason + \" -> \" + targetSeason + \" (offset \" + offset + \")\");\n          })\n          .onStartEditing(() => {\n            ui.showHUD(\"info\", \"Редактирование сезонов\");\n          })\n      )\n  );\n}\nstate.$subscribe(draw); draw();",
     "methods": {
       "isOpen": {
         "argument": "boolean",
@@ -671,6 +671,710 @@
       "onClick": {
         "argument": "CallbackFunction",
         "description": "Обработчик клика по карточке серии. Передает выбранный объект серии."
+      }
+    }
+  },
+  "ContentCard": {
+    "title": "ContentCard (Универсальная карточка)",
+    "description": "Карточка контента, НЕ привязанная к форме TMDB. Рисует постер, бейджи, полосу прогресса и заголовок из вашей собственной модели данных (SDKContentItem: id, title, subtitle, image, wideImage, badges, meta, progress, rank).",
+    "example": "// Карточка из своих данных\nconst { ui } = PotokSDK;\n\nui.render(\n  ContentCard()\n    .item({\n      id: \"track-1\",\n      title: \"Nightcall\",\n      subtitle: \"Kavinsky\",\n      image: \"https://image.tmdb.org/t/p/w500/9O1Iy9od7uEuw6Bs4POV62Zzg2H.jpg\",\n      badges: [{ text: \"NEW\", color: \"accent\" }],\n      meta: [\"2010\", \"Synthwave\"],\n      progress: 0.4,\n      rank: 1\n    })\n    .orientation(\"portrait\")\n    .onClick((item) => ui.showHUD(\"info\", \"Открыто: \" + item.title))\n);",
+    "methods": {
+      "item": {
+        "argument": "SDKContentItem",
+        "description": "Объект контента: id, title, subtitle, image, wideImage, badges, meta, progress, rank, href."
+      },
+      "orientation": {
+        "argument": "'portrait' | 'landscape'",
+        "description": "Ориентация карточки: вертикальный постер или широкий кадр.",
+        "default": "'portrait'"
+      },
+      "onClick": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек клика по карточке. Передаёт объект контента."
+      }
+    }
+  },
+  "ContentRow": {
+    "title": "ContentRow (Универсальная карусель)",
+    "description": "Горизонтальный ряд карточек ContentCard из вашей собственной модели данных (SDKContentItem[]). Обобщённая версия MediaRow без привязки к TMDB: заголовок секции, кнопка «Показать все» и D-pad-скролл.",
+    "example": "// Ряд категории из своих данных\nconst { ui } = PotokSDK;\n\nconst items = [\n  { id: \"1\", title: \"Элемент 1\", image: \"https://image.tmdb.org/t/p/w500/9O1Iy9od7uEuw6Bs4POV62Zzg2H.jpg\" },\n  { id: \"2\", title: \"Элемент 2\", image: \"https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg\" }\n];\n\nui.render(\n  ContentRow()\n    .title(\"Моя подборка\")\n    .items(items)\n    .orientation(\"portrait\")\n    .seeAllLabel(\"Все\")\n    .onCardClick((item) => ui.showHUD(\"info\", \"Клик: \" + item.title))\n    .onSeeAllClick(() => ui.showHUD(\"success\", \"Показать все\"))\n);",
+    "methods": {
+      "title": {
+        "argument": "string",
+        "description": "Заголовок секции ряда."
+      },
+      "items": {
+        "argument": "SDKContentItem[]",
+        "description": "Массив контента для карточек ряда.",
+        "default": "[]"
+      },
+      "orientation": {
+        "argument": "'portrait' | 'landscape'",
+        "description": "Ориентация карточек ряда.",
+        "default": "'portrait'"
+      },
+      "seeAllLabel": {
+        "argument": "string",
+        "description": "Текст кнопки «Показать все» (кнопка появляется только если задан onSeeAllClick)."
+      },
+      "onCardClick": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек клика по любой карточке ряда."
+      },
+      "onSeeAllClick": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек клика по кнопке «Показать все»."
+      }
+    }
+  },
+  "Hero": {
+    "title": "Hero (Универсальный промо-баннер)",
+    "description": "Широкий промо-баннер из вашей собственной модели данных (SDKContentItem[]). Обобщённая версия HeroSpotlight без привязки к TMDB: фон wideImage, логотип/заголовок, метаданные, бейджи и кнопки «Смотреть» / «Подробнее».",
+    "example": "// Промо из своих данных\nconst { ui } = PotokSDK;\n\nui.render(\n  Hero()\n    .items([{\n      id: \"feature-1\",\n      title: \"Мой контент\",\n      subtitle: \"Описание featured-элемента, которое видно поверх фона.\",\n      wideImage: \"https://image.tmdb.org/t/p/original/il8gr7YStcrui1EM2crk14G4HjL.jpg\",\n      meta: [\"2024\", \"Драма\", \"2ч 15м\"],\n      badges: [{ text: \"4K\", color: \"info\" }]\n    }])\n    .playLabel(\"Смотреть\")\n    .detailsLabel(\"Подробнее\")\n    .onPlay((item) => ui.showHUD(\"success\", \"Смотрим: \" + item.title))\n    .onDetails((item) => ui.showHUD(\"info\", \"Подробнее: \" + item.title))\n);",
+    "methods": {
+      "items": {
+        "argument": "SDKContentItem[]",
+        "description": "Массив featured-элементов. Отрисовывается первый элемент.",
+        "default": "[]"
+      },
+      "playLabel": {
+        "argument": "string",
+        "description": "Текст главной кнопки.",
+        "default": "'Смотреть'"
+      },
+      "detailsLabel": {
+        "argument": "string",
+        "description": "Текст дополнительной кнопки.",
+        "default": "'Подробнее'"
+      },
+      "onPlay": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек клика по главной кнопке. Передаёт активный элемент."
+      },
+      "onDetails": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек клика по кнопке «Подробнее»."
+      }
+    }
+  },
+  "Image": {
+    "title": "Image (Изображение)",
+    "description": "Адаптивное изображение с ленивой загрузкой и запасной картинкой (fallback) при ошибке. Позволяет плагину выводить произвольные картинки, а не только через MediaCard.",
+    "example": "// Изображение с соотношением сторон и скруглением\nconst { ui } = PotokSDK;\n\nui.render(\n  Image(\"https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg\")\n    .alt(\"Постер\")\n    .aspectRatio(\"2/3\")\n    .rounded(true)\n    .fit(\"cover\")\n    .fallback(\"https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg\")\n    .width(\"12rem\")\n    .onClick(() => ui.showHUD(\"info\", \"Клик по изображению\"))\n);",
+    "methods": {
+      "alt": {
+        "argument": "string",
+        "description": "Альтернативный текст изображения."
+      },
+      "aspectRatio": {
+        "argument": "string",
+        "description": "Соотношение сторон рамки (например, '16/9' или '2/3')."
+      },
+      "fallback": {
+        "argument": "string",
+        "description": "URL запасного изображения, показываемого при ошибке загрузки."
+      },
+      "rounded": {
+        "argument": "boolean | string",
+        "description": "Скругление углов: true для стандартного радиуса или CSS-значение."
+      },
+      "fit": {
+        "argument": "'cover' | 'contain'",
+        "description": "Режим вписывания изображения в рамку.",
+        "default": "'cover'"
+      },
+      "onClick": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек клика по изображению."
+      }
+    }
+  },
+  "Icon": {
+    "title": "Icon (Иконка)",
+    "description": "Отдельная иконка из коллекции Lucide (например, 'play', 'heart', 'settings').",
+    "example": "// Набор иконок\nconst { ui } = PotokSDK;\n\nui.render(\n  HStack()\n    .spacing(12)\n    .child(Icon(\"heart\").color(\"#ff4d4f\"))\n    .child(Icon(\"star\").size(\"1.5rem\").color(\"#faad14\"))\n    .child(Icon(\"settings\"))\n);",
+    "methods": {
+      "size": {
+        "argument": "string | number",
+        "description": "Размер иконки (например, '1.5rem' или 24)."
+      },
+      "color": {
+        "argument": "string",
+        "description": "Цвет иконки (CSS-цвет)."
+      }
+    }
+  },
+  "Tabs": {
+    "title": "Tabs (Вкладки)",
+    "description": "Горизонтальный таб-бар для переключения секций. Управляется значением value; клик по вкладке вызывает onChange(id), после чего плагин обновляет своё состояние и перерисовывается.",
+    "example": "// Переключение вкладок\nconst { ui, createState } = PotokSDK;\nconst state = createState({ tab: \"overview\" });\n\nfunction draw() {\n  ui.render(\n    Tabs()\n      .items([\n        { id: \"overview\", label: \"Обзор\", icon: \"info\" },\n        { id: \"episodes\", label: \"Серии\", icon: \"list\" },\n        { id: \"about\", label: \"О проекте\" }\n      ])\n      .value(state.tab)\n      .onChange((id) => state.tab = id)\n  );\n}\nstate.$subscribe(draw); draw();",
+    "methods": {
+      "items": {
+        "argument": "Array",
+        "description": "Массив вкладок: { id, label, icon? }.",
+        "default": "[]"
+      },
+      "value": {
+        "argument": "string",
+        "description": "Идентификатор активной вкладки."
+      },
+      "onChange": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек смены вкладки. Передаёт id выбранной вкладки."
+      }
+    }
+  },
+  "List": {
+    "title": "List (Список строк)",
+    "description": "Вертикальный список кликабельных строк с иконкой, заголовком, подзаголовком, бейджем и завершающей иконкой.",
+    "example": "// Список пунктов меню\nconst { ui } = PotokSDK;\n\nui.render(\n  List()\n    .items([\n      { id: \"a\", title: \"Настройки\", subtitle: \"Общие параметры\", icon: \"settings\", trailingIcon: \"chevron-right\" },\n      { id: \"b\", title: \"Аккаунт\", badge: \"PRO\", icon: \"user\", trailingIcon: \"chevron-right\" }\n    ])\n    .onItemClick((item) => ui.showHUD(\"info\", \"Выбрано: \" + item.title))\n);",
+    "methods": {
+      "items": {
+        "argument": "Array",
+        "description": "Массив строк: { id, title, subtitle?, icon?, badge?, trailingIcon?, disabled? }.",
+        "default": "[]"
+      },
+      "onItemClick": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек клика по строке. Передаёт объект строки."
+      }
+    }
+  },
+  "Tooltip": {
+    "title": "Tooltip (Всплывающая подсказка)",
+    "description": "Оборачивает дочерний элемент и показывает текстовую подсказку при наведении или фокусе.",
+    "example": "// Подсказка на кнопке\nconst { ui } = PotokSDK;\n\nui.render(\n  Tooltip(\"Удалить навсегда\")\n    .placement(\"top\")\n    .child(Button(\"Удалить\").variant(\"danger\"))\n);",
+    "methods": {
+      "placement": {
+        "argument": "'top' | 'bottom' | 'left' | 'right'",
+        "description": "Позиция подсказки относительно элемента.",
+        "default": "'top'"
+      },
+      "child": {
+        "argument": "UIComponent",
+        "description": "Обёрнутый элемент, к которому привязана подсказка."
+      }
+    }
+  },
+  "ProgressBar": {
+    "title": "ProgressBar (Полоса прогресса)",
+    "description": "Горизонтальный индикатор прогресса (0..1) с необязательной подписью и процентом.",
+    "example": "// Полосы прогресса\nconst { ui } = PotokSDK;\n\nui.render(\n  VStack()\n    .spacing(12)\n    .child(ProgressBar().value(0.35).label(\"Загрузка\").showValue(true))\n    .child(ProgressBar().value(0.8).variant(\"success\"))\n);",
+    "methods": {
+      "value": {
+        "argument": "number",
+        "description": "Значение прогресса от 0 до 1.",
+        "default": "0"
+      },
+      "variant": {
+        "argument": "'accent' | 'success' | 'warning' | 'error'",
+        "description": "Цвет полосы прогресса.",
+        "default": "'accent'"
+      },
+      "label": {
+        "argument": "string",
+        "description": "Подпись над полосой."
+      },
+      "showValue": {
+        "argument": "boolean",
+        "description": "Показывать процент справа.",
+        "default": "false"
+      }
+    }
+  },
+  "Skeleton": {
+    "title": "Skeleton (Плейсхолдер загрузки)",
+    "description": "Обобщённый мерцающий плейсхолдер произвольного размера. Полезен для собственных состояний загрузки.",
+    "example": "// Плейсхолдеры загрузки\nconst { ui } = PotokSDK;\n\nui.render(\n  VStack()\n    .spacing(10)\n    .child(Skeleton().height(24).width(\"60%\"))\n    .child(Skeleton().height(120).rounded(\"0.75rem\"))\n    .child(Skeleton().height(16).count(3))\n);",
+    "methods": {
+      "rounded": {
+        "argument": "boolean | string",
+        "description": "Скругление углов: true или CSS-значение."
+      },
+      "count": {
+        "argument": "number",
+        "description": "Количество повторяющихся строк-плейсхолдеров.",
+        "default": "1"
+      }
+    }
+  },
+  "EmptyState": {
+    "title": "EmptyState (Пустое состояние)",
+    "description": "Заглушка для пустых списков и экранов: иконка, заголовок, описание и необязательная кнопка действия.",
+    "example": "// Пустое состояние\nconst { ui } = PotokSDK;\n\nui.render(\n  EmptyState()\n    .icon(\"inbox\")\n    .title(\"Пока ничего нет\")\n    .description(\"Добавьте первый элемент, чтобы начать.\")\n    .actionLabel(\"Добавить\")\n    .onAction(() => ui.showHUD(\"info\", \"Создание...\"))\n);",
+    "methods": {
+      "icon": {
+        "argument": "string",
+        "description": "Имя иконки Lucide по центру заглушки."
+      },
+      "title": {
+        "argument": "string",
+        "description": "Заголовок заглушки."
+      },
+      "description": {
+        "argument": "string",
+        "description": "Пояснительное описание."
+      },
+      "actionLabel": {
+        "argument": "string",
+        "description": "Текст кнопки действия (кнопка появляется только если задан)."
+      },
+      "onAction": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек клика по кнопке действия."
+      }
+    }
+  },
+  "Alert": {
+    "title": "Alert (Инлайн-уведомление)",
+    "description": "Цветной баннер уведомления (info/success/warning/error) с иконкой, заголовком и текстом.",
+    "example": "// Уведомления\nconst { ui } = PotokSDK;\n\nui.render(\n  VStack()\n    .spacing(10)\n    .child(Alert(\"Соединение установлено\").variant(\"success\").icon(\"check-circle\"))\n    .child(Alert(\"Проверьте настройки сервера\").variant(\"warning\").title(\"Внимание\").icon(\"alert-triangle\"))\n);",
+    "methods": {
+      "title": {
+        "argument": "string",
+        "description": "Заголовок уведомления."
+      },
+      "variant": {
+        "argument": "'info' | 'success' | 'warning' | 'error'",
+        "description": "Цветовая схема уведомления.",
+        "default": "'info'"
+      },
+      "icon": {
+        "argument": "string",
+        "description": "Имя иконки Lucide (по умолчанию подбирается по variant)."
+      }
+    }
+  },
+  "Chip": {
+    "title": "Chip (Чип/тег)",
+    "description": "Компактный переключаемый элемент-пилюля. Подходит для фильтров, жанров и быстрых действий.",
+    "example": "// Чипы-фильтры\nconst { ui, createState } = PotokSDK;\nconst state = createState({ genre: \"all\" });\n\nfunction draw() {\n  ui.render(\n    HStack().spacing(8).children(\n      [\n        { id: \"all\", label: \"Все\", icon: \"layers\" },\n        { id: \"drama\", label: \"Драма\", icon: \"drama\" },\n        { id: \"comedy\", label: \"Комедия\", icon: \"laugh\" }\n      ].map((g) =>\n        Chip(g.label).icon(g.icon).active(state.genre === g.id).onClick(() => state.genre = g.id)\n      )\n    )\n  );\n}\nstate.$subscribe(draw); draw();",
+    "methods": {
+      "active": {
+        "argument": "boolean",
+        "description": "Активное (выбранное) состояние.",
+        "default": "false"
+      },
+      "icon": {
+        "argument": "string",
+        "description": "Имя иконки Lucide перед текстом."
+      },
+      "onClick": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек клика по чипу."
+      }
+    }
+  },
+  "IconButton": {
+    "title": "IconButton (Кнопка-иконка)",
+    "description": "Квадратная кнопка только с иконкой (без текста). Требует label (aria-label) для доступности.",
+    "example": "// Кнопки-иконки\nconst { ui } = PotokSDK;\n\nui.render(\n  HStack()\n    .spacing(8)\n    .child(IconButton(\"play\").label(\"Смотреть\").size(\"lg\").accent(true).onClick(() => ui.showHUD(\"success\", \"Пуск\")))\n    .child(IconButton(\"heart\").label(\"В избранное\").size(\"md\").onClick(() => ui.showHUD(\"info\", \"Добавлено\")))\n);",
+    "methods": {
+      "label": {
+        "argument": "string",
+        "description": "Текст aria-label (доступность и подсказка)."
+      },
+      "accent": {
+        "argument": "boolean",
+        "description": "Подсвечивать акцентным цветом при наведении.",
+        "default": "false"
+      },
+      "size": {
+        "argument": "'sm' | 'md' | 'lg'",
+        "description": "Размер кнопки.",
+        "default": "'md'"
+      },
+      "onClick": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек клика."
+      }
+    }
+  },
+  "Modal": {
+    "title": "Modal (Модальное окно)",
+    "description": "Портальное окно поверх приложения: диалог, шторка (sheet) или поповер. Закрывается по ESC и клику на фон. Управляется состоянием open; содержимое — любые дочерние компоненты.",
+    "example": "// Диалог подтверждения\nconst { ui, createState } = PotokSDK;\nconst state = createState({ open: false });\n\nfunction draw() {\n  ui.render(\n    VStack()\n      .spacing(12)\n      .children([\n        Button(\"Открыть окно\").onClick(() => state.open = true),\n        Modal()\n          .open(state.open)\n          .title(\"Подтверждение\")\n          .variant(\"modal\")\n          .closeOnBackdrop(true)\n          .onClose(() => state.open = false)\n          .child(Text(\"Вы уверены, что хотите продолжить?\").variant(\"secondary\"))\n          .child(\n            HStack()\n              .spacing(8)\n              .children([\n                Button(\"Отмена\").variant(\"secondary\").onClick(() => state.open = false),\n                Button(\"Продолжить\").variant(\"primary\").onClick(() => {\n                  state.open = false;\n                  ui.showHUD(\"success\", \"Готово\");\n                })\n              ])\n          )\n      ])\n  );\n}\nstate.$subscribe(draw); draw();",
+    "methods": {
+      "open": {
+        "argument": "boolean",
+        "description": "Управляет видимостью окна.",
+        "default": "false"
+      },
+      "title": {
+        "argument": "string",
+        "description": "Заголовок в шапке окна."
+      },
+      "variant": {
+        "argument": "'modal' | 'sheet' | 'popover'",
+        "description": "Тип оверлея: центрированный диалог, нижняя шторка или поповер.",
+        "default": "'modal'"
+      },
+      "closeOnBackdrop": {
+        "argument": "boolean",
+        "description": "Закрывать окно по клику на затемнённый фон.",
+        "default": "true"
+      },
+      "onClose": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек закрытия (ESC, клик на фон)."
+      }
+    }
+  },
+  "Collapsible": {
+    "title": "Collapsible (Сворачиваемая секция)",
+    "description": "Секция с кликабельным заголовком и скрываемым телом. Управляется состоянием open; несколько секций подряд образуют аккордеон.",
+    "example": "// Раскрывающаяся секция настроек\nconst { ui, createState } = PotokSDK;\nconst state = createState({ open: true });\n\nfunction draw() {\n  ui.render(\n    Collapsible(\"Дополнительные параметры\")\n      .open(state.open)\n      .onToggle((open) => state.open = open)\n      .child(Text(\"Скрытое содержимое секции.\").variant(\"secondary\"))\n      .child(Toggle(\"adv\").label(\"Экспертный режим\").value(false).onChange(() => {}))\n  );\n}\nstate.$subscribe(draw); draw();",
+    "methods": {
+      "open": {
+        "argument": "boolean",
+        "description": "Раскрыта ли секция.",
+        "default": "false"
+      },
+      "onToggle": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек переключения. Передаёт новое булево состояние."
+      }
+    }
+  },
+  "Avatar": {
+    "title": "Avatar (Аватар)",
+    "description": "Круглое или квадратное изображение пользователя/актёра с ленивой загрузкой. При отсутствии картинки показывает инициалы из имени.",
+    "example": "// Аватары\nconst { ui } = PotokSDK;\n\nui.render(\n  HStack()\n    .spacing(12)\n    .alignItems(\"center\")\n    .children([\n      Avatar(\"https://image.tmdb.org/t/p/w185/wD6U1N7Caw58tO43fT245U62y4a.jpg\")\n        .name(\"Мэттью Макконахи\")\n        .size(\"lg\")\n        .shape(\"circle\"),\n      Avatar(\"\")\n        .name(\"Энн Хэтэуэй\")\n        .size(\"md\")\n        .shape(\"square\")\n        .fallback(\"https://image.tmdb.org/t/p/w185/tLelKoPNiyJCSEtQTz1FGv4TLGc.jpg\")\n    ])\n);",
+    "methods": {
+      "name": {
+        "argument": "string",
+        "description": "Имя: инициалы для запасного варианта и alt-текст."
+      },
+      "size": {
+        "argument": "'sm' | 'md' | 'lg'",
+        "description": "Размер аватара.",
+        "default": "'md'"
+      },
+      "fallback": {
+        "argument": "string",
+        "description": "URL запасного изображения при ошибке загрузки."
+      },
+      "shape": {
+        "argument": "'circle' | 'square'",
+        "description": "Форма аватара.",
+        "default": "'circle'"
+      }
+    }
+  },
+  "Rating": {
+    "title": "Rating (Рейтинг звёздами)",
+    "description": "Строка звёзд, отображающая оценку от 0 до max с поддержкой половинных звёзд и необязательным числовым значением.",
+    "example": "// Рейтинги\nconst { ui } = PotokSDK;\n\nui.render(\n  VStack()\n    .spacing(10)\n    .children([\n      Rating().value(4.5).max(5).showValue(true).size(\"md\"),\n      Rating().value(3).max(5).size(\"sm\")\n    ])\n);",
+    "methods": {
+      "value": {
+        "argument": "number",
+        "description": "Значение рейтинга (поддерживает дробное для половинных звёзд).",
+        "default": "0"
+      },
+      "max": {
+        "argument": "number",
+        "description": "Максимальное число звёзд.",
+        "default": "5"
+      },
+      "showValue": {
+        "argument": "boolean",
+        "description": "Показывать числовое значение справа.",
+        "default": "false"
+      },
+      "size": {
+        "argument": "'sm' | 'md' | 'lg'",
+        "description": "Размер звёзд.",
+        "default": "'md'"
+      }
+    }
+  },
+  "TagList": {
+    "title": "TagList (Список тегов)",
+    "description": "Набор тегов/жанров в виде пилюль. Статичные по умолчанию; при заданном onTagClick становятся кликабельными.",
+    "example": "// Жанры-теги\nconst { ui } = PotokSDK;\n\nui.render(\n  TagList()\n    .tags([\"Фэнтези\", \"Драма\", { id: \"action\", label: \"Боевик\" }])\n    .onTagClick((id) => ui.showHUD(\"info\", \"Тег: \" + id))\n);",
+    "methods": {
+      "tags": {
+        "argument": "Array<string | { id?, label }>",
+        "description": "Массив тегов: строки или объекты { id?, label }.",
+        "default": "[]"
+      },
+      "onTagClick": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек клика по тегу. Передаёт id (или строку)."
+      }
+    }
+  },
+  "SectionHeader": {
+    "title": "SectionHeader (Заголовок секции)",
+    "description": "Заголовок раздела страницы с необязательным подзаголовком и кнопкой действия («Показать все»).",
+    "example": "// Заголовок раздела\nconst { ui } = PotokSDK;\n\nui.render(\n  SectionHeader(\"Продолжить просмотр\")\n    .subtitle(\"12 фильмов и сериалов\")\n    .actionLabel(\"Показать все\")\n    .onAction(() => ui.showHUD(\"info\", \"Все элементы раздела\"))\n);",
+    "methods": {
+      "subtitle": {
+        "argument": "string",
+        "description": "Подзаголовок под основным заголовком."
+      },
+      "actionLabel": {
+        "argument": "string",
+        "description": "Текст кнопки действия справа (кнопка появляется только если задан onAction)."
+      },
+      "onAction": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек клика по кнопке действия."
+      }
+    }
+  },
+  "ContinueWatchingRow": {
+    "title": "ContinueWatchingRow (Продолжить просмотр)",
+    "description": "Горизонтальный ряд широких карточек с полосой прогресса — раздел «Продолжить просмотр» из вашей модели данных (SDKContentItem[], поле progress 0..1).",
+    "example": "// Ряд «Продолжить просмотр»\nconst { ui } = PotokSDK;\n\nconst items = [\n  { id: \"1\", title: \"Дюна: Часть вторая\", subtitle: \"2024\", wideImage: \"https://image.tmdb.org/t/p/w780/xu9zaAevzQ5nnrsXN6JcahLnG4i.jpg\", progress: 0.6 },\n  { id: \"2\", title: \"Интерстеллар\", subtitle: \"2014\", wideImage: \"https://image.tmdb.org/t/p/w780/il8gr7YStcrui1EM2crk14G4HjL.jpg\", progress: 0.25 }\n];\n\nui.render(\n  ContinueWatchingRow()\n    .title(\"Продолжить просмотр\")\n    .items(items)\n    .onCardClick((item) => ui.showHUD(\"info\", \"Продолжаем: \" + item.title))\n);",
+    "methods": {
+      "title": {
+        "argument": "string",
+        "description": "Заголовок ряда."
+      },
+      "items": {
+        "argument": "SDKContentItem[]",
+        "description": "Элементы с полем progress (0..1) для полосы прогресса.",
+        "default": "[]"
+      },
+      "onCardClick": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек клика по карточке."
+      }
+    }
+  },
+  "TopTenRow": {
+    "title": "TopTenRow (Топ-10)",
+    "description": "Ранжированный ряд с крупным номером позиции у каждого постера. Номер берётся из поля rank или из позиции элемента (до 10).",
+    "example": "// Ранжированный ряд «Топ-10»\nconst { ui } = PotokSDK;\n\nconst items = [\n  { id: \"1\", title: \"Фильм 1\", image: \"https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg\" },\n  { id: \"2\", title: \"Фильм 2\", image: \"https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg\" },\n  { id: \"3\", title: \"Фильм 3\", image: \"https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg\" }\n];\n\nui.render(\n  TopTenRow()\n    .title(\"Топ-10 сегодня\")\n    .items(items)\n    .onCardClick((item) => ui.showHUD(\"info\", item.title))\n);",
+    "methods": {
+      "title": {
+        "argument": "string",
+        "description": "Заголовок ряда."
+      },
+      "items": {
+        "argument": "SDKContentItem[]",
+        "description": "До 10 элементов; номер — из поля rank или позиции.",
+        "default": "[]"
+      },
+      "onCardClick": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек клика по карточке."
+      }
+    }
+  },
+  "PosterGrid": {
+    "title": "PosterGrid (Сетка постеров)",
+    "description": "Адаптивная сетка карточек-постеров с необязательной кнопкой догрузки (бесконечный список) — для страниц каталога/категории из вашей модели данных.",
+    "example": "// Сетка постеров с догрузкой\nconst { ui } = PotokSDK;\n\nconst items = [\n  { id: \"1\", title: \"Дюна\", image: \"https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg\" },\n  { id: \"2\", title: \"Начало\", image: \"https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg\" },\n  { id: \"3\", title: \"Интерстеллар\", image: \"https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg\" }\n];\n\nui.render(\n  PosterGrid()\n    .items(items)\n    .minWidth(\"10rem\")\n    .loadMoreLabel(\"Показать ещё\")\n    .onCardClick((item) => ui.showHUD(\"info\", item.title))\n    .onLoadMore(() => ui.showHUD(\"info\", \"Загрузка следующей страницы...\"))\n);",
+    "methods": {
+      "items": {
+        "argument": "SDKContentItem[]",
+        "description": "Карточки сетки.",
+        "default": "[]"
+      },
+      "minWidth": {
+        "argument": "string",
+        "description": "Минимальная ширина колонки.",
+        "default": "'10rem'"
+      },
+      "loadMoreLabel": {
+        "argument": "string",
+        "description": "Текст кнопки догрузки (появляется только если задан onLoadMore)."
+      },
+      "onCardClick": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек клика по карточке."
+      },
+      "onLoadMore": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек догрузки следующей страницы."
+      }
+    }
+  },
+  "DetailHero": {
+    "title": "DetailHero (Hero детальной страницы)",
+    "description": "Крупный баннер детальной страницы: фон, логотип/заголовок, метаданные, бейджи и настраиваемые кнопки действий. Клик по кнопке возвращает её id.",
+    "example": "// Hero детальной страницы\nconst { ui } = PotokSDK;\n\nui.render(\n  DetailHero()\n    .item({\n      id: \"1\",\n      title: \"Дюна: Часть вторая\",\n      subtitle: \"Пол Атрейдес объединяется с Чани и фрименами...\",\n      wideImage: \"https://image.tmdb.org/t/p/original/xu9zaAevzQ5nnrsXN6JcahLnG4i.jpg\",\n      meta: [\"2024\", \"Фантастика\", \"2ч 46м\"],\n      badges: [{ text: \"4K\", color: \"info\" }]\n    })\n    .actions([\n      { id: \"play\", label: \"Смотреть\", icon: \"play\" },\n      { id: \"trailer\", label: \"Трейлер\", icon: \"film\", variant: \"ghost\" }\n    ])\n    .onAction((actionId) => ui.showHUD(\"success\", \"Действие: \" + actionId))\n);",
+    "methods": {
+      "item": {
+        "argument": "SDKContentItem",
+        "description": "Featured-элемент: wideImage/logo/title/subtitle/meta/badges."
+      },
+      "actions": {
+        "argument": "Array<{ id, label, icon?, variant? }>",
+        "description": "Кнопки действий. variant: 'ghost' — прозрачная.",
+        "default": "[]"
+      },
+      "onAction": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек клика по кнопке. Передаёт id действия."
+      }
+    }
+  },
+  "Range": {
+    "title": "Range (Ползунок)",
+    "description": "Ползунок выбора числового значения в диапазоне [min, max] с шагом step и необязательным отображением текущего значения.",
+    "example": "// Ползунок громкости\nconst { ui, createState } = PotokSDK;\nconst state = createState({ volume: 50 });\n\nfunction draw() {\n  ui.render(\n    Range(\"volume\")\n      .label(\"Громкость\")\n      .min(0)\n      .max(100)\n      .step(1)\n      .value(state.volume)\n      .showValue(true)\n      .onChange((v) => state.volume = v)\n  );\n}\nstate.$subscribe(draw); draw();",
+    "methods": {
+      "value": {
+        "argument": "number",
+        "description": "Текущее значение.",
+        "default": "0"
+      },
+      "min": {
+        "argument": "number",
+        "description": "Минимальное значение диапазона."
+      },
+      "max": {
+        "argument": "number",
+        "description": "Максимальное значение диапазона."
+      },
+      "step": {
+        "argument": "number",
+        "description": "Шаг изменения значения."
+      },
+      "label": {
+        "argument": "string",
+        "description": "Подпись над ползунком."
+      },
+      "showValue": {
+        "argument": "boolean",
+        "description": "Показывать текущее значение справа от подписи.",
+        "default": "false"
+      },
+      "onChange": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек изменения. Передаёт число."
+      }
+    }
+  },
+  "Segmented": {
+    "title": "Segmented (Сегмент-контрол)",
+    "description": "Компактный переключатель из нескольких соединённых сегментов. Управляется значением value; альтернатива Tabs для 2–4 вариантов.",
+    "example": "// Переключатель вида\nconst { ui, createState } = PotokSDK;\nconst state = createState({ view: \"grid\" });\n\nfunction draw() {\n  ui.render(\n    Segmented()\n      .items([\n        { id: \"grid\", label: \"Сетка\" },\n        { id: \"list\", label: \"Список\" }\n      ])\n      .value(state.view)\n      .onChange((id) => state.view = id)\n  );\n}\nstate.$subscribe(draw); draw();",
+    "methods": {
+      "items": {
+        "argument": "Array<{ id, label }>",
+        "description": "Сегменты переключателя.",
+        "default": "[]"
+      },
+      "value": {
+        "argument": "string",
+        "description": "Идентификатор активного сегмента."
+      },
+      "onChange": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек смены. Передаёт id сегмента."
+      }
+    }
+  },
+  "Dropdown": {
+    "title": "Dropdown (Выпадающее меню)",
+    "description": "Кнопка-триггер с выпадающим списком вариантов. Открытие/закрытие управляется самим компонентом; выбор пункта возвращает его id.",
+    "example": "// Выпадающая сортировка\nconst { ui, createState } = PotokSDK;\nconst state = createState({ sort: \"new\" });\n\nfunction draw() {\n  ui.render(\n    Dropdown()\n      .label(\"Сортировка\")\n      .icon(\"arrow-up-down\")\n      .value(state.sort)\n      .items([\n        { id: \"new\", label: \"Сначала новые\", icon: \"clock\" },\n        { id: \"rating\", label: \"По рейтингу\", icon: \"star\" },\n        { id: \"az\", label: \"По алфавиту\" }\n      ])\n      .onSelect((id) => state.sort = id)\n  );\n}\nstate.$subscribe(draw); draw();",
+    "methods": {
+      "label": {
+        "argument": "string",
+        "description": "Текст кнопки-триггера по умолчанию."
+      },
+      "icon": {
+        "argument": "string",
+        "description": "Имя иконки Lucide в триггере."
+      },
+      "items": {
+        "argument": "Array<{ id, label, icon? }>",
+        "description": "Пункты меню.",
+        "default": "[]"
+      },
+      "value": {
+        "argument": "string",
+        "description": "Идентификатор выбранного пункта."
+      },
+      "onSelect": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек выбора пункта. Передаёт id."
+      }
+    }
+  },
+  "FileInput": {
+    "title": "FileInput (Выбор файла)",
+    "description": "Поле выбора файла с фильтром типов. onChange получает { names, count } — имена и количество выбранных файлов.",
+    "example": "// Загрузка постера\nconst { ui } = PotokSDK;\n\nui.render(\n  FileInput(\"poster\")\n    .label(\"Загрузить постер\")\n    .accept(\"image/*\")\n    .multiple(false)\n    .onChange((info) => ui.showHUD(\"info\", \"Выбрано файлов: \" + info.count))\n);",
+    "methods": {
+      "label": {
+        "argument": "string",
+        "description": "Подпись над полем."
+      },
+      "accept": {
+        "argument": "string",
+        "description": "Фильтр типов файлов (например, 'image/*')."
+      },
+      "multiple": {
+        "argument": "boolean",
+        "description": "Разрешить выбор нескольких файлов.",
+        "default": "false"
+      },
+      "onChange": {
+        "argument": "CallbackFunction",
+        "description": "Коллбек выбора. Получает { names: string[], count }."
+      }
+    }
+  },
+  "Field": {
+    "title": "Field (Поле формы)",
+    "description": "Обёртка контрола с подписью сверху и подсказкой снизу. Оборачивает любой вложенный контрол (Input, Select, Range и т.д.).",
+    "example": "// Поле с подписью и подсказкой\nconst { ui, createState } = PotokSDK;\nconst state = createState({ url: \"\" });\n\nfunction draw() {\n  ui.render(\n    Field()\n      .label(\"Адрес сервера\")\n      .hint(\"Например, http://localhost:8080\")\n      .child(\n        Input(\"url\")\n          .placeholder(\"http://...\")\n          .value(state.url)\n          .onChange((v) => state.url = v)\n      )\n  );\n}\nstate.$subscribe(draw); draw();",
+    "methods": {
+      "label": {
+        "argument": "string",
+        "description": "Подпись над контролом."
+      },
+      "hint": {
+        "argument": "string",
+        "description": "Подсказка под контролом."
+      }
+    }
+  },
+  "Carousel": {
+    "title": "Carousel (Карусель)",
+    "description": "Горизонтальная карусель произвольных элементов со скролл-снапом. В отличие от рядов контента, принимает любые компоненты.",
+    "example": "// Карусель карточек\nconst { ui } = PotokSDK;\n\nui.render(\n  Carousel()\n    .spacing(16)\n    .children([\n      Card().title(\"Слайд 1\").child(Text(\"Первый слайд\")),\n      Card().title(\"Слайд 2\").child(Text(\"Второй слайд\")),\n      Card().title(\"Слайд 3\").child(Text(\"Третий слайд\"))\n    ])\n);",
+    "methods": {
+      "spacing": {
+        "argument": "number",
+        "description": "Зазор между элементами в пикселях."
+      }
+    }
+  },
+  "Scroller": {
+    "title": "Scroller (Скролл-контейнер)",
+    "description": "Обобщённый контейнер с прокруткой (горизонтальной или вертикальной) для произвольных элементов.",
+    "example": "// Горизонтальная лента тегов\nconst { ui } = PotokSDK;\n\nui.render(\n  Scroller()\n    .orientation(\"horizontal\")\n    .spacing(12)\n    .children([\n      Badge(\"Тег 1\"),\n      Badge(\"Тег 2\"),\n      Badge(\"Тег 3\"),\n      Badge(\"Тег 4\"),\n      Badge(\"Тег 5\")\n    ])\n);",
+    "methods": {
+      "orientation": {
+        "argument": "'horizontal' | 'vertical'",
+        "description": "Направление прокрутки.",
+        "default": "'vertical'"
+      },
+      "spacing": {
+        "argument": "number",
+        "description": "Зазор между элементами в пикселях."
+      }
+    }
+  },
+  "Page": {
+    "title": "Page (Оболочка страницы)",
+    "description": "Оболочка кастомной страницы плагина с заголовком и областью контента (на базе PageFrame).",
+    "example": "// Оболочка страницы\nconst { ui } = PotokSDK;\n\nui.render(\n  Page()\n    .title(\"Моя страница\")\n    .spacing(16)\n    .children([\n      SectionHeader(\"Раздел\"),\n      Text(\"Контент страницы во всю ширину, обёрнутый в оболочку PageFrame.\").variant(\"secondary\")\n    ])\n);",
+    "methods": {
+      "title": {
+        "argument": "string",
+        "description": "Заголовок страницы в шапке."
+      },
+      "spacing": {
+        "argument": "number",
+        "description": "Зазор между элементами контента в пикселях."
       }
     }
   }

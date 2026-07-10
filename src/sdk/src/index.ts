@@ -19,7 +19,32 @@ import {
   SelectBuilder,
   MarkdownBuilder,
   CodeEditorBuilder,
-  StatusRowBuilder
+  StatusRowBuilder,
+  ImageBuilder,
+  IconBuilder,
+  TabsBuilder,
+  ListBuilder,
+  TooltipBuilder,
+  ProgressBarBuilder,
+  SkeletonBuilder,
+  EmptyStateBuilder,
+  AlertBuilder,
+  ChipBuilder,
+  IconButtonBuilder,
+  ModalBuilder,
+  CollapsibleBuilder,
+  AvatarBuilder,
+  RatingBuilder,
+  TagListBuilder,
+  SectionHeaderBuilder,
+  RangeBuilder,
+  SegmentedBuilder,
+  DropdownBuilder,
+  FileInputBuilder,
+  FieldBuilder,
+  CarouselBuilder,
+  ScrollerBuilder,
+  PageBuilder
 } from "./components/common";
 
 import {
@@ -44,6 +69,13 @@ import {
   EpisodeSelectorBuilder,
   EpisodeSelectorPopupBuilder,
   EpisodeCardBuilder,
+  ContentCardBuilder,
+  ContentRowBuilder,
+  HeroBuilder,
+  ContinueWatchingRowBuilder,
+  TopTenRowBuilder,
+  PosterGridBuilder,
+  DetailHeroBuilder,
   streamsSpace,
   initDeclarativeStreamListeners
 } from "./components/media";
@@ -143,7 +175,42 @@ export const ui = {
     EpisodeSelector: () => new EpisodeSelectorBuilder(),
     /** @deprecated Use EpisodeSelector instead */
     EpisodeSelectorPopup: () => new EpisodeSelectorPopupBuilder(),
-    EpisodeCard: () => new EpisodeCardBuilder()
+    EpisodeCard: () => new EpisodeCardBuilder(),
+    // Generic content components (decoupled from the TMDB SDKMediaCard shape)
+    ContentCard: () => new ContentCardBuilder(),
+    ContentRow: () => new ContentRowBuilder(),
+    Hero: () => new HeroBuilder(),
+    // Generic primitives
+    Image: (src: string) => new ImageBuilder(src),
+    Icon: (name: string) => new IconBuilder(name),
+    Tabs: () => new TabsBuilder(),
+    List: () => new ListBuilder(),
+    Tooltip: (text: string) => new TooltipBuilder(text),
+    ProgressBar: () => new ProgressBarBuilder(),
+    Skeleton: () => new SkeletonBuilder(),
+    EmptyState: () => new EmptyStateBuilder(),
+    Alert: (text: string) => new AlertBuilder(text),
+    Chip: (text: string) => new ChipBuilder(text),
+    IconButton: (icon: string) => new IconButtonBuilder(icon),
+    // Phase 2
+    Modal: () => new ModalBuilder(),
+    Collapsible: (title: string) => new CollapsibleBuilder(title),
+    Avatar: (src: string) => new AvatarBuilder(src),
+    Rating: () => new RatingBuilder(),
+    TagList: () => new TagListBuilder(),
+    SectionHeader: (title: string) => new SectionHeaderBuilder(title),
+    Range: (name: string) => new RangeBuilder(name),
+    Segmented: () => new SegmentedBuilder(),
+    ContinueWatchingRow: () => new ContinueWatchingRowBuilder(),
+    TopTenRow: () => new TopTenRowBuilder(),
+    PosterGrid: () => new PosterGridBuilder(),
+    DetailHero: () => new DetailHeroBuilder(),
+    Dropdown: () => new DropdownBuilder(),
+    FileInput: (name: string) => new FileInputBuilder(name),
+    Field: () => new FieldBuilder(),
+    Carousel: () => new CarouselBuilder(),
+    Scroller: () => new ScrollerBuilder(),
+    Page: () => new PageBuilder()
   },
   render(root: any, slotId?: string) {
     const scopeId = slotId || "default";
@@ -233,6 +300,15 @@ export function registerPlugin(meta: any) {
 export function registerSource(cfg: any) {
   getRegisteredSources().set(cfg.id, cfg.lookup);
   window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_SOURCE', payload: { id: cfg.id, name: cfg.name, supportedTypes: cfg.supportedTypes } }, getHostOrigin());
+}
+
+// Convenience over registerSlotContribution scoped to the native Home page slots.
+// cfg: { id, position?: 'top' | 'bottom' | 'hero', render() → { label?, layout } }.
+// Lets a plugin add a category row (or featured banner) to the REAL home screen.
+export function registerHomeSection(cfg: any) {
+  const slotName =
+    cfg.position === "bottom" ? "home-rows-bottom" : cfg.position === "hero" ? "home-hero" : "home-rows-top";
+  registerSlotContribution({ id: cfg.id, slotName, render: cfg.render });
 }
 
 export function registerSlotContribution(cfg: any) {

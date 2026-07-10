@@ -176,7 +176,11 @@ export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
         `
           const {
             VStack, HStack, Grid, Card, Heading, Text, Markdown, Badge, StatusRow, Divider, Spacer, Button, Input, Toggle, Select, CodeEditor,
-            StreamSkeletonList, StreamRow, StreamList, MediaCard, HeroSpotlight, LoadingSpinner, EpisodesSection, MediaCast, MediaOverview, MediaRow, MediaPlayer, ProfileSelector, SearchBar, StreamFilterBar, EpisodeSelector, EpisodeCard
+            StreamSkeletonList, StreamRow, StreamList, MediaCard, HeroSpotlight, LoadingSpinner, EpisodesSection, MediaCast, MediaOverview, MediaRow, MediaPlayer, ProfileSelector, SearchBar, StreamFilterBar, EpisodeSelector, EpisodeCard,
+            ContentCard, ContentRow, Hero, Image, Icon, Tabs, List, Tooltip, ProgressBar, Skeleton, EmptyState, Alert, Chip, IconButton,
+            Modal, Collapsible, Avatar, Rating, TagList, SectionHeader,
+            Range, Segmented, ContinueWatchingRow, TopTenRow, PosterGrid, DetailHero,
+            Dropdown, FileInput, Field, Carousel, Scroller, Page
           } = context;
           ${code}
         `,

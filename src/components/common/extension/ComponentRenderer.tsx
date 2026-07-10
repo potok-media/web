@@ -11,17 +11,23 @@ import { SafeMarkdown } from "./SafeMarkdown";
 import { SafeCodeEditor } from "./SafeCodeEditor";
 import { HostMediaComponentsRenderer } from "./HostMediaComponentsRenderer";
 import { HostCommonComponentsRenderer } from "./HostCommonComponentsRenderer";
+import { HostContentComponentsRenderer } from "./HostContentComponentsRenderer";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import {
   buildComponentBaseStyle,
   sdkStyleVars,
   childRendererKey,
   HOST_COMMON_TYPES,
+  HOST_CONTENT_TYPES,
   HOST_MEDIA_TYPES,
   normalizeComponentType,
 } from "./componentRendererUtils";
 import { SdkButtonRenderer } from "./SdkButtonRenderer";
 import { SdkCard, SdkGrid, SdkHStack, SdkVStack } from "./SdkLayoutPrimitives";
+import { Overlay, type OverlayVariant } from "../Overlay";
+import { Pressable, Field } from "../../ui";
+import { PageFrame } from "../PageFrame";
+import ScrollView from "../ScrollView";
 
 interface ComponentRendererProps {
   schema: UIComponentSchema;
@@ -51,6 +57,10 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
 
   if (HOST_COMMON_TYPES.has(normalizedType)) {
     return <HostCommonComponentsRenderer schema={normalizedSchema} pluginId={pluginId} baseStyle={baseStyle} />;
+  }
+
+  if (HOST_CONTENT_TYPES.has(normalizedType)) {
+    return <HostContentComponentsRenderer schema={normalizedSchema} pluginId={pluginId} baseStyle={baseStyle} />;
   }
 
   const handleClick = () => {
@@ -147,6 +157,120 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
 
     case "SearchBar":
       return <SafeSearchBar schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
+
+    case "Tooltip": {
+      const componentProps = schema.props as { text?: string; placement?: string };
+      const child = schema.children?.[0];
+      return (
+        <span
+          className="sdk-tooltip potok-sdk-props"
+          data-placement={componentProps.placement || "top"}
+          style={sdkStyleVars(baseStyle)}
+        >
+          {child ? renderChild(child, 0) : null}
+          {componentProps.text && (
+            <span className="sdk-tooltip-bubble" role="tooltip">{componentProps.text}</span>
+          )}
+        </span>
+      );
+    }
+
+    case "Modal": {
+      const componentProps = schema.props as {
+        open?: boolean;
+        title?: string;
+        variant?: OverlayVariant;
+        closeOnBackdrop?: boolean;
+      };
+      const handleClose = () => {
+        if (schema.events?.onClose) ExtensionRegistry.triggerUIEvent(pluginId, schema.events.onClose, {});
+      };
+      return (
+        <Overlay
+          open={!!componentProps.open}
+          onClose={handleClose}
+          variant={componentProps.variant || "modal"}
+          title={componentProps.title}
+          closeOnBackdrop={componentProps.closeOnBackdrop !== false}
+          className="potok-page-emu"
+        >
+          {schema.children?.map((child, index) => renderChild(child, index))}
+        </Overlay>
+      );
+    }
+
+    case "Collapsible": {
+      const componentProps = schema.props as { title?: string; open?: boolean };
+      const isOpen = !!componentProps.open;
+      const handleToggle = () => {
+        if (schema.events?.onToggle) ExtensionRegistry.triggerUIEvent(pluginId, schema.events.onToggle, !isOpen);
+      };
+      return (
+        <div id={schema.id} className="sdk-collapsible potok-sdk-props" style={sdkStyleVars(baseStyle)}>
+          <Pressable className="sdk-collapsible-header" onPress={handleToggle}>
+            <span className="sdk-collapsible-title">{componentProps.title}</span>
+            <span className={`sdk-collapsible-chevron${isOpen ? " is-open" : ""}`} aria-hidden="true">▸</span>
+          </Pressable>
+          {isOpen && (
+            <div className="sdk-collapsible-body">
+              {schema.children?.map((child, index) => renderChild(child, index))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    case "Field": {
+      const componentProps = schema.props as { label?: string; hint?: string };
+      return (
+        <Field label={componentProps.label} hint={componentProps.hint} className="potok-sdk-props">
+          {schema.children?.map((child, index) => renderChild(child, index))}
+        </Field>
+      );
+    }
+
+    case "Carousel": {
+      const componentProps = schema.props as { spacing?: number };
+      const trackStyle =
+        componentProps.spacing !== undefined ? ({ gap: `${componentProps.spacing}px` } as React.CSSProperties) : undefined;
+      return (
+        <ScrollView
+          orientation="horizontal"
+          className="sdk-carousel potok-sdk-props"
+          renderTrack={({ trackProps }) => (
+            <div {...trackProps} className={`${trackProps.className} sdk-carousel-track`} style={trackStyle}>
+              {schema.children?.map((child, index) => renderChild(child, index))}
+            </div>
+          )}
+        />
+      );
+    }
+
+    case "Scroller": {
+      const componentProps = schema.props as { orientation?: "horizontal" | "vertical"; spacing?: number };
+      const trackStyle =
+        componentProps.spacing !== undefined ? ({ gap: `${componentProps.spacing}px` } as React.CSSProperties) : undefined;
+      return (
+        <ScrollView
+          orientation={componentProps.orientation || "vertical"}
+          className="sdk-scroller potok-sdk-props"
+          renderTrack={({ trackProps }) => (
+            <div {...trackProps} className={`${trackProps.className} sdk-scroller-track`} style={trackStyle}>
+              {schema.children?.map((child, index) => renderChild(child, index))}
+            </div>
+          )}
+        />
+      );
+    }
+
+    case "Page": {
+      const componentProps = schema.props as { title?: string };
+      return (
+        <PageFrame title={componentProps.title} className="potok-sdk-props">
+          {schema.children?.map((child, index) => renderChild(child, index))}
+        </PageFrame>
+      );
+    }
 
     default:
       return null;

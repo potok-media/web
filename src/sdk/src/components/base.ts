@@ -9,6 +9,14 @@ export class UIComponent {
   protected _width?: string | number;
   protected _height?: string | number;
   protected _flex?: number;
+  // Curated style tokens — applied inline by the host (sanitized), so a plugin can tweak the look of ANY
+  // component without arbitrary CSS/className injection. Dangerous values are dropped host-side.
+  protected _background?: string;
+  protected _textColor?: string;
+  protected _borderColor?: string;
+  protected _borderRadius?: string;
+  protected _shadow?: string;
+  protected _opacity?: number;
 
   constructor(type: string) {
     this._type = type;
@@ -29,6 +37,18 @@ export class UIComponent {
   visible(v: boolean): this { this._visible = v; return this; }
   disabled(v: boolean): this { this._disabled = v; return this; }
   flex(v: number): this { this._flex = v; return this; }
+  /** Фон компонента: CSS-цвет или градиент (например, '#1e1e2e', 'rgba(0,0,0,.4)', 'linear-gradient(...)'). */
+  background(v: string): this { this._background = v; return this; }
+  /** Цвет текста (CSS-цвет). */
+  textColor(v: string): this { this._textColor = v; return this; }
+  /** Цвет рамки (добавляет сплошную рамку 1px, если её не было). */
+  borderColor(v: string): this { this._borderColor = v; return this; }
+  /** Скругление углов (CSS-длина, например '0.75rem' или '50%'). */
+  borderRadius(v: string): this { this._borderRadius = v; return this; }
+  /** Тень (значение CSS box-shadow, например '0 8px 24px rgba(0,0,0,.3)'). */
+  shadow(v: string): this { this._shadow = v; return this; }
+  /** Прозрачность 0..1. */
+  opacity(v: number): this { this._opacity = v; return this; }
 
   protected getProps(): Record<string, any> {
     return {};
@@ -46,6 +66,12 @@ export class UIComponent {
         visible: this._visible,
         disabled: this._disabled,
         flex: this._flex,
+        background: this._background,
+        textColor: this._textColor,
+        borderColor: this._borderColor,
+        borderRadius: this._borderRadius,
+        shadow: this._shadow,
+        opacity: this._opacity,
         ...this.getProps()
       }
     };

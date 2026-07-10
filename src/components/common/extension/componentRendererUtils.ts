@@ -26,6 +26,35 @@ export const HOST_COMMON_TYPES = new Set([
   "StreamFilterBar",
 ]);
 
+/** Phase-1 generic content + primitive components (SDKContentItem-based & design-system primitives). */
+export const HOST_CONTENT_TYPES = new Set([
+  "ContentCard",
+  "ContentRow",
+  "Hero",
+  "Image",
+  "Icon",
+  "Tabs",
+  "List",
+  "ProgressBar",
+  "Skeleton",
+  "EmptyState",
+  "Alert",
+  "Chip",
+  "IconButton",
+  "Avatar",
+  "Rating",
+  "TagList",
+  "SectionHeader",
+  "ContinueWatchingRow",
+  "TopTenRow",
+  "PosterGrid",
+  "DetailHero",
+  "Range",
+  "Segmented",
+  "Dropdown",
+  "FileInput",
+]);
+
 const SDK_BUTTON_VARIANTS = new Set<ButtonVariant>([
   "primary", "secondary", "ghost", "danger", "accent", "glass",
 ]);
@@ -63,6 +92,15 @@ export function formatSpacingValue(val: unknown): string | undefined {
   return undefined;
 }
 
+/** Rejects style-token values that could break out of a single CSS property (injection guard). */
+export function sanitizeStyleValue(value: unknown): string | undefined {
+  if (value === undefined || value === null) return undefined;
+  const s = String(value).trim();
+  if (!s || s.length > 200) return undefined;
+  if (/[;{}<>]|url\s*\(|expression|javascript:|@import|\/\*/i.test(s)) return undefined;
+  return s;
+}
+
 export function buildComponentBaseStyle(schema: UIComponentSchema): React.CSSProperties {
   const baseStyle: React.CSSProperties = {};
   const props = schema.props as Record<string, unknown>;
@@ -71,6 +109,25 @@ export function buildComponentBaseStyle(schema: UIComponentSchema): React.CSSPro
   if (props.flex !== undefined) baseStyle.flex = props.flex as React.CSSProperties["flex"];
   if (props.padding !== undefined) baseStyle.padding = formatSpacingValue(props.padding);
   if (props.margin !== undefined) baseStyle.margin = formatSpacingValue(props.margin);
+
+  // Curated style tokens — sanitized, applied inline so they override the component's own class styling.
+  const background = sanitizeStyleValue(props.background);
+  if (background) baseStyle.background = background;
+  const textColor = sanitizeStyleValue(props.textColor);
+  if (textColor) baseStyle.color = textColor;
+  const borderColor = sanitizeStyleValue(props.borderColor);
+  if (borderColor) {
+    baseStyle.borderColor = borderColor;
+    baseStyle.borderStyle = "solid";
+    baseStyle.borderWidth = "1px";
+  }
+  const borderRadius = sanitizeStyleValue(props.borderRadius);
+  if (borderRadius) baseStyle.borderRadius = borderRadius;
+  const shadow = sanitizeStyleValue(props.shadow);
+  if (shadow) baseStyle.boxShadow = shadow;
+  if (typeof props.opacity === "number" && Number.isFinite(props.opacity)) {
+    baseStyle.opacity = Math.max(0, Math.min(1, props.opacity));
+  }
   return baseStyle;
 }
 
@@ -104,17 +161,35 @@ const SDK_STYLE_VAR_MAP: Partial<Record<keyof React.CSSProperties, string>> = {
   justifyContent: "--sdk-justify-content",
 };
 
-/** Maps SDK layout props to CSS custom properties (minimal inline style surface). */
+/** Style-token properties applied inline as-is (not via CSS vars), so they override component classes. */
+const SDK_DIRECT_STYLE_KEYS: Array<keyof React.CSSProperties> = [
+  "background",
+  "color",
+  "borderColor",
+  "borderStyle",
+  "borderWidth",
+  "borderRadius",
+  "boxShadow",
+  "opacity",
+];
+
+/** Maps SDK layout props to CSS custom properties + passes curated style tokens through inline. */
 export function sdkStyleVars(style: React.CSSProperties): React.CSSProperties | undefined {
-  const vars: Record<string, string> = {};
+  const out: Record<string, unknown> = {};
   for (const key of SDK_STYLE_VAR_KEYS) {
     const val = style[key];
     const varName = SDK_STYLE_VAR_MAP[key];
     if (varName && val != null && val !== "") {
-      vars[varName] = String(val);
+      out[varName] = String(val);
     }
   }
-  return Object.keys(vars).length > 0 ? (vars as React.CSSProperties) : undefined;
+  for (const key of SDK_DIRECT_STYLE_KEYS) {
+    const val = style[key];
+    if (val != null && val !== "") {
+      out[key] = val;
+    }
+  }
+  return Object.keys(out).length > 0 ? (out as React.CSSProperties) : undefined;
 }
 
 export function mapJustifyContent(value: string | undefined): React.CSSProperties["justifyContent"] {
