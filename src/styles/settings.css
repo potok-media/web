@@ -742,6 +742,20 @@
   font-weight: 700;
 }
 
+.consent-modal-confirm-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.consent-modal-spinner {
+  animation: consent-modal-spin 0.8s linear infinite;
+}
+
+@keyframes consent-modal-spin {
+  to { transform: rotate(360deg); }
+}
+
 .consent-modal-confirm:hover:not(:disabled) {
   background: var(--warning) !important;
   filter: brightness(0.92);

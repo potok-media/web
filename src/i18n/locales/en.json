@@ -102,6 +102,7 @@
       "securityWarningTitle": "Security warning",
       "securityWarningBody": "Installing the plugin grants it the ability to perform the listed actions in the app. Please install extensions only from trusted sources and authors you trust, to keep your personal data safe.",
       "confirm": "Yes, I trust it and want to install",
+      "confirming": "Installing…",
       "cancel": "Cancel"
     },
     "accessibility": {

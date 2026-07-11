@@ -35,12 +35,14 @@ export const ExtensionsManager: React.FC = () => {
     pendingExtension,
     handleAddExtension,
     installFromUrl,
+    isConfirming,
     confirmPending,
     dismissPending,
   } = useExtensionInstall({
     extensions,
     setExtensions,
     blacklist,
+    catalog,
     setIsLoading,
     onInstallClose: () => setIsInstallOpen(false),
   });
@@ -307,7 +309,9 @@ export const ExtensionsManager: React.FC = () => {
       {pendingExtension && (
         <ConsentModal
           manifest={pendingExtension.manifest}
-          onConfirm={confirmPending}
+          displayName={pendingExtension.displayName}
+          isInstalling={isConfirming}
+          onConfirm={() => { void confirmPending(); }}
           onClose={dismissPending}
         />
       )}

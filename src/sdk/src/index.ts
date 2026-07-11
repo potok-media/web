@@ -303,8 +303,12 @@ export const ui = {
       window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'RENDER_UI', payload }, hostOrigin);
     }
   },
-  showHUD(type: string, message: string) {
-    window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'SHOW_HUD', payload: { type, message } }, getHostOrigin());
+  showHUD(type: string, message: string, opts?: { durationMs?: number }) {
+    const payload: { type: string; message: string; durationMs?: number } = { type, message };
+    if (opts && typeof opts.durationMs === 'number') {
+      payload.durationMs = opts.durationMs;
+    }
+    window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'SHOW_HUD', payload }, getHostOrigin());
   },
   playVideo(playback: unknown) {
     window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'PLAY_VIDEO', payload: playback }, getHostOrigin());

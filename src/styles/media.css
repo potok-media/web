@@ -466,24 +466,36 @@
    */
   content-visibility: auto;
   contain-intrinsic-size: auto 23rem;
+  /*
+   * `content-visibility: auto` implies `contain: paint`, which clips the scale-down
+   * animation at the card box. Delay reverting to `auto` until the poster transform
+   * finishes (same 0.35s as .media-poster-wrap) so de-elevate paints past bounds too.
+   */
+  transition: content-visibility 0s linear 0.35s;
+  transition-behavior: allow-discrete;
 }
 
 /*
- * `content-visibility: auto` above implies `contain: paint`, which clips a card's hover
- * scale + accent glow to its own box — rows (.carousel-row) have no such containment, which
- * is why grid cards (catalog, Library) zoom "cropped" while row cards don't. A hovered or
- * focused card is by definition on-screen, so it gains nothing from being skippable there:
- * drop the containment while the elevation is active so it can paint past its bounds, exactly
- * like in a row. No layout/spacing change — off-screen cards keep `auto` and stay virtualized.
+ * Rows (.carousel-row) have no paint containment, so their cards zoom freely. Grid cards
+ * drop containment while elevated; the delayed transition on the base rule above keeps
+ * `visible` through the scale-down so blur/unhover does not clip mid-animation.
  */
 @media (hover: hover) {
   .potok-grid.library-grid .media-card:hover {
     content-visibility: visible;
+    contain: none;
+    transition: content-visibility 0s linear 0s;
+    transition-behavior: allow-discrete;
   }
 }
 
-.potok-grid.library-grid .media-card.focused {
+.potok-grid.library-grid .media-card.is-paint-uncontained,
+.potok-grid.library-grid .media-card.focused,
+.potok-grid.library-grid .media-card:focus-visible {
   content-visibility: visible;
+  contain: none;
+  transition: content-visibility 0s linear 0s;
+  transition-behavior: allow-discrete;
 }
 
 .library-empty-view {
@@ -631,8 +643,8 @@
   overflow: hidden;
   background-color: var(--bg-surface-high);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-  transition: 
-    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), 
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
   z-index: 0;
 
@@ -663,19 +675,24 @@
 @media (hover: hover) {
   .media-card:hover .media-poster-wrap {
     transform: translateY(-4px) scale(1.03);
-    box-shadow: 
+    box-shadow:
       0 10px 24px rgba(0, 0, 0, 0.45),
       0 0 16px var(--accent-semi);
     z-index: 10;
   }
 }
 
-.media-card.focused .media-poster-wrap {
+.media-card.focused .media-poster-wrap,
+.media-card:focus-visible .media-poster-wrap {
   transform: translateY(-4px) scale(1.03);
-  box-shadow: 
+  box-shadow:
     0 10px 24px rgba(0, 0, 0, 0.45),
     0 0 0 3px var(--accent);
   z-index: 10;
+}
+
+.media-card:focus-visible {
+  outline: none;
 }
 
 .media-poster {

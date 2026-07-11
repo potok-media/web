@@ -24,7 +24,7 @@ export interface PluginSandboxMessageContext {
   activeExtensions: RegisteredExtension[];
   activeProfile: ConnectionProfile | null;
   activePlayback: ActivePlayback | null;
-  showHUD: (type: HUDType, message: string) => void;
+  showHUD: (type: HUDType, message: string, durationMs?: number) => void;
   playVideo: (playback: ActivePlayback) => void;
   navigate: NavigateFunction;
   setAccentTheme: (theme: string) => void;

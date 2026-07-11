@@ -1,12 +1,14 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { X, ShieldAlert } from "lucide-react";
+import { X, ShieldAlert, Loader2 } from "lucide-react";
 import type { ExtensionManifest } from "@potok/sdk-types";
 import { Overlay } from "../common/Overlay";
 import { Button, IconButton } from "../ui";
 
 interface Props {
   manifest: ExtensionManifest;
+  displayName: string;
+  isInstalling?: boolean;
   onConfirm: () => void;
   onClose: () => void;
 }
@@ -17,14 +19,21 @@ const PERMISSION_DESCRIPTION_KEYS: Record<string, string> = {
   "ui-notifications": "consent.permissionUiNotifications"
 };
 
-export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) => {
+export const ConsentModal: React.FC<Props> = ({
+  manifest,
+  displayName,
+  isInstalling = false,
+  onConfirm,
+  onClose,
+}) => {
   const { t } = useTranslation("settings");
   const requestedPermissions = manifest.permissions || [];
 
   return (
     <Overlay
       open
-      onClose={onClose}
+      onClose={isInstalling ? () => {} : onClose}
+      closeOnBackdrop={!isInstalling}
       styled={false}
       backdropClassName="manifest-modal-overlay"
       className="manifest-modal manifest-modal--narrow"
@@ -37,13 +46,14 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
               {t("consent.title")}
             </h3>
             <span className="consent-modal-subtitle">
-              {t("consent.installing", { name: manifest.name })}
+              {t("consent.installing", { name: displayName })}
             </span>
           </div>
         </div>
         <IconButton
           type="button"
           onClick={onClose}
+          disabled={isInstalling}
           className="manifest-modal-close"
           title={t("consent.close")}
           aria-label={t("consent.close")}
@@ -80,15 +90,24 @@ export const ConsentModal: React.FC<Props> = ({ manifest, onConfirm, onClose }) 
           onClick={onConfirm}
           variant="primary"
           size="sm"
+          disabled={isInstalling}
           className="consent-modal-confirm"
         >
-          {t("consent.confirm")}
+          {isInstalling ? (
+            <span className="consent-modal-confirm-inner">
+              <Loader2 size="1rem" className="consent-modal-spinner" aria-hidden />
+              {t("consent.confirming")}
+            </span>
+          ) : (
+            t("consent.confirm")
+          )}
         </Button>
         <Button
           type="button"
           onClick={onClose}
           variant="ghost"
           size="sm"
+          disabled={isInstalling}
           className="consent-modal-cancel"
         >
           {t("consent.cancel")}

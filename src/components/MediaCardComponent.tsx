@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Star, Film, Tv } from "lucide-react";
@@ -16,6 +16,9 @@ interface MediaCardComponentProps {
   /** Episode badge + watch progress bar — only for the Continue (up-next) library tab. */
   showContinueOverlay?: boolean;
 }
+
+/** Matches .media-poster-wrap transform transition in media.css */
+const CARD_ELEVATION_MS = 350;
 
 const shallowCompareStyles = (
   prevStyle?: React.CSSProperties,
@@ -52,7 +55,42 @@ const areMediaCardComponentsEqual = (
 export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
   ({ item, onClick, style, showContinueOverlay = false }) => {
     const [hasError, setHasError] = useState(false);
+    const [paintUncontained, setPaintUncontained] = useState(false);
     const cardRef = useRef<HTMLAnchorElement>(null);
+    const isElevatedRef = useRef(false);
+    const deelevateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const clearDeelevateTimer = () => {
+      if (deelevateTimerRef.current !== null) {
+        clearTimeout(deelevateTimerRef.current);
+        deelevateTimerRef.current = null;
+      }
+    };
+
+    useEffect(() => () => clearDeelevateTimer(), []);
+
+    const handleElevateStart = () => {
+      clearDeelevateTimer();
+      isElevatedRef.current = true;
+      setPaintUncontained(true);
+    };
+
+    const handleElevateEnd = () => {
+      isElevatedRef.current = false;
+      clearDeelevateTimer();
+      deelevateTimerRef.current = setTimeout(() => {
+        if (!isElevatedRef.current) setPaintUncontained(false);
+        deelevateTimerRef.current = null;
+      }, CARD_ELEVATION_MS);
+    };
+
+    const handlePosterTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
+      if (e.propertyName !== "transform") return;
+      if (!isElevatedRef.current) {
+        clearDeelevateTimer();
+        setPaintUncontained(false);
+      }
+    };
     const { bannerQuality } = useSettings();
     const { t } = useTranslation("media");
     const posterSrc = resizeTmdbImage(item.posterSrc, posterSizeForQuality(bannerQuality));
@@ -91,11 +129,15 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
       <RouterLink
         ref={cardRef}
         to={`/media/${item.mediaType}/${item.id}`}
-        className="media-card is-visible"
+        className={`media-card is-visible${paintUncontained ? " is-paint-uncontained" : ""}`}
         onClick={handleCardClick}
+        onMouseEnter={handleElevateStart}
+        onMouseLeave={handleElevateEnd}
+        onFocus={handleElevateStart}
+        onBlur={handleElevateEnd}
         style={style}
       >
-        <div className="media-poster-wrap">
+        <div className="media-poster-wrap" onTransitionEnd={handlePosterTransitionEnd}>
           {posterSrc && !hasError ? (
             <img
               src={posterSrc}

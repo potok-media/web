@@ -756,7 +756,7 @@ export const SDK_TYPINGS = `
       /**
        * Выводит всплывающее HUD-уведомление (toast) на стороне хоста.
        */
-      showHUD(type: 'info' | 'success' | 'warning' | 'error', msg: string): void;
+      showHUD(type: 'info' | 'success' | 'warning' | 'error', msg: string, opts?: { durationMs?: number }): void;
       /**
        * Навигация по страницам приложения.
        */

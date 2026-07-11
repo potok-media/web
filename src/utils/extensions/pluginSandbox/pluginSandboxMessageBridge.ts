@@ -114,7 +114,12 @@ export async function handlePluginSandboxMessage(
       break;
     case "SHOW_HUD":
       if (permissions.includes("ui-notifications")) {
-        ctx.showHUD(payload.type as "success" | "error" | "info" | "warning", String(payload.message));
+        const durationMs = typeof payload.durationMs === "number" ? payload.durationMs : undefined;
+        ctx.showHUD(
+          payload.type as "success" | "error" | "info" | "warning",
+          String(payload.message),
+          durationMs,
+        );
       }
       break;
     case "SET_ACCENT_THEME":

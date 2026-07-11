@@ -1,6 +1,7 @@
 import {
   Search, Puzzle, Globe, Database, Bell, Play, Sparkles,
 } from "lucide-react";
+import type { TFunction } from "i18next";
 import type { ExtensionManifest } from "@potok/sdk-types";
 
 export const PERMISSION_KEYS: Record<string, string> = {
@@ -20,6 +21,29 @@ export const getExtensionIcon = (manifest: ExtensionManifest) => {
   if (/theme|style|css|design|тема/.test(name)) return <Sparkles size="1.375rem" />;
   return <Puzzle size="1.375rem" />;
 };
+
+/** Human label for consent UI / toasts — manifest.name is often a plugin i18n key before install. */
+export function resolveManifestDisplayName(
+  manifest: ExtensionManifest,
+  options?: { catalogName?: string; t?: TFunction },
+): string {
+  if (options?.catalogName) return options.catalogName;
+
+  const raw = (manifest.name || "").trim();
+  if (raw && !raw.includes(":")) return raw;
+
+  if (options?.t && raw) {
+    const translated = options.t(raw);
+    if (translated && translated !== raw) return translated;
+  }
+
+  const id = (manifest.id || raw || "extension").replace(/^potok-/, "");
+  return id
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
 
 export const getSourceLabel = (url: string) => {
   if (url.includes("github")) return "GitHub";
