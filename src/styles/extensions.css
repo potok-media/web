@@ -312,7 +312,8 @@
 /* SDK SearchBar in plugin toolbars — one bordered chip, clear control sits inside (not a separate icon box). */
 .extensions-search-bar--sdk {
   width: var(--sdk-width, 100%);
-  flex-shrink: 0;
+  flex: var(--sdk-flex, 1 1 auto);
+  min-width: 0;
   height: 2.5rem;
   box-sizing: border-box;
   margin: 0;

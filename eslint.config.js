@@ -76,6 +76,7 @@ const strictTypedFiles = [
   'src/utils/monaco/**',
   'src/utils/extensions/pluginSandbox/**',
   'src/utils/hls/**',
+  'src/sdk/**',
 ]
 
 /** ui primitives may use native button/input elements internally. */

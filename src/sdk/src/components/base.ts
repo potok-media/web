@@ -53,17 +53,17 @@ export class UIComponent {
   visible(v: boolean): this { this._visible = v; return this; }
   disabled(v: boolean): this { this._disabled = v; return this; }
   flex(v: number): this { this._flex = v; return this; }
-  /** Фон компонента: CSS-цвет или градиент (например, '#1e1e2e', 'rgba(0,0,0,.4)', 'linear-gradient(...)'). */
+  /** Component background: a CSS color or gradient (e.g. '#1e1e2e', 'rgba(0,0,0,.4)', 'linear-gradient(...)'). */
   background(v: string): this { this._background = v; return this; }
-  /** Цвет текста (CSS-цвет). */
+  /** Text color (CSS color). */
   textColor(v: string): this { this._textColor = v; return this; }
-  /** Цвет рамки (добавляет сплошную рамку 1px, если её не было). */
+  /** Border color (adds a solid 1px border if there was none). */
   borderColor(v: string): this { this._borderColor = v; return this; }
-  /** Скругление углов (CSS-длина, например '0.75rem' или '50%'). */
+  /** Corner radius (CSS length, e.g. '0.75rem' or '50%'). */
   borderRadius(v: string): this { this._borderRadius = v; return this; }
-  /** Тень (значение CSS box-shadow, например '0 8px 24px rgba(0,0,0,.3)'). */
+  /** Shadow (a CSS box-shadow value, e.g. '0 8px 24px rgba(0,0,0,.3)'). */
   shadow(v: string): this { this._shadow = v; return this; }
-  /** Прозрачность 0..1. */
+  /** Opacity 0..1. */
   opacity(v: number): this { this._opacity = v; return this; }
 
   protected getProps(): Record<string, unknown> {

@@ -194,12 +194,12 @@ describe("Phase-2 builders", () => {
   });
 
   it("Collapsible carries open + onToggle + children", () => {
-    const json = new CollapsibleBuilder("Секция")
+    const json = new CollapsibleBuilder("Section")
       .open(true)
       .onToggle(noop)
       .child(new ButtonBuilder("X"))
       .compile("root");
-    expect(json.props.title).toBe("Секция");
+    expect(json.props.title).toBe("Section");
     expect(json.props.open).toBe(true);
     expect(json.events!.onToggle).toBeTruthy();
     expect(json.children).toHaveLength(1);
@@ -227,10 +227,10 @@ describe("Phase-2 builders", () => {
   });
 
   it("SectionHeader carries title + action + onAction", () => {
-    const json = new SectionHeaderBuilder("Раздел").subtitle("sub").actionLabel("Все").onAction(noop).compile("root");
-    expect(json.props.title).toBe("Раздел");
+    const json = new SectionHeaderBuilder("Section").subtitle("sub").actionLabel("All").onAction(noop).compile("root");
+    expect(json.props.title).toBe("Section");
     expect(json.props.subtitle).toBe("sub");
-    expect(json.props.actionLabel).toBe("Все");
+    expect(json.props.actionLabel).toBe("All");
     expect(json.events!.onAction).toBeTruthy();
   });
 });
