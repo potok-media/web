@@ -76,9 +76,9 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
             <span className="conn-example">{t("example")}</span>
 
             {isOffline && (
-              <button type="button" className="conn-retry-link" onClick={() => checkConnection()}>
+              <Button type="button" variant="ghost" className="conn-retry-link" onClick={() => checkConnection()}>
                 {t("checkAgain")}
-              </button>
+              </Button>
             )}
           </form>
         )}

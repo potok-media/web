@@ -162,15 +162,14 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
             {bannerQualityOptions.map((o) => {
               const active = (bannerQuality || "auto") === o.value;
               return (
-                <button
+                <Pressable
                   key={o.value}
-                  type="button"
-                  className={active ? "active" : ""}
+                  className={`seg-btn ${active ? "active" : ""}`}
                   aria-pressed={active}
-                  onClick={() => setBannerQuality(o.value)}
+                  onPress={() => setBannerQuality(o.value)}
                 >
                   {o.label}
-                </button>
+                </Pressable>
               );
             })}
           </div>

@@ -6,7 +6,7 @@ import type { RegisteredExtension } from "@potok/sdk-types";
 import type { SlotContribution } from "@potok/sdk-types";
 
 type SettingsSlotEntry = { contribution: SlotContribution; pluginId: string };
-import { Button, Chip } from "../ui";
+import { Button, Chip, Input } from "../ui";
 
 interface SettingsNavigationProps {
   activeTab: string;
@@ -104,7 +104,7 @@ export const SettingsSidebarNav: React.FC<SettingsNavigationProps> = ({
 
       <div className="settings-nav-search">
         <Search size="0.9rem" aria-hidden="true" />
-        <input
+        <Input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}

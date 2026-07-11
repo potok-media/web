@@ -882,7 +882,7 @@
   background: var(--bg-surface-high);
 }
 
-.settings-segmented button {
+.settings-segmented .seg-btn {
   padding: 0.5rem 0.9rem;
   border: none;
   background: transparent;
@@ -893,15 +893,15 @@
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.settings-segmented button + button {
+.settings-segmented .seg-btn + .seg-btn {
   border-left: var(--glass-border);
 }
 
-.settings-segmented button:hover {
+.settings-segmented .seg-btn:hover {
   color: var(--text-primary);
 }
 
-.settings-segmented button.active {
+.settings-segmented .seg-btn.active {
   background: var(--bg-surface-highest);
   color: var(--text-primary);
 }
