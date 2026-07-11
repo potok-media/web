@@ -879,6 +879,10 @@ export const SDK_TYPINGS = `
       local: {
         getItem(key: string): Promise<string | null>;
         setItem(key: string, value: any): Promise<void>;
+        /** Удаляет один ключ из хранилища плагина. */
+        removeItem(key: string): Promise<void>;
+        /** Полностью очищает изолированное хранилище плагина (например, для сброса кэша). */
+        clear(): Promise<void>;
       };
     };
     /**

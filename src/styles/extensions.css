@@ -310,7 +310,9 @@
 }
 
 .sidebar-search-form--sdk {
-  width: 100%;
+  /* Default full-width, but let a plugin size it directly via .width() (→ --sdk-width). Previously this was
+   * a hard `width: 100%` that overrode --sdk-width, forcing plugins to wrap the search in a fixed-width box. */
+  width: var(--sdk-width, 100%);
   margin: 0;
 }
 

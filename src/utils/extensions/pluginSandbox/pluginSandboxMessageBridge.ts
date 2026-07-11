@@ -240,6 +240,22 @@ export async function handlePluginSandboxMessage(
       reply(eventSource, "STORAGE_SET_RESPONSE", { requestId: payload.requestId });
       break;
     }
+    case "STORAGE_REMOVE": {
+      if (!permissions.includes("storage")) break;
+      localStorage.removeItem(`potok_plugin:scoped:${pluginId}:${String(payload.key)}`);
+      break;
+    }
+    case "STORAGE_CLEAR": {
+      if (!permissions.includes("storage")) break;
+      const prefix = `potok_plugin:scoped:${pluginId}:`;
+      const toRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(prefix)) toRemove.push(key);
+      }
+      toRemove.forEach((key) => localStorage.removeItem(key));
+      break;
+    }
     case "HTTP_REQUEST":
       if (rawPayload && typeof rawPayload === "object") {
         handleHttpProxyRequest(

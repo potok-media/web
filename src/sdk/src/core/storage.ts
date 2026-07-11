@@ -31,5 +31,36 @@ export const LocalStorageBridge = {
     }, 0);
 
     return Promise.resolve();
+  },
+
+  removeItem(key: string): Promise<void> {
+    delete this.cache[key];
+
+    const hostOrigin = (window as any).PotokInitialState?.hostOrigin || "*";
+    setTimeout(() => {
+      window.parent.postMessage({
+        source: 'potok-plugin-sdk',
+        action: 'STORAGE_REMOVE',
+        payload: { requestId: "store_rm_" + Math.random().toString(36).substring(2, 9), key }
+      }, hostOrigin);
+    }, 0);
+
+    return Promise.resolve();
+  },
+
+  // Wipes ALL of this plugin's scoped storage (local mirror + persisted host copy).
+  clear(): Promise<void> {
+    this.cache = {};
+
+    const hostOrigin = (window as any).PotokInitialState?.hostOrigin || "*";
+    setTimeout(() => {
+      window.parent.postMessage({
+        source: 'potok-plugin-sdk',
+        action: 'STORAGE_CLEAR',
+        payload: { requestId: "store_clear_" + Math.random().toString(36).substring(2, 9) }
+      }, hostOrigin);
+    }, 0);
+
+    return Promise.resolve();
   }
 };
