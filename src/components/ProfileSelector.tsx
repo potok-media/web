@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, Trash2, Settings as SettingsIcon } from "lucide-react";
+import { Plus, Trash2, Settings as SettingsIcon, CheckCircle2, Circle } from "lucide-react";
 import type { ConnectionProfile } from "../network/ApiTypes";
 import { Button, IconButton } from "./ui";
 
@@ -54,12 +54,18 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = React.memo(({
               onStartEdit(p);
             }}
           >
+            <span className="profile-card-indicator">
+              {p.id === activeProfileID ? <CheckCircle2 size="1.125rem" /> : <Circle size="1.125rem" />}
+            </span>
             <div className="profile-card-info">
               <span className="profile-card-name">{p.name}</span>
               <span className="profile-card-url">{p.gatewayURL}</span>
             </div>
-            {!isSettingsLocked && (
-              <div className="profile-actions">
+            <div className="profile-card-right">
+              {p.id === activeProfileID && (
+                <span className="profile-card-badge">{t("profileSelector.active")}</span>
+              )}
+              {!isSettingsLocked && (
                 <IconButton
                   className="profile-btn delete"
                   onClick={(e) => handleDeleteClick(e, p.id)}
@@ -68,8 +74,8 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = React.memo(({
                 >
                   <Trash2 size="1rem" />
                 </IconButton>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         ))}
       </div>

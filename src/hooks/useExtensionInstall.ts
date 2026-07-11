@@ -36,12 +36,12 @@ export function useExtensionInstall({
     showHUD("success", t("toast.installed", { name: manifest.name }));
   }, [extensions, setExtensions, showHUD, t, onInstallClose]);
 
-  const handleAddExtension = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newUrl.trim()) return;
+  const installFromUrl = useCallback(async (rawUrl: string) => {
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return;
     setIsLoading(true);
     try {
-      const cleanUrl = newUrl.trim().replace(/\/$/, "");
+      const cleanUrl = trimmed.replace(/\/$/, "");
       let fetchUrl = `${cleanUrl}/manifest.json`;
       if (fetchUrl.includes("raw.githubusercontent.com")) {
         const m = fetchUrl.match(/githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/);
@@ -70,7 +70,12 @@ export function useExtensionInstall({
     } finally {
       setIsLoading(false);
     }
-  }, [newUrl, setIsLoading, t, blacklist, extensions, installExtension, showHUD, onInstallClose]);
+  }, [setIsLoading, t, blacklist, extensions, installExtension, showHUD, onInstallClose]);
+
+  const handleAddExtension = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    void installFromUrl(newUrl);
+  }, [newUrl, installFromUrl]);
 
   const confirmPending = useCallback(() => {
     if (!pendingExtension) return;
@@ -85,6 +90,7 @@ export function useExtensionInstall({
     setNewUrl,
     pendingExtension,
     handleAddExtension,
+    installFromUrl,
     confirmPending,
     dismissPending,
   };

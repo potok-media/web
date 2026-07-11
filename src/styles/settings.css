@@ -122,10 +122,10 @@
 
 .settings-brand-title {
   font-size: 1.35rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .settings-brand-desc {
@@ -134,25 +134,66 @@
   margin: 0;
 }
 
+/* Settings search (filters nav items) */
+.settings-nav-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0.25rem 0.25rem;
+  padding: 0 0.75rem;
+  height: 2.25rem;
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
+  border-radius: var(--radius-m);
+  transition: border-color 0.15s ease;
+}
+
+.settings-nav-search:focus-within {
+  border-color: var(--accent-semi);
+}
+
+.settings-nav-search svg {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.settings-nav-search input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font: var(--font-body);
+  font-size: 0.85rem;
+}
+
+.settings-nav-search input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.settings-nav-empty {
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+}
+
 .settings-divider {
   height: 0.0625rem;
   background-color: var(--bg-surface-highest);
   margin: 0.75rem;
 }
 
-.settings-section-title {
-  font: var(--font-caption-bold);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-  opacity: 0.8;
-  letter-spacing: 0.05em;
-  padding: 0.5rem 0.75rem;
+.settings-nav-group {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0;
+  padding: 0.5rem 0.75rem 0.25rem;
   margin-top: 0.75rem;
-  margin-bottom: 0.25rem;
 }
 
-.settings-section-title:first-of-type {
+.settings-nav-group:first-of-type {
   margin-top: 0.25rem;
 }
 
@@ -219,17 +260,17 @@
 
 .settings-section-title {
   font: var(--font-title2);
+  font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: var(--space-s);
+  opacity: 1;
+  margin-bottom: var(--space-m);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  border-bottom: var(--glass-border);
-  padding-bottom: var(--space-s);
+  gap: 0.625rem;
 }
 
 .settings-section-title svg {
-  color: var(--accent);
+  color: var(--text-secondary);
 }
 
 /* Profiles Layout Components */
@@ -267,13 +308,40 @@
 .profile-card {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.75rem;
   padding: var(--space-m);
   border-radius: var(--radius-m);
   background-color: var(--bg-surface-high);
   border: var(--glass-border);
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.profile-card-indicator {
+  flex-shrink: 0;
+  display: flex;
+  color: var(--text-tertiary);
+}
+
+.profile-card.active .profile-card-indicator {
+  color: var(--accent);
+}
+
+.profile-card-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.profile-card-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--accent-dim);
+  color: var(--accent);
+  white-space: nowrap;
 }
 
 .profile-card:hover {
@@ -291,6 +359,7 @@
   flex-direction: column;
   gap: 0.125rem;
   min-width: 0;
+  flex: 1;
 }
 
 .profile-card-name {
@@ -479,6 +548,10 @@
   font: var(--font-caption-bold);
   color: var(--text-primary);
   font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 /* Modal Styling (JSON Manifest Viewer) */
@@ -726,9 +799,126 @@
   color: var(--text-primary);
 }
 
-/* General Layout Elements for form alignment */
+/* Row layout: label + hint on the left, control hugged to the RIGHT edge of the pane. */
 .settings-preference-group {
-  margin-top: 0.5rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 1.5rem;
+  row-gap: 0;
+  margin-top: 0;
+  padding: 0.875rem 0;
+  border-top: var(--glass-border);
+}
+
+.settings-preference-group .ui-field__label {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.settings-preference-group .ui-field__hint {
+  grid-column: 1;
+  grid-row: 2;
+  margin: 0.25rem 0 0;
+}
+
+/* Any control (select, toggle, segmented, or a wrapper) sits at the right edge. */
+.settings-preference-group > *:not(.ui-field__label):not(.ui-field__hint) {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  justify-self: end;
+}
+
+/* Selects / inputs keep a consistent, readable width when right-aligned. */
+.settings-preference-group > .ui-select,
+.settings-preference-group > select,
+.settings-preference-group > .ui-input,
+.settings-preference-group > input,
+.settings-preference-group > .ui-password-row {
+  min-width: 13rem;
+}
+
+/* Accent color as a right-aligned row of color dots. */
+.settings-swatch-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.settings-swatch {
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 50%;
+  background: var(--theme-color);
+  box-shadow: 0 0 0 0.0625rem var(--text-tertiary);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.settings-swatch:hover {
+  transform: scale(1.08);
+}
+
+.settings-swatch.active {
+  box-shadow: 0 0 0 0.125rem var(--bg-surface), 0 0 0 0.25rem var(--accent);
+}
+
+/* Plugin settings tab: give SDK controls the same hairline divider between rows. */
+.settings-plugin-pane .potok-toggle-group,
+.settings-plugin-pane .potok-input-group {
+  border-top: var(--glass-border);
+  padding: 0.875rem 0;
+}
+
+/* Segmented control (few short options, e.g. image quality) */
+.settings-segmented {
+  display: inline-flex;
+  border: var(--glass-border);
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background: var(--bg-surface-high);
+}
+
+.settings-segmented button {
+  padding: 0.5rem 0.9rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font: var(--font-caption-bold);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.settings-segmented button + button {
+  border-left: var(--glass-border);
+}
+
+.settings-segmented button:hover {
+  color: var(--text-primary);
+}
+
+.settings-segmented button.active {
+  background: var(--bg-surface-highest);
+  color: var(--text-primary);
+}
+
+/* Stack the row (label over control) on narrow screens */
+@media (max-width: 560px) {
+  .settings-preference-group {
+    grid-template-columns: 1fr;
+    row-gap: 0.5rem;
+  }
+  .settings-preference-group .ui-field__label,
+  .settings-preference-group .ui-field__hint,
+  .settings-preference-group > *:not(.ui-field__label):not(.ui-field__hint) {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: start;
+  }
 }
 
 .settings-auth-checkbox-row {
@@ -813,8 +1003,7 @@
 
 .settings-mobile-nav-label {
   font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-weight: 500;
   color: var(--text-secondary);
   letter-spacing: 0.05em;
 }

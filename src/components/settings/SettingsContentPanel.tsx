@@ -77,7 +77,9 @@ export const SettingsContentPanel: React.FC<SettingsContentPanelProps> = ({
     {activeTab === "extensions" && <ExtensionsManager />}
     {activeTab === "console" && <ConsoleManager />}
     {slotContributions.some((c) => c.contribution.id === activeTab) && (
-      <Slot name="settings-tabs" contributionId={activeTab} />
+      <div className="settings-pane settings-plugin-pane">
+        <Slot name="settings-tabs" contributionId={activeTab} />
+      </div>
     )}
     {configExtensions.map((ext) => (
       activeTab === `config-${ext.id}` && (

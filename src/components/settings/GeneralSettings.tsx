@@ -120,17 +120,23 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
         {hasAccentContribution ? (
           <Slot name="settings-color-accent" props={{ accentTheme }} />
         ) : (
-          <Field label={t("accent.label")} className="settings-form-group">
-            <div className="theme-options-grid">
+          <Field
+            label={t("accent.label")}
+            hint={t("accent.desc")}
+            className="settings-form-group settings-preference-group"
+          >
+            <div className="settings-swatch-row">
               {themes.map((theme) => (
                 <Pressable
                   key={theme.id}
-                  className={`theme-card-option ${accentTheme === theme.id ? "active" : ""}`}
+                  className={`settings-swatch ${accentTheme === theme.id ? "active" : ""}`}
                   onPress={() => setAccentTheme(theme.id)}
                   aria-pressed={accentTheme === theme.id}
+                  aria-label={theme.name}
+                  title={theme.name}
+                  style={{ "--theme-color": theme.color } as React.CSSProperties}
                 >
-                  <span className="theme-dot" style={{ "--theme-color": theme.color } as React.CSSProperties} />
-                  <span className="theme-option-name">{theme.name}</span>
+                  <span aria-hidden="true" />
                 </Pressable>
               ))}
             </div>
@@ -152,11 +158,22 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
           label={t("imageQuality.label")}
           className="settings-form-group settings-preference-group"
         >
-          <Select
-            value={bannerQuality || "auto"}
-            options={bannerQualityOptions}
-            onChange={setBannerQuality}
-          />
+          <div className="settings-segmented" role="group" aria-label={t("imageQuality.label")}>
+            {bannerQualityOptions.map((o) => {
+              const active = (bannerQuality || "auto") === o.value;
+              return (
+                <button
+                  key={o.value}
+                  type="button"
+                  className={active ? "active" : ""}
+                  aria-pressed={active}
+                  onClick={() => setBannerQuality(o.value)}
+                >
+                  {o.label}
+                </button>
+              );
+            })}
+          </div>
         </Field>
 
         <Field

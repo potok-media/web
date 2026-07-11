@@ -35,6 +35,8 @@
       "otherAddress": "Use a different BFF address:"
     },
     "bffPlaceholder": "BFF gateway address",
+    "connect": "Connect",
+    "example": "e.g. 127.0.0.1:5000 or local.potok.tv",
     "saveAndConnect": "Save and connect",
     "applyRetry": "Apply and retry",
     "checkAgain": "Check again"
@@ -44,7 +46,8 @@
       "title": "Appearance & player"
     },
     "accent": {
-      "label": "Accent color"
+      "label": "Accent color",
+      "desc": "Color of highlights and active elements."
     },
     "player": {
       "label": "Default player",
@@ -53,8 +56,8 @@
     "imageQuality": {
       "label": "Image quality",
       "auto": "Auto",
-      "high": "High (1280p)",
-      "max": "Maximum (original)"
+      "high": "High",
+      "max": "Max"
     },
     "language": {
       "label": "Language",
@@ -73,7 +76,9 @@
       "accessibility": "Accessibility",
       "accessibilityShort": "Accessibility",
       "extensions": "Extensions",
-      "console": "Console"
+      "console": "Console",
+      "searchPlaceholder": "Search settings",
+      "noResults": "No matches"
     },
     "profiles": {
       "errorEmptyGateway": "Enter a gateway address",
@@ -117,7 +122,10 @@
         "150": "Maximum (150%)"
       },
       "developerMode": "Developer mode",
+      "developerModeDesc": "Shows debug tools and the documentation section.",
       "directRequests": "Direct requests",
+      "directRequestsDesc": "Plugins call external APIs directly, bypassing the server proxy. Faster, but needs CORS on the service side.",
+      "uiScaleDesc": "Size of fonts and interface elements.",
       "docsTitle": "Documentation and sandbox",
       "docsDescription": "An interactive guide to building plugins, the API specification, and a sandbox for debugging code.",
       "openWiki": "Open Wiki"
@@ -167,7 +175,8 @@
       "cannotDeleteLast": "Cannot delete the only profile",
       "profileDeleted": "Profile deleted",
       "deleteProfile": "Delete profile",
-      "addProfile": "Add profile"
+      "addProfile": "Add profile",
+      "active": "Active"
     }
   },
   "player": {
@@ -738,6 +747,20 @@
     "title": "Extensions",
     "subtitle": "{{total}} installed · {{enabledCount}} active",
     "installByUrl": "Install from URL",
+    "catalog": {
+      "title": "Community catalog",
+      "official": "Verified",
+      "install": "Install",
+      "open": "Open",
+      "categories": {
+        "all": "All",
+        "catalog": "Catalogs",
+        "sources": "Sources",
+        "visual": "Themes",
+        "tools": "Tools",
+        "tracking": "Tracking"
+      }
+    },
     "searchPlaceholder": "Search extensions...",
     "clear": "Clear",
     "close": "Close",

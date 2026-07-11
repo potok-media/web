@@ -53,20 +53,30 @@ export const DeclarativeSettingsField: React.FC<DeclarativeSettingsFieldProps> =
 
   if (item.type === "boolean") {
     const checkedVal = value !== undefined ? !!value : !!item.default;
-    return (
-      <div className={cx("settings-boolean-field", isInline && "settings-boolean-field--inline", !isInline && "settings-form-group")}>
-        <div className="settings-toggle-row settings-toggle-row--config">
-          <span className="settings-label settings-toggle-label">{labelText}</span>
-          <Switch
-            id={`config-${extId}-${fieldKey}`}
-            checked={checkedVal}
-            onCheckedChange={(checked) => onChange(fieldKey, checked)}
-          />
+    const switchEl = (
+      <Switch
+        id={`config-${extId}-${fieldKey}`}
+        checked={checkedVal}
+        onCheckedChange={(checked) => onChange(fieldKey, checked)}
+      />
+    );
+    if (isInline) {
+      return (
+        <div className="settings-boolean-field settings-boolean-field--inline">
+          <div className="settings-toggle-row settings-toggle-row--config">
+            <span className="settings-label settings-toggle-label">{labelText}</span>
+            {switchEl}
+          </div>
         </div>
-        {!isInline && descriptionHtml && (
-          <span className="settings-description" dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
-        )}
-      </div>
+      );
+    }
+    const boolHint = descriptionHtml ? (
+      <span dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
+    ) : undefined;
+    return (
+      <Field label={labelText} hint={boolHint} className="settings-form-group settings-preference-group">
+        {switchEl}
+      </Field>
     );
   }
 
@@ -144,7 +154,7 @@ export const DeclarativeSettingsField: React.FC<DeclarativeSettingsFieldProps> =
   ) : undefined;
 
   return (
-    <Field label={labelText} htmlFor={fieldId} hint={hint} className="settings-form-group">
+    <Field label={labelText} htmlFor={fieldId} hint={hint} className="settings-form-group settings-preference-group">
       {fieldInput}
     </Field>
   );

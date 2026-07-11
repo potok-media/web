@@ -2,7 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Eye, BookOpen } from "lucide-react";
 import "../../styles/extensions.css";
-import { Button, Select, Switch } from "../ui";
+import { Button, Field, Select, Switch } from "../ui";
 
 const FONT_SCALE_VALUES = [0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5] as const;
 
@@ -42,25 +42,34 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
           <span>{t("accessibility.title")}</span>
         </h2>
 
-        <div className="settings-form-group settings-preference-group">
-          <label className="settings-label">{t("accessibility.uiScale")}</label>
+        <Field
+          label={t("accessibility.uiScale")}
+          hint={t("accessibility.uiScaleDesc")}
+          className="settings-form-group settings-preference-group"
+        >
           <Select
             className="settings-select"
             value={uiFontScale}
             options={fontScaleOptions}
             onChange={(v) => setUiFontScale(typeof v === "number" ? v : parseFloat(v))}
           />
-        </div>
+        </Field>
 
-        <div className="settings-toggle-row">
-          <span className="settings-label settings-toggle-label">{t("accessibility.developerMode")}</span>
+        <Field
+          label={t("accessibility.developerMode")}
+          hint={t("accessibility.developerModeDesc")}
+          className="settings-form-group settings-preference-group"
+        >
           <Switch checked={developerMode} onCheckedChange={setDeveloperMode} />
-        </div>
+        </Field>
 
-        <div className="settings-toggle-row">
-          <span className="settings-label settings-toggle-label">{t("accessibility.directRequests")}</span>
+        <Field
+          label={t("accessibility.directRequests")}
+          hint={t("accessibility.directRequestsDesc")}
+          className="settings-form-group settings-preference-group"
+        >
           <Switch checked={disableHttpProxy} onCheckedChange={setDisableHttpProxy} />
-        </div>
+        </Field>
 
         {developerMode && (
           <div className="accessibility-wiki-section">

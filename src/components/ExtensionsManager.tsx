@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { Plus, Search, X, ShieldAlert, ChevronRight } from "lucide-react";
+import { Plus, Search, X, ShieldAlert, ChevronRight, Puzzle, Palette, Globe, Download, BadgeCheck, Wrench, RefreshCw } from "lucide-react";
 import { useHUD } from "../context/useHUD";
 import { ConsentModal } from "./settings/ConsentModal";
 import { useBlacklist } from "../hooks/useBlacklist";
+import { useCatalog } from "../hooks/useCatalog";
 import { useExtensionUpdates } from "../hooks/useExtensionUpdates";
 import { useExtensionInstall } from "../hooks/useExtensionInstall";
 import { ExtensionDetailOverlay } from "./extensions/ExtensionDetailOverlay";
@@ -12,14 +13,18 @@ import { getExtensionIcon } from "./extensions/extensionUiHelpers";
 import { Overlay } from "./common/Overlay";
 import { Button, Chip, Field, IconButton, Input } from "./ui";
 
+const CATALOG_CATEGORY_ORDER = ["catalog", "sources", "visual", "tools", "tracking"];
+
 export const ExtensionsManager: React.FC = () => {
   const { t } = useTranslation("extensions");
   const { show: showHUD } = useHUD();
   const blacklist = useBlacklist();
+  const catalog = useCatalog();
   const { extensions, setExtensions, isLoading, setIsLoading, handleToggle, handleDelete } = useExtensionUpdates();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusTab, setStatusTab] = useState<"all" | "active" | "disabled">("all");
+  const [catCategory, setCatCategory] = useState<string>("all");
   const [isInstallOpen, setIsInstallOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const installInputRef = useRef<HTMLInputElement>(null);
@@ -29,6 +34,7 @@ export const ExtensionsManager: React.FC = () => {
     setNewUrl,
     pendingExtension,
     handleAddExtension,
+    installFromUrl,
     confirmPending,
     dismissPending,
   } = useExtensionInstall({
@@ -77,6 +83,35 @@ export const ExtensionsManager: React.FC = () => {
     { key: "active", label: t("filter.active") },
     { key: "disabled", label: t("filter.disabled") },
   ];
+
+  const categoryIcon = (category?: string, size: string = "2rem") => {
+    if (category === "visual") return <Palette size={size} />;
+    if (category === "sources") return <Download size={size} />;
+    if (category === "catalog") return <Globe size={size} />;
+    if (category === "tools") return <Wrench size={size} />;
+    if (category === "tracking") return <RefreshCw size={size} />;
+    return <Puzzle size={size} />;
+  };
+
+  const installedIds = new Set(extensions.map((e) => e.id));
+  // Catalog shows everything (minus blacklisted); installed items are marked, not hidden.
+  const browseable = catalog.filter((c) => !blacklist.includes(c.id));
+  // Category chips: canonical order first, then any extra categories present.
+  const catalogCategories = [
+    ...CATALOG_CATEGORY_ORDER.filter((k) => browseable.some((c) => c.category === k)),
+    ...Array.from(new Set(browseable.map((c) => c.category).filter(Boolean) as string[]))
+      .filter((k) => !CATALOG_CATEGORY_ORDER.includes(k)),
+  ];
+  const catalogFiltered = browseable.filter((c) => {
+    if (catCategory !== "all" && c.category !== catCategory) return false;
+    const q = searchQuery.toLowerCase();
+    if (!q) return true;
+    return (
+      c.name.toLowerCase().includes(q) ||
+      (c.description || "").toLowerCase().includes(q) ||
+      (c.author || "").toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="ext-manager">
@@ -149,6 +184,75 @@ export const ExtensionsManager: React.FC = () => {
           ))
         )}
       </div>
+
+      {catalogFiltered.length > 0 && (
+        <section className="ext-catalog">
+          <div className="ext-catalog-head">
+            <h3 className="ext-catalog-title">{t("catalog.title")}</h3>
+          </div>
+          {catalogCategories.length > 1 && (
+            <div className="ext-catalog-cats">
+              <Chip active={catCategory === "all"} onClick={() => setCatCategory("all")}>
+                {t("catalog.categories.all")}
+              </Chip>
+              {catalogCategories.map((cat) => (
+                <Chip key={cat} active={catCategory === cat} onClick={() => setCatCategory(cat)}>
+                  {t(`catalog.categories.${cat}`, cat)}
+                </Chip>
+              ))}
+            </div>
+          )}
+          <div className="ext-catalog-grid">
+            {catalogFiltered.map((c) => (
+              <div key={c.id} className="ext-catalog-card">
+                <div className="ext-catalog-preview">
+                  <span className="ext-catalog-preview-fallback">{categoryIcon(c.category)}</span>
+                  {c.previewUrl && (
+                    <img
+                      className="ext-catalog-preview-img"
+                      src={c.previewUrl}
+                      alt=""
+                      loading="lazy"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  )}
+                  {c.official && (
+                    <span className="ext-catalog-badge">
+                      <BadgeCheck size="0.75rem" />
+                      {t("catalog.official")}
+                    </span>
+                  )}
+                </div>
+                <div className="ext-catalog-body">
+                  <div className="ext-catalog-name">{c.name}</div>
+                  {c.author && <div className="ext-catalog-meta">{c.author}</div>}
+                  {c.description && <p className="ext-catalog-desc">{c.description}</p>}
+                  {installedIds.has(c.id) ? (
+                    <Button
+                      variant="secondary"
+                      className="ext-catalog-install"
+                      onClick={() => setSelectedId(c.id)}
+                    >
+                      {t("catalog.open")}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="primary"
+                      className="ext-catalog-install"
+                      disabled={isLoading}
+                      onClick={() => installFromUrl(c.url)}
+                    >
+                      {t("catalog.install")}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {selected && (
         <ExtensionDetailOverlay

@@ -1,8 +1,9 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { Server } from "lucide-react";
 import type { ConnectionState } from "../context/AppSettingsContext";
 import type { ConnectionProfile } from "../network/ApiTypes";
-import { Button, Field, Input } from "./ui";
+import { Button, Input } from "./ui";
 
 interface OfflineOverlayProps {
   connectionState: ConnectionState;
@@ -19,84 +20,69 @@ export const OfflineOverlay: React.FC<OfflineOverlayProps> = ({
   setInputUrl,
   handleSaveAndConnect,
   activeProfile,
-  checkConnection
+  checkConnection,
 }) => {
   const { t } = useTranslation("connection");
 
-  if (connectionState === "checking") {
-    return (
-      <div className="overlay-screen">
-        <div className="overlay-content">
-          <div className="spinner" />
-          <h2 className="overlay-title">{t("checking.title")}</h2>
-          <p className="overlay-text">{t("checking.subtitle")}</p>
-        </div>
-      </div>
-    );
+  if (
+    connectionState !== "checking" &&
+    connectionState !== "setupRequired" &&
+    connectionState !== "offline"
+  ) {
+    return null;
   }
 
-  if (connectionState === "setupRequired") {
-    return (
-      <div className="overlay-screen">
-        <div className="overlay-content compact">
-          <h2 className="overlay-title">{t("setup.title")}</h2>
-          <p className="overlay-text">{t("setup.hint")}</p>
+  const isChecking = connectionState === "checking";
+  const isOffline = connectionState === "offline";
 
-          <form onSubmit={handleSaveAndConnect} className="overlay-form">
-            <Input
-              type="text"
-              className="overlay-input"
-              placeholder={t("bffPlaceholder")}
-              value={inputUrl}
-              onChange={(e) => setInputUrl(e.target.value)}
-              required
-            />
-            <Button type="submit" variant="primary" fullWidth className="overlay-btn wide">
-              {t("saveAndConnect")}
-            </Button>
-          </form>
+  return (
+    <div className="overlay-screen">
+      <div className="conn-card">
+        <div className={`conn-icon${isOffline ? " conn-icon--error" : ""}`}>
+          {isChecking ? <span className="spinner" /> : <Server size="1.75rem" />}
         </div>
-      </div>
-    );
-  }
 
-  if (connectionState === "offline") {
-    return (
-      <div className="overlay-screen">
-        <div className="overlay-content compact">
-          <h2 className="overlay-title error">{t("offline.title")}</h2>
-          <p className="overlay-text">
-            {t("offline.cantReach")} <strong>{activeProfile?.gatewayURL}</strong>
-          </p>
+        <h2 className={`conn-title${isOffline ? " conn-title--error" : ""}`}>
+          {t(isChecking ? "checking.title" : isOffline ? "offline.title" : "setup.title")}
+        </h2>
 
-          <form onSubmit={handleSaveAndConnect} className="overlay-form offline">
-            <Field label={t("offline.otherAddress")} className="overlay-label">
+        <p className="conn-desc">
+          {isChecking && t("checking.subtitle")}
+          {connectionState === "setupRequired" && t("setup.hint")}
+          {isOffline && (
+            <>
+              {t("offline.cantReach")}
+              <span className="conn-desc-addr">{activeProfile?.gatewayURL}</span>
+            </>
+          )}
+        </p>
+
+        {!isChecking && (
+          <form onSubmit={handleSaveAndConnect} className="conn-form">
+            <label className="conn-field-label">{t("bffPlaceholder")}</label>
+            <div className="conn-input-row">
               <Input
                 type="text"
-                className="overlay-input"
+                className="conn-input"
                 placeholder={t("bffPlaceholder")}
                 value={inputUrl}
                 onChange={(e) => setInputUrl(e.target.value)}
                 required
               />
-            </Field>
-            <Button type="submit" variant="primary" fullWidth className="overlay-btn wide">
-              {t("applyRetry")}
-            </Button>
+              <Button type="submit" variant="primary" className="conn-connect">
+                {t("connect")}
+              </Button>
+            </div>
+            <span className="conn-example">{t("example")}</span>
+
+            {isOffline && (
+              <button type="button" className="conn-retry-link" onClick={() => checkConnection()}>
+                {t("checkAgain")}
+              </button>
+            )}
           </form>
-
-          <Button
-            type="button"
-            variant="secondary"
-            className="overlay-btn secondary"
-            onClick={() => checkConnection()}
-          >
-            {t("checkAgain")}
-          </Button>
-        </div>
+        )}
       </div>
-    );
-  }
-
-  return null;
+    </div>
+  );
 };

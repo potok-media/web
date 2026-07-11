@@ -439,7 +439,7 @@
 }
 
 input:checked + .potok-slider {
-  background-color: var(--color-accent, #007aff);
+  background-color: var(--accent);
 }
 
 input:checked + .potok-slider:before {
@@ -1965,6 +1965,119 @@ input:checked + .slider-round:before {
   padding: var(--space-xxl) var(--space-m);
   color: var(--text-tertiary);
   text-align: center;
+}
+
+/* Community catalog */
+.ext-catalog {
+  margin-top: var(--space-xl);
+}
+
+.ext-catalog-head {
+  margin-bottom: var(--space-s);
+}
+
+.ext-catalog-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: var(--space-m);
+}
+
+.ext-catalog-title {
+  font: var(--font-title3, var(--font-body-bold));
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.ext-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: var(--space-m);
+}
+
+.ext-catalog-card {
+  border: var(--glass-border);
+  border-radius: var(--radius-l);
+  overflow: hidden;
+  background: var(--bg-surface-high);
+  display: flex;
+  flex-direction: column;
+}
+
+.ext-catalog-preview {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--accent-dim);
+}
+
+.ext-catalog-preview-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+.ext-catalog-preview-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ext-catalog-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface);
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.ext-catalog-body {
+  padding: 0.75rem 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.ext-catalog-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.ext-catalog-meta {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.ext-catalog-desc {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 0.25rem 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ext-catalog-install {
+  margin-top: 0.625rem;
+  width: 100%;
+  justify-content: center;
 }
 
 /* Action sheet */

@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Sliders, Puzzle, Globe, Terminal, Eye } from "lucide-react";
+import { Sliders, Puzzle, Globe, Terminal, Eye, Search } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { RegisteredExtension } from "@potok/sdk-types";
 import type { SlotContribution } from "@potok/sdk-types";
 
@@ -45,6 +46,9 @@ export const SettingsMobileTabs: React.FC<SettingsNavigationProps> = ({
   );
 };
 
+type NavItem = { id: string; icon: LucideIcon; label: string };
+type NavGroup = { label: string; items: NavItem[] };
+
 export const SettingsSidebarNav: React.FC<SettingsNavigationProps> = ({
   activeTab,
   setActiveTab,
@@ -52,6 +56,44 @@ export const SettingsSidebarNav: React.FC<SettingsNavigationProps> = ({
   configExtensions,
 }) => {
   const { t } = useTranslation("settings");
+  const [query, setQuery] = React.useState("");
+
+  const pluginItems: NavItem[] = [
+    ...slotContributions.map((c) => ({
+      id: c.contribution.id,
+      icon: Puzzle,
+      label: c.contribution.title || c.contribution.id,
+    })),
+    ...configExtensions.map((ext) => ({
+      id: `config-${ext.id}`,
+      icon: Puzzle,
+      label: t(ext.manifest.name || ext.id),
+    })),
+  ];
+
+  const groups: NavGroup[] = [
+    {
+      label: t("nav.groupApp"),
+      items: [
+        { id: "general", icon: Sliders, label: t("nav.general") },
+        { id: "profiles", icon: Globe, label: t("nav.connections") },
+        { id: "accessibility", icon: Eye, label: t("nav.accessibility") },
+      ],
+    },
+    {
+      label: t("nav.groupIntegrations"),
+      items: [
+        { id: "extensions", icon: Puzzle, label: t("nav.extensions") },
+        { id: "console", icon: Terminal, label: t("nav.console") },
+      ],
+    },
+    ...(pluginItems.length ? [{ label: t("nav.groupPlugins"), items: pluginItems }] : []),
+  ];
+
+  const q = query.trim().toLowerCase();
+  const visibleGroups = groups
+    .map((g) => ({ ...g, items: q ? g.items.filter((i) => i.label.toLowerCase().includes(q)) : g.items }))
+    .filter((g) => g.items.length > 0);
 
   return (
     <>
@@ -59,77 +101,42 @@ export const SettingsSidebarNav: React.FC<SettingsNavigationProps> = ({
         <h1 className="settings-brand-title">{t("nav.brandTitle")}</h1>
         <p className="settings-brand-desc">{t("nav.brandDesc")}</p>
       </div>
+
+      <div className="settings-nav-search">
+        <Search size="0.9rem" aria-hidden="true" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t("nav.searchPlaceholder")}
+          aria-label={t("nav.searchPlaceholder")}
+        />
+      </div>
+
       <div className="settings-divider" />
-      <div className="settings-section-title">{t("nav.groupApp")}</div>
-      <Button
-        variant="ghost"
-        className={`settings-nav-item ${activeTab === "general" ? "active" : ""}`}
-        onClick={() => setActiveTab("general")}
-      >
-        <Sliders size="1rem" />
-        <span>{t("nav.general")}</span>
-      </Button>
-      <Button
-        variant="ghost"
-        className={`settings-nav-item ${activeTab === "profiles" ? "active" : ""}`}
-        onClick={() => setActiveTab("profiles")}
-      >
-        <Globe size="1rem" />
-        <span>{t("nav.connections")}</span>
-      </Button>
-      <Button
-        variant="ghost"
-        className={`settings-nav-item ${activeTab === "accessibility" ? "active" : ""}`}
-        onClick={() => setActiveTab("accessibility")}
-      >
-        <Eye size="1rem" />
-        <span>{t("nav.accessibility")}</span>
-      </Button>
 
-      <div className="settings-section-title">{t("nav.groupIntegrations")}</div>
-      <Button
-        variant="ghost"
-        className={`settings-nav-item ${activeTab === "extensions" ? "active" : ""}`}
-        onClick={() => setActiveTab("extensions")}
-      >
-        <Puzzle size="1rem" />
-        <span>{t("nav.extensions")}</span>
-      </Button>
-      <Button
-        variant="ghost"
-        className={`settings-nav-item ${activeTab === "console" ? "active" : ""}`}
-        onClick={() => setActiveTab("console")}
-      >
-        <Terminal size="1rem" />
-        <span>{t("nav.console")}</span>
-      </Button>
+      {visibleGroups.map((group) => (
+        <React.Fragment key={group.label}>
+          <div className="settings-nav-group">{group.label}</div>
+          {group.items.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Button
+                variant="ghost"
+                key={item.id}
+                className={`settings-nav-item ${activeTab === item.id ? "active" : ""}`}
+                onClick={() => setActiveTab(item.id)}
+              >
+                <Icon size="1rem" />
+                <span>{item.label}</span>
+              </Button>
+            );
+          })}
+        </React.Fragment>
+      ))}
 
-      {(slotContributions.length > 0 || configExtensions.length > 0) && (
-        <>
-          <div className="settings-section-title">{t("nav.groupPlugins")}</div>
-          {slotContributions.map((c) => (
-            <Button
-              variant="ghost"
-              key={c.contribution.id}
-              className={`settings-nav-item ${activeTab === c.contribution.id ? "active" : ""}`}
-              onClick={() => setActiveTab(c.contribution.id)}
-            >
-              <Puzzle size="1rem" />
-              <span>{c.contribution.title || c.contribution.id}</span>
-            </Button>
-          ))}
-          {configExtensions.map((ext) => (
-            <Button
-              variant="ghost"
-              key={`config-${ext.id}`}
-              className={`settings-nav-item ${activeTab === `config-${ext.id}` ? "active" : ""}`}
-              onClick={() => setActiveTab(`config-${ext.id}`)}
-            >
-              <Puzzle size="1rem" />
-              <span>{t(ext.manifest.name || ext.id)}</span>
-            </Button>
-          ))}
-        </>
+      {q && visibleGroups.length === 0 && (
+        <div className="settings-nav-empty">{t("nav.noResults")}</div>
       )}
     </>
   );

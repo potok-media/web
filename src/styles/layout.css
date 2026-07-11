@@ -162,6 +162,114 @@ body:has(.modal-overlay, .manifest-modal-overlay, .potok-update-modal-overlay) .
   color: var(--text-primary);
 }
 
+/* Connection card (setup / offline / checking) */
+.conn-card {
+  width: 100%;
+  max-width: 27rem;
+  margin: 0 1rem;
+  padding: 2rem 2rem 1.75rem;
+  background: var(--bg-surface);
+  border: var(--glass-border);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-l);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.conn-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius-m);
+  background: var(--accent-dim);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+
+.conn-icon--error {
+  background: var(--error-dim);
+  color: var(--error);
+}
+
+.conn-title {
+  font: var(--font-title2);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.conn-title--error {
+  color: var(--error);
+}
+
+.conn-desc {
+  font: var(--font-body);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.conn-desc-addr {
+  display: block;
+  margin-top: 0.375rem;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.conn-form {
+  width: 100%;
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  text-align: left;
+}
+
+.conn-field-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.conn-input-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.conn-input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+}
+
+.conn-connect {
+  white-space: nowrap;
+}
+
+.conn-example {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.conn-retry-link {
+  align-self: center;
+  margin-top: 0.875rem;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font: var(--font-caption-bold);
+  cursor: pointer;
+}
+
+.conn-retry-link:hover {
+  color: var(--text-primary);
+}
+
 .overlay-title.error {
   color: var(--error);
 }
