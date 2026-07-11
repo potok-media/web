@@ -17,7 +17,7 @@ interface LegacyProfile {
   torrServerURL?: string;
   torrServerAuthEnabled?: boolean;
   torrServerAuthLogin?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 function ensureAbsoluteURL(url: string): string {
@@ -86,21 +86,21 @@ class SettingsServiceImpl {
 
       if (tgUrlKey in copy && copy[tgUrlKey]) {
         if (!copy.playerServerURL) {
-          copy.playerServerURL = copy[tgUrlKey];
+          copy.playerServerURL = copy[tgUrlKey] as string;
         }
         delete copy[tgUrlKey];
         migrated = true;
       }
       if (tgAuthEnabledKey in copy && copy[tgAuthEnabledKey] !== undefined) {
         if (copy.playerServerAuthEnabled === undefined) {
-          copy.playerServerAuthEnabled = copy[tgAuthEnabledKey];
+          copy.playerServerAuthEnabled = copy[tgAuthEnabledKey] as boolean;
         }
         delete copy[tgAuthEnabledKey];
         migrated = true;
       }
       if (tgAuthLoginKey in copy && copy[tgAuthLoginKey] !== undefined) {
         if (copy.playerServerAuthLogin === undefined) {
-          copy.playerServerAuthLogin = copy[tgAuthLoginKey];
+          copy.playerServerAuthLogin = copy[tgAuthLoginKey] as string;
         }
         delete copy[tgAuthLoginKey];
         migrated = true;

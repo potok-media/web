@@ -2,7 +2,7 @@ export type ObservableState<T> = T & {
   $subscribe: (fn: () => void) => () => void;
 };
 
-function isPlainObjectOrArray(val: any): boolean {
+function isPlainObjectOrArray(val: unknown): val is object {
   if (val === null || typeof val !== 'object') return false;
   if (Array.isArray(val)) return true;
   const proto = Object.getPrototypeOf(val);
@@ -29,9 +29,9 @@ export function createState<T extends object>(init: T): ObservableState<T> {
     }
   };
 
-  const cache = new WeakMap<any, any>();
+  const cache = new WeakMap<object, unknown>();
 
-  function createDeepProxy(val: any, onNotify: () => void): any {
+  function createDeepProxy(val: unknown, onNotify: () => void): unknown {
     if (!isPlainObjectOrArray(val)) {
       return val;
     }
@@ -39,7 +39,7 @@ export function createState<T extends object>(init: T): ObservableState<T> {
       return cache.get(val);
     }
 
-    const handler: ProxyHandler<any> = {
+    const handler: ProxyHandler<Record<PropertyKey, unknown>> = {
       get(target, key, receiver) {
         const result = Reflect.get(target, key, receiver);
         if (result !== null && typeof result === 'object') {
@@ -68,7 +68,7 @@ export function createState<T extends object>(init: T): ObservableState<T> {
       }
     };
 
-    const proxy = new Proxy(val, handler);
+    const proxy = new Proxy(val as Record<PropertyKey, unknown>, handler);
     cache.set(val, proxy);
     return proxy;
   }

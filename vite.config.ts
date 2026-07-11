@@ -1,4 +1,5 @@
-import { defineConfig, build } from 'vite'
+import { defineConfig, build, type ViteDevServer, type PreviewServer, type Connect } from 'vite'
+import type { ServerResponse } from 'http'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { resolve } from 'path'
@@ -47,7 +48,7 @@ function vitePotokSdkPlugin() {
         console.error('[vite-plugin-potok-sdk] Failed to copy subtitles-octopus static assets:', err);
       }
     },
-    configureServer(server: any) {
+    configureServer(server: ViteDevServer) {
       const sdkDir = resolve(__dirname, 'src/sdk');
       server.watcher.add(sdkDir);
       server.watcher.on('change', async (file: string) => {
@@ -92,7 +93,7 @@ function vitePotokSdkPlugin() {
 // `npm run preview`, where the on-device browser console is unreachable. The client side
 // is src/utils/clientLogShipper.ts. Debug-only instrumentation — remove when done.
 function clientLogToTerminal() {
-  const handler = (req: any, res: any) => {
+  const handler = (req: Connect.IncomingMessage, res: ServerResponse) => {
     if (req.method !== 'POST') { res.statusCode = 405; return res.end(); }
     let body = '';
     req.on('data', (c: Buffer) => {
@@ -111,11 +112,11 @@ function clientLogToTerminal() {
       res.end();
     });
   };
-  const register = (server: any) => server.middlewares.use('/__clientlog', handler);
+  const register = (server: ViteDevServer | PreviewServer) => server.middlewares.use('/__clientlog', handler);
   return {
     name: 'potok-client-log',
-    configureServer(server: any) { register(server); },
-    configurePreviewServer(server: any) { register(server); },
+    configureServer(server: ViteDevServer) { register(server); },
+    configurePreviewServer(server: PreviewServer) { register(server); },
   };
 }
 

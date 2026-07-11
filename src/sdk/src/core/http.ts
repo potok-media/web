@@ -1,13 +1,13 @@
-export interface HttpResponse<T = any> {
+export interface HttpResponse<T = unknown> {
   status: number;
   data: T;
 }
 
 export const HttpClient = {
-  get<T = any>(url: string, headers?: Record<string, string>): Promise<HttpResponse<T>> {
+  get<T = unknown>(url: string, headers?: Record<string, string>): Promise<HttpResponse<T>> {
     return new Promise((resolve, reject) => {
       const requestId = "req_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now();
-      const hostOrigin = (window as any).PotokInitialState?.hostOrigin || "*";
+      const hostOrigin = window.PotokInitialState?.hostOrigin || "*";
 
       const handler = (event: MessageEvent) => {
         const message = event.data;
@@ -38,10 +38,10 @@ export const HttpClient = {
     });
   },
 
-  post<T = any>(url: string, body?: any, headers?: Record<string, string>): Promise<HttpResponse<T>> {
+  post<T = unknown>(url: string, body?: unknown, headers?: Record<string, string>): Promise<HttpResponse<T>> {
     return new Promise((resolve, reject) => {
       const requestId = "req_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now();
-      const hostOrigin = (window as any).PotokInitialState?.hostOrigin || "*";
+      const hostOrigin = window.PotokInitialState?.hostOrigin || "*";
 
       const handler = (event: MessageEvent) => {
         const message = event.data;
@@ -77,11 +77,11 @@ export const HttpClient = {
    * plugin is CORS-limited; this routes the call server-side (no CORS), so any public API works. Supports
    * GET (default) and POST, and optional Referer/Origin spoofing for sites that check them.
    */
-  proxy<T = any>(
+  proxy<T = unknown>(
     url: string,
     options?: {
       method?: 'GET' | 'POST';
-      body?: any;
+      body?: unknown;
       headers?: Record<string, string>;
       referer?: string;
       origin?: string;

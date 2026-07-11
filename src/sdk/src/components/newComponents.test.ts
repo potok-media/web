@@ -51,7 +51,7 @@ describe("Phase-1 generic content builders", () => {
     expect(json.type).toBe("ContentCard");
     expect(json.props.item).toEqual({ id: "a", title: "Hello" });
     expect(json.props.orientation).toBe("landscape");
-    expect(typeof json.events.onClick).toBe("string");
+    expect(typeof json.events!.onClick).toBe("string");
   });
 
   it("ContentRow carries items + both events", () => {
@@ -64,8 +64,8 @@ describe("Phase-1 generic content builders", () => {
     expect(json.type).toBe("ContentRow");
     expect(json.props.title).toBe("Row");
     expect(json.props.items).toHaveLength(1);
-    expect(json.events.onCardClick).toBeTruthy();
-    expect(json.events.onSeeAllClick).toBeTruthy();
+    expect(json.events!.onCardClick).toBeTruthy();
+    expect(json.events!.onSeeAllClick).toBeTruthy();
   });
 
   it("Hero exposes onPlay + onDetails", () => {
@@ -75,8 +75,8 @@ describe("Phase-1 generic content builders", () => {
       .onDetails(noop)
       .compile("root");
     expect(json.type).toBe("Hero");
-    expect(json.events.onPlay).toBeTruthy();
-    expect(json.events.onDetails).toBeTruthy();
+    expect(json.events!.onPlay).toBeTruthy();
+    expect(json.events!.onDetails).toBeTruthy();
   });
 });
 
@@ -86,7 +86,7 @@ describe("Phase-1 primitive builders", () => {
     expect(json.type).toBe("Image");
     expect(json.props.src).toBe("x.jpg");
     expect(json.props.aspectRatio).toBe("16/9");
-    expect(json.events.onClick).toBeTruthy();
+    expect(json.events!.onClick).toBeTruthy();
   });
 
   it("Icon carries name", () => {
@@ -104,7 +104,7 @@ describe("Phase-1 primitive builders", () => {
       .compile("root");
     expect(json.props.items).toHaveLength(1);
     expect(json.props.value).toBe("a");
-    expect(json.events.onChange).toBeTruthy();
+    expect(json.events!.onChange).toBeTruthy();
   });
 
   it("List carries items + onItemClick", () => {
@@ -113,7 +113,7 @@ describe("Phase-1 primitive builders", () => {
       .onItemClick(noop)
       .compile("root");
     expect(json.props.items).toHaveLength(1);
-    expect(json.events.onItemClick).toBeTruthy();
+    expect(json.events!.onItemClick).toBeTruthy();
   });
 
   it("Tooltip wraps a compiled child + text", () => {
@@ -124,7 +124,7 @@ describe("Phase-1 primitive builders", () => {
     expect(json.props.text).toBe("tip");
     expect(json.props.placement).toBe("bottom");
     expect(json.children).toHaveLength(1);
-    expect(json.children[0].type).toBe("Button");
+    expect(json.children![0].type).toBe("Button");
   });
 
   it("ProgressBar carries value + variant", () => {
@@ -150,7 +150,7 @@ describe("Phase-1 primitive builders", () => {
       .compile("root");
     expect(json.props.title).toBe("Empty");
     expect(json.props.actionLabel).toBe("Add");
-    expect(json.events.onAction).toBeTruthy();
+    expect(json.events!.onAction).toBeTruthy();
   });
 
   it("Alert carries text + variant", () => {
@@ -164,14 +164,14 @@ describe("Phase-1 primitive builders", () => {
     const json = new ChipBuilder("Tag").active(true).icon("star").onClick(noop).compile("root");
     expect(json.props.text).toBe("Tag");
     expect(json.props.active).toBe(true);
-    expect(json.events.onClick).toBeTruthy();
+    expect(json.events!.onClick).toBeTruthy();
   });
 
   it("IconButton carries icon + onClick", () => {
     const json = new IconButtonBuilder("play").label("Play").accent(true).onClick(noop).compile("root");
     expect(json.props.icon).toBe("play");
     expect(json.props.label).toBe("Play");
-    expect(json.events.onClick).toBeTruthy();
+    expect(json.events!.onClick).toBeTruthy();
   });
 });
 
@@ -189,7 +189,7 @@ describe("Phase-2 builders", () => {
     expect(json.props.open).toBe(true);
     expect(json.props.variant).toBe("sheet");
     expect(json.props.closeOnBackdrop).toBe(false);
-    expect(json.events.onClose).toBeTruthy();
+    expect(json.events!.onClose).toBeTruthy();
     expect(json.children).toHaveLength(1);
   });
 
@@ -201,7 +201,7 @@ describe("Phase-2 builders", () => {
       .compile("root");
     expect(json.props.title).toBe("Секция");
     expect(json.props.open).toBe(true);
-    expect(json.events.onToggle).toBeTruthy();
+    expect(json.events!.onToggle).toBeTruthy();
     expect(json.children).toHaveLength(1);
   });
 
@@ -223,7 +223,7 @@ describe("Phase-2 builders", () => {
   it("TagList carries tags + onTagClick", () => {
     const json = new TagListBuilder().tags(["a", { id: "b", label: "B" }]).onTagClick(noop).compile("root");
     expect(json.props.tags).toHaveLength(2);
-    expect(json.events.onTagClick).toBeTruthy();
+    expect(json.events!.onTagClick).toBeTruthy();
   });
 
   it("SectionHeader carries title + action + onAction", () => {
@@ -231,7 +231,7 @@ describe("Phase-2 builders", () => {
     expect(json.props.title).toBe("Раздел");
     expect(json.props.subtitle).toBe("sub");
     expect(json.props.actionLabel).toBe("Все");
-    expect(json.events.onAction).toBeTruthy();
+    expect(json.events!.onAction).toBeTruthy();
   });
 });
 
@@ -240,21 +240,21 @@ describe("Phase-2 batch 2 builders", () => {
     const json = new ContinueWatchingRowBuilder().title("CW").items([{ id: "1", title: "A", progress: 0.5 }]).onCardClick(noop).compile("root");
     expect(json.type).toBe("ContinueWatchingRow");
     expect(json.props.items).toHaveLength(1);
-    expect(json.events.onCardClick).toBeTruthy();
+    expect(json.events!.onCardClick).toBeTruthy();
   });
 
   it("TopTenRow carries items + onCardClick", () => {
     const json = new TopTenRowBuilder().title("Top").items([{ id: "1", title: "A" }]).onCardClick(noop).compile("root");
     expect(json.type).toBe("TopTenRow");
-    expect(json.events.onCardClick).toBeTruthy();
+    expect(json.events!.onCardClick).toBeTruthy();
   });
 
   it("PosterGrid carries items + onCardClick + onLoadMore", () => {
     const json = new PosterGridBuilder().items([{ id: "1", title: "A" }]).minWidth("10rem").loadMoreLabel("More").onCardClick(noop).onLoadMore(noop).compile("root");
     expect(json.props.minWidth).toBe("10rem");
     expect(json.props.loadMoreLabel).toBe("More");
-    expect(json.events.onCardClick).toBeTruthy();
-    expect(json.events.onLoadMore).toBeTruthy();
+    expect(json.events!.onCardClick).toBeTruthy();
+    expect(json.events!.onLoadMore).toBeTruthy();
   });
 
   it("DetailHero carries item + actions + onAction", () => {
@@ -263,9 +263,9 @@ describe("Phase-2 batch 2 builders", () => {
       .actions([{ id: "play", label: "Play" }])
       .onAction(noop)
       .compile("root");
-    expect(json.props.item.id).toBe("1");
+    expect((json.props.item as { id: string }).id).toBe("1");
     expect(json.props.actions).toHaveLength(1);
-    expect(json.events.onAction).toBeTruthy();
+    expect(json.events!.onAction).toBeTruthy();
   });
 
   it("Range carries value/min/max/step + onChange", () => {
@@ -274,14 +274,14 @@ describe("Phase-2 batch 2 builders", () => {
     expect(json.props.min).toBe(0);
     expect(json.props.max).toBe(100);
     expect(json.props.step).toBe(1);
-    expect(json.events.onChange).toBeTruthy();
+    expect(json.events!.onChange).toBeTruthy();
   });
 
   it("Segmented carries items/value + onChange", () => {
     const json = new SegmentedBuilder().items([{ id: "a", label: "A" }]).value("a").onChange(noop).compile("root");
     expect(json.props.items).toHaveLength(1);
     expect(json.props.value).toBe("a");
-    expect(json.events.onChange).toBeTruthy();
+    expect(json.events!.onChange).toBeTruthy();
   });
 });
 
@@ -297,14 +297,14 @@ describe("Phase-2 batch 3 builders", () => {
     expect(json.type).toBe("Dropdown");
     expect(json.props.items).toHaveLength(1);
     expect(json.props.value).toBe("a");
-    expect(json.events.onSelect).toBeTruthy();
+    expect(json.events!.onSelect).toBeTruthy();
   });
 
   it("FileInput carries accept/multiple + onChange", () => {
     const json = new FileInputBuilder("f").label("L").accept("image/*").multiple(true).onChange(noop).compile("root");
     expect(json.props.accept).toBe("image/*");
     expect(json.props.multiple).toBe(true);
-    expect(json.events.onChange).toBeTruthy();
+    expect(json.events!.onChange).toBeTruthy();
   });
 
   it("Field carries label/hint + child", () => {

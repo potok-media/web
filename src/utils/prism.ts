@@ -1,7 +1,7 @@
 import Prism from "prismjs";
 
 // Ensure Prism is registered globally so that language components can attach to it
-(window as any).Prism = Prism;
+window.Prism = Prism;
 
 // Import required language definitions for syntax highlighting
 import "prismjs/components/prism-clike";

@@ -15,6 +15,9 @@ export function useAppLayoutPlayback() {
         sessionStorage.removeItem("potok_last_playback");
       }
     }
+    // Mount-only: restore the last playback once. Re-running on activePlayback/playVideo
+    // changes would re-trigger the restore, so those are intentionally excluded.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

@@ -81,7 +81,7 @@ export function useCalendarFilters(
       title,
       items: groupItems,
     }));
-  }, [filteredItems]);
+  }, [filteredItems, t, language]);
 
   const formatReleaseTime = (dateTimeStr?: string) => {
     if (!dateTimeStr) return t("calendar.soon");

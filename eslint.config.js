@@ -97,6 +97,13 @@ export default defineConfig([
     rules: {
       // Legacy debt: warn until modules are migrated incrementally.
       '@typescript-eslint/no-explicit-any': 'warn',
+      // Honor the `_`-prefix convention for intentionally-unused bindings (signature params, etc.).
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+        destructuredArrayIgnorePattern: '^_',
+      }],
       'no-console': 'error',
       // Existing data-fetch effects; migrate to async patterns incrementally.
       'react-hooks/set-state-in-effect': 'off',

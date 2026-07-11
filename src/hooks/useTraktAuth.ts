@@ -93,12 +93,16 @@ export function useTraktAuth(syncStrategy: string) {
         pollingRef.current = null;
       }
     };
+    // Re-arm the poll only when the device code changes; pollTraktToken is re-created per render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceCode]);
 
   useEffect(() => {
     if (syncStrategy === "trakt" && traktConnected) {
       fetchTraktProfileData();
     }
+    // Fetch only when the strategy/connection changes; fetchTraktProfileData is re-created per render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [syncStrategy, traktConnected]);
 
   return {

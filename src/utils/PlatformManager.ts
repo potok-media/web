@@ -1,20 +1,7 @@
 import { logger } from "./logger";
+import type { ActivePlayback } from "../context/playbackTypes";
 
-export interface ActivePlayback {
-  streamUrl: string;
-  title: string;
-  mediaType: string;
-  id: number;
-  season?: number;
-  episode?: number;
-  torrentHash?: string;
-  playlist?: any[];
-  playlistIndex?: number;
-  audios?: any[];
-  headers?: Record<string, string>;
-  streamType?: string;
-  voice?: string;
-}
+export type { ActivePlayback };
 
 export type PlatformType = "web";
 

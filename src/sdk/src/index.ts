@@ -1,7 +1,8 @@
-import { CallbackRegistry, CallbackScope } from "./core/registry";
+import { CallbackRegistry, CallbackScope, type CallbackFunction } from "./core/registry";
 import { HttpClient } from "./core/http";
 import { LocalStorageBridge } from "./core/storage";
 import { SDK_TYPINGS } from "./sdkTypings";
+import type { UIComponent } from "./components/base";
 
 import {
   VStackBuilder,
@@ -81,20 +82,40 @@ import {
   initDeclarativeStreamListeners
 } from "./components/media";
 
+/** Notified when the host pushes a block-context update. */
+type BlockContextListener = (blockName: string, context: unknown) => void;
+/** Looks up results for a registered content source. */
+type SourceLookupFn = (query: unknown) => unknown;
+
+/** State injected by the host into every plugin iframe via window.PotokInitialState. */
+interface PotokInitialState {
+  hostOrigin?: string;
+  pluginId?: string;
+  permissions?: string[];
+  config?: Record<string, unknown>;
+  language?: string;
+  hostStrings?: Record<string, Record<string, unknown>>;
+  localStorage?: Record<string, string>;
+}
+
 declare global {
   interface Window {
-    PotokSDK: any;
-    PotokInitialState: any;
-    PotokBlockContextListeners: any;
-    PotokRegisteredSources: any;
-    PotokSDKInitialized: any;
+    PotokSDK: Record<string, unknown>;
+    PotokInitialState?: PotokInitialState;
+    PotokBlockContextListeners?: Set<BlockContextListener>;
+    PotokRegisteredSources?: Map<string, SourceLookupFn>;
+    PotokSDKInitialized?: boolean;
+    PotokSettingsChangedListener?: (key: string, value: unknown, settings: Record<string, unknown>) => void;
   }
 }
+
+const errorMessage = (err: unknown): string | undefined =>
+  err instanceof Error ? err.message : undefined;
 
 // Compiled layouts may embed reactive-state proxies (from createState) that structuredClone/postMessage
 // cannot clone (DataCloneError). The compiled tree is function-free (callbacks are already string ids),
 // so a JSON round-trip yields a plain, cloneable payload.
-const toCloneable = (payload: any): any => {
+const toCloneable = (payload: unknown): unknown => {
   try {
     return JSON.parse(JSON.stringify(payload));
   } catch {
@@ -110,24 +131,24 @@ const getHostOrigin = () => {
   return "*";
 };
 
-const getBlockContextListeners = () => {
+const getBlockContextListeners = (): Set<BlockContextListener> => {
   if (typeof window !== "undefined") {
     if (!window.PotokBlockContextListeners) {
-      window.PotokBlockContextListeners = new Set<Function>();
+      window.PotokBlockContextListeners = new Set<BlockContextListener>();
     }
     return window.PotokBlockContextListeners;
   }
-  return new Set<Function>();
+  return new Set<BlockContextListener>();
 };
 
-const getRegisteredSources = () => {
+const getRegisteredSources = (): Map<string, SourceLookupFn> => {
   if (typeof window !== "undefined") {
     if (!window.PotokRegisteredSources) {
-      window.PotokRegisteredSources = new Map<string, Function>();
+      window.PotokRegisteredSources = new Map<string, SourceLookupFn>();
     }
     return window.PotokRegisteredSources;
   }
-  return new Map<string, Function>();
+  return new Map<string, SourceLookupFn>();
 };
 
 // Formal static named exports as required by step 2
@@ -145,6 +166,47 @@ export const streams = streamsSpace;
 export const media = {
   searchProvider: (id: string, name: string) => new MediaSearchProviderBuilder(id, name)
 };
+
+/** Config for ui.showEpisodeSelector — callbacks plus opaque host payload fields. */
+interface EpisodeSelectorConfig {
+  onPlay?: CallbackFunction;
+  onStartEditing?: CallbackFunction;
+  onApplyOverride?: CallbackFunction;
+  onClose?: () => void;
+  title?: unknown;
+  episodes?: unknown;
+  seasons?: unknown;
+  seasonsLoading?: unknown;
+  isSaving?: unknown;
+  tmdbSeasonsCount?: unknown;
+}
+
+/** Result returned by a slot contribution's render(). */
+interface SlotRenderResult {
+  label?: unknown;
+  icon?: unknown;
+  layout?: UIComponent;
+}
+type SlotRender = (props: unknown) => SlotRenderResult | null | undefined;
+
+interface SlotContributionConfig {
+  id: string;
+  slotName: string;
+  render: SlotRender;
+}
+
+interface HomeSectionConfig {
+  id: string;
+  position?: "top" | "bottom" | "hero";
+  render: SlotRender;
+}
+
+interface SourceConfig {
+  id: string;
+  name?: string;
+  supportedTypes?: unknown;
+  lookup: SourceLookupFn;
+}
 
 export const ui = {
   _activeEpisodeSelectorScope: null as CallbackScope | null,
@@ -225,7 +287,7 @@ export const ui = {
     Page: () => new PageBuilder(),
     SidebarGroup: (title: string) => new SidebarGroupBuilder(title)
   },
-  render(root: any, slotId?: string) {
+  render(root: UIComponent, slotId?: string) {
     const scopeId = slotId || "default";
     CallbackRegistry.startRenderScope(scopeId);
     const payload = toCloneable(root.compile(scopeId));
@@ -244,10 +306,10 @@ export const ui = {
   showHUD(type: string, message: string) {
     window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'SHOW_HUD', payload: { type, message } }, getHostOrigin());
   },
-  playVideo(playback: any) {
+  playVideo(playback: unknown) {
     window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'PLAY_VIDEO', payload: playback }, getHostOrigin());
   },
-  showEpisodeSelector(cfg: any) {
+  showEpisodeSelector(cfg: EpisodeSelectorConfig) {
     if (ui._activeEpisodeSelectorScope) {
       ui._activeEpisodeSelectorScope.dispose();
     }
@@ -289,28 +351,28 @@ export const ui = {
       }
     }, getHostOrigin());
   },
-  onBlockContextUpdate(cb: Function) {
+  onBlockContextUpdate(cb: BlockContextListener) {
     getBlockContextListeners().add(cb);
     return () => {
       getBlockContextListeners().delete(cb);
     };
   },
-  navigateTo(to: string, state?: any) {
+  navigateTo(to: string, state?: unknown) {
     window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'NAVIGATE', payload: { to, state } }, getHostOrigin());
   },
   setAccentTheme(themeId: string) {
     window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'SET_ACCENT_THEME', payload: { themeId } }, getHostOrigin());
   },
-  registerThemes(themes: any[]) {
+  registerThemes(themes: unknown[]) {
     window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_THEMES', payload: { themes } }, getHostOrigin());
   }
 };
 
-export function registerPlugin(meta: any) {
+export function registerPlugin(meta: unknown) {
   window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_PLUGIN', payload: meta }, getHostOrigin());
 }
 
-export function registerSource(cfg: any) {
+export function registerSource(cfg: SourceConfig) {
   getRegisteredSources().set(cfg.id, cfg.lookup);
   window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_SOURCE', payload: { id: cfg.id, name: cfg.name, supportedTypes: cfg.supportedTypes } }, getHostOrigin());
 }
@@ -318,13 +380,13 @@ export function registerSource(cfg: any) {
 // Convenience over registerSlotContribution scoped to the native Home page slots.
 // cfg: { id, position?: 'top' | 'bottom' | 'hero', render() → { label?, layout } }.
 // Lets a plugin add a category row (or featured banner) to the REAL home screen.
-export function registerHomeSection(cfg: any) {
+export function registerHomeSection(cfg: HomeSectionConfig) {
   const slotName =
     cfg.position === "bottom" ? "home-rows-bottom" : cfg.position === "hero" ? "home-hero" : "home-rows-top";
   registerSlotContribution({ id: cfg.id, slotName, render: cfg.render });
 }
 
-export function registerSlotContribution(cfg: any) {
+export function registerSlotContribution(cfg: SlotContributionConfig) {
   window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_SLOT_CONTRIBUTION', payload: { slotName: cfg.slotName, id: cfg.id } }, getHostOrigin());
   window.addEventListener('message', async (e) => {
     const hostOrigin = getHostOrigin();
@@ -348,11 +410,11 @@ export function registerSlotContribution(cfg: any) {
 export function initPotokSDK(): void {
   if (typeof window === 'undefined') return;
 
-  const win = window as any;
+  const win = window;
   win.PotokSDK = win.PotokSDK || {};
 
-  const initialState = win.PotokInitialState || {};
-  
+  const initialState: PotokInitialState = win.PotokInitialState || {};
+
   // 4. Ensure 'initPotokSDK()' initializes dynamic 'pluginId' and 'permissions' directly on the 'window.PotokSDK' object
   win.PotokSDK.pluginId = initialState.pluginId;
   win.PotokSDK.permissions = initialState.permissions || [];
@@ -360,11 +422,11 @@ export function initPotokSDK(): void {
   win.PotokSDK.i18n = i18n;
   win.PotokSDK.typings = SDK_TYPINGS;
   
-  win.PotokSDK.onSettingsChanged = (cb: (key: string, value: any, currentSettings: any) => void) => {
+  win.PotokSDK.onSettingsChanged = (cb: (key: string, value: unknown, currentSettings: Record<string, unknown>) => void) => {
     win.PotokSettingsChangedListener = cb;
   };
 
-  win.PotokSDK.updateSettingsForm = (updates: Record<string, any>) => {
+  win.PotokSDK.updateSettingsForm = (updates: Record<string, unknown>) => {
     window.parent.postMessage({
       source: 'potok-plugin-sdk',
       action: 'UPDATE_SETTINGS_FORM_FIELDS',
@@ -401,8 +463,8 @@ export function initPotokSDK(): void {
         try {
           const results = await lookupFn(query);
           window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'LOOKUP_RESPONSE', payload: { requestId, results, error: null } }, getHostOrigin());
-        } catch (err: any) {
-          window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'LOOKUP_RESPONSE', payload: { requestId, results: [], error: err.message || 'Lookup failed' } }, getHostOrigin());
+        } catch (err) {
+          window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'LOOKUP_RESPONSE', payload: { requestId, results: [], error: errorMessage(err) || 'Lookup failed' } }, getHostOrigin());
         }
       }
     } else if (msg.action === 'TRIGGER_SEARCH') {
@@ -416,17 +478,17 @@ export function initPotokSDK(): void {
             action: 'SEARCH_RESPONSE',
             payload: { requestId, results, error: null }
           }, getHostOrigin());
-        } catch (err: any) {
+        } catch (err) {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'SEARCH_RESPONSE',
-            payload: { requestId, results: [], error: err.message || 'Search failed' }
+            payload: { requestId, results: [], error: errorMessage(err) || 'Search failed' }
           }, getHostOrigin());
         }
       }
     } else if (msg.action === 'BLOCK_CONTEXT_UPDATE') {
       const { blockName, context } = msg.payload;
-      getBlockContextListeners().forEach((cb: any) => {
+      getBlockContextListeners().forEach((cb) => {
         try {
           cb(blockName, context);
         } catch (err) {
@@ -436,11 +498,10 @@ export function initPotokSDK(): void {
     } else if (msg.action === 'PROFILE_UPDATED') {
       const { config: newConfig } = msg.payload;
       if (newConfig) {
-        Object.assign(win.PotokSDK.config, newConfig);
+        Object.assign(win.PotokSDK.config as Record<string, unknown>, newConfig);
       }
     } else if (msg.action === 'LANGUAGE_CHANGED') {
-      win.PotokInitialState = win.PotokInitialState || {};
-      win.PotokInitialState.language = msg.payload?.language;
+      win.PotokInitialState = { ...win.PotokInitialState, language: msg.payload?.language };
       handleLanguageChanged(msg.payload || {});
     } else if (msg.action === 'SETTINGS_FIELD_CHANGED') {
       const { key, value, settings } = msg.payload;

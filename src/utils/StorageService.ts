@@ -11,7 +11,7 @@ export interface IStorageService {
 }
 
 export class LocalStorageService implements IStorageService {
-  private memoryStore: Record<string, any> = {};
+  private memoryStore: Record<string, unknown> = {};
 
   public get<T>(key: string, defaultValue: T): T {
     try {
@@ -30,7 +30,7 @@ export class LocalStorageService implements IStorageService {
     } catch {
       return defaultValue;
     }
-    return this.memoryStore[key] !== undefined ? this.memoryStore[key] : defaultValue;
+    return (this.memoryStore[key] !== undefined ? this.memoryStore[key] : defaultValue) as T;
   }
 
   public set<T>(key: string, value: T): void {

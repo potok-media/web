@@ -1,4 +1,4 @@
-import { UIComponent } from "./base";
+import { UIComponent, compileMaybe, type CompiledComponent } from "./base";
 import { CallbackRegistry, type CallbackFunction } from "../core/registry";
 
 
@@ -27,7 +27,7 @@ export class StreamSkeletonListBuilder extends UIComponent {
     super("StreamSkeletonList");
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {};
   }
 }
@@ -66,7 +66,7 @@ export class StreamSkeletonListBuilder extends UIComponent {
  * );
  */
 export class StreamRowBuilder extends UIComponent {
-  private _stream: any;
+  private _stream: unknown;
   private _onClick?: CallbackFunction;
 
   constructor(type: string = "StreamRow") {
@@ -78,7 +78,7 @@ export class StreamRowBuilder extends UIComponent {
    *
    * @param v Значение метода
    */
-  stream(v: any): this {
+  stream(v: unknown): this {
     this._stream = v;
     return this;
   }
@@ -93,15 +93,14 @@ export class StreamRowBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { stream: this._stream };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onClick) {
-      json.events = json.events || {};
-      json.events.onClick = CallbackRegistry.register(this._onClick, `${path}/onClick`);
+      json.events = { ...json.events, onClick: CallbackRegistry.register(this._onClick, `${path}/onClick`) };
     }
     return json;
   }
@@ -150,7 +149,7 @@ export class StreamRowComponentBuilder extends StreamRowBuilder {
  * );
  */
 export class MediaCardBuilder extends UIComponent {
-  private _item: any;
+  private _item: unknown;
   private _onClick?: CallbackFunction;
 
   constructor() {
@@ -163,7 +162,7 @@ export class MediaCardBuilder extends UIComponent {
    *
    * @param v Значение метода
    */
-  item(v: any): this {
+  item(v: unknown): this {
     this._item = v;
     return this;
   }
@@ -178,15 +177,14 @@ export class MediaCardBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { item: this._item };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onClick) {
-      json.events = json.events || {};
-      json.events.onClick = CallbackRegistry.register(this._onClick, `${path}/onClick`);
+      json.events = { ...json.events, onClick: CallbackRegistry.register(this._onClick, `${path}/onClick`) };
     }
     return json;
   }
@@ -220,7 +218,7 @@ export class MediaCardBuilder extends UIComponent {
  * );
  */
 export class HeroSpotlightBuilder extends UIComponent {
-  private _items: any[];
+  private _items: unknown[];
   private _onPlay?: CallbackFunction;
   private _onDetails?: CallbackFunction;
 
@@ -234,7 +232,7 @@ export class HeroSpotlightBuilder extends UIComponent {
    *
    * @param v Значение метода
    */
-  items(v: any[]): this {
+  items(v: unknown[]): this {
     this._items = v;
     return this;
   }
@@ -259,19 +257,17 @@ export class HeroSpotlightBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { items: this._items };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onPlay) {
-      json.events = json.events || {};
-      json.events.onPlay = CallbackRegistry.register(this._onPlay, `${path}/onPlay`);
+      json.events = { ...json.events, onPlay: CallbackRegistry.register(this._onPlay, `${path}/onPlay`) };
     }
     if (this._onDetails) {
-      json.events = json.events || {};
-      json.events.onDetails = CallbackRegistry.register(this._onDetails, `${path}/onDetails`);
+      json.events = { ...json.events, onDetails: CallbackRegistry.register(this._onDetails, `${path}/onDetails`) };
     }
     return json;
   }
@@ -310,7 +306,7 @@ export class HeroSpotlightBuilder extends UIComponent {
  * );
  */
 export class StreamListBuilder extends UIComponent {
-  private _streams: any[];
+  private _streams: unknown[];
   private _loading: boolean;
   private _showFilters: boolean;
   private _emptyText?: string;
@@ -330,7 +326,7 @@ export class StreamListBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  streams(v: any[]): this {
+  streams(v: unknown[]): this {
     this._streams = v;
     return this;
   }
@@ -388,7 +384,7 @@ export class StreamListBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       streams: this._streams,
       loading: this._loading,
@@ -398,11 +394,10 @@ export class StreamListBuilder extends UIComponent {
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onSelectStream) {
-      json.events = json.events || {};
-      json.events.onSelectStream = CallbackRegistry.register(this._onSelectStream, `${path}/onSelectStream`);
+      json.events = { ...json.events, onSelectStream: CallbackRegistry.register(this._onSelectStream, `${path}/onSelectStream`) };
     }
     return json;
   }
@@ -425,7 +420,7 @@ export class MediaSearchProviderBuilder {
 
   onSearch(cb: CallbackFunction): this {
     const callbackId = CallbackRegistry.register(cb, undefined, true);
-    const hostOrigin = (window as any).PotokInitialState?.hostOrigin || "*";
+    const hostOrigin = window.PotokInitialState?.hostOrigin || "*";
     window.parent.postMessage({
       source: 'potok-plugin-sdk',
       action: 'REGISTER_SEARCH_PROVIDER',
@@ -458,34 +453,34 @@ export class ElementMutationBuilder {
     return this.builder;
   }
 
-  edit(props: Record<string, any>): BlockMutationBuilder {
+  edit(props: Record<string, unknown>): BlockMutationBuilder {
     this.builder.addMutation({ elementId: this.elementId, action: 'edit', props });
     return this.builder;
   }
 
-  before(ui: any): BlockMutationBuilder {
+  before(ui: unknown): BlockMutationBuilder {
     this.builder.addMutation({
       elementId: this.elementId,
       action: 'before',
-      layout: ui && typeof ui.compile === 'function' ? ui.compile() : ui
+      layout: compileMaybe(ui)
     });
     return this.builder;
   }
 
-  after(ui: any): BlockMutationBuilder {
+  after(ui: unknown): BlockMutationBuilder {
     this.builder.addMutation({
       elementId: this.elementId,
       action: 'after',
-      layout: ui && typeof ui.compile === 'function' ? ui.compile() : ui
+      layout: compileMaybe(ui)
     });
     return this.builder;
   }
 
-  replace(ui: any): BlockMutationBuilder {
+  replace(ui: unknown): BlockMutationBuilder {
     this.builder.addMutation({
       elementId: this.elementId,
       action: 'replace',
-      layout: ui && typeof ui.compile === 'function' ? ui.compile() : ui
+      layout: compileMaybe(ui)
     });
     return this.builder;
   }
@@ -493,9 +488,9 @@ export class ElementMutationBuilder {
 
 export class BlockMutationBuilder {
   private blockName: string;
-  private mutations: any[];
-  private appends: any[];
-  private prepends: any[];
+  private mutations: unknown[];
+  private appends: unknown[];
+  private prepends: unknown[];
 
   constructor(blockName: string) {
     this.blockName = blockName;
@@ -508,22 +503,22 @@ export class BlockMutationBuilder {
     return new ElementMutationBuilder(this, id);
   }
 
-  addMutation(mutation: any): void {
+  addMutation(mutation: unknown): void {
     this.mutations.push(mutation);
   }
 
-  append(ui: any): this {
-    this.appends.push(ui && typeof ui.compile === 'function' ? ui.compile() : ui);
+  append(ui: unknown): this {
+    this.appends.push(compileMaybe(ui));
     return this;
   }
 
-  prepend(ui: any): this {
-    this.prepends.push(ui && typeof ui.compile === 'function' ? ui.compile() : ui);
+  prepend(ui: unknown): this {
+    this.prepends.push(compileMaybe(ui));
     return this;
   }
 
   apply(): void {
-    const hostOrigin = (window as any).PotokInitialState?.hostOrigin || "*";
+    const hostOrigin = window.PotokInitialState?.hostOrigin || "*";
     window.parent.postMessage({
       source: 'potok-plugin-sdk',
       action: 'REGISTER_BLOCK_MUTATIONS',
@@ -587,7 +582,7 @@ export class LoadingSpinnerBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       message: this._message,
       fullscreen: this._fullscreen,
@@ -653,18 +648,17 @@ export class EpisodesSectionBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       mediaId: this._mediaId,
       numberOfSeasons: this._numberOfSeasons
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onEpisodeClick) {
-      json.events = json.events || {};
-      json.events.onEpisodeClick = CallbackRegistry.register(this._onEpisodeClick, `${path}/onEpisodeClick`);
+      json.events = { ...json.events, onEpisodeClick: CallbackRegistry.register(this._onEpisodeClick, `${path}/onEpisodeClick`) };
     }
     return json;
   }
@@ -708,7 +702,7 @@ export class SeasonEpisodesBuilder extends EpisodesSectionBuilder {
  * );
  */
 export class MediaCastBuilder extends UIComponent {
-  private _cast: any[];
+  private _cast: unknown[];
 
   constructor() {
     super("MediaCast");
@@ -721,12 +715,12 @@ export class MediaCastBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  cast(v: any[]): this {
+  cast(v: unknown[]): this {
     this._cast = v;
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       cast: this._cast
     };
@@ -772,8 +766,8 @@ export class MediaCastBuilder extends UIComponent {
  * state.$subscribe(draw); draw();
  */
 export class MediaOverviewBuilder extends UIComponent {
-  private _media: any;
-  private _selectedEpisode: any;
+  private _media: unknown;
+  private _selectedEpisode: unknown;
   private _onResetEpisode?: CallbackFunction;
 
   constructor() {
@@ -785,7 +779,7 @@ export class MediaOverviewBuilder extends UIComponent {
    *
    * @param v Значение метода
    */
-  media(v: any): this {
+  media(v: unknown): this {
     this._media = v;
     return this;
   }
@@ -795,7 +789,7 @@ export class MediaOverviewBuilder extends UIComponent {
    *
    * @param v Значение метода
    */
-  selectedEpisode(v: any): this {
+  selectedEpisode(v: unknown): this {
     this._selectedEpisode = v;
     return this;
   }
@@ -810,18 +804,17 @@ export class MediaOverviewBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       media: this._media,
       selectedEpisode: this._selectedEpisode
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onResetEpisode) {
-      json.events = json.events || {};
-      json.events.onResetEpisode = CallbackRegistry.register(this._onResetEpisode, `${path}/onResetEpisode`);
+      json.events = { ...json.events, onResetEpisode: CallbackRegistry.register(this._onResetEpisode, `${path}/onResetEpisode`) };
     }
     return json;
   }
@@ -857,7 +850,7 @@ export class MediaOverviewBuilder extends UIComponent {
 export class MediaRowBuilder extends UIComponent {
   private _rowId?: string;
   private _title?: string;
-  private _items: any[];
+  private _items: unknown[];
   private _onCardClick?: CallbackFunction;
   private _onSeeAllClick?: CallbackFunction;
 
@@ -888,7 +881,7 @@ export class MediaRowBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  items(v: any[]): this {
+  items(v: unknown[]): this {
     this._items = v;
     return this;
   }
@@ -913,7 +906,7 @@ export class MediaRowBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       id: this._rowId,
       title: this._title,
@@ -921,15 +914,13 @@ export class MediaRowBuilder extends UIComponent {
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onCardClick) {
-      json.events = json.events || {};
-      json.events.onCardClick = CallbackRegistry.register(this._onCardClick, `${path}/onCardClick`);
+      json.events = { ...json.events, onCardClick: CallbackRegistry.register(this._onCardClick, `${path}/onCardClick`) };
     }
     if (this._onSeeAllClick) {
-      json.events = json.events || {};
-      json.events.onSeeAllClick = CallbackRegistry.register(this._onSeeAllClick, `${path}/onSeeAllClick`);
+      json.events = { ...json.events, onSeeAllClick: CallbackRegistry.register(this._onSeeAllClick, `${path}/onSeeAllClick`) };
     }
     return json;
   }
@@ -999,7 +990,7 @@ export class MediaRowBuilder extends UIComponent {
  * );
  */
 export class MediaPlayerBuilder extends UIComponent {
-  private _playback: any;
+  private _playback: unknown;
   private _isNetworkOffline?: boolean;
 
   constructor() {
@@ -1011,7 +1002,7 @@ export class MediaPlayerBuilder extends UIComponent {
    *
    * @param v Значение метода
    */
-  playback(v: any): this {
+  playback(v: unknown): this {
     this._playback = v;
     return this;
   }
@@ -1027,7 +1018,7 @@ export class MediaPlayerBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       playback: this._playback,
       isNetworkOffline: this._isNetworkOffline
@@ -1077,7 +1068,7 @@ export class MediaPlayerBuilder extends UIComponent {
  * );
  */
 export class ProfileSelectorBuilder extends UIComponent {
-  private _connectionProfiles: any[];
+  private _connectionProfiles: unknown[];
   private _activeProfileID?: string | null;
   private _isSettingsLocked?: boolean;
   private _onSelectProfile?: CallbackFunction;
@@ -1096,7 +1087,7 @@ export class ProfileSelectorBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  connectionProfiles(v: any[]): this {
+  connectionProfiles(v: unknown[]): this {
     this._connectionProfiles = v;
     return this;
   }
@@ -1162,7 +1153,7 @@ export class ProfileSelectorBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       connectionProfiles: this._connectionProfiles,
       activeProfileID: this._activeProfileID,
@@ -1170,23 +1161,19 @@ export class ProfileSelectorBuilder extends UIComponent {
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onSelectProfile) {
-      json.events = json.events || {};
-      json.events.onSelectProfile = CallbackRegistry.register(this._onSelectProfile, `${path}/onSelectProfile`);
+      json.events = { ...json.events, onSelectProfile: CallbackRegistry.register(this._onSelectProfile, `${path}/onSelectProfile`) };
     }
     if (this._onStartEdit) {
-      json.events = json.events || {};
-      json.events.onStartEdit = CallbackRegistry.register(this._onStartEdit, `${path}/onStartEdit`);
+      json.events = { ...json.events, onStartEdit: CallbackRegistry.register(this._onStartEdit, `${path}/onStartEdit`) };
     }
     if (this._onDeleteProfile) {
-      json.events = json.events || {};
-      json.events.onDeleteProfile = CallbackRegistry.register(this._onDeleteProfile, `${path}/onDeleteProfile`);
+      json.events = { ...json.events, onDeleteProfile: CallbackRegistry.register(this._onDeleteProfile, `${path}/onDeleteProfile`) };
     }
     if (this._onStartAdd) {
-      json.events = json.events || {};
-      json.events.onStartAdd = CallbackRegistry.register(this._onStartAdd, `${path}/onStartAdd`);
+      json.events = { ...json.events, onStartAdd: CallbackRegistry.register(this._onStartAdd, `${path}/onStartAdd`) };
     }
     return json;
   }
@@ -1269,22 +1256,20 @@ export class SearchBarBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       value: this._value,
       placeholder: this._placeholder
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onChange) {
-      json.events = json.events || {};
-      json.events.onChange = CallbackRegistry.register(this._onChange, `${path}/onChange`);
+      json.events = { ...json.events, onChange: CallbackRegistry.register(this._onChange, `${path}/onChange`) };
     }
     if (this._onClear) {
-      json.events = json.events || {};
-      json.events.onClear = CallbackRegistry.register(this._onClear, `${path}/onClear`);
+      json.events = { ...json.events, onClear: CallbackRegistry.register(this._onClear, `${path}/onClear`) };
     }
     return json;
   }
@@ -1439,7 +1424,7 @@ export class StreamFilterBarBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       countLabel: this._countLabel,
       qualityFilter: this._qualityFilter,
@@ -1450,23 +1435,19 @@ export class StreamFilterBarBuilder extends UIComponent {
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onRefresh) {
-      json.events = json.events || {};
-      json.events.onRefresh = CallbackRegistry.register(this._onRefresh, `${path}/onRefresh`);
+      json.events = { ...json.events, onRefresh: CallbackRegistry.register(this._onRefresh, `${path}/onRefresh`) };
     }
     if (this._onQualityChange) {
-      json.events = json.events || {};
-      json.events.onQualityChange = CallbackRegistry.register(this._onQualityChange, `${path}/onQualityChange`);
+      json.events = { ...json.events, onQualityChange: CallbackRegistry.register(this._onQualityChange, `${path}/onQualityChange`) };
     }
     if (this._onTrackerChange) {
-      json.events = json.events || {};
-      json.events.onTrackerChange = CallbackRegistry.register(this._onTrackerChange, `${path}/onTrackerChange`);
+      json.events = { ...json.events, onTrackerChange: CallbackRegistry.register(this._onTrackerChange, `${path}/onTrackerChange`) };
     }
     if (this._onSortChange) {
-      json.events = json.events || {};
-      json.events.onSortChange = CallbackRegistry.register(this._onSortChange, `${path}/onSortChange`);
+      json.events = { ...json.events, onSortChange: CallbackRegistry.register(this._onSortChange, `${path}/onSortChange`) };
     }
     return json;
   }
@@ -1546,10 +1527,10 @@ export class EpisodeSelectorBuilder extends UIComponent {
   private _isOpen?: boolean;
   private _title?: string;
   private _subtitle?: string;
-  private _episodes: any[];
+  private _episodes: unknown[];
   private _backdropSrc?: string;
   private _seasonsLoading?: boolean;
-  private _seasons: any[];
+  private _seasons: unknown[];
   private _onClose?: CallbackFunction;
   private _onPlay?: CallbackFunction;
   private _onApplyOverride?: CallbackFunction;
@@ -1598,7 +1579,7 @@ export class EpisodeSelectorBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  episodes(v: any[]): this {
+  episodes(v: unknown[]): this {
     this._episodes = v;
     return this;
   }
@@ -1630,7 +1611,7 @@ export class EpisodeSelectorBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  seasons(v: any[]): this {
+  seasons(v: unknown[]): this {
     this._seasons = v;
     return this;
   }
@@ -1675,7 +1656,7 @@ export class EpisodeSelectorBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       isOpen: this._isOpen,
       title: this._title,
@@ -1687,23 +1668,19 @@ export class EpisodeSelectorBuilder extends UIComponent {
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onClose) {
-      json.events = json.events || {};
-      json.events.onClose = CallbackRegistry.register(this._onClose, `${path}/onClose`);
+      json.events = { ...json.events, onClose: CallbackRegistry.register(this._onClose, `${path}/onClose`) };
     }
     if (this._onPlay) {
-      json.events = json.events || {};
-      json.events.onPlay = CallbackRegistry.register(this._onPlay, `${path}/onPlay`);
+      json.events = { ...json.events, onPlay: CallbackRegistry.register(this._onPlay, `${path}/onPlay`) };
     }
     if (this._onApplyOverride) {
-      json.events = json.events || {};
-      json.events.onApplyOverride = CallbackRegistry.register(this._onApplyOverride, `${path}/onApplyOverride`);
+      json.events = { ...json.events, onApplyOverride: CallbackRegistry.register(this._onApplyOverride, `${path}/onApplyOverride`) };
     }
     if (this._onStartEditing) {
-      json.events = json.events || {};
-      json.events.onStartEditing = CallbackRegistry.register(this._onStartEditing, `${path}/onStartEditing`);
+      json.events = { ...json.events, onStartEditing: CallbackRegistry.register(this._onStartEditing, `${path}/onStartEditing`) };
     }
     return json;
   }
@@ -1744,7 +1721,7 @@ export class EpisodeSelectorPopupBuilder extends EpisodeSelectorBuilder {
  * );
  */
 export class EpisodeCardBuilder extends UIComponent {
-  private _episode: any;
+  private _episode: unknown;
   private _onClick?: CallbackFunction;
 
   constructor() {
@@ -1756,7 +1733,7 @@ export class EpisodeCardBuilder extends UIComponent {
    *
    * @param v Значение метода
    */
-  episode(v: any): this {
+  episode(v: unknown): this {
     this._episode = v;
     return this;
   }
@@ -1771,15 +1748,14 @@ export class EpisodeCardBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { episode: this._episode };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onClick) {
-      json.events = json.events || {};
-      json.events.onClick = CallbackRegistry.register(this._onClick, `${path}/onClick`);
+      json.events = { ...json.events, onClick: CallbackRegistry.register(this._onClick, `${path}/onClick`) };
     }
     return json;
   }
@@ -1811,7 +1787,7 @@ export class EpisodeCardBuilder extends UIComponent {
  * );
  */
 export class ContentCardBuilder extends UIComponent {
-  private _item: any;
+  private _item: unknown;
   private _orientation?: "portrait" | "landscape";
   private _onClick?: CallbackFunction;
 
@@ -1825,7 +1801,7 @@ export class ContentCardBuilder extends UIComponent {
    *
    * @param v Значение метода
    */
-  item(v: any): this {
+  item(v: unknown): this {
     this._item = v;
     return this;
   }
@@ -1851,15 +1827,14 @@ export class ContentCardBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { item: this._item, orientation: this._orientation };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onClick) {
-      json.events = json.events || {};
-      json.events.onClick = CallbackRegistry.register(this._onClick, `${path}/onClick`);
+      json.events = { ...json.events, onClick: CallbackRegistry.register(this._onClick, `${path}/onClick`) };
     }
     return json;
   }
@@ -1891,7 +1866,7 @@ export class ContentCardBuilder extends UIComponent {
  */
 export class ContentRowBuilder extends UIComponent {
   private _title?: string;
-  private _items: any[];
+  private _items: unknown[];
   private _orientation?: "portrait" | "landscape";
   private _seeAllLabel?: string;
   private _onCardClick?: CallbackFunction;
@@ -1918,7 +1893,7 @@ export class ContentRowBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  items(v: any[]): this {
+  items(v: unknown[]): this {
     this._items = v;
     return this;
   }
@@ -1964,7 +1939,7 @@ export class ContentRowBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       title: this._title,
       items: this._items,
@@ -1973,15 +1948,13 @@ export class ContentRowBuilder extends UIComponent {
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onCardClick) {
-      json.events = json.events || {};
-      json.events.onCardClick = CallbackRegistry.register(this._onCardClick, `${path}/onCardClick`);
+      json.events = { ...json.events, onCardClick: CallbackRegistry.register(this._onCardClick, `${path}/onCardClick`) };
     }
     if (this._onSeeAllClick) {
-      json.events = json.events || {};
-      json.events.onSeeAllClick = CallbackRegistry.register(this._onSeeAllClick, `${path}/onSeeAllClick`);
+      json.events = { ...json.events, onSeeAllClick: CallbackRegistry.register(this._onSeeAllClick, `${path}/onSeeAllClick`) };
     }
     return json;
   }
@@ -2013,7 +1986,7 @@ export class ContentRowBuilder extends UIComponent {
  * );
  */
 export class HeroBuilder extends UIComponent {
-  private _items: any[];
+  private _items: unknown[];
   private _playLabel?: string;
   private _detailsLabel?: string;
   private _onPlay?: CallbackFunction;
@@ -2030,7 +2003,7 @@ export class HeroBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  items(v: any[]): this {
+  items(v: unknown[]): this {
     this._items = v;
     return this;
   }
@@ -2077,7 +2050,7 @@ export class HeroBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       items: this._items,
       playLabel: this._playLabel,
@@ -2085,15 +2058,13 @@ export class HeroBuilder extends UIComponent {
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onPlay) {
-      json.events = json.events || {};
-      json.events.onPlay = CallbackRegistry.register(this._onPlay, `${path}/onPlay`);
+      json.events = { ...json.events, onPlay: CallbackRegistry.register(this._onPlay, `${path}/onPlay`) };
     }
     if (this._onDetails) {
-      json.events = json.events || {};
-      json.events.onDetails = CallbackRegistry.register(this._onDetails, `${path}/onDetails`);
+      json.events = { ...json.events, onDetails: CallbackRegistry.register(this._onDetails, `${path}/onDetails`) };
     }
     return json;
   }
@@ -2127,7 +2098,7 @@ export class HeroBuilder extends UIComponent {
  */
 export class ContinueWatchingRowBuilder extends UIComponent {
   private _title?: string;
-  private _items: any[];
+  private _items: unknown[];
   private _onCardClick?: CallbackFunction;
 
   constructor() {
@@ -2147,7 +2118,7 @@ export class ContinueWatchingRowBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  items(v: any[]): this { this._items = v; return this; }
+  items(v: unknown[]): this { this._items = v; return this; }
   /**
    * Коллбек клика по карточке.
    *
@@ -2155,15 +2126,14 @@ export class ContinueWatchingRowBuilder extends UIComponent {
    */
   onCardClick(cb: CallbackFunction): this { this._onCardClick = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { title: this._title, items: this._items };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onCardClick) {
-      json.events = json.events || {};
-      json.events.onCardClick = CallbackRegistry.register(this._onCardClick, `${path}/onCardClick`);
+      json.events = { ...json.events, onCardClick: CallbackRegistry.register(this._onCardClick, `${path}/onCardClick`) };
     }
     return json;
   }
@@ -2193,7 +2163,7 @@ export class ContinueWatchingRowBuilder extends UIComponent {
  */
 export class TopTenRowBuilder extends UIComponent {
   private _title?: string;
-  private _items: any[];
+  private _items: unknown[];
   private _seeAllLabel?: string;
   private _onCardClick?: CallbackFunction;
   private _onSeeAllClick?: CallbackFunction;
@@ -2215,7 +2185,7 @@ export class TopTenRowBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  items(v: any[]): this { this._items = v; return this; }
+  items(v: unknown[]): this { this._items = v; return this; }
   /**
    * Текст кнопки «Показать все» в заголовке (появляется только если задан onSeeAllClick).
    *
@@ -2235,19 +2205,17 @@ export class TopTenRowBuilder extends UIComponent {
    */
   onSeeAllClick(cb: CallbackFunction): this { this._onSeeAllClick = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { title: this._title, items: this._items, seeAllLabel: this._seeAllLabel };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onCardClick) {
-      json.events = json.events || {};
-      json.events.onCardClick = CallbackRegistry.register(this._onCardClick, `${path}/onCardClick`);
+      json.events = { ...json.events, onCardClick: CallbackRegistry.register(this._onCardClick, `${path}/onCardClick`) };
     }
     if (this._onSeeAllClick) {
-      json.events = json.events || {};
-      json.events.onSeeAllClick = CallbackRegistry.register(this._onSeeAllClick, `${path}/onSeeAllClick`);
+      json.events = { ...json.events, onSeeAllClick: CallbackRegistry.register(this._onSeeAllClick, `${path}/onSeeAllClick`) };
     }
     return json;
   }
@@ -2278,7 +2246,7 @@ export class TopTenRowBuilder extends UIComponent {
  * );
  */
 export class PosterGridBuilder extends UIComponent {
-  private _items: any[];
+  private _items: unknown[];
   private _minWidth?: string;
   private _loadMoreLabel?: string;
   private _onCardClick?: CallbackFunction;
@@ -2295,7 +2263,7 @@ export class PosterGridBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  items(v: any[]): this { this._items = v; return this; }
+  items(v: unknown[]): this { this._items = v; return this; }
   /**
    * Минимальная ширина колонки.
    *
@@ -2322,19 +2290,17 @@ export class PosterGridBuilder extends UIComponent {
    */
   onLoadMore(cb: CallbackFunction): this { this._onLoadMore = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { items: this._items, minWidth: this._minWidth, loadMoreLabel: this._loadMoreLabel };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onCardClick) {
-      json.events = json.events || {};
-      json.events.onCardClick = CallbackRegistry.register(this._onCardClick, `${path}/onCardClick`);
+      json.events = { ...json.events, onCardClick: CallbackRegistry.register(this._onCardClick, `${path}/onCardClick`) };
     }
     if (this._onLoadMore) {
-      json.events = json.events || {};
-      json.events.onLoadMore = CallbackRegistry.register(this._onLoadMore, `${path}/onLoadMore`);
+      json.events = { ...json.events, onLoadMore: CallbackRegistry.register(this._onLoadMore, `${path}/onLoadMore`) };
     }
     return json;
   }
@@ -2367,8 +2333,8 @@ export class PosterGridBuilder extends UIComponent {
  * );
  */
 export class DetailHeroBuilder extends UIComponent {
-  private _item: any;
-  private _actions: any[];
+  private _item: unknown;
+  private _actions: unknown[];
   private _onAction?: CallbackFunction;
 
   constructor() {
@@ -2382,14 +2348,14 @@ export class DetailHeroBuilder extends UIComponent {
    *
    * @param v Значение метода
    */
-  item(v: any): this { this._item = v; return this; }
+  item(v: unknown): this { this._item = v; return this; }
   /**
    * Кнопки действий. variant: 'ghost' — прозрачная.
    *
    * @param v Значение метода
    * @default []
    */
-  actions(v: any[]): this { this._actions = v; return this; }
+  actions(v: unknown[]): this { this._actions = v; return this; }
   /**
    * Коллбек клика по кнопке. Передаёт id действия.
    *
@@ -2397,27 +2363,50 @@ export class DetailHeroBuilder extends UIComponent {
    */
   onAction(cb: CallbackFunction): this { this._onAction = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { item: this._item, actions: this._actions };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onAction) {
-      json.events = json.events || {};
-      json.events.onAction = CallbackRegistry.register(this._onAction, `${path}/onAction`);
+      json.events = { ...json.events, onAction: CallbackRegistry.register(this._onAction, `${path}/onAction`) };
     }
     return json;
   }
 }
 
+const errorMessage = (err: unknown): string | undefined =>
+  err instanceof Error ? err.message : undefined;
+
+/** A stream source registered by a declarative plugin. All payloads are opaque host↔plugin JSON. */
+export interface RegisteredStreamSource {
+  id: string;
+  name?: string;
+  supportedTypes?: unknown;
+  search(query: unknown): unknown;
+  getEpisodes?(stream: unknown, context: unknown): unknown;
+  getSeasonsMetadata?(stream: unknown, context: unknown): unknown;
+  saveSeasonOverride?(
+    stream: unknown,
+    context: unknown,
+    sourceSeason: unknown,
+    targetSeason: unknown,
+    offset: unknown
+  ): unknown;
+  clearSeasonOverride?(stream: unknown, context: unknown, sourceSeason: unknown): unknown;
+  getPlaybackInfo?(stream: unknown, episode: unknown, context: unknown): unknown;
+  getPlaybackMetadata?(stream: unknown, episode: unknown, context: unknown): unknown;
+  refreshStreamUrl?(payload: unknown): Record<string, unknown> | Promise<Record<string, unknown>>;
+}
+
 // Declarative streams support (from SDKDeclarativeCode.ts)
-export const registeredStreamSources = new Map<string, any>();
+export const registeredStreamSources = new Map<string, RegisteredStreamSource>();
 
 export const streamsSpace = {
-  registerStreamSource(source: any): void {
+  registerStreamSource(source: RegisteredStreamSource): void {
     registeredStreamSources.set(source.id, source);
-    const hostOrigin = (window as any).PotokInitialState?.hostOrigin || "*";
+    const hostOrigin = window.PotokInitialState?.hostOrigin || "*";
     window.parent.postMessage({
       source: 'potok-plugin-sdk',
       action: 'REGISTER_STREAM_SOURCE',
@@ -2432,7 +2421,7 @@ export const streamsSpace = {
 
 export function initDeclarativeStreamListeners(): void {
   window.addEventListener('message', async (e) => {
-    const hostOrigin = (window as any).PotokInitialState?.hostOrigin || "*";
+    const hostOrigin = window.PotokInitialState?.hostOrigin || "*";
     if (hostOrigin !== "*" && e.origin !== hostOrigin) return;
     const msg = e.data;
     if (!msg || msg.source !== 'potok-host') return;
@@ -2448,11 +2437,11 @@ export function initDeclarativeStreamListeners(): void {
             action: 'STREAM_SOURCE_SEARCH_RESPONSE',
             payload: { requestId, data, error: null }
           }, hostOrigin);
-        } catch (err: any) {
+        } catch (err: unknown) {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_SEARCH_RESPONSE',
-            payload: { requestId, data: [], error: err.message || 'Search failed' }
+            payload: { requestId, data: [], error: errorMessage(err) || 'Search failed' }
           }, hostOrigin);
         }
       } else {
@@ -2473,11 +2462,11 @@ export function initDeclarativeStreamListeners(): void {
             action: 'STREAM_SOURCE_GET_EPISODES_RESPONSE',
             payload: { requestId, data, error: null }
           }, hostOrigin);
-        } catch (err: any) {
+        } catch (err: unknown) {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_GET_EPISODES_RESPONSE',
-            payload: { requestId, data: null, error: err.message || 'Failed to get episodes' }
+            payload: { requestId, data: null, error: errorMessage(err) || 'Failed to get episodes' }
           }, hostOrigin);
         }
       } else {
@@ -2498,11 +2487,11 @@ export function initDeclarativeStreamListeners(): void {
             action: 'STREAM_SOURCE_GET_SEASONS_RESPONSE',
             payload: { requestId, data, error: null }
           }, hostOrigin);
-        } catch (err: any) {
+        } catch (err: unknown) {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_GET_SEASONS_RESPONSE',
-            payload: { requestId, data: null, error: err.message || 'Failed to get seasons metadata' }
+            payload: { requestId, data: null, error: errorMessage(err) || 'Failed to get seasons metadata' }
           }, hostOrigin);
         }
       } else {
@@ -2525,11 +2514,11 @@ export function initDeclarativeStreamListeners(): void {
             action: 'STREAM_SOURCE_SAVE_OVERRIDE_RESPONSE',
             payload: { requestId, data: null, error: null }
           }, hostOrigin);
-        } catch (err: any) {
+        } catch (err: unknown) {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_SAVE_OVERRIDE_RESPONSE',
-            payload: { requestId, data: null, error: err.message || 'Failed to save season override' }
+            payload: { requestId, data: null, error: errorMessage(err) || 'Failed to save season override' }
           }, hostOrigin);
         }
       } else {
@@ -2551,11 +2540,11 @@ export function initDeclarativeStreamListeners(): void {
             action: 'STREAM_SOURCE_CLEAR_OVERRIDE_RESPONSE',
             payload: { requestId, data: null, error: null }
           }, hostOrigin);
-        } catch (err: any) {
+        } catch (err: unknown) {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_CLEAR_OVERRIDE_RESPONSE',
-            payload: { requestId, data: null, error: err.message || 'Failed to clear season override' }
+            payload: { requestId, data: null, error: errorMessage(err) || 'Failed to clear season override' }
           }, hostOrigin);
         }
       } else {
@@ -2576,11 +2565,11 @@ export function initDeclarativeStreamListeners(): void {
             action: 'STREAM_SOURCE_GET_PLAYBACK_INFO_RESPONSE',
             payload: { requestId, data, error: null }
           }, hostOrigin);
-        } catch (err: any) {
+        } catch (err: unknown) {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_GET_PLAYBACK_INFO_RESPONSE',
-            payload: { requestId, data: null, error: err.message || 'Failed to get playback info' }
+            payload: { requestId, data: null, error: errorMessage(err) || 'Failed to get playback info' }
           }, hostOrigin);
         }
       } else {
@@ -2603,11 +2592,11 @@ export function initDeclarativeStreamListeners(): void {
             action: 'STREAM_SOURCE_GET_PLAYBACK_METADATA_RESPONSE',
             payload: { requestId, data, error: null }
           }, hostOrigin);
-        } catch (err: any) {
+        } catch (err: unknown) {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_GET_PLAYBACK_METADATA_RESPONSE',
-            payload: { requestId, data: null, error: err.message || 'Failed to get playback metadata' }
+            payload: { requestId, data: null, error: errorMessage(err) || 'Failed to get playback metadata' }
           }, hostOrigin);
         }
       } else {
@@ -2628,11 +2617,11 @@ export function initDeclarativeStreamListeners(): void {
             action: 'REFRESH_STREAM_URL_RESPONSE',
             payload: { success: true, ...data }
           }, hostOrigin);
-        } catch (err: any) {
+        } catch (err: unknown) {
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'REFRESH_STREAM_URL_RESPONSE',
-            payload: { success: false, error: err.message || 'Failed to refresh stream URL' }
+            payload: { success: false, error: errorMessage(err) || 'Failed to refresh stream URL' }
           }, hostOrigin);
         }
       }

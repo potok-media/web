@@ -1,4 +1,4 @@
-export type CallbackFunction = (...args: any[]) => any;
+export type CallbackFunction = (...args: unknown[]) => unknown;
 
 export interface CallbackEntry {
   cb: CallbackFunction;
@@ -68,7 +68,7 @@ export class CallbackRegistry {
     this.callbacks.delete(id);
   }
 
-  static trigger(id: string, data: any): void {
+  static trigger(id: string, data: unknown): void {
     const entry = this.callbacks.get(id);
     if (entry) {
       if (!entry.persistent && Date.now() - entry.createdAt > this.TTL) {

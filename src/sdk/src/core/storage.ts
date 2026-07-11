@@ -12,11 +12,11 @@ export const LocalStorageBridge = {
     return val !== undefined ? val : null;
   },
 
-  setItem(key: string, value: any): Promise<void> {
+  setItem(key: string, value: unknown): Promise<void> {
     const strVal = String(value);
     this.cache[key] = strVal;
 
-    const hostOrigin = (window as any).PotokInitialState?.hostOrigin || "*";
+    const hostOrigin = window.PotokInitialState?.hostOrigin || "*";
 
     setTimeout(() => {
       window.parent.postMessage({
@@ -36,7 +36,7 @@ export const LocalStorageBridge = {
   removeItem(key: string): Promise<void> {
     delete this.cache[key];
 
-    const hostOrigin = (window as any).PotokInitialState?.hostOrigin || "*";
+    const hostOrigin = window.PotokInitialState?.hostOrigin || "*";
     setTimeout(() => {
       window.parent.postMessage({
         source: 'potok-plugin-sdk',
@@ -52,7 +52,7 @@ export const LocalStorageBridge = {
   clear(): Promise<void> {
     this.cache = {};
 
-    const hostOrigin = (window as any).PotokInitialState?.hostOrigin || "*";
+    const hostOrigin = window.PotokInitialState?.hostOrigin || "*";
     setTimeout(() => {
       window.parent.postMessage({
         source: 'potok-plugin-sdk',

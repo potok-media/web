@@ -4,8 +4,8 @@
  * and dynamic runtime Docker environment variable injection (production).
  */
 export function getEnv(key: string): string {
-  if (typeof window !== "undefined" && (window as any).POTOK_CONFIG) {
-    const val = (window as any).POTOK_CONFIG[key];
+  if (typeof window !== "undefined" && window.POTOK_CONFIG) {
+    const val = window.POTOK_CONFIG[key];
     // Check if the value is defined and is not a placeholder template
     if (val && typeof val === "string" && !val.startsWith("__VITE_") && !val.endsWith("__")) {
       return val;

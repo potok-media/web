@@ -115,7 +115,7 @@ export const i18n = {
       }
     }
     if (typeof window !== "undefined" && window.parent) {
-      const stateObj = (window as any).PotokInitialState;
+      const stateObj = window.PotokInitialState;
       const hostOrigin = stateObj?.hostOrigin || "*";
       window.parent.postMessage({
         source: "potok-plugin-sdk",

@@ -2,7 +2,8 @@ import type { TFunction } from "i18next";
 import { Play } from "lucide-react";
 import { Button } from "../../../components/ui";
 import { CodeBlock } from "../../../components/wiki/CodeBlock";
-import { getWikiSections, WikiDocLi, WikiDocP, WikiRichText } from "../wikiDocUtils";
+import { WikiDocLi, WikiDocP, WikiRichText } from "../wikiDocUtils";
+import { getWikiSections } from "../wikiSections";
 import {
   easyPluginIndexJsExample,
   playVideoExample,

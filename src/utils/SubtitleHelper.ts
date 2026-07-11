@@ -17,8 +17,8 @@ export function detectSubtitleKind(nameOrUrl: string, content: string): Subtitle
   if (lower.endsWith(".srt")) return "srt";
 
   const head = (content || "").slice(0, 500).trimStart();
-  if (/^﻿?\[Script Info\]/i.test(head) || /\[V4\+? Styles\]/i.test(head)) return "ass";
-  if (/^﻿?WEBVTT/.test(head)) return "vtt";
+  if (/^\uFEFF?\[Script Info\]/i.test(head) || /\[V4\+? Styles\]/i.test(head)) return "ass";
+  if (/^\uFEFF?WEBVTT/.test(head)) return "vtt";
   return "srt";
 }
 

@@ -1,4 +1,4 @@
-import { UIComponent, LayoutComponent } from "./base";
+import { UIComponent, LayoutComponent, type CompiledComponent } from "./base";
 import { CallbackRegistry, type CallbackFunction } from "../core/registry";
 
 
@@ -101,7 +101,7 @@ export class GridBuilder extends LayoutComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       ...super.getProps(),
       minWidth: this._minWidth,
@@ -165,14 +165,14 @@ export class CardBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       title: this._title,
       subtitle: this._subtitle
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._child) {
       if (typeof this._child.compile !== "function") {
@@ -231,7 +231,7 @@ export class HeadingBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       text: this._text,
       level: this._level
@@ -305,7 +305,7 @@ export class TextBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       text: this._text,
       variant: this._variant,
@@ -354,7 +354,7 @@ export class BadgeBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       text: this._text,
       color: this._color
@@ -413,7 +413,7 @@ export class StatusRowBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       label: this._label,
       status: this._status,
@@ -444,7 +444,7 @@ export class DividerBuilder extends UIComponent {
     super("Divider");
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {};
   }
 }
@@ -470,7 +470,7 @@ export class SpacerBuilder extends UIComponent {
     super("Spacer");
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {};
   }
 }
@@ -539,7 +539,7 @@ export class ButtonBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       text: this._text,
       variant: this._variant,
@@ -547,11 +547,10 @@ export class ButtonBuilder extends UIComponent {
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onClick) {
-      json.events = json.events || {};
-      json.events.onClick = CallbackRegistry.register(this._onClick, `${path}/onClick`);
+      json.events = { ...json.events, onClick: CallbackRegistry.register(this._onClick, `${path}/onClick`) };
     }
     return json;
   }
@@ -672,7 +671,7 @@ export class InputBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       name: this._name,
       label: this._label,
@@ -682,11 +681,10 @@ export class InputBuilder extends UIComponent {
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onChange) {
-      json.events = json.events || {};
-      json.events.onChange = CallbackRegistry.register(this._onChange, `${path}/onChange`);
+      json.events = { ...json.events, onChange: CallbackRegistry.register(this._onChange, `${path}/onChange`) };
     }
     return json;
   }
@@ -780,7 +778,7 @@ export class ToggleBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       name: this._name,
       label: this._label,
@@ -789,11 +787,10 @@ export class ToggleBuilder extends UIComponent {
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onChange) {
-      json.events = json.events || {};
-      json.events.onChange = CallbackRegistry.register(this._onChange, `${path}/onChange`);
+      json.events = { ...json.events, onChange: CallbackRegistry.register(this._onChange, `${path}/onChange`) };
     }
     return json;
   }
@@ -840,7 +837,7 @@ export class ToggleBuilder extends UIComponent {
  */
 export class SelectBuilder extends UIComponent {
   private _name: string;
-  private _options: any[];
+  private _options: unknown[];
   private _selected: string | string[];
   private _label?: string;
   private _onChange?: CallbackFunction;
@@ -875,7 +872,7 @@ export class SelectBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  options(opts: any[]): this {
+  options(opts: unknown[]): this {
     this._options = opts;
     return this;
   }
@@ -974,7 +971,7 @@ export class SelectBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       name: this._name,
       label: this._label,
@@ -989,11 +986,10 @@ export class SelectBuilder extends UIComponent {
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onChange) {
-      json.events = json.events || {};
-      json.events.onChange = CallbackRegistry.register(this._onChange, `${path}/onChange`);
+      json.events = { ...json.events, onChange: CallbackRegistry.register(this._onChange, `${path}/onChange`) };
     }
     return json;
   }
@@ -1080,7 +1076,7 @@ export class CodeEditorBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       name: this._name,
       label: this._label,
@@ -1089,11 +1085,10 @@ export class CodeEditorBuilder extends UIComponent {
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onChange) {
-      json.events = json.events || {};
-      json.events.onChange = CallbackRegistry.register(this._onChange, `${path}/onChange`);
+      json.events = { ...json.events, onChange: CallbackRegistry.register(this._onChange, `${path}/onChange`) };
     }
     return json;
   }
@@ -1144,7 +1139,7 @@ export class MarkdownBuilder extends UIComponent {
     return this;
   }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       content: this._content
     };
@@ -1223,7 +1218,7 @@ export class ImageBuilder extends UIComponent {
    */
   onClick(cb: CallbackFunction): this { this._onClick = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       src: this._src,
       alt: this._alt,
@@ -1234,11 +1229,10 @@ export class ImageBuilder extends UIComponent {
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onClick) {
-      json.events = json.events || {};
-      json.events.onClick = CallbackRegistry.register(this._onClick, `${path}/onClick`);
+      json.events = { ...json.events, onClick: CallbackRegistry.register(this._onClick, `${path}/onClick`) };
     }
     return json;
   }
@@ -1284,7 +1278,7 @@ export class IconBuilder extends UIComponent {
    */
   color(v: string): this { this._color = v; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { name: this._name, size: this._size, color: this._color };
   }
 }
@@ -1314,7 +1308,7 @@ export class IconBuilder extends UIComponent {
  * state.$subscribe(draw); draw();
  */
 export class TabsBuilder extends UIComponent {
-  private _items: any[];
+  private _items: unknown[];
   private _value?: string;
   private _onChange?: CallbackFunction;
 
@@ -1329,7 +1323,7 @@ export class TabsBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  items(v: any[]): this { this._items = v; return this; }
+  items(v: unknown[]): this { this._items = v; return this; }
   /**
    * Идентификатор активной вкладки.
    *
@@ -1343,15 +1337,14 @@ export class TabsBuilder extends UIComponent {
    */
   onChange(cb: CallbackFunction): this { this._onChange = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { items: this._items, value: this._value };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onChange) {
-      json.events = json.events || {};
-      json.events.onChange = CallbackRegistry.register(this._onChange, `${path}/onChange`);
+      json.events = { ...json.events, onChange: CallbackRegistry.register(this._onChange, `${path}/onChange`) };
     }
     return json;
   }
@@ -1376,7 +1369,7 @@ export class TabsBuilder extends UIComponent {
  * );
  */
 export class ListBuilder extends UIComponent {
-  private _items: any[];
+  private _items: unknown[];
   private _onItemClick?: CallbackFunction;
 
   constructor() {
@@ -1390,7 +1383,7 @@ export class ListBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  items(v: any[]): this { this._items = v; return this; }
+  items(v: unknown[]): this { this._items = v; return this; }
   /**
    * Коллбек клика по строке. Передаёт объект строки.
    *
@@ -1398,15 +1391,14 @@ export class ListBuilder extends UIComponent {
    */
   onItemClick(cb: CallbackFunction): this { this._onItemClick = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { items: this._items };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onItemClick) {
-      json.events = json.events || {};
-      json.events.onItemClick = CallbackRegistry.register(this._onItemClick, `${path}/onItemClick`);
+      json.events = { ...json.events, onItemClick: CallbackRegistry.register(this._onItemClick, `${path}/onItemClick`) };
     }
     return json;
   }
@@ -1451,11 +1443,11 @@ export class TooltipBuilder extends UIComponent {
    */
   child(elm: UIComponent): this { this._child = elm; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { text: this._text, placement: this._placement };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._child && typeof this._child.compile === "function") {
       const childId = this._child._hasCustomId ? this._child._id : "child";
@@ -1520,7 +1512,7 @@ export class ProgressBarBuilder extends UIComponent {
    */
   showValue(v: boolean): this { this._showValue = v; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { value: this._value, variant: this._variant, label: this._label, showValue: this._showValue };
   }
 }
@@ -1564,7 +1556,7 @@ export class SkeletonBuilder extends UIComponent {
    */
   count(v: number): this { this._count = v; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { rounded: this._rounded, count: this._count };
   }
 }
@@ -1629,15 +1621,14 @@ export class EmptyStateBuilder extends UIComponent {
    */
   onAction(cb: CallbackFunction): this { this._onAction = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { icon: this._icon, title: this._title, description: this._description, actionLabel: this._actionLabel };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onAction) {
-      json.events = json.events || {};
-      json.events.onAction = CallbackRegistry.register(this._onAction, `${path}/onAction`);
+      json.events = { ...json.events, onAction: CallbackRegistry.register(this._onAction, `${path}/onAction`) };
     }
     return json;
   }
@@ -1690,7 +1681,7 @@ export class AlertBuilder extends UIComponent {
    */
   icon(v: string): this { this._icon = v; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { text: this._text, title: this._title, variant: this._variant, icon: this._icon };
   }
 }
@@ -1751,15 +1742,14 @@ export class ChipBuilder extends UIComponent {
    */
   onClick(cb: CallbackFunction): this { this._onClick = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { text: this._text, active: this._active, icon: this._icon };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onClick) {
-      json.events = json.events || {};
-      json.events.onClick = CallbackRegistry.register(this._onClick, `${path}/onClick`);
+      json.events = { ...json.events, onClick: CallbackRegistry.register(this._onClick, `${path}/onClick`) };
     }
     return json;
   }
@@ -1820,15 +1810,14 @@ export class IconButtonBuilder extends UIComponent {
    */
   onClick(cb: CallbackFunction): this { this._onClick = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { icon: this._icon, label: this._label, accent: this._accent, size: this._size };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onClick) {
-      json.events = json.events || {};
-      json.events.onClick = CallbackRegistry.register(this._onClick, `${path}/onClick`);
+      json.events = { ...json.events, onClick: CallbackRegistry.register(this._onClick, `${path}/onClick`) };
     }
     return json;
   }
@@ -1923,15 +1912,14 @@ export class ModalBuilder extends LayoutComponent {
    */
   onClose(cb: CallbackFunction): this { this._onClose = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { open: this._open, title: this._title, variant: this._variant, closeOnBackdrop: this._closeOnBackdrop };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onClose) {
-      json.events = json.events || {};
-      json.events.onClose = CallbackRegistry.register(this._onClose, `${path}/onClose`);
+      json.events = { ...json.events, onClose: CallbackRegistry.register(this._onClose, `${path}/onClose`) };
     }
     return json;
   }
@@ -1988,15 +1976,14 @@ export class CollapsibleBuilder extends LayoutComponent {
    */
   onToggle(cb: CallbackFunction): this { this._onToggle = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { title: this._title, open: this._open };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onToggle) {
-      json.events = json.events || {};
-      json.events.onToggle = CallbackRegistry.register(this._onToggle, `${path}/onToggle`);
+      json.events = { ...json.events, onToggle: CallbackRegistry.register(this._onToggle, `${path}/onToggle`) };
     }
     return json;
   }
@@ -2067,7 +2054,7 @@ export class AvatarBuilder extends UIComponent {
    */
   shape(v: "circle" | "square"): this { this._shape = v; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { src: this._src, name: this._name, size: this._size, fallback: this._fallback, shape: this._shape };
   }
 }
@@ -2130,7 +2117,7 @@ export class RatingBuilder extends UIComponent {
    */
   size(v: "sm" | "md" | "lg"): this { this._size = v; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { value: this._value, max: this._max, showValue: this._showValue, size: this._size };
   }
 }
@@ -2151,7 +2138,7 @@ export class RatingBuilder extends UIComponent {
  * );
  */
 export class TagListBuilder extends UIComponent {
-  private _tags: any[];
+  private _tags: unknown[];
   private _onTagClick?: CallbackFunction;
 
   constructor() {
@@ -2165,7 +2152,7 @@ export class TagListBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  tags(v: any[]): this { this._tags = v; return this; }
+  tags(v: unknown[]): this { this._tags = v; return this; }
   /**
    * Коллбек клика по тегу. Передаёт id (или строку).
    *
@@ -2173,15 +2160,14 @@ export class TagListBuilder extends UIComponent {
    */
   onTagClick(cb: CallbackFunction): this { this._onTagClick = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { tags: this._tags };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onTagClick) {
-      json.events = json.events || {};
-      json.events.onTagClick = CallbackRegistry.register(this._onTagClick, `${path}/onTagClick`);
+      json.events = { ...json.events, onTagClick: CallbackRegistry.register(this._onTagClick, `${path}/onTagClick`) };
     }
     return json;
   }
@@ -2233,15 +2219,14 @@ export class SectionHeaderBuilder extends UIComponent {
    */
   onAction(cb: CallbackFunction): this { this._onAction = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { title: this._title, subtitle: this._subtitle, actionLabel: this._actionLabel };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onAction) {
-      json.events = json.events || {};
-      json.events.onAction = CallbackRegistry.register(this._onAction, `${path}/onAction`);
+      json.events = { ...json.events, onAction: CallbackRegistry.register(this._onAction, `${path}/onAction`) };
     }
     return json;
   }
@@ -2333,7 +2318,7 @@ export class RangeBuilder extends UIComponent {
    */
   onChange(cb: CallbackFunction): this { this._onChange = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       name: this._name,
       value: this._value,
@@ -2345,11 +2330,10 @@ export class RangeBuilder extends UIComponent {
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onChange) {
-      json.events = json.events || {};
-      json.events.onChange = CallbackRegistry.register(this._onChange, `${path}/onChange`);
+      json.events = { ...json.events, onChange: CallbackRegistry.register(this._onChange, `${path}/onChange`) };
     }
     return json;
   }
@@ -2379,7 +2363,7 @@ export class RangeBuilder extends UIComponent {
  * state.$subscribe(draw); draw();
  */
 export class SegmentedBuilder extends UIComponent {
-  private _items: any[];
+  private _items: unknown[];
   private _value?: string;
   private _onChange?: CallbackFunction;
 
@@ -2394,7 +2378,7 @@ export class SegmentedBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  items(v: any[]): this { this._items = v; return this; }
+  items(v: unknown[]): this { this._items = v; return this; }
   /**
    * Идентификатор активного сегмента.
    *
@@ -2408,15 +2392,14 @@ export class SegmentedBuilder extends UIComponent {
    */
   onChange(cb: CallbackFunction): this { this._onChange = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { items: this._items, value: this._value };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onChange) {
-      json.events = json.events || {};
-      json.events.onChange = CallbackRegistry.register(this._onChange, `${path}/onChange`);
+      json.events = { ...json.events, onChange: CallbackRegistry.register(this._onChange, `${path}/onChange`) };
     }
     return json;
   }
@@ -2456,7 +2439,7 @@ export class SegmentedBuilder extends UIComponent {
 export class DropdownBuilder extends UIComponent {
   private _label?: string;
   private _icon?: string;
-  private _items: any[];
+  private _items: unknown[];
   private _value?: string;
   private _onSelect?: CallbackFunction;
 
@@ -2483,7 +2466,7 @@ export class DropdownBuilder extends UIComponent {
    * @param v Значение метода
    * @default []
    */
-  items(v: any[]): this { this._items = v; return this; }
+  items(v: unknown[]): this { this._items = v; return this; }
   /**
    * Идентификатор выбранного пункта.
    *
@@ -2497,15 +2480,14 @@ export class DropdownBuilder extends UIComponent {
    */
   onSelect(cb: CallbackFunction): this { this._onSelect = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { label: this._label, icon: this._icon, items: this._items, value: this._value };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onSelect) {
-      json.events = json.events || {};
-      json.events.onSelect = CallbackRegistry.register(this._onSelect, `${path}/onSelect`);
+      json.events = { ...json.events, onSelect: CallbackRegistry.register(this._onSelect, `${path}/onSelect`) };
     }
     return json;
   }
@@ -2567,15 +2549,14 @@ export class FileInputBuilder extends UIComponent {
    */
   onChange(cb: CallbackFunction): this { this._onChange = cb; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { name: this._name, label: this._label, accept: this._accept, multiple: this._multiple };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     if (this._onChange) {
-      json.events = json.events || {};
-      json.events.onChange = CallbackRegistry.register(this._onChange, `${path}/onChange`);
+      json.events = { ...json.events, onChange: CallbackRegistry.register(this._onChange, `${path}/onChange`) };
     }
     return json;
   }
@@ -2627,7 +2608,7 @@ export class FieldBuilder extends LayoutComponent {
    */
   hint(v: string): this { this._hint = v; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { label: this._label, hint: this._hint };
   }
 }
@@ -2694,7 +2675,7 @@ export class ScrollerBuilder extends LayoutComponent {
    */
   orientation(v: "horizontal" | "vertical"): this { this._orientation = v; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { ...super.getProps(), orientation: this._orientation };
   }
 }
@@ -2732,7 +2713,7 @@ export class PageBuilder extends LayoutComponent {
    */
   title(v: string): this { this._title = v; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { ...super.getProps(), title: this._title };
   }
 }
@@ -2774,7 +2755,7 @@ export class SidebarGroupBuilder extends LayoutComponent {
 
   title(v: string): this { this._title = v; return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return { title: this._title };
   }
 }

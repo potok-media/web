@@ -200,6 +200,9 @@ export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
     if (editorLoaded && editorEnabled) {
       runSandboxCode(sandboxCode);
     }
+    // Re-run only when the editor loads/enables or the theme changes — NOT on every keystroke
+    // (sandboxCode) nor on each render (runSandboxCode is re-created per render).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editorLoaded, editorEnabled, theme]);
 
   const handleRun = () => {

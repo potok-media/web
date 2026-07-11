@@ -125,5 +125,5 @@ export function useWikiPages(): WikiPagesMap {
     };
 
     return pages;
-  }, [t]);
+  }, [t, i18n.language]);
 }

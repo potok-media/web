@@ -233,10 +233,10 @@ const SdkTopTenRow: React.FC<{
       {title && (
         <div className="carousel-header">
           {onSeeAll ? (
-            <button type="button" className="carousel-title-link" onClick={onSeeAll}>
+            <Pressable className="carousel-title-link" onPress={onSeeAll}>
               <h2 className="carousel-title">{title}</h2>
               <Lucide.ChevronRight className="carousel-title-chevron" size="1.25rem" />
-            </button>
+            </Pressable>
           ) : (
             <h2 className="carousel-title">{title}</h2>
           )}

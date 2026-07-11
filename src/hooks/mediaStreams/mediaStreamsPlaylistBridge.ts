@@ -24,7 +24,7 @@ export function setupPlaylistBridge({
   playlistIndex: number | undefined;
 } {
   const bridge = window as PlaylistResolveBridge;
-  let playlist = bridge.potok_playlist_override;
+  const playlist = bridge.potok_playlist_override;
   let playlistIndex: number | undefined;
 
   if (playlist) {

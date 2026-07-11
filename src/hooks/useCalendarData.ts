@@ -48,6 +48,9 @@ export function useCalendarData() {
         setLoading(false);
       }
     }
+    // Deliberate refetch triggers: the endpoint returns personalized/localized data, so it must
+    // re-run when the sync strategy, Trakt connection, or language changes (not read in the body).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [syncStrategy, traktConnected, i18n, i18n.language]);
 
   useEffect(() => {

@@ -1,11 +1,27 @@
+/** Serialized layout node produced by compile() and postMessage'd to the host. */
+export interface CompiledComponent {
+  type: string;
+  id: string;
+  props: Record<string, unknown>;
+  events?: Record<string, string>;
+  children?: CompiledComponent[];
+}
+
+/** Compiles a builder to its layout node, or passes a raw layout object through unchanged. */
+export function compileMaybe(ui: unknown): unknown {
+  return ui && typeof (ui as { compile?: unknown }).compile === "function"
+    ? (ui as UIComponent).compile()
+    : ui;
+}
+
 export class UIComponent {
   public _type: string;
   public _id: string;
   public _hasCustomId = false;
   protected _visible: boolean;
   protected _disabled: boolean;
-  protected _padding?: any;
-  protected _margin?: any;
+  protected _padding?: unknown;
+  protected _margin?: unknown;
   protected _width?: string | number;
   protected _height?: string | number;
   protected _flex?: number;
@@ -30,8 +46,8 @@ export class UIComponent {
     this._hasCustomId = true;
     return this;
   }
-  padding(v: any): this { this._padding = v; return this; }
-  margin(v: any): this { this._margin = v; return this; }
+  padding(v: unknown): this { this._padding = v; return this; }
+  margin(v: unknown): this { this._margin = v; return this; }
   width(v: string | number): this { this._width = v; return this; }
   height(v: string | number): this { this._height = v; return this; }
   visible(v: boolean): this { this._visible = v; return this; }
@@ -50,11 +66,11 @@ export class UIComponent {
   /** Прозрачность 0..1. */
   opacity(v: number): this { this._opacity = v; return this; }
 
-  protected getProps(): Record<string, any> {
+  protected getProps(): Record<string, unknown> {
     return {};
   }
 
-  compile(_path: string = "root"): any {
+  compile(_path: string = "root"): CompiledComponent {
     return {
       type: this._type,
       id: this._id,
@@ -95,7 +111,7 @@ export class LayoutComponent extends UIComponent {
   children(elms: UIComponent[]): this { this._children = elms; return this; }
   child(elm: UIComponent): this { this._children.push(elm); return this; }
 
-  protected override getProps(): Record<string, any> {
+  protected override getProps(): Record<string, unknown> {
     return {
       spacing: this._spacing,
       alignItems: this._alignItems,
@@ -103,11 +119,11 @@ export class LayoutComponent extends UIComponent {
     };
   }
 
-  override compile(path: string = "root"): any {
+  override compile(path: string = "root"): CompiledComponent {
     const json = super.compile(path);
     json.children = this._children
       .filter((c) => c !== null && c !== undefined)
-      .map((c: any, index) => {
+      .map((c: UIComponent, index: number) => {
         if (!c || typeof c.compile !== "function") {
           return {
             type: "Text",

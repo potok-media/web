@@ -2,13 +2,9 @@ import type { TFunction } from "i18next";
 import { Play } from "lucide-react";
 import { Button } from "../../../components/ui";
 import { CodeBlock } from "../../../components/wiki/CodeBlock";
-import {
-  getWikiSections,
-  renderThreeColumnTable,
-  renderTwoColumnTable,
-  WikiDocLi,
-  WikiDocP,
-} from "../wikiDocUtils";
+import { WikiDocLi, WikiDocP } from "../wikiDocUtils";
+import { getWikiSections } from "../wikiSections";
+import { renderThreeColumnTable, renderTwoColumnTable } from "../wikiTables";
 
 interface ManifestSections {
   title: string;
