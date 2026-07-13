@@ -52,7 +52,9 @@ export const EpisodeOverridePicker: React.FC<EpisodeOverridePickerProps> = React
 
         return (
           <div key={season.id || seasonNum} className="season-section">
-            <h3 className="season-section-title">{t("selector.season", { number: seasonNum })}</h3>
+            <h3 className="season-section-title">
+              {seasonNum === 0 ? t("selector.specials") : t("selector.season", { number: seasonNum })}
+            </h3>
             <div className="episode-grid">
               {episodes.map((episode) => {
                 const epNum = episode.episodeNumber ?? episode.episode_number ?? 1;

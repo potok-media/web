@@ -55,7 +55,14 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
   );
   const tmdbCount = tmdbSeasonsCount || 1;
   const maxSeasonInBalancer = uniqueSeasons.length > 0 ? Math.max(...uniqueSeasons) : 1;
-  const parsingFailed = maxSeasonInBalancer > tmdbCount;
+  // Overparse: a file parsed into a season number the show doesn't have.
+  const overparsed = maxSeasonInBalancer > tmdbCount;
+  // All files collapsed into specials (season 0) for a TV show — usually a mis-detected "special" token
+  // (NC*/SP/OVA…) swallowing normal episodes, which would otherwise silently hide the parse failure. TV only:
+  // season 0 is the legitimate, expected bucket for movies.
+  const allSpecials =
+    mediaType === "tv" && uniqueSeasons.length > 0 && uniqueSeasons.every((s) => s === 0);
+  const parsingFailed = overparsed || allSpecials;
 
   return (
     <Overlay

@@ -399,6 +399,7 @@
     },
     "selector": {
       "season": "Season {{number}}",
+      "specials": "Specials",
       "watched": "Watched",
       "audioCount_one": "{{count}} voice track",
       "audioCount_other": "{{count}} voice tracks",

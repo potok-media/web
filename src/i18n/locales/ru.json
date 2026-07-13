@@ -403,6 +403,7 @@
     },
     "selector": {
       "season": "Сезон {{number}}",
+      "specials": "Спэшлы",
       "watched": "Просмотрено",
       "audioCount_one": "{{count}} озвучка",
       "audioCount_other": "{{count}} озвучек",

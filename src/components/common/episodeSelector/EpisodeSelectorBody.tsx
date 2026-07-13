@@ -43,7 +43,9 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
                 {mediaType === "tv" && (
                   <div className="season-section-header">
                     <h3 className="season-section-title">
-                      {t("selector.season", { number: section.displayedSeason })}
+                      {section.displayedSeason === 0
+                        ? t("selector.specials")
+                        : t("selector.season", { number: section.displayedSeason })}
                     </h3>
                     {mapEntry && (
                       <span className="season-map-badge">
