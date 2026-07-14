@@ -9,6 +9,9 @@ export type StreamSource = {
   name: string;
   supportedTypes: ("movie" | "tv")[];
   pluginId: string;
+  // Optional capability flags declared by the plugin at registration (SDK gate). fileOverride enables the
+  // per-file anchor/pin editing UI in the episode selector.
+  capabilities?: { fileOverride?: boolean };
 };
 
 export interface StreamContext {
@@ -19,17 +22,25 @@ export interface StreamContext {
   episode?: number;
 }
 
+export type FileOverrideMap = Record<string, { season: number; episode: number; mode: string }>;
+
 export interface EpisodeSelectorData {
   title: string;
   episodes: GenericEpisodeItem[];
   tmdbSeasonsCount: number;
   seasonMap?: Record<string, { season: number; offset: number }>;
+  fileMap?: FileOverrideMap;
+  // Plugin-provided parse-quality verdict (it owns the parser + the release title). When set, the selector
+  // trusts it over its own generic numeric heuristic. Undefined = plugin gave no opinion → host falls back.
+  parsingSuspect?: boolean;
 }
 
 export interface EpisodesResponse {
   episodes: StreamEpisode[];
   tmdbSeasonsCount: number;
   seasonMap?: Record<string, { season: number; offset: number }>;
+  fileMap?: FileOverrideMap;
+  parsingSuspect?: boolean;
 }
 
 export interface PlaylistResolveBridge {
@@ -52,6 +63,8 @@ export function buildEpisodeSelectorData(
   currentMedia: MediaCard | null,
   mapEpisodesWithWatched: (eps: StreamEpisode[]) => GenericEpisodeItem[],
   labels: { fileSelection: string; episodeSelection: string },
+  parsingSuspect?: boolean,
+  fileMap?: FileOverrideMap,
 ): EpisodeSelectorData {
   return {
     title:
@@ -60,5 +73,7 @@ export function buildEpisodeSelectorData(
     episodes: mapEpisodesWithWatched(episodes),
     tmdbSeasonsCount: tmdbSeasonsCount || currentMedia?.numberOfSeasons || 1,
     seasonMap: seasonMap || {},
+    fileMap: fileMap || {},
+    parsingSuspect,
   };
 }

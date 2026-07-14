@@ -19,11 +19,16 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
   onStartEditing,
   onApplyOverride,
   onResetOverride,
+  fileOverrideEnabled = false,
+  fileMap = {},
+  onApplyFileOverride,
+  onResetFileOverride,
   seasonMap = {},
   seasons = [],
   seasonsLoading = false,
   isSaving = false,
   tmdbSeasonsCount,
+  parsingSuspect,
   backdropSrc,
   posterSrc,
   mediaType = "tv",
@@ -38,6 +43,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
     totalCount,
     percentage,
     handleEditSection,
+    handleEditFile,
     handleCancelEditing,
     handleApplyOverrideInternal,
     handleOpenAsPlaylist,
@@ -47,6 +53,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
     onPlay,
     onStartEditing,
     onApplyOverride,
+    onApplyFileOverride,
   });
 
   const uniqueSeasons = useMemo(
@@ -62,7 +69,9 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
   // season 0 is the legitimate, expected bucket for movies.
   const allSpecials =
     mediaType === "tv" && uniqueSeasons.length > 0 && uniqueSeasons.every((s) => s === 0);
-  const parsingFailed = overparsed || allSpecials;
+  // The plugin's verdict (it owns the parser + the release title) is authoritative when given; the numeric
+  // heuristics below stay as a generic safety net for plugins that don't report one.
+  const parsingFailed = (parsingSuspect ?? false) || overparsed || allSpecials;
 
   return (
     <Overlay
@@ -105,6 +114,10 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
             onPlay={(ep) => onPlay(ep, "default")}
             onEditSection={handleEditSection}
             onResetOverride={onResetOverride}
+            fileOverrideEnabled={fileOverrideEnabled}
+            fileMap={fileMap}
+            onEditFile={handleEditFile}
+            onResetFileOverride={onResetFileOverride}
           />
         )}
 

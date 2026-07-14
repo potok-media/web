@@ -1210,6 +1210,8 @@ export interface StreamEpisode {
   title: string;
   /** Original torrent file name (title is overwritten with the TMDB episode name when matched). */
   fileName?: string;
+  /** Human-readable file size (e.g. "1.5 GB" / "157 MB") — surfaced in the row as a specials cue. */
+  sizeLabel?: string;
   stillPath?: string;
   airDate?: string;
   url: string;

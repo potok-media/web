@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Hls from "hls.js";
-import { getProxyUrl } from "../utils/playerHelpers";
-import { ApiClient } from "../network/ApiClient";
 import { logger } from "../utils/logger";
 import { createHlsPlayerConfig } from "../utils/hls/hlsConfig";
 import { bindHlsEventHandlers } from "../utils/hls/hlsEventHandlers";
@@ -72,7 +70,6 @@ export function useHlsPlayer({
     const startPos = getPlaybackResumePosition(playback);
     setSeekOffset(0);
 
-    const proxiedUrl = getProxyUrl(audioUrl, ApiClient.baseURL, playback.headers);
     const sessionRefs = { hlsRef, playerSessionRef, syncNativeTextTracksRef };
 
     if (isHls && Hls.isSupported()) {
@@ -89,7 +86,7 @@ export function useHlsPlayer({
         setPlayerError,
       });
 
-      hls.loadSource(proxiedUrl);
+      hls.loadSource(audioUrl);
       hls.attachMedia(video);
 
       return () => {
@@ -100,7 +97,7 @@ export function useHlsPlayer({
     }
 
     video.setAttribute("crossorigin", "anonymous");
-    video.src = proxiedUrl;
+    video.src = audioUrl;
 
     const handleLoadedMetadata = () => {
       if (playerSessionRef.current !== sessionId) return;

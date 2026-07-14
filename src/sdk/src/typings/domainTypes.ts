@@ -128,7 +128,11 @@ export const domainTypesDts = `
     name: string;
     supportedTypes: ('movie' | 'tv')[];
     search(query: { title: string; year?: number; imdbId?: string; tmdbId?: number; type: 'movie' | 'tv'; season?: number; episode?: number }): Promise<SDKRawStreamPayload[]>;
-    getEpisodes?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number; season?: number; episode?: number }): Promise<{ episodes: SDKStreamEpisode[]; tmdbSeasonsCount: number }>;
+    getEpisodes?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number; season?: number; episode?: number }): Promise<{ episodes: SDKStreamEpisode[]; tmdbSeasonsCount: number; parsingSuspect?: boolean }>;
+    // Optional per-FILE overrides. Implement BOTH to opt into the host's per-file anchor/pin editing UI.
+    // mode: 'anchor' (renumber the run from this file) | 'pin' (fix just this file, e.g. a special).
+    saveFileOverride?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number }, fileId: string, season: number, episode: number, mode: 'anchor' | 'pin'): Promise<void>;
+    clearFileOverride?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number }, fileId: string): Promise<void>;
     getPlaybackInfo(stream: SDKRawStreamPayload, episode?: SDKStreamEpisode, context?: { type: 'movie' | 'tv'; tmdbId: number; season?: number; episode?: number }): Promise<SDKPlaybackInfo>;
   }
 `;

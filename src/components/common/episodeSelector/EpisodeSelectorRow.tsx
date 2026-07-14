@@ -1,10 +1,10 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Play, Check, CheckCircle2 } from "lucide-react";
+import { Play, Check, CheckCircle2, Anchor, Pin, RotateCcw } from "lucide-react";
 import { IconButton } from "../../ui";
 import { formatLocalizedDate } from "../../../utils/formatDate";
 import { getActiveLanguage, toIntlLocale } from "../../../utils/language";
-import type { GenericEpisodeItem } from "./types";
+import type { FileOverrideEntry, FileOverrideMode, GenericEpisodeItem } from "./types";
 import { getStreamType } from "./utils";
 
 interface EpisodeSelectorRowProps {
@@ -13,6 +13,10 @@ interface EpisodeSelectorRowProps {
   backdropSrc?: string;
   posterSrc?: string;
   onPlay: () => void;
+  fileOverrideEnabled?: boolean;
+  fileOverride?: FileOverrideEntry;
+  onEditFile?: (fileId: string, mode: FileOverrideMode) => void;
+  onResetFileOverride?: (fileId: string) => void;
 }
 
 export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
@@ -21,8 +25,14 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
   backdropSrc,
   posterSrc,
   onPlay,
+  fileOverrideEnabled = false,
+  fileOverride,
+  onEditFile,
+  onResetFileOverride,
 }) => {
   const { t } = useTranslation("media");
+
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
   const displayTitle =
     episodeItem.title || t("episode.fallbackName", { number: episodeItem.episode });
 
@@ -107,7 +117,54 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
         {streamType && (
           <span className="file-card-ext-badge">{streamType.toLowerCase()}</span>
         )}
+        {fileOverrideEnabled && fileOverride && (
+          <span
+            className={`file-card-override-badge file-card-override-badge--${fileOverride.mode === "pin" ? "pin" : "anchor"}`}
+            title={fileOverride.mode === "pin" ? t("fileOverride.pinnedTo") : t("fileOverride.anchoredFrom")}
+          >
+            {fileOverride.mode === "pin" ? <Pin size="0.6875rem" /> : <Anchor size="0.6875rem" />}
+            {fileOverride.season === 0
+              ? t("selector.specials")
+              : `S${fileOverride.season}`}
+            {`·E${fileOverride.episode}`}
+          </span>
+        )}
       </div>
+
+      {fileOverrideEnabled && (onEditFile || onResetFileOverride) && (
+        <div className="file-card-override-actions" onClick={stop}>
+          {onEditFile && (
+            <>
+              <IconButton
+                className="file-card-override-btn"
+                onClick={(e) => { stop(e); onEditFile(episodeItem.id, "anchor"); }}
+                aria-label={t("fileOverride.anchorFromHere")}
+                title={t("fileOverride.anchorFromHere")}
+              >
+                <Anchor size="0.9375rem" />
+              </IconButton>
+              <IconButton
+                className="file-card-override-btn"
+                onClick={(e) => { stop(e); onEditFile(episodeItem.id, "pin"); }}
+                aria-label={t("fileOverride.pinThisFile")}
+                title={t("fileOverride.pinThisFile")}
+              >
+                <Pin size="0.9375rem" />
+              </IconButton>
+            </>
+          )}
+          {fileOverride && onResetFileOverride && (
+            <IconButton
+              className="file-card-override-btn"
+              onClick={(e) => { stop(e); onResetFileOverride(episodeItem.id); }}
+              aria-label={t("fileOverride.reset")}
+              title={t("fileOverride.reset")}
+            >
+              <RotateCcw size="0.9375rem" />
+            </IconButton>
+          )}
+        </div>
+      )}
 
       <IconButton
         className="file-card-play-btn"

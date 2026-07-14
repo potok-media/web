@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Pencil, RotateCcw } from "lucide-react";
 import { EpisodeSelectorRow } from "./EpisodeSelectorRow";
 import { IconButton } from "../../ui";
-import type { EpisodeSourceSection } from "./types";
+import type { EpisodeSourceSection, FileOverrideEntry, FileOverrideMode } from "./types";
 
 interface EpisodeSelectorBodyProps {
   mediaType: string;
@@ -16,6 +16,10 @@ interface EpisodeSelectorBodyProps {
   onPlay: (episode: EpisodeSourceSection["episodes"][number]) => void;
   onEditSection: (section: { rawSeason: number | undefined; rawFirstEp: number }) => void;
   onResetOverride?: (sourceSeason: number | null) => void;
+  fileOverrideEnabled?: boolean;
+  fileMap?: Record<string, FileOverrideEntry>;
+  onEditFile?: (fileId: string, mode: FileOverrideMode) => void;
+  onResetFileOverride?: (fileId: string) => void;
 }
 
 export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
@@ -28,6 +32,10 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
   onPlay,
   onEditSection,
   onResetOverride,
+  fileOverrideEnabled = false,
+  fileMap = {},
+  onEditFile,
+  onResetFileOverride,
 }) => {
   const { t } = useTranslation("media");
 
@@ -82,6 +90,10 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
                     backdropSrc={backdropSrc}
                     posterSrc={posterSrc}
                     onPlay={() => onPlay(ep)}
+                    fileOverrideEnabled={fileOverrideEnabled}
+                    fileOverride={fileMap[ep.id]}
+                    onEditFile={onEditFile}
+                    onResetFileOverride={onResetFileOverride}
                   />
                 ))}
               </div>

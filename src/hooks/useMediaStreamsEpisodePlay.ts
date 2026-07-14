@@ -75,6 +75,8 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
         currentMedia,
         mapEpisodesWithWatched,
         selectorLabels,
+        res.parsingSuspect,
+        res.fileMap,
       );
       sessionStorage.setItem("potok_popup_stream", JSON.stringify(stream));
       sessionStorage.setItem("potok_popup_data", JSON.stringify(data));
@@ -204,6 +206,8 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
         currentMedia,
         mapEpisodesWithWatched,
         selectorLabels,
+        res.parsingSuspect,
+        res.fileMap,
       );
       sessionStorage.setItem("potok_popup_data", JSON.stringify(data));
       setEpisodeSelectorData(data);
@@ -211,14 +215,15 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
     [clickedStream, currentMedia, mediaType, mapEpisodesWithWatched, selectorLabels],
   );
 
-  const { handleApplyOverride, handleResetOverride } = useMediaStreamsOverrideHandlers({
-    activeSource,
-    clickedStream,
-    context,
-    setIsSaving,
-    refreshEpisodes,
-    onError,
-  });
+  const { handleApplyOverride, handleResetOverride, handleApplyFileOverride, handleResetFileOverride } =
+    useMediaStreamsOverrideHandlers({
+      activeSource,
+      clickedStream,
+      context,
+      setIsSaving,
+      refreshEpisodes,
+      onError,
+    });
 
   return {
     clickedStream,
@@ -235,5 +240,8 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
     handleStartEditing,
     handleApplyOverride,
     handleResetOverride,
+    handleApplyFileOverride,
+    handleResetFileOverride,
+    fileOverrideEnabled: !!activeSource?.capabilities?.fileOverride,
   };
 }

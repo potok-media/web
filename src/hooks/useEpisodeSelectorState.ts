@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { PlaylistItem } from "../context/playbackTypes";
-import type { EpisodeSourceSection, GenericEpisodeItem } from "../components/common/episodeSelector/types";
+import type { EpisodeSourceSection, FileOverrideMode, GenericEpisodeItem } from "../components/common/episodeSelector/types";
 import { SENTINEL_KEY } from "../components/common/episodeSelector/utils";
 
 interface PlaylistOverrideBridge {
@@ -14,6 +14,7 @@ interface UseEpisodeSelectorStateParams {
   onPlay: (episode: GenericEpisodeItem, audioId: string) => void;
   onStartEditing?: () => void;
   onApplyOverride?: (sourceSeason: number | null, targetSeason: number, offset: number) => void;
+  onApplyFileOverride?: (fileId: string, season: number, episode: number, mode: FileOverrideMode) => void;
 }
 
 export function useEpisodeSelectorState({
@@ -22,6 +23,7 @@ export function useEpisodeSelectorState({
   onPlay,
   onStartEditing,
   onApplyOverride,
+  onApplyFileOverride,
 }: UseEpisodeSelectorStateParams) {
   const { t } = useTranslation("media");
   const [selectedSeason, setSelectedSeason] = useState(1);
@@ -30,6 +32,8 @@ export function useEpisodeSelectorState({
     sourceSeason: number | null;
     rawFirstEp: number;
   } | null>(null);
+  // When set, the target picker applies a per-FILE override (anchor/pin) instead of a per-season one.
+  const [editingFile, setEditingFile] = useState<{ id: string; mode: FileOverrideMode } | null>(null);
 
   const uniqueSeasons = useMemo(
     () => Array.from(new Set(episodes.map((e) => e.season))).sort((a, b) => a - b),
@@ -72,12 +76,26 @@ export function useEpisodeSelectorState({
     if (!isOpen) {
       setIsEditing(false);
       setEditingSource(null);
+      setEditingFile(null);
     }
   }, [isOpen]);
 
   const handleEditSection = useCallback(
     (section: { rawSeason: number | undefined; rawFirstEp: number }) => {
+      setEditingFile(null);
       setEditingSource({ sourceSeason: section.rawSeason ?? null, rawFirstEp: section.rawFirstEp });
+      setIsEditing(true);
+      onStartEditing?.();
+    },
+    [onStartEditing],
+  );
+
+  // Start a per-FILE override: the target picker's next pick maps THIS file (anchor = renumber the run from
+  // here; pin = fix just this file).
+  const handleEditFile = useCallback(
+    (fileId: string, mode: FileOverrideMode) => {
+      setEditingSource(null);
+      setEditingFile({ id: fileId, mode });
       setIsEditing(true);
       onStartEditing?.();
     },
@@ -87,11 +105,14 @@ export function useEpisodeSelectorState({
   const handleCancelEditing = useCallback(() => {
     setIsEditing(false);
     setEditingSource(null);
+    setEditingFile(null);
   }, []);
 
   const handleApplyOverrideInternal = useCallback(
     (targetSeason: number, targetEp: number) => {
-      if (onApplyOverride) {
+      if (editingFile) {
+        onApplyFileOverride?.(editingFile.id, targetSeason, targetEp, editingFile.mode);
+      } else if (onApplyOverride) {
         const rawFirstEp = editingSource?.rawFirstEp ?? 1;
         onApplyOverride(
           editingSource?.sourceSeason ?? null,
@@ -101,9 +122,10 @@ export function useEpisodeSelectorState({
       }
       setSelectedSeason(targetSeason);
       setEditingSource(null);
+      setEditingFile(null);
       setIsEditing(false);
     },
-    [editingSource, onApplyOverride],
+    [editingSource, editingFile, onApplyOverride, onApplyFileOverride],
   );
 
   const handleOpenAsPlaylist = useCallback(() => {
@@ -153,12 +175,14 @@ export function useEpisodeSelectorState({
 
   return {
     isEditing,
+    editingFile,
     sourceSections,
     firstEpId,
     completedCount,
     totalCount,
     percentage,
     handleEditSection,
+    handleEditFile,
     handleCancelEditing,
     handleApplyOverrideInternal,
     handleOpenAsPlaylist,

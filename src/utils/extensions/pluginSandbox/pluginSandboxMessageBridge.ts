@@ -95,7 +95,7 @@ export async function handlePluginSandboxMessage(
     case "REGISTER_STREAM_SOURCE":
       ExtensionRegistry.registerStreamSource(
         pluginId,
-        rawPayload as { id: string; name: string; supportedTypes: ("movie" | "tv")[] },
+        rawPayload as { id: string; name: string; supportedTypes: ("movie" | "tv")[]; capabilities?: { fileOverride?: boolean } },
       );
       break;
     case "REGISTER_SLOT_CONTRIBUTION": {
@@ -193,6 +193,8 @@ export async function handlePluginSandboxMessage(
     case "STREAM_SOURCE_GET_SEASONS_RESPONSE":
     case "STREAM_SOURCE_SAVE_OVERRIDE_RESPONSE":
     case "STREAM_SOURCE_CLEAR_OVERRIDE_RESPONSE":
+    case "STREAM_SOURCE_SAVE_FILE_OVERRIDE_RESPONSE":
+    case "STREAM_SOURCE_CLEAR_FILE_OVERRIDE_RESPONSE":
     case "STREAM_SOURCE_GET_PLAYBACK_INFO_RESPONSE":
     case "STREAM_SOURCE_GET_PLAYBACK_METADATA_RESPONSE":
       ExtensionRegistry.handleSandboxResponse(

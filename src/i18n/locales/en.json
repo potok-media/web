@@ -421,6 +421,13 @@
       "loading": "Loading episodes from TMDB...",
       "prompt": "Which episode does this list start from?"
     },
+    "fileOverride": {
+      "anchorFromHere": "Renumber from this file",
+      "pinThisFile": "Pin just this file",
+      "reset": "Reset file override",
+      "anchoredFrom": "Numbering starts at this file",
+      "pinnedTo": "File pinned"
+    },
     "home": {
       "loadError": "Failed to load the library"
     },

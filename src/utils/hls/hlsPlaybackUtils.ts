@@ -11,11 +11,13 @@ export function isSmartTVUserAgent(): boolean {
 }
 
 export function isHlsPlayback(playback: ActivePlayback, streamUrl: string): boolean {
+  // streamType is authoritative — the plugin declares it in the descriptor. The `.m3u8` check is a
+  // provider-neutral fallback (the standard HLS playlist extension) for descriptors that omit streamType.
+  // The old `/hls/` sniff was a TorrentGo URL convention and was removed so the player stays provider-agnostic.
   return (
     playback.streamType === "m3u8" ||
     playback.streamType === "hls" ||
-    (!playback.streamType &&
-      (streamUrl.includes(".m3u8") || streamUrl.includes("/hls/")))
+    (!playback.streamType && streamUrl.includes(".m3u8"))
   );
 }
 

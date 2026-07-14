@@ -77,14 +77,15 @@ export function useSubtitlesOctopus({
     }
 
     if (!isAss) {
+      // Keep the instance ALIVE — just clear what's rendered. Disposing here (and recreating on the next ASS
+      // track) tears libass's injected <canvas> out of the React-managed container and re-inserts it, which
+      // races with React's DOM commits on episode switch → intermittent "removeChild: not a child" crash.
       if (octopusRef.current) {
-        logger.log("[OCTOPUS] Disposing instance (no ASS track active)");
         try {
-          octopusRef.current.dispose();
-        } catch (error) {
-          logger.error("[OCTOPUS] Error disposing:", error);
+          octopusRef.current.freeTrack();
+        } catch {
+          /* noop */
         }
-        octopusRef.current = null;
       }
       return;
     }
@@ -143,10 +144,24 @@ export function useSubtitlesOctopus({
     videoRef,
   ]);
 
+  // On source reset (new episode) clear stale subtitles but KEEP the single instance — the windowed feeder
+  // re-populates the new episode's track. Reusing the instance means libass's injected <canvas> is added once
+  // and removed once (on unmount), instead of churning in/out of the React tree on every switch.
+  useEffect(() => {
+    if (octopusRef.current) {
+      try {
+        octopusRef.current.freeTrack();
+      } catch {
+        /* noop */
+      }
+    }
+  }, [srcResetCounter]);
+
+  // Dispose ONLY on unmount (player close). Never mid-session — see the note above about the removeChild race.
   useEffect(() => {
     return () => {
       if (octopusRef.current) {
-        logger.log("[OCTOPUS] Cleanup on unmount/source change");
+        logger.log("[OCTOPUS] Dispose on unmount");
         try {
           octopusRef.current.dispose();
         } catch (error) {
@@ -155,7 +170,7 @@ export function useSubtitlesOctopus({
         octopusRef.current = null;
       }
     };
-  }, [srcResetCounter]);
+  }, []);
 
   useEffect(() => {
     const oct = octopusRef.current;

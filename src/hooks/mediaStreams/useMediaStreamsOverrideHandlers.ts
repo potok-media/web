@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import type { RawStreamPayload } from "@potok/sdk-types";
-import { clearSeasonOverride, saveSeasonOverride } from "./mediaStreamsOverride";
+import { clearFileOverride, clearSeasonOverride, saveFileOverride, saveSeasonOverride } from "./mediaStreamsOverride";
 import type { EpisodesResponse, StreamContext, StreamSource } from "./mediaStreamsTypes";
 
 interface UseMediaStreamsOverrideHandlersParams {
@@ -50,5 +50,23 @@ export function useMediaStreamsOverrideHandlers({
     [activeSource, clickedStream, context, runOverride],
   );
 
-  return { handleApplyOverride, handleResetOverride };
+  const handleApplyFileOverride = useCallback(
+    (fileId: string, season: number, episode: number, mode: "anchor" | "pin") => {
+      if (!activeSource || !clickedStream) return;
+      runOverride(() =>
+        saveFileOverride(activeSource, clickedStream, context, fileId, season, episode, mode),
+      );
+    },
+    [activeSource, clickedStream, context, runOverride],
+  );
+
+  const handleResetFileOverride = useCallback(
+    (fileId: string) => {
+      if (!activeSource || !clickedStream) return;
+      runOverride(() => clearFileOverride(activeSource, clickedStream, context, fileId));
+    },
+    [activeSource, clickedStream, context, runOverride],
+  );
+
+  return { handleApplyOverride, handleResetOverride, handleApplyFileOverride, handleResetFileOverride };
 }

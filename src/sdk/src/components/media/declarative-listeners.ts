@@ -138,6 +138,57 @@ export function initDeclarativeStreamListeners(): void {
           payload: { requestId, data: null, error: 'Method clearSeasonOverride not implemented' }
         }, hostOrigin);
       }
+    } else if (msg.action === 'STREAM_SOURCE_SAVE_FILE_OVERRIDE') {
+      // Per-FILE override: pin/anchor ONE torrent file to (season, episode). mode = "anchor" | "pin".
+      const { requestId, stream, context, fileId, season, episode, mode, sourceId } = msg.payload;
+      const source = (sourceId && registeredStreamSources.get(sourceId)) || Array.from(registeredStreamSources.values())[0];
+      if (source && source.saveFileOverride) {
+        try {
+          await source.saveFileOverride(stream, context, fileId, season, episode, mode);
+          window.parent.postMessage({
+            source: 'potok-plugin-sdk',
+            action: 'STREAM_SOURCE_SAVE_FILE_OVERRIDE_RESPONSE',
+            payload: { requestId, data: null, error: null }
+          }, hostOrigin);
+        } catch (err: unknown) {
+          window.parent.postMessage({
+            source: 'potok-plugin-sdk',
+            action: 'STREAM_SOURCE_SAVE_FILE_OVERRIDE_RESPONSE',
+            payload: { requestId, data: null, error: errorMessage(err) || 'Failed to save file override' }
+          }, hostOrigin);
+        }
+      } else {
+        window.parent.postMessage({
+          source: 'potok-plugin-sdk',
+          action: 'STREAM_SOURCE_SAVE_FILE_OVERRIDE_RESPONSE',
+          payload: { requestId, data: null, error: 'Method saveFileOverride not implemented' }
+        }, hostOrigin);
+      }
+    } else if (msg.action === 'STREAM_SOURCE_CLEAR_FILE_OVERRIDE') {
+      const { requestId, stream, context, fileId, sourceId } = msg.payload;
+      const source = (sourceId && registeredStreamSources.get(sourceId)) || Array.from(registeredStreamSources.values())[0];
+      if (source && source.clearFileOverride) {
+        try {
+          await source.clearFileOverride(stream, context, fileId);
+          window.parent.postMessage({
+            source: 'potok-plugin-sdk',
+            action: 'STREAM_SOURCE_CLEAR_FILE_OVERRIDE_RESPONSE',
+            payload: { requestId, data: null, error: null }
+          }, hostOrigin);
+        } catch (err: unknown) {
+          window.parent.postMessage({
+            source: 'potok-plugin-sdk',
+            action: 'STREAM_SOURCE_CLEAR_FILE_OVERRIDE_RESPONSE',
+            payload: { requestId, data: null, error: errorMessage(err) || 'Failed to clear file override' }
+          }, hostOrigin);
+        }
+      } else {
+        window.parent.postMessage({
+          source: 'potok-plugin-sdk',
+          action: 'STREAM_SOURCE_CLEAR_FILE_OVERRIDE_RESPONSE',
+          payload: { requestId, data: null, error: 'Method clearFileOverride not implemented' }
+        }, hostOrigin);
+      }
     } else if (msg.action === 'STREAM_SOURCE_GET_PLAYBACK_INFO') {
       const { requestId, stream, episode, context, sourceId } = msg.payload;
       const source = (sourceId && registeredStreamSources.get(sourceId)) || Array.from(registeredStreamSources.values())[0];

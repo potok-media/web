@@ -231,7 +231,7 @@ class ExtensionRegistryManager {
   }
 
   // --- Declarative Stream Sources ---
-  registerStreamSource(pluginId: string, source: { id: string; name: string; supportedTypes: ('movie' | 'tv')[] }) {
+  registerStreamSource(pluginId: string, source: { id: string; name: string; supportedTypes: ('movie' | 'tv')[]; capabilities?: { fileOverride?: boolean } }) {
     this.streamSources.set(source.id, { ...source, pluginId });
     this.notify();
   }
@@ -260,13 +260,16 @@ class ExtensionRegistryManager {
         finalTimeoutMs = 60000;
       } else if (action === "STREAM_SOURCE_GET_PLAYBACK_METADATA") {
         // Deferred background probe (subtitles/duration) — the player is already open and playing, so nobody
-        // is blocked. Give it plenty of room for a cold TorrentGo /metadata probe (libav, up to ~45s).
+        // is blocked. Generous host-side safety ceiling for a provider whose metadata probe may be slow to
+        // warm up (e.g. a cold container-header read). Any plugin can pass its own timeoutMs to override.
         finalTimeoutMs = 60000;
       } else if (
         action === "STREAM_SOURCE_GET_EPISODES" ||
         action === "STREAM_SOURCE_GET_SEASONS" ||
         action === "STREAM_SOURCE_SAVE_OVERRIDE" ||
         action === "STREAM_SOURCE_CLEAR_OVERRIDE" ||
+        action === "STREAM_SOURCE_SAVE_FILE_OVERRIDE" ||
+        action === "STREAM_SOURCE_CLEAR_FILE_OVERRIDE" ||
         action === "STREAM_SOURCE_GET_PLAYBACK_INFO"
       ) {
         finalTimeoutMs = 15000;

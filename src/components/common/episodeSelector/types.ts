@@ -24,6 +24,14 @@ export interface EpisodeSourceSection {
   episodes: GenericEpisodeItem[];
 }
 
+export type FileOverrideMode = "anchor" | "pin";
+
+export interface FileOverrideEntry {
+  season: number;
+  episode: number;
+  mode: string;
+}
+
 export interface EpisodeSelectorPopupProps {
   isOpen: boolean;
   onClose: () => void;
@@ -34,11 +42,19 @@ export interface EpisodeSelectorPopupProps {
   onStartEditing?: () => void;
   onApplyOverride?: (sourceSeason: number | null, targetSeason: number, offset: number) => void;
   onResetOverride?: (sourceSeason: number | null) => void;
+  // Per-file overrides (opt-in — gated by the plugin's SDK `fileOverride` capability). When enabled the selector
+  // shows per-row anchor/pin controls that map ONE torrent file to a (season, episode).
+  fileOverrideEnabled?: boolean;
+  fileMap?: Record<string, FileOverrideEntry>;
+  onApplyFileOverride?: (fileId: string, season: number, episode: number, mode: FileOverrideMode) => void;
+  onResetFileOverride?: (fileId: string) => void;
   seasonMap?: Record<string, { season: number; offset: number }>;
   seasons?: SDKTvSeason[];
   seasonsLoading?: boolean;
   isSaving?: boolean;
   tmdbSeasonsCount?: number;
+  // Plugin's own parse-quality verdict. When provided, it wins over the popup's generic numeric heuristic.
+  parsingSuspect?: boolean;
   backdropSrc?: string;
   posterSrc?: string;
   mediaType?: string;

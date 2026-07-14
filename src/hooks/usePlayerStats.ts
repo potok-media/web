@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import type React from "react";
 import type Hls from "hls.js";
-import { ApiClient } from "../network/ApiClient";
 import { logger } from "../utils/logger";
 
 interface HTMLVideoElementWithQuality extends Omit<HTMLVideoElement, 'getVideoPlaybackQuality'> {
@@ -32,11 +31,8 @@ export function usePlayerStats(
 
     let isMounted = true;
     
-    // Bypass CORS for progressive video metadata HEAD request via our local BFF proxy
-    const proxyBase = ApiClient.baseURL.replace(/\/+$/, "");
-    const proxiedUrl = `${proxyBase}/api/proxy?url=${encodeURIComponent(streamUrl)}`;
-
-    fetch(proxiedUrl, { method: "HEAD" })
+    // Direct Content-Length HEAD request (no proxy — the player talks to the provider's URL directly).
+    fetch(streamUrl, { method: "HEAD" })
       .then((res) => {
         const size = res.headers.get("content-length");
         if (isMounted && size) {

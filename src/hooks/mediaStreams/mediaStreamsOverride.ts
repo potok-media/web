@@ -40,3 +40,42 @@ export async function clearSeasonOverride(
     { stream: clickedStream, context },
   );
 }
+
+export async function saveFileOverride(
+  activeSource: StreamSource,
+  clickedStream: RawStreamPayload,
+  context: StreamContext,
+  fileId: string,
+  season: number,
+  episode: number,
+  mode: "anchor" | "pin",
+): Promise<EpisodesResponse> {
+  await ExtensionRegistry.sendSandboxRequest<void>(
+    activeSource.pluginId,
+    "STREAM_SOURCE_SAVE_FILE_OVERRIDE",
+    { stream: clickedStream, context, fileId, season, episode, mode },
+  );
+  return ExtensionRegistry.sendSandboxRequest<EpisodesResponse>(
+    activeSource.pluginId,
+    "STREAM_SOURCE_GET_EPISODES",
+    { stream: clickedStream, context },
+  );
+}
+
+export async function clearFileOverride(
+  activeSource: StreamSource,
+  clickedStream: RawStreamPayload,
+  context: StreamContext,
+  fileId: string,
+): Promise<EpisodesResponse> {
+  await ExtensionRegistry.sendSandboxRequest<void>(
+    activeSource.pluginId,
+    "STREAM_SOURCE_CLEAR_FILE_OVERRIDE",
+    { stream: clickedStream, context, fileId },
+  );
+  return ExtensionRegistry.sendSandboxRequest<EpisodesResponse>(
+    activeSource.pluginId,
+    "STREAM_SOURCE_GET_EPISODES",
+    { stream: clickedStream, context },
+  );
+}

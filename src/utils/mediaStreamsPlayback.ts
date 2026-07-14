@@ -13,6 +13,7 @@ export const mapStreamEpisode = (ep: StreamEpisode): GenericEpisodeItem => ({
   rawSeason: ep.rawSeason,
   rawEpisode: ep.rawEpisode,
   fileName: ep.fileName,
+  sizeLabel: ep.sizeLabel,
   stillPath: ep.stillPath,
   airDate: ep.airDate,
   audios: ep.audios || [],

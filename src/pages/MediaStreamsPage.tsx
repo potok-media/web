@@ -40,6 +40,9 @@ export const MediaStreamsPage: React.FC = () => {
     handleStartEditing,
     handleApplyOverride,
     handleResetOverride,
+    handleApplyFileOverride,
+    handleResetFileOverride,
+    fileOverrideEnabled,
     isSaving,
     actionLoading,
   } = useMediaStreams({
@@ -90,11 +93,16 @@ export const MediaStreamsPage: React.FC = () => {
         onStartEditing={handleStartEditing}
         onApplyOverride={handleApplyOverride}
         onResetOverride={handleResetOverride}
+        fileOverrideEnabled={fileOverrideEnabled}
+        fileMap={episodeSelectorData.fileMap}
+        onApplyFileOverride={handleApplyFileOverride}
+        onResetFileOverride={handleResetFileOverride}
         seasonMap={episodeSelectorData.seasonMap}
         seasons={seasons}
         seasonsLoading={seasonsLoading}
         isSaving={isSaving}
         tmdbSeasonsCount={episodeSelectorData.tmdbSeasonsCount}
+        parsingSuspect={episodeSelectorData.parsingSuspect}
         backdropSrc={currentMedia?.backdropSrc}
         posterSrc={currentMedia?.posterSrc}
         mediaType={mediaType}

@@ -1,8 +1,6 @@
 import { useCallback, type Dispatch, type RefObject, type SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
-import { ApiClient } from "../../network/ApiClient";
 import { convertSrtToVtt, detectSubtitleKind, type SubtitleKind } from "../../utils/SubtitleHelper";
-import { getProxyUrl } from "../../utils/playerHelpers";
 import type { InjectedSubtitleTrack } from "./subtitleTypes";
 
 interface UseSubtitleTrackUploadParams {
@@ -81,7 +79,7 @@ export function useSubtitleTrackUpload({
     async (rawUrl: string): Promise<void> => {
       const url = rawUrl.trim();
       if (!url) return;
-      const res = await fetch(getProxyUrl(url, ApiClient.baseURL));
+      const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const content = await res.text();
       const kind = detectSubtitleKind(url, content);
