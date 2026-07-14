@@ -11,6 +11,8 @@ interface HlsHandlerCallbacks {
   setHlsActiveLevel: (level: number) => void;
   setIsMetadataLoading: (loading: boolean) => void;
   setPlayerError: (error: string | null) => void;
+  // Returns the track index to auto-select from a remembered playlist preference, or -1 to keep the default.
+  getPreferredAudioTrackId?: (rawTracks: { name?: string; lang?: string }[]) => number;
 }
 
 export function bindHlsEventHandlers(
@@ -26,12 +28,19 @@ export function bindHlsEventHandlers(
 
   hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_e, data: { audioTracks?: { name?: string; lang?: string }[] }) => {
     if (!isActiveSession()) return;
-    const tracks = (data.audioTracks || []).map((t, i) => ({
+    const rawTracks = data.audioTracks || [];
+    const tracks = rawTracks.map((t, i) => ({
       id: i,
       name: t.name || t.lang || `Audio ${i + 1}`,
     }));
     callbacks.setAudioTracks(tracks);
-    callbacks.setCurrentAudioTrack(hls.audioTrack);
+
+    // Re-apply the audio track the user picked earlier in this playlist (matched by name/lang, not index).
+    const preferredId = callbacks.getPreferredAudioTrackId?.(rawTracks) ?? -1;
+    if (preferredId >= 0 && preferredId !== hls.audioTrack) {
+      hls.audioTrack = preferredId;
+    }
+    callbacks.setCurrentAudioTrack(preferredId >= 0 ? preferredId : hls.audioTrack);
   });
 
   hls.on(Hls.Events.AUDIO_TRACK_SWITCHING, () => {});

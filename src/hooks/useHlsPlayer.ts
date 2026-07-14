@@ -3,6 +3,7 @@ import Hls from "hls.js";
 import { logger } from "../utils/logger";
 import { createHlsPlayerConfig } from "../utils/hls/hlsConfig";
 import { bindHlsEventHandlers } from "../utils/hls/hlsEventHandlers";
+import { matchAudioTrack } from "../utils/hls/audioPreference";
 import {
   getPlaybackResumePosition,
   getUnsupportedNativeFormatError,
@@ -19,6 +20,7 @@ export function useHlsPlayer({
   playback,
   setCurrentAudioTrack,
   setAudioTracks,
+  preferredAudioRef,
   syncNativeTextTracks,
   setSeekOffset,
   setPlayerError,
@@ -84,6 +86,10 @@ export function useHlsPlayer({
         setHlsActiveLevel,
         setIsMetadataLoading,
         setPlayerError,
+        getPreferredAudioTrackId: (rawTracks) => {
+          const pref = preferredAudioRef.current;
+          return pref ? matchAudioTrack(rawTracks, pref) : -1;
+        },
       });
 
       hls.loadSource(audioUrl);
@@ -126,6 +132,7 @@ export function useHlsPlayer({
     setSeekOffset,
     setAudioTracks,
     setCurrentAudioTrack,
+    preferredAudioRef,
     videoRef,
   ]);
 

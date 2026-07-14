@@ -10,6 +10,7 @@ import { useSubtitlesOctopus } from "../useSubtitlesOctopus";
 import { usePlayerMenus } from "../usePlayerMenus";
 import { usePlayerVolumePrefs } from "./usePlayerVolumePrefs";
 import { useStreamRefresh } from "./useStreamRefresh";
+import type { AudioPreference } from "../../utils/hls/audioPreference";
 import type { UseWebMediaPlayerBindingsParams } from "./webMediaPlayerBindingTypes";
 
 export function useWebMediaPlayerCore({
@@ -26,6 +27,13 @@ export function useWebMediaPlayerCore({
 }: UseWebMediaPlayerBindingsParams) {
   const streamHash = useMemo(() => (playback.streamHash || "").toLowerCase(), [playback.streamHash]);
   const fileIndex = playback.fileIndex || "";
+
+  // Remembered audio track for the CURRENT playlist only (same torrent). Re-applied on each episode so the
+  // user doesn't reselect the dub every time; reset when the playlist changes. In-memory, no persistence.
+  const preferredAudioRef = useRef<AudioPreference | null>(null);
+  useEffect(() => {
+    preferredAudioRef.current = null;
+  }, [streamHash]);
 
   const metadata = usePlayerMetadataAndTracks(
     streamHash,
@@ -123,6 +131,7 @@ export function useWebMediaPlayerCore({
     currentAudioTrack: metadata.currentAudioTrack,
     setCurrentAudioTrack: metadata.setCurrentAudioTrack,
     setAudioTracks: metadata.setAudioTracks,
+    preferredAudioRef,
     syncNativeTextTracks: metadata.syncNativeTextTracks,
     setSeekOffset,
     setPlayerError,
@@ -144,6 +153,7 @@ export function useWebMediaPlayerCore({
 
   return {
     metadata,
+    preferredAudioRef,
     connected,
     bytesPerSec,
     hasProgressSince,

@@ -132,6 +132,7 @@ export function useWebMediaPlayerInteraction({
     hlsActiveLevel: hls.hlsActiveLevel,
     setCurrentAudioTrack: metadata.setCurrentAudioTrack,
     setCurrentQualityLevel: hls.setCurrentQualityLevel,
+    preferredAudioRef: core.preferredAudioRef,
     playVideo,
     setShowAudioMenu: menus.setShowAudioMenu,
     setShowQualityMenu: menus.setShowQualityMenu,

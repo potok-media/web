@@ -2,6 +2,7 @@ import { useMemo, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import type Hls from "hls.js";
 import type { ActivePlayback } from "../context/playbackTypes";
+import type { AudioPreference } from "../utils/hls/audioPreference";
 
 interface UsePlayerTrackSwitchingParams {
   playback: ActivePlayback;
@@ -12,6 +13,7 @@ interface UsePlayerTrackSwitchingParams {
   hlsActiveLevel: number;
   setCurrentAudioTrack: (id: number) => void;
   setCurrentQualityLevel: (id: number) => void;
+  preferredAudioRef: RefObject<AudioPreference | null>;
   playVideo: (next: ActivePlayback) => void;
   setShowAudioMenu: (open: boolean) => void;
   setShowQualityMenu: (open: boolean) => void;
@@ -26,6 +28,7 @@ export function usePlayerTrackSwitching({
   hlsActiveLevel,
   setCurrentAudioTrack,
   setCurrentQualityLevel,
+  preferredAudioRef,
   playVideo,
   setShowAudioMenu,
   setShowQualityMenu,
@@ -37,6 +40,11 @@ export function usePlayerTrackSwitching({
     const isHls = playback.streamType === "m3u8" || playback.streamType === "hls";
     if (isHls && hlsRef.current) {
       hlsRef.current.audioTrack = id;
+      // Remember this choice for the rest of the playlist (matched by name similarity on later episodes).
+      const chosen = hlsRef.current.audioTracks?.[id];
+      if (chosen) {
+        preferredAudioRef.current = { name: chosen.name };
+      }
       setCurrentAudioTrack(id);
       return;
     }

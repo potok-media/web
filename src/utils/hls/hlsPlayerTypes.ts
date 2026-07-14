@@ -1,6 +1,7 @@
 import type { RefObject } from "react";
 import type Hls from "hls.js";
 import type { ActivePlayback } from "../../context/playbackTypes";
+import type { AudioPreference } from "./audioPreference";
 
 export interface PlayerAudioTrack {
   id: number;
@@ -18,6 +19,7 @@ export interface HlsPlayerParams {
   currentAudioTrack: number;
   setCurrentAudioTrack: (id: number) => void;
   setAudioTracks: (tracks: PlayerAudioTrack[]) => void;
+  preferredAudioRef: RefObject<AudioPreference | null>;
   syncNativeTextTracks: (video: HTMLVideoElement | null) => void;
   setSeekOffset: (offset: number) => void;
   setPlayerError: (error: string | null) => void;
