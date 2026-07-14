@@ -4,6 +4,7 @@ import { Search, X } from "lucide-react";
 import type { SearchBarSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import { sdkStyleVars } from "./componentRendererUtils";
+import { Input, IconButton } from "../../ui";
 
 interface SafeSearchBarProps {
   schema: SearchBarSchema;
@@ -42,7 +43,7 @@ export const SafeSearchBar: React.FC<SafeSearchBarProps> = ({ schema, pluginId, 
       style={sdkStyleVars(baseStyle)}
     >
       <Search size="1rem" className="search-icon" aria-hidden />
-      <input
+      <Input
         type="text"
         className="search-input"
         placeholder={(componentProps.placeholder as string) || t("safe.searchPlaceholder")}
@@ -51,8 +52,8 @@ export const SafeSearchBar: React.FC<SafeSearchBarProps> = ({ schema, pluginId, 
         disabled={componentProps.disabled}
       />
       {localVal ? (
-        <button
-          type="button"
+        <IconButton
+          size="sm"
           onClick={handleClear}
           disabled={componentProps.disabled}
           className="search-clear-btn"
@@ -60,7 +61,7 @@ export const SafeSearchBar: React.FC<SafeSearchBarProps> = ({ schema, pluginId, 
           aria-label={t("safe.clear")}
         >
           <X size="0.875rem" aria-hidden />
-        </button>
+        </IconButton>
       ) : null}
     </div>
   );
