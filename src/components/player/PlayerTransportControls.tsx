@@ -18,6 +18,8 @@ interface PlayerTransportControlsProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   isPlaying: boolean;
   onTogglePlay: () => void;
+  pauseDisabled?: boolean;
+  seekDisabled?: boolean;
   duration: number;
   onSeekBy: (delta: number) => void;
   volume: number;
@@ -29,6 +31,7 @@ interface PlayerTransportControlsProps {
   hasPlaylist?: boolean;
   hasPrev?: boolean;
   hasNext?: boolean;
+  episodeDisabled?: boolean;
   playlistIndex?: number;
   onSelectPlaylistItem?: (index: number) => void;
 }
@@ -37,6 +40,8 @@ export const PlayerTransportControls: React.FC<PlayerTransportControlsProps> = (
   videoRef,
   isPlaying,
   onTogglePlay,
+  pauseDisabled,
+  seekDisabled,
   duration,
   onSeekBy,
   volume,
@@ -48,6 +53,7 @@ export const PlayerTransportControls: React.FC<PlayerTransportControlsProps> = (
   hasPlaylist,
   hasPrev,
   hasNext,
+  episodeDisabled,
   playlistIndex,
   onSelectPlaylistItem,
 }) => {
@@ -69,7 +75,7 @@ export const PlayerTransportControls: React.FC<PlayerTransportControlsProps> = (
             stopControlEvent(e);
             onSelectPlaylistItem?.((playlistIndex ?? 0) - 1);
           }}
-          disabled={!hasPrev}
+          disabled={!hasPrev || episodeDisabled}
           title={t("controls.prevEpisode", { defaultValue: "Previous episode" })}
           aria-label={t("controls.prevEpisode", { defaultValue: "Previous episode" })}
         >
@@ -84,6 +90,7 @@ export const PlayerTransportControls: React.FC<PlayerTransportControlsProps> = (
           stopControlEvent(e);
           onSeekBy(-10);
         }}
+        disabled={seekDisabled}
         title={t("controls.rewind10Title")}
         aria-label={t("controls.rewind10Aria")}
       >
@@ -97,6 +104,7 @@ export const PlayerTransportControls: React.FC<PlayerTransportControlsProps> = (
           stopControlEvent(e);
           onTogglePlay();
         }}
+        disabled={pauseDisabled}
         aria-label={isPlaying ? t("controls.pause") : t("controls.play")}
       >
         {isPlaying ? <Pause size="1.25rem" fill="currentColor" /> : <Play size="1.25rem" fill="currentColor" />}
@@ -109,6 +117,7 @@ export const PlayerTransportControls: React.FC<PlayerTransportControlsProps> = (
           stopControlEvent(e);
           onSeekBy(10);
         }}
+        disabled={seekDisabled}
         title={t("controls.forward10Title")}
         aria-label={t("controls.forward10Aria")}
       >
@@ -123,7 +132,7 @@ export const PlayerTransportControls: React.FC<PlayerTransportControlsProps> = (
             stopControlEvent(e);
             onSelectPlaylistItem?.((playlistIndex ?? 0) + 1);
           }}
-          disabled={!hasNext}
+          disabled={!hasNext || episodeDisabled}
           title={t("controls.nextEpisode", { defaultValue: "Next episode" })}
           aria-label={t("controls.nextEpisode", { defaultValue: "Next episode" })}
         >

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../ui";
+import { useWatchTogether } from "../../context/watchTogetherState";
 
 interface SkipOutroButtonProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -19,6 +20,7 @@ export const SkipOutroButton: React.FC<SkipOutroButtonProps> = ({
   onSeek,
 }) => {
   const { t } = useTranslation("player");
+  const { role } = useWatchTogether();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -42,7 +44,8 @@ export const SkipOutroButton: React.FC<SkipOutroButtonProps> = ({
     };
   }, [videoRef, seekOffset, outroRange, displayDuration]);
 
-  if (!visible || !outroRange) return null;
+  // In a co-watch, skipping is host-authoritative — only the host sees the skip button.
+  if (role === "guest" || !visible || !outroRange) return null;
 
   return (
     <Button

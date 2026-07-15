@@ -1,6 +1,7 @@
 export interface StreamFilterBarProps {
   id?: string;
   countLabel: string;
+  onBack?: () => void; // shown as a back button in the header on mid-width viewports (info sidebar is hidden)
   qualityFilter: string;
   setQualityFilter: (quality: string) => void;
   activeTracker: string;

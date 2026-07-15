@@ -43,4 +43,15 @@ export interface ActivePlayback {
   outroEnd?: number;
   thumbnails?: SDKThumbnails;
   requiresBuffering?: boolean;
+  // Media artwork, carried through so the co-watch lobby can show a banner for what's being watched.
+  backdropSrc?: string;
+  posterSrc?: string;
+  // Co-watch always starts from 0 (no resume), so host and guests share one timeline from the beginning.
+  startAtZero?: boolean;
+  // Set for co-watch playbacks. Such a playback is tied to a live SignalR session, so it must NOT be
+  // persisted/restored across reloads (the session is gone on reload — restoring would spawn a solo zombie).
+  coWatch?: boolean;
+  // Monotonic per-playVideo id. Used as the player's React key so every playVideo mounts a fresh player
+  // instance (no stale HLS/state carried over); enrichPlayback preserves it so mid-playback patches don't remount.
+  instanceId?: number;
 }

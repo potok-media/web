@@ -84,9 +84,11 @@ export function usePlaybackTracker({
     const timeSinceLastSync = Math.abs(actualTime - lastSavedTimeRef.current);
     if (forceRemote || timeSinceLastSync >= 10 || isCompleted) {
       lastSavedTimeRef.current = actualTime;
-      
+
       const strategy = Storage.get<string>("syncStrategy", "none");
-      if (strategy === "server" || strategy === "trakt") {
+      // Remote history is keyed by TMDB id — a plugin-opened stream legitimately has id 0, so skip the remote
+      // sync for it (local resume still works). Only sync when there's a real TMDB id.
+      if (id > 0 && (strategy === "server" || strategy === "trakt")) {
         SyncApiClient.saveSyncProgress(
           id.toString(),
           mediaType,
@@ -157,7 +159,8 @@ export function usePlaybackTracker({
 
       // Удаляем с бэкенда/Trakt прогресс (переходит в статус полностью просмотрено)
       const strategy = Storage.get<string>("syncStrategy", "none");
-      if (strategy === "server" || strategy === "trakt") {
+      // Plugin streams have TMDB id 0 (a valid value) — don't push them to remote history.
+      if (id > 0 && (strategy === "server" || strategy === "trakt")) {
         SyncApiClient.saveSyncProgress(
           id.toString(),
           mediaType,

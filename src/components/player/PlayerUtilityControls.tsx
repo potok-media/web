@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import {
   Maximize,
   Minimize,
@@ -8,10 +9,15 @@ import {
   Settings,
   ListVideo,
   Volume2,
+  Airplay,
+  MessageSquare,
 } from "lucide-react";
 import { TrackSelectorDropdown } from "./TrackSelectorDropdown";
 import { CaptionsLoadingIcon } from "./SubtitleLoadingIcons";
 import { IconButton, cx } from "../ui";
+import { usePlayback } from "../../context/PlaybackContext";
+import { useWatchTogether } from "../../context/watchTogetherState";
+import type { ActivePlayback } from "../../context/playbackTypes";
 
 interface TrackItem {
   id: number;
@@ -46,9 +52,11 @@ interface PlayerUtilityControlsProps {
   playlistItems: TrackItem[];
   playlistIndex?: number;
   onSelectPlaylistItem?: (index: number) => void;
+  playlistDisabled?: boolean;
   showPlaylistMenu?: boolean;
   onTogglePlaylistMenu?: () => void;
   anySubReady: boolean;
+  playback: ActivePlayback; // the player's actual descriptor (plugin players bypass the global PlaybackContext)
 }
 
 export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
@@ -77,11 +85,26 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
   playlistItems,
   playlistIndex,
   onSelectPlaylistItem,
+  playlistDisabled,
   showPlaylistMenu,
   onTogglePlaylistMenu,
   anySubReady,
+  playback,
 }) => {
   const { t } = useTranslation("player");
+  const navigate = useNavigate();
+  const { stopVideo } = usePlayback();
+  const { createRoom, role: coWatchRole, chatOpen, setChatOpen } = useWatchTogether();
+
+  const handleStartWatchTogether = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Use the player's own descriptor, not the global activePlayback — plugin-rendered players (HostMediaPlayer)
+    // pass playback as a prop and never populate the global context, so activePlayback would be null there.
+    if (!playback) return;
+    createRoom(playback);
+    stopVideo(); // closes the global player (no-op for a plugin player, which unmounts on navigation)
+    navigate("/watch-together");
+  };
 
   return (
     <div className="controls-group right">
@@ -97,6 +120,34 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
       >
         <Activity size="1.125rem" />
       </IconButton>
+
+      {/* Start-co-watch button — hidden once a session is running (host or guest): it's no longer needed. */}
+      {!coWatchRole && (
+        <IconButton
+          className="control-icon-btn"
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={handleStartWatchTogether}
+          title={t("controls.watchTogetherTitle")}
+          aria-label={t("controls.watchTogetherAria")}
+        >
+          <Airplay size="1.125rem" />
+        </IconButton>
+      )}
+
+      {coWatchRole && (
+        <IconButton
+          className={cx("control-icon-btn", chatOpen && "active-accent")}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            setChatOpen(!chatOpen);
+          }}
+          title={t("controls.chatTitle")}
+          aria-label={t("controls.chatTitle")}
+        >
+          <MessageSquare size="1.125rem" />
+        </IconButton>
+      )}
 
       <TrackSelectorDropdown
         icon={<Volume2 size="1.125rem" />}
@@ -132,6 +183,7 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
           onSelect={onSelectPlaylistItem || (() => {})}
           isOpen={showPlaylistMenu || false}
           onToggle={onTogglePlaylistMenu || (() => {})}
+          disabled={playlistDisabled}
         />
       )}
 

@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import type { SDKThumbnails } from "../../sdk/src/types";
+import type { ActivePlayback } from "../../context/playbackTypes";
 import { TimelineSlider } from "./TimelineSlider";
 import { PlayerTransportControls } from "./PlayerTransportControls";
 import { PlayerUtilityControls } from "./PlayerUtilityControls";
@@ -17,6 +18,9 @@ interface PlayerControlsProps {
   controlsVisible: boolean;
   isPlaying: boolean;
   onTogglePlay: () => void;
+  pauseDisabled?: boolean;
+  seekDisabled?: boolean;
+  episodeDisabled?: boolean;
   duration: number;
   onSeek: (time: number) => void;
   onSeekBy: (delta: number) => void;
@@ -55,6 +59,7 @@ interface PlayerControlsProps {
   thumbnails?: SDKThumbnails;
   seekPreview?: number | null;
   onUserActivity?: () => void;
+  playback: ActivePlayback;
 }
 
 export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
@@ -62,6 +67,9 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
   controlsVisible,
   isPlaying,
   onTogglePlay,
+  pauseDisabled,
+  seekDisabled,
+  episodeDisabled,
   duration,
   onSeek,
   onSeekBy,
@@ -100,6 +108,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
   thumbnails,
   seekPreview = null,
   onUserActivity,
+  playback,
 }) => {
   const { t } = useTranslation("player");
 
@@ -144,6 +153,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             seekOffset={seekOffset}
             thumbnails={thumbnails}
             seekPreview={seekPreview}
+            disabled={seekDisabled}
           />
         </div>
 
@@ -152,6 +162,8 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             videoRef={videoRef}
             isPlaying={isPlaying}
             onTogglePlay={onTogglePlay}
+            pauseDisabled={pauseDisabled}
+            seekDisabled={seekDisabled}
             duration={duration}
             onSeekBy={onSeekBy}
             volume={volume}
@@ -163,6 +175,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             hasPlaylist={hasPlaylist}
             hasPrev={hasPrev}
             hasNext={hasNext}
+            episodeDisabled={episodeDisabled}
             playlistIndex={playlistIndex}
             onSelectPlaylistItem={onSelectPlaylistItem}
           />
@@ -193,9 +206,11 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             playlistItems={playlistItems}
             playlistIndex={playlistIndex}
             onSelectPlaylistItem={onSelectPlaylistItem}
+            playlistDisabled={episodeDisabled}
             showPlaylistMenu={showPlaylistMenu}
             onTogglePlaylistMenu={onTogglePlaylistMenu}
             anySubReady={anySubReady}
+            playback={playback}
           />
         </div>
       </div>

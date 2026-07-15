@@ -53,6 +53,8 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
       title: currentMedia?.title || "",
       originalTitle: currentMedia?.originalTitle || currentMedia?.title || "",
       englishTitle: currentMedia?.englishTitle || "",
+      backdropSrc: currentMedia?.backdropSrc,
+      posterSrc: currentMedia?.posterSrc,
     }),
     [currentMedia],
   );

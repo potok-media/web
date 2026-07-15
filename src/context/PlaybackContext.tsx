@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useHUD } from "./useHUD";
 import { logger } from "../utils/logger";
 import { PlatformManager } from "../utils/PlatformManager";
@@ -27,6 +27,7 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const { potokToken } = useAuth();
   const { show: showHUD } = useHUD();
   const [activePlayback, setActivePlayback] = useState<ActivePlayback | null>(null);
+  const instanceCounter = useRef(0);
 
   const playVideo = useCallback(
     (playback: ActivePlayback) => {
@@ -55,7 +56,9 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           showHUD("error", "Ошибка Infuse: " + errorMsg);
         }
       } else {
-        setActivePlayback(playback);
+        // Fresh instanceId per open → the player is keyed to it, so every playVideo unmounts the previous
+        // player (full HLS/DOM teardown) and mounts a clean one, rather than reusing a stale instance.
+        setActivePlayback({ ...playback, instanceId: ++instanceCounter.current });
       }
     },
     [defaultPlayer, showHUD],

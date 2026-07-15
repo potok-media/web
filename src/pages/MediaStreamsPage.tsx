@@ -6,6 +6,7 @@ import { StreamList } from "../components/common/StreamList";
 import { StreamSidebar } from "../components/StreamSidebar";
 import { EpisodeSelectorPopup } from "../components/common/EpisodeSelectorPopup";
 import { useMediaStreams } from "../hooks/useMediaStreams";
+import { usePlayback } from "../context/PlaybackContext";
 import type { MediaCard } from "../network/ApiTypes";
 
 import { Button, IconButton } from "../components/ui";
@@ -16,6 +17,7 @@ export const MediaStreamsPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const { activePlayback } = usePlayback();
 
   const mediaId = Number(id);
   const state = location.state as { season?: number; episode?: number; media?: MediaCard } | null;
@@ -76,6 +78,7 @@ export const MediaStreamsPage: React.FC = () => {
           emptyText={error || undefined}
           onSelectStream={handleSelectStream}
           onRefresh={handleRefresh}
+          onBack={() => navigate(-1)}
         />
       </div>
     </section>
@@ -85,7 +88,9 @@ export const MediaStreamsPage: React.FC = () => {
     if (!episodeSelectorData || !clickedStream) return null;
     return (
       <EpisodeSelectorPopup
-        isOpen={!!episodeSelectorData}
+        // Hidden while the global player overlay is open (the popup is a body portal and would otherwise
+        // paint over the z-index-free player); it reappears when the player closes.
+        isOpen={!!episodeSelectorData && !activePlayback}
         onClose={handleClosePopup}
         title={episodeSelectorData.title}
         episodes={episodeSelectorData.episodes}

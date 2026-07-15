@@ -9,7 +9,7 @@ export function usePlayerResumeToast(
   const [resumeTime, setResumeTime] = useState(0);
 
   useEffect(() => {
-    if (isMetadataLoading) return;
+    if (isMetadataLoading || playback.startAtZero) return; // no resume prompt in co-watch
     const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
     const savedResume = localStorage.getItem(resumeKey);
     if (!savedResume) return;
@@ -22,7 +22,7 @@ export function usePlayerResumeToast(
     // stuck on screen. Deps are only the episode identity + loading flag, so the timer survives to completion.
     const timer = setTimeout(() => setShowResumeToast(false), 5000);
     return () => clearTimeout(timer);
-  }, [isMetadataLoading, playback.id, playback.season, playback.episode]);
+  }, [isMetadataLoading, playback.id, playback.season, playback.episode, playback.startAtZero]);
 
   const resetResumeToast = useCallback(() => {
     setShowResumeToast(false);

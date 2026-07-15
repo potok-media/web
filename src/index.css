@@ -25,6 +25,14 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* The app mounts here. `isolation: isolate` makes #root its own stacking context WITHOUT any z-index, so
+   every z-index the app uses stays contained inside it. The player overlay is portaled to document.body
+   (a later sibling of #root), so it paints above the whole app by DOM order alone — the player itself needs
+   no z-index. */
+#root {
+  isolation: isolate;
+}
+
 /* Premium Scrollbars */
 ::-webkit-scrollbar {
   width: 8px;

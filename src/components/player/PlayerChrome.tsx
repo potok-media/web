@@ -14,6 +14,9 @@ interface PlayerChromeProps {
   controlsVisible: boolean;
   isPlaying: boolean;
   onTogglePlay: () => void;
+  pauseDisabled?: boolean;
+  seekDisabled?: boolean;
+  episodeDisabled?: boolean;
   displayDuration: number;
   onSeek: (time: number) => void;
   onSeekBy: (delta: number) => void;
@@ -59,6 +62,9 @@ export const PlayerChrome: React.FC<PlayerChromeProps> = ({
   controlsVisible,
   isPlaying,
   onTogglePlay,
+  pauseDisabled,
+  seekDisabled,
+  episodeDisabled,
   displayDuration,
   onSeek,
   onSeekBy,
@@ -130,10 +136,14 @@ export const PlayerChrome: React.FC<PlayerChromeProps> = ({
       onClose={() => onToggleStats()}
     />
     <PlayerControls
+      playback={playback}
       videoRef={videoRef}
       controlsVisible={controlsVisible}
       isPlaying={isPlaying}
       onTogglePlay={onTogglePlay}
+      pauseDisabled={pauseDisabled}
+      seekDisabled={seekDisabled}
+      episodeDisabled={episodeDisabled}
       duration={displayDuration}
       onSeek={onSeek}
       onSeekBy={onSeekBy}

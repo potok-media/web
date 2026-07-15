@@ -53,7 +53,7 @@ export const AppLayoutPlayerOverlay: React.FC<AppLayoutPlayerOverlayProps> = ({
           </div>
         )}>
           <WebMediaPlayer
-            key={activePlayback.id}
+            key={activePlayback.instanceId ?? activePlayback.id}
             playback={activePlayback}
             onClose={onClosePlayer}
             isNetworkOffline={connectionState === "offline"}

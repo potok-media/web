@@ -21,8 +21,14 @@ export function useAppLayoutPlayback() {
   }, []);
 
   useEffect(() => {
-    if (activePlayback) {
+    // Persist only a solo playback so an accidental reload can restore it. A co-watch playback is tied to a
+    // live SignalR session that dies on reload — persisting it would restore a solo zombie player — so we
+    // actively clear the slot for co-watch and when playback stops (covers the host-ended path that stops
+    // the video without going through handleClosePlayer).
+    if (activePlayback && !activePlayback.coWatch) {
       sessionStorage.setItem("potok_last_playback", JSON.stringify(activePlayback));
+    } else {
+      sessionStorage.removeItem("potok_last_playback");
     }
   }, [activePlayback]);
 

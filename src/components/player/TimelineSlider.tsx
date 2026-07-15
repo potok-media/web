@@ -13,6 +13,7 @@ interface TimelineSliderProps {
   // Target of an in-flight seek. While set, the thumb is pinned here (not driven by currentTime),
   // so it lands where the user dropped it and never bounces back before the segment loads.
   seekPreview?: number | null;
+  disabled?: boolean;
 }
 
 export const TimelineSlider: React.FC<TimelineSliderProps> = ({
@@ -21,7 +22,8 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
   initialDuration,
   seekOffset = 0,
   thumbnails,
-  seekPreview = null
+  seekPreview = null,
+  disabled = false,
 }) => {
   const { t } = useTranslation("player");
   const sliderRef = useRef<HTMLInputElement>(null);
@@ -119,6 +121,7 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
   const [hoverX, setHoverX] = useState(0);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (disabled) return;
     const container = containerRef.current;
     if (!container) return;
 
@@ -148,7 +151,7 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
   return (
     <div
       ref={containerRef}
-      className="timeline-slider-wrapper"
+      className={`timeline-slider-wrapper${disabled ? " timeline-slider-wrapper--disabled" : ""}`}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
@@ -162,6 +165,7 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
         onTouchEnd={handleSliderRelease}
         className="player-timeline-slider"
         aria-label={t("timeline.seekAria")}
+        disabled={disabled}
       />
       {isHovering && (
         <TimelinePreviewTooltip

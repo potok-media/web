@@ -274,7 +274,10 @@
       "disable": "Disable",
       "playlistEpisodes": "Playlist episodes",
       "quality": "Quality",
-      "fullscreen": "Fullscreen"
+      "fullscreen": "Fullscreen",
+      "watchTogetherTitle": "Watch together",
+      "watchTogetherAria": "Start watching together",
+      "chatTitle": "Chat"
     },
     "playback": {
       "accessRestricted": "Playback access is restricted.",
@@ -2201,5 +2204,72 @@
       "defaultValue": "Default:",
       "method": "Method"
     }
+  },
+  "watchTogether": {
+    "title": "Watch together",
+    "noRoom": "No active room. Start a session from the player.",
+    "goHome": "Go home",
+    "shareLabel": "Share this link with a guest",
+    "copyLink": "Copy",
+    "copied": "Link copied",
+    "copyFailed": "Could not copy the link",
+    "participants": "Participants ({{count}})",
+    "roleHost": "Host",
+    "roleGuest": "Guest",
+    "you": "(you)",
+    "startWatch": "Start watching",
+    "watching": "Watching together",
+    "waitingHost": "Waiting for the host to start…",
+    "hostLeft": "The host has left the session.",
+    "leave": "Leave",
+    "connection": {
+      "idle": "Offline",
+      "connecting": "Connecting…",
+      "connected": "Connected",
+      "reconnecting": "Reconnecting…"
+    },
+    "notice": {
+      "pause": "{{name}} paused",
+      "resume": "{{name}} resumed",
+      "seek": "{{name}} skipped to {{time}}",
+      "audio": "{{name}} switched audio: {{track}}",
+      "subtitle": "{{name}} switched subtitles: {{track}}",
+      "subtitleOff": "{{name}} turned subtitles off"
+    },
+    "pauseModal": {
+      "title": "{{name}} paused the video",
+      "subtitle": "Waiting to resume"
+    },
+    "waitModal": {
+      "title": "Waiting for guests…",
+      "subtitle": "They are loading the video"
+    },
+    "permissions": {
+      "canControl": "Let guests control playback",
+      "canControlHint": "Pause, rewind and change the episode for everyone"
+    },
+    "nickname": {
+      "label": "Your nickname",
+      "placeholder": "Enter a nickname"
+    },
+    "ended": {
+      "title": "Room closed",
+      "text": "The host closed the watch-together room.",
+      "ok": "OK"
+    },
+    "chat": {
+      "title": "Chat",
+      "close": "Close chat",
+      "empty": "No messages yet",
+      "placeholder": "Type a message…",
+      "send": "Send",
+      "tabChat": "Chat",
+      "tabInfo": "Info"
+    },
+    "joinInvite": "You've been invited to a watch-together room.",
+    "join": "Join room",
+    "nowWatching": "Now watching",
+    "episodeN": "Episode {{n}}",
+    "ping": "{{ms}} ms"
   }
 }

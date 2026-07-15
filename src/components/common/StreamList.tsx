@@ -24,6 +24,7 @@ export interface StreamListProps {
   emptyText?: string;
   onSelectStream: (stream: RawStreamPayload) => void;
   onRefresh?: () => void;
+  onBack?: () => void; // header back button (mid-width viewports where the info sidebar is hidden)
 }
 
 const mapStreamToUI = (stream: ExtendedStreamPayload, index: number, t: TFunction): StreamUIItem => {
@@ -78,6 +79,7 @@ export const StreamList: React.FC<StreamListProps> = ({
   emptyText,
   onSelectStream,
   onRefresh,
+  onBack,
 }) => {
   const { t } = useTranslation("streams");
   const resolvedEmptyText = emptyText ?? t("empty");
@@ -157,6 +159,7 @@ export const StreamList: React.FC<StreamListProps> = ({
     <div className="stream-list-container stream-list-container--gap">
       {showFilters && (
         <StreamFilterBar
+          onBack={onBack}
           countLabel={t("countLabel", { count: processedStreams.length })}
           qualityFilter={qualityFilter}
           setQualityFilter={setQualityFilter}

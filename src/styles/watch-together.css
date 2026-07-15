@@ -1,0 +1,652 @@
+.wt-page {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--space-xl);
+  min-height: 100%;
+}
+
+.wt-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-l);
+  width: 100%;
+  max-width: 520px;
+  padding: var(--space-xl);
+  border-radius: var(--radius-l);
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-l);
+}
+
+.wt-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-m);
+}
+
+.wt-card__title {
+  font: var(--font-title2);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.wt-card__subtitle {
+  font: var(--font-body);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.wt-status {
+  font: var(--font-caption);
+  color: var(--text-tertiary);
+  padding: var(--space-xxs) var(--space-s);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+}
+
+.wt-status--connected {
+  color: var(--accent);
+  border-color: var(--accent-semi);
+}
+
+.wt-status--connecting,
+.wt-status--reconnecting {
+  color: var(--text-secondary);
+}
+
+.wt-share {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.wt-share__label {
+  font: var(--font-caption);
+  color: var(--text-secondary);
+}
+
+.wt-share__row {
+  display: flex;
+  gap: var(--space-s);
+  align-items: center;
+}
+
+.wt-share__input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-s) var(--space-m);
+  border-radius: var(--radius-m);
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font: var(--font-metadata);
+}
+
+.wt-nick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.wt-nick__label {
+  font: var(--font-caption);
+  color: var(--text-secondary);
+}
+
+.wt-perms {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.wt-perms__title {
+  font: var(--font-caption-bold);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.wt-perms__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-m);
+  padding: var(--space-s) var(--space-m);
+  border-radius: var(--radius-m);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font: var(--font-body);
+  cursor: pointer;
+}
+
+.wt-perms__label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.wt-perms__hint {
+  font: var(--font-caption);
+  color: var(--text-secondary);
+}
+
+.wt-participants {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.wt-participants__title {
+  font: var(--font-caption-bold);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.wt-participants__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.wt-participants__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  padding: var(--space-s) var(--space-m);
+  border-radius: var(--radius-m);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font: var(--font-body);
+}
+
+.wt-participants__icon {
+  color: var(--accent);
+}
+
+.wt-participants__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Per-guest ping badge (Info panel). */
+.wt-participants__ping {
+  flex-shrink: 0;
+  font: var(--font-caption-bold);
+  font-variant-numeric: tabular-nums;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface-high);
+  color: var(--text-secondary);
+}
+
+.wt-participants__ping--good {
+  color: var(--success, #34c759);
+}
+
+.wt-participants__ping--ok {
+  color: var(--warning, #ff9f0a);
+}
+
+.wt-participants__ping--bad {
+  color: var(--error, #ff453a);
+}
+
+.wt-card__waiting {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  font: var(--font-body);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.wt-spin {
+  animation: wt-spin 1s linear infinite;
+}
+
+@keyframes wt-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Co-watch chat sidebar (fixed to the viewport's right; the player overlay shrinks to its left). */
+.wt-chat {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--wt-chat-width, 22rem);
+  display: flex;
+  flex-direction: column;
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur-glass);
+  border-left: 1px solid var(--glass-border);
+  animation: wt-chat-in 0.2s ease-out;
+}
+
+.wt-chat__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-s) var(--space-m);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.wt-chat__heading {
+  font: var(--font-title3);
+  color: var(--text-primary);
+}
+
+/* Chat / Info tab switch in the sidebar header (buttons are design-system Chips). */
+.wt-chat__tabs {
+  display: flex;
+  gap: var(--space-2xs);
+}
+
+/* Info tab body — scrolls independently, reuses the lobby's session/share/participant sections. */
+.wt-chat__info {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+  padding: var(--space-m);
+}
+
+.wt-chat__list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+  padding: var(--space-m);
+}
+
+.wt-chat__empty {
+  margin: auto;
+  color: var(--text-tertiary);
+  font: var(--font-caption);
+  text-align: center;
+}
+
+.wt-chat__msg {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 85%;
+  align-self: flex-start;
+  padding: var(--space-xs) var(--space-s);
+  border-radius: var(--radius-m);
+  background: var(--bg-surface-high);
+  border: 1px solid var(--border-color);
+}
+
+.wt-chat__msg--mine {
+  align-self: flex-end;
+  background: var(--accent-semi);
+  border-color: var(--accent-semi);
+}
+
+.wt-chat__name {
+  font: var(--font-caption-bold);
+  color: var(--accent);
+}
+
+.wt-chat__text {
+  color: var(--text-primary);
+  font: var(--font-body);
+  word-break: break-word;
+}
+
+.wt-chat__form {
+  display: flex;
+  gap: var(--space-s);
+  padding: var(--space-m);
+  border-top: 1px solid var(--border-color);
+}
+
+.wt-chat__form .ui-input {
+  flex: 1;
+  min-width: 0;
+}
+
+@keyframes wt-chat-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+/* Transient co-watch notices, rendered inside the player overlay (last DOM child → on top, no z-index). */
+.wt-notices {
+  position: absolute;
+  top: var(--space-xl);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  align-items: center;
+  pointer-events: none;
+}
+
+.wt-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  max-width: 80vw;
+  padding: var(--space-xs) var(--space-m);
+  border-radius: var(--radius-full);
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-m);
+  color: var(--text-primary);
+  font: var(--font-caption);
+  white-space: nowrap;
+  animation: wt-notice-in 0.2s ease-out;
+}
+
+.wt-notice__icon {
+  display: inline-flex;
+  color: var(--accent);
+}
+
+.wt-notice__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes wt-notice-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Shrink the shared modal panel to the content (it defaults to width:100% / max-width:40rem) and center it. */
+.overlay-panel.wt-ended-panel {
+  width: auto;
+  max-width: 22rem;
+  align-items: center;
+}
+
+/* "Host closed the room" modal content (inside the shared Overlay). */
+.wt-ended {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-m);
+  text-align: center;
+  padding: var(--space-m) var(--space-l) var(--space-l);
+  min-width: 260px;
+  max-width: 360px;
+}
+
+.wt-ended__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius-full);
+  color: var(--accent);
+  background: var(--accent-semi);
+  border: 1px solid var(--accent-semi);
+}
+
+.wt-ended__title {
+  font: var(--font-title3);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.wt-ended__text {
+  font: var(--font-body);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Host-paused overlay (guest side) — dimmed, blurred backdrop + glassmorphic card. Purely visual. */
+.wt-pause {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: radial-gradient(120% 120% at 50% 45%, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.62));
+  backdrop-filter: blur(6px) saturate(120%);
+  animation: wt-pause-fade 0.35s ease-out;
+}
+
+.wt-pause__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-m);
+  padding: var(--space-xl) var(--space-xxl);
+  border-radius: var(--radius-xl);
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-l), 0 0 60px -12px var(--accent-semi);
+  text-align: center;
+  animation: wt-pause-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wt-pause__badge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: var(--radius-full);
+  color: var(--accent);
+  background: var(--accent-semi);
+  border: 1px solid var(--accent-semi);
+}
+
+.wt-pause__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--accent);
+  opacity: 0;
+  animation: wt-pause-ring 2.4s ease-out infinite;
+}
+
+.wt-pause__ring--delay {
+  animation-delay: 1.2s;
+}
+
+.wt-pause__title {
+  font: var(--font-title3);
+  color: var(--text-primary);
+}
+
+.wt-pause__sub {
+  font: var(--font-body);
+  color: var(--text-secondary);
+}
+
+.wt-pause__dots span {
+  animation: wt-pause-dot 1.4s infinite;
+}
+
+.wt-pause__dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.wt-pause__dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes wt-pause-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes wt-pause-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes wt-pause-ring {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  70% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@keyframes wt-pause-dot {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+/* Lobby session banner: what's being watched (artwork + title) + optional playlist scroll. */
+.wt-session {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.wt-session__hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  padding: var(--space-m);
+  border-radius: var(--radius-m);
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+
+/* Faded backdrop wash behind the hero (when a backdrop image is available). */
+.wt-session__hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--wt-session-backdrop);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.18;
+  filter: saturate(1.1);
+}
+
+.wt-session__art,
+.wt-session__meta {
+  position: relative;
+}
+
+.wt-session__art {
+  width: 3.5rem;
+  height: 5.25rem;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: var(--radius-s);
+  background: var(--bg-surface-high);
+}
+
+.wt-session__art--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+.wt-session__meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  min-width: 0;
+}
+
+.wt-session__label {
+  font: var(--font-caption-bold);
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.wt-session__title {
+  margin: 0;
+  font: var(--font-title-3);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.wt-session__ep {
+  font: var(--font-caption);
+  color: var(--text-secondary);
+}
+
+.wt-session__playlist {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2xs);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  max-height: 11rem;
+  overflow-y: auto;
+  border-radius: var(--radius-m);
+  background: var(--bg-surface);
+}
+
+.wt-session__episode {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  padding: var(--space-xs) var(--space-s);
+  border-radius: var(--radius-s);
+  color: var(--text-secondary);
+  font: var(--font-body);
+}
+
+.wt-session__episode--current {
+  background: var(--accent-semi);
+  color: var(--accent);
+}
+
+.wt-session__episode-num {
+  flex-shrink: 0;
+  font: var(--font-caption-bold);
+  opacity: 0.85;
+}
+
+.wt-session__episode-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

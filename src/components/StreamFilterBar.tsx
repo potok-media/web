@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ArrowLeft } from "lucide-react";
+import { IconButton } from "./ui";
 import type { StreamFilterBarProps } from "./streamFilterBar/streamFilterBarTypes";
 import { StreamFilterFilterMenu } from "./streamFilterBar/StreamFilterFilterMenu";
 import { StreamFilterRefreshButton } from "./streamFilterBar/StreamFilterRefreshButton";
@@ -8,6 +10,7 @@ import { StreamFilterSortMenu } from "./streamFilterBar/StreamFilterSortMenu";
 export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
   id,
   countLabel,
+  onBack,
   sortOption = "seedersDesc",
   setSortOption,
   qualityFilter,
@@ -31,6 +34,15 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
 
   return (
     <header className="streams-results-header" id={id}>
+      {onBack && (
+        <IconButton
+          className="streams-header-back"
+          onClick={onBack}
+          aria-label={t("actions.back")}
+        >
+          <ArrowLeft size="1.125rem" />
+        </IconButton>
+      )}
       <div className="streams-results-count">
         {countLabel}
       </div>

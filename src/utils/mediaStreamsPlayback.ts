@@ -28,6 +28,8 @@ export const buildPlaybackFromInfo = (
     title?: string;
     originalTitle?: string;
     englishTitle?: string;
+    backdropSrc?: string;
+    posterSrc?: string;
     season?: number;
     episode?: number;
     playlist?: ActivePlayback["playlist"];
@@ -38,6 +40,8 @@ export const buildPlaybackFromInfo = (
   title: info.title || base.title || "",
   originalTitle: base.originalTitle,
   englishTitle: base.englishTitle,
+  backdropSrc: base.backdropSrc,
+  posterSrc: base.posterSrc,
   mediaType: base.mediaType,
   id: base.id,
   season: base.season,

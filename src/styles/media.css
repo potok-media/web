@@ -1698,6 +1698,22 @@
   -webkit-box-orient: vertical;
 }
 
+/* Drop the long release name (title + subtitle) from the picker header when there's no room for it: either the
+   viewport is too narrow (it can't sit next to the header actions) OR too short (the multi-line title eats the
+   vertical space the episode list needs). Collapse the text group so it takes no space. */
+@media (max-width: 900px), (max-height: 820px) {
+  .modal-title-custom-size,
+  .modal-subtitle-text {
+    display: none;
+  }
+
+  .modal-title-text-group {
+    flex: 0 0 auto;
+    width: 0;
+    overflow: hidden;
+  }
+}
+
 .modal-header-actions-row {
   display: flex;
   align-items: center;
@@ -2015,6 +2031,41 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* The header back button lives in the results header only on mid-width viewports (below 1280, above mobile) —
+   on desktop the info sidebar carries it, on mobile a floating button does. */
+.streams-header-back {
+  display: none;
+}
+
+/* Below 1280px the fixed 22.5rem info sidebar squeezes the results list too hard — hide the whole sidebar (so no
+   leftover column/divider line) and give the results the full width. The back button moves into the header. */
+@media (max-width: 1279px) {
+  .streams-page-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .streams-page-sidebar {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1279px) {
+  .ui-icon-btn.streams-header-back {
+    display: inline-flex;
+    flex: 0 0 auto;
+    margin-right: var(--space-s);
+  }
+
+  /* Keep the back button + count grouped on the left and push the actions to the right. */
+  .streams-results-header {
+    justify-content: flex-start;
+  }
+
+  .streams-header-actions {
+    margin-left: auto;
+  }
 }
 
 /* Viewport: bounded height + native scrollbar (desktop) / transform clip (TV). */
