@@ -56,9 +56,11 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           showHUD("error", "Ошибка Infuse: " + errorMsg);
         }
       } else {
-        // Fresh instanceId per open → the player is keyed to it, so every playVideo unmounts the previous
-        // player (full HLS/DOM teardown) and mounts a clean one, rather than reusing a stale instance.
-        setActivePlayback({ ...playback, instanceId: ++instanceCounter.current });
+        // instanceId keys the player. A brand-new open (descriptor built fresh, no instanceId) mints one so it
+        // mounts clean. An episode switch / enrich re-uses the current playback object (spreads its instanceId),
+        // so we KEEP it — the player updates in place instead of remounting. Remounting every episode would
+        // reset in-player state such as the remembered dub (preferredAudioRef), losing the selected voice.
+        setActivePlayback({ ...playback, instanceId: playback.instanceId ?? ++instanceCounter.current });
       }
     },
     [defaultPlayer, showHUD],
