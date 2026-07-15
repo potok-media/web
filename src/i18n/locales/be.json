@@ -35,6 +35,8 @@
       "otherAddress": ""
     },
     "bffPlaceholder": "",
+    "connect": "Падключыцца",
+    "example": "напр. 127.0.0.1:5000 або local.potok.tv",
     "saveAndConnect": "",
     "applyRetry": "",
     "checkAgain": ""
@@ -44,7 +46,8 @@
       "title": ""
     },
     "accent": {
-      "label": ""
+      "label": "",
+      "desc": "Колер выдзяленняў і актыўных элементаў."
     },
     "player": {
       "label": "",
@@ -73,7 +76,9 @@
       "accessibility": "",
       "accessibilityShort": "",
       "extensions": "",
-      "console": ""
+      "console": "",
+      "searchPlaceholder": "Пошук па наладах",
+      "noResults": "Нічога не знойдзена"
     },
     "profiles": {
       "errorEmptyGateway": "",
@@ -97,6 +102,7 @@
       "securityWarningTitle": "",
       "securityWarningBody": "",
       "confirm": "",
+      "confirming": "Усталёўка…",
       "cancel": ""
     },
     "accessibility": {
@@ -117,7 +123,10 @@
         "150": ""
       },
       "developerMode": "",
+      "developerModeDesc": "Паказвае інструменты адладкі і раздзел дакументацыі.",
       "directRequests": "",
+      "directRequestsDesc": "Плагіны звяртаюцца да знешніх API напрамую, абыходзячы проксі сервера. Хутчэй, але патрабуе CORS на баку сэрвісу.",
+      "uiScaleDesc": "Памер шрыфтоў і элементаў інтэрфейсу.",
       "docsTitle": "",
       "docsDescription": "",
       "openWiki": ""
@@ -167,7 +176,8 @@
       "cannotDeleteLast": "",
       "profileDeleted": "",
       "deleteProfile": "",
-      "addProfile": ""
+      "addProfile": "",
+      "active": "Актыўны"
     }
   },
   "player": {
@@ -264,7 +274,10 @@
       "disable": "",
       "playlistEpisodes": "",
       "quality": "",
-      "fullscreen": ""
+      "fullscreen": "",
+      "watchTogetherTitle": "Глядзець разам",
+      "watchTogetherAria": "Пачаць сумесны прагляд",
+      "chatTitle": "Чат"
     },
     "playback": {
       "accessRestricted": "",
@@ -334,6 +347,9 @@
       "title": ""
     },
     "actor": {
+      "nameFallback": "Акцёр",
+      "loadErrorTitle": "Не ўдалося загрузіць профіль акцёра",
+      "retry": "Паўтарыць",
       "biography": "",
       "asActor": "",
       "director": "",
@@ -346,19 +362,19 @@
       "ageAtDeath_other": "",
       "years_one": "",
       "years_other": "",
+      "departments": {
+        "acting": "Acting",
+        "directing": "Directing",
+        "writing": "Writing",
+        "production": "Production"
+      },
       "genre_35": "",
       "genre_action_adventure": "",
       "genre_18": "",
       "genre_scifi_fantasy": "",
       "genre_thriller_horror": "",
       "genre_kids_family": "",
-      "categoryTitle": "",
-      "departments": {
-        "acting": "Acting",
-        "directing": "Directing",
-        "writing": "Writing",
-        "production": "Production"
-      }
+      "categoryTitle": ""
     },
     "episode": {
       "fallbackName": "",
@@ -386,6 +402,7 @@
     },
     "selector": {
       "season": "",
+      "specials": "Спецыяльныя выпускі",
       "watched": "",
       "audioCount_one": "",
       "audioCount_other": "",
@@ -406,6 +423,13 @@
     "override": {
       "loading": "",
       "prompt": ""
+    },
+    "fileOverride": {
+      "anchorFromHere": "Перанумараваць з гэтага файла",
+      "pinThisFile": "Замацаваць толькі гэты файл",
+      "reset": "Скінуць пераазначэнне файла",
+      "anchoredFrom": "Нумарацыя пачынаецца з гэтага файла",
+      "pinnedTo": "Файл замацаваны"
     },
     "home": {
       "loadError": ""
@@ -735,6 +759,20 @@
     "title": "",
     "subtitle": "",
     "installByUrl": "",
+    "catalog": {
+      "title": "Каталог супольнасці",
+      "official": "Правераны",
+      "install": "Усталяваць",
+      "open": "Адкрыць",
+      "categories": {
+        "all": "Усе",
+        "catalog": "Каталогі",
+        "sources": "Крыніцы",
+        "visual": "Тэмы",
+        "tools": "Інструменты",
+        "tracking": "Адсочванне"
+      }
+    },
     "searchPlaceholder": "",
     "clear": "",
     "close": "",
@@ -811,5 +849,1427 @@
       "placeholder": "",
       "active": ""
     }
+  },
+  "wiki": {
+    "header": {
+      "brand": "Potok",
+      "searchPlaceholder": "Хуткі пошук па вікі...",
+      "logoAlt": "Лагатып Potok"
+    },
+    "sidebar": {
+      "intro": "Уводзіны",
+      "api": "Метады API",
+      "uiContainers": "UI: макет і сеткі",
+      "uiText": "UI: тэкст і інфармацыя",
+      "uiForms": "UI: формы і ўвод",
+      "uiMedia": "UI: медыякампаненты",
+      "uiStreaming": "UI: плэеры і струмені",
+      "development": "Распрацоўка",
+      "sandbox": "Пясочніца",
+      "themeDark": "Цёмная тэма",
+      "themeLight": "Светлая тэма"
+    },
+    "breadcrumbs": {
+      "docs": "Дакументацыя",
+      "sandbox": "Пясочніца",
+      "backToDoc": "Назад да дакумента"
+    },
+    "sandbox": {
+      "editorTab": "Рэдактар кода (JavaScript)",
+      "previewTab": "Папярэдні прагляд выніку",
+      "run": "Запусціць",
+      "reset": "Скінуць",
+      "connected": "ПАДКЛЮЧАНА",
+      "mainFile": "main.js",
+      "logsTitle": "КАНСОЛЬ ЛОГАЎ",
+      "clearLogs": "Ачысціць",
+      "logsEmpty": "Логі пустыя. Запусціце код і ўзаемадзейнічайце з UI.",
+      "previewTitle": "Эмуляваны экран Potok",
+      "previewContext": "Кантэкст: свабодны рэндэр",
+      "previewEmpty": "UI не скампіляваны. Перайдзіце на ўкладку рэдактара і націсніце «Запусціць».",
+      "pageTitle": "Інтэрактыўная пясочніца"
+    },
+    "toc": {
+      "title": "На гэтай старонцы"
+    },
+    "theme": {
+      "light": "Светлая",
+      "dark": "Цёмная"
+    },
+    "categories": {
+      "intro": "Уводзіны",
+      "api": "API",
+      "uiContainers": "UI: кантэйнеры",
+      "uiText": "UI: тэкст і інфармацыя",
+      "uiForms": "UI: формы і ўвод",
+      "uiMedia": "UI: медыя",
+      "uiStreaming": "UI: рэндэрынг і струмені",
+      "sandbox": "Пясочніца"
+    },
+    "pages": {
+      "intro": {
+        "title": "Пра Potok",
+        "category": "Уводзіны",
+        "toc": [
+          {
+            "id": "overview",
+            "text": "Агляд архітэктуры"
+          },
+          {
+            "id": "declarative",
+            "text": "Дэкларатыўны UI"
+          },
+          {
+            "id": "sandbox-details",
+            "text": "Бяспека і пясочніца"
+          }
+        ],
+        "sections": {
+          "overviewTitle": "Пра Potok",
+          "overviewP1": "Potok — платформа плагінаў і UI-модуляў для медыястэка. Дэкларатыўны UI, ізаляваная пясочніца.",
+          "overviewP2": "Пашырэнні ніколі не звяртаюцца да DOM або глабальных аб'ектаў браўзера — толькі да API SDK.",
+          "calloutTitle": "Архітэктура",
+          "calloutItems": [
+            "JS-білдэры → JSON-схема → натыўны рэндэр хоста.",
+            "Код плагіна ў ізаляваным кантэксце; без window/document/localStorage.",
+            "Слоты праз React Portals і CSS-селектары з рэестра.",
+            "Інспектар слотаў для жывой адладкі."
+          ],
+          "declarativeTitle": "Дэкларатыўны UI",
+          "declarativeP": "Плагіны будуюць UI з дапамогай білдэраў (падобна да SwiftUI); хост рэндэрыць скампіляваную JSON-схему:",
+          "sandboxTitle": "Бяспека і пясочніца",
+          "sandboxP": "Плагін працуе ў ізаляванай JS-пясочніцы:",
+          "sandboxItems": [
+            "window, document, localStorage → undefined.",
+            "Сетка толькі праз PotokSDK.http.",
+            "storage.local ізаляваны і абмежаваны pluginId."
+          ],
+          "runExample": "Запусціць гэты прыклад у пясочніцы"
+        }
+      },
+      "install": {
+        "title": "Усталёўка і Docker Compose",
+        "category": "Уводзіны",
+        "toc": [
+          {
+            "id": "quick-start",
+            "text": "Файлы"
+          },
+          {
+            "id": "compose",
+            "text": "Канфігурацыя Docker Compose"
+          },
+          {
+            "id": "variables",
+            "text": ".env"
+          },
+          {
+            "id": "run",
+            "text": "Запуск"
+          },
+          {
+            "id": "nginx",
+            "text": "Наладка проксі Nginx"
+          }
+        ],
+        "sections": {
+          "title": "Усталёўка",
+          "intro": "Стэк: web, gateway, PostgreSQL. Тарэнты: SearchEngine, TorrentGo, <repo>potok-torrents</repo> з <repo>web-plugins</repo>.",
+          "quickStartTitle": "Файлы",
+          "quickStartFiles": [
+            "docker-compose.yml",
+            ".env",
+            "<code>config.yml</code> — тарэнты, гл. <link>SearchEngine і TorrentGo</link>"
+          ],
+          "torrentServicesHint": "<code>config.yml</code> і сэрвісы — <link>SearchEngine і TorrentGo</link>.",
+          "pluginUrlsTitle": "URL у <repo>potok-torrents</repo>",
+          "pluginUrlsDesc": "searchEngineURL і torrentGoURL — <code>http://<ip/>:6000</code>, <code>http://<ip/>:5282</code>. Мусяць быць даступныя з браўзера; Gateway іх не праксіруе.",
+          "requiredTitle": "Compose",
+          "requiredDesc": "",
+          "optionalTitle": "Тарэнты",
+          "optionalDesc": "SearchEngine + TorrentGo у compose. URL у <repo>potok-torrents</repo>.",
+          "envTitle": ".env",
+          "envDesc": "<code>GATEWAY_TMDB_API_KEY</code> — TMDB. <code>GATEWAY_MULTI_USER_MODE=true</code> — самастойная рэгістрацыя; <code>false</code> — толькі ўваход. <code>GATEWAY_JWT_SECRET</code> — зменіце на прадакшэне.",
+          "runTitle": "Запуск",
+          "dockerUp": "docker compose up -d",
+          "nginxTitle": "Nginx",
+          "nginxDesc": "<code>potok.rip</code> → :3000, <code>api.potok.rip</code> → :5000. <code>wiki.potok.rip</code> праксіруе <code>/wiki</code> (+ <code>/assets/</code>); корань перанакіроўвае на <code>/wiki</code>. <code>VITE_DEFAULT_BFF_URL=https://api.potok.rip</code>.",
+          "nginxProxy": "server {\n    listen 80;\n    server_name wiki.potok.rip;\n\n    location / {\n        proxy_pass http://localhost:3000/wiki;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n}\n\nserver {\n    listen 80;\n    server_name app.potok.rip;\n\n    location / {\n        proxy_pass http://localhost:3000;\n        proxy_set_header Host $host;\n    }\n\n    location /api/ {\n        proxy_pass http://localhost:5000/;\n        proxy_set_header Host $host;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n    }\n}"
+        }
+      },
+      "torrentServices": {
+        "title": "SearchEngine і TorrentGo",
+        "category": "Уводзіны",
+        "toc": [
+          {
+            "id": "overview",
+            "text": "Агляд"
+          },
+          {
+            "id": "architecture",
+            "text": "Архітэктура"
+          },
+          {
+            "id": "searchengine",
+            "text": "SearchEngine"
+          },
+          {
+            "id": "torrentgo",
+            "text": "TorrentGo"
+          },
+          {
+            "id": "plugin",
+            "text": "Плагін"
+          },
+          {
+            "id": "config",
+            "text": "config.yml"
+          }
+        ],
+        "sections": {
+          "title": "SearchEngine і TorrentGo",
+          "intro": "Неабавязковыя бэкенд-сэрвісы для тарэнтаў. Выкарыстоўваюцца з плагінам <repo>potok-torrents</repo> з <repo>web-plugins</repo>. Gateway іх не праксіруе — плагін звяртаецца да іх напрамую з браўзера.",
+          "archTitle": "Архітэктура",
+          "archDesc": "Той жа compose, што і web/gateway.",
+          "seTitle": "SearchEngine",
+          "seDesc": "Пошук па трэкерах, вынікі кэшуюцца ў PostgreSQL. Порт па змаўчанні 6000 (SEARCH_ENGINE_PORT).",
+          "seItems": [
+            "config.yml побач з docker-compose.yml — мантуецца як config.local.yml",
+            "Уліковыя даныя трэкераў і крыніцы — толькі ў config.yml",
+            "proxy.list — HTTP-проксі да трэкераў: { url, username?, password? }; [] — без проксі",
+            "Порт — гэта PORT / SEARCH_ENGINE_PORT, не ў yaml"
+          ],
+          "tgTitle": "TorrentGo",
+          "tgDesc": "Струменяванне BitTorrent: спампоўка, HLS, метаданыя файлаў. Без стану, без PostgreSQL. Порт па змаўчанні 5282 (TORRENTGO_PORT).",
+          "tgItems": [
+            "GPU: GPU_DEVICE=/dev/dri:/dev/dri у compose для апаратнага транскодзінгу",
+            "POTOK_DISABLE_HWACCEL=1 прымусова ўключае праграмны транскодзінг",
+            "UDP 55123 можа заставацца неапублікаваным за NAT — для струменявання дастаткова выходнага злучэння"
+          ],
+          "pluginTitle": "Плагін",
+          "pluginDesc": "У <repo>potok-torrents</repo>: searchEngineURL і torrentGoURL — <code>http://<ip/>:6000</code>, <code>http://<ip/>:5282</code>.",
+          "configTitle": "config.yml",
+          "configDesc": "",
+          "configNote": "Даведка: <code>src/Potok.Backend.SearchEngine/config.yml</code>"
+        }
+      },
+      "manifest": {
+        "title": "Спецыфікацыя маніфеста",
+        "category": "API",
+        "toc": [
+          {
+            "id": "fields",
+            "text": "Абавязковыя і неабавязковыя палі"
+          },
+          {
+            "id": "permissions",
+            "text": "Дазволы"
+          },
+          {
+            "id": "slots-section",
+            "text": "UI-слоты"
+          },
+          {
+            "id": "config-section",
+            "text": "Канфігурацыя плагіна"
+          },
+          {
+            "id": "manifest-example",
+            "text": "Поўны прыклад"
+          }
+        ],
+        "sections": {
+          "title": "Маніфест плагіна",
+          "intro": "manifest.json у корані плагіна — id, слоты, дазволы, канфігурацыя для хоста.",
+          "fieldsTitle": "Палі маніфеста",
+          "fieldsTable": {
+            "field": "Поле",
+            "type": "Тып",
+            "description": "Апісанне",
+            "rows": [
+              {
+                "field": "id",
+                "type": "string (абавязкова)",
+                "desc": "Унікальны ідэнтыфікатар плагіна (напр. <repo>potok-torrents</repo> з <repo>web-plugins</repo>)."
+              },
+              {
+                "field": "name",
+                "type": "string (абавязкова)",
+                "desc": "Назва плагіна, якая паказваецца ў UI."
+              },
+              {
+                "field": "version",
+                "type": "string (неабавязкова)",
+                "desc": "Версія плагіна ў фармаце SemVer (напр. 1.0.0)."
+              },
+              {
+                "field": "description",
+                "type": "string (неабавязкова)",
+                "desc": "Кароткае апісанне прызначэння і магчымасцяў пашырэння."
+              },
+              {
+                "field": "author",
+                "type": "string (неабавязкова)",
+                "desc": "Аўтар або каманда распрацоўкі."
+              },
+              {
+                "field": "entrypoint",
+                "type": "string (абавязкова)",
+                "desc": "Шлях да скампіляванага JS адносна папкі плагіна (звычайна index.js)."
+              },
+              {
+                "field": "category",
+                "type": "string (неабавязкова)",
+                "desc": "Катэгорыя пашырэння: sources для медыякрыніц, visual для тэм, other для рознага."
+              },
+              {
+                "field": "permissions",
+                "type": "string[] (неабавязкова)",
+                "desc": "Запытаныя дазволы бяспекі (storage, http-proxy, ui-notifications)."
+              },
+              {
+                "field": "slots",
+                "type": "object[] (неабавязкова)",
+                "desc": "Уклады ў UI-слоты; кожны запіс мае id, slotName і title."
+              },
+              {
+                "field": "config",
+                "type": "object (неабавязкова)",
+                "desc": "Наладжвальныя параметры плагіна, якія рэндэрацца ў панэлі налад хоста."
+              }
+            ]
+          },
+          "permissionsTitle": "Дазволы",
+          "permissionsIntro": "API без адпаведнага дазволу ў маніфесце — блакуецца рантаймам:",
+          "permissionsItems": [
+            "storage — storage.local (ключы, кэш).",
+            "http-proxy — http.get/post праз проксі хоста (CORS).",
+            "ui-notifications — ui.showHUD() і сістэмныя апавяшчэнні."
+          ],
+          "slotsTitle": "Слоты (slotName)",
+          "slotsIntro": "Значэнні slotName у масіве slots:",
+          "slotsTable": {
+            "slot": "Слот (slotName)",
+            "description": "Апісанне",
+            "rows": [
+              {
+                "slot": "sidebar-menu",
+                "desc": "Верхняя секцыя бакавога меню (навігацыя верхняга ўзроўню)."
+              },
+              {
+                "slot": "sidebar-menu-home",
+                "desc": "Дадатковыя пункты меню каля «Галоўнай»."
+              },
+              {
+                "slot": "sidebar-menu-library",
+                "desc": "Дадатковыя пункты меню ў «Бібліятэцы»."
+              },
+              {
+                "slot": "sidebar-status",
+                "desc": "Ніжняя частка бакавога меню (кнопкі статусу/сэрвісаў)."
+              },
+              {
+                "slot": "media-actions",
+                "desc": "Блок дзеянняў на старонцы фільма/серыяла (напр. кнопкі прайгравання)."
+              },
+              {
+                "slot": "details-bottom",
+                "desc": "Панэль пад асноўнымі дэталямі медыя."
+              },
+              {
+                "slot": "settings-color-accent",
+                "desc": "Слот налад для каляровай палітры і тэм."
+              },
+              {
+                "slot": "settings-tabs",
+                "desc": "Уласныя ўкладкі ў наладах хоста."
+              },
+              {
+                "slot": "extension-page",
+                "desc": "Поўнаэкранная старонка пашырэння."
+              }
+            ]
+          },
+          "configTitle": "Канфігурацыя плагіна",
+          "configIntro": "config — налады плагіна ў UI хоста. Кожны ключ — гэта аб'ект з:",
+          "configTable": {
+            "property": "Поле параметра",
+            "type": "Тып",
+            "description": "Апісанне",
+            "rows": [
+              {
+                "property": "type",
+                "type": "string (абавязкова)",
+                "desc": "Тып значэння налады: \"string\", \"boolean\" (пераключальнік), \"number\", \"select\" (выпадальны спіс) або \"notice\" (аранжавы папераджальны банер)."
+              },
+              {
+                "property": "default",
+                "type": "any (абавязкова)",
+                "desc": "Значэнне па змаўчанні; тып мусіць супадаць з полем type."
+              },
+              {
+                "property": "label",
+                "type": "string (абавязкова)",
+                "desc": "Подпіс, які паказваецца карыстальніку ў наладах."
+              },
+              {
+                "property": "dependsOn",
+                "type": "string (неабавязкова)",
+                "desc": "Іншы ключ config, які кіруе бачнасцю гэтай налады."
+              }
+            ]
+          },
+          "manifestExampleTitle": "manifest.json",
+          "manifestExampleIntro": "<repo>potok-torrents</repo> з <repo>web-plugins</repo>:",
+          "manifestExample": "{\n  \"id\": \"potok-torrents\",\n  \"name\": \"Torrent search\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Search and stream torrents from tracker databases\",\n  \"author\": \"Potok Team\",\n  \"category\": \"sources\",\n  \"entrypoint\": \"index.js\",\n  \"permissions\": [\n    \"storage\",\n    \"http-proxy\",\n    \"ui-notifications\"\n  ],\n  \"slots\": [\n    {\n      \"id\": \"torrents-media-actions\",\n      \"slotName\": \"media-actions\",\n      \"title\": \"Watch\"\n    },\n    {\n      \"id\": \"torrents-sidebar-status\",\n      \"slotName\": \"sidebar-status\",\n      \"title\": \"Torrent status\"\n    }\n  ],\n  \"config\": {\n    \"torrentGoURL\": {\n      \"type\": \"string\",\n      \"default\": \"https://torrent.potok.rip\",\n      \"label\": \"TorrentGo URL\"\n    },\n    \"searchEngineURL\": {\n      \"type\": \"string\",\n      \"default\": \"https://search.potok.rip\",\n      \"label\": \"SearchEngine URL\"\n    }\n  }\n}"
+        }
+      },
+      "state": {
+        "title": "Рэактыўнасць і стан",
+        "category": "API",
+        "toc": [
+          {
+            "id": "state-api",
+            "text": "API createState"
+          },
+          {
+            "id": "subscription",
+            "text": "Падпіска і адпіска"
+          },
+          {
+            "id": "deep-reactivity",
+            "text": "Глыбокая рэактыўнасць"
+          },
+          {
+            "id": "batching",
+            "text": "Пакетныя абнаўленні"
+          },
+          {
+            "id": "reactive-example",
+            "text": "Інтэрактыўны прыклад"
+          }
+        ],
+        "sections": {
+          "title": "Кіраванне станам",
+          "intro": "createState абгортвае аб'ект у Proxy; мутацыі выклікаюць $subscribe.",
+          "subscriptionTitle": "Падпіска",
+          "subscriptionText": "$subscribe(callback) — падпіска на змены. Вяртае функцыю адпіскі. Звычайна callback = render:",
+          "subscriptionCode": "const state = createState({ title: \"Hello\" });\n\nfunction render() {\n  ui.render(Text(state.title));\n}\n\n// Subscribe to changes:\nconst unsubscribe = state.$subscribe(render);\n\n// Initial render:\nrender();\n\n// When no longer needed (e.g. plugin unload):\n// unsubscribe();",
+          "deepReactivityTitle": "Глыбокая рэактыўнасць",
+          "deepReactivityText": "Укладзеныя аб'екты і масівы рэактыўныя — глыбокія ключы і push/splice выклікаюць render:",
+          "deepReactivityCode": "const state = createState({\n  user: {\n    profile: { name: \"Alex\" }\n  },\n  genres: [\"Action\", \"Drama\"]\n});\n\n// 1. Deep property change (triggers render)\nstate.user.profile.name = \"Ivan\";\n\n// 2. Array mutations (push, splice, sort)\nstate.genres.push(\"Comedy\");\nstate.genres.splice(0, 1);",
+          "batchingTitle": "Пакетныя абнаўленні (Batching)",
+          "batchingText": "Сінхронныя мутацыі групуюцца праз Promise.resolve() — адзін выклік падпісчыка за тык:",
+          "batchingCode": "const state = createState({ count: 0, lastAction: \"none\" });\n\nstate.$subscribe(() => {\n  console.log(\"Render called!\");\n});\n\n// Synchronous multi-field updates:\nstate.count++;\nstate.lastAction = \"increment\";\nstate.count += 5;\n\n// Console shows exactly ONE \"Render called!\" \n// because updates are batched into one tick.",
+          "reactiveExampleTitle": "Код рэактыўнага лічыльніка",
+          "reactiveExampleText": "Лічыльнік з $subscribe:",
+          "reactiveExampleCode": "const state = createState({ clicks: 0 });\n\nfunction render() {\n  ui.render(\n    VStack()\n      .child(Text(\"Clicks: \" + state.clicks))\n      .child(Button(\"Click\").onClick(() => state.clicks++))\n  );\n}",
+          "sandboxButton": "Запусціць прыклад рэактыўнасці ў пясочніцы",
+          "sandboxCode": "// Interactive reactivity example\nconst { ui, createState } = PotokSDK;\n\nconst state = createState({\n  clicks: 0,\n  lastClicked: \"Never\"\n});\n\nfunction draw() {\n  ui.render(\n    Card()\n      .title(\"Click counter\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(Text(\"Clicks recorded: \" + state.clicks).bold(true).size(\"lg\"))\n          .child(Text(\"Last click: \" + state.lastClicked).variant(\"secondary\"))\n          .child(\n            Button(\"Click!\")\n              .variant(\"primary\")\n              .onClick(() => {\n                state.clicks++;\n                state.lastClicked = new Date().toLocaleTimeString();\n              })\n          )\n      )\n  );\n}\n\nstate.$subscribe(draw);\ndraw();"
+        }
+      },
+      "http": {
+        "title": "HTTP-кліент",
+        "category": "API",
+        "toc": [
+          {
+            "id": "get",
+            "text": "http.get()"
+          },
+          {
+            "id": "post",
+            "text": "http.post()"
+          },
+          {
+            "id": "cors",
+            "text": "Абыход CORS"
+          }
+        ],
+        "sections": {
+          "title": "Сеткавыя запыты",
+          "intro": "Плагін у iframe — fetch да знешніх API не працуе. Запыты праз PotokSDK.http (проксі хоста).",
+          "getTitle": "HTTP GET",
+          "getSignature": "http.get(url: string, headers?: Record<string, string>): Promise<{ status: number, data: any }>",
+          "postTitle": "HTTP POST",
+          "postSignature": "http.post(url: string, body?: any, headers?: Record<string, string>): Promise<{ status: number, data: any }>",
+          "corsTitle": "Перавагі проксі",
+          "corsItems": [
+            "CORS — запыт праходзіць праз бэкенд Potok, а не з iframe.",
+            "JSON-адказы разбіраюцца аўтаматычна — data ужо з'яўляецца аб'ектам."
+          ],
+          "sandboxButton": "Загрузіць Todo праз сетку ў пясочніцы",
+          "sandboxCode": "// Network data loading example\nconst { ui, http, createState } = PotokSDK;\n\nconst state = createState({\n  loading: true,\n  todoTitle: \"\",\n  error: null\n});\n\nasync function loadData() {\n  try {\n    const res = await http.get(\"https://jsonplaceholder.typicode.com/todos/1\");\n    state.todoTitle = res.data.title;\n    state.loading = false;\n  } catch (err) {\n    state.error = err.message;\n    state.loading = false;\n  }\n}\n\nfunction render() {\n  ui.render(\n    Card()\n      .title(\"Network loading\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(\n            state.loading \n              ? LoadingSpinner().message(\"Loading TODO from server...\")\n              : Text(state.error ? \"Error: \" + state.error : \"Task from server: \" + state.todoTitle)\n          )\n          .child(\n            Button(\"Reload\")\n              .onClick(() => {\n                state.loading = true;\n                loadData();\n              })\n          )\n      )\n  );\n}\n\nstate.$subscribe(render);\nrender();\nloadData();"
+        }
+      },
+      "storage": {
+        "title": "Ізаляванае сховішча",
+        "category": "API",
+        "toc": [
+          {
+            "id": "storage-methods",
+            "text": "Метады сховішча"
+          },
+          {
+            "id": "isolation",
+            "text": "Ізаляваныя прасторы імёнаў"
+          }
+        ],
+        "sections": {
+          "title": "Лакальнае сховішча",
+          "intro": "PotokSDK.storage.local — асінхроннае сховішча ключ-значэнне, ізаляванае па pluginId.",
+          "methodsTitle": "Даступныя метады",
+          "methodsTable": {
+            "method": "Метад",
+            "signature": "Сігнатура",
+            "description": "Апісанне",
+            "rows": [
+              {
+                "method": "getItem",
+                "signature": "getItem(key: string): Promise<string | null>",
+                "desc": "Асінхронна чытае значэнне ключа."
+              },
+              {
+                "method": "setItem",
+                "signature": "setItem(key: string, value: any): Promise<void>",
+                "desc": "Захоўвае значэнне пад зададзеным ключом."
+              }
+            ]
+          },
+          "isolationTitle": "Ізаляваныя прасторы імёнаў",
+          "isolationText": "Дзеля бяспекі хост дадае прэфікс pluginId да кожнага захаванага значэння. Плагін A не мае доступу да ключоў плагіна B. Прамы доступ да window.localStorage заблакаваны.",
+          "sandboxButton": "Запусціць прыклад сховішча ў пясочніцы",
+          "sandboxCode": "// Save and load settings example\nconst { ui, storage, createState } = PotokSDK;\n\nconst state = createState({\n  savedValue: \"Nothing saved\",\n  inputValue: \"\"\n});\n\nasync function initStorage() {\n  const saved = await storage.local.getItem(\"user_custom_note\");\n  if (saved) {\n    state.savedValue = saved;\n  }\n}\n\nfunction render() {\n  ui.render(\n    Card()\n      .title(\"Local storage\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(Text(\"Saved in DB: \" + state.savedValue).bold(true))\n          .child(\n            Input(\"note-input\")\n              .label(\"New entry\")\n              .value(state.inputValue)\n              .onChange((val) => state.inputValue = val)\n          )\n          .child(\n            Button(\"Save to DB\")\n              .variant(\"primary\")\n              .onClick(async () => {\n                await storage.local.setItem(\"user_custom_note\", state.inputValue);\n                state.savedValue = state.inputValue;\n                ui.showHUD(\"success\", \"Value saved successfully!\");\n              })\n          )\n      )\n  );\n}\n\nstate.$subscribe(render);\nrender();\ninitStorage();"
+        }
+      },
+      "uiMethods": {
+        "title": "Глабальныя метады UI",
+        "category": "API",
+        "toc": [
+          {
+            "id": "render",
+            "text": "ui.render()"
+          },
+          {
+            "id": "hud",
+            "text": "ui.showHUD()"
+          },
+          {
+            "id": "player",
+            "text": "ui.playVideo()"
+          },
+          {
+            "id": "ep-selector",
+            "text": "ui.showEpisodeSelector()"
+          },
+          {
+            "id": "navigation",
+            "text": "Навігацыя (ui.navigateTo)"
+          },
+          {
+            "id": "themes",
+            "text": "Тэмы"
+          },
+          {
+            "id": "block",
+            "text": "ui.block()"
+          },
+          {
+            "id": "block-context",
+            "text": "ui.onBlockContextUpdate()"
+          },
+          {
+            "id": "registration",
+            "text": "Рэгістрацыя плагіна і слотаў"
+          }
+        ],
+        "sections": {
+          "title": "Глабальны аб'ект ui",
+          "intro": "PotokSDK.ui — рэндэр, HUD, плэер, навігацыя, рэгістрацыя.",
+          "renderTitle": "ui.render()",
+          "renderText": "ui.render(component, slotId?) кампілюе дэкларатыўную разметку і адпраўляе яе хосту. З slotId ён мантуецца ў гэты слот; інакш рэндэрыцца на галоўным экране пясочніцы.",
+          "hudTitle": "HUD-апавяшчэнні",
+          "hudText": "ui.showHUD(type, message) паказвае кароткі сістэмны банер. Падтрымоўваныя тыпы: \"success\", \"error\", \"info\", \"warning\".",
+          "playerTitle": "Відэаплэер",
+          "playerText": "ui.playVideo(playbackInfo) — поўнаэкранны плэер. Палі playbackInfo:",
+          "epSelectorTitle": "Выбар эпізодаў",
+          "epSelectorText": "ui.showEpisodeSelector(config) адкрывае сістэмнае мадальнае акно для выбару сезонаў і эпізодаў у серыялах.",
+          "navigationTitle": "Навігацыя",
+          "navigationText": "ui.navigateTo(to, state?) — пераход да секцыі хоста (/settings, /library, …):",
+          "navigationCode": "ui.navigateTo(\"/settings\");\nui.navigateTo(\"/library\", { filter: \"watchlist\" });",
+          "themesTitle": "Тэмы",
+          "themesIntro": "Уласныя тэмы і акцэнт:",
+          "themesItems": [
+            "ui.registerThemes(themes) — рэгіструе Theme[] на хосце.",
+            "ui.setAccentTheme(themeId) — пераключае акцэнт."
+          ],
+          "blockTitle": "Мутацыі блокаў ui.block()",
+          "blockText": "ui.block(blockName) вяртае білдэр для мутацыі UI-блокаў хоста. Выкарыстоўвайце element(id), каб схаваць, змяніць, уставіць да/пасля або замяніць; append/prepend дадаюць макет; apply() адпраўляе мутацыі хосту.",
+          "blockItems": [
+            "element(id).hide() — хавае элемент блока.",
+            "element(id).edit(props) — рэдагуе ўласцівасці элемента.",
+            "element(id).before(ui) / after(ui) / replace(ui) — устаўка або замена макета.",
+            "append(ui) / prepend(ui) — дадае макет у канец або пачатак блока.",
+            "apply() — рэгіструе назапашаныя мутацыі на хосце."
+          ],
+          "onBlockContextUpdateTitle": "ui.onBlockContextUpdate()",
+          "onBlockContextUpdateText": "ui.onBlockContextUpdate(callback) падпісваецца на абнаўленні кантэксту актыўнага блока. Callback атрымлівае (blockName, context), калі даныя экрана змяняюцца (напр. іншы фільм). Вяртае функцыю адпіскі.",
+          "registrationTitle": "Сістэмная рэгістрацыя",
+          "registrationIntro": "Рэгістрацыя на хосце:",
+          "registrationTable": {
+            "api": "Функцыя API",
+            "description": "Апісанне",
+            "rows": [
+              {
+                "api": "registerPlugin(meta)",
+                "desc": "Рэгіструе метаданыя плагіна (id, name, version). Выклікайце першай пры загрузцы скрыпта."
+              },
+              {
+                "api": "registerSource(config)",
+                "desc": "Рэгіструе крыніцу пошуку медыяструменяў для відэапошуку хоста."
+              },
+              {
+                "api": "registerSlotContribution(config)",
+                "desc": "Рэгіструе UI ў названым слоце (напр. media-actions, details-bottom)."
+              },
+              {
+                "api": "onSettingsChanged(callback)",
+                "desc": "Падпісваецца на жывыя змены формы налад; callback атрымлівае (key, value, currentSettings)."
+              },
+              {
+                "api": "updateSettingsForm(updates)",
+                "desc": "Загадвае хосту абнавіць палі формы налад у рэальным часе; прымае { updates }."
+              }
+            ]
+          },
+          "registerSlotTitle": "Падрабязнасці registerSlotContribution",
+          "registerSlotIntro": "Уклад UI ў слот. Хост выклікае render, калі экран мантуецца.",
+          "registerSlotConfigIntro": "Палі config:",
+          "registerSlotParams": [
+            "id (string) — id уклада, той жа, што і ў слотах маніфеста.",
+            "slotName (string) — media-actions, details-bottom, extension-page, …",
+            "render(props) (function) — вяртае { label, icon?, layout }."
+          ],
+          "registerSlotRenderFields": [
+            "label (string) — Подпіс уклада.",
+            "icon (string, неабавязкова) — Назва іконкі Lucide.",
+            "layout (UIComponent) — UI-дрэва, пабудаванае з Card(), VStack(), Button() і г. д."
+          ],
+          "easyPluginTitle": "Easy Plugin",
+          "easyPluginIntro": "Кнопка трэйлера ў media-actions, інфаблок у details-bottom:",
+          "easyPluginStep1": "Структура",
+          "easyPluginStep2": "manifest.json",
+          "easyPluginStep3": "index.js",
+          "folderStructure": "my-easy-plugin/\n├── manifest.json   # Metadata and slot declarations\n└── index.js        # Plugin executable JS",
+          "manifestJson": "{\n  \"id\": \"my-easy-plugin\",\n  \"name\": \"Simple Viewer\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Adds a trailer button and info block on the details page\",\n  \"permissions\": [\"ui-notifications\"],\n  \"slots\": [\n    {\n      \"id\": \"trailer-action-button\",\n      \"slotName\": \"media-actions\",\n      \"title\": \"Trailer button\"\n    },\n    {\n      \"id\": \"extra-details-info\",\n      \"slotName\": \"details-bottom\",\n      \"title\": \"Info block\"\n    }\n  ]\n}",
+          "sandboxButton": "Праверыць накладкі ў пясочніцы"
+        }
+      },
+      "i18n": {
+        "title": "i18n плагіна",
+        "category": "API",
+        "toc": [
+          {
+            "id": "t",
+            "text": "PotokSDK.i18n.t"
+          },
+          {
+            "id": "addResourceBundle",
+            "text": "addResourceBundle"
+          },
+          {
+            "id": "registerTranslations",
+            "text": "registerTranslations"
+          },
+          {
+            "id": "onLanguageChange",
+            "text": "onLanguageChange"
+          }
+        ],
+        "sections": {
+          "title": "API інтэрнацыяналізацыі",
+          "intro": "PotokSDK.i18n — радкі хоста і ўласныя слоўнікі. Мова сінхранізуецца з хостам.",
+          "tDesc": "Вяртае перакладзены радок па ключы namespace:path для бягучай мовы. Падтрымлівае інтэрпаляцыю {{var}} і формы множнага ліку праз { count }.",
+          "addResourceBundleDesc": "Рэгіструе слоўнік плагіна для мовы і прасторы імёнаў. Прыклад: addResourceBundle(\"en\", \"myplugin\", { greeting: \"Hi {{name}}\" }).",
+          "registerTranslationsDesc": "Масавая рэгістрацыя: { en: { myplugin: {...} }, ru: { myplugin: {...} } }. Таксама паведамляе хосту захаваць пераклады плагіна.",
+          "onLanguageChangeDesc": "Падпіска на змены мовы UI. Вяртае функцыю адпіскі. Перамалёўвайце UI плагіна пры змене мовы хоста.",
+          "languageNote": "Бягучая мова даступная як PotokSDK.i18n.language (напр. \"en\", \"ru\")."
+        }
+      },
+      "streams": {
+        "title": "Струмені і медыяправайдэры",
+        "category": "API",
+        "toc": [
+          {
+            "id": "registerStreamSource",
+            "text": "streams.registerStreamSource"
+          },
+          {
+            "id": "searchProvider",
+            "text": "media.searchProvider"
+          }
+        ],
+        "sections": {
+          "title": "Крыніцы струменяў і пошук",
+          "intro": "Рэгіструйце крыніцы струменяў і правайдэраў пошуку для хоста.",
+          "registerStreamSourceTitle": "streams.registerStreamSource",
+          "registerStreamSourceDesc": "Рэгіструе крыніцу струменя з id, name, supportedTypes (movie | tv) і асінхроннымі апрацоўшчыкамі: search(query), getEpisodes(stream, context), getPlaybackInfo(stream, context). Хост выклікае іх, калі карыстальнік адкрывае старонку струменяў.",
+          "searchProviderTitle": "media.searchProvider",
+          "searchProviderDesc": "Білдэр для рэгістрацыі правайдэра пошуку ў бібліятэцы: media.searchProvider(id, name).icon(url).onSearch(callback). Callback атрымлівае запыт і вяртае вынікі пошуку хосту."
+        }
+      },
+      "sandbox": {
+        "title": "Інтэрактыўная пясочніца",
+        "category": "Пясочніца",
+        "toc": []
+      }
+    },
+    "components": {
+      "VStack": {
+        "title": "VStack (вертыкальны стэк)",
+        "description": "Вертыкальны кантэйнер — размяшчае дочкі ў слупок.",
+        "methods": {}
+      },
+      "HStack": {
+        "title": "HStack (гарызантальны стэк)",
+        "description": "Гарызантальны кантэйнер — размяшчае дочкі ў радок.",
+        "methods": {}
+      },
+      "Grid": {
+        "title": "Grid",
+        "description": "Адаптыўная сетка з мінімальнай шырынёй слупка.",
+        "methods": {
+          "minWidth": {
+            "argument": "string",
+            "description": "Мінімальная шырыня слупка (напр. '12rem').",
+            "default": "'180px'"
+          },
+          "gap": {
+            "argument": "string",
+            "description": "Прамежак паміж ячэйкамі (напр. '1rem').",
+            "default": "'var(--space-m)'"
+          }
+        }
+      },
+      "Card": {
+        "title": "Card (шкляная панэль)",
+        "description": "Панэль у стылі шкла для групоўкі UI-блокаў.",
+        "methods": {
+          "title": {
+            "argument": "string",
+            "description": "Загаловак карткі."
+          },
+          "subtitle": {
+            "argument": "string",
+            "description": "Прыглушаны тэкст падзагалоўка."
+          },
+          "child": {
+            "argument": "UIComponent",
+            "description": "Дочкавы кампанент у целе карткі."
+          }
+        }
+      },
+      "Divider": {
+        "title": "Divider",
+        "description": "Гарызантальная лінія-раздзяляльнік.",
+        "methods": {}
+      },
+      "Spacer": {
+        "title": "Spacer",
+        "description": "Гнуткі прамежак — запаўняе даступную прастору.",
+        "methods": {}
+      },
+      "Heading": {
+        "title": "Heading",
+        "description": "Загаловак для ўзроўняў h1–h4.",
+        "methods": {
+          "level": {
+            "argument": "number (1-4)",
+            "description": "Узровень загалоўка (1 = самы буйны, 4 = самы дробны).",
+            "default": "1"
+          }
+        }
+      },
+      "Text": {
+        "title": "Text",
+        "description": "Тэкст для апісанняў, подпісаў і памылак.",
+        "methods": {
+          "variant": {
+            "argument": "'primary' | 'secondary' | 'success' | 'warning' | 'error'",
+            "description": "Колер: primary, secondary, success, warning, error.",
+            "default": "'primary'"
+          },
+          "size": {
+            "argument": "'sm' | 'md' | 'lg' | 'xl'",
+            "description": "Памер шрыфту.",
+            "default": "'md'"
+          },
+          "bold": {
+            "argument": "boolean",
+            "description": "Тлусты шрыфт, калі true.",
+            "default": "false"
+          }
+        }
+      },
+      "Badge": {
+        "title": "Badge",
+        "description": "Каляровы подпіс для статусаў і тэгаў.",
+        "methods": {
+          "color": {
+            "argument": "'info' | 'success' | 'warning' | 'error'",
+            "description": "Каляровая схема заліўкі.",
+            "default": "'info'"
+          }
+        }
+      },
+      "StatusRow": {
+        "title": "StatusRow",
+        "description": "Радок статусу з каляровай кропкай і значэннем.",
+        "methods": {
+          "status": {
+            "argument": "'success' | 'warning' | 'offline'",
+            "description": "Стан (кропка: зялёная/жоўтая/шэрая)."
+          },
+          "value": {
+            "argument": "string",
+            "description": "Значэнне з выраўноўваннем управа (напр. '24 ms')."
+          }
+        }
+      },
+      "Markdown": {
+        "title": "Markdown",
+        "description": "Рэндэрыць Markdown: спісы, тлусты шрыфт, табліцы, спасылкі.",
+        "methods": {
+          "content": {
+            "argument": "string",
+            "description": "Тэкст Markdown; можна абнаўляць пасля стварэння."
+          }
+        }
+      },
+      "Button": {
+        "title": "Button",
+        "description": "Кнопка для дзеянняў, прайгравання і навігацыі.",
+        "methods": {
+          "variant": {
+            "argument": "'primary' | 'secondary' | 'danger' | 'ghost' | 'sidebar-item'",
+            "description": "Стыль: primary, secondary, danger, ghost, sidebar-item.",
+            "default": "'secondary'"
+          },
+          "icon": {
+            "argument": "string",
+            "description": "Іконка Lucide перад подпісам (напр. 'play')."
+          },
+          "onClick": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык націску."
+          }
+        }
+      },
+      "Input": {
+        "title": "Input",
+        "description": "Тэкставае поле для формаў і фільтраў.",
+        "methods": {
+          "label": {
+            "argument": "string",
+            "description": "Подпіс над полем."
+          },
+          "placeholder": {
+            "argument": "string",
+            "description": "Падказка ў пустым полі."
+          },
+          "inputType": {
+            "argument": "string ('text' | 'password' | 'number')",
+            "description": "Тып уводу: text, password, number.",
+            "default": "'text'"
+          },
+          "type": {
+            "argument": "string",
+            "description": "Састарэлы аліяс для inputType."
+          },
+          "value": {
+            "argument": "string",
+            "description": "Бягучае значэнне.",
+            "default": "''"
+          },
+          "onChange": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык змены значэння."
+          }
+        }
+      },
+      "Toggle": {
+        "title": "Toggle",
+        "description": "Пераключальнік для булевых налад.",
+        "methods": {
+          "label": {
+            "argument": "string",
+            "description": "Подпіс справа ад пераключальніка."
+          },
+          "description": {
+            "argument": "string",
+            "description": "Падказка пад подпісам."
+          },
+          "value": {
+            "argument": "boolean",
+            "description": "Булевы стан true/false.",
+            "default": "false"
+          },
+          "checked": {
+            "argument": "boolean",
+            "description": "Састарэлы аліяс для value."
+          },
+          "onChange": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык змены стану."
+          }
+        }
+      },
+      "Select": {
+        "title": "Select",
+        "description": "Выпадальны спіс з групоўкай і множным выбарам.",
+        "methods": {
+          "label": {
+            "argument": "string",
+            "description": "Подпіс над спісам."
+          },
+          "options": {
+            "argument": "{ value?: string, label?: string, type?: string }[]",
+            "description": "Масіў опцый: value/label або divider/header.",
+            "default": "[]"
+          },
+          "value": {
+            "argument": "string | string[]",
+            "description": "Выбранае значэнне або масіў пры множным выбары.",
+            "default": "''"
+          },
+          "selected": {
+            "argument": "string | string[]",
+            "description": "Састарэлы аліяс для value."
+          },
+          "onChange": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык выбару; масіў у рэжыме множнага выбару."
+          },
+          "variant": {
+            "argument": "'default' | 'glass'",
+            "description": "Стыль: default або glass.",
+            "default": "'default'"
+          },
+          "icon": {
+            "argument": "string",
+            "description": "Іконка Lucide для варыянта glass (напр. 'Filter')."
+          },
+          "closeOnSelect": {
+            "argument": "boolean",
+            "description": "Закрываць меню пры выбары (false пры множным выбары).",
+            "default": "true"
+          },
+          "multiple": {
+            "argument": "boolean",
+            "description": "Множны выбар; вяртае масіў.",
+            "default": "false"
+          },
+          "resetLabel": {
+            "argument": "string",
+            "description": "Подпіс кнопкі скіду ў паповеры."
+          },
+          "resetValue": {
+            "argument": "string | string[]",
+            "description": "Значэнне пры скідзе (напр. []).",
+            "default": "''"
+          }
+        }
+      },
+      "CodeEditor": {
+        "title": "CodeEditor",
+        "description": "Рэдактар Monaco з падсветкай сінтаксісу і нумарамі радкоў.",
+        "methods": {
+          "label": {
+            "argument": "string",
+            "description": "Подпіс над рэдактарам."
+          },
+          "value": {
+            "argument": "string",
+            "description": "Тэкст рэдактара.",
+            "default": "''"
+          },
+          "readOnly": {
+            "argument": "boolean",
+            "description": "Рэжым толькі для чытання, калі true.",
+            "default": "false"
+          },
+          "onChange": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык змены кода."
+          }
+        }
+      },
+      "StreamSkeletonList": {
+        "title": "StreamSkeletonList (запаўняльнік пошуку)",
+        "description": "Каркасны запаўняльнік, пакуль загружаюцца тарэнты.",
+        "methods": {}
+      },
+      "StreamRow": {
+        "title": "StreamRow",
+        "description": "Радок тарэнта: назва, памер, трэкер, сіды/піры.",
+        "methods": {
+          "stream": {
+            "argument": "object",
+            "description": "Метаданыя: title, size, seeds, peers, quality, tracker."
+          },
+          "onClick": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык націску для запуску прайгравання."
+          }
+        }
+      },
+      "MediaCard": {
+        "title": "MediaCard",
+        "description": "Картка фільма: постар, рэйтынг, назва і год пры навядзенні.",
+        "methods": {
+          "item": {
+            "argument": "object",
+            "description": "Метаданыя: title, posterUrl, year, rating."
+          },
+          "onClick": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык націску; перадае медыяэлемент."
+          }
+        }
+      },
+      "HeroSpotlight": {
+        "title": "HeroSpotlight (прома-банер)",
+        "description": "Прома-банер: арт, назва, кнопкі «Глядзець»/«Падрабязна».",
+        "methods": {
+          "items": {
+            "argument": "any[]",
+            "description": "Слайды банера: title, overview, backdropUrl."
+          },
+          "onPlay": {
+            "argument": "CallbackFunction",
+            "description": "Кнопка «Глядзець»; вяртае актыўны слайд."
+          },
+          "onDetails": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык кнопкі «Падрабязна»."
+          }
+        }
+      },
+      "StreamList": {
+        "title": "StreamList",
+        "description": "Спіс тарэнтаў з фільтрамі, загрузкай і пустым станам.",
+        "methods": {
+          "streams": {
+            "argument": "any[]",
+            "description": "Масіў тарэнтаў для StreamRow.",
+            "default": "[]"
+          },
+          "loading": {
+            "argument": "boolean",
+            "description": "Калі true, паказвае каркас загрузкі.",
+            "default": "false"
+          },
+          "showFilters": {
+            "argument": "boolean",
+            "description": "Панэль фільтраў якасці і трэкера.",
+            "default": "false"
+          },
+          "emptyText": {
+            "argument": "string",
+            "description": "Тэкст, калі спіс пусты.",
+            "default": "'Раздачи не найдены'"
+          },
+          "nounPlurals": {
+            "argument": "string[]",
+            "description": "Тры формы множнага ліку (напр. ['torrent', 'torrents', 'torrents'])."
+          },
+          "onSelectStream": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык выбару струменя."
+          }
+        }
+      },
+      "LoadingSpinner": {
+        "title": "LoadingSpinner",
+        "description": "Кругавы індыкатар загрузкі.",
+        "methods": {
+          "message": {
+            "argument": "string",
+            "description": "Тэкст пад спінерам."
+          },
+          "fullscreen": {
+            "argument": "boolean",
+            "description": "Калі true, поўнаэкранная накладка.",
+            "default": "false"
+          }
+        }
+      },
+      "EpisodesSection": {
+        "title": "EpisodesSection",
+        "description": "Блок эпізодаў: атрымлівае па ID медыя, укладкі сезонаў, сетка эпізодаў.",
+        "methods": {
+          "mediaId": {
+            "argument": "string | number",
+            "description": "ID серыяла ў базе даных медыя."
+          },
+          "numberOfSeasons": {
+            "argument": "number",
+            "description": "Колькасць сезонаў для ўкладак."
+          },
+          "onEpisodeClick": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык націску на эпізод."
+          }
+        }
+      },
+      "MediaCast": {
+        "title": "MediaCast",
+        "description": "Гарызантальны радок акцёрскага складу: аватар, імя, роля.",
+        "methods": {
+          "cast": {
+            "argument": "any[]",
+            "description": "Масіў: name, character, profilePath.",
+            "default": "[]"
+          }
+        }
+      },
+      "MediaOverview": {
+        "title": "MediaOverview",
+        "description": "Панэль медыя: постар, апісанне, год, краіна, рэйтынг, жанры.",
+        "methods": {
+          "media": {
+            "argument": "object",
+            "description": "Метаданыя: title, overview, posterUrl, rating, genres, year, country."
+          },
+          "selectedEpisode": {
+            "argument": "object",
+            "description": "Выбраны эпізод замест агляду сезона."
+          },
+          "onResetEpisode": {
+            "argument": "CallbackFunction",
+            "description": "Ачышчае выбар эпізода."
+          }
+        }
+      },
+      "MediaRow": {
+        "title": "MediaRow",
+        "description": "Гарызантальная карусель MediaCard з загалоўкам і «Глядзець усё».",
+        "methods": {
+          "title": {
+            "argument": "string",
+            "description": "Загаловак секцыі (напр. 'У трэндзе')."
+          },
+          "items": {
+            "argument": "any[]",
+            "description": "Масіў фільмаў для картак.",
+            "default": "[]"
+          },
+          "onCardClick": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык націску на картку."
+          },
+          "onSeeAllClick": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык кнопкі «Глядзець усё»."
+          }
+        }
+      },
+      "MediaPlayer": {
+        "title": "MediaPlayer",
+        "description": "Плэер HTML5: HLS, DASH, MP4, субтытры і аўдыядарожкі.",
+        "methods": {
+          "playback": {
+            "argument": "object",
+            "description": "SDKPlaybackInfo: streamUrl, streamType, title, season, episode, torrentHash, fileIndex, audios, headers, providerId, voice, subtitles, session, duration, intro/outro, thumbnails, requiresBuffering."
+          },
+          "isNetworkOffline": {
+            "argument": "boolean",
+            "description": "Калі true, спыняе прайграванне і паказвае сеткавую памылку.",
+            "default": "false"
+          }
+        }
+      },
+      "ProfileSelector": {
+        "title": "ProfileSelector",
+        "description": "Селектар профіляў Potok Gateway: пінг, дадаць, рэдагаваць, выдаліць.",
+        "methods": {
+          "connectionProfiles": {
+            "argument": "any[]",
+            "description": "Профілі: id, name, gatewayURL.",
+            "default": "[]"
+          },
+          "activeProfileID": {
+            "argument": "string | null",
+            "description": "ID актыўнага профілю."
+          },
+          "isSettingsLocked": {
+            "argument": "boolean",
+            "description": "Калі true, блакуе CRUD профіляў.",
+            "default": "false"
+          },
+          "onSelectProfile": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык выбару профілю."
+          },
+          "onStartEdit": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык рэдагавання профілю."
+          },
+          "onDeleteProfile": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык выдалення профілю."
+          },
+          "onStartAdd": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык дадання сервера."
+          }
+        }
+      },
+      "SearchBar": {
+        "title": "SearchBar",
+        "description": "Поле пошуку з іконкай і кнопкай ачысткі.",
+        "methods": {
+          "value": {
+            "argument": "string",
+            "description": "Бягучы запыт.",
+            "default": "''"
+          },
+          "placeholder": {
+            "argument": "string",
+            "description": "Запаўняльнік поля.",
+            "default": "'Поиск...'"
+          },
+          "onChange": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык змены запыту."
+          },
+          "onClear": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык кнопкі ачысткі."
+          }
+        }
+      },
+      "StreamFilterBar": {
+        "title": "StreamFilterBar",
+        "description": "Панэль фільтраў тарэнтаў: якасць, трэкер, сартаванне.",
+        "methods": {
+          "countLabel": {
+            "argument": "string",
+            "description": "Колькасць знойдзеных тарэнтаў злева."
+          },
+          "qualityFilter": {
+            "argument": "string",
+            "description": "Фільтр якасці (напр. '1080p')."
+          },
+          "activeTracker": {
+            "argument": "string",
+            "description": "Актыўны фільтр трэкера."
+          },
+          "trackers": {
+            "argument": "string[]",
+            "description": "Спіс трэкераў для фільтра.",
+            "default": "[]"
+          },
+          "showSort": {
+            "argument": "boolean",
+            "description": "Паказаць выпадальны спіс сартавання.",
+            "default": "true"
+          },
+          "sortOption": {
+            "argument": "string",
+            "description": "Опцыя сартавання (напр. 'seeds')."
+          },
+          "onRefresh": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык абнаўлення пошуку."
+          },
+          "onQualityChange": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык змены якасці."
+          },
+          "onTrackerChange": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык змены трэкера."
+          },
+          "onSortChange": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык змены сартавання."
+          }
+        }
+      },
+      "EpisodeSelector": {
+        "title": "EpisodeSelector (мадальнае акно)",
+        "description": "Мадальны выбар сезонаў і эпізодаў.",
+        "methods": {
+          "isOpen": {
+            "argument": "boolean",
+            "description": "Бачнасць мадальнага акна.",
+            "default": "false"
+          },
+          "title": {
+            "argument": "string",
+            "description": "Загаловак (назва серыяла)."
+          },
+          "subtitle": {
+            "argument": "string",
+            "description": "Падзагаловак."
+          },
+          "episodes": {
+            "argument": "any[]",
+            "description": "Эпізоды бягучага сезона.",
+            "default": "[]"
+          },
+          "backdropSrc": {
+            "argument": "string",
+            "description": "URL фонавай выявы."
+          },
+          "seasonsLoading": {
+            "argument": "boolean",
+            "description": "Калі true, паказвае спінер загрузкі.",
+            "default": "false"
+          },
+          "seasons": {
+            "argument": "any[]",
+            "description": "Сезоны для ўкладак.",
+            "default": "[]"
+          },
+          "onClose": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык закрыцця."
+          },
+          "onPlay": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык прайгравання эпізода."
+          },
+          "onApplyOverride": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык пераазначэння эпізода."
+          },
+          "onStartEditing": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык пачатку рэдагавання."
+          }
+        }
+      },
+      "EpisodeCard": {
+        "title": "EpisodeCard",
+        "description": "Картка эпізода: кадр, нумар, назва, апісанне.",
+        "methods": {
+          "episode": {
+            "argument": "object",
+            "description": "Даныя: episodeNumber, seasonNumber, name, overview, stillPath."
+          },
+          "onClick": {
+            "argument": "CallbackFunction",
+            "description": "Апрацоўшчык націску; перадае аб'ект эпізода."
+          }
+        }
+      }
+    },
+    "tables": {
+      "baseMethods": {
+        "method": "Базавы метад",
+        "argument": "Аргумент",
+        "description": "Апісанне",
+        "rows": {
+          "id": "Задае ўнікальны ідэнтыфікатар элемента.",
+          "padding": "Унутраны водступ элемента.",
+          "margin": "Знешні водступ элемента.",
+          "width": "Шырыня элемента (напр. \"100%\" або 250).",
+          "height": "Вышыня элемента (напр. \"auto\" або 100).",
+          "visible": "Кіруе бачнасцю элемента.",
+          "disabled": "Пераводзіць элемент у неактыўны стан.",
+          "flex": "Каэфіцыент flex-grow для размеркавання свабоднай прасторы."
+        }
+      },
+      "layoutMethods": {
+        "method": "Метад макета",
+        "argument": "Аргумент",
+        "description": "Апісанне",
+        "rows": {
+          "spacing": "Прамежак паміж дочкавымі элементамі ў пікселях.",
+          "alignItems": "Выраўноўванне дочак па папярочнай восі.",
+          "justifyContent": "Выраўноўванне дочак па галоўнай восі.",
+          "child": "Дадае адзін дочкавы кампанент у кантэйнер.",
+          "children": "Замяняе дочак масівам кампанентаў."
+        }
+      }
+    },
+    "componentDoc": {
+      "description": "Апісанне",
+      "specificMethods": "Метады, спецыфічныя для кампанента",
+      "layoutMethods": "Метады макета (успадкаваныя ад LayoutComponent)",
+      "baseMethods": "Базавыя метады (успадкаваныя ад UIComponent)",
+      "example": "Прыклад выкарыстання",
+      "runSandbox": "Запусціць у пясочніцы",
+      "defaultValue": "Па змаўчанні:",
+      "method": "Метад"
+    }
+  },
+  "watchTogether": {
+    "title": "Глядзець разам",
+    "noRoom": "Няма актыўнага пакоя. Пачніце сеанс з плэера.",
+    "goHome": "На галоўную",
+    "shareLabel": "Падзяліцеся гэтай спасылкай з госцем",
+    "copyLink": "Капіраваць",
+    "copied": "Спасылка скапіравана",
+    "copyFailed": "Не ўдалося скапіраваць спасылку",
+    "participants": "Удзельнікі ({{count}})",
+    "roleHost": "Гаспадар",
+    "roleGuest": "Госць",
+    "you": "(вы)",
+    "startWatch": "Пачаць прагляд",
+    "watching": "Глядзім разам",
+    "waitingHost": "Чакаем, пакуль гаспадар пачне…",
+    "hostLeft": "Гаспадар пакінуў сеанс.",
+    "leave": "Выйсці",
+    "connection": {
+      "idle": "Не ў сетцы",
+      "connecting": "Падключэнне…",
+      "connected": "Падключана",
+      "reconnecting": "Перападключэнне…"
+    },
+    "notice": {
+      "pause": "{{name}} паставіў на паўзу",
+      "resume": "{{name}} узнавіў",
+      "seek": "{{name}} пераматаў на {{time}}",
+      "audio": "{{name}} пераключыў аўдыя: {{track}}",
+      "subtitle": "{{name}} пераключыў субтытры: {{track}}",
+      "subtitleOff": "{{name}} выключыў субтытры"
+    },
+    "pauseModal": {
+      "title": "{{name}} паставіў відэа на паўзу",
+      "subtitle": "Чакаем узнаўлення"
+    },
+    "waitModal": {
+      "title": "Чакаем гасцей…",
+      "subtitle": "Яны загружаюць відэа"
+    },
+    "permissions": {
+      "canControl": "Дазволіць гасцям кіраваць прайграваннем",
+      "canControlHint": "Паўза, перамотка і змена эпізода для ўсіх"
+    },
+    "nickname": {
+      "label": "Ваш нікнейм",
+      "placeholder": "Увядзіце нікнейм"
+    },
+    "ended": {
+      "title": "Пакой закрыты",
+      "text": "Гаспадар закрыў пакой сумеснага прагляду.",
+      "ok": "OK"
+    },
+    "chat": {
+      "title": "Чат",
+      "close": "Закрыць чат",
+      "empty": "Паведамленняў пакуль няма",
+      "placeholder": "Напішыце паведамленне…",
+      "send": "Адправіць",
+      "tabChat": "Чат",
+      "tabInfo": "Інфа"
+    },
+    "joinInvite": "Вас запрасілі ў пакой сумеснага прагляду.",
+    "join": "Далучыцца да пакоя",
+    "nowWatching": "Зараз глядзім",
+    "episodeN": "Эпізод {{n}}",
+    "ping": "{{ms}} мс"
   }
 }

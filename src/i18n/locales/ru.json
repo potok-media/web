@@ -274,7 +274,10 @@
       "disable": "Отключить",
       "playlistEpisodes": "Серии плейлиста",
       "quality": "Качество",
-      "fullscreen": "Во весь экран"
+      "fullscreen": "Во весь экран",
+      "watchTogetherTitle": "Смотреть вместе",
+      "watchTogetherAria": "Начать совместный просмотр",
+      "chatTitle": "Чат"
     },
     "playback": {
       "accessRestricted": "Доступ к воспроизведению ограничен.",
@@ -356,12 +359,8 @@
       "emptyFilmographyDesc": "У нас пока нет записей о работах с {{name}}.",
       "movies": "Фильмы",
       "ageAtDeath_one": "в возрасте {{count}} года",
-      "ageAtDeath_few": "в возрасте {{count}} лет",
-      "ageAtDeath_many": "в возрасте {{count}} лет",
       "ageAtDeath_other": "в возрасте {{count}} лет",
       "years_one": "год",
-      "years_few": "года",
-      "years_many": "лет",
       "years_other": "лет",
       "departments": {
         "acting": "Актёр",
@@ -375,7 +374,11 @@
       "genre_scifi_fantasy": "Научная фантастика и фэнтези",
       "genre_thriller_horror": "Триллер и ужас",
       "genre_kids_family": "Дети и семья",
-      "categoryTitle": "{{actorName}} — {{category}}"
+      "categoryTitle": "{{actorName}} — {{category}}",
+      "ageAtDeath_few": "в возрасте {{count}} лет",
+      "ageAtDeath_many": "в возрасте {{count}} лет",
+      "years_few": "года",
+      "years_many": "лет"
     },
     "episode": {
       "fallbackName": "Серия {{number}}",
@@ -2205,5 +2208,72 @@
       "defaultValue": "Значение по умолчанию:",
       "method": "Метод"
     }
+  },
+  "watchTogether": {
+    "title": "Смотреть вместе",
+    "noRoom": "Нет активной комнаты. Начните сеанс из плеера.",
+    "goHome": "На главную",
+    "shareLabel": "Поделитесь этой ссылкой с гостем",
+    "copyLink": "Копировать",
+    "copied": "Ссылка скопирована",
+    "copyFailed": "Не удалось скопировать ссылку",
+    "participants": "Участники ({{count}})",
+    "roleHost": "Хост",
+    "roleGuest": "Гость",
+    "you": "(вы)",
+    "startWatch": "Начать просмотр",
+    "watching": "Смотрим вместе",
+    "waitingHost": "Ожидание, пока хост начнёт…",
+    "hostLeft": "Хост покинул сеанс.",
+    "leave": "Выйти",
+    "connection": {
+      "idle": "Не в сети",
+      "connecting": "Подключение…",
+      "connected": "Подключено",
+      "reconnecting": "Переподключение…"
+    },
+    "notice": {
+      "pause": "{{name}} поставил на паузу",
+      "resume": "{{name}} возобновил",
+      "seek": "{{name}} перемотал на {{time}}",
+      "audio": "{{name}} сменил аудио: {{track}}",
+      "subtitle": "{{name}} сменил субтитры: {{track}}",
+      "subtitleOff": "{{name}} отключил субтитры"
+    },
+    "pauseModal": {
+      "title": "{{name}} поставил видео на паузу",
+      "subtitle": "Ожидание возобновления"
+    },
+    "waitModal": {
+      "title": "Ожидание гостей…",
+      "subtitle": "Они загружают видео"
+    },
+    "permissions": {
+      "canControl": "Разрешить гостям управлять воспроизведением",
+      "canControlHint": "Ставить на паузу, перематывать и менять серию для всех"
+    },
+    "nickname": {
+      "label": "Ваш никнейм",
+      "placeholder": "Введите никнейм"
+    },
+    "ended": {
+      "title": "Комната закрыта",
+      "text": "Хост закрыл комнату совместного просмотра.",
+      "ok": "ОК"
+    },
+    "chat": {
+      "title": "Чат",
+      "close": "Закрыть чат",
+      "empty": "Пока нет сообщений",
+      "placeholder": "Введите сообщение…",
+      "send": "Отправить",
+      "tabChat": "Чат",
+      "tabInfo": "Инфо"
+    },
+    "joinInvite": "Вас пригласили в комнату совместного просмотра.",
+    "join": "Войти в комнату",
+    "nowWatching": "Сейчас смотрим",
+    "episodeN": "Серия {{n}}",
+    "ping": "{{ms}} мс"
   }
 }
