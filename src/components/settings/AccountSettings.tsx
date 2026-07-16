@@ -4,20 +4,15 @@ import { KeyRound, Save, Send, Link2Off } from "lucide-react";
 import { useAuth } from "../../context/AppSettingsContext";
 import { useHUD } from "../../context/useHUD";
 import { AuthApiClient } from "../../network/AuthApiClient";
-import type { TelegramWidgetAuth } from "../../network/ApiTypes";
 import { Button, Field, Input } from "../ui";
-import { TelegramLoginButton } from "../profile/TelegramLoginButton";
 import { TelegramStartAuthButton } from "../profile/TelegramStartAuthButton";
 
 const MIN_PASSWORD_LENGTH = 6;
 
-// The Login Widget requires HTTPS; on HTTP fall back to the bot deep-link flow.
-const canUseTelegramWidget = typeof window !== "undefined" && window.location.protocol === "https:";
-
 const AccountSettings: React.FC = () => {
   const { t } = useTranslation("settings");
   const { show: showHUD } = useHUD();
-  const { potokUser, telegramAuthEnabled, telegramBotUsername, updateUser } = useAuth();
+  const { potokUser, telegramAuthEnabled, updateUser } = useAuth();
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -81,16 +76,6 @@ const AccountSettings: React.FC = () => {
       showHUD("error", err instanceof Error ? err.message : t("account.fillAllFields"));
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleLinkTelegram = async (data: TelegramWidgetAuth) => {
-    try {
-      const updated = await AuthApiClient.linkTelegram(data);
-      updateUser(updated);
-      showHUD("success", t("account.telegramLinkedSuccess"));
-    } catch (err: unknown) {
-      showHUD("error", err instanceof Error ? err.message : t("account.fillAllFields"));
     }
   };
 
@@ -219,14 +204,13 @@ const AccountSettings: React.FC = () => {
           ) : (
             <div className="ui-form-stack">
               <p className="settings-description">{t("account.telegramLinkDesc")}</p>
-              {canUseTelegramWidget && telegramBotUsername ? (
-                <TelegramLoginButton botUsername={telegramBotUsername} onAuth={handleLinkTelegram} />
-              ) : (
-                <TelegramStartAuthButton
-                  label={t("account.telegramLinkButton")}
-                  onComplete={(result) => updateUser(result.user)}
-                />
-              )}
+              <TelegramStartAuthButton
+                label={t("account.telegramLinkButton")}
+                onComplete={(result) => {
+                  updateUser(result.user);
+                  showHUD("success", t("account.telegramLinkedSuccess"));
+                }}
+              />
             </div>
           )}
         </section>

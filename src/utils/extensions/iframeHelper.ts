@@ -39,7 +39,7 @@ export const createIframeHtml = (
   // which has the real origin — NOT inside the iframe, whose `sandbox="allow-scripts"` gives it an
   // opaque origin (location.origin === "null"), making a runtime same-origin check always fail.
   // Local plugins are imported natively in the iframe; only remote ones go through the gateway bundler.
-  let isLocalPlugin = false;
+  let isLocalPlugin: boolean;
   try {
     isLocalPlugin = hostOrigin !== "*" && new URL(baseUrl).origin === hostOrigin;
   } catch {
