@@ -13,6 +13,32 @@ export interface ServiceStatus {
 export interface HandshakeResponse {
   multiUserMode?: boolean;
   authRequired?: boolean;
+  telegramAuthEnabled?: boolean;
+  telegramBotUsername?: string;
+}
+
+/** Payload delivered by the Telegram Login Widget on successful authorization. */
+export interface TelegramWidgetAuth {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+  auth_date: number;
+  hash: string;
+}
+
+/** Deep-link (bot) flow: one-time code + t.me link issued by the backend for HTTP deployments. */
+export interface TelegramStartCodeResponse {
+  code: string;
+  botUsername?: string;
+  deepLink: string;
+}
+
+export interface TelegramPollResponse {
+  status: "pending" | "confirmed" | "expired";
+  token?: string;
+  user?: PotokUser;
 }
 
 export interface MediaCard {
@@ -81,6 +107,9 @@ export interface PotokUser {
   username: string;
   syncStrategy: string;
   traktConnected?: boolean;
+  telegramLinked?: boolean;
+  telegramUsername?: string;
+  hasPassword?: boolean;
 }
 
 export interface ConnectionProfile {

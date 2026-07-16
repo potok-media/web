@@ -10,11 +10,15 @@ export interface AuthContextType {
   potokToken: string | null;
   potokUser: PotokUser | null;
   multiUserMode: boolean;
+  telegramAuthEnabled: boolean;
+  telegramBotUsername: string | null;
   syncStrategy: string;
   traktConnected: boolean;
   login: (token: string, user: PotokUser) => void;
   logout: () => void;
   setMultiUserMode: React.Dispatch<React.SetStateAction<boolean>>;
+  setTelegramAuth: (enabled: boolean, botUsername: string | null) => void;
+  updateUser: (user: PotokUser) => void;
   setSyncStrategy: (strategy: string) => void;
   setTraktConnected: (connected: boolean) => void;
 }
@@ -32,6 +36,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [multiUserMode, setMultiUserMode] = useState<boolean>(() =>
     Storage.get<boolean>("multiUserMode", false),
   );
+  const [telegramAuthEnabled, setTelegramAuthEnabled] = useState<boolean>(() =>
+    Storage.get<boolean>("telegramAuthEnabled", false),
+  );
+  const [telegramBotUsername, setTelegramBotUsername] = useState<string | null>(() =>
+    Storage.get<string | null>("telegramBotUsername", null),
+  );
   const [syncStrategy, setSyncStrategyState] = useState<string>(() =>
     Storage.get<string>("syncStrategy", "none"),
   );
@@ -46,6 +56,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setTraktConnected = useCallback((connected: boolean) => {
     setTraktConnectedState(connected);
+  }, []);
+
+  const setTelegramAuth = useCallback((enabled: boolean, botUsername: string | null) => {
+    Storage.set("telegramAuthEnabled", enabled);
+    Storage.set("telegramBotUsername", botUsername);
+    setTelegramAuthEnabled(enabled);
+    setTelegramBotUsername(botUsername);
+  }, []);
+
+  const updateUser = useCallback((user: PotokUser) => {
+    Storage.set("potokUser", user);
+    setPotokUser(user);
+    setTraktConnectedState(user.traktConnected ?? false);
   }, []);
 
   const login = useCallback((token: string, user: PotokUser) => {
@@ -95,11 +118,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       potokToken,
       potokUser,
       multiUserMode,
+      telegramAuthEnabled,
+      telegramBotUsername,
       syncStrategy,
       traktConnected,
       login,
       logout,
       setMultiUserMode,
+      setTelegramAuth,
+      updateUser,
       setSyncStrategy,
       setTraktConnected,
     }),
@@ -107,10 +134,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       potokToken,
       potokUser,
       multiUserMode,
+      telegramAuthEnabled,
+      telegramBotUsername,
       syncStrategy,
       traktConnected,
       login,
       logout,
+      setTelegramAuth,
+      updateUser,
       setSyncStrategy,
       setTraktConnected,
     ],

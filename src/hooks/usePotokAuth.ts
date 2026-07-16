@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthApiClient } from "../network/AuthApiClient";
 import { useHUD } from "../context/useHUD";
-import type { AuthResponse } from "../network/ApiTypes";
+import type { AuthResponse, TelegramWidgetAuth } from "../network/ApiTypes";
 
 export function usePotokAuth(onSuccess: (data: AuthResponse) => void) {
   const { t } = useTranslation("profile");
@@ -36,6 +36,19 @@ export function usePotokAuth(onSuccess: (data: AuthResponse) => void) {
     }
   }, [username, password, isRegister, showHUD, t, onSuccess]);
 
+  const handleTelegramAuth = useCallback(async (data: TelegramWidgetAuth) => {
+    setLoading(true);
+    try {
+      const response = await AuthApiClient.telegramAuth(data);
+      showHUD("success", t("potokAuth.loginSuccess"));
+      onSuccess(response);
+    } catch (err: unknown) {
+      showHUD("error", err instanceof Error ? err.message : t("potokAuth.authError"));
+    } finally {
+      setLoading(false);
+    }
+  }, [showHUD, t, onSuccess]);
+
   const toggleMode = useCallback(() => setIsRegister((v) => !v), []);
 
   return {
@@ -46,6 +59,7 @@ export function usePotokAuth(onSuccess: (data: AuthResponse) => void) {
     setPassword,
     loading,
     handleSubmit,
+    handleTelegramAuth,
     toggleMode,
   };
 }

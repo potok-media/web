@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Sliders, Puzzle, Globe, Terminal, Eye, Search } from "lucide-react";
+import { Sliders, Puzzle, Globe, Terminal, Eye, Search, ShieldUser } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { RegisteredExtension } from "@potok/sdk-types";
 import type { SlotContribution } from "@potok/sdk-types";
@@ -27,6 +27,7 @@ export const SettingsMobileTabs: React.FC<SettingsNavigationProps> = ({
     <div className="settings-mobile-tabs-bar">
       <div className="settings-mobile-tabs-scroll">
         <Chip active={activeTab === "general"} className="settings-tab-chip" onClick={() => setActiveTab("general")}>{t("nav.general")}</Chip>
+        <Chip active={activeTab === "account"} className="settings-tab-chip" onClick={() => setActiveTab("account")}>{t("nav.account")}</Chip>
         <Chip active={activeTab === "profiles"} className="settings-tab-chip" onClick={() => setActiveTab("profiles")}>{t("nav.connectionsShort")}</Chip>
         <Chip active={activeTab === "accessibility"} className="settings-tab-chip" onClick={() => setActiveTab("accessibility")}>{t("nav.accessibilityShort")}</Chip>
         <Chip active={activeTab === "extensions"} className="settings-tab-chip potok-safeguard" onClick={() => setActiveTab("extensions")}>{t("nav.extensions")}</Chip>
@@ -76,6 +77,7 @@ export const SettingsSidebarNav: React.FC<SettingsNavigationProps> = ({
       label: t("nav.groupApp"),
       items: [
         { id: "general", icon: Sliders, label: t("nav.general") },
+        { id: "account", icon: ShieldUser, label: t("nav.account") },
         { id: "profiles", icon: Globe, label: t("nav.connections") },
         { id: "accessibility", icon: Eye, label: t("nav.accessibility") },
       ],

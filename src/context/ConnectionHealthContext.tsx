@@ -28,7 +28,7 @@ export const ConnectionLatencyContext = createContext<ConnectionLatencyContextTy
 
 export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { connectionProfiles, activeProfileID, isSettingsLocked } = useSettings();
-  const { setMultiUserMode } = useAuth();
+  const { setMultiUserMode, setTelegramAuth } = useAuth();
 
   const activeProfile = useMemo(
     () => connectionProfiles.find((p) => p.id === activeProfileID) || null,
@@ -130,6 +130,7 @@ export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> =
         const isMultiUser = handshake.multiUserMode ?? false;
         Storage.set("multiUserMode", isMultiUser);
         setMultiUserMode(isMultiUser);
+        setTelegramAuth(handshake.telegramAuthEnabled ?? false, handshake.telegramBotUsername ?? null);
 
         const bff = await ApiClient.pingHealth(currentGateway, "/api/health/bff", true);
         const search = { configured: false, online: false };
@@ -146,7 +147,7 @@ export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> =
         startPingTimer();
       }
     },
-    [activeProfileID, isSettingsLocked, activeProfile, setMultiUserMode, startPingTimer, stopPingTimer],
+    [activeProfileID, isSettingsLocked, activeProfile, setMultiUserMode, setTelegramAuth, startPingTimer, stopPingTimer],
   );
 
   useEffect(() => {

@@ -2,9 +2,15 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { User, KeyRound } from "lucide-react";
 import { useAuth } from "../../context/AppSettingsContext";
-import type { AuthResponse } from "../../network/ApiTypes";
+import type { AuthResponse, PotokUser } from "../../network/ApiTypes";
 import { usePotokAuth } from "../../hooks/usePotokAuth";
 import { Button, Field, Input } from "../ui";
+import { TelegramLoginButton } from "./TelegramLoginButton";
+import { TelegramStartAuthButton } from "./TelegramStartAuthButton";
+
+// The Login Widget requires HTTPS + a registered domain; on HTTP (LAN/IP) fall back to the bot
+// deep-link flow, which works everywhere.
+const canUseTelegramWidget = typeof window !== "undefined" && window.location.protocol === "https:";
 
 interface PotokAuthViewProps {
   onSuccess: (data: AuthResponse) => void;
@@ -12,7 +18,7 @@ interface PotokAuthViewProps {
 
 export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
   const { t } = useTranslation("profile");
-  const { multiUserMode } = useAuth();
+  const { multiUserMode, telegramAuthEnabled, telegramBotUsername } = useAuth();
   const {
     isRegister,
     username,
@@ -21,6 +27,7 @@ export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
     setPassword,
     loading,
     handleSubmit,
+    handleTelegramAuth,
     toggleMode,
   } = usePotokAuth(onSuccess);
 
@@ -82,6 +89,24 @@ export const PotokAuthView: React.FC<PotokAuthViewProps> = ({ onSuccess }) => {
           </Button>
         )}
       </form>
+
+      {telegramAuthEnabled && (
+        <div className="auth-telegram">
+          <div className="auth-divider">
+            <span>{t("potokAuth.orContinueWith")}</span>
+          </div>
+          {canUseTelegramWidget && telegramBotUsername ? (
+            <TelegramLoginButton botUsername={telegramBotUsername} onAuth={handleTelegramAuth} />
+          ) : (
+            <TelegramStartAuthButton
+              label={t("potokAuth.telegramButton")}
+              onComplete={(result: { token?: string; user: PotokUser }) => {
+                if (result.token) onSuccess({ token: result.token, user: result.user });
+              }}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 };

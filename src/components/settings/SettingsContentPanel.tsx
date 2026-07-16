@@ -10,6 +10,7 @@ import ExtensionsManager from "../ExtensionsManager";
 import ConsoleManager from "./ConsoleManager";
 import DeclarativeSettings from "./DeclarativeSettings";
 import AccessibilitySettings from "./AccessibilitySettings";
+import AccountSettings from "./AccountSettings";
 
 interface SettingsContentPanelProps {
   activeTab: string;
@@ -73,6 +74,7 @@ export const SettingsContentPanel: React.FC<SettingsContentPanelProps> = ({
         setDisableHttpProxy={setDisableHttpProxy}
       />
     )}
+    {activeTab === "account" && <AccountSettings />}
     {activeTab === "profiles" && <ProfilesSettings />}
     {activeTab === "extensions" && <ExtensionsManager />}
     {activeTab === "console" && <ConsoleManager />}

@@ -258,6 +258,13 @@
   width: 100%;
 }
 
+/* Separate stacked sections within a single pane (e.g. Account: password + Telegram). */
+.settings-section + .settings-section {
+  margin-top: var(--space-xl);
+  padding-top: var(--space-xl);
+  border-top: 0.0625rem solid var(--border-color);
+}
+
 .settings-section-title {
   font: var(--font-title2);
   font-weight: 600;
