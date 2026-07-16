@@ -29,7 +29,7 @@ export const SettingsMobileTabs: React.FC<SettingsNavigationProps> = ({
         <Chip active={activeTab === "general"} className="settings-tab-chip" onClick={() => setActiveTab("general")}>{t("nav.general")}</Chip>
         <Chip active={activeTab === "profiles"} className="settings-tab-chip" onClick={() => setActiveTab("profiles")}>{t("nav.connectionsShort")}</Chip>
         <Chip active={activeTab === "accessibility"} className="settings-tab-chip" onClick={() => setActiveTab("accessibility")}>{t("nav.accessibilityShort")}</Chip>
-        <Chip active={activeTab === "extensions"} className="settings-tab-chip" onClick={() => setActiveTab("extensions")}>{t("nav.extensions")}</Chip>
+        <Chip active={activeTab === "extensions"} className="settings-tab-chip potok-safeguard" onClick={() => setActiveTab("extensions")}>{t("nav.extensions")}</Chip>
         <Chip active={activeTab === "console"} className="settings-tab-chip" onClick={() => setActiveTab("console")}>{t("nav.console")}</Chip>
         {slotContributions.map((c) => (
           <Chip key={c.contribution.id} active={activeTab === c.contribution.id} className="settings-tab-chip" onClick={() => setActiveTab(c.contribution.id)}>
@@ -124,7 +124,7 @@ export const SettingsSidebarNav: React.FC<SettingsNavigationProps> = ({
               <Button
                 variant="ghost"
                 key={item.id}
-                className={`settings-nav-item ${activeTab === item.id ? "active" : ""}`}
+                className={`settings-nav-item ${activeTab === item.id ? "active" : ""} ${item.id === "extensions" ? "potok-safeguard" : ""}`.trim()}
                 onClick={() => setActiveTab(item.id)}
               >
                 <Icon size="1rem" />

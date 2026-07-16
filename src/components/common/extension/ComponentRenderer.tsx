@@ -15,6 +15,7 @@ import { HostContentComponentsRenderer } from "./HostContentComponentsRenderer";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import {
   buildComponentBaseStyle,
+  sdkClass,
   sdkStyleVars,
   childRendererKey,
   HOST_COMMON_TYPES,
@@ -89,7 +90,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       const componentProps = schema.props as { level?: number; text?: string };
       const Level = `h${componentProps.level || 1}` as "h1" | "h2" | "h3" | "h4";
       return (
-        <Level className={`potok-heading potok-heading-${componentProps.level || 1} potok-sdk-props`} style={sdkStyleVars(baseStyle)}>
+        <Level className={sdkClass(schema, `potok-heading potok-heading-${componentProps.level || 1}`)} style={sdkStyleVars(baseStyle)}>
           {componentProps.text}
         </Level>
       );
@@ -106,7 +107,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
         componentProps.bold ? "potok-text-bold" : ""
       }`;
       return (
-        <span className={`${textClass} potok-sdk-props`} style={sdkStyleVars(baseStyle)}>
+        <span className={sdkClass(schema, textClass)} style={sdkStyleVars(baseStyle)}>
           {componentProps.text}
         </span>
       );
@@ -115,7 +116,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
     case "Badge": {
       const componentProps = schema.props as { text?: string; color?: string };
       return (
-        <span className={`potok-badge potok-badge-${componentProps.color || "info"} potok-sdk-props`} style={sdkStyleVars(baseStyle)}>
+        <span className={sdkClass(schema, `potok-badge potok-badge-${componentProps.color || "info"}`)} style={sdkStyleVars(baseStyle)}>
           {componentProps.text}
         </span>
       );
@@ -126,7 +127,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       const rawStatus = componentProps.status || "offline";
       const statusClass = rawStatus === "success" ? "online" : rawStatus;
       return (
-        <div id={schema.id} className="sidebar-status-row potok-sdk-props" style={sdkStyleVars(baseStyle)}>
+        <div id={schema.id} className={sdkClass(schema, "sidebar-status-row")} style={sdkStyleVars(baseStyle)}>
           <span className={`sidebar-status-dot ${statusClass}`} />
           <span className="sidebar-status-label">{componentProps.label}</span>
           {componentProps.value && <span className="sidebar-status-latency">{componentProps.value}</span>}
@@ -135,10 +136,10 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
     }
 
     case "Divider":
-      return <hr className="potok-divider potok-sdk-props" style={sdkStyleVars(baseStyle)} />;
+      return <hr className={sdkClass(schema, "potok-divider")} style={sdkStyleVars(baseStyle)} />;
 
     case "Spacer":
-      return <div className="potok-spacer potok-sdk-props" style={sdkStyleVars(baseStyle)} />;
+      return <div className={sdkClass(schema, "potok-spacer")} style={sdkStyleVars(baseStyle)} />;
 
     case "Button":
       return <SdkButtonRenderer schema={schema} pluginId={pluginId} />;
@@ -163,7 +164,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       const child = schema.children?.[0];
       return (
         <span
-          className="sdk-tooltip potok-sdk-props"
+          className={sdkClass(schema, "sdk-tooltip")}
           data-placement={componentProps.placement || "top"}
           style={sdkStyleVars(baseStyle)}
         >
@@ -206,7 +207,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
         if (schema.events?.onToggle) ExtensionRegistry.triggerUIEvent(pluginId, schema.events.onToggle, !isOpen);
       };
       return (
-        <div id={schema.id} className="sdk-collapsible potok-sdk-props" style={sdkStyleVars(baseStyle)}>
+        <div id={schema.id} className={sdkClass(schema, "sdk-collapsible")} style={sdkStyleVars(baseStyle)}>
           <Pressable className="sdk-collapsible-header" onPress={handleToggle}>
             <span className="sdk-collapsible-title">{componentProps.title}</span>
             <span className={`sdk-collapsible-chevron${isOpen ? " is-open" : ""}`} aria-hidden="true">▸</span>
@@ -223,7 +224,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
     case "Field": {
       const componentProps = schema.props as { label?: string; hint?: string };
       return (
-        <Field label={componentProps.label} hint={componentProps.hint} className="potok-sdk-props">
+        <Field label={componentProps.label} hint={componentProps.hint} className={sdkClass(schema)}>
           {schema.children?.map((child, index) => renderChild(child, index))}
         </Field>
       );
@@ -236,7 +237,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       return (
         <ScrollView
           orientation="horizontal"
-          className="sdk-carousel potok-sdk-props"
+          className={sdkClass(schema, "sdk-carousel")}
           renderTrack={({ trackProps }) => (
             <div {...trackProps} className={`${trackProps.className} sdk-carousel-track`} style={trackStyle}>
               {schema.children?.map((child, index) => renderChild(child, index))}
@@ -253,7 +254,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       return (
         <ScrollView
           orientation={componentProps.orientation || "vertical"}
-          className="sdk-scroller potok-sdk-props"
+          className={sdkClass(schema, "sdk-scroller")}
           renderTrack={({ trackProps }) => (
             <div {...trackProps} className={`${trackProps.className} sdk-scroller-track`} style={trackStyle}>
               {schema.children?.map((child, index) => renderChild(child, index))}
@@ -266,7 +267,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
     case "Page": {
       const componentProps = schema.props as { title?: string };
       return (
-        <PageFrame title={componentProps.title} className="potok-sdk-props">
+        <PageFrame title={componentProps.title} className={sdkClass(schema)}>
           {schema.children?.map((child, index) => renderChild(child, index))}
         </PageFrame>
       );
@@ -275,7 +276,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
     case "SidebarGroup": {
       const componentProps = schema.props as { title?: string };
       return (
-        <div id={schema.id} className="sidebar-section potok-sdk-props" style={sdkStyleVars(baseStyle)}>
+        <div id={schema.id} className={sdkClass(schema, "sidebar-section")} style={sdkStyleVars(baseStyle)}>
           {componentProps.title && <div className="sidebar-section-title">{componentProps.title}</div>}
           {schema.children?.map((child, index) => renderChild(child, index))}
         </div>

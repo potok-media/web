@@ -17,6 +17,12 @@ export const baseDts = `
     margin(v: number | number[]): this;
     /** Flex-grow factor inside a stack. */
     flex(v: number): this;
+    /**
+     * Attaches a custom CSS class (or space-separated classes) to the component's root element, so it can be
+     * targeted from a stylesheet injected via PotokSDK.ui.injectHostCss(). Calls accumulate.
+     * Example: Card().style('my-hero-card').
+     */
+    style(className: string): this;
     /** Component background: a CSS color or gradient (e.g. '#1e1e2e', 'rgba(0,0,0,.4)', 'linear-gradient(...)'). */
     background(v: string): this;
     /** Text color (CSS color). */

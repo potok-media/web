@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import type { ToggleSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import { Switch } from "../../ui";
-import { sdkStyleVars } from "./componentRendererUtils";
+import { sdkClass, sdkStyleVars } from "./componentRendererUtils";
 
 interface SafeToggleProps {
   schema: ToggleSchema;
@@ -30,7 +30,7 @@ export const SafeToggle: React.FC<SafeToggleProps> = ({ schema, pluginId, baseSt
   return (
     <div
       key={id}
-      className="potok-toggle-group potok-sdk-props"
+      className={sdkClass(schema, "potok-toggle-group")}
       style={sdkStyleVars(baseStyle)}
       onClick={handleToggleChange}
       role="button"

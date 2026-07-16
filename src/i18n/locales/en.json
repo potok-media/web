@@ -98,6 +98,7 @@
       "permissionStorage": "Storing plugin settings and data locally on your device",
       "permissionHttpProxy": "Making internet requests (required to search and load video streams)",
       "permissionUiNotifications": "Showing in-app tooltips and notifications",
+      "permissionCustomCss": "Applying custom CSS to the app's interface (it cannot hide the way to uninstall it)",
       "permissionCustom": "Special access request: {{permission}}",
       "securityWarningTitle": "Security warning",
       "securityWarningBody": "Installing the plugin grants it the ability to perform the listed actions in the app. Please install extensions only from trusted sources and authors you trust, to keep your personal data safe.",
@@ -803,6 +804,7 @@
       "storage": "Stores the plugin's settings and data locally on your device",
       "httpProxy": "Makes internet requests (searching for and loading video streams)",
       "uiNotifications": "Shows tooltips and notifications inside the app",
+      "customCss": "Applies custom CSS to restyle the app (cannot hide the settings or extensions manager)",
       "fallback": "Access: {{permission}}"
     },
     "manifest": {

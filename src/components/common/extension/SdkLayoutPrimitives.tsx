@@ -1,7 +1,7 @@
 import React from "react";
 import type { UIComponentSchema } from "@potok/sdk-types";
 import { Grid } from "../Grid";
-import { buildComponentBaseStyle, mapJustifyContent, sdkStyleVars } from "./componentRendererUtils";
+import { buildComponentBaseStyle, mapJustifyContent, sdkClass, sdkStyleVars } from "./componentRendererUtils";
 
 interface LayoutProps {
   schema: UIComponentSchema;
@@ -22,7 +22,7 @@ export const SdkVStack: React.FC<LayoutProps> = ({ schema, renderChild }) => {
     justifyContent: mapJustifyContent(componentProps.justifyContent),
   };
   return (
-    <div id={id} className="potok-vstack potok-sdk-props" style={sdkStyleVars(layoutStyle)}>
+    <div id={id} className={sdkClass(schema, "potok-vstack")} style={sdkStyleVars(layoutStyle)}>
       {children?.map((child, index) => renderChild(child, index))}
     </div>
   );
@@ -42,7 +42,7 @@ export const SdkHStack: React.FC<LayoutProps> = ({ schema, renderChild }) => {
     justifyContent: mapJustifyContent(componentProps.justifyContent),
   };
   return (
-    <div id={id} className="potok-hstack potok-sdk-props" style={sdkStyleVars(layoutStyle)}>
+    <div id={id} className={sdkClass(schema, "potok-hstack")} style={sdkStyleVars(layoutStyle)}>
       {children?.map((child, index) => renderChild(child, index))}
     </div>
   );
@@ -55,7 +55,7 @@ export const SdkGrid: React.FC<LayoutProps> = ({ schema, renderChild }) => {
     <Grid
       minWidth={componentProps.minWidth || "11.25rem"}
       gap={componentProps.gap}
-      className="potok-sdk-props"
+      className={sdkClass(schema)}
       style={sdkStyleVars(buildComponentBaseStyle(schema))}
     >
       {children?.map((child, index) => renderChild(child, index))}
@@ -71,7 +71,7 @@ export const SdkCard: React.FC<LayoutProps & { onClick?: () => void }> = ({ sche
   return (
     <div
       id={id}
-      className={`potok-card potok-sdk-props ${isInteractive ? "potok-card-interactive" : ""}`}
+      className={sdkClass(schema, "potok-card", isInteractive && "potok-card-interactive")}
       style={sdkStyleVars(buildComponentBaseStyle(schema))}
       onClick={isInteractive ? onClick : undefined}
     >

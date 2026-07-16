@@ -2,7 +2,7 @@ import React from "react";
 import type { CodeEditorSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import { useMonacoEditor } from "../../../hooks/useMonacoEditor";
-import { sdkStyleVars } from "./componentRendererUtils";
+import { sdkClass, sdkStyleVars } from "./componentRendererUtils";
 
 interface SafeCodeEditorProps {
   schema: CodeEditorSchema;
@@ -36,7 +36,7 @@ export const SafeCodeEditor: React.FC<SafeCodeEditorProps> = ({ schema, pluginId
   return (
     <div
       key={id}
-      className="potok-input-group potok-input-group--full potok-sdk-props"
+      className={sdkClass(schema, "potok-input-group", "potok-input-group--full")}
       style={sdkStyleVars(baseStyle)}
     >
       {componentProps.label && <label className="potok-label">{componentProps.label}</label>}

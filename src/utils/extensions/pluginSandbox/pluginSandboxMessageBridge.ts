@@ -16,6 +16,7 @@ import { handleShowEpisodeSelector, type ShowEpisodeSelectorPayload } from "../e
 import type { HttpProxyRequestPayload } from "../extensionHostTypes";
 import { logger } from "../../logger";
 import { registerPluginThemes } from "./pluginSandboxThemes";
+import { injectPluginHostCss } from "./pluginSandboxHostCss";
 import type {
   MessageSource,
   PluginSandboxMessage,
@@ -82,6 +83,13 @@ export async function handlePluginSandboxMessage(
     }
     case "REGISTER_THEMES":
       registerPluginThemes(rawPayload);
+      break;
+    case "INJECT_HOST_CSS":
+      if (permissions.includes("custom-css")) {
+        injectPluginHostCss(pluginId, payload.id, payload.css);
+      } else {
+        logger.warn(`[PluginSandbox] injectHostCss from "${pluginId}" blocked: missing "custom-css" permission`);
+      }
       break;
     case "SHUTDOWN_ACK":
       ctx.triggerPhysicalRemoval(pluginId);

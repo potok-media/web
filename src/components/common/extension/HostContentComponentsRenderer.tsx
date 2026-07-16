@@ -14,7 +14,7 @@ import { Grid } from "../Grid";
 import MediaCardComponent from "../../MediaCardComponent";
 import MediaRow from "../../MediaRow";
 import HeroSpotlight from "../../HeroSpotlight";
-import { sdkStyleVars, toPascalCase } from "./componentRendererUtils";
+import { sdkClass, sdkStyleVars, toPascalCase } from "./componentRendererUtils";
 
 /** Adapts a plugin's generic SDKContentItem to the app's native MediaCard shape, so generic content
  *  components render through the SAME cards/rows/hero the whole app uses (Potok owns the styling). */
@@ -189,12 +189,13 @@ const SdkPosterGrid: React.FC<{
 /** Ranked Top-10 row: big outlined rank numbers + native cards, with the same hover scroll-arrows the
  *  episodes carousel uses (SDK ScrollView alone scrolls by wheel/drag but shows no buttons). */
 const SdkTopTenRow: React.FC<{
+  schema: UIComponentSchema;
   id?: string;
   title?: string;
   cards: ApiMediaCard[];
   onCardClick: (card: ApiMediaCard) => void;
   onSeeAll?: () => void;
-}> = ({ id, title, cards, onCardClick, onSeeAll }) => {
+}> = ({ schema, id, title, cards, onCardClick, onSeeAll }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -229,7 +230,7 @@ const SdkTopTenRow: React.FC<{
   if (!cards.length) return null;
 
   return (
-    <div id={id} className="carousel-container potok-sdk-props">
+    <div id={id} className={sdkClass(schema, "carousel-container")}>
       {title && (
         <div className="carousel-header">
           {onSeeAll ? (
@@ -296,7 +297,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
       const { item } = schema.props;
       if (!item) return null;
       return (
-        <div id={id} className="host-media-card-wrap potok-sdk-props" style={styleVars}>
+        <div id={id} className={sdkClass(schema, "host-media-card-wrap")} style={styleVars}>
           <MediaCardComponent
             item={adaptContentItem(item)}
             onClick={events?.onClick ? () => fire(events?.onClick, item) : undefined}
@@ -332,7 +333,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
       });
       if (!heroItems.length) return null;
       return (
-        <div id={id} className="host-hero-spotlight-wrap potok-sdk-props" style={styleVars}>
+        <div id={id} className={sdkClass(schema, "host-hero-spotlight-wrap")} style={styleVars}>
           <HeroSpotlight
             items={heroItems}
             onPlay={(h) =>
@@ -357,7 +358,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
       return (
         <div
           id={id}
-          className={`sdk-image potok-sdk-props ${clickable ? "sdk-image--clickable" : ""}`.trim()}
+          className={sdkClass(schema, "sdk-image", clickable && "sdk-image--clickable")}
           style={{ ...styleVars, aspectRatio, borderRadius: radius }}
           onClick={clickable ? () => fire(events?.onClick, {}) : undefined}
         >
@@ -369,7 +370,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
     case "Icon": {
       const { name, size, color } = schema.props;
       return (
-        <span id={id} className="sdk-icon potok-sdk-props" style={styleVars}>
+        <span id={id} className={sdkClass(schema, "sdk-icon")} style={styleVars}>
           <LucideIcon name={name} size={size ?? "1.25rem"} color={color} />
         </span>
       );
@@ -380,7 +381,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
       return (
         <ScrollView
           orientation="horizontal"
-          className="sdk-tabs potok-sdk-props"
+          className={sdkClass(schema, "sdk-tabs")}
           trackClassName="sdk-tabs-track"
         >
           {(items ?? []).map((tab) => (
@@ -400,7 +401,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
     case "List": {
       const { items } = schema.props;
       return (
-        <div id={id} className="sdk-list potok-sdk-props" style={styleVars}>
+        <div id={id} className={sdkClass(schema, "sdk-list")} style={styleVars}>
           {(items ?? []).map((row) => (
             <Pressable
               key={row.id}
@@ -425,7 +426,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
       const { value, variant, label, showValue } = schema.props;
       const pct = Math.round(Math.max(0, Math.min(1, value ?? 0)) * 100);
       return (
-        <div id={id} className="sdk-progress potok-sdk-props" style={styleVars}>
+        <div id={id} className={sdkClass(schema, "sdk-progress")} style={styleVars}>
           {(label || showValue) && (
             <div className="sdk-progress-head">
               {label && <span className="sdk-progress-label">{label}</span>}
@@ -444,7 +445,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
       const radius = rounded === true ? "var(--radius-m, 0.75rem)" : typeof rounded === "string" ? rounded : undefined;
       const n = Math.max(1, count ?? 1);
       return (
-        <div id={id} className="sdk-skeleton-group potok-sdk-props" style={styleVars}>
+        <div id={id} className={sdkClass(schema, "sdk-skeleton-group")} style={styleVars}>
           {Array.from({ length: n }).map((_, i) => (
             <span key={i} className="sdk-skeleton potok-shimmer-placeholder" style={{ borderRadius: radius }} />
           ))}
@@ -455,7 +456,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
     case "EmptyState": {
       const { icon, title, description, actionLabel } = schema.props;
       return (
-        <div id={id} className="sdk-empty potok-sdk-props" style={styleVars}>
+        <div id={id} className={sdkClass(schema, "sdk-empty")} style={styleVars}>
           {icon && <span className="sdk-empty-icon"><LucideIcon name={icon} size="2rem" /></span>}
           {title && <div className="sdk-empty-title">{title}</div>}
           {description && <div className="sdk-empty-desc">{description}</div>}
@@ -473,7 +474,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
       const v = variant || "info";
       const defaultIcon = { info: "info", success: "check-circle", warning: "alert-triangle", error: "alert-octagon" }[v];
       return (
-        <div id={id} className={`sdk-alert sdk-alert--${v} potok-sdk-props`} style={styleVars} role="alert">
+        <div id={id} className={sdkClass(schema, `sdk-alert sdk-alert--${v}`)} style={styleVars} role="alert">
           <span className="sdk-alert-icon"><LucideIcon name={icon || defaultIcon} size="1.125rem" /></span>
           <span className="sdk-alert-body">
             {title && <span className="sdk-alert-title">{title}</span>}
@@ -489,7 +490,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
         <Chip
           id={id}
           active={active}
-          className="potok-sdk-props"
+          className={sdkClass(schema)}
           style={styleVars}
           onClick={() => fire(events?.onClick, {})}
         >
@@ -507,7 +508,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
           size={size}
           accentOnHover={accent}
           aria-label={label || icon}
-          className="potok-sdk-props"
+          className={sdkClass(schema)}
           style={styleVars}
           onClick={() => fire(events?.onClick, {})}
         >
@@ -527,7 +528,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
       return (
         <span
           id={id}
-          className={`sdk-avatar sdk-avatar--${size || "md"} sdk-avatar--${shape || "circle"} potok-sdk-props`}
+          className={sdkClass(schema, `sdk-avatar sdk-avatar--${size || "md"} sdk-avatar--${shape || "circle"}`)}
           style={styleVars}
           title={name}
         >
@@ -547,7 +548,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
       const full = Math.floor(val);
       const half = val - full >= 0.5;
       return (
-        <span id={id} className={`sdk-rating sdk-rating--${size || "md"} potok-sdk-props`} style={styleVars}>
+        <span id={id} className={sdkClass(schema, `sdk-rating sdk-rating--${size || "md"}`)} style={styleVars}>
           {Array.from({ length: total }).map((_, i) => {
             const state = i < full ? "full" : i === full && half ? "half" : "empty";
             return (
@@ -565,7 +566,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
       const { tags } = schema.props;
       const clickable = !!events?.onTagClick;
       return (
-        <div id={id} className="sdk-taglist potok-sdk-props" style={styleVars}>
+        <div id={id} className={sdkClass(schema, "sdk-taglist")} style={styleVars}>
           {(tags ?? []).map((tag, i) => {
             const label = typeof tag === "string" ? tag : tag.label;
             const tagId = typeof tag === "string" ? tag : (tag.id ?? tag.label);
@@ -584,7 +585,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
     case "SectionHeader": {
       const { title, subtitle, actionLabel } = schema.props;
       return (
-        <div id={id} className="sdk-section-header potok-sdk-props" style={styleVars}>
+        <div id={id} className={sdkClass(schema, "sdk-section-header")} style={styleVars}>
           <div className="sdk-section-header-titles">
             <h3 className="sdk-section-header-title">{title}</h3>
             {subtitle && <span className="sdk-section-header-subtitle">{subtitle}</span>}
@@ -604,7 +605,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
       const cards = (items ?? []).map(adaptContentItem);
       if (!cards.length) return null;
       return (
-        <div id={id} className="carousel-container potok-sdk-props">
+        <div id={id} className={sdkClass(schema, "carousel-container")}>
           {title && (
             <div className="carousel-header">
               <h2 className="carousel-title">{title}</h2>
@@ -636,6 +637,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
       if (!cards.length) return null;
       return (
         <SdkTopTenRow
+          schema={schema}
           id={id}
           title={title}
           cards={cards}
@@ -649,7 +651,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
       const { items, minWidth } = schema.props;
       const cards = (items ?? []).map(adaptContentItem);
       return (
-        <div id={id} className="potok-sdk-props" style={styleVars}>
+        <div id={id} className={sdkClass(schema)} style={styleVars}>
           <SdkPosterGrid
             cards={cards}
             minWidth={minWidth}
@@ -664,7 +666,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
       const { item, actions } = schema.props;
       if (!item) return null;
       return (
-        <div id={id} className="sdk-detailhero potok-sdk-props" style={styleVars}>
+        <div id={id} className={sdkClass(schema, "sdk-detailhero")} style={styleVars}>
           {(item.wideImage || item.image) && (
             <SdkImg src={item.wideImage || item.image} alt={item.title} className="sdk-hero-backdrop" />
           )}
@@ -700,7 +702,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
     case "Range": {
       const { name, value, min, max, step, label, showValue } = schema.props;
       return (
-        <div id={id} className="sdk-range potok-sdk-props" style={styleVars}>
+        <div id={id} className={sdkClass(schema, "sdk-range")} style={styleVars}>
           {(label || showValue) && (
             <div className="sdk-range-head">
               {label && <span className="sdk-range-label">{label}</span>}
@@ -722,7 +724,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
     case "Segmented": {
       const { items, value } = schema.props;
       return (
-        <div id={id} className="sdk-segmented potok-sdk-props" style={styleVars} role="tablist">
+        <div id={id} className={sdkClass(schema, "sdk-segmented")} style={styleVars} role="tablist">
           {(items ?? []).map((seg) => (
             <Pressable
               key={seg.id}
@@ -740,7 +742,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
     case "Dropdown": {
       const { label, icon, items, value } = schema.props;
       return (
-        <div id={id} className="potok-sdk-props" style={styleVars}>
+        <div id={id} className={sdkClass(schema)} style={styleVars}>
           <SdkDropdown
             label={label}
             icon={icon}
@@ -755,7 +757,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
     case "FileInput": {
       const { name, label, accept, multiple } = schema.props;
       return (
-        <div id={id} className="sdk-fileinput potok-sdk-props" style={styleVars}>
+        <div id={id} className={sdkClass(schema, "sdk-fileinput")} style={styleVars}>
           {label && <span className="sdk-fileinput-label">{label}</span>}
           <FileInput
             name={name}

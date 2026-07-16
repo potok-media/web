@@ -49,6 +49,17 @@ export const hostApiDts = `
       setAccentTheme(themeId: string): void;
       /** Registers dynamic themes. */
       registerThemes(themes: SDKAccentTheme[]): void;
+      /**
+       * Injects (or replaces) a global stylesheet into the host document, identified by 'id'. Re-calling with
+       * the same id replaces that layer; passing an empty string removes it. The layer is appended after the
+       * app's own stylesheets, so its rules override matching host CSS at equal specificity — letting a plugin
+       * restyle any built-in component. Pair with a component's .style('my-class') to target it precisely.
+       * Example: injectHostCss('cards', '.my-hero-card { border-radius: 1.5rem !important; }').
+       *
+       * Requires the "custom-css" manifest permission — calls are ignored without it. The settings entry and
+       * the extensions manager are protected and cannot be hidden, so the plugin can always be uninstalled.
+       */
+      injectHostCss(id: string, css: string): void;
       /** The set of UI component builders. */
       components: {
         VStack(): VStackBuilder;

@@ -10,6 +10,7 @@ import {
   buildComponentBaseStyle,
   resolveButtonVariant,
   resolveSdkButtonExtraClass,
+  sdkClass,
   sdkStyleVars,
   toPascalCase,
 } from "./componentRendererUtils";
@@ -75,7 +76,7 @@ export const SdkButtonRenderer: React.FC<SdkButtonRendererProps> = ({ schema, pl
     return (
       <Button
         variant="ghost"
-        className={`sidebar-nav-item ${isActive ? "active" : ""} potok-sdk-props`}
+        className={sdkClass(schema, "sidebar-nav-item", isActive && "active")}
         disabled={componentProps.disabled}
         onClick={handleClick}
         style={sdkStyleVars(baseStyle)}
@@ -93,7 +94,7 @@ export const SdkButtonRenderer: React.FC<SdkButtonRendererProps> = ({ schema, pl
       variant={resolveButtonVariant(variant)}
       disabled={componentProps.disabled}
       onClick={handleClick}
-      className={cx("potok-sdk-props", extraClass)}
+      className={cx(sdkClass(schema), extraClass)}
       style={sdkStyleVars(baseStyle)}
     >
       {iconNode}

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import type { InputSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import { Field, Input } from "../../ui";
-import { sdkStyleVars } from "./componentRendererUtils";
+import { sdkClass, sdkStyleVars } from "./componentRendererUtils";
 
 interface SafeInputProps {
   schema: InputSchema;
@@ -29,7 +29,7 @@ export const SafeInput: React.FC<SafeInputProps> = ({ schema, pluginId, baseStyl
   const isTextArea = componentProps.inputType === "textarea";
 
   return (
-    <div key={id} className="potok-input-group potok-sdk-props" style={sdkStyleVars(baseStyle)}>
+    <div key={id} className={sdkClass(schema, "potok-input-group")} style={sdkStyleVars(baseStyle)}>
       <Field label={componentProps.label || undefined} htmlFor={`input-${id}`}>
         <Input
           id={`input-${id}`}

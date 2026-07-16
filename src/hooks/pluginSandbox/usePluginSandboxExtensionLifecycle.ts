@@ -6,6 +6,7 @@ import { i18n } from "../../i18n";
 import { computeHostStrings } from "../../utils/extensions/pluginSandbox/pluginSandboxHostStrings";
 import { getScopedLocalStorage } from "../../utils/extensions/pluginSandbox/pluginSandboxScopedStorage";
 import { loadActiveExtensions } from "../../utils/extensions/pluginSandbox/pluginSandboxMessageBridge";
+import { removePluginHostCss } from "../../utils/extensions/pluginSandbox/pluginSandboxHostCss";
 import type { ConnectionProfile } from "../../network/ApiTypes";
 
 interface UsePluginSandboxExtensionLifecycleParams {
@@ -26,6 +27,7 @@ export function usePluginSandboxExtensionLifecycle({
     if (!shuttingDownRefs.current.has(pluginId)) return;
     shuttingDownRefs.current.delete(pluginId);
     iframeRefs.current.delete(pluginId);
+    removePluginHostCss(pluginId);
     ExtensionRegistry.unregisterSandbox(pluginId);
     setRenderedExtensions((prev) => prev.filter((e) => e.id !== pluginId));
   }, []);

@@ -92,6 +92,31 @@ export function formatSpacingValue(val: unknown): string | undefined {
   return undefined;
 }
 
+/**
+ * Sanitizes a plugin-supplied CSS class string (from .style()). Keeps only well-formed class tokens
+ * ([A-Za-z_-] start, then word chars/hyphens), drops anything with whitespace-escaping or CSS-breaking
+ * characters, and caps the count so a plugin can't smuggle selectors or huge payloads onto an element.
+ */
+export function sanitizeClassName(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const tokens = value
+    .trim()
+    .split(/\s+/)
+    .filter((t) => /^[A-Za-z_-][A-Za-z0-9_-]*$/.test(t))
+    .slice(0, 8);
+  return tokens.length ? tokens.join(" ") : undefined;
+}
+
+/**
+ * Builds the className for an SDK-rendered root: the component's own base classes, the shared
+ * `potok-sdk-props` marker, and any sanitized custom class the plugin attached via .style().
+ * Centralizing this keeps custom-class support uniform across every renderer.
+ */
+export function sdkClass(schema: UIComponentSchema, ...base: Array<string | false | undefined | null>): string {
+  const custom = sanitizeClassName((schema.props as { className?: unknown } | undefined)?.className);
+  return [...base, "potok-sdk-props", custom].filter(Boolean).join(" ");
+}
+
 /** Rejects style-token values that could break out of a single CSS property (injection guard). */
 export function sanitizeStyleValue(value: unknown): string | undefined {
   if (value === undefined || value === null) return undefined;

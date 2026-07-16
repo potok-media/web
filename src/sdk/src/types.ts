@@ -242,6 +242,9 @@ export interface SDKBaseComponentProps {
   height?: string | number;
   visible?: boolean;
   flex?: number;
+  // Custom CSS class(es) added by the plugin via .style(); sanitized host-side and applied to the
+  // component's root element so authors can target it from their own injectHostCss() stylesheet.
+  className?: string;
   // Curated style tokens (sanitized host-side; applied inline over any component).
   background?: string;
   textColor?: string;

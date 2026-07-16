@@ -2,8 +2,8 @@ import { defineConfig, build, type ViteDevServer, type PreviewServer, type Conne
 import type { ServerResponse } from 'http'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
-import { resolve } from 'path'
-import { cpSync } from 'fs'
+import { resolve, join, normalize, extname, sep } from 'path'
+import { cpSync, existsSync, statSync, readFileSync } from 'fs'
 import { execSync } from 'child_process'
 
 
@@ -120,6 +120,90 @@ function clientLogToTerminal() {
   };
 }
 
+// Serves the local `dev-plugins/` directory over HTTP at /dev-plugins/ (dev AND preview) so a
+// plugin under development can be installed by its plain localhost URL — e.g.
+// http://localhost:5173/dev-plugins/card-customizer/ — and loaded directly in the browser with NO
+// gateway bundler and NO tunnel (see iframeHelper.ts: same-origin plugins are imported natively,
+// with `potok-sdk` resolved via an import map to the SDK already inlined in the iframe). Files are
+// served raw with permissive CORS + no-store.
+function devPluginsServer() {
+  const root = resolve(__dirname, 'dev-plugins');
+  // Accept both the clean path and the legacy `__dev-plugins__` alias so existing plugin
+  // registrations keep working.
+  const PREFIX_RE = /^\/(?:dev-plugins|__dev-plugins__)\//;
+
+  // ES-module shim that a locally-loaded plugin's `import ... from 'potok-sdk'` resolves to (via the
+  // import map injected in iframeHelper.ts). Re-exports the SDK already inlined in the iframe as the
+  // global `window.PotokSDK`, so no bundler is needed. Served with CORS so the sandboxed (opaque-origin)
+  // plugin iframe can fetch it cross-origin.
+  const SHIM_PATH = '/__potok_sdk_shim__.js';
+  const SHIM_JS = [
+    'const S = window.PotokSDK;',
+    'export default S;',
+    'export const PotokSDK = S;',
+    'export const ui = S.ui;',
+    'export const http = S.http;',
+    'export const storage = S.storage;',
+    'export const streams = S.streams;',
+    'export const media = S.media;',
+    'export const i18n = S.i18n;',
+    'export const registerPlugin = S.registerPlugin;',
+    'export const registerSource = S.registerSource;',
+    'export const registerHomeSection = S.registerHomeSection;',
+    'export const registerSlotContribution = S.registerSlotContribution;',
+    'export const initPotokSDK = S.initPotokSDK;',
+  ].join('\n');
+
+  const MIME: Record<string, string> = {
+    '.js': 'text/javascript',
+    '.mjs': 'text/javascript',
+    '.json': 'application/json',
+    '.css': 'text/css',
+    '.map': 'application/json',
+    '.wasm': 'application/wasm',
+    '.svg': 'image/svg+xml',
+  };
+  const handler = (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
+    const rawUrl = req.url || '';
+    const path = rawUrl.split('?')[0];
+    const prefixMatch = rawUrl.match(PREFIX_RE);
+    if (path !== SHIM_PATH && !prefixMatch) return next();
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    res.setHeader('Cache-Control', 'no-store');
+    if (req.method === 'OPTIONS') { res.statusCode = 204; return res.end(); }
+
+    if (path === SHIM_PATH) {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'text/javascript');
+      return res.end(SHIM_JS);
+    }
+    if (!prefixMatch) return next();
+
+    const rel = decodeURIComponent(rawUrl.slice(prefixMatch[0].length).split('?')[0]);
+    const filePath = normalize(join(root, rel));
+    // Path-traversal guard: the resolved path must stay inside dev-plugins/.
+    if (filePath !== root && !filePath.startsWith(root + sep)) {
+      res.statusCode = 403;
+      return res.end('Forbidden');
+    }
+    if (!existsSync(filePath) || !statSync(filePath).isFile()) {
+      res.statusCode = 404;
+      return res.end('Not found');
+    }
+    res.statusCode = 200;
+    res.setHeader('Content-Type', MIME[extname(filePath)] || 'application/octet-stream');
+    res.end(readFileSync(filePath));
+  };
+  return {
+    name: 'potok-dev-plugins',
+    configureServer(server: ViteDevServer) { server.middlewares.use(handler); },
+    configurePreviewServer(server: PreviewServer) { server.middlewares.use(handler); },
+  };
+}
+
 // PWA (Service Worker) is opt-in via POTOK_PWA=1 — enable it only for production
 // deploys (`npm run build:pwa`). Plain `npm run build` ships NO service worker, so
 // on-device iteration is always fresh and the cleanup in main.tsx removes any SW
@@ -135,6 +219,7 @@ export default defineConfig({
     react(),
     vitePotokSdkPlugin(),
     clientLogToTerminal(),
+    devPluginsServer(),
     ...(PWA_ENABLED ? [VitePWA({
       // No update prompts — TV/WebView containers should refresh silently.
       registerType: 'autoUpdate',
@@ -183,6 +268,10 @@ export default defineConfig({
   // host check for arbitrary LAN hostnames (IPs are allowed by default).
   server: {
     host: true,
+    // Accept requests with arbitrary Host headers (public tunnels like *.trycloudflare.com,
+    // *.ngrok.io) so the dev-plugins served at /__dev-plugins__/ are reachable by the remote
+    // gateway bundler. IPs are allowed by default; this covers public hostnames too.
+    allowedHosts: true,
   },
   preview: {
     host: true,

@@ -16,7 +16,8 @@ interface Props {
 const PERMISSION_DESCRIPTION_KEYS: Record<string, string> = {
   "storage": "consent.permissionStorage",
   "http-proxy": "consent.permissionHttpProxy",
-  "ui-notifications": "consent.permissionUiNotifications"
+  "ui-notifications": "consent.permissionUiNotifications",
+  "custom-css": "consent.permissionCustomCss"
 };
 
 export const ConsentModal: React.FC<Props> = ({

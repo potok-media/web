@@ -1,0 +1,17 @@
+{
+  "id": "potok-card-customizer",
+  "name": "Card Customizer",
+  "version": "1.0.0",
+  "description": "Тонкая настройка карточек, баннера и интерфейса + свой CSS. Использует PotokSDK.ui.injectHostCss.",
+  "author": "Potok",
+  "entrypoint": "index.js",
+  "category": "appearance",
+  "permissions": ["storage", "custom-css"],
+  "slots": [
+    {
+      "slotName": "settings-tabs",
+      "id": "card-settings-tab",
+      "title": "Custom"
+    }
+  ]
+}

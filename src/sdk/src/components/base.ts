@@ -25,6 +25,9 @@ export class UIComponent {
   protected _width?: string | number;
   protected _height?: string | number;
   protected _flex?: number;
+  // Custom CSS class(es) added via .style(). Applied to the component's root element by the host so a
+  // plugin can target it from its own injectHostCss() stylesheet. Sanitized host-side.
+  protected _className?: string;
   // Curated style tokens — applied inline by the host (sanitized), so a plugin can tweak the look of ANY
   // component without arbitrary CSS/className injection. Dangerous values are dropped host-side.
   protected _background?: string;
@@ -53,6 +56,15 @@ export class UIComponent {
   visible(v: boolean): this { this._visible = v; return this; }
   disabled(v: boolean): this { this._disabled = v; return this; }
   flex(v: number): this { this._flex = v; return this; }
+  /**
+   * Attaches a custom CSS class (or space-separated classes) to the component's root element, so it can
+   * be targeted from a stylesheet injected via PotokSDK.ui.injectHostCss(). Calls accumulate.
+   * Example: Card().style('my-hero-card')
+   */
+  style(className: string): this {
+    this._className = this._className ? `${this._className} ${className}` : className;
+    return this;
+  }
   /** Component background: a CSS color or gradient (e.g. '#1e1e2e', 'rgba(0,0,0,.4)', 'linear-gradient(...)'). */
   background(v: string): this { this._background = v; return this; }
   /** Text color (CSS color). */
@@ -82,6 +94,7 @@ export class UIComponent {
         visible: this._visible,
         disabled: this._disabled,
         flex: this._flex,
+        className: this._className,
         background: this._background,
         textColor: this._textColor,
         borderColor: this._borderColor,

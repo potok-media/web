@@ -6,7 +6,7 @@ import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
 import { usePopoverCoords } from "../../../hooks/usePopoverCoords";
 import { Overlay } from "../Overlay";
 import { Button, PopoverItem } from "../../ui";
-import { sdkStyleVars, toPascalCase } from "./componentRendererUtils";
+import { sdkClass, sdkStyleVars, toPascalCase } from "./componentRendererUtils";
 import {
   isOptionSelected,
   isResetActive,
@@ -113,7 +113,7 @@ export const SafeSelect: React.FC<SafeSelectProps> = ({ schema, pluginId, baseSt
       : undefined;
 
   return (
-    <div id={id} className="potok-input-group filter-popover-wrapper potok-select-wrap--relative potok-sdk-props" style={sdkStyleVars(baseStyle)}>
+    <div id={id} className={sdkClass(schema, "potok-input-group filter-popover-wrapper potok-select-wrap--relative")} style={sdkStyleVars(baseStyle)}>
       {!isGlass && componentProps.label && (
         <label className="potok-label potok-label--spaced">
           {componentProps.label}

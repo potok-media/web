@@ -116,7 +116,7 @@ export const ExtensionsManager: React.FC = () => {
   });
 
   return (
-    <div className="ext-manager">
+    <div className="ext-manager potok-safeguard">
       <header className="ext-header">
         <div className="ext-header-titles">
           <h2 className="ext-title">{t("title")}</h2>

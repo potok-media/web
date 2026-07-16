@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Search, X } from "lucide-react";
 import type { SearchBarSchema } from "@potok/sdk-types";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
-import { sdkStyleVars } from "./componentRendererUtils";
+import { sdkClass, sdkStyleVars } from "./componentRendererUtils";
 import { Input, IconButton } from "../../ui";
 
 interface SafeSearchBarProps {
@@ -39,7 +39,7 @@ export const SafeSearchBar: React.FC<SafeSearchBarProps> = ({ schema, pluginId, 
   return (
     <div
       key={id}
-      className="extensions-search-bar extensions-search-bar--sdk potok-sdk-props"
+      className={sdkClass(schema, "extensions-search-bar", "extensions-search-bar--sdk")}
       style={sdkStyleVars(baseStyle)}
     >
       <Search size="1rem" className="search-icon" aria-hidden />

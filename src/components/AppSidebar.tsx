@@ -195,7 +195,8 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
             <User size="1.125rem" />
             <span>{t("profile")}</span>
           </SidebarNavLink>
-          <SidebarNavLink to="/settings" className={({ isActive }) => getNavLinkClass(isActive)}>
+          {/* potok-safeguard: a plugin's injectHostCss must never hide the path to uninstall it. */}
+          <SidebarNavLink to="/settings" className={({ isActive }) => getNavLinkClass(isActive, "potok-safeguard")}>
             <Settings size="1.125rem" />
             <span>{t("settings")}</span>
           </SidebarNavLink>

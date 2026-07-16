@@ -8,6 +8,7 @@ export const PERMISSION_KEYS: Record<string, string> = {
   "storage": "permissionDescriptions.storage",
   "http-proxy": "permissionDescriptions.httpProxy",
   "ui-notifications": "permissionDescriptions.uiNotifications",
+  "custom-css": "permissionDescriptions.customCss",
 };
 
 export const getExtensionIcon = (manifest: ExtensionManifest) => {
@@ -18,7 +19,7 @@ export const getExtensionIcon = (manifest: ExtensionManifest) => {
   if (perms.includes("http-proxy") || /network|api|torrent|сеть/.test(name)) return <Globe size="1.375rem" />;
   if (perms.includes("storage") || /db|save|cache|база/.test(name)) return <Database size="1.375rem" />;
   if (perms.includes("ui-notifications") || /notify|alert|уведомл/.test(name)) return <Bell size="1.375rem" />;
-  if (/theme|style|css|design|тема/.test(name)) return <Sparkles size="1.375rem" />;
+  if (perms.includes("custom-css") || /theme|style|css|design|тема/.test(name)) return <Sparkles size="1.375rem" />;
   return <Puzzle size="1.375rem" />;
 };
 

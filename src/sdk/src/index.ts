@@ -369,6 +369,16 @@ export const ui = {
   },
   registerThemes(themes: unknown[]) {
     window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'REGISTER_THEMES', payload: { themes } }, getHostOrigin());
+  },
+  /**
+   * Injects (or replaces) a global stylesheet into the host document, identified by `id`. Re-calling with
+   * the same id replaces the previous CSS; passing an empty string removes that layer. Because the layer is
+   * appended after the app's own stylesheets, its rules override matching host CSS at equal specificity —
+   * letting a plugin restyle any built-in component. Layers are namespaced per-plugin and cleaned up on
+   * uninstall. Pair with .style('my-class') to target specific components.
+   */
+  injectHostCss(id: string, css: string) {
+    window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'INJECT_HOST_CSS', payload: { id, css } }, getHostOrigin());
   }
 };
 

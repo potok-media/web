@@ -26,7 +26,7 @@ import { WebMediaPlayer } from "../../../WebMediaPlayer";
 import EpisodeSelectorPopup, { type GenericEpisodeItem } from "../../EpisodeSelectorPopup";
 import { EpisodeCard } from "../../../EpisodeCard";
 import type { HostMediaRendererProps } from "./types";
-import { sdkStyleVars } from "../componentRendererUtils";
+import { sdkClass, sdkStyleVars } from "../componentRendererUtils";
 import {
   asApiMediaCard,
   mapSdkPlayback,
@@ -49,7 +49,7 @@ export const HostMediaCardCase: React.FC<HostMediaRendererProps<MediaCardSchema>
   };
 
   return (
-    <div id={id} className="host-media-card-wrap potok-sdk-props" style={sdkStyleVars(baseStyle)}>
+    <div id={id} className={sdkClass(schema, "host-media-card-wrap")} style={sdkStyleVars(baseStyle)}>
       <MediaCardComponent item={asApiMediaCard(props.item)} onClick={handleClick} />
     </div>
   );
@@ -72,7 +72,7 @@ export const HostHeroSpotlightCase: React.FC<HostMediaRendererProps<HeroSpotligh
   };
 
   return (
-    <div id={id} className="host-hero-spotlight-wrap potok-sdk-props" style={sdkStyleVars(baseStyle)}>
+    <div id={id} className={sdkClass(schema, "host-hero-spotlight-wrap")} style={sdkStyleVars(baseStyle)}>
       <HeroSpotlight
         items={normalizeHeroItems(props.items as Array<SDKMediaCard | HeroItem>)}
         onPlay={handlePlay}
@@ -237,7 +237,7 @@ export const HostEpisodeCardCase: React.FC<HostMediaRendererProps<EpisodeCardSch
   };
 
   return (
-    <div id={id} className="host-episode-card-wrap potok-sdk-props" style={sdkStyleVars(baseStyle)}>
+    <div id={id} className={sdkClass(schema, "host-episode-card-wrap")} style={sdkStyleVars(baseStyle)}>
       <EpisodeCard episode={episode} onClick={handleClick} />
     </div>
   );
