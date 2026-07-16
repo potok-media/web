@@ -33,6 +33,9 @@ export const REQUIRED_COMPOSE = `services:
       - Gateway__TmdbApiKey=\${GATEWAY_TMDB_API_KEY}
       - Gateway__MultiUserMode=\${GATEWAY_MULTI_USER_MODE:-false}
       - Gateway__JwtSecret=\${GATEWAY_JWT_SECRET:-default-fallback-gateway-jwt-secret-key-32-chars-long}
+      # Telegram login (optional): set both to enable sign-in/registration via Telegram
+      - Gateway__TelegramBotToken=\${GATEWAY_TELEGRAM_BOT_TOKEN:-}
+      - Gateway__TelegramBotUsername=\${GATEWAY_TELEGRAM_BOT_USERNAME:-}
     depends_on:
       db:
         condition: service_healthy

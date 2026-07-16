@@ -9,6 +9,9 @@ GATEWAY_PORT=5000
 GATEWAY_TMDB_API_KEY=
 GATEWAY_MULTI_USER_MODE=false
 GATEWAY_JWT_SECRET=change-me-in-production-32chars-min
+# Telegram login (optional) — set both to enable sign-in/registration via Telegram
+GATEWAY_TELEGRAM_BOT_TOKEN=
+GATEWAY_TELEGRAM_BOT_USERNAME=
 
 # database (bundled db service)
 DB_HOST=db
