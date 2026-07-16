@@ -1185,7 +1185,8 @@
           "permissionsItems": [
             "storage — storage.local (ключи, кэш).",
             "http-proxy — http.get/post через прокси хоста (CORS).",
-            "ui-notifications — ui.showHUD() и системные уведомления."
+            "ui-notifications — ui.showHUD() и системные уведомления.",
+            "custom-css — ui.injectHostCss() (внедрение/замена глобального CSS)."
           ],
           "slotsTitle": "Слоты (slotName)",
           "slotsIntro": "Значения slotName в массиве slots:",
@@ -1502,7 +1503,15 @@
           "easyPluginStep3": "index.js",
           "folderStructure": "my-easy-plugin/\n├── manifest.json   # Метаданные и объявление слотов\n└── index.js        # Исполняемый JS код плагина",
           "manifestJson": "{\n  \"id\": \"my-easy-plugin\",\n  \"name\": \"Простой Просмотрщик\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Добавляет кнопку просмотра трейлера и блок в деталях\",\n  \"permissions\": [\"ui-notifications\"],\n  \"slots\": [\n    {\n      \"id\": \"trailer-action-button\",\n      \"slotName\": \"media-actions\",\n      \"title\": \"Кнопка Трейлера\"\n    },\n    {\n      \"id\": \"extra-details-info\",\n      \"slotName\": \"details-bottom\",\n      \"title\": \"Блок Информации\"\n    }\n  ]\n}",
-          "sandboxButton": "Протестировать оверлеи в Sandbox"
+          "sandboxButton": "Протестировать оверлеи в Sandbox",
+          "injectCssTitle": "Свой CSS (injectHostCss)",
+          "injectCssIntro": "Внедрение или замена глобального стиля в хосте для переоформления любого встроенного компонента. Требует разрешение custom-css.",
+          "injectCssItems": [
+            "ui.injectHostCss(id, css) — добавить или заменить глобальный CSS-слой; он идёт после стилей приложения и выигрывает при равной специфичности.",
+            "Тот же id заменяет слой; пустая строка удаляет его.",
+            "Сочетается с .style('my-class') у компонента для точного таргетинга.",
+            "Кнопка настроек и менеджер расширений остаются видимыми — плагин не заблокирует сам себя."
+          ]
         }
       },
       "i18n": {
@@ -2219,7 +2228,8 @@
           "height": "Высота элемента (например, \"auto\" или 100).",
           "visible": "Управляет видимостью элемента на экране.",
           "disabled": "Переводит элемент в неактивное состояние.",
-          "flex": "Коэффициент распределения свободного пространства (flex-grow)."
+          "flex": "Коэффициент распределения свободного пространства (flex-grow).",
+          "style": "Добавляет свой CSS-класс на корневой элемент — цель для ui.injectHostCss()."
         }
       },
       "layoutMethods": {

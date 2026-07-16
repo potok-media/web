@@ -1144,7 +1144,8 @@
           "permissionsItems": [
             "storage — storage.local (claves, caché).",
             "http-proxy — http.get/post a través del proxy del host (CORS).",
-            "ui-notifications — ui.showHUD() y notificaciones del sistema."
+            "ui-notifications — ui.showHUD() y notificaciones del sistema.",
+            "custom-css — ui.injectHostCss() (inject/replace global CSS)."
           ],
           "slotsTitle": "Slots (slotName)",
           "slotsIntro": "Valores de slotName en el array slots:",
@@ -1461,7 +1462,15 @@
           "easyPluginStep3": "index.js",
           "folderStructure": "my-easy-plugin/\n├── manifest.json   # Metadata and slot declarations\n└── index.js        # Plugin executable JS",
           "manifestJson": "{\n  \"id\": \"my-easy-plugin\",\n  \"name\": \"Simple Viewer\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Adds a trailer button and info block on the details page\",\n  \"permissions\": [\"ui-notifications\"],\n  \"slots\": [\n    {\n      \"id\": \"trailer-action-button\",\n      \"slotName\": \"media-actions\",\n      \"title\": \"Trailer button\"\n    },\n    {\n      \"id\": \"extra-details-info\",\n      \"slotName\": \"details-bottom\",\n      \"title\": \"Info block\"\n    }\n  ]\n}",
-          "sandboxButton": "Probar superposiciones en el Sandbox"
+          "sandboxButton": "Probar superposiciones en el Sandbox",
+          "injectCssTitle": "Custom CSS (injectHostCss)",
+          "injectCssIntro": "Inject or replace a global stylesheet in the host to restyle any built-in component. Requires the custom-css permission.",
+          "injectCssItems": [
+            "ui.injectHostCss(id, css) — add or replace a global CSS layer, appended after app styles so it wins at equal specificity.",
+            "Same id replaces the layer; an empty string removes it.",
+            "Pair with a component's .style('my-class') to target it precisely.",
+            "The settings entry and extensions manager stay visible — the plugin can't lock itself in."
+          ]
         }
       },
       "i18n": {
@@ -2178,7 +2187,8 @@
           "height": "Alto del elemento (p. ej. \"auto\" o 100).",
           "visible": "Controla la visibilidad del elemento.",
           "disabled": "Pone el elemento en estado deshabilitado.",
-          "flex": "Proporción de flex-grow para distribuir el espacio libre."
+          "flex": "Proporción de flex-grow para distribuir el espacio libre.",
+          "style": "Adds a custom CSS class to the root element to target from ui.injectHostCss()."
         }
       },
       "layoutMethods": {

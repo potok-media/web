@@ -1144,7 +1144,8 @@
           "permissionsItems": [
             "storage — storage.local (ключы, кэш).",
             "http-proxy — http.get/post праз проксі хоста (CORS).",
-            "ui-notifications — ui.showHUD() і сістэмныя апавяшчэнні."
+            "ui-notifications — ui.showHUD() і сістэмныя апавяшчэнні.",
+            "custom-css — ui.injectHostCss() (inject/replace global CSS)."
           ],
           "slotsTitle": "Слоты (slotName)",
           "slotsIntro": "Значэнні slotName у масіве slots:",
@@ -1461,7 +1462,15 @@
           "easyPluginStep3": "index.js",
           "folderStructure": "my-easy-plugin/\n├── manifest.json   # Metadata and slot declarations\n└── index.js        # Plugin executable JS",
           "manifestJson": "{\n  \"id\": \"my-easy-plugin\",\n  \"name\": \"Simple Viewer\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Adds a trailer button and info block on the details page\",\n  \"permissions\": [\"ui-notifications\"],\n  \"slots\": [\n    {\n      \"id\": \"trailer-action-button\",\n      \"slotName\": \"media-actions\",\n      \"title\": \"Trailer button\"\n    },\n    {\n      \"id\": \"extra-details-info\",\n      \"slotName\": \"details-bottom\",\n      \"title\": \"Info block\"\n    }\n  ]\n}",
-          "sandboxButton": "Праверыць накладкі ў пясочніцы"
+          "sandboxButton": "Праверыць накладкі ў пясочніцы",
+          "injectCssTitle": "Custom CSS (injectHostCss)",
+          "injectCssIntro": "Inject or replace a global stylesheet in the host to restyle any built-in component. Requires the custom-css permission.",
+          "injectCssItems": [
+            "ui.injectHostCss(id, css) — add or replace a global CSS layer, appended after app styles so it wins at equal specificity.",
+            "Same id replaces the layer; an empty string removes it.",
+            "Pair with a component's .style('my-class') to target it precisely.",
+            "The settings entry and extensions manager stay visible — the plugin can't lock itself in."
+          ]
         }
       },
       "i18n": {
@@ -2178,7 +2187,8 @@
           "height": "Вышыня элемента (напр. \"auto\" або 100).",
           "visible": "Кіруе бачнасцю элемента.",
           "disabled": "Пераводзіць элемент у неактыўны стан.",
-          "flex": "Каэфіцыент flex-grow для размеркавання свабоднай прасторы."
+          "flex": "Каэфіцыент flex-grow для размеркавання свабоднай прасторы.",
+          "style": "Adds a custom CSS class to the root element to target from ui.injectHostCss()."
         }
       },
       "layoutMethods": {

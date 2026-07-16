@@ -19,6 +19,7 @@ export function BaseMethodsTable({ t }: { t: TFunction<"wiki"> }) {
     { key: "visible", arg: "boolean" },
     { key: "disabled", arg: "boolean" },
     { key: "flex", arg: "number" },
+    { key: "style", arg: "string" },
   ];
 
   return (

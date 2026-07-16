@@ -85,6 +85,28 @@ ${buildPlaybackInfoBlock(L)}
 });`;
 }
 
+/** .style() on a component + ui.injectHostCss() targeting it, plus restyling a built-in class. */
+export function injectHostCssExample(lang?: string): string {
+  const ru = wikiLang(lang) === "ru";
+  const c1 = ru ? "Свой класс на компоненте" : "Custom class on a component";
+  const c2 = ru ? "Стилизуем его глобально + перекрашиваем встроенный класс" : "Style it globally + restyle a built-in class";
+  const c3 = ru ? "Тот же id заменяет слой; пустая строка — удаляет" : "Same id replaces the layer; empty string removes it";
+  return `// ${c1}
+const card = Card().style("my-hero-card").child(Text("Featured"));
+ui.render(card);
+
+// ${c2}
+ui.injectHostCss("cards", \`
+  .my-hero-card { border-radius: 1.5rem; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+  .media-card-overlay {
+    background: linear-gradient(to top, #000, transparent) !important;
+  }
+\`);
+
+// ${c3}
+ui.injectHostCss("cards", "");`;
+}
+
 /** Full ShowEpisodeSelectorPayload + GenericEpisodeItem + SDKTvSeason fields */
 export function showEpisodeSelectorExample(lang?: string): string {
   const ru = wikiLang(lang) === "ru";

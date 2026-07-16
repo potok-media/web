@@ -6,6 +6,7 @@ import { WikiDocLi, WikiDocP, WikiRichText } from "../wikiDocUtils";
 import { getWikiSections } from "../wikiSections";
 import {
   easyPluginIndexJsExample,
+  injectHostCssExample,
   playVideoExample,
   showEpisodeSelectorExample,
   uiMethodsSandboxExample,
@@ -28,6 +29,9 @@ interface UiMethodsSections {
   themesTitle: string;
   themesIntro: string;
   themesItems: string[];
+  injectCssTitle: string;
+  injectCssIntro: string;
+  injectCssItems: string[];
   blockTitle: string;
   blockText: string;
   blockItems: string[];
@@ -88,6 +92,15 @@ export function buildUiMethodsDoc(t: TFunction<"wiki">, lang?: string) {
           <WikiDocLi key={item} text={item} />
         ))}
       </ul>
+
+      <h2 className="doc-section-h2" id="inject-css">{s.injectCssTitle}</h2>
+      <WikiDocP text={s.injectCssIntro} />
+      <ul className="doc-bullet-list">
+        {s.injectCssItems.map((item) => (
+          <WikiDocLi key={item} text={item} />
+        ))}
+      </ul>
+      <CodeBlock language="javascript" code={injectHostCssExample(lang)} />
 
       <h2 className="doc-section-h2" id="block">{s.blockTitle}</h2>
       <WikiDocP text={s.blockText} />
