@@ -30,6 +30,7 @@ import type { ActivePlayback } from "./playbackTypes";
 import { WatchTogetherContext, type WatchTogetherContextType } from "./watchTogetherState";
 
 const START_HANDSHAKE_TIMEOUT_MS = 12000; // fallback: start even if a guest never reports ready
+const JOIN_TIMEOUT_MS = 8000; // guest: no state-sync AND no no-host reply within this → treat the room as dead
 
 // Distil a playback descriptor into the lobby session info (banner + title + lightweight playlist).
 function descriptorToSessionInfo(d: ActivePlayback): WTSessionInfo {
@@ -77,6 +78,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
   const chatIdRef = useRef(0);
   const [roomInfo, setRoomInfo] = useState<WTSessionInfo | null>(null); // guest: session info pushed by the host
   const [pings, setPings] = useState<Record<string, number>>({}); // participant id → RTT-to-host (ms)
+  const [roomUnavailable, setRoomUnavailable] = useState(false); // guest joined a room with no live host
   // Coordinated-start gate: false while the host waits for guests' ready-handshake, true once all are ready
   // (or a timeout). The host's player holds playback until this opens.
   const [startGateOpen, setStartGateOpen] = useState(true);
@@ -118,6 +120,8 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
   // Host: streamUrl of the descriptor last broadcast via start-watch. Guards hostAnnounceEpisode so the initial
   // episode (already broadcast by startWatch) isn't re-announced when the host player mounts.
   const lastBroadcastUrlRef = useRef<string | null>(null);
+  // Guest: fires if the host neither replies (state-sync) nor the server rejects (no-host) — treat as dead room.
+  const joinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Host: open the start gate once every expected guest has reported ready (or when there are none).
   const checkStartGate = useCallback(() => {
@@ -161,6 +165,8 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
     lastBroadcastUrlRef.current = null;
     if (startTimeoutRef.current) clearTimeout(startTimeoutRef.current);
     startTimeoutRef.current = null;
+    if (joinTimeoutRef.current) clearTimeout(joinTimeoutRef.current);
+    joinTimeoutRef.current = null;
     guestPermissionsRef.current = NO_PERMISSIONS;
     setRoomId(null);
     setRoomInfo(null);
@@ -292,6 +298,8 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
         case "state-sync":
           // A late joiner receives the host's authoritative snapshot.
           if (roleRef.current === "guest" && msg.to === clientId) {
+            // Host replied → the room is alive; cancel the dead-room timeout.
+            if (joinTimeoutRef.current) { clearTimeout(joinTimeoutRef.current); joinTimeoutRef.current = null; }
             setParticipants(msg.participants);
             setMyPermissions(msg.permissions);
             setRoomInfo(msg.info);
@@ -378,6 +386,14 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
           clientRef.current?.disconnect();
           resetLocalState();
           setHostEnded(true);
+          break;
+        case "no-host":
+          // Server rejected our join: this room has no live host (stale link). Tear down and show the terminal
+          // "room unavailable" state on the lobby (no navigation — the guest is already on the lobby page).
+          if (joinTimeoutRef.current) { clearTimeout(joinTimeoutRef.current); joinTimeoutRef.current = null; }
+          clientRef.current?.disconnect();
+          resetLocalState();
+          setRoomUnavailable(true);
           break;
         case "ping":
           // Host answers a guest's clock-sync probe. t2 = receive, t3 = send (host clock); near-instant in JS,
@@ -490,6 +506,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
       sessionActiveRef.current = false;
       lastSyncRef.current = null;
       setMyPermissions(NO_PERMISSIONS); // until the host grants anything
+      setRoomUnavailable(false); // fresh attempt
 
       setRoomId(roomKey);
       setRole("guest");
@@ -509,9 +526,21 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
           }),
         )
         .catch((err) => logger.error("[WT] joinAsGuest failed:", err));
+
+      // Backstop: the server sends `no-host` for a dead room (cleared on that), and the host replies `state-sync`
+      // for a live one (cleared on that). If NEITHER arrives, the room is unreachable — show the terminal state.
+      if (joinTimeoutRef.current) clearTimeout(joinTimeoutRef.current);
+      joinTimeoutRef.current = setTimeout(() => {
+        joinTimeoutRef.current = null;
+        clientRef.current?.disconnect();
+        resetLocalState();
+        setRoomUnavailable(true);
+      }, JOIN_TIMEOUT_MS);
     },
-    [clientId, ensureClient],
+    [clientId, ensureClient, resetLocalState],
   );
+
+  const dismissRoomUnavailable = useCallback(() => setRoomUnavailable(false), []);
 
   const startWatch = useCallback(() => {
     const descriptor = descriptorRef.current;
@@ -787,6 +816,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
       clientId,
       sessionInfo,
       pings,
+      roomUnavailable,
       createRoom,
       joinAsGuest,
       startWatch,
@@ -806,6 +836,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
       onControl,
       setMyName,
       dismissHostEnded,
+      dismissRoomUnavailable,
       sendChat,
       setChatOpen,
       getShareLink,
@@ -830,6 +861,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
       clientId,
       sessionInfo,
       pings,
+      roomUnavailable,
       createRoom,
       joinAsGuest,
       startWatch,
@@ -849,6 +881,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
       onControl,
       setMyName,
       dismissHostEnded,
+      dismissRoomUnavailable,
       sendChat,
       setChatOpen,
       getShareLink,

@@ -1446,6 +1446,41 @@
   border-color: rgba(255, 255, 255, 0.9);
 }
 
+/* Terminal "All" card in the carousel — opens the full episodes list popup instead of loading every card. */
+.episode-card-all {
+  justify-content: flex-start;
+}
+
+.episode-card-all-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  color: var(--text-secondary);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.07) 100%);
+  border: 1.5px dashed rgba(255, 255, 255, 0.18);
+  transition: border-color var(--timing-hover), color var(--timing-hover), background var(--timing-hover);
+}
+
+.episode-card-all:hover .episode-card-all-tile,
+.episode-card-all:focus-visible .episode-card-all-tile {
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.5);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.1) 100%);
+}
+
+.episode-card-all-label {
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.episode-card-all-count {
+  font-size: 0.8rem;
+  color: var(--text-tertiary, rgba(255, 255, 255, 0.4));
+}
+
 
 
 .episode-number-title {
@@ -4572,6 +4607,66 @@ button.popover-item.popover-menu-item:hover {
   transform: scale(0.97);
 }
 
+/* "All episodes" trigger — opens the view-only episodes list popup for long seasons. */
+.ui-btn.season-all-episodes-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  width: fit-content;
+  padding: 0.5rem 0.875rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.25rem;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background var(--timing-hover), border-color var(--timing-hover), transform var(--timing-hover);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.ui-btn.season-all-episodes-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: none;
+}
+
+.ui-btn.season-all-episodes-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* View-only rows in the "all episodes" popup: no play affordance, so drop the pointer/lift. */
+.file-card-row--static {
+  cursor: default;
+}
+
+.file-card-row--static:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.file-card-preview-placeholder--icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary, rgba(255, 255, 255, 0.38));
+}
+
+.episode-popup-overview {
+  margin: 0.125rem 0 0;
+  font: var(--font-caption);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* Popover Overlay & Dropdown Menu */
 .popover-overlay {
   position: fixed;
@@ -4585,8 +4680,12 @@ button.popover-item.popover-menu-item:hover {
   position: absolute;
   top: calc(100% + 0.5rem);
   left: 0;
+  right: auto;
   z-index: 1000;
-  width: 11.25rem;
+  /* Size to the longest item so localized labels (e.g. "Отметить выборочно...") never clip. */
+  width: max-content;
+  min-width: 11.25rem;
+  max-width: min(20rem, calc(100vw - 2rem));
   background: rgba(20, 20, 25, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -4598,12 +4697,6 @@ button.popover-item.popover-menu-item:hover {
   flex-direction: column;
   gap: 0.0625rem;
   animation: popoverFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-  transform-origin: top left;
-}
-
-.watch-popover-menu {
-  left: 0;
-  right: auto;
   transform-origin: top left;
 }
 

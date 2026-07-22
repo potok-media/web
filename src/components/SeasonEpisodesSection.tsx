@@ -9,11 +9,16 @@ import { Grid } from "./common/Grid";
 import { IconButton } from "./ui";
 import { SeasonEpisodesToolbar } from "./SeasonEpisodesToolbar";
 import { EpisodeContextMenu } from "./EpisodeContextMenu";
+import { EpisodesListPopup } from "./EpisodesListPopup";
+import { LayoutList } from "lucide-react";
 
-const EPISODE_CHUNK = 24;
+// Cap the carousel so long seasons don't render hundreds of cards or force endless scrolling.
+// When a season has more episodes, the last slot becomes an "All" card that opens the full list popup.
+const CAROUSEL_LIMIT = 15;
 
 interface SeasonEpisodesSectionProps {
   mediaId: number;
+  mediaTitle?: string;
   numberOfSeasons: number;
   onEpisodeClick: (episode: TvEpisode, seasonNumber: number) => void;
   selectedEpisode?: { episode: TvEpisode; seasonNumber: number } | null;
@@ -32,14 +37,16 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   toggleEpisodeWatched,
   toggleSeasonWatched,
   onOpenMultiPicker,
+  mediaTitle,
 }) => {
   const { t } = useTranslation("media");
   const [activeSeason, setActiveSeason] = useState(1);
   const [showSeasonPopover, setShowSeasonPopover] = useState(false);
   const [showWatchPopover, setShowWatchPopover] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(EPISODE_CHUNK);
+  const [showAllEpisodesPopup, setShowAllEpisodesPopup] = useState(false);
 
   const { episodes, loading } = useSeasonEpisodes(mediaId, activeSeason);
+  const hasMoreThanCarousel = episodes.length > CAROUSEL_LIMIT;
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -86,7 +93,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   };
 
   useEffect(() => {
-    setVisibleCount(EPISODE_CHUNK);
+    setShowAllEpisodesPopup(false);
     const el = scrollRef.current;
     if (el) el.scrollLeft = 0;
   }, [activeSeason]);
@@ -105,13 +112,6 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   const handleEpisodeClick = useCallback((episode: TvEpisode) => {
     onEpisodeClick(episode, activeSeason);
   }, [onEpisodeClick, activeSeason]);
-
-  const handleEpisodeFocus = useCallback((episode: TvEpisode) => {
-    const index = episodes.findIndex((e) => e.id === episode.id);
-    if (index >= visibleCount - 4 && visibleCount < episodes.length) {
-      setVisibleCount((prev) => Math.min(prev + EPISODE_CHUNK, episodes.length));
-    }
-  }, [episodes, visibleCount]);
 
   const handleEpisodeContextMenu = useCallback((episode: TvEpisode, clientX: number, clientY: number) => {
     setContextMenu({ episode, x: clientX, y: clientY });
@@ -133,6 +133,8 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
         setShowWatchPopover={setShowWatchPopover}
         toggleSeasonWatched={toggleSeasonWatched}
         onOpenMultiPicker={onOpenMultiPicker}
+        showAllEpisodes={!loading && hasMoreThanCarousel}
+        onOpenAllEpisodes={() => setShowAllEpisodesPopup(true)}
       />
 
       {loading ? (
@@ -167,7 +169,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
             viewportRef={scrollRef}
             onScroll={checkScrollLimits}
           >
-            {episodes.slice(0, visibleCount).map((ep) => {
+            {episodes.slice(0, CAROUSEL_LIMIT).map((ep) => {
               const watched = isEpisodeWatched(ep.episodeNumber);
               return (
                 <EpisodeCard
@@ -177,10 +179,29 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
                   isActive={selectedEpisode?.episode.id === ep.id}
                   isWatched={watched}
                   onContextMenu={handleEpisodeContextMenu}
-                  onFocus={handleEpisodeFocus}
                 />
               );
             })}
+            {hasMoreThanCarousel && (
+              <div
+                className="episode-card episode-card-all"
+                role="button"
+                tabIndex={0}
+                onClick={() => setShowAllEpisodesPopup(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setShowAllEpisodesPopup(true);
+                  }
+                }}
+              >
+                <div className="episode-still-wrap episode-card-all-tile">
+                  <LayoutList size="1.75rem" />
+                  <span className="episode-card-all-label">{t("seasons.allEpisodes")}</span>
+                  <span className="episode-card-all-count">{episodes.length}</span>
+                </div>
+              </div>
+            )}
           </ScrollView>
 
           {canScrollRight && (
@@ -208,6 +229,17 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
             setContextMenu(null);
           }}
           onClose={() => setContextMenu(null)}
+        />
+      )}
+
+      {showAllEpisodesPopup && (
+        <EpisodesListPopup
+          isOpen={showAllEpisodesPopup}
+          onClose={() => setShowAllEpisodesPopup(false)}
+          title={mediaTitle || t("seasons.episodeSelection")}
+          seasonNumber={activeSeason}
+          episodes={episodes}
+          isEpisodeWatched={isEpisodeWatched}
         />
       )}
     </section>

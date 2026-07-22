@@ -115,6 +115,7 @@ export const MediaDetailsPage: React.FC = () => {
           <div className="details-fullwidth-section">
             <SeasonEpisodesSection
               mediaId={media.id}
+              mediaTitle={media.title}
               numberOfSeasons={media.numberOfSeasons!}
               selectedEpisode={selectedEpisode}
               onEpisodeClick={(ep, seasonNum) => {

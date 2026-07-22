@@ -580,7 +580,8 @@
       "noEpisodes": "No information about episodes of this season.",
       "unmarkWatched": "Remove watched mark",
       "markWatched": "Mark as watched",
-      "loadError": "Failed to load the season's episodes"
+      "loadError": "Failed to load the season's episodes",
+      "allEpisodes": "All"
     },
     "categories": {
       "upNext": {
@@ -2317,6 +2318,7 @@
     "join": "Join room",
     "nowWatching": "Now watching",
     "episodeN": "Episode {{n}}",
-    "ping": "{{ms}} ms"
+    "ping": "{{ms}} ms",
+    "roomUnavailable": "This room is no longer available — the host has left."
   }
 }

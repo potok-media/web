@@ -18,7 +18,7 @@ export const WatchTogetherPage: React.FC = () => {
   const [params] = useSearchParams();
   const { show: showHUD } = useHUD();
   const wt = useWatchTogether();
-  const { role, participants, sessionActive, connectionState, hostEnded, clientId, sessionInfo } = wt;
+  const { role, participants, sessionActive, connectionState, hostEnded, clientId, sessionInfo, roomUnavailable } = wt;
 
   const token = params.get("room");
 
@@ -37,6 +37,22 @@ export const WatchTogetherPage: React.FC = () => {
     if (wasHost) navigate(-1); // back to where the host started the session
     else navigate("/");
   };
+
+  // Stale link: the room has no live host (server said so, or nobody replied). Terminal state — checked before
+  // the join-invite view below, otherwise the guest would just be offered to re-join a dead room.
+  if (roomUnavailable) {
+    return (
+      <main className="wt-page">
+        <div className="wt-card">
+          <h1 className="wt-card__title">{t("title")}</h1>
+          <p className="wt-card__subtitle">{t("roomUnavailable")}</p>
+          <Button variant="secondary" size="md" onClick={() => { wt.dismissRoomUnavailable(); navigate("/"); }}>
+            {t("goHome")}
+          </Button>
+        </div>
+      </main>
+    );
+  }
 
   // Neither host nor guest context — landed here directly with no room.
   if (!role && !token) {

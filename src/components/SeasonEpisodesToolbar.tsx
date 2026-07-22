@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronDown, Tv, Check, Eye, ListTodo } from "lucide-react";
+import { ChevronDown, Tv, Check, Eye, ListTodo, LayoutList } from "lucide-react";
 import type { TvEpisode } from "../network/ApiTypes";
 import { Button, IconButton, PopoverItem } from "./ui";
 
@@ -16,6 +16,8 @@ interface SeasonEpisodesToolbarProps {
   setShowWatchPopover: React.Dispatch<React.SetStateAction<boolean>>;
   toggleSeasonWatched?: (seasonNumber: number, episodesList: TvEpisode[], nextState: boolean) => Promise<void>;
   onOpenMultiPicker?: () => void;
+  showAllEpisodes?: boolean;
+  onOpenAllEpisodes?: () => void;
 }
 
 export const SeasonEpisodesToolbar: React.FC<SeasonEpisodesToolbarProps> = ({
@@ -30,6 +32,8 @@ export const SeasonEpisodesToolbar: React.FC<SeasonEpisodesToolbarProps> = ({
   setShowWatchPopover,
   toggleSeasonWatched,
   onOpenMultiPicker,
+  showAllEpisodes = false,
+  onOpenAllEpisodes,
 }) => {
   const { t } = useTranslation("media");
 
@@ -115,6 +119,17 @@ export const SeasonEpisodesToolbar: React.FC<SeasonEpisodesToolbarProps> = ({
             </>
           )}
         </div>
+      )}
+
+      {showAllEpisodes && onOpenAllEpisodes && (
+        <Button
+          variant="glass"
+          className="season-all-episodes-btn"
+          onClick={onOpenAllEpisodes}
+        >
+          <LayoutList size="0.9375rem" />
+          <span>{t("seasons.allEpisodes")}</span>
+        </Button>
       )}
     </div>
   );

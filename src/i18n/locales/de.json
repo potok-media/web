@@ -550,7 +550,8 @@
       "noEpisodes": "Keine Informationen über Episoden dieser Saison.",
       "unmarkWatched": "Gesehene Markierung entfernen",
       "markWatched": "Als gesehen markieren",
-      "loadError": "Laden der Episoden der Saison fehlgeschlagen"
+      "loadError": "Laden der Episoden der Saison fehlgeschlagen",
+      "allEpisodes": "Alle"
     },
     "categories": {
       "upNext": {
@@ -2280,6 +2281,7 @@
     "join": "Raum beitreten",
     "nowWatching": "Aktuell in Wiedergabe",
     "episodeN": "Episode {{n}}",
-    "ping": "{{ms}} ms"
+    "ping": "{{ms}} ms",
+    "roomUnavailable": "Dieser Raum ist nicht mehr verfügbar — der Host hat ihn verlassen."
   }
 }

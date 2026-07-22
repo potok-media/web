@@ -550,7 +550,8 @@
       "noEpisodes": "Nessuna informazione sugli episodi di questa stagione.",
       "unmarkWatched": "Rimuovi il segno guardato",
       "markWatched": "Segna come visto",
-      "loadError": "Impossibile caricare gli episodi della stagione"
+      "loadError": "Impossibile caricare gli episodi della stagione",
+      "allEpisodes": "Tutti"
     },
     "categories": {
       "upNext": {
@@ -2280,6 +2281,7 @@
     "join": "Entra nella stanza",
     "nowWatching": "In riproduzione ora",
     "episodeN": "Episodio {{n}}",
-    "ping": "{{ms}} ms"
+    "ping": "{{ms}} ms",
+    "roomUnavailable": "Questa stanza non è più disponibile: l’host è uscito."
   }
 }

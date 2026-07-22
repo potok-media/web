@@ -550,7 +550,8 @@
       "noEpisodes": "",
       "unmarkWatched": "",
       "markWatched": "",
-      "loadError": ""
+      "loadError": "",
+      "allEpisodes": "Усе"
     },
     "categories": {
       "upNext": {
@@ -2280,6 +2281,7 @@
     "join": "Далучыцца да пакоя",
     "nowWatching": "Зараз глядзім",
     "episodeN": "Эпізод {{n}}",
-    "ping": "{{ms}} мс"
+    "ping": "{{ms}} мс",
+    "roomUnavailable": "Гэты пакой больш недаступны — хост выйшаў."
   }
 }

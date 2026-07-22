@@ -550,7 +550,8 @@
       "noEpisodes": "Brak informacji o odcinkach w tym sezonie.",
       "unmarkWatched": "Usuń obserwowany znacznik",
       "markWatched": "Oznacz jako obejrzane",
-      "loadError": "Nie udało się załadować odcinków sezonu"
+      "loadError": "Nie udało się załadować odcinków sezonu",
+      "allEpisodes": "Wszystkie"
     },
     "categories": {
       "upNext": {
@@ -2280,6 +2281,7 @@
     "join": "Dołącz do pokoju",
     "nowWatching": "Teraz oglądane",
     "episodeN": "Odcinek {{n}}",
-    "ping": "{{ms}} ms"
+    "ping": "{{ms}} ms",
+    "roomUnavailable": "Ten pokój nie jest już dostępny — gospodarz go opuścił."
   }
 }

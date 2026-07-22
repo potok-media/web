@@ -35,6 +35,7 @@ export interface WatchTogetherContextType {
   clientId: string;
   sessionInfo: WTSessionInfo | null; // what's being watched, for the lobby banner/playlist
   pings: Record<string, number>; // participant id → measured round-trip latency to the host (ms)
+  roomUnavailable: boolean; // guest joined a room with no live host (stale link) — terminal state
   createRoom: (descriptor: ActivePlayback) => void;
   joinAsGuest: (token: string) => void;
   startWatch: () => void;
@@ -54,6 +55,7 @@ export interface WatchTogetherContextType {
   onControl: (cb: (c: WTControl) => void) => () => void; // host: receive allowed control
   setMyName: (name: string) => void;
   dismissHostEnded: () => void; // guest: acknowledge the "host closed the room" modal
+  dismissRoomUnavailable: () => void; // guest: acknowledge the "room unavailable" state
   sendChat: (text: string) => void;
   setChatOpen: (open: boolean) => void;
   getShareLink: () => string;
@@ -80,6 +82,7 @@ const NOOP_CONTEXT: WatchTogetherContextType = {
   clientId: "",
   sessionInfo: null,
   pings: {},
+  roomUnavailable: false,
   createRoom: () => {},
   joinAsGuest: () => {},
   startWatch: () => {},
@@ -99,6 +102,7 @@ const NOOP_CONTEXT: WatchTogetherContextType = {
   onControl: () => () => {},
   setMyName: () => {},
   dismissHostEnded: () => {},
+  dismissRoomUnavailable: () => {},
   sendChat: () => {},
   setChatOpen: () => {},
   getShareLink: () => "",

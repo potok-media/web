@@ -86,3 +86,4 @@ public/assets/
 
 # 🧩 Generated SDK bundle — compiled from src/sdk into public/sdk on every build.
 public/sdk/
+/dev-plugins/

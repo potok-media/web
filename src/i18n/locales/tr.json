@@ -550,7 +550,8 @@
       "noEpisodes": "",
       "unmarkWatched": "",
       "markWatched": "",
-      "loadError": ""
+      "loadError": "",
+      "allEpisodes": "Tümü"
     },
     "categories": {
       "upNext": {
@@ -2280,6 +2281,7 @@
     "join": "Odaya katıl",
     "nowWatching": "Şimdi izleniyor",
     "episodeN": "Bölüm {{n}}",
-    "ping": "{{ms}} ms"
+    "ping": "{{ms}} ms",
+    "roomUnavailable": "Bu oda artık kullanılamıyor — ana kullanıcı ayrıldı."
   }
 }

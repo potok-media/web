@@ -82,12 +82,14 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
       updateBuffer();
     };
 
-    video.addEventListener("timeupdate", handleTimeUpdate);
-    video.addEventListener("progress", updateBuffer);
-    video.addEventListener("durationchange", () => {
+    const handleDurationChange = () => {
       updateSlider();
       updateBuffer();
-    });
+    };
+
+    video.addEventListener("timeupdate", handleTimeUpdate);
+    video.addEventListener("progress", updateBuffer);
+    video.addEventListener("durationchange", handleDurationChange);
 
     // Initial sync
     updateSlider();
@@ -96,6 +98,7 @@ export const TimelineSlider: React.FC<TimelineSliderProps> = ({
     return () => {
       video.removeEventListener("timeupdate", handleTimeUpdate);
       video.removeEventListener("progress", updateBuffer);
+      video.removeEventListener("durationchange", handleDurationChange);
     };
   }, [videoRef, initialDuration, seekOffset, seekPreview]);
 

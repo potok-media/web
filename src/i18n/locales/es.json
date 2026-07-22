@@ -550,7 +550,8 @@
       "noEpisodes": "No hay información sobre episodios de esta temporada.",
       "unmarkWatched": "Quitar marca vista",
       "markWatched": "Marcar como visto",
-      "loadError": "Error al cargar los episodios de la temporada"
+      "loadError": "Error al cargar los episodios de la temporada",
+      "allEpisodes": "Todos"
     },
     "categories": {
       "upNext": {
@@ -2280,6 +2281,7 @@
     "join": "Unirse a la sala",
     "nowWatching": "Viendo ahora",
     "episodeN": "Episodio {{n}}",
-    "ping": "{{ms}} ms"
+    "ping": "{{ms}} ms",
+    "roomUnavailable": "Esta sala ya no está disponible: el anfitrión se ha ido."
   }
 }

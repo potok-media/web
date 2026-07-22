@@ -550,7 +550,8 @@
       "noEpisodes": "Aucune information sur les épisodes de cette saison.",
       "unmarkWatched": "Supprimer la marque surveillée",
       "markWatched": "Marquer comme vu",
-      "loadError": "Impossible de charger les épisodes de la saison"
+      "loadError": "Impossible de charger les épisodes de la saison",
+      "allEpisodes": "Tout"
     },
     "categories": {
       "upNext": {
@@ -2280,6 +2281,7 @@
     "join": "Rejoindre la salle",
     "nowWatching": "En cours de visionnage",
     "episodeN": "Épisode {{n}}",
-    "ping": "{{ms}} ms"
+    "ping": "{{ms}} ms",
+    "roomUnavailable": "Ce salon n’est plus disponible — l’hôte est parti."
   }
 }

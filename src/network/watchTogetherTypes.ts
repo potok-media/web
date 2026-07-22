@@ -110,6 +110,11 @@ export interface WTHostEnded extends WTBase {
   type: "host-ended";
 }
 
+// Server → a joining guest whose room has no live host (stale share link). Not from a peer — the hub emits it.
+export interface WTNoHost {
+  type: "no-host";
+}
+
 // A participant left the room.
 export interface WTParticipantLeft extends WTBase {
   type: "participant-left";
@@ -199,7 +204,8 @@ export type WTMessage =
   | WTStateSync
   | WTPing
   | WTPong
-  | WTPingReport;
+  | WTPingReport
+  | WTNoHost;
 
 export interface WTParticipant {
   id: string;
