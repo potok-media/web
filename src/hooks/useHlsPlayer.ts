@@ -34,6 +34,15 @@ export function useHlsPlayer({
   const syncNativeTextTracksRef = useRef(syncNativeTextTracks);
   syncNativeTextTracksRef.current = syncNativeTextTracks;
 
+  // The setup effect re-inits HLS only when the *stream identity* changes, never on every
+  // `playback` reference change. Deferred enrichment (enrichPlayback patching subtitles/duration
+  // mid-playback) mints a new object with the same stream; keying the effect on the whole object
+  // there would tear the player down and reattach MSE — which doesn't auto-resume, freezing playback
+  // on a full buffer until a manual seek. So we read the latest playback from a ref and depend only
+  // on instanceId + streamUrl.
+  const playbackRef = useRef(playback);
+  playbackRef.current = playback;
+
   const [rawLevels, setRawLevels] = useState<{ id: number; height?: number }[]>([]);
   const [hlsActiveLevel, setHlsActiveLevel] = useState(-1);
   const [currentQualityLevel, setCurrentQualityLevel] = useState(-1);
@@ -50,6 +59,7 @@ export function useHlsPlayer({
     const video = videoRef.current;
     if (!video) return;
 
+    const playback = playbackRef.current;
     cleanupActiveResources();
     const sessionId = playerSessionRef.current;
 
@@ -125,7 +135,9 @@ export function useHlsPlayer({
       cleanupActiveResources();
     };
   }, [
-    playback,
+    // Stream identity only — NOT the whole playback object (see playbackRef note above).
+    playback.instanceId,
+    playback.streamUrl,
     cleanupActiveResources,
     setPlayerError,
     setIsMetadataLoading,

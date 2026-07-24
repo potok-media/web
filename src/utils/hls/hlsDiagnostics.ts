@@ -67,8 +67,10 @@ export function attachHlsDiagnostics(hls: Hls, video: HTMLVideoElement): void {
   });
 }
 
+// Errors surface in every build (unlike the per-fragment instrumentation above, which stays
+// dev-only to avoid flooding the console). A hidden hls error is exactly what makes a live stall
+// look like "no errors at all".
 export function logHlsDiagnosticError(hls: Hls, data: HlsErrorData): void {
-  if (!isDev) return;
   logger.warn("[HLS-DIAG] ERROR", {
     type: data.type,
     details: data.details,

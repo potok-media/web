@@ -10,6 +10,7 @@ import { usePlayerResumeToast } from "../usePlayerResumeToast";
 import { usePlayerLoadingState } from "../usePlayerLoadingState";
 import { usePlayerVideoError } from "../usePlayerVideoError";
 import { usePlayerTrackSwitching } from "../usePlayerTrackSwitching";
+import { usePlayerStallRecovery } from "./usePlayerStallRecovery";
 import type { useWebMediaPlayerCore } from "./useWebMediaPlayerCore";
 import type { UseWebMediaPlayerBindingsParams } from "./webMediaPlayerBindingTypes";
 
@@ -77,6 +78,10 @@ export function useWebMediaPlayerInteraction({
 
   const { showSpinner, resetSpinner } = usePlayerBufferingSpinner(isBuffering);
   const resume = usePlayerResumeToast(playback, metadata.isMetadataLoading);
+
+  // Auto-recover decode stalls that freeze the playhead with a full buffer and no error/`waiting` —
+  // the case hls.js's gap controller misses (only a manual seek fixes it otherwise).
+  usePlayerStallRecovery({ videoRef, hlsRef: hls.hlsRef, enabled: !metadata.isMetadataLoading });
 
   const streamResetRef = useRef({
     resetSpinner,
