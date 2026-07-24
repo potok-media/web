@@ -6,6 +6,7 @@ VITE_BLOCK_SETTINGS_INPUT=false
 
 # gateway — https://www.themoviedb.org/
 GATEWAY_PORT=5000
+# TMDB key is OPTIONAL — a shared default is used if left blank. Set your own to avoid rate sharing.
 GATEWAY_TMDB_API_KEY=
 GATEWAY_MULTI_USER_MODE=false
 GATEWAY_JWT_SECRET=change-me-in-production-32chars-min

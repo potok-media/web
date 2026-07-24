@@ -990,7 +990,7 @@
           "optionalTitle": "Торренти",
           "optionalDesc": "SearchEngine + TorrentGo у compose. URL у <repo>potok-torrents</repo>.",
           "envTitle": ".env",
-          "envDesc": "<code>GATEWAY_TMDB_API_KEY</code> — TMDB. <code>GATEWAY_MULTI_USER_MODE=true</code> — самостійна реєстрація; <code>false</code> — лише вхід. <code>GATEWAY_JWT_SECRET</code> — змініть у продакшені.",
+          "envDesc": "<code>GATEWAY_TMDB_API_KEY</code> — TMDB (необов'язково — якщо не задано, використовується спільний ключ за замовчуванням). <code>GATEWAY_MULTI_USER_MODE=true</code> — самостійна реєстрація; <code>false</code> — лише вхід. <code>GATEWAY_JWT_SECRET</code> — змініть у продакшені.",
           "runTitle": "Запуск",
           "dockerUp": "docker compose up -d",
           "nginxTitle": "Nginx",

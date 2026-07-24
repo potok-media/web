@@ -990,7 +990,7 @@
           "optionalTitle": "Torrenty",
           "optionalDesc": "SearchEngine + TorrentGo w compose. Adresy URL w <repo>potok-torrents</repo>.",
           "envTitle": ".env",
-          "envDesc": "<code>GATEWAY_TMDB_API_KEY</code> — TMDB. <code>GATEWAY_MULTI_USER_MODE=true</code> — samodzielna rejestracja; <code>false</code> — tylko logowanie. <code>GATEWAY_JWT_SECRET</code> — zmień na produkcji.",
+          "envDesc": "<code>GATEWAY_TMDB_API_KEY</code> — TMDB (opcjonalne — jeśli nie ustawiono, używany jest wspólny klucz domyślny). <code>GATEWAY_MULTI_USER_MODE=true</code> — samodzielna rejestracja; <code>false</code> — tylko logowanie. <code>GATEWAY_JWT_SECRET</code> — zmień na produkcji.",
           "runTitle": "Uruchomienie",
           "dockerUp": "docker compose up -d",
           "nginxTitle": "Nginx",

@@ -1027,7 +1027,7 @@
           "optionalTitle": "Torrents",
           "optionalDesc": "SearchEngine + TorrentGo in compose. URLs in <repo>potok-torrents</repo>.",
           "envTitle": ".env",
-          "envDesc": "<code>GATEWAY_TMDB_API_KEY</code> — TMDB. <code>GATEWAY_MULTI_USER_MODE=true</code> — self-registration; <code>false</code> — login only. <code>GATEWAY_JWT_SECRET</code> — change in production. <code>GATEWAY_TELEGRAM_BOT_TOKEN</code> + <code>GATEWAY_TELEGRAM_BOT_USERNAME</code> — set both to enable Telegram login.",
+          "envDesc": "<code>GATEWAY_TMDB_API_KEY</code> — TMDB (optional — a shared default is used if unset). <code>GATEWAY_MULTI_USER_MODE=true</code> — self-registration; <code>false</code> — login only. <code>GATEWAY_JWT_SECRET</code> — change in production. <code>GATEWAY_TELEGRAM_BOT_TOKEN</code> + <code>GATEWAY_TELEGRAM_BOT_USERNAME</code> — set both to enable Telegram login.",
           "runTitle": "Run",
           "dockerUp": "docker compose up -d",
           "nginxTitle": "Nginx",

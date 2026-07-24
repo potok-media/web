@@ -30,7 +30,7 @@ export const REQUIRED_COMPOSE = `services:
     environment:
       - PORT=\${GATEWAY_PORT:-5000}
       - ConnectionStrings__DefaultConnection=Host=\${DB_HOST:-db};Port=\${DB_PORT:-5432};Database=\${DB_NAME:-potok};Username=\${DB_USER:-potok};Password=\${DB_PASSWORD:-potok};Timeout=30;CommandTimeout=60;
-      - Gateway__TmdbApiKey=\${GATEWAY_TMDB_API_KEY}
+      - Gateway__TmdbApiKey=\${GATEWAY_TMDB_API_KEY:-\${TMDB_API_KEY:-2c4fa42c601c29b6fea7ad9b211c46f0}}
       - Gateway__MultiUserMode=\${GATEWAY_MULTI_USER_MODE:-false}
       - Gateway__JwtSecret=\${GATEWAY_JWT_SECRET:-default-fallback-gateway-jwt-secret-key-32-chars-long}
       # Telegram login (optional): set both to enable sign-in/registration via Telegram
@@ -97,6 +97,11 @@ export const OPTIONAL_TORRENT_COMPOSE = `  # 🔍 OPTIONAL — Tracker search (p
       # - "55123:55123/udp"
     environment:
       - PORT=\${TORRENTGO_PORT:-5282}
+      # TMDB lookup for the Add-torrent dialog — same key/fallback chain as the gateway.
+      - TMDB_API_KEY=\${GATEWAY_TMDB_API_KEY:-\${TMDB_API_KEY:-2c4fa42c601c29b6fea7ad9b211c46f0}}
+      # Standalone management web UI is OFF by default. Uncomment to expose it, and set
+      # POTOK_AUTH_USER/POTOK_AUTH_PASS to protect it (otherwise it's open to anyone).
+      # - TORRENTGO_ENABLE_WEBUI=true
     devices:
       - \${GPU_DEVICE:-/dev/null:/dev/null}`;
 

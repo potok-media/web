@@ -1031,7 +1031,7 @@
           "optionalTitle": "Торренты",
           "optionalDesc": "SearchEngine + TorrentGo в compose. URL — в <repo>potok-torrents</repo>.",
           "envTitle": ".env",
-          "envDesc": "<code>GATEWAY_TMDB_API_KEY</code> — TMDB. <code>GATEWAY_MULTI_USER_MODE=true</code> — саморегистрация, <code>false</code> — только вход. <code>GATEWAY_JWT_SECRET</code> — сменить в проде. <code>GATEWAY_TELEGRAM_BOT_TOKEN</code> + <code>GATEWAY_TELEGRAM_BOT_USERNAME</code> — задать оба для входа через Telegram.",
+          "envDesc": "<code>GATEWAY_TMDB_API_KEY</code> — TMDB (необязательно — если не задан, используется общий ключ по умолчанию). <code>GATEWAY_MULTI_USER_MODE=true</code> — саморегистрация, <code>false</code> — только вход. <code>GATEWAY_JWT_SECRET</code> — сменить в проде. <code>GATEWAY_TELEGRAM_BOT_TOKEN</code> + <code>GATEWAY_TELEGRAM_BOT_USERNAME</code> — задать оба для входа через Telegram.",
           "runTitle": "Запуск",
           "dockerUp": "docker compose up -d",
           "nginxTitle": "Nginx",
