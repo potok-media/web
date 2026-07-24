@@ -1,4 +1,8 @@
-import { HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel } from "@microsoft/signalr";
+// `@microsoft/signalr` is heavy and only needed once a WebSocket connection is actually
+// established (which requires a configured gateway and happens after handshake). Import the type
+// statically (erased at build) and pull the runtime lazily in connect(), so it stays out of the
+// main + worker startup bundles and never blocks their first request (e.g. the handshake).
+import type { HubConnection } from "@microsoft/signalr";
 import { logger } from "../utils/logger";
 import { Storage } from "../utils/StorageService";
 import type { WorkerBridgeDelegate, WsEventFrame } from "./wsTypes";
@@ -63,7 +67,7 @@ export class WebSocketClient {
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {
           logger.log("[WS] Tab became visible. Checking SignalR state...");
-          if (!this.connection || this.connection.state === HubConnectionState.Disconnected) {
+          if (!this.connection || (this.connection.state as string) === "Disconnected") {
             this.reconnect();
           }
         }
@@ -131,7 +135,8 @@ export class WebSocketClient {
 
   private async connect(): Promise<void> {
     if (!this.rawUrl) return;
-    if (this.connection && (this.connection.state === HubConnectionState.Connected || this.connection.state === HubConnectionState.Connecting)) {
+    const activeState = this.connection?.state as string | undefined;
+    if (activeState === "Connected" || activeState === "Connecting") {
       return;
     }
 
@@ -148,6 +153,8 @@ export class WebSocketClient {
       }
       this.connection = null;
     }
+
+    const { HubConnectionBuilder, LogLevel } = await import("@microsoft/signalr");
 
     this.connection = new HubConnectionBuilder()
       .withUrl(fullUrl, {
@@ -303,7 +310,7 @@ export class WebSocketClient {
       WebSocketClient.bridgeDelegate?.postToWorker({ type: "ws_send", event, payload });
       return;
     }
-    if (this.connection && this.connection.state === HubConnectionState.Connected) {
+    if (this.connection && (this.connection.state as string) === "Connected") {
       this.connection.send("SendEvent", event, payload).catch(err => {
         logger.error("[WS] Failed to send message to SignalR:", err);
       });

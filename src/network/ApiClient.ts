@@ -88,9 +88,12 @@ export class ApiClient {
   }
 
   public static async performHandshake(url: string): Promise<HandshakeResponse> {
-    if (!this.isWorker) {
-      return DataWorkerBridge.request<HandshakeResponse>("performHandshake", [url]);
-    }
+    // Run the handshake directly on the calling thread instead of round-tripping through the data
+    // worker. The handshake is a tiny, unauthenticated GET whose result gates first-paint auth UI
+    // (e.g. the registration toggle via `multiUserMode`). Routing it through the worker made it wait
+    // on the worker's cold start — its module bundle statically pulls in SignalR and the API clients,
+    // which must download+parse before it can service its first request — needlessly delaying the
+    // button. A plain fetch has the same origin/CORS behavior on the main thread, so nothing is lost.
     const absolute = ensureAbsoluteURL(url);
     const normalized = absolute.replace(/\/$/, "");
     const res = await fetch(`${normalized}/api/handshake`, { signal: AbortSignal.timeout(4000) });

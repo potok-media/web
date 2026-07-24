@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Storage } from "../utils/StorageService";
 import { ApiClient } from "../network/ApiClient";
-import type { ServiceStatus } from "../network/ApiTypes";
+import type { ServiceStatus, HandshakeResponse } from "../network/ApiTypes";
 import { webSocketClient } from "../network/WebSocketClient";
 import { getEnv } from "../utils/EnvService";
 import { logger } from "../utils/logger";
@@ -52,10 +52,33 @@ export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> =
   const consecutiveFailuresRef = useRef<number>(0);
   const connectionStateRef = useRef<ConnectionState>("checking");
   const checkConnectionRef = useRef<((options?: { silent?: boolean }) => Promise<void>) | null>(null);
+  // Dedupes concurrent handshakes: the eager multiUserMode effect and checkConnection both fire on
+  // mount for the same gateway, and would otherwise each hit /api/handshake. Only in-flight requests
+  // are shared — the entry is cleared on settle so a later reconnect still re-probes fresh config.
+  const handshakeRef = useRef<{ gateway: string; promise: Promise<HandshakeResponse> } | null>(null);
 
   useEffect(() => {
     connectionStateRef.current = connectionState;
   }, [connectionState]);
+
+  const getHandshake = useCallback((gateway: string): Promise<HandshakeResponse> => {
+    const cached = handshakeRef.current;
+    if (cached && cached.gateway === gateway) return cached.promise;
+    const promise = ApiClient.performHandshake(gateway);
+    handshakeRef.current = { gateway, promise };
+    const clear = () => {
+      if (handshakeRef.current?.promise === promise) handshakeRef.current = null;
+    };
+    promise.then(clear, clear);
+    return promise;
+  }, []);
+
+  const applyHandshake = useCallback((handshake: HandshakeResponse) => {
+    const isMultiUser = handshake.multiUserMode ?? false;
+    Storage.set("multiUserMode", isMultiUser);
+    setMultiUserMode(isMultiUser);
+    setTelegramAuth(handshake.telegramAuthEnabled ?? false, handshake.telegramBotUsername ?? null);
+  }, [setMultiUserMode, setTelegramAuth]);
 
   const stopPingTimer = useCallback(() => {
     if (pingIntervalRef.current) {
@@ -126,11 +149,10 @@ export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> =
       }
 
       try {
-        const handshake = await ApiClient.performHandshake(currentGateway);
-        const isMultiUser = handshake.multiUserMode ?? false;
-        Storage.set("multiUserMode", isMultiUser);
-        setMultiUserMode(isMultiUser);
-        setTelegramAuth(handshake.telegramAuthEnabled ?? false, handshake.telegramBotUsername ?? null);
+        // Handshake also serves as the reachability probe here (pingHealth swallows its own errors),
+        // so a failure must throw into the catch below to flip the state to offline.
+        const handshake = await getHandshake(currentGateway);
+        applyHandshake(handshake);
 
         const bff = await ApiClient.pingHealth(currentGateway, "/api/health/bff", true);
         const search = { configured: false, online: false };
@@ -147,12 +169,37 @@ export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> =
         startPingTimer();
       }
     },
-    [activeProfileID, isSettingsLocked, activeProfile, setMultiUserMode, setTelegramAuth, startPingTimer, stopPingTimer],
+    [activeProfileID, isSettingsLocked, activeProfile, getHandshake, applyHandshake, startPingTimer, stopPingTimer],
   );
 
   useEffect(() => {
     checkConnectionRef.current = checkConnection;
   }, [checkConnection]);
+
+  // Resolve multiUserMode/telegramAuth as soon as a gateway is known — these gate first-paint auth UI
+  // (the registration toggle), so fetch them eagerly in parallel with the health check instead of
+  // waiting on it. getHandshake dedupes this against checkConnection's probe into a single request.
+  useEffect(() => {
+    const currentGateway = ApiClient.baseURL;
+    if (
+      !currentGateway ||
+      !activeProfileID ||
+      (!isSettingsLocked && (!activeProfile || !activeProfile.gatewayURL))
+    ) {
+      return;
+    }
+    let cancelled = false;
+    getHandshake(currentGateway)
+      .then((handshake) => {
+        if (!cancelled) applyHandshake(handshake);
+      })
+      .catch(() => {
+        /* Unreachable gateway is surfaced as offline by checkConnection; nothing to do here. */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeProfileID, gatewayURL, isSettingsLocked, activeProfile, getHandshake, applyHandshake]);
 
   useSystemWake((log) => {
     logger.log(
