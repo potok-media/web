@@ -1,3 +1,5 @@
+const isDev = import.meta.env.DEV;
+
 export interface LogEntry {
   id: string;
   type: "info" | "warn" | "error";
@@ -24,7 +26,9 @@ export const addLogEntry = (type: "info" | "warn" | "error", message: string) =>
     try {
       l(entry);
     } catch (listenerError) {
-      console.warn("Log listener failed:", listenerError);
+      if (isDev) {
+        console.warn("Log listener failed:", listenerError);
+      }
     }
   });
 };
@@ -59,14 +63,16 @@ export const logger = {
   log: (...args: unknown[]) => {
     const msg = args.map(formatLogArg).join(" ");
     addLogEntry("info", msg);
-    // Mirror to the real console in every build, not just dev — hiding warnings/errors in prod
-    // makes a "clean console" meaningless when diagnosing live issues.
-    console.log(...args);
+    if (isDev) {
+      console.log(...args);
+    }
   },
   warn: (...args: unknown[]) => {
     const msg = args.map(formatLogArg).join(" ");
     addLogEntry("warn", msg);
-    console.warn(...args);
+    if (isDev) {
+      console.warn(...args);
+    }
   },
   error: (...args: unknown[]) => {
     const msg = args.map(formatLogArg).join(" ");
@@ -86,7 +92,9 @@ export const logger = {
       try {
         l(clearEntry);
       } catch (listenerError) {
-        console.warn("Log listener failed on clear:", listenerError);
+        if (isDev) {
+          console.warn("Log listener failed on clear:", listenerError);
+        }
       }
     });
   },
