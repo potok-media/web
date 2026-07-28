@@ -10,6 +10,7 @@ import { useSubtitlesOctopus } from "../useSubtitlesOctopus";
 import { usePlayerMenus } from "../usePlayerMenus";
 import { usePlayerVolumePrefs } from "./usePlayerVolumePrefs";
 import { useStreamRefresh } from "./useStreamRefresh";
+import { usePlayback } from "../../context/PlaybackContext";
 import type { AudioPreference } from "../../utils/hls/audioPreference";
 import type { UseWebMediaPlayerBindingsParams } from "./webMediaPlayerBindingTypes";
 
@@ -28,6 +29,10 @@ export function useWebMediaPlayerCore({
   const streamHash = useMemo(() => (playback.streamHash || "").toLowerCase(), [playback.streamHash]);
   const fileIndex = playback.fileIndex || "";
 
+  // Enrichable metadata (subtitles/duration) comes from the context atom, not the stable descriptor prop —
+  // so late enrichment updates tracks/duration WITHOUT re-initializing the media pipeline. See PlaybackMeta.
+  const { playbackMeta } = usePlayback();
+
   // Remembered audio track for the CURRENT playlist only (same torrent). Re-applied on each episode so the
   // user doesn't reselect the dub every time; reset when the playlist changes. In-memory, no persistence.
   const preferredAudioRef = useRef<AudioPreference | null>(null);
@@ -41,6 +46,7 @@ export function useWebMediaPlayerCore({
     playback.streamUrl,
     playback.audios,
     playback,
+    playbackMeta,
   );
 
   const { connected, bytesPerSec, hasProgressSince } = usePlaybackStatus(

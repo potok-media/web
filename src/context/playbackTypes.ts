@@ -15,6 +15,15 @@ export interface PlaylistItem {
   voice?: string;
 }
 
+// Enrichable playback metadata — the ONLY fields patched asynchronously after playback starts
+// (via enrichPlayback). Kept in a SEPARATE context atom from ActivePlayback so a late patch never mints
+// a new descriptor object and never re-inits the media pipeline (the "teardown on enrich" bug). The same
+// fields still live on ActivePlayback as playVideo SEED values (initial open + sessionStorage restore).
+export interface PlaybackMeta {
+  subtitles?: SDKSubtitleInfo[];
+  duration?: number;
+}
+
 export interface ActivePlayback {
   streamUrl: string;
   title: string;

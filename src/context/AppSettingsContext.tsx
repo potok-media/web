@@ -18,7 +18,7 @@ import type {
 import { PlaybackProvider, PlaybackContext, usePlayback } from "./PlaybackContext";
 import type { PlaybackContextType } from "./PlaybackContext";
 
-export type { ConnectionState, ActivePlayback, PlaylistItem } from "./playbackTypes";
+export type { ConnectionState, ActivePlayback, PlaybackMeta, PlaylistItem } from "./playbackTypes";
 export type { SettingsContextType, AuthContextType, ConnectionHealthContextType, ConnectionLatencyContextType, PlaybackContextType };
 
 export {

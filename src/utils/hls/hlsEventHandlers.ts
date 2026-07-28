@@ -74,22 +74,14 @@ export function bindHlsEventHandlers(
     if (!isActiveSession()) return;
     logHlsDiagnosticError(hls, data);
 
+    // No client-side auto-heal. Non-fatal errors are handled internally by hls.js; a FATAL error is
+    // surfaced to the user (the error overlay offers a manual stream refresh) instead of looping
+    // startLoad()/recoverMediaError(). A stall/decode fault is a real upstream (TorrentGo) defect to fix
+    // at the source, not to paper over on the client — see "dumb player boundary".
     if (!data.fatal) return;
 
-    switch (data.type) {
-      case Hls.ErrorTypes.NETWORK_ERROR:
-        logger.warn("[useHlsPlayer] Hls network error, retrying...", data);
-        hls.startLoad();
-        break;
-      case Hls.ErrorTypes.MEDIA_ERROR:
-        logger.warn("[useHlsPlayer] Hls media error, recovering...", data);
-        hls.recoverMediaError();
-        break;
-      default:
-        logger.error("[useHlsPlayer] Fatal Hls error:", data);
-        callbacks.setPlayerError("Ошибка при воспроизведении HLS потока.");
-        callbacks.setIsMetadataLoading(false);
-        break;
-    }
+    logger.error("[useHlsPlayer] Fatal Hls error:", data.type, data.details);
+    callbacks.setPlayerError("Ошибка при воспроизведении HLS потока.");
+    callbacks.setIsMetadataLoading(false);
   });
 }

@@ -6,12 +6,15 @@ import { PlatformManager } from "../utils/PlatformManager";
 import { cleanStreamUrlForExternalPlayer } from "../utils/playbackUrl";
 import { useSettings } from "./SettingsContext";
 import { useAuth } from "./AuthContext";
-import type { ActivePlayback } from "./playbackTypes";
+import type { ActivePlayback, PlaybackMeta } from "./playbackTypes";
 
-export type { ActivePlayback, PlaylistItem } from "./playbackTypes";
+export type { ActivePlayback, PlaybackMeta, PlaylistItem } from "./playbackTypes";
 
 export interface PlaybackContextType {
   activePlayback: ActivePlayback | null;
+  // Enrichable metadata (subtitles/duration) lives here, NOT on activePlayback — so enrichPlayback never
+  // mints a new descriptor and never tears the player down mid-playback. Consumers read it separately.
+  playbackMeta: PlaybackMeta;
   playVideo: (playback: ActivePlayback) => void;
   enrichPlayback: (
     patch: Partial<ActivePlayback>,
@@ -27,7 +30,12 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const { potokToken } = useAuth();
   const { show: showHUD } = useHUD();
   const [activePlayback, setActivePlayback] = useState<ActivePlayback | null>(null);
+  const [playbackMeta, setPlaybackMeta] = useState<PlaybackMeta>({});
   const instanceCounter = useRef(0);
+  // Latest descriptor, read by enrichPlayback's match guard (which writes only playbackMeta and so has no
+  // access to `prev` descriptor via a functional update). Synced every render; enrich is async, so current.
+  const activePlaybackRef = useRef<ActivePlayback | null>(null);
+  activePlaybackRef.current = activePlayback;
 
   const playVideo = useCallback(
     (playback: ActivePlayback) => {
@@ -61,6 +69,8 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // so we KEEP it — the player updates in place instead of remounting. Remounting every episode would
         // reset in-player state such as the remembered dub (preferredAudioRef), losing the selected voice.
         setActivePlayback({ ...playback, instanceId: playback.instanceId ?? ++instanceCounter.current });
+        // Seed the enrichable metadata atom from the descriptor (fresh open OR sessionStorage restore).
+        setPlaybackMeta({ subtitles: playback.subtitles, duration: playback.duration });
       }
     },
     [defaultPlayer, showHUD],
@@ -68,16 +78,21 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const enrichPlayback = useCallback(
     (patch: Partial<ActivePlayback>, match?: { streamHash?: string; fileIndex?: string }) => {
-      setActivePlayback((prev) => {
-        if (!prev) return prev;
-        if (
-          match &&
-          ((match.streamHash !== undefined && match.streamHash !== prev.streamHash) ||
-            (match.fileIndex !== undefined && match.fileIndex !== prev.fileIndex))
-        ) {
-          return prev;
-        }
-        return { ...prev, ...patch };
+      // Write ONLY the enrichable atom, never the descriptor — that is what stops the mid-playback teardown.
+      const cur = activePlaybackRef.current;
+      if (!cur) return;
+      if (
+        match &&
+        ((match.streamHash !== undefined && match.streamHash !== cur.streamHash) ||
+          (match.fileIndex !== undefined && match.fileIndex !== cur.fileIndex))
+      ) {
+        return;
+      }
+      setPlaybackMeta((prev) => {
+        const next = { ...prev };
+        if (patch.subtitles !== undefined) next.subtitles = patch.subtitles;
+        if (patch.duration !== undefined) next.duration = patch.duration;
+        return next;
       });
     },
     [],
@@ -85,6 +100,7 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const stopVideo = useCallback(() => {
     setActivePlayback(null);
+    setPlaybackMeta({});
   }, []);
 
   useEffect(() => {
@@ -95,8 +111,8 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [potokToken]);
 
   const value = useMemo(
-    () => ({ activePlayback, playVideo, enrichPlayback, stopVideo }),
-    [activePlayback, playVideo, enrichPlayback, stopVideo],
+    () => ({ activePlayback, playbackMeta, playVideo, enrichPlayback, stopVideo }),
+    [activePlayback, playbackMeta, playVideo, enrichPlayback, stopVideo],
   );
 
   return <PlaybackContext.Provider value={value}>{children}</PlaybackContext.Provider>;

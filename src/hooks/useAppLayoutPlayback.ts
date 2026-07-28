@@ -3,7 +3,7 @@ import { usePlayback } from "../context/AppSettingsContext";
 import { logger } from "../utils/logger";
 
 export function useAppLayoutPlayback() {
-  const { activePlayback, playVideo, stopVideo } = usePlayback();
+  const { activePlayback, playbackMeta, playVideo, stopVideo } = usePlayback();
 
   useEffect(() => {
     const saved = sessionStorage.getItem("potok_last_playback");
@@ -26,11 +26,13 @@ export function useAppLayoutPlayback() {
     // actively clear the slot for co-watch and when playback stops (covers the host-ended path that stops
     // the video without going through handleClosePlayer).
     if (activePlayback && !activePlayback.coWatch) {
-      sessionStorage.setItem("potok_last_playback", JSON.stringify(activePlayback));
+      // Merge the enrichable atom back onto the descriptor so restore-after-reload keeps the freshest
+      // subtitles/duration (they no longer live on activePlayback — playVideo re-seeds the atom from these).
+      sessionStorage.setItem("potok_last_playback", JSON.stringify({ ...activePlayback, ...playbackMeta }));
     } else {
       sessionStorage.removeItem("potok_last_playback");
     }
-  }, [activePlayback]);
+  }, [activePlayback, playbackMeta]);
 
   const handleClosePlayer = useCallback(() => {
     sessionStorage.removeItem("potok_last_playback");
