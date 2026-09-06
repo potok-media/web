@@ -71,6 +71,7 @@
       "groupIntegrations": "Integraciones",
       "groupPlugins": "Plugins",
       "general": "General",
+      "account": "",
       "connections": "Perfiles de conexión",
       "connectionsShort": "Conexiones",
       "accessibility": "Accesibilidad",
@@ -79,6 +80,34 @@
       "console": "Consola",
       "searchPlaceholder": "Buscar ajustes",
       "noResults": "Sin coincidencias"
+    },
+    "account": {
+      "title": "",
+      "signedInAs": "",
+      "changePasswordTitle": "",
+      "setupLoginTitle": "",
+      "setupLoginDesc": "",
+      "currentPassword": "",
+      "newPassword": "",
+      "confirmPassword": "",
+      "usernameLabel": "",
+      "passwordLabel": "",
+      "savePassword": "",
+      "saveCredentials": "",
+      "saving": "",
+      "passwordChanged": "",
+      "credentialsSaved": "",
+      "passwordsDoNotMatch": "",
+      "passwordTooShort": "",
+      "fillAllFields": "",
+      "telegramTitle": "",
+      "telegramLinkedAs": "",
+      "telegramLinked": "",
+      "telegramLinkDesc": "",
+      "telegramUnlink": "",
+      "telegramUnlinked": "",
+      "telegramLinkedSuccess": "",
+      "telegramLinkButton": ""
     },
     "profiles": {
       "errorEmptyGateway": "Introduzca una dirección de gateway",
@@ -98,6 +127,7 @@
       "permissionStorage": "Almacenando datos y ajustes del plugin localmente en tu dispositivo",
       "permissionHttpProxy": "Realizando solicitudes de internet (requerido para buscar y cargar flujos de vídeo)",
       "permissionUiNotifications": "Mostrar sugerencias y notificaciones dentro de la aplicación",
+      "permissionCustomCss": "",
       "permissionCustom": "Solicitud de acceso especial: {{permission}}",
       "securityWarningTitle": "Aviso de seguridad",
       "securityWarningBody": "Instalar el plugin le otorga la posibilidad de realizar las acciones listadas en la aplicación. Por favor, instale extensiones sólo de fuentes de confianza y autores en los que confíe para mantener sus datos personales a salvo.",
@@ -277,7 +307,7 @@
       "fullscreen": "Pantalla completa",
       "watchTogetherTitle": "Ver juntos",
       "watchTogetherAria": "Empezar a ver juntos",
-      "chatTitle": "Chat"
+      "chatTitle": ""
     },
     "playback": {
       "accessRestricted": "El acceso de reproducción está restringido.",
@@ -347,7 +377,7 @@
       "title": "Emitir"
     },
     "actor": {
-      "nameFallback": "Actor",
+      "nameFallback": "",
       "loadErrorTitle": "No se pudo cargar el perfil del actor",
       "retry": "Reintentar",
       "biography": "Biografía",
@@ -363,10 +393,10 @@
       "years_one": "año",
       "years_other": "años",
       "departments": {
-        "acting": "Acting",
-        "directing": "Directing",
-        "writing": "Writing",
-        "production": "Production"
+        "acting": "",
+        "directing": "",
+        "writing": "",
+        "production": ""
       },
       "genre_35": "Comedias",
       "genre_action_adventure": "Acción y aventura",
@@ -589,7 +619,7 @@
         "koreanHits": "Éxitos coreanos",
         "upcoming": "Próximamente en cines",
         "topTv": "Mejores series",
-        "anime": "Anime",
+        "anime": "",
         "shortRuntime": "Una noche, una película"
       }
     },
@@ -712,7 +742,13 @@
       "registerButton": "Registrarse",
       "loginButton": "Iniciar sesión",
       "haveAccount": "¿Ya tienes una cuenta? Inicia sesión",
-      "noAccount": "¿No tienes cuenta? Regístrate"
+      "noAccount": "¿No tienes cuenta? Regístrate",
+      "orContinueWith": "",
+      "telegramButton": "",
+      "telegramWaiting": "",
+      "telegramOpenAgain": "",
+      "telegramCancel": "",
+      "telegramExpired": ""
     },
     "localSync": {
       "syncActive": "Sincronización activa",
@@ -804,6 +840,7 @@
       "storage": "Guarda los ajustes y datos del plugin localmente en tu dispositivo",
       "httpProxy": "Hace peticiones de internet (buscando y cargando flujos de vídeo)",
       "uiNotifications": "Muestra consejos y notificaciones dentro de la aplicación",
+      "customCss": "",
       "fallback": "Acceso: {{permission}}"
     },
     "manifest": {
@@ -853,7 +890,7 @@
   },
   "wiki": {
     "header": {
-      "brand": "Potok",
+      "brand": "",
       "searchPlaceholder": "Búsqueda rápida en la wiki...",
       "logoAlt": "Logo de Potok"
     },
@@ -866,13 +903,13 @@
       "uiMedia": "UI: Componentes multimedia",
       "uiStreaming": "UI: Reproductores y streams",
       "development": "Desarrollo",
-      "sandbox": "Sandbox",
+      "sandbox": "",
       "themeDark": "Tema oscuro",
       "themeLight": "Tema claro"
     },
     "breadcrumbs": {
       "docs": "Documentación",
-      "sandbox": "Sandbox",
+      "sandbox": "",
       "backToDoc": "Volver al documento"
     },
     "sandbox": {
@@ -881,7 +918,7 @@
       "run": "Ejecutar",
       "reset": "Restablecer",
       "connected": "CONECTADO",
-      "mainFile": "main.js",
+      "mainFile": "",
       "logsTitle": "CONSOLA DE REGISTRO",
       "clearLogs": "Borrar",
       "logsEmpty": "El registro está vacío. Ejecuta código e interactúa con la UI.",
@@ -899,13 +936,13 @@
     },
     "categories": {
       "intro": "Introducción",
-      "api": "API",
+      "api": "",
       "uiContainers": "UI: Contenedores",
       "uiText": "UI: Texto e información",
       "uiForms": "UI: Formularios y entrada",
       "uiMedia": "UI: Multimedia",
       "uiStreaming": "UI: Renderizado y streaming",
-      "sandbox": "Sandbox"
+      "sandbox": ""
     },
     "pages": {
       "intro": {
@@ -913,15 +950,15 @@
         "category": "Introducción",
         "toc": [
           {
-            "id": "overview",
+            "id": "",
             "text": "Resumen de la arquitectura"
           },
           {
-            "id": "declarative",
+            "id": "",
             "text": "UI declarativa"
           },
           {
-            "id": "sandbox-details",
+            "id": "",
             "text": "Seguridad y sandbox"
           }
         ],
@@ -941,7 +978,7 @@
           "sandboxTitle": "Seguridad y sandbox",
           "sandboxP": "El plugin se ejecuta en un sandbox JS aislado:",
           "sandboxItems": [
-            "window, document, localStorage → undefined.",
+            "",
             "Red solo a través de PotokSDK.http.",
             "storage.local está aislado y limitado al pluginId."
           ],
@@ -953,23 +990,23 @@
         "category": "Introducción",
         "toc": [
           {
-            "id": "quick-start",
+            "id": "",
             "text": "Archivos"
           },
           {
-            "id": "compose",
+            "id": "",
             "text": "Configuración de Docker Compose"
           },
           {
-            "id": "variables",
-            "text": ".env"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "run",
+            "id": "",
             "text": "Ejecutar"
           },
           {
-            "id": "nginx",
+            "id": "",
             "text": "Configuración del proxy Nginx"
           }
         ],
@@ -978,24 +1015,24 @@
           "intro": "Pila: web, gateway, PostgreSQL. Torrents: SearchEngine, TorrentGo, <repo>potok-torrents</repo> de <repo>web-plugins</repo>.",
           "quickStartTitle": "Archivos",
           "quickStartFiles": [
-            "docker-compose.yml",
-            ".env",
+            "",
+            "",
             "<code>config.yml</code> — torrents, ver <link>SearchEngine y TorrentGo</link>"
           ],
           "torrentServicesHint": "<code>config.yml</code> y servicios — <link>SearchEngine y TorrentGo</link>.",
           "pluginUrlsTitle": "URLs en <repo>potok-torrents</repo>",
           "pluginUrlsDesc": "searchEngineURL y torrentGoURL — <code>http://<ip/>:6000</code>, <code>http://<ip/>:5282</code>. Deben ser accesibles desde el navegador; el Gateway no las redirige por proxy.",
-          "requiredTitle": "Compose",
+          "requiredTitle": "",
           "requiredDesc": "",
-          "optionalTitle": "Torrents",
+          "optionalTitle": "",
           "optionalDesc": "SearchEngine + TorrentGo en compose. URLs en <repo>potok-torrents</repo>.",
-          "envTitle": ".env",
+          "envTitle": "",
           "envDesc": "<code>GATEWAY_TMDB_API_KEY</code> — TMDB (opcional — si no se define, se usa una clave compartida por defecto). <code>GATEWAY_MULTI_USER_MODE=true</code> — autorregistro; <code>false</code> — solo inicio de sesión. <code>GATEWAY_JWT_SECRET</code> — cámbialo en producción.",
           "runTitle": "Ejecutar",
-          "dockerUp": "docker compose up -d",
-          "nginxTitle": "Nginx",
+          "dockerUp": "",
+          "nginxTitle": "",
           "nginxDesc": "<code>potok.rip</code> → :3000, <code>api.potok.rip</code> → :5000. <code>wiki.potok.rip</code> redirige por proxy <code>/wiki</code> (+ <code>/assets/</code>); la raíz redirige a <code>/wiki</code>. <code>VITE_DEFAULT_BFF_URL=https://api.potok.rip</code>.",
-          "nginxProxy": "server {\n    listen 80;\n    server_name wiki.potok.rip;\n\n    location / {\n        proxy_pass http://localhost:3000/wiki;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n}\n\nserver {\n    listen 80;\n    server_name app.potok.rip;\n\n    location / {\n        proxy_pass http://localhost:3000;\n        proxy_set_header Host $host;\n    }\n\n    location /api/ {\n        proxy_pass http://localhost:5000/;\n        proxy_set_header Host $host;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n    }\n}"
+          "nginxProxy": ""
         }
       },
       "torrentServices": {
@@ -1003,28 +1040,28 @@
         "category": "Introducción",
         "toc": [
           {
-            "id": "overview",
+            "id": "",
             "text": "Resumen"
           },
           {
-            "id": "architecture",
+            "id": "",
             "text": "Arquitectura"
           },
           {
-            "id": "searchengine",
-            "text": "SearchEngine"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "torrentgo",
-            "text": "TorrentGo"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "plugin",
-            "text": "Plugin"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "config",
-            "text": "config.yml"
+            "id": "",
+            "text": ""
           }
         ],
         "sections": {
@@ -1032,7 +1069,7 @@
           "intro": "Servicios backend opcionales para torrents. Se usan con el plugin <repo>potok-torrents</repo> de <repo>web-plugins</repo>. El Gateway no los redirige por proxy — el plugin se comunica con ellos directamente desde el navegador.",
           "archTitle": "Arquitectura",
           "archDesc": "El mismo compose que web/gateway.",
-          "seTitle": "SearchEngine",
+          "seTitle": "",
           "seDesc": "Búsqueda en trackers, resultados en caché en PostgreSQL. Puerto predeterminado 6000 (SEARCH_ENGINE_PORT).",
           "seItems": [
             "config.yml junto a docker-compose.yml — montado como config.local.yml",
@@ -1040,42 +1077,42 @@
             "proxy.list — proxies HTTP a los trackers: { url, username?, password? }; [] — sin proxy",
             "El puerto es PORT / SEARCH_ENGINE_PORT, no en el yaml"
           ],
-          "tgTitle": "TorrentGo",
+          "tgTitle": "",
           "tgDesc": "Streaming de BitTorrent: descarga, HLS, metadatos de archivos. Sin estado, sin PostgreSQL. Puerto predeterminado 5282 (TORRENTGO_PORT).",
           "tgItems": [
             "GPU: GPU_DEVICE=/dev/dri:/dev/dri en compose para transcodificación por HW",
             "POTOK_DISABLE_HWACCEL=1 fuerza la transcodificación por software",
             "El UDP 55123 puede quedar sin publicar detrás de NAT — el tráfico saliente basta para el streaming"
           ],
-          "pluginTitle": "Plugin",
+          "pluginTitle": "",
           "pluginDesc": "En <repo>potok-torrents</repo>: searchEngineURL y torrentGoURL — <code>http://<ip/>:6000</code>, <code>http://<ip/>:5282</code>.",
-          "configTitle": "config.yml",
+          "configTitle": "",
           "configDesc": "",
           "configNote": "Referencia: <code>src/Potok.Backend.SearchEngine/config.yml</code>"
         }
       },
       "manifest": {
         "title": "Especificación del manifiesto",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "fields",
+            "id": "",
             "text": "Campos obligatorios y opcionales"
           },
           {
-            "id": "permissions",
+            "id": "",
             "text": "Permisos"
           },
           {
-            "id": "slots-section",
+            "id": "",
             "text": "Slots de UI"
           },
           {
-            "id": "config-section",
+            "id": "",
             "text": "Configuración del plugin"
           },
           {
-            "id": "manifest-example",
+            "id": "",
             "text": "Ejemplo completo"
           }
         ],
@@ -1089,52 +1126,52 @@
             "description": "Descripción",
             "rows": [
               {
-                "field": "id",
+                "field": "",
                 "type": "string (obligatorio)",
                 "desc": "Identificador único del plugin (p. ej. <repo>potok-torrents</repo> de <repo>web-plugins</repo>)."
               },
               {
-                "field": "name",
+                "field": "",
                 "type": "string (obligatorio)",
                 "desc": "Nombre del plugin que se muestra en la UI."
               },
               {
-                "field": "version",
+                "field": "",
                 "type": "string (opcional)",
                 "desc": "Versión del plugin en formato SemVer (p. ej. 1.0.0)."
               },
               {
-                "field": "description",
+                "field": "",
                 "type": "string (opcional)",
                 "desc": "Descripción breve del propósito y las funciones de la extensión."
               },
               {
-                "field": "author",
+                "field": "",
                 "type": "string (opcional)",
                 "desc": "Autor o equipo de desarrollo."
               },
               {
-                "field": "entrypoint",
+                "field": "",
                 "type": "string (obligatorio)",
                 "desc": "Ruta al JS compilado relativa a la carpeta del plugin (normalmente index.js)."
               },
               {
-                "field": "category",
+                "field": "",
                 "type": "string (opcional)",
                 "desc": "Categoría de la extensión: sources para fuentes multimedia, visual para temas, other para varios."
               },
               {
-                "field": "permissions",
+                "field": "",
                 "type": "string[] (opcional)",
                 "desc": "Permisos de seguridad solicitados (storage, http-proxy, ui-notifications)."
               },
               {
-                "field": "slots",
+                "field": "",
                 "type": "object[] (opcional)",
                 "desc": "Contribuciones a slots de UI; cada entrada tiene id, slotName y title."
               },
               {
-                "field": "config",
+                "field": "",
                 "type": "object (opcional)",
                 "desc": "Ajustes configurables del plugin que se muestran en el panel de ajustes del host."
               }
@@ -1146,48 +1183,48 @@
             "storage — storage.local (claves, caché).",
             "http-proxy — http.get/post a través del proxy del host (CORS).",
             "ui-notifications — ui.showHUD() y notificaciones del sistema.",
-            "custom-css — ui.injectHostCss() (inject/replace global CSS)."
+            ""
           ],
-          "slotsTitle": "Slots (slotName)",
+          "slotsTitle": "",
           "slotsIntro": "Valores de slotName en el array slots:",
           "slotsTable": {
-            "slot": "Slot (slotName)",
+            "slot": "",
             "description": "Descripción",
             "rows": [
               {
-                "slot": "sidebar-menu",
+                "slot": "",
                 "desc": "Sección superior del menú de la barra lateral (navegación de nivel superior)."
               },
               {
-                "slot": "sidebar-menu-home",
+                "slot": "",
                 "desc": "Elementos de menú adicionales junto a Inicio."
               },
               {
-                "slot": "sidebar-menu-library",
+                "slot": "",
                 "desc": "Elementos de menú adicionales en Biblioteca."
               },
               {
-                "slot": "sidebar-status",
+                "slot": "",
                 "desc": "Parte inferior de la barra lateral (botones de estado/servicio)."
               },
               {
-                "slot": "media-actions",
+                "slot": "",
                 "desc": "Bloque de acciones en los detalles de películas/series (p. ej. botones de reproducción)."
               },
               {
-                "slot": "details-bottom",
+                "slot": "",
                 "desc": "Panel debajo de los detalles principales del contenido."
               },
               {
-                "slot": "settings-color-accent",
+                "slot": "",
                 "desc": "Slot de ajustes para la paleta de colores y los temas."
               },
               {
-                "slot": "settings-tabs",
+                "slot": "",
                 "desc": "Pestañas personalizadas en los ajustes del host."
               },
               {
-                "slot": "extension-page",
+                "slot": "",
                 "desc": "Página de extensión a pantalla completa."
               }
             ]
@@ -1200,54 +1237,54 @@
             "description": "Descripción",
             "rows": [
               {
-                "property": "type",
+                "property": "",
                 "type": "string (obligatorio)",
                 "desc": "Tipo de valor del ajuste: \"string\", \"boolean\" (interruptor), \"number\", \"select\" (desplegable) o \"notice\" (banner de advertencia naranja)."
               },
               {
-                "property": "default",
+                "property": "",
                 "type": "any (obligatorio)",
                 "desc": "Valor predeterminado; el tipo debe coincidir con el campo type."
               },
               {
-                "property": "label",
+                "property": "",
                 "type": "string (obligatorio)",
                 "desc": "Etiqueta que se muestra al usuario en los ajustes."
               },
               {
-                "property": "dependsOn",
+                "property": "",
                 "type": "string (opcional)",
                 "desc": "Otra clave de config que controla la visibilidad de este ajuste."
               }
             ]
           },
-          "manifestExampleTitle": "manifest.json",
+          "manifestExampleTitle": "",
           "manifestExampleIntro": "<repo>potok-torrents</repo> de <repo>web-plugins</repo>:",
-          "manifestExample": "{\n  \"id\": \"potok-torrents\",\n  \"name\": \"Torrent search\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Search and stream torrents from tracker databases\",\n  \"author\": \"Potok Team\",\n  \"category\": \"sources\",\n  \"entrypoint\": \"index.js\",\n  \"permissions\": [\n    \"storage\",\n    \"http-proxy\",\n    \"ui-notifications\"\n  ],\n  \"slots\": [\n    {\n      \"id\": \"torrents-media-actions\",\n      \"slotName\": \"media-actions\",\n      \"title\": \"Watch\"\n    },\n    {\n      \"id\": \"torrents-sidebar-status\",\n      \"slotName\": \"sidebar-status\",\n      \"title\": \"Torrent status\"\n    }\n  ],\n  \"config\": {\n    \"torrentGoURL\": {\n      \"type\": \"string\",\n      \"default\": \"https://torrent.potok.rip\",\n      \"label\": \"TorrentGo URL\"\n    },\n    \"searchEngineURL\": {\n      \"type\": \"string\",\n      \"default\": \"https://search.potok.rip\",\n      \"label\": \"SearchEngine URL\"\n    }\n  }\n}"
+          "manifestExample": ""
         }
       },
       "state": {
         "title": "Reactividad y estado",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "state-api",
+            "id": "",
             "text": "API createState"
           },
           {
-            "id": "subscription",
+            "id": "",
             "text": "Suscribir y cancelar suscripción"
           },
           {
-            "id": "deep-reactivity",
+            "id": "",
             "text": "Reactividad profunda"
           },
           {
-            "id": "batching",
+            "id": "",
             "text": "Actualizaciones por lotes"
           },
           {
-            "id": "reactive-example",
+            "id": "",
             "text": "Ejemplo interactivo"
           }
         ],
@@ -1256,63 +1293,63 @@
           "intro": "createState envuelve un objeto en un Proxy; las mutaciones activan $subscribe.",
           "subscriptionTitle": "Suscribir",
           "subscriptionText": "$subscribe(callback) — suscribirse a los cambios. Devuelve unsubscribe. Normalmente callback = render:",
-          "subscriptionCode": "const state = createState({ title: \"Hello\" });\n\nfunction render() {\n  ui.render(Text(state.title));\n}\n\n// Subscribe to changes:\nconst unsubscribe = state.$subscribe(render);\n\n// Initial render:\nrender();\n\n// When no longer needed (e.g. plugin unload):\n// unsubscribe();",
+          "subscriptionCode": "",
           "deepReactivityTitle": "Reactividad profunda",
           "deepReactivityText": "Los objetos y arrays anidados son reactivos — las claves profundas y push/splice activan el renderizado:",
-          "deepReactivityCode": "const state = createState({\n  user: {\n    profile: { name: \"Alex\" }\n  },\n  genres: [\"Action\", \"Drama\"]\n});\n\n// 1. Deep property change (triggers render)\nstate.user.profile.name = \"Ivan\";\n\n// 2. Array mutations (push, splice, sort)\nstate.genres.push(\"Comedy\");\nstate.genres.splice(0, 1);",
+          "deepReactivityCode": "",
           "batchingTitle": "Actualizaciones por lotes (Batching)",
           "batchingText": "Las mutaciones síncronas se agrupan mediante Promise.resolve() — una llamada al suscriptor por tick:",
-          "batchingCode": "const state = createState({ count: 0, lastAction: \"none\" });\n\nstate.$subscribe(() => {\n  console.log(\"Render called!\");\n});\n\n// Synchronous multi-field updates:\nstate.count++;\nstate.lastAction = \"increment\";\nstate.count += 5;\n\n// Console shows exactly ONE \"Render called!\" \n// because updates are batched into one tick.",
+          "batchingCode": "",
           "reactiveExampleTitle": "Código del contador reactivo",
           "reactiveExampleText": "Contador con $subscribe:",
-          "reactiveExampleCode": "const state = createState({ clicks: 0 });\n\nfunction render() {\n  ui.render(\n    VStack()\n      .child(Text(\"Clicks: \" + state.clicks))\n      .child(Button(\"Click\").onClick(() => state.clicks++))\n  );\n}",
+          "reactiveExampleCode": "",
           "sandboxButton": "Ejecutar el ejemplo de reactividad en el Sandbox",
-          "sandboxCode": "// Interactive reactivity example\nconst { ui, createState } = PotokSDK;\n\nconst state = createState({\n  clicks: 0,\n  lastClicked: \"Never\"\n});\n\nfunction draw() {\n  ui.render(\n    Card()\n      .title(\"Click counter\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(Text(\"Clicks recorded: \" + state.clicks).bold(true).size(\"lg\"))\n          .child(Text(\"Last click: \" + state.lastClicked).variant(\"secondary\"))\n          .child(\n            Button(\"Click!\")\n              .variant(\"primary\")\n              .onClick(() => {\n                state.clicks++;\n                state.lastClicked = new Date().toLocaleTimeString();\n              })\n          )\n      )\n  );\n}\n\nstate.$subscribe(draw);\ndraw();"
+          "sandboxCode": ""
         }
       },
       "http": {
         "title": "Cliente HTTP",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "get",
-            "text": "http.get()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "post",
-            "text": "http.post()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "cors",
+            "id": "",
             "text": "Omisión de CORS"
           }
         ],
         "sections": {
           "title": "Peticiones de red",
           "intro": "Plugin en un iframe — fetch a API externas no funciona. Las peticiones van a través de PotokSDK.http (proxy del host).",
-          "getTitle": "HTTP GET",
-          "getSignature": "http.get(url: string, headers?: Record<string, string>): Promise<{ status: number, data: any }>",
-          "postTitle": "HTTP POST",
-          "postSignature": "http.post(url: string, body?: any, headers?: Record<string, string>): Promise<{ status: number, data: any }>",
+          "getTitle": "",
+          "getSignature": "",
+          "postTitle": "",
+          "postSignature": "",
           "corsTitle": "Ventajas del proxy",
           "corsItems": [
             "CORS — la petición pasa por el backend de Potok, no desde el iframe.",
             "Las respuestas JSON se analizan automáticamente — data ya es un objeto."
           ],
           "sandboxButton": "Cargar Todo por red en el Sandbox",
-          "sandboxCode": "// Network data loading example\nconst { ui, http, createState } = PotokSDK;\n\nconst state = createState({\n  loading: true,\n  todoTitle: \"\",\n  error: null\n});\n\nasync function loadData() {\n  try {\n    const res = await http.get(\"https://jsonplaceholder.typicode.com/todos/1\");\n    state.todoTitle = res.data.title;\n    state.loading = false;\n  } catch (err) {\n    state.error = err.message;\n    state.loading = false;\n  }\n}\n\nfunction render() {\n  ui.render(\n    Card()\n      .title(\"Network loading\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(\n            state.loading \n              ? LoadingSpinner().message(\"Loading TODO from server...\")\n              : Text(state.error ? \"Error: \" + state.error : \"Task from server: \" + state.todoTitle)\n          )\n          .child(\n            Button(\"Reload\")\n              .onClick(() => {\n                state.loading = true;\n                loadData();\n              })\n          )\n      )\n  );\n}\n\nstate.$subscribe(render);\nrender();\nloadData();"
+          "sandboxCode": ""
         }
       },
       "storage": {
         "title": "Almacenamiento aislado",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "storage-methods",
+            "id": "",
             "text": "Métodos de almacenamiento"
           },
           {
-            "id": "isolation",
+            "id": "",
             "text": "Espacios de nombres aislados"
           }
         ],
@@ -1326,13 +1363,13 @@
             "description": "Descripción",
             "rows": [
               {
-                "method": "getItem",
-                "signature": "getItem(key: string): Promise<string | null>",
+                "method": "",
+                "signature": "",
                 "desc": "Lee el valor de una clave de forma asíncrona."
               },
               {
-                "method": "setItem",
-                "signature": "setItem(key: string, value: any): Promise<void>",
+                "method": "",
+                "signature": "",
                 "desc": "Guarda un valor bajo la clave indicada."
               }
             ]
@@ -1340,54 +1377,54 @@
           "isolationTitle": "Espacios de nombres aislados",
           "isolationText": "Por seguridad, el host antepone el pluginId a cada valor almacenado. El plugin A no puede acceder a las claves del plugin B. El acceso directo a window.localStorage está bloqueado.",
           "sandboxButton": "Ejecutar el ejemplo de almacenamiento en el Sandbox",
-          "sandboxCode": "// Save and load settings example\nconst { ui, storage, createState } = PotokSDK;\n\nconst state = createState({\n  savedValue: \"Nothing saved\",\n  inputValue: \"\"\n});\n\nasync function initStorage() {\n  const saved = await storage.local.getItem(\"user_custom_note\");\n  if (saved) {\n    state.savedValue = saved;\n  }\n}\n\nfunction render() {\n  ui.render(\n    Card()\n      .title(\"Local storage\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(Text(\"Saved in DB: \" + state.savedValue).bold(true))\n          .child(\n            Input(\"note-input\")\n              .label(\"New entry\")\n              .value(state.inputValue)\n              .onChange((val) => state.inputValue = val)\n          )\n          .child(\n            Button(\"Save to DB\")\n              .variant(\"primary\")\n              .onClick(async () => {\n                await storage.local.setItem(\"user_custom_note\", state.inputValue);\n                state.savedValue = state.inputValue;\n                ui.showHUD(\"success\", \"Value saved successfully!\");\n              })\n          )\n      )\n  );\n}\n\nstate.$subscribe(render);\nrender();\ninitStorage();"
+          "sandboxCode": ""
         }
       },
       "uiMethods": {
         "title": "Métodos globales de UI",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "render",
-            "text": "ui.render()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "hud",
-            "text": "ui.showHUD()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "player",
-            "text": "ui.playVideo()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "ep-selector",
-            "text": "ui.showEpisodeSelector()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "navigation",
+            "id": "",
             "text": "Navegación (ui.navigateTo)"
           },
           {
-            "id": "themes",
+            "id": "",
             "text": "Temas"
           },
           {
-            "id": "block",
-            "text": "ui.block()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "block-context",
-            "text": "ui.onBlockContextUpdate()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "registration",
+            "id": "",
             "text": "Registro de plugins y slots"
           }
         ],
         "sections": {
           "title": "Objeto global ui",
           "intro": "PotokSDK.ui — renderizado, HUD, reproductor, navegación, registro.",
-          "renderTitle": "ui.render()",
+          "renderTitle": "",
           "renderText": "ui.render(component, slotId?) compila el marcado declarativo y lo envía al host. Con slotId lo monta en ese slot; de lo contrario, lo renderiza en la pantalla principal del sandbox.",
           "hudTitle": "Notificaciones HUD",
           "hudText": "ui.showHUD(type, message) muestra un breve banner del sistema. Tipos admitidos: \"success\", \"error\", \"info\", \"warning\".",
@@ -1397,7 +1434,7 @@
           "epSelectorText": "ui.showEpisodeSelector(config) abre el modal del sistema para elegir temporadas y episodios en las series.",
           "navigationTitle": "Navegación",
           "navigationText": "ui.navigateTo(to, state?) — navega a una sección del host (/settings, /library, …):",
-          "navigationCode": "ui.navigateTo(\"/settings\");\nui.navigateTo(\"/library\", { filter: \"watchlist\" });",
+          "navigationCode": "",
           "themesTitle": "Temas",
           "themesIntro": "Temas personalizados y color de acento:",
           "themesItems": [
@@ -1413,7 +1450,7 @@
             "append(ui) / prepend(ui) — añade diseño al final o al principio del bloque.",
             "apply() — registra las mutaciones acumuladas en el host."
           ],
-          "onBlockContextUpdateTitle": "ui.onBlockContextUpdate()",
+          "onBlockContextUpdateTitle": "",
           "onBlockContextUpdateText": "ui.onBlockContextUpdate(callback) se suscribe a las actualizaciones del contexto del bloque activo. El callback recibe (blockName, context) cuando cambian los datos de la pantalla (p. ej. otra película). Devuelve una función para cancelar la suscripción.",
           "registrationTitle": "Registro en el sistema",
           "registrationIntro": "Registro en el host:",
@@ -1422,23 +1459,23 @@
             "description": "Descripción",
             "rows": [
               {
-                "api": "registerPlugin(meta)",
+                "api": "",
                 "desc": "Registra los metadatos del plugin (id, name, version). Llámala primero al cargar el script."
               },
               {
-                "api": "registerSource(config)",
+                "api": "",
                 "desc": "Registra una fuente de búsqueda de streams multimedia para la búsqueda de vídeo del host."
               },
               {
-                "api": "registerSlotContribution(config)",
+                "api": "",
                 "desc": "Registra UI en un slot con nombre (p. ej. media-actions, details-bottom)."
               },
               {
-                "api": "onSettingsChanged(callback)",
+                "api": "",
                 "desc": "Se suscribe a los cambios en vivo del formulario de ajustes; el callback recibe (key, value, currentSettings)."
               },
               {
-                "api": "updateSettingsForm(updates)",
+                "api": "",
                 "desc": "Indica al host que actualice los campos del formulario de ajustes en tiempo real; acepta { updates }."
               }
             ]
@@ -1448,7 +1485,7 @@
           "registerSlotConfigIntro": "Campos de config:",
           "registerSlotParams": [
             "id (string) — id de la contribución, igual que en los slots del manifiesto.",
-            "slotName (string) — media-actions, details-bottom, extension-page, …",
+            "",
             "render(props) (function) — devuelve { label, icon?, layout }."
           ],
           "registerSlotRenderFields": [
@@ -1456,43 +1493,43 @@
             "icon (string, opcional) — Nombre de icono de Lucide.",
             "layout (UIComponent) — Árbol de UI construido con Card(), VStack(), Button(), etc."
           ],
-          "easyPluginTitle": "Easy Plugin",
+          "easyPluginTitle": "",
           "easyPluginIntro": "Botón de tráiler en media-actions, bloque de información en details-bottom:",
           "easyPluginStep1": "Estructura",
-          "easyPluginStep2": "manifest.json",
-          "easyPluginStep3": "index.js",
-          "folderStructure": "my-easy-plugin/\n├── manifest.json   # Metadata and slot declarations\n└── index.js        # Plugin executable JS",
-          "manifestJson": "{\n  \"id\": \"my-easy-plugin\",\n  \"name\": \"Simple Viewer\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Adds a trailer button and info block on the details page\",\n  \"permissions\": [\"ui-notifications\"],\n  \"slots\": [\n    {\n      \"id\": \"trailer-action-button\",\n      \"slotName\": \"media-actions\",\n      \"title\": \"Trailer button\"\n    },\n    {\n      \"id\": \"extra-details-info\",\n      \"slotName\": \"details-bottom\",\n      \"title\": \"Info block\"\n    }\n  ]\n}",
+          "easyPluginStep2": "",
+          "easyPluginStep3": "",
+          "folderStructure": "",
+          "manifestJson": "",
           "sandboxButton": "Probar superposiciones en el Sandbox",
-          "injectCssTitle": "Custom CSS (injectHostCss)",
-          "injectCssIntro": "Inject or replace a global stylesheet in the host to restyle any built-in component. Requires the custom-css permission.",
+          "injectCssTitle": "",
+          "injectCssIntro": "",
           "injectCssItems": [
-            "ui.injectHostCss(id, css) — add or replace a global CSS layer, appended after app styles so it wins at equal specificity.",
-            "Same id replaces the layer; an empty string removes it.",
-            "Pair with a component's .style('my-class') to target it precisely.",
-            "The settings entry and extensions manager stay visible — the plugin can't lock itself in."
+            "",
+            "",
+            "",
+            ""
           ]
         }
       },
       "i18n": {
         "title": "i18n del plugin",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "t",
-            "text": "PotokSDK.i18n.t"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "addResourceBundle",
-            "text": "addResourceBundle"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "registerTranslations",
-            "text": "registerTranslations"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "onLanguageChange",
-            "text": "onLanguageChange"
+            "id": "",
+            "text": ""
           }
         ],
         "sections": {
@@ -1507,29 +1544,29 @@
       },
       "streams": {
         "title": "Streams y proveedores multimedia",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "registerStreamSource",
-            "text": "streams.registerStreamSource"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "searchProvider",
-            "text": "media.searchProvider"
+            "id": "",
+            "text": ""
           }
         ],
         "sections": {
           "title": "Fuentes de streams y búsqueda",
           "intro": "Registra fuentes de streams y proveedores de búsqueda para el host.",
-          "registerStreamSourceTitle": "streams.registerStreamSource",
+          "registerStreamSourceTitle": "",
           "registerStreamSourceDesc": "Registra una fuente de streams con id, name, supportedTypes (movie | tv) y manejadores asíncronos: search(query), getEpisodes(stream, context), getPlaybackInfo(stream, context). El host los llama cuando el usuario abre la página de streams.",
-          "searchProviderTitle": "media.searchProvider",
+          "searchProviderTitle": "",
           "searchProviderDesc": "Constructor para registrar un proveedor de búsqueda en la biblioteca: media.searchProvider(id, name).icon(url).onSearch(callback). El callback recibe la consulta y devuelve los resultados de búsqueda al host."
         }
       },
       "sandbox": {
         "title": "Sandbox interactivo",
-        "category": "Sandbox",
+        "category": "",
         "toc": []
       }
     },
@@ -1545,18 +1582,18 @@
         "methods": {}
       },
       "Grid": {
-        "title": "Grid",
+        "title": "",
         "description": "Cuadrícula adaptable con un ancho mínimo de columna.",
         "methods": {
           "minWidth": {
-            "argument": "string",
+            "argument": "",
             "description": "Ancho mínimo de columna (p. ej. '12rem').",
-            "default": "'180px'"
+            "default": ""
           },
           "gap": {
-            "argument": "string",
+            "argument": "",
             "description": "Espacio entre celdas (p. ej. '1rem').",
-            "default": "'var(--space-m)'"
+            "default": ""
           }
         }
       },
@@ -1565,250 +1602,250 @@
         "description": "Panel de estilo cristal para agrupar bloques de UI.",
         "methods": {
           "title": {
-            "argument": "string",
+            "argument": "",
             "description": "Título de la tarjeta."
           },
           "subtitle": {
-            "argument": "string",
+            "argument": "",
             "description": "Texto de subtítulo atenuado."
           },
           "child": {
-            "argument": "UIComponent",
+            "argument": "",
             "description": "Componente hijo en el cuerpo de la tarjeta."
           }
         }
       },
       "Divider": {
-        "title": "Divider",
+        "title": "",
         "description": "Línea divisoria horizontal.",
         "methods": {}
       },
       "Spacer": {
-        "title": "Spacer",
+        "title": "",
         "description": "Espaciador flexible — ocupa el espacio disponible.",
         "methods": {}
       },
       "Heading": {
-        "title": "Heading",
+        "title": "",
         "description": "Encabezado para niveles h1–h4.",
         "methods": {
           "level": {
-            "argument": "number (1-4)",
+            "argument": "",
             "description": "Nivel de encabezado (1 = más grande, 4 = más pequeño).",
-            "default": "1"
+            "default": ""
           }
         }
       },
       "Text": {
-        "title": "Text",
+        "title": "",
         "description": "Texto para descripciones, etiquetas y errores.",
         "methods": {
           "variant": {
-            "argument": "'primary' | 'secondary' | 'success' | 'warning' | 'error'",
-            "description": "Color: primary, secondary, success, warning, error.",
-            "default": "'primary'"
+            "argument": "",
+            "description": "",
+            "default": ""
           },
           "size": {
-            "argument": "'sm' | 'md' | 'lg' | 'xl'",
+            "argument": "",
             "description": "Tamaño de fuente.",
-            "default": "'md'"
+            "default": ""
           },
           "bold": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Peso en negrita cuando es true.",
-            "default": "false"
+            "default": ""
           }
         }
       },
       "Badge": {
-        "title": "Badge",
+        "title": "",
         "description": "Etiqueta de color para estados y etiquetas.",
         "methods": {
           "color": {
-            "argument": "'info' | 'success' | 'warning' | 'error'",
+            "argument": "",
             "description": "Esquema de color de relleno.",
-            "default": "'info'"
+            "default": ""
           }
         }
       },
       "StatusRow": {
-        "title": "StatusRow",
+        "title": "",
         "description": "Fila de estado con punto de color y valor.",
         "methods": {
           "status": {
-            "argument": "'success' | 'warning' | 'offline'",
+            "argument": "",
             "description": "Estado (punto: verde/amarillo/gris)."
           },
           "value": {
-            "argument": "string",
+            "argument": "",
             "description": "Valor alineado a la derecha (p. ej. '24 ms')."
           }
         }
       },
       "Markdown": {
-        "title": "Markdown",
+        "title": "",
         "description": "Renderiza Markdown: listas, negrita, tablas, enlaces.",
         "methods": {
           "content": {
-            "argument": "string",
+            "argument": "",
             "description": "Texto Markdown; actualizable tras la construcción."
           }
         }
       },
       "Button": {
-        "title": "Button",
+        "title": "",
         "description": "Botón para acciones, reproducción y navegación.",
         "methods": {
           "variant": {
-            "argument": "'primary' | 'secondary' | 'danger' | 'ghost' | 'sidebar-item'",
+            "argument": "",
             "description": "Estilo: primary, secondary, danger, ghost, sidebar-item.",
-            "default": "'secondary'"
+            "default": ""
           },
           "icon": {
-            "argument": "string",
+            "argument": "",
             "description": "Icono de Lucide antes de la etiqueta (p. ej. 'play')."
           },
           "onClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de clic."
           }
         }
       },
       "Input": {
-        "title": "Input",
+        "title": "",
         "description": "Campo de texto para formularios y filtros.",
         "methods": {
           "label": {
-            "argument": "string",
+            "argument": "",
             "description": "Etiqueta encima del campo."
           },
           "placeholder": {
-            "argument": "string",
+            "argument": "",
             "description": "Sugerencia en un campo vacío."
           },
           "inputType": {
-            "argument": "string ('text' | 'password' | 'number')",
+            "argument": "",
             "description": "Tipo de entrada: text, password, number.",
-            "default": "'text'"
+            "default": ""
           },
           "type": {
-            "argument": "string",
+            "argument": "",
             "description": "Alias obsoleto de inputType."
           },
           "value": {
-            "argument": "string",
+            "argument": "",
             "description": "Valor actual.",
-            "default": "''"
+            "default": ""
           },
           "onChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de cambio de valor."
           }
         }
       },
       "Toggle": {
-        "title": "Toggle",
+        "title": "",
         "description": "Interruptor para ajustes booleanos.",
         "methods": {
           "label": {
-            "argument": "string",
+            "argument": "",
             "description": "Etiqueta a la derecha del interruptor."
           },
           "description": {
-            "argument": "string",
+            "argument": "",
             "description": "Sugerencia debajo de la etiqueta."
           },
           "value": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Estado booleano true/false.",
-            "default": "false"
+            "default": ""
           },
           "checked": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Alias obsoleto de value."
           },
           "onChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de cambio de estado."
           }
         }
       },
       "Select": {
-        "title": "Select",
+        "title": "",
         "description": "Desplegable con agrupación y selección múltiple.",
         "methods": {
           "label": {
-            "argument": "string",
+            "argument": "",
             "description": "Etiqueta encima del selector."
           },
           "options": {
-            "argument": "{ value?: string, label?: string, type?: string }[]",
+            "argument": "",
             "description": "Array de opciones: value/label o divider/header.",
-            "default": "[]"
+            "default": ""
           },
           "value": {
-            "argument": "string | string[]",
+            "argument": "",
             "description": "Valor seleccionado o array cuando es múltiple.",
-            "default": "''"
+            "default": ""
           },
           "selected": {
-            "argument": "string | string[]",
+            "argument": "",
             "description": "Alias obsoleto de value."
           },
           "onChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de selección; array en modo múltiple."
           },
           "variant": {
-            "argument": "'default' | 'glass'",
+            "argument": "",
             "description": "Estilo: default o glass.",
-            "default": "'default'"
+            "default": ""
           },
           "icon": {
-            "argument": "string",
+            "argument": "",
             "description": "Icono de Lucide para la variante glass (p. ej. 'Filter')."
           },
           "closeOnSelect": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Cierra el menú al seleccionar (false cuando es múltiple).",
-            "default": "true"
+            "default": ""
           },
           "multiple": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Selección múltiple; devuelve un array.",
-            "default": "false"
+            "default": ""
           },
           "resetLabel": {
-            "argument": "string",
+            "argument": "",
             "description": "Etiqueta del botón de restablecer en el popover."
           },
           "resetValue": {
-            "argument": "string | string[]",
+            "argument": "",
             "description": "Valor al restablecer (p. ej. []).",
-            "default": "''"
+            "default": ""
           }
         }
       },
       "CodeEditor": {
-        "title": "CodeEditor",
+        "title": "",
         "description": "Editor Monaco con resaltado de sintaxis y números de línea.",
         "methods": {
           "label": {
-            "argument": "string",
+            "argument": "",
             "description": "Etiqueta encima del editor."
           },
           "value": {
-            "argument": "string",
+            "argument": "",
             "description": "Texto del editor.",
-            "default": "''"
+            "default": ""
           },
           "readOnly": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Modo de solo lectura cuando es true.",
-            "default": "false"
+            "default": ""
           },
           "onChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de cambio de código."
           }
         }
@@ -1819,29 +1856,29 @@
         "methods": {}
       },
       "StreamRow": {
-        "title": "StreamRow",
+        "title": "",
         "description": "Fila de torrent: título, tamaño, tracker, seeds/peers.",
         "methods": {
           "stream": {
-            "argument": "object",
+            "argument": "",
             "description": "Metadatos: title, size, seeds, peers, quality, tracker."
           },
           "onClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de clic para iniciar la reproducción."
           }
         }
       },
       "MediaCard": {
-        "title": "MediaCard",
+        "title": "",
         "description": "Tarjeta de película: póster, valoración, título y año al pasar el ratón.",
         "methods": {
           "item": {
-            "argument": "object",
+            "argument": "",
             "description": "Metadatos: title, posterUrl, year, rating."
           },
           "onClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de clic; pasa el elemento multimedia."
           }
         }
@@ -1851,257 +1888,257 @@
         "description": "Banner promocional: arte, título, botones Ver/Detalles.",
         "methods": {
           "items": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Diapositivas del banner: title, overview, backdropUrl."
           },
           "onPlay": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Botón Ver; devuelve la diapositiva activa."
           },
           "onDetails": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador del botón Detalles."
           }
         }
       },
       "StreamList": {
-        "title": "StreamList",
+        "title": "",
         "description": "Lista de torrents con filtros, carga y estado vacío.",
         "methods": {
           "streams": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Array de torrents para StreamRow.",
-            "default": "[]"
+            "default": ""
           },
           "loading": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Cuando es true, muestra el esqueleto de carga.",
-            "default": "false"
+            "default": ""
           },
           "showFilters": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Barra de filtros de calidad y tracker.",
-            "default": "false"
+            "default": ""
           },
           "emptyText": {
-            "argument": "string",
+            "argument": "",
             "description": "Texto cuando la lista está vacía.",
-            "default": "'Раздачи не найдены'"
+            "default": ""
           },
           "nounPlurals": {
-            "argument": "string[]",
+            "argument": "",
             "description": "Tres formas plurales (p. ej. ['torrent', 'torrents', 'torrents'])."
           },
           "onSelectStream": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de selección de stream."
           }
         }
       },
       "LoadingSpinner": {
-        "title": "LoadingSpinner",
+        "title": "",
         "description": "Indicador de carga circular.",
         "methods": {
           "message": {
-            "argument": "string",
+            "argument": "",
             "description": "Texto debajo del indicador."
           },
           "fullscreen": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Cuando es true, superposición a pantalla completa.",
-            "default": "false"
+            "default": ""
           }
         }
       },
       "EpisodesSection": {
-        "title": "EpisodesSection",
+        "title": "",
         "description": "Bloque de episodios: obtiene por ID de contenido, pestañas de temporada, cuadrícula de episodios.",
         "methods": {
           "mediaId": {
-            "argument": "string | number",
+            "argument": "",
             "description": "ID de la serie en la base de datos multimedia."
           },
           "numberOfSeasons": {
-            "argument": "number",
+            "argument": "",
             "description": "Número de temporadas para las pestañas."
           },
           "onEpisodeClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de clic en episodio."
           }
         }
       },
       "MediaCast": {
-        "title": "MediaCast",
+        "title": "",
         "description": "Fila horizontal del reparto: avatar, nombre, papel.",
         "methods": {
           "cast": {
-            "argument": "any[]",
-            "description": "Array: name, character, profilePath.",
-            "default": "[]"
+            "argument": "",
+            "description": "",
+            "default": ""
           }
         }
       },
       "MediaOverview": {
-        "title": "MediaOverview",
+        "title": "",
         "description": "Panel de contenido: póster, descripción, año, país, valoración, géneros.",
         "methods": {
           "media": {
-            "argument": "object",
+            "argument": "",
             "description": "Metadatos: title, overview, posterUrl, rating, genres, year, country."
           },
           "selectedEpisode": {
-            "argument": "object",
+            "argument": "",
             "description": "Episodio seleccionado en lugar del resumen de temporada."
           },
           "onResetEpisode": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Borra la selección de episodio."
           }
         }
       },
       "MediaRow": {
-        "title": "MediaRow",
+        "title": "",
         "description": "Carrusel horizontal de MediaCard con título y Ver todo.",
         "methods": {
           "title": {
-            "argument": "string",
+            "argument": "",
             "description": "Título de la sección (p. ej. 'Tendencias ahora')."
           },
           "items": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Array de películas para las tarjetas.",
-            "default": "[]"
+            "default": ""
           },
           "onCardClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de clic en tarjeta."
           },
           "onSeeAllClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador del botón Ver todo."
           }
         }
       },
       "MediaPlayer": {
-        "title": "MediaPlayer",
+        "title": "",
         "description": "Reproductor HTML5: HLS, DASH, MP4, subtítulos y pistas de audio.",
         "methods": {
           "playback": {
-            "argument": "object",
-            "description": "SDKPlaybackInfo: streamUrl, streamType, title, season, episode, torrentHash, fileIndex, audios, headers, providerId, voice, subtitles, session, duration, intro/outro, thumbnails, requiresBuffering."
+            "argument": "",
+            "description": ""
           },
           "isNetworkOffline": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Cuando es true, detiene la reproducción y muestra un error de red.",
-            "default": "false"
+            "default": ""
           }
         }
       },
       "ProfileSelector": {
-        "title": "ProfileSelector",
+        "title": "",
         "description": "Selector de perfiles del Potok Gateway: ping, añadir, editar, eliminar.",
         "methods": {
           "connectionProfiles": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Perfiles: id, name, gatewayURL.",
-            "default": "[]"
+            "default": ""
           },
           "activeProfileID": {
-            "argument": "string | null",
+            "argument": "",
             "description": "ID del perfil activo."
           },
           "isSettingsLocked": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Cuando es true, bloquea el CRUD de perfiles.",
-            "default": "false"
+            "default": ""
           },
           "onSelectProfile": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de selección de perfil."
           },
           "onStartEdit": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de edición de perfil."
           },
           "onDeleteProfile": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de eliminación de perfil."
           },
           "onStartAdd": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de añadir servidor."
           }
         }
       },
       "SearchBar": {
-        "title": "SearchBar",
+        "title": "",
         "description": "Campo de búsqueda con icono y botón de borrar.",
         "methods": {
           "value": {
-            "argument": "string",
+            "argument": "",
             "description": "Consulta actual.",
-            "default": "''"
+            "default": ""
           },
           "placeholder": {
-            "argument": "string",
+            "argument": "",
             "description": "Placeholder del campo.",
-            "default": "'Поиск...'"
+            "default": ""
           },
           "onChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de cambio de consulta."
           },
           "onClear": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador del botón de borrar."
           }
         }
       },
       "StreamFilterBar": {
-        "title": "StreamFilterBar",
+        "title": "",
         "description": "Barra de filtros de torrents: calidad, tracker, orden.",
         "methods": {
           "countLabel": {
-            "argument": "string",
+            "argument": "",
             "description": "Número de torrents encontrados a la izquierda."
           },
           "qualityFilter": {
-            "argument": "string",
+            "argument": "",
             "description": "Filtro de calidad (p. ej. '1080p')."
           },
           "activeTracker": {
-            "argument": "string",
+            "argument": "",
             "description": "Filtro de tracker activo."
           },
           "trackers": {
-            "argument": "string[]",
+            "argument": "",
             "description": "Lista de trackers para el filtro.",
-            "default": "[]"
+            "default": ""
           },
           "showSort": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Mostrar el desplegable de orden.",
-            "default": "true"
+            "default": ""
           },
           "sortOption": {
-            "argument": "string",
+            "argument": "",
             "description": "Opción de orden (p. ej. 'seeds')."
           },
           "onRefresh": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de actualizar búsqueda."
           },
           "onQualityChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de cambio de calidad."
           },
           "onTrackerChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de cambio de tracker."
           },
           "onSortChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de cambio de orden."
           }
         }
@@ -2111,65 +2148,65 @@
         "description": "Selector modal de temporadas y episodios.",
         "methods": {
           "isOpen": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Visibilidad del modal.",
-            "default": "false"
+            "default": ""
           },
           "title": {
-            "argument": "string",
+            "argument": "",
             "description": "Título (nombre de la serie)."
           },
           "subtitle": {
-            "argument": "string",
+            "argument": "",
             "description": "Subtítulo."
           },
           "episodes": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Episodios de la temporada actual.",
-            "default": "[]"
+            "default": ""
           },
           "backdropSrc": {
-            "argument": "string",
+            "argument": "",
             "description": "URL de la imagen de fondo."
           },
           "seasonsLoading": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Cuando es true, muestra el indicador de carga.",
-            "default": "false"
+            "default": ""
           },
           "seasons": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Temporadas para las pestañas.",
-            "default": "[]"
+            "default": ""
           },
           "onClose": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de cierre."
           },
           "onPlay": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de reproducir episodio."
           },
           "onApplyOverride": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de anulación de episodio."
           },
           "onStartEditing": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de iniciar edición."
           }
         }
       },
       "EpisodeCard": {
-        "title": "EpisodeCard",
+        "title": "",
         "description": "Tarjeta de episodio: imagen, número, título, sinopsis.",
         "methods": {
           "episode": {
-            "argument": "object",
+            "argument": "",
             "description": "Datos: episodeNumber, seasonNumber, name, overview, stillPath."
           },
           "onClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Manejador de clic; pasa el objeto del episodio."
           }
         }
@@ -2189,7 +2226,7 @@
           "visible": "Controla la visibilidad del elemento.",
           "disabled": "Pone el elemento en estado deshabilitado.",
           "flex": "Proporción de flex-grow para distribuir el espacio libre.",
-          "style": "Adds a custom CSS class to the root element to target from ui.injectHostCss()."
+          "style": ""
         }
       },
       "layoutMethods": {
@@ -2269,19 +2306,19 @@
       "ok": "Aceptar"
     },
     "chat": {
-      "title": "Chat",
+      "title": "",
       "close": "Cerrar el chat",
       "empty": "Aún no hay mensajes",
       "placeholder": "Escribe un mensaje…",
       "send": "Enviar",
-      "tabChat": "Chat",
+      "tabChat": "",
       "tabInfo": "Información"
     },
     "joinInvite": "Te han invitado a una sala de ver juntos.",
     "join": "Unirse a la sala",
     "nowWatching": "Viendo ahora",
     "episodeN": "Episodio {{n}}",
-    "ping": "{{ms}} ms",
+    "ping": "",
     "roomUnavailable": "Esta sala ya no está disponible: el anfitrión se ha ido."
   }
 }
