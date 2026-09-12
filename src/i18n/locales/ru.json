@@ -100,7 +100,7 @@
       "passwordsDoNotMatch": "Пароли не совпадают",
       "passwordTooShort": "Пароль должен быть не короче 6 символов",
       "fillAllFields": "Заполните все поля",
-      "telegramTitle": "Telegram",
+      "telegramTitle": "",
       "telegramLinkedAs": "Привязан как @{{username}}",
       "telegramLinked": "Telegram привязан",
       "telegramLinkDesc": "Привяжите Telegram, чтобы входить в одно касание.",
@@ -404,11 +404,7 @@
       "genre_scifi_fantasy": "Научная фантастика и фэнтези",
       "genre_thriller_horror": "Триллер и ужас",
       "genre_kids_family": "Дети и семья",
-      "categoryTitle": "{{actorName}} — {{category}}",
-      "ageAtDeath_few": "в возрасте {{count}} лет",
-      "ageAtDeath_many": "в возрасте {{count}} лет",
-      "years_few": "года",
-      "years_many": "лет"
+      "categoryTitle": "{{actorName}} — {{category}}"
     },
     "episode": {
       "fallbackName": "Серия {{number}}",
@@ -894,7 +890,7 @@
   },
   "wiki": {
     "header": {
-      "brand": "Potok",
+      "brand": "",
       "searchPlaceholder": "Быстрый поиск по Wiki...",
       "logoAlt": "Логотип Potok"
     },
@@ -921,8 +917,8 @@
       "previewTab": "Превью результата",
       "run": "Запустить",
       "reset": "Сбросить",
-      "connected": "CONNECTED",
-      "mainFile": "main.js",
+      "connected": "",
+      "mainFile": "",
       "logsTitle": "КОНСОЛЬ ЛОГОВ",
       "clearLogs": "Очистить",
       "logsEmpty": "Логи пусты. Запустите код и совершите действия.",
@@ -940,7 +936,7 @@
     },
     "categories": {
       "intro": "Введение",
-      "api": "API",
+      "api": "",
       "uiContainers": "UI: Контейнеры",
       "uiText": "UI: Текст и Инфо",
       "uiForms": "UI: Формы и Ввод",
@@ -954,15 +950,15 @@
         "category": "Введение",
         "toc": [
           {
-            "id": "overview",
+            "id": "",
             "text": "Описание архитектуры"
           },
           {
-            "id": "declarative",
+            "id": "",
             "text": "Декларативный UI"
           },
           {
-            "id": "sandbox-details",
+            "id": "",
             "text": "Безопасность и песочница"
           }
         ],
@@ -982,7 +978,7 @@
           "sandboxTitle": "Безопасность и Песочница",
           "sandboxP": "Плагин в изолированной JS-песочнице:",
           "sandboxItems": [
-            "window, document, localStorage → undefined.",
+            "",
             "Сеть только через PotokSDK.http.",
             "storage.local изолирован и привязан к pluginId."
           ],
@@ -994,23 +990,23 @@
         "category": "Введение",
         "toc": [
           {
-            "id": "quick-start",
+            "id": "",
             "text": "Файлы"
           },
           {
-            "id": "compose",
+            "id": "",
             "text": "Конфигурация Docker Compose"
           },
           {
-            "id": "variables",
-            "text": ".env"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "run",
+            "id": "",
             "text": "Запуск"
           },
           {
-            "id": "nginx",
+            "id": "",
             "text": "Настройка Nginx Proxy"
           }
         ],
@@ -1019,24 +1015,24 @@
           "intro": "Стек: web, gateway, PostgreSQL. Торренты — SearchEngine, TorrentGo, <repo>potok-torrents</repo> из <repo>web-plugins</repo>.",
           "quickStartTitle": "Файлы",
           "quickStartFiles": [
-            "docker-compose.yml",
-            ".env",
+            "",
+            "",
             "<code>config.yml</code> — торренты, см. <link>SearchEngine и TorrentGo</link>"
           ],
           "torrentServicesHint": "<code>config.yml</code> и сервисы — в <link>SearchEngine и TorrentGo</link>.",
           "pluginUrlsTitle": "URL в <repo>potok-torrents</repo>",
           "pluginUrlsDesc": "searchEngineURL и torrentGoURL — <code>http://<ip/>:6000</code>, <code>http://<ip/>:5282</code>. Доступны из браузера, Gateway не проксирует.",
-          "requiredTitle": "Compose",
+          "requiredTitle": "",
           "requiredDesc": "",
           "optionalTitle": "Торренты",
           "optionalDesc": "SearchEngine + TorrentGo в compose. URL — в <repo>potok-torrents</repo>.",
-          "envTitle": ".env",
+          "envTitle": "",
           "envDesc": "<code>GATEWAY_TMDB_API_KEY</code> — TMDB (необязательно — если не задан, используется общий ключ по умолчанию). <code>GATEWAY_MULTI_USER_MODE=true</code> — саморегистрация, <code>false</code> — только вход. <code>GATEWAY_JWT_SECRET</code> — сменить в проде. <code>GATEWAY_TELEGRAM_BOT_TOKEN</code> + <code>GATEWAY_TELEGRAM_BOT_USERNAME</code> — задать оба для входа через Telegram.",
           "runTitle": "Запуск",
-          "dockerUp": "docker compose up -d",
-          "nginxTitle": "Nginx",
+          "dockerUp": "",
+          "nginxTitle": "",
           "nginxDesc": "<code>potok.rip</code> → :3000, <code>api.potok.rip</code> → :5000. <code>wiki.potok.rip</code> — прокси на <code>/wiki</code> (+ <code>/assets/</code>); с корня редирект на <code>/wiki</code>. <code>VITE_DEFAULT_BFF_URL=https://api.potok.rip</code>.",
-          "nginxProxy": "server {\n    listen 80;\n    server_name wiki.potok.rip;\n\n    location / {\n        proxy_pass http://localhost:3000/wiki;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n}\n\nserver {\n    listen 80;\n    server_name app.potok.rip;\n\n    location / {\n        proxy_pass http://localhost:3000;\n        proxy_set_header Host $host;\n    }\n\n    location /api/ {\n        proxy_pass http://localhost:5000/;\n        proxy_set_header Host $host;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n    }\n}"
+          "nginxProxy": ""
         }
       },
       "torrentServices": {
@@ -1044,28 +1040,28 @@
         "category": "Введение",
         "toc": [
           {
-            "id": "overview",
+            "id": "",
             "text": "Обзор"
           },
           {
-            "id": "architecture",
+            "id": "",
             "text": "Схема"
           },
           {
-            "id": "searchengine",
-            "text": "SearchEngine"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "torrentgo",
-            "text": "TorrentGo"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "plugin",
+            "id": "",
             "text": "Плагин"
           },
           {
-            "id": "config",
-            "text": "config.yml"
+            "id": "",
+            "text": ""
           }
         ],
         "sections": {
@@ -1073,7 +1069,7 @@
           "intro": "Опциональные backend-сервисы для торрентов. Работают с плагином <repo>potok-torrents</repo> из <repo>web-plugins</repo>. Gateway их не проксирует — плагин ходит напрямую из браузера.",
           "archTitle": "Схема",
           "archDesc": "Тот же compose, что web/gateway.",
-          "seTitle": "SearchEngine",
+          "seTitle": "",
           "seDesc": "Поиск по трекерам, кеш результатов в PostgreSQL. Порт по умолчанию 6000 (SEARCH_ENGINE_PORT).",
           "seItems": [
             "config.yml рядом с docker-compose.yml — монтируется как config.local.yml",
@@ -1081,7 +1077,7 @@
             "proxy.list — HTTP-прокси к трекерам: { url, username?, password? }; [] — без прокси",
             "Порт — PORT / SEARCH_ENGINE_PORT, не в yaml"
           ],
-          "tgTitle": "TorrentGo",
+          "tgTitle": "",
           "tgDesc": "BitTorrent-стриминг: скачивание, HLS, метаданные файлов. Stateless, PostgreSQL не нужен. Порт по умолчанию 5282 (TORRENTGO_PORT).",
           "tgItems": [
             "GPU: GPU_DEVICE=/dev/dri:/dev/dri в compose для HW-транскода",
@@ -1090,33 +1086,33 @@
           ],
           "pluginTitle": "Плагин",
           "pluginDesc": "В <repo>potok-torrents</repo>: searchEngineURL и torrentGoURL — <code>http://<ip/>:6000</code>, <code>http://<ip/>:5282</code>.",
-          "configTitle": "config.yml",
+          "configTitle": "",
           "configDesc": "",
           "configNote": "Референс: <code>src/Potok.Backend.SearchEngine/config.yml</code>"
         }
       },
       "manifest": {
         "title": "Спецификация Манифеста",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "fields",
+            "id": "",
             "text": "Обязательные и опциональные поля"
           },
           {
-            "id": "permissions",
+            "id": "",
             "text": "Управление правами доступа"
           },
           {
-            "id": "slots-section",
+            "id": "",
             "text": "Слоты интерфейса (Slots)"
           },
           {
-            "id": "config-section",
+            "id": "",
             "text": "Конфигурация плагина (Config)"
           },
           {
-            "id": "manifest-example",
+            "id": "",
             "text": "Полный пример"
           }
         ],
@@ -1130,53 +1126,53 @@
             "description": "Описание",
             "rows": [
               {
-                "field": "id",
-                "type": "string (required)",
+                "field": "",
+                "type": "",
                 "desc": "Уникальный строковый идентификатор плагина (например, <repo>potok-torrents</repo> из <repo>web-plugins</repo>)."
               },
               {
-                "field": "name",
-                "type": "string (required)",
+                "field": "",
+                "type": "",
                 "desc": "Название плагина для показа пользователю в интерфейсе."
               },
               {
-                "field": "version",
-                "type": "string (optional)",
+                "field": "",
+                "type": "",
                 "desc": "Версия плагина в формате SemVer (например, 1.0.0)."
               },
               {
-                "field": "description",
-                "type": "string (optional)",
+                "field": "",
+                "type": "",
                 "desc": "Краткое описание назначения и возможностей расширения."
               },
               {
-                "field": "author",
-                "type": "string (optional)",
+                "field": "",
+                "type": "",
                 "desc": "Автор или команда разработчиков расширения."
               },
               {
-                "field": "entrypoint",
-                "type": "string (required)",
+                "field": "",
+                "type": "",
                 "desc": "Путь к скомпилированному JS-файлу относительно папки плагина (обычно index.js)."
               },
               {
-                "field": "category",
-                "type": "string (optional)",
+                "field": "",
+                "type": "",
                 "desc": "Категория расширения: sources для источников медиа, visual для тем оформления, other для прочего."
               },
               {
-                "field": "permissions",
-                "type": "string[] (optional)",
+                "field": "",
+                "type": "",
                 "desc": "Список запрашиваемых разрешений безопасности (storage, http-proxy, ui-notifications)."
               },
               {
-                "field": "slots",
-                "type": "object[] (optional)",
+                "field": "",
+                "type": "",
                 "desc": "Список точек встраивания UI плагина. Каждый объект описывает id вклада, slotName целевого слота и title."
               },
               {
-                "field": "config",
-                "type": "object (optional)",
+                "field": "",
+                "type": "",
                 "desc": "Набор настраиваемых параметров расширения, доступных для редактирования в панели настроек."
               }
             ]
@@ -1196,39 +1192,39 @@
             "description": "Описание",
             "rows": [
               {
-                "slot": "sidebar-menu",
+                "slot": "",
                 "desc": "Верхняя секция меню боковой панели (самый верхний уровень навигации)."
               },
               {
-                "slot": "sidebar-menu-home",
+                "slot": "",
                 "desc": "Дополнительные пункты меню рядом с разделом «Главная»."
               },
               {
-                "slot": "sidebar-menu-library",
+                "slot": "",
                 "desc": "Дополнительные пункты меню в разделе «Медиатека»."
               },
               {
-                "slot": "sidebar-status",
+                "slot": "",
                 "desc": "Нижняя часть боковой панели (для отображения статуса/сервисных кнопок)."
               },
               {
-                "slot": "media-actions",
+                "slot": "",
                 "desc": "Блок действий на странице фильма или сериала (например, кнопки запуска просмотра)."
               },
               {
-                "slot": "details-bottom",
+                "slot": "",
                 "desc": "Панель под основной информацией о медиафайле в деталях."
               },
               {
-                "slot": "settings-color-accent",
+                "slot": "",
                 "desc": "Слот настроек для управления цветовой палитрой и оформлениями."
               },
               {
-                "slot": "settings-tabs",
+                "slot": "",
                 "desc": "Добавление кастомных вкладок в панель настроек хост-приложения."
               },
               {
-                "slot": "extension-page",
+                "slot": "",
                 "desc": "Страница расширения, открывающаяся во весь экран."
               }
             ]
@@ -1241,54 +1237,54 @@
             "description": "Описание",
             "rows": [
               {
-                "property": "type",
-                "type": "string (required)",
+                "property": "",
+                "type": "",
                 "desc": "Тип значения настройки. Поддерживаемые типы: \"string\", \"boolean\" (рендерится как тумблер), \"number\", \"select\" (выпадающий список опций) и \"notice\" (подсвечиваемая оранжевая инфо-плашка для вывода предупреждений)."
               },
               {
-                "property": "default",
-                "type": "any (required)",
+                "property": "",
+                "type": "",
                 "desc": "Значение по умолчанию. Тип совпадает с type."
               },
               {
-                "property": "label",
-                "type": "string (required)",
+                "property": "",
+                "type": "",
                 "desc": "Текстовая метка (заголовок), которая будет отображаться пользователю в панели настроек."
               },
               {
-                "property": "dependsOn",
-                "type": "string (optional)",
+                "property": "",
+                "type": "",
                 "desc": "Имя другого параметра из config, от включения или значения которого зависит видимость текущей настройки."
               }
             ]
           },
-          "manifestExampleTitle": "manifest.json",
+          "manifestExampleTitle": "",
           "manifestExampleIntro": "<repo>potok-torrents</repo> из <repo>web-plugins</repo>:",
           "manifestExample": "{\n  \"id\": \"potok-torrents\",\n  \"name\": \"Поиск торрентов\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Поиск и стриминг раздач из базы торрент-трекеров\",\n  \"author\": \"Potok Team\",\n  \"category\": \"sources\",\n  \"entrypoint\": \"index.js\",\n  \"permissions\": [\n    \"storage\",\n    \"http-proxy\",\n    \"ui-notifications\"\n  ],\n  \"slots\": [\n    {\n      \"id\": \"torrents-media-actions\",\n      \"slotName\": \"media-actions\",\n      \"title\": \"Смотреть\"\n    },\n    {\n      \"id\": \"torrents-sidebar-status\",\n      \"slotName\": \"sidebar-status\",\n      \"title\": \"Статус Торрентов\"\n    }\n  ],\n  \"config\": {\n    \"torrentGoURL\": {\n      \"type\": \"string\",\n      \"default\": \"https://torrent.potok.rip\",\n      \"label\": \"Адрес TorrentGo\"\n    },\n    \"searchEngineURL\": {\n      \"type\": \"string\",\n      \"default\": \"https://search.potok.rip\",\n      \"label\": \"Адрес SearchEngine\"\n    }\n  }\n}"
         }
       },
       "state": {
         "title": "Реактивность и State",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "state-api",
-            "text": "createState API"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "subscription",
+            "id": "",
             "text": "Подписка и отписка"
           },
           {
-            "id": "deep-reactivity",
+            "id": "",
             "text": "Глубокая реактивность"
           },
           {
-            "id": "batching",
+            "id": "",
             "text": "Пакетные обновления (Batching)"
           },
           {
-            "id": "reactive-example",
+            "id": "",
             "text": "Интерактивный пример"
           }
         ],
@@ -1313,28 +1309,28 @@
       },
       "http": {
         "title": "Сетевой клиент http",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "get",
-            "text": "http.get()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "post",
-            "text": "http.post()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "cors",
+            "id": "",
             "text": "Обход CORS ограничений"
           }
         ],
         "sections": {
           "title": "Сетевые запросы",
           "intro": "Плагин в iframe — fetch снаружи не работает. Запросы через PotokSDK.http (прокси хоста).",
-          "getTitle": "HTTP GET",
-          "getSignature": "http.get(url: string, headers?: Record<string, string>): Promise<{ status: number, data: any }>",
-          "postTitle": "HTTP POST",
-          "postSignature": "http.post(url: string, body?: any, headers?: Record<string, string>): Promise<{ status: number, data: any }>",
+          "getTitle": "",
+          "getSignature": "",
+          "postTitle": "",
+          "postSignature": "",
           "corsTitle": "Преимущества проксирования",
           "corsItems": [
             "CORS — запрос идёт через бэкенд Potok, не из iframe.",
@@ -1346,14 +1342,14 @@
       },
       "storage": {
         "title": "Изолированное хранилище",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "storage-methods",
+            "id": "",
             "text": "Методы работы с БД"
           },
           {
-            "id": "isolation",
+            "id": "",
             "text": "Концепция изолированных пространств"
           }
         ],
@@ -1367,13 +1363,13 @@
             "description": "Описание",
             "rows": [
               {
-                "method": "getItem",
-                "signature": "getItem(key: string): Promise<string | null>",
+                "method": "",
+                "signature": "",
                 "desc": "Асинхронно считывает значение ключа."
               },
               {
-                "method": "setItem",
-                "signature": "setItem(key: string, value: any): Promise<void>",
+                "method": "",
+                "signature": "",
                 "desc": "Сохраняет переданное значение под указанным ключом."
               }
             ]
@@ -1386,49 +1382,49 @@
       },
       "uiMethods": {
         "title": "Глобальные методы UI",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "render",
-            "text": "ui.render()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "hud",
-            "text": "ui.showHUD()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "player",
-            "text": "ui.playVideo()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "ep-selector",
-            "text": "ui.showEpisodeSelector()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "navigation",
+            "id": "",
             "text": "Навигация (ui.navigateTo)"
           },
           {
-            "id": "themes",
+            "id": "",
             "text": "Темы оформления"
           },
           {
-            "id": "block",
-            "text": "ui.block()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "block-context",
-            "text": "ui.onBlockContextUpdate()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "registration",
+            "id": "",
             "text": "Регистрация плагина и слотов"
           }
         ],
         "sections": {
           "title": "Глобальный объект ui",
           "intro": "PotokSDK.ui — рендер, HUD, плеер, навигация, регистрация.",
-          "renderTitle": "ui.render()",
+          "renderTitle": "Метод ui.render()",
           "renderText": "ui.render(component, slotId?) — компиляция разметки и отправка хосту. slotId — проекция в слот; без него — экран песочницы.",
           "hudTitle": "Уведомления HUD",
           "hudText": "Метод ui.showHUD(type: string, message: string) вызывает кратковременный системный баннер в углу экрана. Поддерживаемые типы: \"success\", \"error\", \"info\", \"warning\".",
@@ -1438,7 +1434,7 @@
           "epSelectorText": "Метод ui.showEpisodeSelector(config) вызывает системное всплывающее окно для выбора сезонов и серий, разработанное специально для сериалов.",
           "navigationTitle": "Навигация",
           "navigationText": "ui.navigateTo(to, state?) — переход в раздел хоста (/settings, /library, …):",
-          "navigationCode": "ui.navigateTo(\"/settings\");\nui.navigateTo(\"/library\", { filter: \"watchlist\" });",
+          "navigationCode": "",
           "themesTitle": "Темы оформления",
           "themesIntro": "Кастомные темы и акцент:",
           "themesItems": [
@@ -1454,7 +1450,7 @@
             "append(ui) / prepend(ui) — добавляет разметку в начало или конец блока.",
             "apply() — регистрирует накопленные мутации на хосте."
           ],
-          "onBlockContextUpdateTitle": "ui.onBlockContextUpdate()",
+          "onBlockContextUpdateTitle": "",
           "onBlockContextUpdateText": "Метод ui.onBlockContextUpdate(callback) подписывает плагин на обновления контекста активного блока интерфейса. Коллбек получает (blockName, context) при смене данных экрана (например, при переходе к другому фильму). Возвращает функцию отписки.",
           "registrationTitle": "Регистрация в системе",
           "registrationIntro": "Регистрация в хосте:",
@@ -1463,23 +1459,23 @@
             "description": "Описание",
             "rows": [
               {
-                "api": "registerPlugin(meta)",
+                "api": "",
                 "desc": "Метаданные плагина (id, name, version). Вызывать первой при загрузке."
               },
               {
-                "api": "registerSource(config)",
+                "api": "",
                 "desc": "Регистрирует плагин как поисковый провайдер (источник медиа-потоков). Хост обращается к зарегистрированному источнику при поиске видеофайлов."
               },
               {
-                "api": "registerSlotContribution(config)",
+                "api": "",
                 "desc": "Регистрирует графический вклад в указанный интерфейсный слот (например, в кнопки действий или под описание медиафайла)."
               },
               {
-                "api": "onSettingsChanged(callback)",
+                "api": "",
                 "desc": "Подписывает плагин на интерактивное изменение полей формы его настроек на хосте в реальном времени. В коллбек передаются (key, value, currentSettings)."
               },
               {
-                "api": "updateSettingsForm(updates)",
+                "api": "",
                 "desc": "Отправляет команду хосту обновить значения полей формы настроек в реальном времени (например, для автозаполнения пресетов, сброса или валидации). Принимает объект обновлений { updates }."
               }
             ]
@@ -1489,7 +1485,7 @@
           "registerSlotConfigIntro": "Поля config:",
           "registerSlotParams": [
             "id (string) — id вклада, как в slots манифеста.",
-            "slotName (string) — media-actions, details-bottom, extension-page, …",
+            "",
             "render(props) (function) — возвращает { label, icon?, layout }."
           ],
           "registerSlotRenderFields": [
@@ -1497,11 +1493,11 @@
             "icon (string, опционально) — Имя иконки Lucide.",
             "layout (UIComponent) — Дерево UI компонентов (создается с помощью билдеров Card(), VStack(), Button() и т.д.)."
           ],
-          "easyPluginTitle": "Easy Plugin",
+          "easyPluginTitle": "",
           "easyPluginIntro": "Кнопка трейлера в media-actions, блок в details-bottom:",
           "easyPluginStep1": "Структура",
-          "easyPluginStep2": "manifest.json",
-          "easyPluginStep3": "index.js",
+          "easyPluginStep2": "",
+          "easyPluginStep3": "",
           "folderStructure": "my-easy-plugin/\n├── manifest.json   # Метаданные и объявление слотов\n└── index.js        # Исполняемый JS код плагина",
           "manifestJson": "{\n  \"id\": \"my-easy-plugin\",\n  \"name\": \"Простой Просмотрщик\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Добавляет кнопку просмотра трейлера и блок в деталях\",\n  \"permissions\": [\"ui-notifications\"],\n  \"slots\": [\n    {\n      \"id\": \"trailer-action-button\",\n      \"slotName\": \"media-actions\",\n      \"title\": \"Кнопка Трейлера\"\n    },\n    {\n      \"id\": \"extra-details-info\",\n      \"slotName\": \"details-bottom\",\n      \"title\": \"Блок Информации\"\n    }\n  ]\n}",
           "sandboxButton": "Протестировать оверлеи в Sandbox",
@@ -1517,23 +1513,23 @@
       },
       "i18n": {
         "title": "Локализация плагинов (i18n)",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "t",
-            "text": "PotokSDK.i18n.t"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "addResourceBundle",
-            "text": "addResourceBundle"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "registerTranslations",
-            "text": "registerTranslations"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "onLanguageChange",
-            "text": "onLanguageChange"
+            "id": "",
+            "text": ""
           }
         ],
         "sections": {
@@ -1548,23 +1544,23 @@
       },
       "streams": {
         "title": "Потоки и медиа-провайдеры",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "registerStreamSource",
-            "text": "streams.registerStreamSource"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "searchProvider",
-            "text": "media.searchProvider"
+            "id": "",
+            "text": ""
           }
         ],
         "sections": {
           "title": "Источники потоков и поиск",
           "intro": "Регистрация источников потоков и search provider для хоста.",
-          "registerStreamSourceTitle": "streams.registerStreamSource",
+          "registerStreamSourceTitle": "",
           "registerStreamSourceDesc": "Регистрирует источник потоков с id, name, supportedTypes (movie | tv) и async-обработчиками: search(query), getEpisodes(stream, context), getPlaybackInfo(stream, context). Хост вызывает их при открытии страницы раздач.",
-          "searchProviderTitle": "media.searchProvider",
+          "searchProviderTitle": "",
           "searchProviderDesc": "Билдер для регистрации провайдера поиска в библиотеке: media.searchProvider(id, name).icon(url).onSearch(callback). Коллбек получает запрос и возвращает результаты хосту."
         }
       },
@@ -1590,14 +1586,14 @@
         "description": "Адаптивная сетка с минимальной шириной колонки.",
         "methods": {
           "minWidth": {
-            "argument": "string",
+            "argument": "",
             "description": "Минимальная ширина колонки (например, '12rem').",
-            "default": "'180px'"
+            "default": ""
           },
           "gap": {
-            "argument": "string",
+            "argument": "",
             "description": "Зазор между ячейками (например, '1rem').",
-            "default": "'var(--space-m)'"
+            "default": ""
           }
         }
       },
@@ -1606,15 +1602,15 @@
         "description": "Панель с glass-эффектом для группировки блоков.",
         "methods": {
           "title": {
-            "argument": "string",
+            "argument": "",
             "description": "Заголовок карточки."
           },
           "subtitle": {
-            "argument": "string",
+            "argument": "",
             "description": "Подзаголовок мелким шрифтом."
           },
           "child": {
-            "argument": "UIComponent",
+            "argument": "",
             "description": "Дочерний компонент в теле карточки."
           }
         }
@@ -1634,9 +1630,9 @@
         "description": "Заголовок уровней h1–h4.",
         "methods": {
           "level": {
-            "argument": "number (1-4)",
+            "argument": "",
             "description": "Уровень заголовка (1 — крупнее, 4 — мельче).",
-            "default": "1"
+            "default": ""
           }
         }
       },
@@ -1645,19 +1641,19 @@
         "description": "Текст: описания, подписи, ошибки.",
         "methods": {
           "variant": {
-            "argument": "'primary' | 'secondary' | 'success' | 'warning' | 'error'",
+            "argument": "",
             "description": "Цвет: primary, secondary, success, warning, error.",
-            "default": "'primary'"
+            "default": ""
           },
           "size": {
-            "argument": "'sm' | 'md' | 'lg' | 'xl'",
+            "argument": "",
             "description": "Размер шрифта.",
-            "default": "'md'"
+            "default": ""
           },
           "bold": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Жирное начертание при true.",
-            "default": "false"
+            "default": ""
           }
         }
       },
@@ -1666,9 +1662,9 @@
         "description": "Цветная метка для статусов и тегов.",
         "methods": {
           "color": {
-            "argument": "'info' | 'success' | 'warning' | 'error'",
+            "argument": "",
             "description": "Схема цвета заливки.",
-            "default": "'info'"
+            "default": ""
           }
         }
       },
@@ -1677,11 +1673,11 @@
         "description": "Строка статуса: цветная точка и значение.",
         "methods": {
           "status": {
-            "argument": "'success' | 'warning' | 'offline'",
+            "argument": "",
             "description": "Состояние (точка: зелёный/жёлтый/серый)."
           },
           "value": {
-            "argument": "string",
+            "argument": "",
             "description": "Значение справа (например, '24 ms')."
           }
         }
@@ -1691,7 +1687,7 @@
         "description": "Рендер Markdown: списки, жирный текст, таблицы, ссылки.",
         "methods": {
           "content": {
-            "argument": "string",
+            "argument": "",
             "description": "Текст разметки; можно обновить после создания."
           }
         }
@@ -1701,16 +1697,16 @@
         "description": "Кнопка для действий, воспроизведения и переходов.",
         "methods": {
           "variant": {
-            "argument": "'primary' | 'secondary' | 'danger' | 'ghost' | 'sidebar-item'",
+            "argument": "",
             "description": "Стиль: primary, secondary, danger, ghost, sidebar-item.",
-            "default": "'secondary'"
+            "default": ""
           },
           "icon": {
-            "argument": "string",
+            "argument": "",
             "description": "Иконка Lucide перед текстом (например, 'play')."
           },
           "onClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик клика."
           }
         }
@@ -1720,29 +1716,29 @@
         "description": "Текстовое поле для форм и фильтров.",
         "methods": {
           "label": {
-            "argument": "string",
+            "argument": "",
             "description": "Подпись над полем."
           },
           "placeholder": {
-            "argument": "string",
+            "argument": "",
             "description": "Подсказка в пустом поле."
           },
           "inputType": {
-            "argument": "string ('text' | 'password' | 'number')",
+            "argument": "",
             "description": "Тип ввода: text, password, number.",
-            "default": "'text'"
+            "default": ""
           },
           "type": {
-            "argument": "string",
+            "argument": "",
             "description": "Устаревший синоним inputType."
           },
           "value": {
-            "argument": "string",
+            "argument": "",
             "description": "Текущее значение.",
-            "default": "''"
+            "default": ""
           },
           "onChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик изменения значения."
           }
         }
@@ -1752,24 +1748,24 @@
         "description": "Переключатель булевых параметров.",
         "methods": {
           "label": {
-            "argument": "string",
+            "argument": "",
             "description": "Подпись справа от переключателя."
           },
           "description": {
-            "argument": "string",
+            "argument": "",
             "description": "Описание под подписью."
           },
           "value": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Состояние true/false.",
-            "default": "false"
+            "default": ""
           },
           "checked": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Устаревший синоним value."
           },
           "onChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик смены состояния."
           }
         }
@@ -1779,54 +1775,54 @@
         "description": "Выпадающий список с группировкой и множественным выбором.",
         "methods": {
           "label": {
-            "argument": "string",
+            "argument": "",
             "description": "Подпись над списком."
           },
           "options": {
-            "argument": "{ value?: string, label?: string, type?: string }[]",
+            "argument": "",
             "description": "Массив опций: value/label или divider/header.",
-            "default": "[]"
+            "default": ""
           },
           "value": {
-            "argument": "string | string[]",
+            "argument": "",
             "description": "Выбранное значение или массив при multiple.",
-            "default": "''"
+            "default": ""
           },
           "selected": {
-            "argument": "string | string[]",
+            "argument": "",
             "description": "Устаревший синоним value."
           },
           "onChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик выбора; массив при multiple."
           },
           "variant": {
-            "argument": "'default' | 'glass'",
+            "argument": "",
             "description": "Стиль: default или glass.",
-            "default": "'default'"
+            "default": ""
           },
           "icon": {
-            "argument": "string",
+            "argument": "",
             "description": "Иконка Lucide для variant: glass (например, 'Filter')."
           },
           "closeOnSelect": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Закрывать меню при выборе (false при multiple).",
-            "default": "true"
+            "default": ""
           },
           "multiple": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Множественный выбор; возвращает массив.",
-            "default": "false"
+            "default": ""
           },
           "resetLabel": {
-            "argument": "string",
+            "argument": "",
             "description": "Текст кнопки сброса в поповере."
           },
           "resetValue": {
-            "argument": "string | string[]",
+            "argument": "",
             "description": "Значение при сбросе (например, []).",
-            "default": "''"
+            "default": ""
           }
         }
       },
@@ -1835,21 +1831,21 @@
         "description": "Редактор Monaco: подсветка, автодополнение, номера строк.",
         "methods": {
           "label": {
-            "argument": "string",
+            "argument": "",
             "description": "Подпись над редактором."
           },
           "value": {
-            "argument": "string",
+            "argument": "",
             "description": "Текст в редакторе.",
-            "default": "''"
+            "default": ""
           },
           "readOnly": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Режим только чтения при true.",
-            "default": "false"
+            "default": ""
           },
           "onChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик изменения кода."
           }
         }
@@ -1864,11 +1860,11 @@
         "description": "Строка раздачи: название, размер, трекер, сиды/пиры.",
         "methods": {
           "stream": {
-            "argument": "object",
+            "argument": "",
             "description": "Метаданные: title, size, seeds, peers, quality, tracker."
           },
           "onClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик клика для воспроизведения."
           }
         }
@@ -1878,11 +1874,11 @@
         "description": "Карточка фильма: постер, рейтинг, название и год при наведении.",
         "methods": {
           "item": {
-            "argument": "object",
+            "argument": "",
             "description": "Метаданные: title, posterUrl, year, rating."
           },
           "onClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик клика; передаёт объект медиа."
           }
         }
@@ -1892,15 +1888,15 @@
         "description": "Промо-баннер: арт, заголовок, кнопки Смотреть/Подробнее.",
         "methods": {
           "items": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Слайды баннера: title, overview, backdropUrl."
           },
           "onPlay": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Кнопка «Смотреть»; возвращает активный слайд."
           },
           "onDetails": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Кнопка «Подробнее»."
           }
         }
@@ -1910,31 +1906,31 @@
         "description": "Список раздач с фильтрами, загрузкой и пустым состоянием.",
         "methods": {
           "streams": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Массив раздач для StreamRow.",
-            "default": "[]"
+            "default": ""
           },
           "loading": {
-            "argument": "boolean",
+            "argument": "",
             "description": "При true — скелетон загрузки.",
-            "default": "false"
+            "default": ""
           },
           "showFilters": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Панель фильтров по качеству и трекерам.",
-            "default": "false"
+            "default": ""
           },
           "emptyText": {
-            "argument": "string",
+            "argument": "",
             "description": "Текст при пустом списке.",
-            "default": "'Раздачи не найдены'"
+            "default": ""
           },
           "nounPlurals": {
-            "argument": "string[]",
+            "argument": "",
             "description": "Три формы числительного (например, ['раздача', 'раздачи', 'раздач'])."
           },
           "onSelectStream": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик выбора раздачи."
           }
         }
@@ -1944,13 +1940,13 @@
         "description": "Круговой индикатор загрузки.",
         "methods": {
           "message": {
-            "argument": "string",
+            "argument": "",
             "description": "Текст под спиннером."
           },
           "fullscreen": {
-            "argument": "boolean",
+            "argument": "",
             "description": "При true — полноэкранный оверлей.",
-            "default": "false"
+            "default": ""
           }
         }
       },
@@ -1959,15 +1955,15 @@
         "description": "Блок серий: загрузка по mediaId, вкладки сезонов, сетка эпизодов.",
         "methods": {
           "mediaId": {
-            "argument": "string | number",
+            "argument": "",
             "description": "ID сериала в базе медиа."
           },
           "numberOfSeasons": {
-            "argument": "number",
+            "argument": "",
             "description": "Число сезонов для вкладок."
           },
           "onEpisodeClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик клика по эпизоду."
           }
         }
@@ -1977,9 +1973,9 @@
         "description": "Горизонтальный ряд актёров: аватар, имя, роль.",
         "methods": {
           "cast": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Массив: name, character, profilePath.",
-            "default": "[]"
+            "default": ""
           }
         }
       },
@@ -1988,15 +1984,15 @@
         "description": "Панель медиа: постер, описание, год, страна, рейтинг, жанры.",
         "methods": {
           "media": {
-            "argument": "object",
+            "argument": "",
             "description": "Метаданные: title, overview, posterUrl, rating, genres, year, country."
           },
           "selectedEpisode": {
-            "argument": "object",
+            "argument": "",
             "description": "Выбранная серия вместо описания сезона."
           },
           "onResetEpisode": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Сброс выбора серии."
           }
         }
@@ -2006,20 +2002,20 @@
         "description": "Горизонтальная карусель MediaCard с заголовком и «Показать все».",
         "methods": {
           "title": {
-            "argument": "string",
+            "argument": "",
             "description": "Заголовок секции (например, 'Сейчас смотрят')."
           },
           "items": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Массив фильмов для карточек.",
-            "default": "[]"
+            "default": ""
           },
           "onCardClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик клика по карточке."
           },
           "onSeeAllClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик «Показать все»."
           }
         }
@@ -2029,13 +2025,13 @@
         "description": "HTML5-плеер: HLS, DASH, MP4, субтитры и аудиодорожки.",
         "methods": {
           "playback": {
-            "argument": "object",
-            "description": "SDKPlaybackInfo: streamUrl, streamType, title, season, episode, torrentHash, fileIndex, audios, headers, providerId, voice, subtitles, session, duration, intro/outro, thumbnails, requiresBuffering."
+            "argument": "",
+            "description": ""
           },
           "isNetworkOffline": {
-            "argument": "boolean",
+            "argument": "",
             "description": "При true — остановка и ошибка сети.",
-            "default": "false"
+            "default": ""
           }
         }
       },
@@ -2044,33 +2040,33 @@
         "description": "Селектор профилей Potok Gateway: пинг, добавление, редактирование, удаление.",
         "methods": {
           "connectionProfiles": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Профили: id, name, gatewayURL.",
-            "default": "[]"
+            "default": ""
           },
           "activeProfileID": {
-            "argument": "string | null",
+            "argument": "",
             "description": "ID активного профиля."
           },
           "isSettingsLocked": {
-            "argument": "boolean",
+            "argument": "",
             "description": "При true — блокировка CRUD профилей.",
-            "default": "false"
+            "default": ""
           },
           "onSelectProfile": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик выбора профиля."
           },
           "onStartEdit": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик редактирования."
           },
           "onDeleteProfile": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик удаления."
           },
           "onStartAdd": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик добавления сервера."
           }
         }
@@ -2080,21 +2076,21 @@
         "description": "Поисковая строка с иконкой и кнопкой очистки.",
         "methods": {
           "value": {
-            "argument": "string",
+            "argument": "",
             "description": "Текущий запрос.",
-            "default": "''"
+            "default": ""
           },
           "placeholder": {
-            "argument": "string",
+            "argument": "",
             "description": "Подсказка в поле.",
-            "default": "'Поиск...'"
+            "default": ""
           },
           "onChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик изменения запроса."
           },
           "onClear": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик очистки."
           }
         }
@@ -2104,45 +2100,45 @@
         "description": "Панель фильтрации раздач: качество, трекер, сортировка.",
         "methods": {
           "countLabel": {
-            "argument": "string",
+            "argument": "",
             "description": "Счётчик найденных раздач слева."
           },
           "qualityFilter": {
-            "argument": "string",
+            "argument": "",
             "description": "Фильтр качества (например, '1080p')."
           },
           "activeTracker": {
-            "argument": "string",
+            "argument": "",
             "description": "Активный трекер."
           },
           "trackers": {
-            "argument": "string[]",
+            "argument": "",
             "description": "Список трекеров для фильтра.",
-            "default": "[]"
+            "default": ""
           },
           "showSort": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Показать выпадающий список сортировки.",
-            "default": "true"
+            "default": ""
           },
           "sortOption": {
-            "argument": "string",
+            "argument": "",
             "description": "Вариант сортировки (например, 'seeds')."
           },
           "onRefresh": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик обновления поиска."
           },
           "onQualityChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик смены качества."
           },
           "onTrackerChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик смены трекера."
           },
           "onSortChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик смены сортировки."
           }
         }
@@ -2152,51 +2148,51 @@
         "description": "Модальное окно выбора сезонов и серий.",
         "methods": {
           "isOpen": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Видимость модального окна.",
-            "default": "false"
+            "default": ""
           },
           "title": {
-            "argument": "string",
+            "argument": "",
             "description": "Заголовок (название сериала)."
           },
           "subtitle": {
-            "argument": "string",
+            "argument": "",
             "description": "Подзаголовок."
           },
           "episodes": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Серии текущего сезона.",
-            "default": "[]"
+            "default": ""
           },
           "backdropSrc": {
-            "argument": "string",
+            "argument": "",
             "description": "URL фонового изображения."
           },
           "seasonsLoading": {
-            "argument": "boolean",
+            "argument": "",
             "description": "При true — спиннер загрузки.",
-            "default": "false"
+            "default": ""
           },
           "seasons": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Сезоны для вкладок.",
-            "default": "[]"
+            "default": ""
           },
           "onClose": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик закрытия."
           },
           "onPlay": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик воспроизведения серии."
           },
           "onApplyOverride": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик переопределения серии."
           },
           "onStartEditing": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик начала редактирования."
           }
         }
@@ -2206,11 +2202,11 @@
         "description": "Карточка серии: кадр, номер, название, описание.",
         "methods": {
           "episode": {
-            "argument": "object",
+            "argument": "",
             "description": "Данные: episodeNumber, seasonNumber, name, overview, stillPath."
           },
           "onClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Обработчик клика; передаёт объект серии."
           }
         }

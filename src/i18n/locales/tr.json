@@ -71,6 +71,7 @@
       "groupIntegrations": "",
       "groupPlugins": "",
       "general": "",
+      "account": "",
       "connections": "",
       "connectionsShort": "",
       "accessibility": "",
@@ -79,6 +80,34 @@
       "console": "",
       "searchPlaceholder": "Ayarlarda ara",
       "noResults": "Eşleşme yok"
+    },
+    "account": {
+      "title": "",
+      "signedInAs": "",
+      "changePasswordTitle": "",
+      "setupLoginTitle": "",
+      "setupLoginDesc": "",
+      "currentPassword": "",
+      "newPassword": "",
+      "confirmPassword": "",
+      "usernameLabel": "",
+      "passwordLabel": "",
+      "savePassword": "",
+      "saveCredentials": "",
+      "saving": "",
+      "passwordChanged": "",
+      "credentialsSaved": "",
+      "passwordsDoNotMatch": "",
+      "passwordTooShort": "",
+      "fillAllFields": "",
+      "telegramTitle": "",
+      "telegramLinkedAs": "",
+      "telegramLinked": "",
+      "telegramLinkDesc": "",
+      "telegramUnlink": "",
+      "telegramUnlinked": "",
+      "telegramLinkedSuccess": "",
+      "telegramLinkButton": ""
     },
     "profiles": {
       "errorEmptyGateway": "",
@@ -98,6 +127,7 @@
       "permissionStorage": "",
       "permissionHttpProxy": "",
       "permissionUiNotifications": "",
+      "permissionCustomCss": "",
       "permissionCustom": "",
       "securityWarningTitle": "",
       "securityWarningBody": "",
@@ -363,10 +393,10 @@
       "years_one": "",
       "years_other": "",
       "departments": {
-        "acting": "Acting",
-        "directing": "Directing",
-        "writing": "Writing",
-        "production": "Production"
+        "acting": "",
+        "directing": "",
+        "writing": "",
+        "production": ""
       },
       "genre_35": "",
       "genre_action_adventure": "",
@@ -575,22 +605,22 @@
         "emptySub": ""
       },
       "dynamic": {
-        "onTheAir": "Currently airing",
-        "airingToday": "Airing today",
-        "nowPlaying": "In theaters",
-        "fridayThrills": "Adrenaline rush",
-        "cozyEvening": "Cozy evening",
-        "hiddenGems": "Hidden gems",
-        "nightSession": "Late night horror",
-        "comedyBreak": "Comedy break",
-        "sciFiFuture": "Space and the future",
-        "sciFiSeries": "Sci-Fi series",
-        "nostalgia90s": "90s nostalgia",
-        "koreanHits": "Korean hits",
-        "upcoming": "Coming soon",
-        "topTv": "Top TV shows",
-        "anime": "Anime",
-        "shortRuntime": "One evening, one movie"
+        "onTheAir": "",
+        "airingToday": "",
+        "nowPlaying": "",
+        "fridayThrills": "",
+        "cozyEvening": "",
+        "hiddenGems": "",
+        "nightSession": "",
+        "comedyBreak": "",
+        "sciFiFuture": "",
+        "sciFiSeries": "",
+        "nostalgia90s": "",
+        "koreanHits": "",
+        "upcoming": "",
+        "topTv": "",
+        "anime": "",
+        "shortRuntime": ""
       }
     },
     "streams": {
@@ -712,7 +742,13 @@
       "registerButton": "",
       "loginButton": "",
       "haveAccount": "",
-      "noAccount": ""
+      "noAccount": "",
+      "orContinueWith": "",
+      "telegramButton": "",
+      "telegramWaiting": "",
+      "telegramOpenAgain": "",
+      "telegramCancel": "",
+      "telegramExpired": ""
     },
     "localSync": {
       "syncActive": "",
@@ -804,6 +840,7 @@
       "storage": "",
       "httpProxy": "",
       "uiNotifications": "",
+      "customCss": "",
       "fallback": ""
     },
     "manifest": {
@@ -853,7 +890,7 @@
   },
   "wiki": {
     "header": {
-      "brand": "Potok",
+      "brand": "",
       "searchPlaceholder": "Hızlı wiki araması...",
       "logoAlt": "Potok Logosu"
     },
@@ -881,7 +918,7 @@
       "run": "Çalıştır",
       "reset": "Sıfırla",
       "connected": "BAĞLANDI",
-      "mainFile": "main.js",
+      "mainFile": "",
       "logsTitle": "GÜNLÜK KONSOLU",
       "clearLogs": "Temizle",
       "logsEmpty": "Günlükler boş. Kodu çalıştırın ve arayüzle etkileşime geçin.",
@@ -899,7 +936,7 @@
     },
     "categories": {
       "intro": "Giriş",
-      "api": "API",
+      "api": "",
       "uiContainers": "UI: Kapsayıcılar",
       "uiText": "UI: Metin ve Bilgi",
       "uiForms": "UI: Formlar ve Girdi",
@@ -913,15 +950,15 @@
         "category": "Giriş",
         "toc": [
           {
-            "id": "overview",
+            "id": "",
             "text": "Mimariye genel bakış"
           },
           {
-            "id": "declarative",
+            "id": "",
             "text": "Bildirimsel UI"
           },
           {
-            "id": "sandbox-details",
+            "id": "",
             "text": "Güvenlik ve kum havuzu"
           }
         ],
@@ -941,7 +978,7 @@
           "sandboxTitle": "Güvenlik ve Kum Havuzu",
           "sandboxP": "Eklenti, yalıtılmış bir JS kum havuzunda çalışır:",
           "sandboxItems": [
-            "window, document, localStorage → undefined.",
+            "",
             "Ağ yalnızca PotokSDK.http aracılığıyla.",
             "storage.local yalıtılmıştır ve pluginId ile sınırlandırılmıştır."
           ],
@@ -953,23 +990,23 @@
         "category": "Giriş",
         "toc": [
           {
-            "id": "quick-start",
+            "id": "",
             "text": "Dosyalar"
           },
           {
-            "id": "compose",
+            "id": "",
             "text": "Docker Compose yapılandırması"
           },
           {
-            "id": "variables",
-            "text": ".env"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "run",
+            "id": "",
             "text": "Çalıştır"
           },
           {
-            "id": "nginx",
+            "id": "",
             "text": "Nginx proxy kurulumu"
           }
         ],
@@ -978,24 +1015,24 @@
           "intro": "Yığın: web, gateway, PostgreSQL. Torrent'ler: SearchEngine, TorrentGo, <repo>web-plugins</repo> içinden <repo>potok-torrents</repo>.",
           "quickStartTitle": "Dosyalar",
           "quickStartFiles": [
-            "docker-compose.yml",
-            ".env",
+            "",
+            "",
             "<code>config.yml</code> — torrent'ler, bkz. <link>SearchEngine ve TorrentGo</link>"
           ],
           "torrentServicesHint": "<code>config.yml</code> ve servisler — <link>SearchEngine ve TorrentGo</link>.",
           "pluginUrlsTitle": "<repo>potok-torrents</repo> içindeki URL'ler",
           "pluginUrlsDesc": "searchEngineURL ve torrentGoURL — <code>http://<ip/>:6000</code>, <code>http://<ip/>:5282</code>. Tarayıcıdan erişilebilir olmalıdır; Gateway bunları proxy'lemez.",
-          "requiredTitle": "Compose",
+          "requiredTitle": "",
           "requiredDesc": "",
           "optionalTitle": "Torrent'ler",
           "optionalDesc": "Compose'da SearchEngine + TorrentGo. URL'ler <repo>potok-torrents</repo> içinde.",
-          "envTitle": ".env",
+          "envTitle": "",
           "envDesc": "<code>GATEWAY_TMDB_API_KEY</code> — TMDB (isteğe bağlı — ayarlanmazsa ortak bir varsayılan anahtar kullanılır). <code>GATEWAY_MULTI_USER_MODE=true</code> — kendi kendine kayıt; <code>false</code> — yalnızca giriş. <code>GATEWAY_JWT_SECRET</code> — üretimde değiştirin.",
           "runTitle": "Çalıştır",
-          "dockerUp": "docker compose up -d",
-          "nginxTitle": "Nginx",
+          "dockerUp": "",
+          "nginxTitle": "",
           "nginxDesc": "<code>potok.rip</code> → :3000, <code>api.potok.rip</code> → :5000. <code>wiki.potok.rip</code>, <code>/wiki</code> (+ <code>/assets/</code>) yolunu proxy'ler; kök <code>/wiki</code>'ye yönlendirir. <code>VITE_DEFAULT_BFF_URL=https://api.potok.rip</code>.",
-          "nginxProxy": "server {\n    listen 80;\n    server_name wiki.potok.rip;\n\n    location / {\n        proxy_pass http://localhost:3000/wiki;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n}\n\nserver {\n    listen 80;\n    server_name app.potok.rip;\n\n    location / {\n        proxy_pass http://localhost:3000;\n        proxy_set_header Host $host;\n    }\n\n    location /api/ {\n        proxy_pass http://localhost:5000/;\n        proxy_set_header Host $host;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n    }\n}"
+          "nginxProxy": ""
         }
       },
       "torrentServices": {
@@ -1003,28 +1040,28 @@
         "category": "Giriş",
         "toc": [
           {
-            "id": "overview",
+            "id": "",
             "text": "Genel bakış"
           },
           {
-            "id": "architecture",
+            "id": "",
             "text": "Mimari"
           },
           {
-            "id": "searchengine",
-            "text": "SearchEngine"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "torrentgo",
-            "text": "TorrentGo"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "plugin",
+            "id": "",
             "text": "Eklenti"
           },
           {
-            "id": "config",
-            "text": "config.yml"
+            "id": "",
+            "text": ""
           }
         ],
         "sections": {
@@ -1032,7 +1069,7 @@
           "intro": "Torrent'ler için isteğe bağlı arka uç servisleri. <repo>web-plugins</repo> içinden <repo>potok-torrents</repo> eklentisiyle kullanılır. Gateway bunları proxy'lemez — eklenti onlarla doğrudan tarayıcıdan konuşur.",
           "archTitle": "Mimari",
           "archDesc": "web/gateway ile aynı compose.",
-          "seTitle": "SearchEngine",
+          "seTitle": "",
           "seDesc": "Tracker araması, sonuçlar PostgreSQL'de önbelleğe alınır. Varsayılan port 6000 (SEARCH_ENGINE_PORT).",
           "seItems": [
             "docker-compose.yml yanındaki config.yml — config.local.yml olarak bağlanır",
@@ -1040,7 +1077,7 @@
             "proxy.list — tracker'lara HTTP proxy'leri: { url, username?, password? }; [] — proxy yok",
             "Port PORT / SEARCH_ENGINE_PORT'tur, yaml içinde değildir"
           ],
-          "tgTitle": "TorrentGo",
+          "tgTitle": "",
           "tgDesc": "BitTorrent akışı: indirme, HLS, dosya meta verileri. Durumsuz, PostgreSQL yok. Varsayılan port 5282 (TORRENTGO_PORT).",
           "tgItems": [
             "GPU: donanımsal transkodlama için compose'da GPU_DEVICE=/dev/dri:/dev/dri",
@@ -1049,33 +1086,33 @@
           ],
           "pluginTitle": "Eklenti",
           "pluginDesc": "<repo>potok-torrents</repo> içinde: searchEngineURL ve torrentGoURL — <code>http://<ip/>:6000</code>, <code>http://<ip/>:5282</code>.",
-          "configTitle": "config.yml",
+          "configTitle": "",
           "configDesc": "",
           "configNote": "Referans: <code>src/Potok.Backend.SearchEngine/config.yml</code>"
         }
       },
       "manifest": {
         "title": "Manifest belirtimi",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "fields",
+            "id": "",
             "text": "Zorunlu ve isteğe bağlı alanlar"
           },
           {
-            "id": "permissions",
+            "id": "",
             "text": "İzinler"
           },
           {
-            "id": "slots-section",
+            "id": "",
             "text": "UI slotları"
           },
           {
-            "id": "config-section",
+            "id": "",
             "text": "Eklenti yapılandırması"
           },
           {
-            "id": "manifest-example",
+            "id": "",
             "text": "Tam örnek"
           }
         ],
@@ -1089,52 +1126,52 @@
             "description": "Açıklama",
             "rows": [
               {
-                "field": "id",
+                "field": "",
                 "type": "string (zorunlu)",
                 "desc": "Benzersiz eklenti tanımlayıcısı (örn. <repo>web-plugins</repo> içinden <repo>potok-torrents</repo>)."
               },
               {
-                "field": "name",
+                "field": "",
                 "type": "string (zorunlu)",
                 "desc": "Arayüzde gösterilen eklenti adı."
               },
               {
-                "field": "version",
+                "field": "",
                 "type": "string (isteğe bağlı)",
                 "desc": "SemVer formatında eklenti sürümü (örn. 1.0.0)."
               },
               {
-                "field": "description",
+                "field": "",
                 "type": "string (isteğe bağlı)",
                 "desc": "Uzantının amacının ve özelliklerinin kısa açıklaması."
               },
               {
-                "field": "author",
+                "field": "",
                 "type": "string (isteğe bağlı)",
                 "desc": "Yazar veya geliştirme ekibi."
               },
               {
-                "field": "entrypoint",
+                "field": "",
                 "type": "string (zorunlu)",
                 "desc": "Eklenti klasörüne göre derlenmiş JS'ye giden yol (genellikle index.js)."
               },
               {
-                "field": "category",
+                "field": "",
                 "type": "string (isteğe bağlı)",
                 "desc": "Uzantı kategorisi: medya kaynakları için sources, temalar için visual, çeşitli için other."
               },
               {
-                "field": "permissions",
+                "field": "",
                 "type": "string[] (isteğe bağlı)",
                 "desc": "İstenen güvenlik izinleri (storage, http-proxy, ui-notifications)."
               },
               {
-                "field": "slots",
+                "field": "",
                 "type": "object[] (isteğe bağlı)",
                 "desc": "UI slot katkıları; her girdide id, slotName ve title bulunur."
               },
               {
-                "field": "config",
+                "field": "",
                 "type": "object (isteğe bağlı)",
                 "desc": "Ana bilgisayar ayarlar panelinde render edilen yapılandırılabilir eklenti ayarları."
               }
@@ -1146,48 +1183,48 @@
             "storage — storage.local (anahtarlar, önbellek).",
             "http-proxy — ana bilgisayar proxy'si aracılığıyla http.get/post (CORS).",
             "ui-notifications — ui.showHUD() ve sistem bildirimleri.",
-            "custom-css — ui.injectHostCss() (inject/replace global CSS)."
+            ""
           ],
           "slotsTitle": "Slotlar (slotName)",
           "slotsIntro": "slots dizisindeki slotName değerleri:",
           "slotsTable": {
-            "slot": "Slot (slotName)",
+            "slot": "",
             "description": "Açıklama",
             "rows": [
               {
-                "slot": "sidebar-menu",
+                "slot": "",
                 "desc": "Kenar çubuğu menüsünün üst bölümü (üst düzey gezinme)."
               },
               {
-                "slot": "sidebar-menu-home",
+                "slot": "",
                 "desc": "Ana Sayfa yakınındaki ek menü öğeleri."
               },
               {
-                "slot": "sidebar-menu-library",
+                "slot": "",
                 "desc": "Kitaplık'taki ek menü öğeleri."
               },
               {
-                "slot": "sidebar-status",
+                "slot": "",
                 "desc": "Kenar çubuğunun altı (durum/servis düğmeleri)."
               },
               {
-                "slot": "media-actions",
+                "slot": "",
                 "desc": "Film/dizi ayrıntılarındaki eylem bloğu (örn. oynat düğmeleri)."
               },
               {
-                "slot": "details-bottom",
+                "slot": "",
                 "desc": "Ana medya ayrıntılarının altındaki panel."
               },
               {
-                "slot": "settings-color-accent",
+                "slot": "",
                 "desc": "Renk paleti ve temalar için ayarlar slotu."
               },
               {
-                "slot": "settings-tabs",
+                "slot": "",
                 "desc": "Ana bilgisayar ayarlarında özel sekmeler."
               },
               {
-                "slot": "extension-page",
+                "slot": "",
                 "desc": "Tam ekran uzantı sayfası."
               }
             ]
@@ -1200,54 +1237,54 @@
             "description": "Açıklama",
             "rows": [
               {
-                "property": "type",
+                "property": "",
                 "type": "string (zorunlu)",
                 "desc": "Ayar değeri türü: \"string\", \"boolean\" (anahtar), \"number\", \"select\" (açılır menü) veya \"notice\" (turuncu uyarı afişi)."
               },
               {
-                "property": "default",
+                "property": "",
                 "type": "any (zorunlu)",
                 "desc": "Varsayılan değer; tür, type alanıyla eşleşmelidir."
               },
               {
-                "property": "label",
+                "property": "",
                 "type": "string (zorunlu)",
                 "desc": "Ayarlarda kullanıcıya gösterilen etiket."
               },
               {
-                "property": "dependsOn",
+                "property": "",
                 "type": "string (isteğe bağlı)",
                 "desc": "Bu ayarın görünürlüğünü denetleyen başka bir config anahtarı."
               }
             ]
           },
-          "manifestExampleTitle": "manifest.json",
+          "manifestExampleTitle": "",
           "manifestExampleIntro": "<repo>web-plugins</repo> içinden <repo>potok-torrents</repo>:",
-          "manifestExample": "{\n  \"id\": \"potok-torrents\",\n  \"name\": \"Torrent search\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Search and stream torrents from tracker databases\",\n  \"author\": \"Potok Team\",\n  \"category\": \"sources\",\n  \"entrypoint\": \"index.js\",\n  \"permissions\": [\n    \"storage\",\n    \"http-proxy\",\n    \"ui-notifications\"\n  ],\n  \"slots\": [\n    {\n      \"id\": \"torrents-media-actions\",\n      \"slotName\": \"media-actions\",\n      \"title\": \"Watch\"\n    },\n    {\n      \"id\": \"torrents-sidebar-status\",\n      \"slotName\": \"sidebar-status\",\n      \"title\": \"Torrent status\"\n    }\n  ],\n  \"config\": {\n    \"torrentGoURL\": {\n      \"type\": \"string\",\n      \"default\": \"https://torrent.potok.rip\",\n      \"label\": \"TorrentGo URL\"\n    },\n    \"searchEngineURL\": {\n      \"type\": \"string\",\n      \"default\": \"https://search.potok.rip\",\n      \"label\": \"SearchEngine URL\"\n    }\n  }\n}"
+          "manifestExample": ""
         }
       },
       "state": {
         "title": "Reaktivite ve Durum",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "state-api",
-            "text": "createState API"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "subscription",
+            "id": "",
             "text": "Abone ol ve abonelikten çık"
           },
           {
-            "id": "deep-reactivity",
+            "id": "",
             "text": "Derin reaktivite"
           },
           {
-            "id": "batching",
+            "id": "",
             "text": "Toplu güncellemeler"
           },
           {
-            "id": "reactive-example",
+            "id": "",
             "text": "Etkileşimli örnek"
           }
         ],
@@ -1256,63 +1293,63 @@
           "intro": "createState bir nesneyi Proxy içine sarar; mutasyonlar $subscribe'ı tetikler.",
           "subscriptionTitle": "Abone ol",
           "subscriptionText": "$subscribe(callback) — değişikliklere abone olur. Abonelikten çıkma işlevini döndürür. Genellikle callback = render:",
-          "subscriptionCode": "const state = createState({ title: \"Hello\" });\n\nfunction render() {\n  ui.render(Text(state.title));\n}\n\n// Subscribe to changes:\nconst unsubscribe = state.$subscribe(render);\n\n// Initial render:\nrender();\n\n// When no longer needed (e.g. plugin unload):\n// unsubscribe();",
+          "subscriptionCode": "",
           "deepReactivityTitle": "Derin reaktivite",
           "deepReactivityText": "İç içe nesneler ve diziler reaktiftir — derin anahtarlar ve push/splice render'ı tetikler:",
-          "deepReactivityCode": "const state = createState({\n  user: {\n    profile: { name: \"Alex\" }\n  },\n  genres: [\"Action\", \"Drama\"]\n});\n\n// 1. Deep property change (triggers render)\nstate.user.profile.name = \"Ivan\";\n\n// 2. Array mutations (push, splice, sort)\nstate.genres.push(\"Comedy\");\nstate.genres.splice(0, 1);",
+          "deepReactivityCode": "",
           "batchingTitle": "Toplu güncellemeler (Batching)",
           "batchingText": "Eşzamanlı mutasyonlar Promise.resolve() aracılığıyla gruplanır — her tick başına bir abone çağrısı:",
-          "batchingCode": "const state = createState({ count: 0, lastAction: \"none\" });\n\nstate.$subscribe(() => {\n  console.log(\"Render called!\");\n});\n\n// Synchronous multi-field updates:\nstate.count++;\nstate.lastAction = \"increment\";\nstate.count += 5;\n\n// Console shows exactly ONE \"Render called!\" \n// because updates are batched into one tick.",
+          "batchingCode": "",
           "reactiveExampleTitle": "Reaktif sayaç kodu",
           "reactiveExampleText": "$subscribe ile sayaç:",
-          "reactiveExampleCode": "const state = createState({ clicks: 0 });\n\nfunction render() {\n  ui.render(\n    VStack()\n      .child(Text(\"Clicks: \" + state.clicks))\n      .child(Button(\"Click\").onClick(() => state.clicks++))\n  );\n}",
+          "reactiveExampleCode": "",
           "sandboxButton": "Reaktivite örneğini Kum havuzunda çalıştır",
-          "sandboxCode": "// Interactive reactivity example\nconst { ui, createState } = PotokSDK;\n\nconst state = createState({\n  clicks: 0,\n  lastClicked: \"Never\"\n});\n\nfunction draw() {\n  ui.render(\n    Card()\n      .title(\"Click counter\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(Text(\"Clicks recorded: \" + state.clicks).bold(true).size(\"lg\"))\n          .child(Text(\"Last click: \" + state.lastClicked).variant(\"secondary\"))\n          .child(\n            Button(\"Click!\")\n              .variant(\"primary\")\n              .onClick(() => {\n                state.clicks++;\n                state.lastClicked = new Date().toLocaleTimeString();\n              })\n          )\n      )\n  );\n}\n\nstate.$subscribe(draw);\ndraw();"
+          "sandboxCode": ""
         }
       },
       "http": {
         "title": "HTTP istemcisi",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "get",
-            "text": "http.get()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "post",
-            "text": "http.post()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "cors",
+            "id": "",
             "text": "CORS atlatma"
           }
         ],
         "sections": {
           "title": "Ağ istekleri",
           "intro": "Eklenti bir iframe içinde — harici API'lere fetch çalışmaz. İstekler PotokSDK.http (ana bilgisayar proxy'si) aracılığıyla.",
-          "getTitle": "HTTP GET",
-          "getSignature": "http.get(url: string, headers?: Record<string, string>): Promise<{ status: number, data: any }>",
-          "postTitle": "HTTP POST",
-          "postSignature": "http.post(url: string, body?: any, headers?: Record<string, string>): Promise<{ status: number, data: any }>",
+          "getTitle": "",
+          "getSignature": "",
+          "postTitle": "",
+          "postSignature": "",
           "corsTitle": "Proxy avantajları",
           "corsItems": [
             "CORS — istek iframe'den değil, Potok arka ucu üzerinden gider.",
             "JSON yanıtları otomatik olarak ayrıştırılır — data zaten bir nesnedir."
           ],
           "sandboxButton": "Todo'yu ağ üzerinden Kum havuzunda yükle",
-          "sandboxCode": "// Network data loading example\nconst { ui, http, createState } = PotokSDK;\n\nconst state = createState({\n  loading: true,\n  todoTitle: \"\",\n  error: null\n});\n\nasync function loadData() {\n  try {\n    const res = await http.get(\"https://jsonplaceholder.typicode.com/todos/1\");\n    state.todoTitle = res.data.title;\n    state.loading = false;\n  } catch (err) {\n    state.error = err.message;\n    state.loading = false;\n  }\n}\n\nfunction render() {\n  ui.render(\n    Card()\n      .title(\"Network loading\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(\n            state.loading \n              ? LoadingSpinner().message(\"Loading TODO from server...\")\n              : Text(state.error ? \"Error: \" + state.error : \"Task from server: \" + state.todoTitle)\n          )\n          .child(\n            Button(\"Reload\")\n              .onClick(() => {\n                state.loading = true;\n                loadData();\n              })\n          )\n      )\n  );\n}\n\nstate.$subscribe(render);\nrender();\nloadData();"
+          "sandboxCode": ""
         }
       },
       "storage": {
         "title": "Yalıtılmış depolama",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "storage-methods",
+            "id": "",
             "text": "Depolama yöntemleri"
           },
           {
-            "id": "isolation",
+            "id": "",
             "text": "Yalıtılmış ad alanları"
           }
         ],
@@ -1326,13 +1363,13 @@
             "description": "Açıklama",
             "rows": [
               {
-                "method": "getItem",
-                "signature": "getItem(key: string): Promise<string | null>",
+                "method": "",
+                "signature": "",
                 "desc": "Bir anahtar değerini asenkron olarak okur."
               },
               {
-                "method": "setItem",
-                "signature": "setItem(key: string, value: any): Promise<void>",
+                "method": "",
+                "signature": "",
                 "desc": "Verilen anahtar altında bir değer kaydeder."
               }
             ]
@@ -1340,54 +1377,54 @@
           "isolationTitle": "Yalıtılmış ad alanları",
           "isolationText": "Güvenlik için ana bilgisayar, depolanan her değere pluginId ön eki ekler. A eklentisi, B eklentisinin anahtarlarına erişemez. Doğrudan window.localStorage erişimi engellenir.",
           "sandboxButton": "Depolama örneğini Kum havuzunda çalıştır",
-          "sandboxCode": "// Save and load settings example\nconst { ui, storage, createState } = PotokSDK;\n\nconst state = createState({\n  savedValue: \"Nothing saved\",\n  inputValue: \"\"\n});\n\nasync function initStorage() {\n  const saved = await storage.local.getItem(\"user_custom_note\");\n  if (saved) {\n    state.savedValue = saved;\n  }\n}\n\nfunction render() {\n  ui.render(\n    Card()\n      .title(\"Local storage\")\n      .child(\n        VStack()\n          .spacing(12)\n          .child(Text(\"Saved in DB: \" + state.savedValue).bold(true))\n          .child(\n            Input(\"note-input\")\n              .label(\"New entry\")\n              .value(state.inputValue)\n              .onChange((val) => state.inputValue = val)\n          )\n          .child(\n            Button(\"Save to DB\")\n              .variant(\"primary\")\n              .onClick(async () => {\n                await storage.local.setItem(\"user_custom_note\", state.inputValue);\n                state.savedValue = state.inputValue;\n                ui.showHUD(\"success\", \"Value saved successfully!\");\n              })\n          )\n      )\n  );\n}\n\nstate.$subscribe(render);\nrender();\ninitStorage();"
+          "sandboxCode": ""
         }
       },
       "uiMethods": {
         "title": "Global UI yöntemleri",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "render",
-            "text": "ui.render()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "hud",
-            "text": "ui.showHUD()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "player",
-            "text": "ui.playVideo()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "ep-selector",
-            "text": "ui.showEpisodeSelector()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "navigation",
+            "id": "",
             "text": "Gezinme (ui.navigateTo)"
           },
           {
-            "id": "themes",
+            "id": "",
             "text": "Temalar"
           },
           {
-            "id": "block",
-            "text": "ui.block()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "block-context",
-            "text": "ui.onBlockContextUpdate()"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "registration",
+            "id": "",
             "text": "Eklenti ve slot kaydı"
           }
         ],
         "sections": {
           "title": "Global ui nesnesi",
           "intro": "PotokSDK.ui — render, HUD, oynatıcı, gezinme, kayıt.",
-          "renderTitle": "ui.render()",
+          "renderTitle": "",
           "renderText": "ui.render(component, slotId?) bildirimsel işaretlemeyi derler ve ana bilgisayara gönderir. slotId ile o slota takılır; aksi halde kum havuzu ana ekranında render edilir.",
           "hudTitle": "HUD bildirimleri",
           "hudText": "ui.showHUD(type, message) kısa bir sistem afişi gösterir. Desteklenen türler: \"success\", \"error\", \"info\", \"warning\".",
@@ -1397,7 +1434,7 @@
           "epSelectorText": "ui.showEpisodeSelector(config) dizilerde sezon ve bölüm seçmek için sistem penceresini açar.",
           "navigationTitle": "Gezinme",
           "navigationText": "ui.navigateTo(to, state?) — bir ana bilgisayar bölümüne gidin (/settings, /library, …):",
-          "navigationCode": "ui.navigateTo(\"/settings\");\nui.navigateTo(\"/library\", { filter: \"watchlist\" });",
+          "navigationCode": "",
           "themesTitle": "Temalar",
           "themesIntro": "Özel temalar ve vurgu:",
           "themesItems": [
@@ -1413,7 +1450,7 @@
             "append(ui) / prepend(ui) — blok sonuna veya başına düzen ekler.",
             "apply() — biriken mutasyonları ana bilgisayara kaydeder."
           ],
-          "onBlockContextUpdateTitle": "ui.onBlockContextUpdate()",
+          "onBlockContextUpdateTitle": "",
           "onBlockContextUpdateText": "ui.onBlockContextUpdate(callback) etkin blok bağlamı güncellemelerine abone olur. Ekran verileri değiştiğinde (örn. başka bir film) callback (blockName, context) alır. Abonelikten çıkma işlevi döndürür.",
           "registrationTitle": "Sistem kaydı",
           "registrationIntro": "Ana bilgisayar kaydı:",
@@ -1422,23 +1459,23 @@
             "description": "Açıklama",
             "rows": [
               {
-                "api": "registerPlugin(meta)",
+                "api": "",
                 "desc": "Eklenti meta verilerini (id, name, version) kaydeder. Betik yüklenirken önce çağırın."
               },
               {
-                "api": "registerSource(config)",
+                "api": "",
                 "desc": "Ana bilgisayar video araması için bir medya akışı arama kaynağı kaydeder."
               },
               {
-                "api": "registerSlotContribution(config)",
+                "api": "",
                 "desc": "Adlandırılmış bir slotta UI kaydeder (örn. media-actions, details-bottom)."
               },
               {
-                "api": "onSettingsChanged(callback)",
+                "api": "",
                 "desc": "Canlı ayar formu değişikliklerine abone olur; callback (key, value, currentSettings) alır."
               },
               {
-                "api": "updateSettingsForm(updates)",
+                "api": "",
                 "desc": "Ana bilgisayara ayar formu alanlarını gerçek zamanlı güncellemesini söyler; { updates } kabul eder."
               }
             ]
@@ -1448,7 +1485,7 @@
           "registerSlotConfigIntro": "config alanları:",
           "registerSlotParams": [
             "id (string) — katkı id'si, manifest slotlarındaki ile aynı.",
-            "slotName (string) — media-actions, details-bottom, extension-page, …",
+            "",
             "render(props) (function) — { label, icon?, layout } döndürür."
           ],
           "registerSlotRenderFields": [
@@ -1459,40 +1496,40 @@
           "easyPluginTitle": "Kolay Eklenti",
           "easyPluginIntro": "media-actions'ta fragman düğmesi, details-bottom'da bilgi bloğu:",
           "easyPluginStep1": "Yapı",
-          "easyPluginStep2": "manifest.json",
-          "easyPluginStep3": "index.js",
-          "folderStructure": "my-easy-plugin/\n├── manifest.json   # Metadata and slot declarations\n└── index.js        # Plugin executable JS",
-          "manifestJson": "{\n  \"id\": \"my-easy-plugin\",\n  \"name\": \"Simple Viewer\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Adds a trailer button and info block on the details page\",\n  \"permissions\": [\"ui-notifications\"],\n  \"slots\": [\n    {\n      \"id\": \"trailer-action-button\",\n      \"slotName\": \"media-actions\",\n      \"title\": \"Trailer button\"\n    },\n    {\n      \"id\": \"extra-details-info\",\n      \"slotName\": \"details-bottom\",\n      \"title\": \"Info block\"\n    }\n  ]\n}",
+          "easyPluginStep2": "",
+          "easyPluginStep3": "",
+          "folderStructure": "",
+          "manifestJson": "",
           "sandboxButton": "Yer paylaşımlarını Kum havuzunda test et",
-          "injectCssTitle": "Custom CSS (injectHostCss)",
-          "injectCssIntro": "Inject or replace a global stylesheet in the host to restyle any built-in component. Requires the custom-css permission.",
+          "injectCssTitle": "",
+          "injectCssIntro": "",
           "injectCssItems": [
-            "ui.injectHostCss(id, css) — add or replace a global CSS layer, appended after app styles so it wins at equal specificity.",
-            "Same id replaces the layer; an empty string removes it.",
-            "Pair with a component's .style('my-class') to target it precisely.",
-            "The settings entry and extensions manager stay visible — the plugin can't lock itself in."
+            "",
+            "",
+            "",
+            ""
           ]
         }
       },
       "i18n": {
         "title": "Eklenti i18n",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "t",
-            "text": "PotokSDK.i18n.t"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "addResourceBundle",
-            "text": "addResourceBundle"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "registerTranslations",
-            "text": "registerTranslations"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "onLanguageChange",
-            "text": "onLanguageChange"
+            "id": "",
+            "text": ""
           }
         ],
         "sections": {
@@ -1507,23 +1544,23 @@
       },
       "streams": {
         "title": "Akışlar ve medya sağlayıcıları",
-        "category": "API",
+        "category": "",
         "toc": [
           {
-            "id": "registerStreamSource",
-            "text": "streams.registerStreamSource"
+            "id": "",
+            "text": ""
           },
           {
-            "id": "searchProvider",
-            "text": "media.searchProvider"
+            "id": "",
+            "text": ""
           }
         ],
         "sections": {
           "title": "Akış kaynakları ve arama",
           "intro": "Ana bilgisayar için akış kaynakları ve arama sağlayıcıları kaydedin.",
-          "registerStreamSourceTitle": "streams.registerStreamSource",
+          "registerStreamSourceTitle": "",
           "registerStreamSourceDesc": "id, name, supportedTypes (movie | tv) ve asenkron işleyicilerle bir akış kaynağı kaydeder: search(query), getEpisodes(stream, context), getPlaybackInfo(stream, context). Ana bilgisayar, kullanıcı akışlar sayfasını açtığında bunları çağırır.",
-          "searchProviderTitle": "media.searchProvider",
+          "searchProviderTitle": "",
           "searchProviderDesc": "Bir kitaplık arama sağlayıcısı kaydetmek için oluşturucu: media.searchProvider(id, name).icon(url).onSearch(callback). callback, sorguyu alır ve arama sonuçlarını ana bilgisayara döndürür."
         }
       },
@@ -1545,18 +1582,18 @@
         "methods": {}
       },
       "Grid": {
-        "title": "Grid",
+        "title": "",
         "description": "Minimum sütun genişliğine sahip duyarlı ızgara.",
         "methods": {
           "minWidth": {
-            "argument": "string",
+            "argument": "",
             "description": "Minimum sütun genişliği (örn. '12rem').",
-            "default": "'180px'"
+            "default": ""
           },
           "gap": {
-            "argument": "string",
+            "argument": "",
             "description": "Hücreler arası boşluk (örn. '1rem').",
-            "default": "'var(--space-m)'"
+            "default": ""
           }
         }
       },
@@ -1565,250 +1602,250 @@
         "description": "UI bloklarını gruplamak için cam tarzı panel.",
         "methods": {
           "title": {
-            "argument": "string",
+            "argument": "",
             "description": "Kart başlığı."
           },
           "subtitle": {
-            "argument": "string",
+            "argument": "",
             "description": "Soluk alt başlık metni."
           },
           "child": {
-            "argument": "UIComponent",
+            "argument": "",
             "description": "Kart gövdesindeki alt bileşen."
           }
         }
       },
       "Divider": {
-        "title": "Divider",
+        "title": "",
         "description": "Yatay ayırıcı çizgi.",
         "methods": {}
       },
       "Spacer": {
-        "title": "Spacer",
+        "title": "",
         "description": "Esnek boşluk — kullanılabilir alanı doldurur.",
         "methods": {}
       },
       "Heading": {
-        "title": "Heading",
+        "title": "",
         "description": "h1–h4 seviyeleri için başlık.",
         "methods": {
           "level": {
-            "argument": "number (1-4)",
+            "argument": "",
             "description": "Başlık seviyesi (1 = en büyük, 4 = en küçük).",
-            "default": "1"
+            "default": ""
           }
         }
       },
       "Text": {
-        "title": "Text",
+        "title": "",
         "description": "Açıklamalar, etiketler ve hatalar için metin.",
         "methods": {
           "variant": {
-            "argument": "'primary' | 'secondary' | 'success' | 'warning' | 'error'",
+            "argument": "",
             "description": "Renk: primary, secondary, success, warning, error.",
-            "default": "'primary'"
+            "default": ""
           },
           "size": {
-            "argument": "'sm' | 'md' | 'lg' | 'xl'",
+            "argument": "",
             "description": "Yazı tipi boyutu.",
-            "default": "'md'"
+            "default": ""
           },
           "bold": {
-            "argument": "boolean",
+            "argument": "",
             "description": "true olduğunda kalın ağırlık.",
-            "default": "false"
+            "default": ""
           }
         }
       },
       "Badge": {
-        "title": "Badge",
+        "title": "",
         "description": "Durumlar ve etiketler için renkli etiket.",
         "methods": {
           "color": {
-            "argument": "'info' | 'success' | 'warning' | 'error'",
+            "argument": "",
             "description": "Dolgu renk şeması.",
-            "default": "'info'"
+            "default": ""
           }
         }
       },
       "StatusRow": {
-        "title": "StatusRow",
+        "title": "",
         "description": "Renkli nokta ve değere sahip durum satırı.",
         "methods": {
           "status": {
-            "argument": "'success' | 'warning' | 'offline'",
+            "argument": "",
             "description": "Durum (nokta: yeşil/sarı/gri)."
           },
           "value": {
-            "argument": "string",
+            "argument": "",
             "description": "Sağa hizalı değer (örn. '24 ms')."
           }
         }
       },
       "Markdown": {
-        "title": "Markdown",
+        "title": "",
         "description": "Markdown render eder: listeler, kalın, tablolar, bağlantılar.",
         "methods": {
           "content": {
-            "argument": "string",
+            "argument": "",
             "description": "Markdown metni; oluşturulduktan sonra güncellenebilir."
           }
         }
       },
       "Button": {
-        "title": "Button",
+        "title": "",
         "description": "Eylemler, oynatma ve gezinme için düğme.",
         "methods": {
           "variant": {
-            "argument": "'primary' | 'secondary' | 'danger' | 'ghost' | 'sidebar-item'",
+            "argument": "",
             "description": "Stil: primary, secondary, danger, ghost, sidebar-item.",
-            "default": "'secondary'"
+            "default": ""
           },
           "icon": {
-            "argument": "string",
+            "argument": "",
             "description": "Etiketten önce Lucide simgesi (örn. 'play')."
           },
           "onClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Tıklama işleyicisi."
           }
         }
       },
       "Input": {
-        "title": "Input",
+        "title": "",
         "description": "Formlar ve filtreler için metin alanı.",
         "methods": {
           "label": {
-            "argument": "string",
+            "argument": "",
             "description": "Alanın üstündeki etiket."
           },
           "placeholder": {
-            "argument": "string",
+            "argument": "",
             "description": "Boş alandaki ipucu."
           },
           "inputType": {
-            "argument": "string ('text' | 'password' | 'number')",
+            "argument": "",
             "description": "Girdi türü: text, password, number.",
-            "default": "'text'"
+            "default": ""
           },
           "type": {
-            "argument": "string",
+            "argument": "",
             "description": "inputType için kullanımdan kaldırılmış takma ad."
           },
           "value": {
-            "argument": "string",
+            "argument": "",
             "description": "Geçerli değer.",
-            "default": "''"
+            "default": ""
           },
           "onChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Değer değişikliği işleyicisi."
           }
         }
       },
       "Toggle": {
-        "title": "Toggle",
+        "title": "",
         "description": "Boolean ayarlar için anahtar.",
         "methods": {
           "label": {
-            "argument": "string",
+            "argument": "",
             "description": "Anahtarın sağındaki etiket."
           },
           "description": {
-            "argument": "string",
+            "argument": "",
             "description": "Etiketin altındaki ipucu."
           },
           "value": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Boolean durum true/false.",
-            "default": "false"
+            "default": ""
           },
           "checked": {
-            "argument": "boolean",
+            "argument": "",
             "description": "value için kullanımdan kaldırılmış takma ad."
           },
           "onChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Durum değişikliği işleyicisi."
           }
         }
       },
       "Select": {
-        "title": "Select",
+        "title": "",
         "description": "Gruplama ve çoklu seçimli açılır menü.",
         "methods": {
           "label": {
-            "argument": "string",
+            "argument": "",
             "description": "Seçicinin üstündeki etiket."
           },
           "options": {
-            "argument": "{ value?: string, label?: string, type?: string }[]",
+            "argument": "",
             "description": "Seçenek dizisi: value/label veya divider/header.",
-            "default": "[]"
+            "default": ""
           },
           "value": {
-            "argument": "string | string[]",
+            "argument": "",
             "description": "Seçili değer veya çoklu durumda dizi.",
-            "default": "''"
+            "default": ""
           },
           "selected": {
-            "argument": "string | string[]",
+            "argument": "",
             "description": "value için kullanımdan kaldırılmış takma ad."
           },
           "onChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Seçim işleyicisi; çoklu modda dizi."
           },
           "variant": {
-            "argument": "'default' | 'glass'",
+            "argument": "",
             "description": "Stil: default veya glass.",
-            "default": "'default'"
+            "default": ""
           },
           "icon": {
-            "argument": "string",
+            "argument": "",
             "description": "Glass varyantı için Lucide simgesi (örn. 'Filter')."
           },
           "closeOnSelect": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Seçimde menüyü kapat (çoklu durumda false).",
-            "default": "true"
+            "default": ""
           },
           "multiple": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Çoklu seçim; bir dizi döndürür.",
-            "default": "false"
+            "default": ""
           },
           "resetLabel": {
-            "argument": "string",
+            "argument": "",
             "description": "Açılır pencerede sıfırlama düğmesi etiketi."
           },
           "resetValue": {
-            "argument": "string | string[]",
+            "argument": "",
             "description": "Sıfırlamada değer (örn. []).",
-            "default": "''"
+            "default": ""
           }
         }
       },
       "CodeEditor": {
-        "title": "CodeEditor",
+        "title": "",
         "description": "Söz dizimi vurgulama ve satır numaralarına sahip Monaco düzenleyici.",
         "methods": {
           "label": {
-            "argument": "string",
+            "argument": "",
             "description": "Düzenleyicinin üstündeki etiket."
           },
           "value": {
-            "argument": "string",
+            "argument": "",
             "description": "Düzenleyici metni.",
-            "default": "''"
+            "default": ""
           },
           "readOnly": {
-            "argument": "boolean",
+            "argument": "",
             "description": "true olduğunda salt okunur mod.",
-            "default": "false"
+            "default": ""
           },
           "onChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Kod değişikliği işleyicisi."
           }
         }
@@ -1819,29 +1856,29 @@
         "methods": {}
       },
       "StreamRow": {
-        "title": "StreamRow",
+        "title": "",
         "description": "Torrent satırı: başlık, boyut, tracker, seed/peer.",
         "methods": {
           "stream": {
-            "argument": "object",
+            "argument": "",
             "description": "Meta veriler: title, size, seeds, peers, quality, tracker."
           },
           "onClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Oynatmayı başlatmak için tıklama işleyicisi."
           }
         }
       },
       "MediaCard": {
-        "title": "MediaCard",
+        "title": "",
         "description": "Film kartı: afiş, puan, üzerine gelindiğinde başlık ve yıl.",
         "methods": {
           "item": {
-            "argument": "object",
+            "argument": "",
             "description": "Meta veriler: title, posterUrl, year, rating."
           },
           "onClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Tıklama işleyicisi; medya öğesini iletir."
           }
         }
@@ -1851,325 +1888,325 @@
         "description": "Promosyon afişi: görsel, başlık, İzle/Ayrıntılar düğmeleri.",
         "methods": {
           "items": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Afiş slaytları: title, overview, backdropUrl."
           },
           "onPlay": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "İzle düğmesi; etkin slaytı döndürür."
           },
           "onDetails": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Ayrıntılar düğmesi işleyicisi."
           }
         }
       },
       "StreamList": {
-        "title": "StreamList",
+        "title": "",
         "description": "Filtreler, yükleme ve boş durumla torrent listesi.",
         "methods": {
           "streams": {
-            "argument": "any[]",
+            "argument": "",
             "description": "StreamRow için torrent dizisi.",
-            "default": "[]"
+            "default": ""
           },
           "loading": {
-            "argument": "boolean",
+            "argument": "",
             "description": "true olduğunda yükleme iskeleti gösterir.",
-            "default": "false"
+            "default": ""
           },
           "showFilters": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Kalite ve tracker filtre çubuğu.",
-            "default": "false"
+            "default": ""
           },
           "emptyText": {
-            "argument": "string",
+            "argument": "",
             "description": "Liste boş olduğunda metin.",
-            "default": "'Раздачи не найдены'"
+            "default": ""
           },
           "nounPlurals": {
-            "argument": "string[]",
+            "argument": "",
             "description": "Üç çoğul biçim (örn. ['torrent', 'torrents', 'torrents'])."
           },
           "onSelectStream": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Akış seçimi işleyicisi."
           }
         }
       },
       "LoadingSpinner": {
-        "title": "LoadingSpinner",
+        "title": "",
         "description": "Dairesel yükleme göstergesi.",
         "methods": {
           "message": {
-            "argument": "string",
+            "argument": "",
             "description": "Döndürücünün altındaki metin."
           },
           "fullscreen": {
-            "argument": "boolean",
+            "argument": "",
             "description": "true olduğunda tam ekran yer paylaşımı.",
-            "default": "false"
+            "default": ""
           }
         }
       },
       "EpisodesSection": {
-        "title": "EpisodesSection",
+        "title": "",
         "description": "Bölüm bloğu: medya kimliğine göre getirir, sezon sekmeleri, bölüm ızgarası.",
         "methods": {
           "mediaId": {
-            "argument": "string | number",
+            "argument": "",
             "description": "Medya veritabanındaki dizi kimliği."
           },
           "numberOfSeasons": {
-            "argument": "number",
+            "argument": "",
             "description": "Sekmeler için sezon sayısı."
           },
           "onEpisodeClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Bölüm tıklama işleyicisi."
           }
         }
       },
       "MediaCast": {
-        "title": "MediaCast",
+        "title": "",
         "description": "Yatay oyuncu satırı: avatar, ad, rol.",
         "methods": {
           "cast": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Dizi: name, character, profilePath.",
-            "default": "[]"
+            "default": ""
           }
         }
       },
       "MediaOverview": {
-        "title": "MediaOverview",
+        "title": "",
         "description": "Medya paneli: afiş, açıklama, yıl, ülke, puan, türler.",
         "methods": {
           "media": {
-            "argument": "object",
+            "argument": "",
             "description": "Meta veriler: title, overview, posterUrl, rating, genres, year, country."
           },
           "selectedEpisode": {
-            "argument": "object",
+            "argument": "",
             "description": "Sezon özeti yerine seçili bölüm."
           },
           "onResetEpisode": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Bölüm seçimini temizler."
           }
         }
       },
       "MediaRow": {
-        "title": "MediaRow",
+        "title": "",
         "description": "Başlık ve Tümünü gör ile yatay MediaCard atlıkarıncası.",
         "methods": {
           "title": {
-            "argument": "string",
+            "argument": "",
             "description": "Bölüm başlığı (örn. 'Şimdi trend olan')."
           },
           "items": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Kartlar için film dizisi.",
-            "default": "[]"
+            "default": ""
           },
           "onCardClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Kart tıklama işleyicisi."
           },
           "onSeeAllClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Tümünü gör düğmesi işleyicisi."
           }
         }
       },
       "MediaPlayer": {
-        "title": "MediaPlayer",
+        "title": "",
         "description": "HTML5 oynatıcı: HLS, DASH, MP4, altyazılar ve ses parçaları.",
         "methods": {
           "playback": {
-            "argument": "object",
-            "description": "SDKPlaybackInfo: streamUrl, streamType, title, season, episode, torrentHash, fileIndex, audios, headers, providerId, voice, subtitles, session, duration, intro/outro, thumbnails, requiresBuffering."
+            "argument": "",
+            "description": ""
           },
           "isNetworkOffline": {
-            "argument": "boolean",
+            "argument": "",
             "description": "true olduğunda oynatmayı durdurur ve ağ hatası gösterir.",
-            "default": "false"
+            "default": ""
           }
         }
       },
       "ProfileSelector": {
-        "title": "ProfileSelector",
+        "title": "",
         "description": "Potok Gateway profil seçici: ping, ekle, düzenle, sil.",
         "methods": {
           "connectionProfiles": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Profiller: id, name, gatewayURL.",
-            "default": "[]"
+            "default": ""
           },
           "activeProfileID": {
-            "argument": "string | null",
+            "argument": "",
             "description": "Etkin profil kimliği."
           },
           "isSettingsLocked": {
-            "argument": "boolean",
+            "argument": "",
             "description": "true olduğunda profil CRUD'unu engeller.",
-            "default": "false"
+            "default": ""
           },
           "onSelectProfile": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Profil seçim işleyicisi."
           },
           "onStartEdit": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Profil düzenleme işleyicisi."
           },
           "onDeleteProfile": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Profil silme işleyicisi."
           },
           "onStartAdd": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Sunucu ekleme işleyicisi."
           }
         }
       },
       "SearchBar": {
-        "title": "SearchBar",
+        "title": "",
         "description": "Simge ve temizleme düğmesine sahip arama alanı.",
         "methods": {
           "value": {
-            "argument": "string",
+            "argument": "",
             "description": "Geçerli sorgu.",
-            "default": "''"
+            "default": ""
           },
           "placeholder": {
-            "argument": "string",
+            "argument": "",
             "description": "Alan yer tutucusu.",
-            "default": "'Поиск...'"
+            "default": ""
           },
           "onChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Sorgu değişikliği işleyicisi."
           },
           "onClear": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Temizleme düğmesi işleyicisi."
           }
         }
       },
       "StreamFilterBar": {
-        "title": "StreamFilterBar",
+        "title": "",
         "description": "Torrent filtre çubuğu: kalite, tracker, sıralama.",
         "methods": {
           "countLabel": {
-            "argument": "string",
+            "argument": "",
             "description": "Solda bulunan torrent sayısı."
           },
           "qualityFilter": {
-            "argument": "string",
+            "argument": "",
             "description": "Kalite filtresi (örn. '1080p')."
           },
           "activeTracker": {
-            "argument": "string",
+            "argument": "",
             "description": "Etkin tracker filtresi."
           },
           "trackers": {
-            "argument": "string[]",
+            "argument": "",
             "description": "Filtre için tracker listesi.",
-            "default": "[]"
+            "default": ""
           },
           "showSort": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Sıralama açılır menüsünü göster.",
-            "default": "true"
+            "default": ""
           },
           "sortOption": {
-            "argument": "string",
+            "argument": "",
             "description": "Sıralama seçeneği (örn. 'seeds')."
           },
           "onRefresh": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Aramayı yenileme işleyicisi."
           },
           "onQualityChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Kalite değişikliği işleyicisi."
           },
           "onTrackerChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Tracker değişikliği işleyicisi."
           },
           "onSortChange": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Sıralama değişikliği işleyicisi."
           }
         }
       },
       "EpisodeSelector": {
-        "title": "EpisodeSelector (Modal)",
+        "title": "",
         "description": "Modal sezon ve bölüm seçici.",
         "methods": {
           "isOpen": {
-            "argument": "boolean",
+            "argument": "",
             "description": "Modal görünürlüğü.",
-            "default": "false"
+            "default": ""
           },
           "title": {
-            "argument": "string",
+            "argument": "",
             "description": "Başlık (dizi adı)."
           },
           "subtitle": {
-            "argument": "string",
+            "argument": "",
             "description": "Alt başlık."
           },
           "episodes": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Geçerli sezon için bölümler.",
-            "default": "[]"
+            "default": ""
           },
           "backdropSrc": {
-            "argument": "string",
+            "argument": "",
             "description": "Arka plan görüntüsü URL'si."
           },
           "seasonsLoading": {
-            "argument": "boolean",
+            "argument": "",
             "description": "true olduğunda yükleme döndürücüsü gösterir.",
-            "default": "false"
+            "default": ""
           },
           "seasons": {
-            "argument": "any[]",
+            "argument": "",
             "description": "Sekmeler için sezonlar.",
-            "default": "[]"
+            "default": ""
           },
           "onClose": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Kapatma işleyicisi."
           },
           "onPlay": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Bölüm oynatma işleyicisi."
           },
           "onApplyOverride": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Bölüm geçersiz kılma işleyicisi."
           },
           "onStartEditing": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Düzenlemeyi başlatma işleyicisi."
           }
         }
       },
       "EpisodeCard": {
-        "title": "EpisodeCard",
+        "title": "",
         "description": "Bölüm kartı: kare, numara, başlık, açıklama.",
         "methods": {
           "episode": {
-            "argument": "object",
+            "argument": "",
             "description": "Veri: episodeNumber, seasonNumber, name, overview, stillPath."
           },
           "onClick": {
-            "argument": "CallbackFunction",
+            "argument": "",
             "description": "Tıklama işleyicisi; bölüm nesnesini iletir."
           }
         }
@@ -2189,7 +2226,7 @@
           "visible": "Öğe görünürlüğünü denetler.",
           "disabled": "Öğeyi devre dışı bir duruma getirir.",
           "flex": "Boş alan dağıtımı için flex-grow oranı.",
-          "style": "Adds a custom CSS class to the root element to target from ui.injectHostCss()."
+          "style": ""
         }
       },
       "layoutMethods": {
@@ -2281,7 +2318,7 @@
     "join": "Odaya katıl",
     "nowWatching": "Şimdi izleniyor",
     "episodeN": "Bölüm {{n}}",
-    "ping": "{{ms}} ms",
+    "ping": "",
     "roomUnavailable": "Bu oda artık kullanılamıyor — ana kullanıcı ayrıldı."
   }
 }
