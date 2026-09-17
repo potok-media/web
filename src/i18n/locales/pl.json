@@ -299,6 +299,8 @@
     "countLabel_other": "Źródła {{count}}",
     "actions": {
       "refresh": "Odśwież",
+      "cancelSearch": "Anuluj",
+      "cancelSearchWithTime": "Anuluj {{time}}",
       "back": "Powrót"
     },
     "sort": {

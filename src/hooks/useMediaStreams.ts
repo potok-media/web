@@ -65,6 +65,8 @@ export function useMediaStreams({
     streams: search.streams,
     loading: search.loading,
     error: search.error,
+    searchStartedAt: search.searchStartedAt,
+    searchTimeoutMs: search.searchTimeoutMs,
     handleRefresh: search.handleRefresh,
     handleSelectStream: episodePlay.handleSelectStream,
     clickedStream: episodePlay.clickedStream,

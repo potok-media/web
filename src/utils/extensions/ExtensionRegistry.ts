@@ -16,6 +16,7 @@ import { SlotManager } from "./slotHelper";
 import { logger } from "../logger";
 import { CallbackRegistry } from "../../sdk/src/core/registry";
 import type { BlockContextPayload, PotokSandboxWindow } from "./extensionHostTypes";
+import { TORRENT_SEARCH_HTTP_TIMEOUT_MS } from "./pluginHttpTimeout";
 
 type RegistryListener = () => void;
 
@@ -257,7 +258,7 @@ class ExtensionRegistryManager {
     let finalTimeoutMs = timeoutMs;
     if (finalTimeoutMs === undefined) {
       if (action === "STREAM_SOURCE_SEARCH") {
-        finalTimeoutMs = 60000;
+        finalTimeoutMs = TORRENT_SEARCH_HTTP_TIMEOUT_MS;
       } else if (action === "STREAM_SOURCE_GET_PLAYBACK_METADATA") {
         // Deferred background probe (subtitles/duration) — the player is already open and playing, so nobody
         // is blocked. Generous host-side safety ceiling for a provider whose metadata probe may be slow to

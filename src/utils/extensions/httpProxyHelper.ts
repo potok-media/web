@@ -6,6 +6,7 @@ import {
   type ConnectionProfile,
   type HttpProxyRequestPayload,
 } from "./extensionHostTypes";
+import { resolvePluginHttpTimeout } from "./pluginHttpTimeout";
 
 interface QueuedRequest {
   requestId: string;
@@ -29,7 +30,6 @@ class HttpProxyThrottleManager {
 
   private readonly MAX_CONCURRENT = 15;
   private readonly MAX_QUEUE_SIZE = 50;
-  private readonly DEFAULT_TIMEOUT_MS = 15000;
 
   public async handleRequest(
     pluginId: string,
@@ -67,11 +67,12 @@ class HttpProxyThrottleManager {
         requestId,
         execute: async () => {
           const startTime = Date.now();
+          const timeoutMs = resolvePluginHttpTimeout(url, payload.timeoutMs);
           const controller = new AbortController();
           const timeoutId = setTimeout(() => {
-            logger.warn(`[PluginSandbox] HTTP Request timed out after 15s: ${url}`);
+            logger.warn(`[PluginSandbox] HTTP request timed out after ${timeoutMs}ms: ${url}`);
             controller.abort();
-          }, this.DEFAULT_TIMEOUT_MS);
+          }, timeoutMs);
 
           try {
             let finalUrl = url;
@@ -137,7 +138,7 @@ class HttpProxyThrottleManager {
             sendResponse(
               isAbort ? 408 : 500,
               "",
-              isAbort ? "Превышено время ожидания запроса (15s Timeout)" : message,
+              isAbort ? `Превышено время ожидания запроса (${Math.round(timeoutMs / 1000)}s)` : message,
             );
             reject(err);
           }

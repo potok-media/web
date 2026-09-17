@@ -4,7 +4,7 @@ export interface HttpResponse<T = unknown> {
 }
 
 export const HttpClient = {
-  get<T = unknown>(url: string, headers?: Record<string, string>): Promise<HttpResponse<T>> {
+  get<T = unknown>(url: string, headers?: Record<string, string>, timeoutMs?: number): Promise<HttpResponse<T>> {
     return new Promise((resolve, reject) => {
       const requestId = "req_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now();
       const hostOrigin = window.PotokInitialState?.hostOrigin || "*";
@@ -31,14 +31,19 @@ export const HttpClient = {
         {
           source: 'potok-plugin-sdk',
           action: 'HTTP_REQUEST',
-          payload: { requestId, url, method: 'GET', headers }
+          payload: { requestId, url, method: 'GET', headers, timeoutMs }
         },
         hostOrigin
       );
     });
   },
 
-  post<T = unknown>(url: string, body?: unknown, headers?: Record<string, string>): Promise<HttpResponse<T>> {
+  post<T = unknown>(
+    url: string,
+    body?: unknown,
+    headers?: Record<string, string>,
+    timeoutMs?: number,
+  ): Promise<HttpResponse<T>> {
     return new Promise((resolve, reject) => {
       const requestId = "req_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now();
       const hostOrigin = window.PotokInitialState?.hostOrigin || "*";
@@ -65,7 +70,7 @@ export const HttpClient = {
         {
           source: 'potok-plugin-sdk',
           action: 'HTTP_REQUEST',
-          payload: { requestId, url, method: 'POST', body, headers }
+          payload: { requestId, url, method: 'POST', body, headers, timeoutMs }
         },
         hostOrigin
       );

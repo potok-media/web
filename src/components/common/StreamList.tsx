@@ -25,6 +25,9 @@ export interface StreamListProps {
   onSelectStream: (stream: RawStreamPayload) => void;
   onRefresh?: () => void;
   onBack?: () => void; // header back button (mid-width viewports where the info sidebar is hidden)
+  isSearching?: boolean;
+  searchStartedAt?: number | null;
+  searchTimeoutMs?: number;
 }
 
 const mapStreamToUI = (stream: ExtendedStreamPayload, index: number, t: TFunction): StreamUIItem => {
@@ -80,6 +83,9 @@ export const StreamList: React.FC<StreamListProps> = ({
   onSelectStream,
   onRefresh,
   onBack,
+  isSearching = false,
+  searchStartedAt = null,
+  searchTimeoutMs,
 }) => {
   const { t } = useTranslation("streams");
   const resolvedEmptyText = emptyText ?? t("empty");
@@ -167,6 +173,9 @@ export const StreamList: React.FC<StreamListProps> = ({
           setActiveTracker={setActiveTracker}
           trackers={trackers}
           onRefresh={handleRefreshClick}
+          isSearching={isSearching}
+          searchStartedAt={searchStartedAt}
+          searchTimeoutMs={searchTimeoutMs}
           showSort={true}
           sortOption={sortOption}
           setSortOption={setSortOption}
@@ -179,7 +188,7 @@ export const StreamList: React.FC<StreamListProps> = ({
       )}
 
       <ScrollView orientation="vertical" className="streams-results-list" trackClassName="streams-results-track">
-        {loading ? (
+        {loading && displayStreams.length === 0 ? (
           <StreamSkeletonList />
         ) : displayStreams.length > 0 ? (
           displayStreams.map((item, index) => {

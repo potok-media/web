@@ -299,6 +299,8 @@
     "countLabel_other": "",
     "actions": {
       "refresh": "",
+      "cancelSearch": "İptal",
+      "cancelSearchWithTime": "İptal {{time}}",
       "back": ""
     },
     "sort": {

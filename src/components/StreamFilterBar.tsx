@@ -19,6 +19,9 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
   setActiveTracker,
   trackers,
   onRefresh,
+  isSearching = false,
+  searchStartedAt = null,
+  searchTimeoutMs,
   showSort = true,
   trackerLabel,
   allTrackersLabel,
@@ -48,7 +51,12 @@ export const StreamFilterBar: React.FC<StreamFilterBarProps> = React.memo(({
       </div>
 
       <div className="streams-header-actions">
-        <StreamFilterRefreshButton onRefresh={onRefresh} />
+        <StreamFilterRefreshButton
+          onRefresh={onRefresh}
+          isSearching={isSearching}
+          searchStartedAt={searchStartedAt}
+          searchTimeoutMs={searchTimeoutMs}
+        />
 
         {showSort && setSortOption && (
           <StreamFilterSortMenu

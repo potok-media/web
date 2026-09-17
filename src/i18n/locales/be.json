@@ -299,6 +299,8 @@
     "countLabel_other": "",
     "actions": {
       "refresh": "",
+      "cancelSearch": "Адмена",
+      "cancelSearchWithTime": "Адмена {{time}}",
       "back": ""
     },
     "sort": {

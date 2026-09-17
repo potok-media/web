@@ -7,6 +7,7 @@ export interface HttpProxyRequestPayload {
   method: string;
   headers?: Record<string, string>;
   body?: string | Record<string, unknown>;
+  timeoutMs?: number;
 }
 
 export interface PostMessageCapable {

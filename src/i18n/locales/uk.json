@@ -299,6 +299,8 @@
     "countLabel_other": "Джерела {{count}}",
     "actions": {
       "refresh": "Оновити",
+      "cancelSearch": "Скасувати",
+      "cancelSearchWithTime": "Скасувати {{time}}",
       "back": "Відмінити"
     },
     "sort": {

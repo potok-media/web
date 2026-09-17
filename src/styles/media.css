@@ -3527,6 +3527,10 @@ button.popover-item.popover-menu-item:hover {
   border-radius: 0.625rem;
 }
 
+.filter-btn-text--countdown {
+  font-variant-numeric: tabular-nums;
+}
+
 .ui-btn.filter-btn-trigger-relative {
   position: relative;
 }

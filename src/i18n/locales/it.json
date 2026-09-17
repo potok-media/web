@@ -299,6 +299,8 @@
     "countLabel_other": "",
     "actions": {
       "refresh": "Aggiorna",
+      "cancelSearch": "Annulla",
+      "cancelSearchWithTime": "Annulla {{time}}",
       "back": "Indietro"
     },
     "sort": {

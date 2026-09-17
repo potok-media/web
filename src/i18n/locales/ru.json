@@ -329,6 +329,8 @@
     "countLabel_other": "{{count}} источников",
     "actions": {
       "refresh": "Обновить",
+      "cancelSearch": "Отмена",
+      "cancelSearchWithTime": "Отмена {{time}}",
       "back": "Назад"
     },
     "sort": {

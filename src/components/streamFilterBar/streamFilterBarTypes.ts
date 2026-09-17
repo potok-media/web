@@ -8,6 +8,9 @@ export interface StreamFilterBarProps {
   setActiveTracker: (tracker: string) => void;
   trackers: string[];
   onRefresh: () => void;
+  isSearching?: boolean;
+  searchStartedAt?: number | null;
+  searchTimeoutMs?: number;
   showSort?: boolean;
   sortOption?: string;
   setSortOption?: (opt: string) => void;

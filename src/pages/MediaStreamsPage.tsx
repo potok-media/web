@@ -39,6 +39,8 @@ export const MediaStreamsPage: React.FC = () => {
     handlePlayEpisode,
     handleClosePopup,
     handleRefresh,
+    searchStartedAt,
+    searchTimeoutMs,
     handleStartEditing,
     handleApplyOverride,
     handleResetOverride,
@@ -79,6 +81,9 @@ export const MediaStreamsPage: React.FC = () => {
           onSelectStream={handleSelectStream}
           onRefresh={handleRefresh}
           onBack={() => navigate(-1)}
+          isSearching={loading}
+          searchStartedAt={searchStartedAt}
+          searchTimeoutMs={searchTimeoutMs}
         />
       </div>
     </section>

@@ -299,6 +299,8 @@
     "countLabel_other": "{{count}} Quellen",
     "actions": {
       "refresh": "Aktualisieren",
+      "cancelSearch": "Abbrechen",
+      "cancelSearchWithTime": "Abbrechen {{time}}",
       "back": "Zurück"
     },
     "sort": {

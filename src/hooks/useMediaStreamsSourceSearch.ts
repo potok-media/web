@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
+import { TORRENT_SEARCH_HTTP_TIMEOUT_MS } from "../utils/extensions/pluginHttpTimeout";
 import type { RawStreamPayload } from "@potok/sdk-types";
 
 
@@ -62,6 +63,7 @@ export function useMediaStreamsSourceSearch({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [searchStartedAt, setSearchStartedAt] = useState<number | null>(null);
 
   const resultsCache = useRef<Map<string, RawStreamPayload[]>>(new Map());
   const activeRequestIdRef = useRef<string>("");
@@ -97,6 +99,7 @@ export function useMediaStreamsSourceSearch({
     const reqId = Math.random().toString(36).substring(7);
     activeRequestIdRef.current = reqId;
     setLoading(true);
+    setSearchStartedAt(Date.now());
     setError(null);
 
     ExtensionRegistry.sendSandboxRequest<RawStreamPayload[]>(
@@ -113,6 +116,7 @@ export function useMediaStreamsSourceSearch({
           forceSearch: isForce,
         },
       },
+      TORRENT_SEARCH_HTTP_TIMEOUT_MS,
     )
       .then((results) => {
         if (activeRequestIdRef.current !== reqId) return;
@@ -124,7 +128,9 @@ export function useMediaStreamsSourceSearch({
         setError(err instanceof Error ? err.message : String(err));
       })
       .finally(() => {
-        if (activeRequestIdRef.current === reqId) setLoading(false);
+        if (activeRequestIdRef.current !== reqId) return;
+        setLoading(false);
+        setSearchStartedAt(null);
       });
   }, [
     mediaTitle,
@@ -140,10 +146,16 @@ export function useMediaStreamsSourceSearch({
 
   const handleRefresh = useCallback(() => {
     if (!activeTab) return;
+    if (loading) {
+      activeRequestIdRef.current = "";
+      setLoading(false);
+      setSearchStartedAt(null);
+      return;
+    }
     resultsCache.current.delete(activeTab);
     shouldForceNextSearchRef.current = true;
     setRefreshTrigger((prev) => prev + 1);
-  }, [activeTab]);
+  }, [activeTab, loading]);
 
   return {
     sources,
@@ -153,6 +165,8 @@ export function useMediaStreamsSourceSearch({
     streams,
     loading,
     error,
+    searchStartedAt,
+    searchTimeoutMs: TORRENT_SEARCH_HTTP_TIMEOUT_MS,
     handleRefresh,
   };
 }
