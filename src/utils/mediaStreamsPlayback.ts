@@ -73,6 +73,6 @@ export const buildPlaybackFromInfo = (
   requiresBuffering: info.requiresBuffering,
   playlist: base.playlist,
   playlistIndex: base.playlistIndex,
-  startAt: info.startAt ?? base.startAt,
+  startAt: base.startAt,
   sourceStream: base.sourceStream,
 });
