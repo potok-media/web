@@ -1089,7 +1089,7 @@
           "seItems": [
             "config.yml next to docker-compose.yml — mounted as config.local.yml",
             "Tracker credentials and sources — only in config.yml",
-            "proxy.list — HTTP proxies to trackers: { url, username?, password? }; [] — no proxy",
+            "proxy.list — array of URLs (socks5://user:pass@host:port or http://host:port); several rotate per request, Cloudflare pins one IP per browser session; [] — home IP",
             "flaresolverr — Cloudflare bypass sidecar; compose URL http://flaresolverr:8191/v1, do not publish 8191; budget extra ~1 GiB RAM",
             "Enabled tracker hosts are probed on start; the browser is used only when Cloudflare challenges",
             "Port is PORT / SEARCH_ENGINE_PORT, not in yaml"

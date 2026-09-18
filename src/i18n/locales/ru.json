@@ -1097,7 +1097,7 @@
           "seItems": [
             "config.yml рядом с docker-compose.yml — монтируется как config.local.yml",
             "Креды трекеров и источники — только в config.yml",
-            "proxy.list — HTTP-прокси к трекерам: { url, username?, password? }; [] — без прокси",
+            "proxy.list — массив URL (socks5://user:pass@host:port или http://host:port); несколько — по кругу на запрос, Cloudflare держит один IP на сессию браузера; [] — домашний IP",
             "flaresolverr — sidecar обхода Cloudflare; в compose URL http://flaresolverr:8191/v1, порт 8191 не публиковать; заложите ~1 ГБ RAM",
             "При старте опрашиваются хосты включённых трекеров — браузер только если Cloudflare отвечает challenge",
             "Порт — PORT / SEARCH_ENGINE_PORT, не в yaml"
