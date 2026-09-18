@@ -1,11 +1,11 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Overlay } from "./Overlay";
 import { EpisodeSelectorHeader } from "./episodeSelector/EpisodeSelectorHeader";
 import { EpisodeOverridePicker } from "./episodeSelector/EpisodeOverridePicker";
 import { EpisodeSelectorBody } from "./episodeSelector/EpisodeSelectorBody";
 import { useEpisodeSelectorState } from "../../hooks/useEpisodeSelectorState";
-import type { EpisodeSelectorPopupProps } from "./episodeSelector/types";
+import type { EpisodeSelectorPopupProps, GenericEpisodeItem } from "./episodeSelector/types";
 
 export type { GenericEpisodeItem } from "./episodeSelector/types";
 
@@ -55,6 +55,11 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
     onApplyOverride,
     onApplyFileOverride,
   });
+
+  const handlePlay = useCallback(
+    (ep: GenericEpisodeItem) => onPlay(ep, "default"),
+    [onPlay],
+  );
 
   const uniqueSeasons = useMemo(
     () => Array.from(new Set(episodes.map((e) => e.season))),
@@ -111,7 +116,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
             firstEpId={firstEpId}
             backdropSrc={backdropSrc}
             posterSrc={posterSrc}
-            onPlay={(ep) => onPlay(ep, "default")}
+            onPlay={handlePlay}
             onEditSection={handleEditSection}
             onResetOverride={onResetOverride}
             fileOverrideEnabled={fileOverrideEnabled}

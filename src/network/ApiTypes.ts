@@ -292,4 +292,7 @@ export interface StreamUIItem {
   leechers?: number;
   publishDate?: string;
   tags?: { kind: string; value: string }[];
+  overrideBadge?: { label: string; title?: string };
+  isLastSelected?: boolean;
+  missingFromResults?: boolean;
 }

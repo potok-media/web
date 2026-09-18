@@ -11,13 +11,16 @@ interface StreamRowComponentProps {
 
 export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(({ stream, onClick }) => {
   const { t } = useTranslation("streams");
+  const overrideLabel = stream.overrideBadge?.label;
   const parsedTags = useMemo(() => {
     const extracted = extractBadges(stream.title);
     return Array.from(new Set([
-      ...(stream.tags?.map((t: { kind: string; value: string }) => t.value) || []),
-      ...extracted
-    ])).slice(0, 6);
-  }, [stream.title, stream.tags]);
+      ...(stream.tags?.map((tag: { kind: string; value: string }) => tag.value) || []),
+      ...extracted,
+    ]))
+      .filter((value) => !overrideLabel || value !== overrideLabel)
+      .slice(0, 6);
+  }, [stream.title, stream.tags, overrideLabel]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -27,20 +30,34 @@ export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(
   };
 
   return (
-    <div 
-      className="stream-row"
+    <div
+      className={`stream-row${stream.isLastSelected ? " stream-row--last" : ""}`}
       onClick={() => onClick(stream)}
       role="button"
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >
+      {stream.isLastSelected && (
+        <span className="stream-row-last-caption">{t("row.lastSelected")}</span>
+      )}
       <div className="stream-header-row">
         <div className="stream-row-header-left">
           <h3 className="stream-title-text stream-row-title">
             {stream.title}
           </h3>
-          
+          {stream.missingFromResults && (
+            <span className="stream-row-last-hint">{t("row.notInResults")}</span>
+          )}
+
           <div className="stream-badges-row">
+            {stream.overrideBadge && (
+              <span
+                className="stream-tag-badge override-badge"
+                title={stream.overrideBadge.title || stream.overrideBadge.label}
+              >
+                <span className="stream-row-override-badge-text">{stream.overrideBadge.label}</span>
+              </span>
+            )}
             {parsedTags.map((tagVal, i) => (
               <span key={i} className="stream-tag-badge">{tagVal}</span>
             ))}

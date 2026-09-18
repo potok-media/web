@@ -46,6 +46,7 @@ export const MediaStreamsPage: React.FC = () => {
     handleResetOverride,
     handleApplyFileOverride,
     handleResetFileOverride,
+    lastSelected,
     fileOverrideEnabled,
     isSaving,
     actionLoading,
@@ -84,6 +85,7 @@ export const MediaStreamsPage: React.FC = () => {
           isSearching={loading}
           searchStartedAt={searchStartedAt}
           searchTimeoutMs={searchTimeoutMs}
+          lastSelected={lastSelected}
         />
       </div>
     </section>

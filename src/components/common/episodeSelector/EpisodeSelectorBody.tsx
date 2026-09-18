@@ -89,7 +89,7 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
                     mediaType={mediaType}
                     backdropSrc={backdropSrc}
                     posterSrc={posterSrc}
-                    onPlay={() => onPlay(ep)}
+                    onPlay={onPlay}
                     fileOverrideEnabled={fileOverrideEnabled}
                     fileOverride={fileMap[ep.id]}
                     onEditFile={onEditFile}

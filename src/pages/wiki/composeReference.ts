@@ -85,6 +85,18 @@ export const OPTIONAL_TORRENT_COMPOSE = `  # 🔍 OPTIONAL — Tracker search (p
     depends_on:
       db:
         condition: service_healthy
+      flaresolverr:
+        condition: service_started
+
+  # Cloudflare challenge solver for RU trackers (rutracker.org etc.).
+  # SearchEngine talks to it on the compose network. Do not publish 8191.
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: potok-flaresolverr
+    restart: unless-stopped
+    environment:
+      - LOG_LEVEL=info
+      - TZ=Europe/Moscow
 
   # 🌊 OPTIONAL — BitTorrent streaming (potok-torrents plugin)
   potok-torrentgo:

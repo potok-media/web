@@ -20,6 +20,9 @@ interface InstallSections {
   envDesc: string;
   runTitle: string;
   dockerUp: string;
+  localTitle: string;
+  localDesc: string;
+  localCmd: string;
   nginxTitle: string;
   nginxDesc: string;
 }
@@ -53,6 +56,10 @@ export function buildInstallDoc(t: TFunction<"wiki">) {
 
       <h2 className="doc-section-h2" id="run">{s.runTitle}</h2>
       <CodeBlock language="bash" code={s.dockerUp} />
+
+      <h2 className="doc-section-h2" id="local">{s.localTitle}</h2>
+      <WikiDocP text={s.localDesc} />
+      <CodeBlock language="bash" code={s.localCmd} />
 
       <h2 className="doc-section-h2" id="nginx">{s.nginxTitle}</h2>
       <WikiDocP text={s.nginxDesc} />

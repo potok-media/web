@@ -1524,6 +1524,50 @@
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
 }
 
+.stream-row--last {
+  --stream-row-last-fill: color-mix(in srgb, var(--accent) 8%, rgba(255, 255, 255, 0.04));
+  position: relative;
+  overflow: visible;
+  margin-top: 0.5rem;
+  border-color: var(--accent-semi);
+  background: var(--stream-row-last-fill);
+  box-shadow: none;
+}
+
+.stream-row--last:hover {
+  --stream-row-last-fill: color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.06));
+  border-color: var(--accent);
+  background: var(--stream-row-last-fill);
+  transform: none;
+  box-shadow: none;
+}
+
+.stream-row-last-caption {
+  position: absolute;
+  top: 0;
+  left: 1.25rem;
+  transform: translateY(-50%);
+  z-index: 1;
+  pointer-events: none;
+  font: var(--font-caption-bold);
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 0 0.45rem;
+  line-height: 1.2;
+  border-radius: 0;
+  background: var(--stream-row-last-fill);
+  border: none;
+  white-space: nowrap;
+}
+
+.stream-row-last-hint {
+  font: var(--font-caption);
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+}
+
 
 .stream-header-row {
   display: flex;
@@ -1599,8 +1643,6 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(13, 14, 18, 0.7);
-  backdrop-filter: var(--blur-glass);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1608,7 +1650,20 @@
   animation: fadeIn 0.2s ease-out;
 }
 
+.modal-overlay::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: rgba(13, 14, 18, 0.7);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+}
+
 .modal-container {
+  position: relative;
+  z-index: 1;
   background: var(--bg-surface);
   border-radius: var(--radius-l);
   border: var(--glass-border);
@@ -2106,7 +2161,7 @@
 /* Viewport: bounded height + native scrollbar (desktop) / transform clip (TV). */
 .streams-results-list {
   flex: 1;
-  padding: 0.375rem 1rem 1rem 1rem;
+  padding: 0.75rem 1rem 1rem 1rem;
   margin: 0.625rem -1rem 0 -1rem;
 }
 
@@ -2420,6 +2475,8 @@
   transition: background-color 0.15s ease, border-color 0.15s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 10rem;
 }
 
 .file-card-row:hover {
@@ -3001,6 +3058,10 @@
   padding: 1.25rem;
   flex: 1;
   overflow-y: auto;
+  transform: translateZ(0);
+  isolation: isolate;
+  -webkit-overflow-scrolling: touch;
+  contain: layout paint;
 }
 
 .popover-wrapper-relative {

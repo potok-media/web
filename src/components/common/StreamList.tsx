@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import type { TFunction } from "i18next";
 import { ShieldAlert } from "lucide-react";
 import type { RawStreamPayload } from "@potok/sdk-types";
 import type { StreamUIItem } from "../../network/ApiTypes";
@@ -10,10 +9,14 @@ import StreamSkeletonList from "../StreamSkeletonList";
 import { ScrollView } from "./ScrollView";
 import {
   collectSeasonNumbers,
+  findStreamByIdentity,
   getStreamProvider,
   getStreamSeeders,
   getStreamSizeBytes,
+  isSameStream,
+  mapStreamToUI,
   matchesSeasonFilter,
+  mergePinStream,
   type ExtendedStreamPayload,
 } from "./streamListUtils";
 
@@ -28,52 +31,8 @@ export interface StreamListProps {
   isSearching?: boolean;
   searchStartedAt?: number | null;
   searchTimeoutMs?: number;
+  lastSelected?: RawStreamPayload | null;
 }
-
-const mapStreamToUI = (stream: ExtendedStreamPayload, index: number, t: TFunction): StreamUIItem => {
-  const voiceTags = stream.voice
-    ? stream.voice
-        .split(/[,;]+/)
-        .map((v) => v.trim())
-        .filter(Boolean)
-        .map((v) => {
-          const vLower = v.toLowerCase();
-          let emoji = "🎙️";
-          if (vLower.includes("original") || vLower.includes("japan") || vLower.includes("eng")) {
-            if (vLower.includes("sub") || vLower.includes("суб")) {
-              emoji = "💬";
-            } else {
-              emoji = "🌐";
-            }
-          } else if (vLower.includes("sub") || vLower.includes("суб")) {
-            emoji = "💬";
-          }
-          return { kind: "voice", value: `${emoji} ${v}` };
-        })
-    : [];
-
-  const seeds = stream.seeds !== undefined ? stream.seeds : stream.seeders;
-  const peers = stream.peers !== undefined ? stream.peers : stream.leechers;
-  const provider = stream.provider || stream.tracker || t("source");
-  const sizeBytes = typeof stream.size === 'number' ? stream.size : stream.sizeBytes;
-
-  return {
-    id: stream.url || stream.magnet || stream.hash || `${stream.title}-${index}`,
-    title: stream.title || t("source"),
-    sizeLabel: stream.quality ? stream.quality.toUpperCase() : "",
-    sizeBytes,
-    tracker: provider,
-    seeders: seeds,
-    leechers: peers,
-    publishDate: stream.publishDate,
-    tags: [
-      ...(stream.kind && stream.kind !== "torrent"
-        ? [{ kind: "kind", value: `⚡ ${(stream.kind === "hls" || stream.kind === "m3u8") ? "M3U8" : stream.kind.toUpperCase()}` }]
-        : []),
-      ...voiceTags,
-    ],
-  };
-};
 
 export const StreamList: React.FC<StreamListProps> = ({
   streams,
@@ -86,6 +45,7 @@ export const StreamList: React.FC<StreamListProps> = ({
   isSearching = false,
   searchStartedAt = null,
   searchTimeoutMs,
+  lastSelected = null,
 }) => {
   const { t } = useTranslation("streams");
   const resolvedEmptyText = emptyText ?? t("empty");
@@ -94,20 +54,41 @@ export const StreamList: React.FC<StreamListProps> = ({
   const [activeTracker, setActiveTracker] = useState<string>("all");
   const [seasonFilter, setSeasonFilter] = useState<string>("all");
 
-  const trackers = useMemo(() => {
-    const extended = streams as ExtendedStreamPayload[];
-    return Array.from(
-      new Set(extended.map((s) => getStreamProvider(s)).filter((p) => !!p)),
-    );
-  }, [streams]);
+  const extendedStreams = streams as ExtendedStreamPayload[];
+  const storedPin = lastSelected as ExtendedStreamPayload | null;
 
-  const availableSeasons = useMemo(
-    () => collectSeasonNumbers(streams as ExtendedStreamPayload[]),
-    [streams],
+  const trackers = useMemo(
+    () => Array.from(new Set(extendedStreams.map((s) => getStreamProvider(s)).filter((p) => !!p))),
+    [extendedStreams],
   );
 
+  const availableSeasons = useMemo(
+    () => collectSeasonNumbers(extendedStreams),
+    [extendedStreams],
+  );
+
+  const pinLive = useMemo(
+    () => (storedPin ? findStreamByIdentity(extendedStreams, storedPin) : undefined),
+    [extendedStreams, storedPin],
+  );
+
+  const pinRaw = useMemo(
+    () => (storedPin ? mergePinStream(storedPin, pinLive) : undefined),
+    [storedPin, pinLive],
+  );
+
+  const pinItem = useMemo(() => {
+    if (!pinRaw) return null;
+    return {
+      raw: pinRaw,
+      ui: mapStreamToUI(pinRaw, -1, t, {
+        isLastSelected: true,
+        missingFromResults: !loading && !pinLive,
+      }),
+    };
+  }, [pinRaw, pinLive, loading, t]);
+
   const processedStreams = useMemo(() => {
-    const extendedStreams = streams as ExtendedStreamPayload[];
     const filtered = extendedStreams.filter((stream) => {
       const provider = getStreamProvider(stream);
       const matchesQuality =
@@ -120,46 +101,38 @@ export const StreamList: React.FC<StreamListProps> = ({
     });
 
     const sorted = [...filtered].sort((a, b) => {
-      if (sortOption === "seedersDesc") {
-        return getStreamSeeders(b) - getStreamSeeders(a);
-      }
-      if (sortOption === "sizeDesc") {
-        return getStreamSizeBytes(b) - getStreamSizeBytes(a);
-      }
-      if (sortOption === "sizeAsc") {
-        return getStreamSizeBytes(a) - getStreamSizeBytes(b);
-      }
+      if (sortOption === "seedersDesc") return getStreamSeeders(b) - getStreamSeeders(a);
+      if (sortOption === "sizeDesc") return getStreamSizeBytes(b) - getStreamSizeBytes(a);
+      if (sortOption === "sizeAsc") return getStreamSizeBytes(a) - getStreamSizeBytes(b);
       return 0;
     });
 
-    return sorted.map((stream, index) => ({
-      raw: stream,
-      ui: mapStreamToUI(stream, index, t),
-    }));
-  }, [streams, qualityFilter, activeTracker, seasonFilter, sortOption, t]);
+    return sorted.map((stream, index) => ({ raw: stream, ui: mapStreamToUI(stream, index, t) }));
+  }, [extendedStreams, qualityFilter, activeTracker, seasonFilter, sortOption, t]);
 
-  const displayStreams = processedStreams;
+  const displayStreams = useMemo(() => {
+    if (!pinRaw) return processedStreams;
+    return processedStreams.filter((item) => !isSameStream(item.raw, pinRaw));
+  }, [processedStreams, pinRaw]);
 
-  // Map UI item id -> raw payload so a single stable onClick can resolve the raw
-  // stream, keeping StreamRowComponent's React.memo intact during D-pad scrolling.
   const rawById = useMemo(() => {
     const map = new Map<string, RawStreamPayload>();
+    if (pinItem) map.set(pinItem.ui.id, pinItem.raw);
     displayStreams.forEach((item) => map.set(item.ui.id, item.raw));
     return map;
-  }, [displayStreams]);
+  }, [displayStreams, pinItem]);
 
   const handleSelectStream = useCallback((ui: StreamUIItem) => {
     const raw = rawById.get(ui.id);
-    if (raw) {
-      onSelectStream(raw);
-    }
+    if (raw) onSelectStream(raw);
   }, [rawById, onSelectStream]);
 
   const handleRefreshClick = () => {
-    if (onRefresh) {
-      onRefresh();
-    }
+    if (onRefresh) onRefresh();
   };
+
+  const showSkeletons = loading && displayStreams.length === 0;
+  const showEmpty = !showSkeletons && displayStreams.length === 0 && !pinItem;
 
   return (
     <div className="stream-list-container stream-list-container--gap">
@@ -188,27 +161,31 @@ export const StreamList: React.FC<StreamListProps> = ({
       )}
 
       <ScrollView orientation="vertical" className="streams-results-list" trackClassName="streams-results-track">
-        {loading && displayStreams.length === 0 ? (
+        {pinItem && (
+          <StreamRowComponent
+            key={`last-selected-${pinItem.ui.id}`}
+            stream={pinItem.ui}
+            onClick={handleSelectStream}
+          />
+        )}
+        {showSkeletons ? (
           <StreamSkeletonList />
         ) : displayStreams.length > 0 ? (
-          displayStreams.map((item, index) => {
-            return (
-              <StreamRowComponent
-                key={`${item.ui.id || "stream"}-${index}`}
-                stream={item.ui}
-                onClick={handleSelectStream}
-
-              />
-            );
-          })
-        ) : (
+          displayStreams.map((item, index) => (
+            <StreamRowComponent
+              key={`${item.ui.id || "stream"}-${index}`}
+              stream={item.ui}
+              onClick={handleSelectStream}
+            />
+          ))
+        ) : showEmpty ? (
           <div className="stream-empty-state stream-empty-state--padded">
             <ShieldAlert size="2.5rem" opacity={0.5} />
             <span className="stream-empty-state-text stream-empty-state-text--center">
               {resolvedEmptyText}
             </span>
           </div>
-        )}
+        ) : null}
       </ScrollView>
     </div>
   );

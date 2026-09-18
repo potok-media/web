@@ -31,6 +31,16 @@ proxy:
       username: ''
       password: ''
 
+# Cloudflare bypass via FlareSolverr (headless Chrome next to SearchEngine).
+# Local debug: http://127.0.0.1:8191/v1  |  compose: http://flaresolverr:8191/v1
+flaresolverr:
+  enable: true
+  url: http://flaresolverr:8191/v1
+  max-timeout-ms: 180000
+  session-idle-minutes: 30
+  guarded-hours: 6
+  recheck-minutes: 30
+
 rutracker:
   enable-search: true
   authorization:

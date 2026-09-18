@@ -150,10 +150,9 @@ export class AuthApiClient {
       headers: ApiClient.headers,
       body: JSON.stringify({ code: deviceCode }),
     });
-    if (res.status === 400) {
-      throw new Error("UNAUTHORIZED");
+    if (!res.ok) {
+      throw new ApiError(res.status === 400 || res.status === 429 ? "PENDING" : "Request failed", res.status);
     }
-    if (!res.ok) throw new Error("Request failed");
     return res.json();
   }
 

@@ -18,6 +18,15 @@ describe("resolvePluginHttpTimeout", () => {
     );
   });
 
+  it("uses 90s for TorrentGo add/list files", () => {
+    expect(resolvePluginHttpTimeout("http://127.0.0.1:5282/api/torrents")).toBe(
+      TORRENT_SEARCH_HTTP_TIMEOUT_MS,
+    );
+    expect(resolvePluginHttpTimeout("http://127.0.0.1:5282/api/torrents/abc/files/0/metadata")).toBe(
+      DEFAULT_PLUGIN_HTTP_TIMEOUT_MS,
+    );
+  });
+
   it("honors an explicit timeout and caps it", () => {
     expect(resolvePluginHttpTimeout("https://example.com", 8_000)).toBe(8_000);
     expect(resolvePluginHttpTimeout("https://example.com", 999_999)).toBe(MAX_PLUGIN_HTTP_TIMEOUT_MS);

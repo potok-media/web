@@ -257,7 +257,7 @@ class ExtensionRegistryManager {
 
     let finalTimeoutMs = timeoutMs;
     if (finalTimeoutMs === undefined) {
-      if (action === "STREAM_SOURCE_SEARCH") {
+      if (action === "STREAM_SOURCE_SEARCH" || action === "STREAM_SOURCE_GET_EPISODES") {
         finalTimeoutMs = TORRENT_SEARCH_HTTP_TIMEOUT_MS;
       } else if (action === "STREAM_SOURCE_GET_PLAYBACK_METADATA") {
         // Deferred background probe (subtitles/duration) — the player is already open and playing, so nobody
@@ -265,7 +265,6 @@ class ExtensionRegistryManager {
         // warm up (e.g. a cold container-header read). Any plugin can pass its own timeoutMs to override.
         finalTimeoutMs = 60000;
       } else if (
-        action === "STREAM_SOURCE_GET_EPISODES" ||
         action === "STREAM_SOURCE_GET_SEASONS" ||
         action === "STREAM_SOURCE_SAVE_OVERRIDE" ||
         action === "STREAM_SOURCE_CLEAR_OVERRIDE" ||

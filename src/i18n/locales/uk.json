@@ -328,7 +328,13 @@
       "seedersTitle": "Сидів",
       "seedersLabel": "Сідери:",
       "leechersTitle": "Leechers (Peers)",
-      "leechersLabel": "Leechers:"
+      "leechersLabel": "Leechers:",
+      "lastSelected": "Last selected",
+      "notInResults": "Not in this result set",
+      "overrideSeasons_one": "{{count}} season",
+      "overrideSeasons_other": "{{count}} seasons",
+      "overrideFiles_one": "{{count}} file",
+      "overrideFiles_other": "{{count}} files"
     },
     "loading": {
       "fetchingInfo": "Отримання інформації..."

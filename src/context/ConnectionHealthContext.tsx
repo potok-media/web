@@ -52,6 +52,7 @@ export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> =
   const consecutiveFailuresRef = useRef<number>(0);
   const connectionStateRef = useRef<ConnectionState>("checking");
   const checkConnectionRef = useRef<((options?: { silent?: boolean }) => Promise<void>) | null>(null);
+  const lastProbedGatewayRef = useRef<string>("");
   // Dedupes concurrent handshakes: the eager multiUserMode effect and checkConnection both fire on
   // mount for the same gateway, and would otherwise each hit /api/handshake. Only in-flight requests
   // are shared — the entry is cleared on settle so a later reconnect still re-probes fresh config.
@@ -144,7 +145,10 @@ export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> =
         return;
       }
 
-      if (!options?.silent) {
+      if (
+        !options?.silent &&
+        !(connectionStateRef.current === "connected" && lastProbedGatewayRef.current === currentGateway)
+      ) {
         setConnectionState("checking");
       }
 
@@ -160,6 +164,7 @@ export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> =
 
         setBffLatencyMs(bff.latencyMs ?? -1);
         setServices({ bff, searchEngine: search, playerServer: playerSrv });
+        lastProbedGatewayRef.current = currentGateway;
         setConnectionState("connected");
         consecutiveFailuresRef.current = 0;
         startPingTimer();
@@ -218,7 +223,7 @@ export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> =
     }
 
     const unsubConnected = webSocketClient.subscribe("connected", () => {
-      checkConnectionRef.current?.();
+      checkConnectionRef.current?.({ silent: true });
     });
     const unsubOffline = webSocketClient.subscribe("offline", () => {
       setBffLatencyMs(-1);
@@ -233,13 +238,13 @@ export const ConnectionHealthProvider: React.FC<{ children: React.ReactNode }> =
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      checkConnection();
+      checkConnectionRef.current?.();
     }, 0);
     return () => {
       clearTimeout(timer);
       stopPingTimer();
     };
-  }, [activeProfileID, gatewayURL, checkConnection, stopPingTimer]);
+  }, [activeProfileID, gatewayURL, stopPingTimer]);
 
   const healthValue = useMemo(
     () => ({ connectionState, checkConnection }),

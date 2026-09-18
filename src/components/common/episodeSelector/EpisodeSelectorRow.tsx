@@ -12,11 +12,34 @@ interface EpisodeSelectorRowProps {
   mediaType: string;
   backdropSrc?: string;
   posterSrc?: string;
-  onPlay: () => void;
+  onPlay: (episode: GenericEpisodeItem) => void;
   fileOverrideEnabled?: boolean;
   fileOverride?: FileOverrideEntry;
   onEditFile?: (fileId: string, mode: FileOverrideMode) => void;
   onResetFileOverride?: (fileId: string) => void;
+}
+
+function episodeRowEqual(prev: EpisodeSelectorRowProps, next: EpisodeSelectorRowProps) {
+  const a = prev.episodeItem;
+  const b = next.episodeItem;
+  return (
+    prev.onPlay === next.onPlay &&
+    prev.onEditFile === next.onEditFile &&
+    prev.onResetFileOverride === next.onResetFileOverride &&
+    prev.mediaType === next.mediaType &&
+    prev.backdropSrc === next.backdropSrc &&
+    prev.posterSrc === next.posterSrc &&
+    prev.fileOverrideEnabled === next.fileOverrideEnabled &&
+    prev.fileOverride === next.fileOverride &&
+    a.id === b.id &&
+    a.isWatched === b.isWatched &&
+    a.title === b.title &&
+    a.fileName === b.fileName &&
+    a.stillPath === b.stillPath &&
+    a.sizeLabel === b.sizeLabel &&
+    a.season === b.season &&
+    a.episode === b.episode
+  );
 }
 
 export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
@@ -67,13 +90,13 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
   return (
     <div
       className="file-card-row"
-      onClick={onPlay}
+      onClick={() => onPlay(episodeItem)}
       tabIndex={0}
       role="button"
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onPlay();
+          onPlay(episodeItem);
         }
       }}
     >
@@ -170,7 +193,7 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
         className="file-card-play-btn"
         onClick={(e) => {
           e.stopPropagation();
-          onPlay();
+          onPlay(episodeItem);
         }}
         aria-label={t("selector.play")}
       >
@@ -178,4 +201,4 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
       </IconButton>
     </div>
   );
-});
+}, episodeRowEqual);

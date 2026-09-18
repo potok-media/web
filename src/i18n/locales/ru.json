@@ -358,7 +358,17 @@
       "seedersTitle": "Раздают (Сиды)",
       "seedersLabel": "Раздают:",
       "leechersTitle": "Скачивают (Пиры)",
-      "leechersLabel": "Скачивают:"
+      "leechersLabel": "Скачивают:",
+      "lastSelected": "Последняя",
+      "notInResults": "Нет в этой выдаче",
+      "overrideSeasons_one": "{{count}} сезон",
+      "overrideSeasons_few": "{{count}} сезона",
+      "overrideSeasons_many": "{{count}} сезонов",
+      "overrideSeasons_other": "{{count}} сезона",
+      "overrideFiles_one": "{{count}} файл",
+      "overrideFiles_few": "{{count}} файла",
+      "overrideFiles_many": "{{count}} файлов",
+      "overrideFiles_other": "{{count}} файла"
     },
     "loading": {
       "fetchingInfo": "Получение информации..."
@@ -1012,13 +1022,17 @@
             "text": "Запуск"
           },
           {
+            "id": "local",
+            "text": "Из этого репозитория"
+          },
+          {
             "id": "nginx",
             "text": "Настройка Nginx Proxy"
           }
         ],
         "sections": {
           "title": "Установка",
-          "intro": "Стек: web, gateway, PostgreSQL. Торренты — SearchEngine, TorrentGo, <repo>potok-torrents</repo> из <repo>web-plugins</repo>.",
+          "intro": "Стек: web, gateway, PostgreSQL. Торренты — SearchEngine, TorrentGo, FlareSolverr, <repo>potok-torrents</repo> из <repo>web-plugins</repo>.",
           "quickStartTitle": "Файлы",
           "quickStartFiles": [
             "docker-compose.yml",
@@ -1031,11 +1045,14 @@
           "requiredTitle": "Compose",
           "requiredDesc": "",
           "optionalTitle": "Торренты",
-          "optionalDesc": "SearchEngine + TorrentGo в compose. URL — в <repo>potok-torrents</repo>.",
+          "optionalDesc": "SearchEngine + TorrentGo + FlareSolverr в compose. URL — в <repo>potok-torrents</repo>. Порт FlareSolverr 8191 наружу не публикуйте.",
           "envTitle": ".env",
           "envDesc": "<code>GATEWAY_TMDB_API_KEY</code> — TMDB (необязательно — если не задан, используется общий ключ по умолчанию). <code>GATEWAY_MULTI_USER_MODE=true</code> — саморегистрация, <code>false</code> — только вход. <code>GATEWAY_JWT_SECRET</code> — сменить в проде. <code>GATEWAY_TELEGRAM_BOT_TOKEN</code> + <code>GATEWAY_TELEGRAM_BOT_USERNAME</code> — задать оба для входа через Telegram.",
           "runTitle": "Запуск",
           "dockerUp": "docker compose up -d",
+          "localTitle": "Из этого репозитория",
+          "localDesc": "Образы web, gateway, SearchEngine и TorrentGo собираются из Dockerfile в дереве, не с GHCR. Postgres и FlareSolverr — публичные образы. Из корня репозитория:",
+          "localCmd": "docker compose -f docker-compose.local.yml up --build",
           "nginxTitle": "Nginx",
           "nginxDesc": "<code>potok.rip</code> → :3000, <code>api.potok.rip</code> → :5000. <code>wiki.potok.rip</code> — прокси на <code>/wiki</code> (+ <code>/assets/</code>); с корня редирект на <code>/wiki</code>. <code>VITE_DEFAULT_BFF_URL=https://api.potok.rip</code>.",
           "nginxProxy": "server {\n    listen 80;\n    server_name wiki.potok.rip;\n\n    location / {\n        proxy_pass http://localhost:3000/wiki;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n}\n\nserver {\n    listen 80;\n    server_name app.potok.rip;\n\n    location / {\n        proxy_pass http://localhost:3000;\n        proxy_set_header Host $host;\n    }\n\n    location /api/ {\n        proxy_pass http://localhost:5000/;\n        proxy_set_header Host $host;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n    }\n}"
@@ -1081,6 +1098,8 @@
             "config.yml рядом с docker-compose.yml — монтируется как config.local.yml",
             "Креды трекеров и источники — только в config.yml",
             "proxy.list — HTTP-прокси к трекерам: { url, username?, password? }; [] — без прокси",
+            "flaresolverr — sidecar обхода Cloudflare; в compose URL http://flaresolverr:8191/v1, порт 8191 не публиковать; заложите ~1 ГБ RAM",
+            "При старте опрашиваются хосты включённых трекеров — браузер только если Cloudflare отвечает challenge",
             "Порт — PORT / SEARCH_ENGINE_PORT, не в yaml"
           ],
           "tgTitle": "TorrentGo",

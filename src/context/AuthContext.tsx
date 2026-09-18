@@ -56,6 +56,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setTraktConnected = useCallback((connected: boolean) => {
     setTraktConnectedState(connected);
+    setPotokUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, traktConnected: connected };
+      Storage.set("potokUser", next);
+      return next;
+    });
   }, []);
 
   const setTelegramAuth = useCallback((enabled: boolean, botUsername: string | null) => {

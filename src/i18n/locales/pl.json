@@ -328,7 +328,13 @@
       "seedersTitle": "Maszyny do sortowania, klasyfikowania, przesiewania, separowania, płukania, przemywania, zgniatania, kruszenia, mielenia, klasyfikowania, przemywania, zgniatania, kruszenia, mielenia, klasyfikowania, przemywania, zgniatania, kruszenia, mielenia, mieszania lub ugniatania ziemi, kamieni, rud lub pozostałych substancji mineralnych, w rodzaju stosowanych do transportu lub pakowania towarów, gdzie indziej niewymienione ani niewłączone",
       "seedersLabel": "Maszyny i urządzenia do lutowania miękkiego i twardego, spawania lub zgrzewania metali, gdzie indziej niesklasyfikowane",
       "leechersTitle": "Leechers (Peers)",
-      "leechersLabel": "Leechers:"
+      "leechersLabel": "Leechers:",
+      "lastSelected": "Last selected",
+      "notInResults": "Not in this result set",
+      "overrideSeasons_one": "{{count}} season",
+      "overrideSeasons_other": "{{count}} seasons",
+      "overrideFiles_one": "{{count}} file",
+      "overrideFiles_other": "{{count}} files"
     },
     "loading": {
       "fetchingInfo": "Pobieranie informacji..."

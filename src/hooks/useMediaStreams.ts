@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useMediaStreamsDetails } from "./useMediaStreamsDetails";
 import { useMediaStreamsSourceSearch } from "./useMediaStreamsSourceSearch";
 import { useMediaStreamsEpisodePlay } from "./useMediaStreamsEpisodePlay";
+import { useLastSelectedStream } from "./mediaStreams/useLastSelectedStream";
 import type { MediaCard } from "../network/ApiTypes";
 
 interface UseMediaStreamsParams {
@@ -46,6 +47,8 @@ export function useMediaStreams({
     [mediaType, mediaId, details.currentMedia?.title, season, episode],
   );
 
+  const lastSelectedStream = useLastSelectedStream(mediaType, mediaId);
+
   const episodePlay = useMediaStreamsEpisodePlay({
     mediaType,
     mediaId,
@@ -54,6 +57,8 @@ export function useMediaStreams({
     context,
     mapEpisodesWithWatched: details.mapEpisodesWithWatched,
     onError: details.handleOnError,
+    recordPlay: lastSelectedStream.recordPlay,
+    rememberOverride: lastSelectedStream.rememberOverride,
   });
 
   return {
@@ -85,5 +90,6 @@ export function useMediaStreams({
     isSaving: episodePlay.isSaving,
     actionLoading: episodePlay.actionLoading,
     handleClosePopup: episodePlay.handleClosePopup,
+    lastSelected: lastSelectedStream.lastSelected,
   };
 }

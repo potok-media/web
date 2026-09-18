@@ -65,7 +65,10 @@ export const ProfileSyncStrategyControls: React.FC<ProfileSyncStrategyControlsPr
         <span>{t("page.syncLabel")}</span>
         <Select
           value={syncStrategy}
-          onChange={onSelectStrategy}
+          onChange={(strategy) => {
+            onSelectStrategy(strategy);
+            if (strategy === "trakt" && !traktConnected) onStartTraktAuth();
+          }}
           className="strategy-dropdown-select"
           options={[
             { value: "none", label: t("page.dropdown.none") },

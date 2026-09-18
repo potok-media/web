@@ -105,22 +105,18 @@ export const ProfilePage: React.FC = () => {
 
       {syncStrategy === "trakt" && (
         <>
-          {traktConnected ? (
-            <>
-              {traktProfile ? (
-                <TraktActiveView traktProfile={traktProfile} onLogout={handleTraktLogout} />
-              ) : (
-                <div className="profile-loading-wrap">
-                  <RefreshCw className="spin profile-loading-spinner" size="2rem" />
-                </div>
-              )}
-            </>
+          {traktConnected && traktProfile ? (
+            <TraktActiveView traktProfile={traktProfile} onLogout={handleTraktLogout} />
           ) : deviceCode ? (
             <TraktDeviceAuthView
               deviceCode={deviceCode}
               onCancel={() => setDeviceCode(null)}
               onCopyCode={() => copyToClipboard(deviceCode.user_code)}
             />
+          ) : traktConnected && loadingTrakt ? (
+            <div className="profile-loading-wrap">
+              <RefreshCw className="spin profile-loading-spinner" size="2rem" />
+            </div>
           ) : (
             <TraktConnectCard loadingTrakt={loadingTrakt} onConnect={startTraktAuth} />
           )}

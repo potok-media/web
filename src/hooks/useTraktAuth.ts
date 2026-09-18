@@ -6,30 +6,58 @@ import { useAuth } from "../context/AppSettingsContext";
 import { ApiError } from "../network/ApiTypes";
 import type { TraktProfile, DeviceCodeResponse } from "../network/ApiTypes";
 
+const POLL_PENDING_STATUSES = new Set([400, 429]);
+const POLL_EXPIRED_STATUSES = new Set([404, 409, 410, 418]);
+
 export function useTraktAuth(syncStrategy: string) {
   const { t } = useTranslation("profile");
   const { show: showHUD } = useHUD();
   const { traktConnected, setTraktConnected } = useAuth();
 
   const [traktProfile, setTraktProfile] = useState<TraktProfile | null>(null);
-  const [deviceCode, setDeviceCode] = useState<DeviceCodeResponse | null>(null);
+  const [deviceCode, setDeviceCodeState] = useState<DeviceCodeResponse | null>(null);
   const [loadingTrakt, setLoadingTrakt] = useState(false);
 
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const deviceCodeRef = useRef<DeviceCodeResponse | null>(null);
+  const startingAuthRef = useRef(false);
+
+  const setDeviceCode = (code: DeviceCodeResponse | null) => {
+    deviceCodeRef.current = code;
+    setDeviceCodeState(code);
+  };
 
   const pollTraktToken = async (codeVal: string) => {
     try {
       const data = await AuthApiClient.getTraktToken(codeVal);
       if (data.access_token) {
+        setLoadingTrakt(true);
         setTraktConnected(true);
         setDeviceCode(null);
         showHUD("success", t("hud.traktConnected"));
       }
     } catch (err: unknown) {
-      if (err instanceof Error && err.message !== "UNAUTHORIZED") {
+      if (!(err instanceof ApiError)) return;
+      if (POLL_PENDING_STATUSES.has(err.status)) return;
+      if (POLL_EXPIRED_STATUSES.has(err.status)) {
         setDeviceCode(null);
         showHUD("error", t("hud.codeExpired"));
       }
+    }
+  };
+
+  const startTraktAuth = async () => {
+    if (deviceCodeRef.current || startingAuthRef.current) return;
+    startingAuthRef.current = true;
+    setLoadingTrakt(true);
+    try {
+      const code: DeviceCodeResponse = await AuthApiClient.getTraktDeviceCode();
+      setDeviceCode(code);
+    } catch {
+      showHUD("error", t("hud.traktCodeError"));
+    } finally {
+      setLoadingTrakt(false);
+      startingAuthRef.current = false;
     }
   };
 
@@ -40,21 +68,12 @@ export function useTraktAuth(syncStrategy: string) {
       setTraktProfile(data);
     } catch (err) {
       setTraktProfile(null);
-      if (err instanceof ApiError && err.status === 401) {
-        setTraktConnected(false);
-      }
-    } finally {
-      setLoadingTrakt(false);
-    }
-  };
-
-  const startTraktAuth = async () => {
-    setLoadingTrakt(true);
-    try {
-      const code: DeviceCodeResponse = await AuthApiClient.getTraktDeviceCode();
-      setDeviceCode(code);
-    } catch {
-      showHUD("error", t("hud.traktCodeError"));
+      if (syncStrategy !== "trakt") return;
+      const status = err instanceof ApiError ? err.status : undefined;
+      const disconnected = status === 401 || status === 500 || status === undefined;
+      if (!disconnected) return;
+      setTraktConnected(false);
+      await startTraktAuth();
     } finally {
       setLoadingTrakt(false);
     }
