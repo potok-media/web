@@ -34,6 +34,10 @@ export const buildPlaybackFromInfo = (
     episode?: number;
     playlist?: ActivePlayback["playlist"];
     playlistIndex?: number;
+    providerId?: string;
+    startAt?: number;
+    sourceStream?: unknown;
+    stillSrc?: string;
   },
 ): ActivePlayback => ({
   streamUrl: info.streamUrl,
@@ -42,6 +46,7 @@ export const buildPlaybackFromInfo = (
   englishTitle: base.englishTitle,
   backdropSrc: base.backdropSrc,
   posterSrc: base.posterSrc,
+  stillSrc: base.stillSrc,
   mediaType: base.mediaType,
   id: base.id,
   season: base.season,
@@ -55,7 +60,7 @@ export const buildPlaybackFromInfo = (
     : undefined,
   audios: info.audios?.map((a) => ({ name: a.name, url: a.url })),
   headers: info.headers,
-  providerId: info.providerId,
+  providerId: info.providerId || base.providerId,
   voice: info.voice,
   subtitles: info.subtitles,
   session: info.session,
@@ -68,4 +73,6 @@ export const buildPlaybackFromInfo = (
   requiresBuffering: info.requiresBuffering,
   playlist: base.playlist,
   playlistIndex: base.playlistIndex,
+  startAt: info.startAt ?? base.startAt,
+  sourceStream: base.sourceStream,
 });

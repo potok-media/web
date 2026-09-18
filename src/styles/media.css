@@ -1524,42 +1524,51 @@
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
 }
 
-.stream-row--last {
+.stream-row-last-shell {
   --stream-row-last-fill: color-mix(in srgb, var(--accent) 8%, rgba(255, 255, 255, 0.04));
+  --stream-row-last-stroke: color-mix(in srgb, var(--accent) 55%, rgba(255, 255, 255, 0.18));
   position: relative;
-  overflow: visible;
-  margin-top: 0.5rem;
-  border-color: var(--accent-semi);
+  margin-top: 0.9rem;
+}
+
+.stream-row-last-shell:hover {
+  --stream-row-last-fill: color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.06));
+  --stream-row-last-stroke: var(--accent);
+}
+
+.stream-row-last-shell .stream-row--last {
+  margin-top: 0;
+  border-color: var(--stream-row-last-stroke);
   background: var(--stream-row-last-fill);
   box-shadow: none;
 }
 
-.stream-row--last:hover {
-  --stream-row-last-fill: color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.06));
-  border-color: var(--accent);
-  background: var(--stream-row-last-fill);
+.stream-row-last-shell:hover .stream-row--last {
   transform: none;
   box-shadow: none;
+  border-color: var(--stream-row-last-stroke);
+  background: var(--stream-row-last-fill);
 }
 
 .stream-row-last-caption {
   position: absolute;
+  left: 1.15rem;
   top: 0;
-  left: 1.25rem;
-  transform: translateY(-50%);
+  transform: translateY(-100%) translateY(1px);
   z-index: 1;
   pointer-events: none;
   font: var(--font-caption-bold);
   font-size: 0.625rem;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--accent);
-  padding: 0 0.45rem;
-  line-height: 1.2;
-  border-radius: 0;
-  background: var(--stream-row-last-fill);
-  border: none;
+  padding: 0.22rem 0.6rem 0.18rem;
+  line-height: 1;
   white-space: nowrap;
+  background: var(--stream-row-last-fill);
+  border: 1px solid var(--stream-row-last-stroke);
+  border-bottom-color: var(--stream-row-last-fill);
+  border-radius: 0.4rem 0.4rem 0 0;
 }
 
 .stream-row-last-hint {

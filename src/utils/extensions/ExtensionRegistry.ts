@@ -76,6 +76,15 @@ class ExtensionRegistryManager {
     this.sandboxIframes.set(pluginId, iframe);
   }
 
+  /** Fan a generic host event out to every plugin iframe. Host does not interpret the payload. */
+  broadcast(action: string, payload: unknown) {
+    for (const iframe of this.sandboxIframes.values()) {
+      if (iframe?.contentWindow) {
+        iframe.contentWindow.postMessage({ source: "potok-host", action, payload }, "*");
+      }
+    }
+  }
+
   broadcastBlockContext(blockName: string, context: BlockContextPayload) {
     const activeTab = context?.tab;
     for (const [pluginId, iframe] of this.sandboxIframes.entries()) {

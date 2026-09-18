@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { Storage } from "../utils/StorageService";
 import { SyncApiClient } from "../network/SyncApiClient";
 import { logger } from "../utils/logger";
+import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 
 export interface PlaybackProgress {
   progressSeconds: number;
@@ -17,10 +18,22 @@ interface UsePlaybackTrackerParams {
     mediaType: string;
     season?: number;
     episode?: number;
+    title?: string;
+    originalTitle?: string;
+    posterSrc?: string;
+    backdropSrc?: string;
+    streamHash?: string;
+    fileIndex?: string;
+    providerId?: string;
+    voice?: string;
+    sourceStream?: unknown;
+    startAt?: number;
+    stillSrc?: string;
   };
   seekOffset: number;
   isActive: boolean;
   duration: number;
+  audioName?: string;
 }
 
 export function usePlaybackTracker({
@@ -29,15 +42,34 @@ export function usePlaybackTracker({
   seekOffset,
   isActive,
   duration,
+  audioName,
 }: UsePlaybackTrackerParams) {
   const lastSavedTimeRef = useRef<number>(0);
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { id, mediaType, season, episode } = playback;
+  const audioNameRef = useRef(audioName);
+  audioNameRef.current = audioName;
 
   // Reset last saved time when media ID / episode changes
   useEffect(() => {
     lastSavedTimeRef.current = 0;
   }, [id, season, episode]);
+
+  // Continue cursor: announce as soon as this episode is opened, not after 15s / 2%.
+  useEffect(() => {
+    if (!playback.streamHash || playback.fileIndex == null || playback.fileIndex === "") return;
+    const video = videoRef.current;
+    const current = video?.currentTime ?? 0;
+    const actual =
+      seekOffset > 0
+        ? seekOffset + current
+        : playback.startAt && playback.startAt > 0
+          ? playback.startAt
+          : current;
+    broadcastProgress(actual, duration, false);
+    // Identity-only: a new file/episode should pin immediately.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, season, episode, playback.streamHash, playback.fileIndex]);
 
   const getStorageKeys = useCallback(() => {
     const s = season ?? 0;
@@ -47,6 +79,27 @@ export function usePlaybackTracker({
     return { progressKey, resumeKey };
   }, [id, season, episode]);
 
+  const broadcastProgress = useCallback((actualTime: number, durationVal: number, isCompleted: boolean) => {
+    ExtensionRegistry.broadcast("PLAYBACK_PROGRESS", {
+      id,
+      mediaType,
+      season,
+      episode,
+      title: playback.originalTitle || playback.title,
+      posterSrc: playback.posterSrc,
+      backdropSrc: playback.backdropSrc,
+      streamHash: playback.streamHash,
+      fileIndex: playback.fileIndex,
+      providerId: playback.providerId,
+      voice: audioNameRef.current || playback.voice,
+      sourceStream: playback.sourceStream,
+      stillSrc: playback.stillSrc,
+      progressSeconds: Math.floor(Math.max(0, actualTime)),
+      durationSeconds: Math.floor(Math.max(0, durationVal)),
+      isCompleted,
+    });
+  }, [id, mediaType, season, episode, playback]);
+
   const saveProgress = useCallback((
     currentTime: number,
     durationVal: number,
@@ -55,13 +108,16 @@ export function usePlaybackTracker({
     if (durationVal <= 0) return;
 
     const actualTime = seekOffset > 0 ? (seekOffset + currentTime) : currentTime;
-    
-    // Порог начала (менее 15 секунд или 2% от длительности не сохраняем)
+    const isCompleted = durationVal > 0 && actualTime / durationVal > 0.90;
+
+    // Continue-watching cursor: fire as soon as the episode is running. Trakt/history stay gated below.
+    broadcastProgress(actualTime, durationVal, isCompleted);
+
+    // Порог начала (менее 15 секунд или 2% от длительности) — только для истории/Trakt, не для continue.
     if (actualTime < 15 || actualTime / durationVal < 0.02) {
       return;
     }
 
-    const isCompleted = actualTime / durationVal > 0.90;
     const { progressKey, resumeKey } = getStorageKeys();
 
     // 1. Локальное сохранение (Local-first)
@@ -99,7 +155,7 @@ export function usePlaybackTracker({
         ).catch((err) => logger.error("[Sync] Failed to save progress:", err));
       }
     }
-  }, [id, mediaType, season, episode, seekOffset, getStorageKeys]);
+  }, [id, mediaType, season, episode, seekOffset, getStorageKeys, playback, broadcastProgress]);
 
   const handleManualSave = useCallback(() => {
     const video = videoRef.current;
@@ -156,6 +212,7 @@ export function usePlaybackTracker({
         isCompleted: true,
       };
       Storage.set(progressKey, progressData);
+      broadcastProgress(duration, duration, true);
 
       // Удаляем с бэкенда/Trakt прогресс (переходит в статус полностью просмотрено)
       const strategy = Storage.get<string>("syncStrategy", "none");
@@ -193,7 +250,7 @@ export function usePlaybackTracker({
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("pagehide", handleBeforeUnload);
     };
-  }, [videoRef, saveProgress, getStorageKeys, id, mediaType, season, episode, duration]);
+  }, [videoRef, saveProgress, getStorageKeys, id, mediaType, season, episode, duration, broadcastProgress]);
 
   return {
     saveProgress: handleManualSave

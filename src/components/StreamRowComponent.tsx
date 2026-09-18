@@ -29,7 +29,7 @@ export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(
     }
   };
 
-  return (
+  const row = (
     <div
       className={`stream-row${stream.isLastSelected ? " stream-row--last" : ""}`}
       onClick={() => onClick(stream)}
@@ -37,9 +37,6 @@ export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >
-      {stream.isLastSelected && (
-        <span className="stream-row-last-caption">{t("row.lastSelected")}</span>
-      )}
       <div className="stream-header-row">
         <div className="stream-row-header-left">
           <h3 className="stream-title-text stream-row-title">
@@ -98,6 +95,15 @@ export const StreamRowComponent: React.FC<StreamRowComponentProps> = React.memo(
           )}
         </div>
       </div>
+    </div>
+  );
+
+  if (!stream.isLastSelected) return row;
+
+  return (
+    <div className="stream-row-last-shell">
+      <span className="stream-row-last-caption">{t("row.lastSelected")}</span>
+      {row}
     </div>
   );
 });

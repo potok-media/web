@@ -17,7 +17,6 @@ import {
 import { deferPlaybackMetadata } from "./mediaStreams/mediaStreamsMetadata";
 import { setupPlaylistBridge } from "./mediaStreams/mediaStreamsPlaylistBridge";
 import { useMediaStreamsOverrideHandlers } from "./mediaStreams/useMediaStreamsOverrideHandlers";
-import { overrideSummaryFromMaps, type StreamOverrideSummary } from "../components/common/streamOverrideBadge";
 
 interface UseMediaStreamsEpisodePlayParams {
   mediaType?: string;
@@ -27,12 +26,10 @@ interface UseMediaStreamsEpisodePlayParams {
   context: StreamContext;
   mapEpisodesWithWatched: (eps: StreamEpisode[]) => GenericEpisodeItem[];
   onError: (err: unknown) => void;
-  recordPlay?: (stream: RawStreamPayload) => void;
-  rememberOverride?: (hash: string | undefined, override: StreamOverrideSummary | undefined) => void;
 }
 
 export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayParams) {
-  const { mediaType, mediaId, currentMedia, activeSource, context, mapEpisodesWithWatched, onError, recordPlay, rememberOverride } = params;
+  const { mediaType, mediaId, currentMedia, activeSource, context, mapEpisodesWithWatched, onError } = params;
   const { i18n } = useTranslation();
   const { playVideo, enrichPlayback } = usePlayback();
 
@@ -97,17 +94,20 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
       episode?: number;
       playlist?: ActivePlayback["playlist"];
       playlistIndex?: number;
+      sourceStream?: unknown;
+      stillSrc?: string;
     }) => {
       playVideo(
         buildPlaybackFromInfo(info, {
           mediaType: mediaType as "movie" | "tv",
           id: mediaId,
+          providerId: activeSource?.pluginId,
           ...playbackLabels,
           ...extras,
         }),
       );
     },
-    [mediaType, mediaId, playbackLabels, playVideo],
+    [mediaType, mediaId, playbackLabels, playVideo, activeSource?.pluginId],
   );
 
   const handleSelectStream = useCallback(
@@ -119,8 +119,7 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
         ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(activeSource.pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", { stream, context })
           .then((info) => {
             if (!info) throw new Error(i18n.t("media:streams.playbackInfoEmpty"));
-            playFromInfo(info, {});
-            recordPlay?.(stream);
+            playFromInfo(info, { sourceStream: stream });
           })
           .catch(onError)
           .finally(() => setActionLoading(false));
@@ -129,7 +128,6 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
 
       ExtensionRegistry.sendSandboxRequest<EpisodesResponse>(activeSource.pluginId, "STREAM_SOURCE_GET_EPISODES", { stream, context })
         .then(async (res) => {
-          rememberOverride?.(stream.hash, overrideSummaryFromMaps(res.seasonMap, res.fileMap));
           const eps = res.episodes || [];
           if (eps.length === 1) {
             const singleEp = mapStreamEpisode(eps[0]);
@@ -142,8 +140,9 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
             playFromInfo(info, {
               season: mediaType === "tv" ? singleEp.season : undefined,
               episode: mediaType === "tv" ? singleEp.episode : undefined,
+              sourceStream: stream,
+              stillSrc: singleEp.stillPath,
             });
-            recordPlay?.(stream);
             deferPlaybackMetadata(activeSource.pluginId, stream, singleEp, info, context, enrichPlayback);
             setClickedStream(null);
             return;
@@ -153,7 +152,7 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
         .catch(onError)
         .finally(() => setActionLoading(false));
     },
-    [activeSource, mediaType, context, playFromInfo, onError, persistSelectorData, enrichPlayback, i18n, recordPlay, rememberOverride],
+    [activeSource, mediaType, context, playFromInfo, onError, persistSelectorData, enrichPlayback, i18n],
   );
 
   const handlePlayEpisode = useCallback(
@@ -180,14 +179,15 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
             episode: mediaType === "tv" ? ep.episode : undefined,
             playlist,
             playlistIndex,
+            sourceStream: clickedStream,
+            stillSrc: ep.stillPath,
           });
-          recordPlay?.(clickedStream);
           deferPlaybackMetadata(activeSource.pluginId, clickedStream, ep, info, context, enrichPlayback);
         })
         .catch(onError)
         .finally(() => setActionLoading(false));
     },
-    [activeSource, clickedStream, context, playFromInfo, onError, mediaType, enrichPlayback, i18n, recordPlay],
+    [activeSource, clickedStream, context, playFromInfo, onError, mediaType, enrichPlayback, i18n],
   );
 
   const handleStartEditing = useCallback(() => {
@@ -220,9 +220,8 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
       );
       sessionStorage.setItem("potok_popup_data", JSON.stringify(data));
       setEpisodeSelectorData(data);
-      rememberOverride?.(clickedStream.hash, overrideSummaryFromMaps(res.seasonMap, res.fileMap));
     },
-    [clickedStream, currentMedia, mediaType, mapEpisodesWithWatched, selectorLabels, rememberOverride],
+    [clickedStream, currentMedia, mediaType, mapEpisodesWithWatched, selectorLabels],
   );
 
   const { handleApplyOverride, handleResetOverride, handleApplyFileOverride, handleResetFileOverride } =

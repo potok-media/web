@@ -37,7 +37,9 @@ export function useWebMediaPlayerCore({
   // user doesn't reselect the dub every time; reset when the playlist changes. In-memory, no persistence.
   const preferredAudioRef = useRef<AudioPreference | null>(null);
   useEffect(() => {
-    preferredAudioRef.current = null;
+    preferredAudioRef.current = playback.voice ? { name: playback.voice } : null;
+    // Seed once per torrent; mid-playlist user picks stay in the ref.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streamHash]);
 
   const metadata = usePlayerMetadataAndTracks(
@@ -56,6 +58,9 @@ export function useWebMediaPlayerCore({
 
   const displayDuration = metadata.metadataDuration > 0 ? metadata.metadataDuration : duration || 100;
 
+  const audioName = metadata.audioTracks.find((t) => t.id === metadata.currentAudioTrack)?.name
+    || playback.voice;
+
   const { saveProgress } = usePlaybackTracker({
     videoRef,
     playback: useMemo(
@@ -64,12 +69,40 @@ export function useWebMediaPlayerCore({
         mediaType: playback.mediaType,
         season: playback.season,
         episode: playback.episode,
+        title: playback.title,
+        originalTitle: playback.originalTitle,
+        posterSrc: playback.posterSrc,
+        backdropSrc: playback.backdropSrc,
+        streamHash: playback.streamHash,
+        fileIndex: playback.fileIndex,
+        providerId: playback.providerId,
+        voice: playback.voice,
+        sourceStream: playback.sourceStream,
+        startAt: playback.startAt,
+        stillSrc: playback.stillSrc,
       }),
-      [playback.id, playback.mediaType, playback.season, playback.episode],
+      [
+        playback.id,
+        playback.mediaType,
+        playback.season,
+        playback.episode,
+        playback.title,
+        playback.originalTitle,
+        playback.posterSrc,
+        playback.backdropSrc,
+        playback.streamHash,
+        playback.fileIndex,
+        playback.providerId,
+        playback.voice,
+        playback.sourceStream,
+        playback.startAt,
+        playback.stillSrc,
+      ],
     ),
     seekOffset,
     isActive: isPlaying,
     duration: displayDuration,
+    audioName,
   });
 
   const { closePlayer: closeBackendSession } = usePlayerBackendSession({

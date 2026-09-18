@@ -23,7 +23,7 @@ const adaptContentItem = (item: SDKContentItem): ApiMediaCard => {
   return {
     id: (typeof item.id === "number" ? item.id : Number(item.id)) || 0,
     title: item.title,
-    subtitle: item.subtitle,
+    subtitle: item.progressLabel || item.subtitle,
     mediaType: it.mediaType === "movie" ? "movie" : "tv",
     posterSrc: item.image,
     backdropSrc: item.wideImage,
@@ -31,8 +31,16 @@ const adaptContentItem = (item: SDKContentItem): ApiMediaCard => {
     tmdbRating: it.rating,
     progress:
       typeof item.progress === "number"
-        ? { percentage: Math.round(Math.max(0, Math.min(1, item.progress)) * 100) }
-        : undefined,
+        ? {
+            percentage: Math.round(Math.max(0, Math.min(1, item.progress)) * 100),
+            lastSeason: item.lastSeason,
+            lastEpisode: item.lastEpisode,
+          }
+        : item.lastSeason != null || item.lastEpisode != null
+          ? { percentage: 0, lastSeason: item.lastSeason, lastEpisode: item.lastEpisode }
+          : undefined,
+    nextEpisodeSeason: item.lastSeason,
+    nextEpisodeNumber: item.lastEpisode,
   } as ApiMediaCard;
 };
 

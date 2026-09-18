@@ -42,8 +42,9 @@ export function usePlayerPlaylist(
               season: item.season,
               episode: item.episode,
               title: `${item.title} - S${item.season}E${item.episode}`,
-              voice: item.voice,
+              voice: item.voice || playback.voice,
               playlistIndex: index,
+              startAt: undefined,
             });
             return;
           }
@@ -60,8 +61,9 @@ export function usePlayerPlaylist(
         episode: item.episode,
         title: `${item.title} - S${item.season}E${item.episode}`,
         audios: item?.audios,
-        voice: item.voice,
+        voice: item.voice || playback.voice,
         playlistIndex: index,
+        startAt: undefined,
       });
     },
     [playback, playVideo],

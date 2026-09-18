@@ -88,6 +88,10 @@ export interface SDKContentItem {
   mediaType?: "movie" | "tv";
   /** Navigation target used when the host performs default navigation. */
   href?: string;
+  lastSeason?: number;
+  lastEpisode?: number;
+  /** Human-readable watch position, e.g. "12:04 / 24:00". */
+  progressLabel?: string;
 }
 
 export interface SDKTvEpisode {
@@ -204,6 +208,10 @@ export interface SDKPlaybackInfo {
   headers?: Record<string, string>;
   providerId?: string;
   voice?: string;
+  startAt?: number;
+  playlist?: unknown;
+  playlistIndex?: number;
+  sourceStream?: unknown;
   subtitles?: SDKSubtitleInfo[];
   session?: SDKPlaybackSession;
   duration?: number;

@@ -47,7 +47,7 @@ export function useMediaStreams({
     [mediaType, mediaId, details.currentMedia?.title, season, episode],
   );
 
-  const lastSelectedStream = useLastSelectedStream(mediaType, mediaId);
+  const lastSelectedStream = useLastSelectedStream(mediaType, mediaId, search.activeSource?.pluginId);
 
   const episodePlay = useMediaStreamsEpisodePlay({
     mediaType,
@@ -57,8 +57,6 @@ export function useMediaStreams({
     context,
     mapEpisodesWithWatched: details.mapEpisodesWithWatched,
     onError: details.handleOnError,
-    recordPlay: lastSelectedStream.recordPlay,
-    rememberOverride: lastSelectedStream.rememberOverride,
   });
 
   return {

@@ -12,6 +12,7 @@ export interface PotokCustomTheme {
 export interface PluginSandboxWindowBridge {
   __potok_custom_themes?: Map<string, PotokCustomTheme>;
   potok_playlist_override?: PlaylistItem[] | null;
+  potok_playlist_resolve?: (item: PlaylistItem) => Promise<unknown>;
 }
 
 export interface PluginSandboxMessage {

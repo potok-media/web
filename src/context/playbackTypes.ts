@@ -55,8 +55,14 @@ export interface ActivePlayback {
   // Media artwork, carried through so the co-watch lobby can show a banner for what's being watched.
   backdropSrc?: string;
   posterSrc?: string;
+  /** Episode still (TV). Opaque URL the player/progress dump may carry; host does not interpret it. */
+  stillSrc?: string;
   // Co-watch always starts from 0 (no resume), so host and guests share one timeline from the beginning.
   startAtZero?: boolean;
+  /** Explicit start position in seconds. When set, skips the resume toast and wins over stored resume. */
+  startAt?: number;
+  /** Opaque source payload a plugin needs to resolve later playlist items. Host does not interpret it. */
+  sourceStream?: unknown;
   // Set for co-watch playbacks. Such a playback is tied to a live SignalR session, so it must NOT be
   // persisted/restored across reloads (the session is gone on reload — restoring would spawn a solo zombie).
   coWatch?: boolean;

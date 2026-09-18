@@ -1,66 +1,52 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import {
-  LAST_STREAM_PIN_AFTER_PLAYS,
-  lastSelectedStreamKey,
-  loadLastStreamLedger,
-  readLastSelectedStream,
-  recordPlayOnLedger,
-  streamPlayIdentity,
+  CONTINUE_WATCHING_STORAGE_KEY,
+  continueTitleKey,
+  parseContinueLedger,
+  pluginScopedStorageKey,
+  readContinueCursor,
 } from "./useLastSelectedStream";
-import { Storage } from "../../utils/StorageService";
 
-describe("lastSelectedStream storage", () => {
-  const key = lastSelectedStreamKey("tv", 42);
+const mem = new Map<string, string>();
+const ls = {
+  getItem: (k: string) => mem.get(k) ?? null,
+  setItem: (k: string, v: string) => { mem.set(k, v); },
+  removeItem: (k: string) => { mem.delete(k); },
+} as Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
-  beforeEach(() => {
-    Storage.remove(key);
-  });
+Object.defineProperty(globalThis, "localStorage", { value: ls, configurable: true });
 
-  it("builds potok_last_stream:{mediaType}:{mediaId}", () => {
-    expect(lastSelectedStreamKey("tv", 123)).toBe("potok_last_stream:tv:123");
-    expect(lastSelectedStreamKey("movie", 9)).toBe("potok_last_stream:movie:9");
-  });
-
-  it("ignores legacy click snapshots without a play ledger", () => {
-    Storage.set(key, { title: "Release", hash: "abc" });
-    expect(readLastSelectedStream("tv", 42)).toBeNull();
-  });
-
-  it("does not pin until the release has been launched more than twice", () => {
-    const stream = { title: "Release", hash: "abc" };
-    let ledger = recordPlayOnLedger({ byId: {}, pinnedId: null }, stream);
-    ledger = recordPlayOnLedger(ledger, stream);
-    expect(ledger.byId[streamPlayIdentity(stream)].playCount).toBe(2);
-    expect(ledger.pinnedId).toBeNull();
-    Storage.set(key, ledger);
-    expect(readLastSelectedStream("tv", 42)).toBeNull();
-
-    ledger = recordPlayOnLedger(ledger, stream);
-    expect(ledger.byId[streamPlayIdentity(stream)].playCount).toBe(LAST_STREAM_PIN_AFTER_PLAYS);
-    expect(ledger.pinnedId).toBe(streamPlayIdentity(stream));
-    Storage.set(key, ledger);
-    expect(readLastSelectedStream("tv", 42)?.hash).toBe("abc");
-  });
-
-  it("pins the most recent qualifying release", () => {
-    const a = { title: "A", hash: "aaa" };
-    const b = { title: "B", hash: "bbb" };
-    let ledger = { byId: {}, pinnedId: null };
-    for (let i = 0; i < LAST_STREAM_PIN_AFTER_PLAYS; i++) ledger = recordPlayOnLedger(ledger, a);
-    expect(ledger.pinnedId).toBe(streamPlayIdentity(a));
-    for (let i = 0; i < LAST_STREAM_PIN_AFTER_PLAYS; i++) ledger = recordPlayOnLedger(ledger, b);
-    expect(ledger.pinnedId).toBe(streamPlayIdentity(b));
-  });
-});
-
-describe("loadLastStreamLedger", () => {
-  const key = lastSelectedStreamKey("tv", 7);
+describe("continue cursor storage", () => {
+  const pluginId = "potok-torrents";
+  const key = pluginScopedStorageKey(pluginId, CONTINUE_WATCHING_STORAGE_KEY);
 
   beforeEach(() => {
-    Storage.remove(key);
+    mem.clear();
   });
 
-  it("returns an empty ledger when nothing is stored", () => {
-    expect(loadLastStreamLedger("tv", 7)).toEqual({ byId: {}, pinnedId: null });
+  it("builds scoped plugin keys", () => {
+    expect(continueTitleKey("tv", 42)).toBe("tv:42");
+    expect(key).toBe("potok_plugin:scoped:potok-torrents:continueWatching");
+  });
+
+  it("reads a cursor stream for the title and ignores junk", () => {
+    expect(readContinueCursor(pluginId, "tv", 42)).toBeNull();
+    localStorage.setItem(
+      key,
+      JSON.stringify({
+        "tv:42": {
+          mediaType: "tv",
+          tmdbId: 42,
+          title: "Show",
+          stream: { title: "Release", hash: "abc" },
+          fileIndex: "3",
+          progressSeconds: 80,
+          durationSeconds: 1400,
+          updatedAt: Date.now(),
+        },
+      }),
+    );
+    expect(readContinueCursor(pluginId, "tv", 42)?.stream.hash).toBe("abc");
+    expect(parseContinueLedger("nope")).toEqual({});
   });
 });

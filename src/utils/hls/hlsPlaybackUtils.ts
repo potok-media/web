@@ -31,6 +31,9 @@ export function getUnsupportedNativeFormatError(streamUrl: string): string | nul
 
 export function getPlaybackResumePosition(playback: ActivePlayback): number {
   if (playback.startAtZero) return 0; // co-watch: always start from the beginning, ignore any saved resume
+  if (typeof playback.startAt === "number" && Number.isFinite(playback.startAt) && playback.startAt > 0) {
+    return playback.startAt;
+  }
   const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
   const savedResume = localStorage.getItem(resumeKey);
   if (!savedResume) return 0;

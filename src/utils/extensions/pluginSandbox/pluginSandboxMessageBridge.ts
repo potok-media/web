@@ -2,6 +2,7 @@ import type {
   ElementMutation,
   ExtensionPluginMetadata,
   LookupSource,
+  PlaybackInfo,
   RawStreamPayload,
   RegisteredExtension,
   SlotContribution,
@@ -52,6 +53,37 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 function nullIfUndefined(error: string | undefined): string | null {
   return error ?? null;
+}
+
+function attachPlaylistResolver(
+  bridge: Window & PluginSandboxWindowBridge,
+  playback: ActivePlayback & Record<string, unknown>,
+  fallbackPluginId: string,
+) {
+  const playlist = playback.playlist;
+  const sourceStream = playback.sourceStream;
+  const pluginId = typeof playback.providerId === "string" && playback.providerId
+    ? playback.providerId
+    : fallbackPluginId;
+  if (!Array.isArray(playlist) || playlist.length === 0 || !sourceStream || !pluginId) return;
+
+  const context = {
+    type: playback.mediaType,
+    tmdbId: playback.id,
+    title: playback.originalTitle || playback.title,
+  };
+  bridge.potok_playlist_resolve = (item: PlaylistItem) =>
+    ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", {
+      stream: sourceStream,
+      episode: {
+        id: item.id,
+        season: item.season,
+        episode: item.episode,
+        title: item.title,
+        url: item.streamUrl,
+      },
+      context,
+    });
 }
 
 export async function handlePluginSandboxMessage(
@@ -151,6 +183,7 @@ export async function handlePluginSandboxMessage(
         playbackPayload.playlistIndex = currentIndex !== -1 ? currentIndex : 0;
         bridge.potok_playlist_override = null;
       }
+      attachPlaylistResolver(bridge, playbackPayload, pluginId);
       ctx.playVideo(playbackPayload);
       break;
     }
@@ -245,6 +278,9 @@ export async function handlePluginSandboxMessage(
       localStorage.setItem(
         `potok_plugin:scoped:${pluginId}:${String(payload.key)}`,
         String(payload.value),
+      );
+      window.dispatchEvent(
+        new CustomEvent("potok_plugin_storage", { detail: { pluginId, key: String(payload.key) } }),
       );
       if (
         pluginId === TORRENT_PLUGIN_ID &&
