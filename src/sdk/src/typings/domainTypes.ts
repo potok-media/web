@@ -127,7 +127,7 @@ export const domainTypesDts = `
     id: string;
     name: string;
     supportedTypes: ('movie' | 'tv')[];
-    search(query: { title: string; year?: number; imdbId?: string; tmdbId?: number; type: 'movie' | 'tv'; season?: number; episode?: number }): Promise<SDKRawStreamPayload[]>;
+    search(query: { title: string; originalTitle?: string; englishTitle?: string; year?: number; imdbId?: string; tmdbId?: number; type: 'movie' | 'tv'; season?: number; episode?: number; forceSearch?: boolean }): Promise<SDKRawStreamPayload[]>;
     getEpisodes?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number; season?: number; episode?: number }): Promise<{ episodes: SDKStreamEpisode[]; tmdbSeasonsCount: number; parsingSuspect?: boolean }>;
     // Optional per-FILE overrides. Implement BOTH to opt into the host's per-file anchor/pin editing UI.
     // mode: 'anchor' (renumber the run from this file) | 'pin' (fix just this file, e.g. a special).

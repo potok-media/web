@@ -1196,12 +1196,15 @@ export interface RawStreamPayload {
 
 export interface StreamSearchQuery {
   title: string;
+  originalTitle?: string;
+  englishTitle?: string;
   year?: number;
   imdbId?: string;
   tmdbId?: number;
   type: 'movie' | 'tv';
   season?: number;
   episode?: number;
+  forceSearch?: boolean;
 }
 
 export interface StreamProviderRegistration {

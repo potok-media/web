@@ -8,6 +8,8 @@ interface UseMediaStreamsSourceSearchParams {
   mediaType?: string;
   mediaId: number;
   mediaTitle?: string;
+  mediaOriginalTitle?: string;
+  mediaEnglishTitle?: string;
   mediaImdbId?: string;
   season?: number;
   episode?: number;
@@ -20,6 +22,8 @@ export function useMediaStreamsSourceSearch({
   mediaType,
   mediaId,
   mediaTitle,
+  mediaOriginalTitle,
+  mediaEnglishTitle,
   mediaImdbId,
   season,
   episode,
@@ -108,6 +112,8 @@ export function useMediaStreamsSourceSearch({
       {
         query: {
           title: mediaTitle,
+          originalTitle: mediaOriginalTitle,
+          englishTitle: mediaEnglishTitle,
           imdbId: mediaImdbId,
           tmdbId: mediaId,
           type: mediaType as "movie" | "tv",
@@ -134,6 +140,8 @@ export function useMediaStreamsSourceSearch({
       });
   }, [
     mediaTitle,
+    mediaOriginalTitle,
+    mediaEnglishTitle,
     mediaImdbId,
     activeTab,
     activeSource,

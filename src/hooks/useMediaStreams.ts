@@ -28,6 +28,8 @@ export function useMediaStreams({
     mediaType,
     mediaId,
     mediaTitle: details.currentMedia?.title,
+    mediaOriginalTitle: details.currentMedia?.originalTitle,
+    mediaEnglishTitle: details.currentMedia?.englishTitle,
     mediaImdbId: details.currentMedia?.imdbId,
     season,
     episode,
