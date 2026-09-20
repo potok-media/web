@@ -17,6 +17,7 @@ import {
   mapStreamToUI,
   matchesSeasonFilter,
   mergePinStream,
+  streamListViewFlags,
   type ExtendedStreamPayload,
 } from "./streamListUtils";
 
@@ -49,6 +50,7 @@ export const StreamList: React.FC<StreamListProps> = ({
 }) => {
   const { t } = useTranslation("streams");
   const resolvedEmptyText = emptyText ?? t("empty");
+  const inFlight = loading || isSearching;
   const [sortOption, setSortOption] = useState<string>("seedersDesc");
   const [qualityFilter, setQualityFilter] = useState<string>("all");
   const [activeTracker, setActiveTracker] = useState<string>("all");
@@ -83,10 +85,10 @@ export const StreamList: React.FC<StreamListProps> = ({
       raw: pinRaw,
       ui: mapStreamToUI(pinRaw, -1, t, {
         isLastSelected: true,
-        missingFromResults: !loading && !pinLive,
+        missingFromResults: !inFlight && !pinLive,
       }),
     };
-  }, [pinRaw, pinLive, loading, t]);
+  }, [pinRaw, pinLive, inFlight, t]);
 
   const processedStreams = useMemo(() => {
     const filtered = extendedStreams.filter((stream) => {
@@ -131,8 +133,12 @@ export const StreamList: React.FC<StreamListProps> = ({
     if (onRefresh) onRefresh();
   };
 
-  const showSkeletons = loading && displayStreams.length === 0;
-  const showEmpty = !showSkeletons && displayStreams.length === 0 && !pinItem;
+  const { showSkeletons, showEmpty: emptyWithoutPin } = streamListViewFlags(
+    loading,
+    isSearching,
+    displayStreams.length,
+  );
+  const showEmpty = emptyWithoutPin && !pinItem;
 
   return (
     <div className="stream-list-container stream-list-container--gap">

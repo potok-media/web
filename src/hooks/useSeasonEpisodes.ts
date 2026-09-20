@@ -19,16 +19,16 @@ interface ActiveRequest {
 // In-flight request map to prevent parallel duplicate calls
 const activeRequests = new Map<string, ActiveRequest>();
 
-export function useSeasonEpisodes(mediaId: number, seasonNumber: number) {
+export function useSeasonEpisodes(mediaId: number, seasonNumber: number, enabled = true) {
   const { i18n } = useTranslation();
   // Language in the key isolates cache per language and re-runs the effect on change.
   const cacheKey = `${mediaId}_s${seasonNumber}_${i18n.language}`;
   
   // Instantly resolve cache during render to eliminate flickers/skeletons
-  const cachedData = mediaId && seasonNumber > 0 ? seasonCache.get<TvEpisode[]>(cacheKey) : null;
+  const cachedData = enabled && mediaId && seasonNumber > 0 ? seasonCache.get<TvEpisode[]>(cacheKey) : null;
 
   const [episodes, setEpisodes] = useState<TvEpisode[]>(() => cachedData || []);
-  const [loading, setLoading] = useState(() => !cachedData && mediaId > 0 && seasonNumber > 0);
+  const [loading, setLoading] = useState(() => enabled && !cachedData && mediaId > 0 && seasonNumber > 0);
   const [error, setError] = useState<string | null>(null);
 
   const [prevKey, setPrevKey] = useState(cacheKey);
@@ -38,12 +38,15 @@ export function useSeasonEpisodes(mediaId: number, seasonNumber: number) {
     setPrevKey(cacheKey);
     const cached = seasonCache.get<TvEpisode[]>(cacheKey);
     setEpisodes(cached || []);
-    setLoading(!cached);
+    setLoading(enabled && !cached);
     setError(null);
   }
 
   useEffect(() => {
-    if (!mediaId || seasonNumber <= 0) return;
+    if (!enabled || !mediaId || seasonNumber <= 0) {
+      setLoading(false);
+      return;
+    }
 
     // Check if data is already cached
     const cached = seasonCache.get<TvEpisode[]>(cacheKey);
@@ -114,8 +117,7 @@ export function useSeasonEpisodes(mediaId: number, seasonNumber: number) {
         }
       }
     };
-  }, [cacheKey, mediaId, seasonNumber, i18n]);
+  }, [cacheKey, enabled, mediaId, seasonNumber, i18n]);
 
   return { episodes, loading, error };
 }
-

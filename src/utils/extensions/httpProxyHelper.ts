@@ -24,6 +24,19 @@ interface HostHttpResponse {
   };
 }
 
+type HostStreamAction = "HTTP_STREAM_START" | "HTTP_STREAM_CHUNK" | "HTTP_STREAM_DONE";
+
+interface HostHttpStreamMessage {
+  source: "potok-host";
+  action: HostStreamAction;
+  payload: {
+    requestId: string;
+    status?: number;
+    chunk?: string;
+    error?: string | null;
+  };
+}
+
 class HttpProxyThrottleManager {
   private activeCounts = new Map<string, number>();
   private queues = new Map<string, QueuedRequest[]>();
@@ -51,7 +64,20 @@ class HttpProxyThrottleManager {
       messageSource?.postMessage(message, targetOrigin);
     };
 
-    if (!permissions.includes("http-proxy")) {
+    const sendStream = (
+      action: HostStreamAction,
+      extra: Omit<HostHttpStreamMessage["payload"], "requestId">,
+    ) => {
+      const message: HostHttpStreamMessage = {
+        source: "potok-host",
+        action,
+        payload: { requestId, ...extra },
+      };
+      messageSource?.postMessage(message, targetOrigin);
+    };
+
+    const isFirstPartyArmRead = method.toUpperCase() === "GET" && url.startsWith("/api/arm/v1/");
+    if (!permissions.includes("http-proxy") && !isFirstPartyArmRead) {
       sendResponse(403, "", "Отсутствует разрешение http-proxy в манифесте плагина");
       return;
     }
@@ -125,6 +151,29 @@ class HttpProxyThrottleManager {
             clearTimeout(timeoutId);
 
             const responseStatus = res.status;
+
+            if (payload.stream) {
+              sendStream("HTTP_STREAM_START", { status: responseStatus });
+              if (!res.body) {
+                sendStream("HTTP_STREAM_CHUNK", { chunk: await res.text() });
+                sendStream("HTTP_STREAM_DONE", {});
+              } else {
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                while (true) {
+                  const { done, value } = await reader.read();
+                  if (done) break;
+                  sendStream("HTTP_STREAM_CHUNK", { chunk: decoder.decode(value, { stream: true }) });
+                }
+                const tail = decoder.decode();
+                if (tail) sendStream("HTTP_STREAM_CHUNK", { chunk: tail });
+                sendStream("HTTP_STREAM_DONE", {});
+              }
+              logger.log(`[PluginSandbox] HTTP Stream [${responseStatus}] in ${Date.now() - startTime}ms: ${url}`);
+              resolve();
+              return;
+            }
+
             const responseData = await res.text();
 
             logger.log(`[PluginSandbox] HTTP Success [${responseStatus}] in ${Date.now() - startTime}ms: ${url}`);

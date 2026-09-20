@@ -417,7 +417,11 @@
     "episode": {
       "fallbackName": "Episode {{number}}",
       "noOverview": "No episode description available.",
-      "backToShow": "Back to series overview"
+      "backToShow": "Back to series overview",
+      "annotationFiller": "Filler",
+      "annotationMixed": "Mixed",
+      "annotationTitle": "{{label}} · {{confidence}}% confidence",
+      "annotationDisputedTitle": "{{label}} · disputed data · {{confidence}}% confidence"
     },
     "overview": {
       "seasonsCount_one": "{{count}} season",
@@ -441,6 +445,9 @@
     "selector": {
       "season": "Season {{number}}",
       "specials": "Specials",
+      "unresolved": "Unresolved",
+      "unresolvedEpisode": "Unresolved file",
+      "episodeGroup": "Episode group",
       "watched": "Watched",
       "audioCount_one": "{{count}} voice track",
       "audioCount_other": "{{count}} voice tracks",
@@ -494,6 +501,8 @@
         "episodeError": "Failed to update episode history",
         "seasonMarked": "Season {{number}} marked as watched",
         "seasonRemoved": "Season {{number}} removed from history",
+        "groupMarked": "{{title}} marked as watched",
+        "groupRemoved": "{{title}} removed from history",
         "seasonError": "Failed to update season history",
         "historyUpdated": "Watch history updated",
         "historySaveError": "Failed to save watch history"
@@ -582,6 +591,8 @@
       "selectAndWatch": "Select and watch episodes",
       "unmark": "Unmark",
       "markSeason": "Mark season",
+      "markGroup": "Mark group",
+      "unmarkGroup": "Unmark group",
       "markSelectively": "Mark selectively...",
       "scrollBack": "Scroll back",
       "scrollForward": "Scroll forward",

@@ -14,6 +14,9 @@ export function usePlayerPlaylist(
     async (index: number) => {
       if (!playback.playlist || index < 0 || index >= playback.playlist.length) return;
       const item = playback.playlist[index];
+      const itemTitle = item.season !== undefined && item.episode !== undefined
+        ? `${item.title || ""} - S${item.season}E${item.episode}`
+        : item.title || `Episode ${index + 1}`;
 
       const resolve = (window as PlaylistResolveBridge).potok_playlist_resolve;
       if (typeof resolve === "function") {
@@ -41,7 +44,11 @@ export function usePlayerPlaylist(
               outroEnd: info.outroEnd,
               season: item.season,
               episode: item.episode,
-              title: `${item.title} - S${item.season}E${item.episode}`,
+              workId: item.workId,
+              episodeId: item.episodeId,
+              orderingId: item.orderingId,
+              groupId: item.groupId,
+              title: itemTitle,
               voice: item.voice || playback.voice,
               playlistIndex: index,
               startAt: undefined,
@@ -59,7 +66,11 @@ export function usePlayerPlaylist(
         streamType: item.streamType,
         season: item.season,
         episode: item.episode,
-        title: `${item.title} - S${item.season}E${item.episode}`,
+        workId: item.workId,
+        episodeId: item.episodeId,
+        orderingId: item.orderingId,
+        groupId: item.groupId,
+        title: itemTitle,
         audios: item?.audios,
         voice: item.voice || playback.voice,
         playlistIndex: index,

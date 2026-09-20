@@ -25,6 +25,7 @@ type SandboxPromiseRecord = {
   reject: (err: Error) => void;
   timeoutId: ReturnType<typeof setTimeout>;
   pluginId: string;
+  onProgress?: (data: unknown) => void;
 };
 
 class ExtensionRegistryManager {
@@ -255,6 +256,7 @@ class ExtensionRegistryManager {
     action: string,
     payload: Record<string, unknown>,
     timeoutMs?: number,
+    onProgress?: (data: unknown) => void,
   ): Promise<T> {
     const iframe = this.sandboxIframes.get(pluginId);
     const contentWindow = iframe?.contentWindow;
@@ -298,6 +300,7 @@ class ExtensionRegistryManager {
         reject,
         timeoutId,
         pluginId,
+        onProgress,
       });
 
       contentWindow.postMessage(
@@ -316,6 +319,10 @@ class ExtensionRegistryManager {
 
   triggerListeners() {
     this.notify();
+  }
+
+  handleSandboxProgress(requestId: string, data: unknown) {
+    this.activePromises.get(requestId)?.onProgress?.(data);
   }
 
   handleSandboxResponse(requestId: string, data: unknown, error: string | null) {

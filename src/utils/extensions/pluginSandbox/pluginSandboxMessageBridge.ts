@@ -178,7 +178,9 @@ export async function handlePluginSandboxMessage(
         playbackPayload.playlist = bridge.potok_playlist_override;
         const playlist = playbackPayload.playlist as PlaylistItem[];
         const currentIndex = playlist.findIndex(
-          (item) => item.season === playbackPayload.season && item.episode === playbackPayload.episode,
+          (item) => item.id && playbackPayload.fileIndex
+            ? String(item.id) === String(playbackPayload.fileIndex)
+            : item.season === playbackPayload.season && item.episode === playbackPayload.episode,
         );
         playbackPayload.playlistIndex = currentIndex !== -1 ? currentIndex : 0;
         bridge.potok_playlist_override = null;
@@ -228,6 +230,9 @@ export async function handlePluginSandboxMessage(
         payload.results as StreamResult[],
         nullIfUndefined(payload.error as string | undefined),
       );
+      break;
+    case "STREAM_SOURCE_SEARCH_PROGRESS":
+      ExtensionRegistry.handleSandboxProgress(String(payload.requestId), payload.data);
       break;
     case "STREAM_SOURCE_SEARCH_RESPONSE":
     case "STREAM_SOURCE_GET_EPISODES_RESPONSE":

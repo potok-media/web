@@ -6,6 +6,7 @@ import { formatLocalizedDate } from "../../../utils/formatDate";
 import { getActiveLanguage, toIntlLocale } from "../../../utils/language";
 import type { FileOverrideEntry, FileOverrideMode, GenericEpisodeItem } from "./types";
 import { getStreamType } from "./utils";
+import { EpisodeAnnotationBadge } from "../EpisodeAnnotationBadge";
 
 interface EpisodeSelectorRowProps {
   episodeItem: GenericEpisodeItem;
@@ -38,7 +39,10 @@ function episodeRowEqual(prev: EpisodeSelectorRowProps, next: EpisodeSelectorRow
     a.stillPath === b.stillPath &&
     a.sizeLabel === b.sizeLabel &&
     a.season === b.season &&
-    a.episode === b.episode
+    a.episode === b.episode &&
+    a.armAnnotation?.relation === b.armAnnotation?.relation &&
+    a.armAnnotation?.confidence === b.armAnnotation?.confidence &&
+    a.armAnnotation?.resolutionState === b.armAnnotation?.resolutionState
   );
 }
 
@@ -57,11 +61,19 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
 
   const stop = (e: React.MouseEvent) => e.stopPropagation();
   const displayTitle =
-    episodeItem.title || t("episode.fallbackName", { number: episodeItem.episode });
+    episodeItem.title || episodeItem.fileName || (episodeItem.episode !== undefined
+      ? t("episode.fallbackName", { number: episodeItem.episode })
+      : t("selector.unresolvedEpisode"));
 
   let displaySubtitle = "";
   if (mediaType === "tv") {
-    displaySubtitle = t("selector.season", { number: episodeItem.season });
+    displaySubtitle = episodeItem.season === undefined
+      ? episodeItem.groupId
+        ? t("selector.episodeGroup")
+        : t("selector.unresolved")
+      : episodeItem.season === 0
+        ? t("selector.specials")
+        : t("selector.season", { number: episodeItem.season });
     if (episodeItem.airDate) {
       try {
         const airDateStr = formatLocalizedDate(
@@ -107,7 +119,7 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
           <div className="file-card-preview-placeholder" />
         )}
         <div className="file-card-banner-overlay" />
-        {episodeItem.episode > 0 && (
+        {episodeItem.episode !== undefined && episodeItem.episode > 0 && (
           <span className="file-card-bg-number">{episodeItem.episode}</span>
         )}
         {episodeItem.isWatched && (
@@ -130,6 +142,7 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
       </div>
 
       <div className="file-card-details-panel">
+        <EpisodeAnnotationBadge annotation={episodeItem.armAnnotation} />
         {episodeItem.isWatched && (
           <div className="file-card-watched-badge">
             <Check size="0.75rem" strokeWidth={3} />

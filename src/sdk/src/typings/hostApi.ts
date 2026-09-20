@@ -9,6 +9,12 @@ export const hostApiDts = `
     config: Record<string, unknown>;
     /** System d.ts string with the SDK types. */
     typings: string;
+    /** Potok-owned media identity and episode topology. Uses the host Gateway and auth automatically. */
+    arm: {
+      resolveWork(reference: SDKArmProviderReference, options?: SDKArmRequestOptions): Promise<SDKArmResolveResponse>;
+      getWork(workId: string, options?: SDKArmRequestOptions): Promise<SDKArmWorkResponse>;
+      getEpisodeLayout(workId: string, options?: SDKArmLayoutRequestOptions): Promise<SDKArmEpisodeLayoutResponse>;
+    };
     /** Localization (i18n). A plugin can read host strings and register its own dictionaries. */
     i18n: {
       /**
@@ -135,6 +141,11 @@ export const hostApiDts = `
     http: {
       get(url: string, headers?: Record<string, string>): Promise<unknown>;
       post(url: string, body?: unknown, headers?: Record<string, string>): Promise<unknown>;
+      /**
+       * POST that yields NDJSON events as they arrive. Use for live search.
+       * onEvent is called for each parsed JSON line.
+       */
+      streamPost(url: string, body?: unknown, headers?: Record<string, string>, timeoutMs?: number, onEvent?: (event: unknown) => void): Promise<{ status: number; data: unknown[] }>;
       /**
        * Request to an EXTERNAL (cross-origin) URL through the gateway's server-side proxy — bypassing CORS.
        * GET by default, supports POST and Referer/Origin spoofing.

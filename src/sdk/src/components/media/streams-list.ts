@@ -22,21 +22,26 @@ import type { SDKRawStreamPayload } from "../../types";
  *   }
  * ];
  *
- * ui.render(
- *   StreamList()
- *     .streams(streams)
- *     .loading(false)
- *     .showFilters(true)
- *     .emptyText("No streams found")
- *     .nounPlurals(["release", "releases", "releases"])
- *     .onSelectStream((stream) => {
- *       ui.showHUD("success", "Selected stream: " + stream.title);
- *     })
- * );
+ * const state = PotokSDK.createState({ streams: [], searching: true });
+ *
+ * function draw() {
+ *   ui.render(
+ *     StreamList()
+ *       .streams(state.streams)
+ *       .searching(state.searching)
+ *       .showFilters(true)
+ *       .emptyText("No streams found")
+ *       .onSelectStream((stream) => {
+ *         ui.showHUD("success", "Selected stream: " + stream.title);
+ *       })
+ *   );
+ * }
+ * state.$subscribe(draw); draw();
  */
 export class StreamListBuilder extends UIComponent {
   private _streams: unknown[];
   private _loading: boolean;
+  private _searching: boolean;
   private _showFilters: boolean;
   private _emptyText?: string;
   private _nounPlurals?: string[];
@@ -46,6 +51,7 @@ export class StreamListBuilder extends UIComponent {
     super("StreamList");
     this._streams = [];
     this._loading = false;
+    this._searching = false;
     this._showFilters = false;
   }
 
@@ -68,6 +74,18 @@ export class StreamListBuilder extends UIComponent {
    */
   loading(v: boolean): this {
     this._loading = v;
+    return this;
+  }
+
+  /**
+   * Live search: arrived rows stay visible while more results are still coming.
+   * Skeleton placeholders show only while the list is still empty.
+   *
+   * @param v Method value
+   * @default false
+   */
+  searching(v: boolean): this {
+    this._searching = v;
     return this;
   }
 
@@ -117,6 +135,7 @@ export class StreamListBuilder extends UIComponent {
     return {
       streams: this._streams,
       loading: this._loading,
+      searching: this._searching,
       showFilters: this._showFilters,
       emptyText: this._emptyText,
       nounPlurals: this._nounPlurals

@@ -104,6 +104,7 @@ export function useMediaDetails({
     setInWatchlist,
     setIsFavorite,
     setIsWatched,
+    setMedia,
     showHUDRef,
     refetch: fetchDetails,
     t,

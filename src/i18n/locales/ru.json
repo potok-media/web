@@ -425,7 +425,11 @@
     "episode": {
       "fallbackName": "Серия {{number}}",
       "noOverview": "Описание эпизода отсутствует.",
-      "backToShow": "Вернуться к описанию сериала"
+      "backToShow": "Вернуться к описанию сериала",
+      "annotationFiller": "Филлер",
+      "annotationMixed": "Смешанный",
+      "annotationTitle": "{{label}} · уверенность {{confidence}}%",
+      "annotationDisputedTitle": "{{label}} · данные оспариваются · уверенность {{confidence}}%"
     },
     "overview": {
       "seasonsCount_one": "Сезонов: {{count}}",
@@ -449,6 +453,9 @@
     "selector": {
       "season": "Сезон {{number}}",
       "specials": "Спэшлы",
+      "unresolved": "Не распознано",
+      "unresolvedEpisode": "Неопознанный файл",
+      "episodeGroup": "Группа эпизодов",
       "watched": "Просмотрено",
       "audioCount_one": "{{count}} озвучка",
       "audioCount_other": "{{count}} озвучек",
@@ -502,6 +509,8 @@
         "episodeError": "Ошибка при обновлении истории эпизода",
         "seasonMarked": "Сезон {{number}} отмечен просмотренным",
         "seasonRemoved": "Сезон {{number}} удален из истории",
+        "groupMarked": "{{title}} отмечено просмотренным",
+        "groupRemoved": "{{title}} удалено из истории",
         "seasonError": "Ошибка при обновлении истории сезона",
         "historyUpdated": "История просмотра обновлена",
         "historySaveError": "Ошибка при сохранении истории просмотра"
@@ -590,6 +599,8 @@
       "selectAndWatch": "Выбор и просмотр серий",
       "unmark": "Снять отметку",
       "markSeason": "Отметить сезон",
+      "markGroup": "Отметить группу",
+      "unmarkGroup": "Снять отметку с группы",
       "markSelectively": "Отметить выборочно...",
       "scrollBack": "Прокрутить назад",
       "scrollForward": "Прокрутить вперед",

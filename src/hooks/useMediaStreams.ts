@@ -31,6 +31,7 @@ export function useMediaStreams({
     mediaOriginalTitle: details.currentMedia?.originalTitle,
     mediaEnglishTitle: details.currentMedia?.englishTitle,
     mediaImdbId: details.currentMedia?.imdbId,
+    workId: details.currentMedia?.arm?.workId || undefined,
     season,
     episode,
     activeTabParam,
@@ -42,11 +43,12 @@ export function useMediaStreams({
     () => ({
       type: mediaType as "movie" | "tv",
       tmdbId: mediaId,
+      workId: details.currentMedia?.arm?.workId || undefined,
       title: details.currentMedia?.title || "",
       season,
       episode,
     }),
-    [mediaType, mediaId, details.currentMedia?.title, season, episode],
+    [mediaType, mediaId, details.currentMedia?.arm?.workId, details.currentMedia?.title, season, episode],
   );
 
   const lastSelectedStream = useLastSelectedStream(mediaType, mediaId, search.activeSource?.pluginId);

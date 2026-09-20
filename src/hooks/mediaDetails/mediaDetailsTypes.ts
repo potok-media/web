@@ -30,6 +30,7 @@ export interface UseMediaDetailsActionsParams {
   setInWatchlist: (value: boolean) => void;
   setIsFavorite: (value: boolean) => void;
   setIsWatched: (value: boolean) => void;
+  setMedia: (value: MediaCard) => void;
   showHUDRef: MutableRefObject<(type: HUDType, message: string) => void>;
   refetch: (silent?: boolean) => Promise<void>;
   t: import("i18next").TFunction;

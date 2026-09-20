@@ -131,8 +131,8 @@ export interface WTGuestReady extends WTBase {
 
 // A lightweight episode entry for the lobby playlist (not the full PlaylistItem — no stream URLs / headers).
 export interface WTPlaylistEntry {
-  season: number;
-  episode: number;
+  season?: number;
+  episode?: number;
   title?: string;
 }
 

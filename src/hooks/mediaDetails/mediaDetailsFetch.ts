@@ -29,7 +29,7 @@ export async function fetchMediaDetailsData(
   }
 
   const strategy = Storage.get<string>("syncStrategy", "none");
-  if (strategy === "server") {
+  if (strategy === "server" || strategy === "trakt") {
     const [favs, watch, hist] = await Promise.all([
       SyncApiClient.fetchSyncFavorites(),
       SyncApiClient.fetchSyncWatchlist(),
@@ -40,7 +40,7 @@ export async function fetchMediaDetailsData(
     const watchActive = watch.some((w) => w.tmdbId === mediaId.toString() && w.mediaType === mediaType);
     const watchedActive = hist.some(
       (h) =>
-        h.tmdbId === mediaId.toString() &&
+        (h.tmdbId === mediaId.toString() || (data.arm?.workId && h.workId === data.arm.workId)) &&
         (h.mediaType === mediaType || (mediaType === "tv" && h.mediaType === "episode")),
     );
 
@@ -52,12 +52,16 @@ export async function fetchMediaDetailsData(
           h.episodeNumber !== undefined,
       )
       .map((h) => ({ season: h.seasonNumber!, number: h.episodeNumber! }));
+    const watchedEpisodeIds = hist
+      .filter((h) => h.workId === data.arm?.workId && h.episodeId !== undefined)
+      .map((h) => h.episodeId!);
 
     data.progress = {
       completed: data.progress?.completed ?? 0,
       aired: data.progress?.aired ?? 0,
       percentage: data.progress?.percentage ?? 0,
       watchedEpisodes,
+      watchedEpisodeIds,
       lastEpisodeTitle: data.progress?.lastEpisodeTitle,
       lastSeason: data.progress?.lastSeason,
       lastEpisode: data.progress?.lastEpisode,

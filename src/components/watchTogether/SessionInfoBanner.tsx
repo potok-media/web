@@ -33,7 +33,11 @@ export const SessionInfoBanner: React.FC<SessionInfoBannerProps> = React.memo(({
           <span className="wt-session__label">{t("nowWatching")}</span>
           <h2 className="wt-session__title">{info.title}</h2>
           {current && (
-            <span className="wt-session__ep">S{current.season}E{current.episode}</span>
+            <span className="wt-session__ep">
+              {current.season !== undefined && current.episode !== undefined
+                ? `S${current.season}E${current.episode}`
+                : current.title || t("episodeN", { n: (info.playlistIndex ?? 0) + 1 })}
+            </span>
           )}
         </div>
       </div>
@@ -45,8 +49,12 @@ export const SessionInfoBanner: React.FC<SessionInfoBannerProps> = React.memo(({
               key={`${ep.season}-${ep.episode}-${i}`}
               className={`wt-session__episode ${i === info.playlistIndex ? "wt-session__episode--current" : ""}`}
             >
-              <span className="wt-session__episode-num">S{ep.season}E{ep.episode}</span>
-              <span className="wt-session__episode-title">{ep.title || t("episodeN", { n: ep.episode })}</span>
+              <span className="wt-session__episode-num">
+                {ep.season !== undefined && ep.episode !== undefined
+                  ? `S${ep.season}E${ep.episode}`
+                  : t("episodeN", { n: i + 1 })}
+              </span>
+              <span className="wt-session__episode-title">{ep.title || t("episodeN", { n: i + 1 })}</span>
             </li>
           ))}
         </ul>

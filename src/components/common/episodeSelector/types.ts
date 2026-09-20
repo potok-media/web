@@ -1,11 +1,36 @@
-import type { SDKTvSeason } from "../../../sdk/src/types";
+import type { SDKReleaseBindingTarget, SDKTvSeason } from "../../../sdk/src/types";
+import type { ArmEpisodeAnnotationSummary } from "../../../network/ArmTypes";
 
 export interface GenericEpisodeItem {
   id: string;
-  season: number;
-  episode: number;
+  season?: number;
+  episode?: number;
   rawSeason?: number;
   rawEpisode?: number;
+  workId?: string | null;
+  episodeId?: string | null;
+  orderingId?: string | null;
+  groupId?: string | null;
+  episodeIds?: string[];
+  targets?: SDKReleaseBindingTarget[];
+  resolutionState?: "resolved" | "ambiguous" | "unresolved";
+  confidence?: number;
+  bindingMethod?: string | null;
+  rawEvidence?: {
+    kind?: string | null;
+    season?: number | null;
+    seasons?: number[];
+    episode?: number | null;
+    ovaNumber?: number | null;
+  } | null;
+  alternatives?: Array<{
+    episodeId: string;
+    orderingId: string;
+    groupId: string;
+    confidence: number;
+    compatibility?: { season?: number | null; episode?: number | null } | null;
+  }>;
+  armAnnotation?: ArmEpisodeAnnotationSummary | null;
   title?: string;
   fileName?: string;
   stillPath?: string;
@@ -19,7 +44,8 @@ export interface GenericEpisodeItem {
 export interface EpisodeSourceSection {
   key: string;
   rawSeason: number | undefined;
-  displayedSeason: number;
+  displayedSeason: number | undefined;
+  unresolved: boolean;
   rawFirstEp: number;
   episodes: GenericEpisodeItem[];
 }

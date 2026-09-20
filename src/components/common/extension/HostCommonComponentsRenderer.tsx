@@ -52,7 +52,7 @@ export const HostCommonComponentsRenderer: React.FC<HostCommonComponentsRenderer
 
     case "StreamList": {
       const componentProps = schema.props;
-      const { streams, loading, showFilters, emptyText } = componentProps;
+      const { streams, loading, searching, showFilters, emptyText } = componentProps;
       const handleSelectStream = (streamPayload: RawStreamPayload) => {
         const selectEvent = events?.onSelectStream;
         if (selectEvent) {
@@ -63,7 +63,8 @@ export const HostCommonComponentsRenderer: React.FC<HostCommonComponentsRenderer
         <StreamList
           key={id}
           streams={streams || []}
-          loading={loading}
+          loading={!!loading || !!searching}
+          isSearching={!!searching || !!loading}
           showFilters={showFilters}
           emptyText={emptyText}
           onSelectStream={handleSelectStream}

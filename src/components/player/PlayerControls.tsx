@@ -50,7 +50,7 @@ interface PlayerControlsProps {
   onSelectQualityLevel: (id: number) => void;
   showQualityMenu: boolean;
   onToggleQualityMenu: () => void;
-  playlist?: { season: number; episode: number; title?: string }[];
+  playlist?: { season?: number; episode?: number; title?: string }[];
   playlistIndex?: number;
   onSelectPlaylistItem?: (index: number) => void;
   showPlaylistMenu?: boolean;

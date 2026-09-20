@@ -29,7 +29,9 @@ export function setupPlaylistBridge({
 
   if (playlist) {
     playlistIndex = playlist.findIndex(
-      (item) => item.season === ep.season && item.episode === ep.episode,
+      (item) => item.id && ep.id
+        ? String(item.id) === String(ep.id)
+        : item.season === ep.season && item.episode === ep.episode,
     );
     if (playlistIndex === -1 || playlistIndex === undefined) playlistIndex = 0;
     bridge.potok_playlist_override = undefined;
@@ -40,6 +42,12 @@ export function setupPlaylistBridge({
     bridge.potok_playlist_resolve = async (item: PlaylistItem) => {
       const nextEp = {
         id: item.id,
+        workId: item.workId,
+        episodeId: item.episodeId,
+        orderingId: item.orderingId,
+        groupId: item.groupId,
+        episodeIds: item.episodeIds,
+        targets: item.targets,
         season: item.season,
         episode: item.episode,
         title: item.title,

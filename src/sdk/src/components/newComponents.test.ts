@@ -27,6 +27,7 @@ import {
   TopTenRowBuilder,
   PosterGridBuilder,
   DetailHeroBuilder,
+  StreamListBuilder,
 } from "./media";
 import {
   RangeBuilder,
@@ -356,5 +357,18 @@ describe("Phase-1.5 curated style tokens (base UIComponent)", () => {
     const json = new ButtonBuilder("Plain").compile("root");
     expect(json.props.background).toBeUndefined();
     expect(json.props.opacity).toBeUndefined();
+  });
+});
+
+describe("StreamList live search", () => {
+  it("compiles searching together with partial streams", () => {
+    const json = new StreamListBuilder()
+      .streams([{ title: "First hit" }])
+      .searching(true)
+      .showFilters(true)
+      .compile("root");
+    expect(json.type).toBe("StreamList");
+    expect(json.props.searching).toBe(true);
+    expect(json.props.streams).toEqual([{ title: "First hit" }]);
   });
 });

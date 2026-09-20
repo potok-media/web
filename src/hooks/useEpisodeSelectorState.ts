@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { PlaylistItem } from "../context/playbackTypes";
 import type { EpisodeSourceSection, FileOverrideMode, GenericEpisodeItem } from "../components/common/episodeSelector/types";
-import { SENTINEL_KEY } from "../components/common/episodeSelector/utils";
+import { buildEpisodeSourceSections, resolvedSeasonNumbers } from "../components/common/episodeSelector/utils";
 
 interface PlaylistOverrideBridge {
   potok_playlist_override?: PlaylistItem[];
@@ -36,33 +36,14 @@ export function useEpisodeSelectorState({
   const [editingFile, setEditingFile] = useState<{ id: string; mode: FileOverrideMode } | null>(null);
 
   const uniqueSeasons = useMemo(
-    () => Array.from(new Set(episodes.map((e) => e.season))).sort((a, b) => a - b),
+    () => resolvedSeasonNumbers(episodes),
     [episodes],
   );
 
-  const sourceSections = useMemo((): EpisodeSourceSection[] => {
-    const groups = new Map<string, GenericEpisodeItem[]>();
-    for (const e of episodes) {
-      const key = e.rawSeason !== undefined ? String(e.rawSeason) : SENTINEL_KEY;
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key)!.push(e);
-    }
-    const arr = Array.from(groups.entries()).map(([key, eps]) => {
-      const raws = eps.map((e) => e.rawEpisode).filter((n): n is number => n !== undefined);
-      return {
-        key,
-        rawSeason: eps[0].rawSeason,
-        displayedSeason: eps[0].season,
-        rawFirstEp: raws.length ? Math.min(...raws) : 1,
-        episodes: eps,
-      };
-    });
-    arr.sort(
-      (a, b) =>
-        a.displayedSeason - b.displayedSeason || (a.rawSeason ?? 0) - (b.rawSeason ?? 0),
-    );
-    return arr;
-  }, [episodes]);
+  const sourceSections = useMemo<EpisodeSourceSection[]>(
+    () => buildEpisodeSourceSections(episodes),
+    [episodes],
+  );
 
   const firstEpId = useMemo(() => sourceSections[0]?.episodes[0]?.id, [sourceSections]);
 
@@ -139,9 +120,17 @@ export function useEpisodeSelectorState({
         const streamUrl = getStreamUrl(ep);
         return {
           id: ep.id,
+          workId: ep.workId,
+          episodeId: ep.episodeId,
+          orderingId: ep.orderingId,
+          groupId: ep.groupId,
+          episodeIds: ep.episodeIds,
+          targets: ep.targets,
           season: ep.season,
           episode: ep.episode,
-          title: ep.title || t("episode.fallbackName", { number: ep.episode }),
+          title: ep.title || ep.fileName || (ep.episode !== undefined
+            ? t("episode.fallbackName", { number: ep.episode })
+            : t("selector.unresolvedEpisode")),
           streamUrl,
           streamType: (streamUrl.includes(".m3u8")
             ? "m3u8"

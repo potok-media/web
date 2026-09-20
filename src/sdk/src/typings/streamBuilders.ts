@@ -8,6 +8,8 @@ export const streamBuildersDts = `
     streams(v: SDKRawStreamPayload[]): this;
     /** Loading state. */
     loading(v: boolean): this;
+    /** Live search: show arrived rows while more results are still coming. */
+    searching(v: boolean): this;
     /** Whether to show the filter bar. */
     showFilters(v: boolean): this;
     /** Text shown when there are no streams. */

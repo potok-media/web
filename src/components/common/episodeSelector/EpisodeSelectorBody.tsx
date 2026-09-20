@@ -4,6 +4,7 @@ import { Pencil, RotateCcw } from "lucide-react";
 import { EpisodeSelectorRow } from "./EpisodeSelectorRow";
 import { IconButton } from "../../ui";
 import type { EpisodeSourceSection, FileOverrideEntry, FileOverrideMode } from "./types";
+import { SENTINEL_KEY } from "./utils";
 
 interface EpisodeSelectorBodyProps {
   mediaType: string;
@@ -44,16 +45,20 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
       <div className="episode-popup-rows-list episode-popup-rows-scroll">
         {totalCount > 0 ? (
           sourceSections.map((section) => {
-            const mapEntry = seasonMap[section.key];
             const srcRaw = section.rawSeason;
+            const mapEntry = seasonMap[srcRaw === undefined ? SENTINEL_KEY : String(srcRaw)];
             return (
               <div key={section.key} className="episode-season-group">
                 {mediaType === "tv" && (
                   <div className="season-section-header">
                     <h3 className="season-section-title">
-                      {section.displayedSeason === 0
+                      {section.unresolved
+                        ? t("selector.unresolved")
+                        : section.displayedSeason === 0
                         ? t("selector.specials")
-                        : t("selector.season", { number: section.displayedSeason })}
+                        : section.displayedSeason !== undefined
+                          ? t("selector.season", { number: section.displayedSeason })
+                          : t("selector.episodeGroup")}
                     </h3>
                     {mapEntry && (
                       <span className="season-map-badge">

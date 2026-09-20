@@ -3,6 +3,7 @@ import { SettingsService } from "../utils/SettingsService";
 import { MemorySafeCache } from "./MemorySafeCache";
 import { SyncApiClient } from "./SyncApiClient";
 import { ensureAbsoluteURL, handleApiResponse } from "./apiClientHelpers";
+import { createArmApiClient, type ArmLayoutRequestOptions, type ArmRequestOptions } from "./ArmApiClient";
 import { ApiError } from "./ApiTypes";
 import { webSocketClient } from "./WebSocketClient";
 import type { ExtensionManifest } from "@potok/sdk-types";
@@ -21,6 +22,13 @@ import type {
   StreamUIItem,
   PersonDetails,
 } from "./ApiTypes";
+import type {
+  ArmEpisodeLayoutResponse,
+  ArmProviderReference,
+  ArmResolveResponse,
+  ArmWorkId,
+  ArmWorkResponse,
+} from "./ArmTypes";
 
 export type {
   ServiceInfo,
@@ -187,6 +195,48 @@ export class ApiClient {
     return handleApiResponse<TvSeason>(res, "Failed to fetch season details");
   }
 
+  private static armClient() {
+    return createArmApiClient({
+      get: async <T>(path: string, options?: { signal?: AbortSignal }): Promise<T> => {
+        const res = await fetch(`${this.baseURL}${path}`, {
+          headers: this.headers,
+          signal: options?.signal,
+        });
+        return handleApiResponse<T>(res, "Failed to read Potok ARM");
+      },
+    });
+  }
+
+  public static resolveArmWork(
+    reference: ArmProviderReference,
+    options?: ArmRequestOptions,
+  ): Promise<ArmResolveResponse> {
+    return this.armClient().resolveWork(reference, {
+      ...options,
+      locale: options?.locale ?? this.language,
+    });
+  }
+
+  public static fetchArmWork(
+    workId: ArmWorkId,
+    options?: ArmRequestOptions,
+  ): Promise<ArmWorkResponse> {
+    return this.armClient().getWork(workId, {
+      ...options,
+      locale: options?.locale ?? this.language,
+    });
+  }
+
+  public static fetchArmEpisodeLayout(
+    workId: ArmWorkId,
+    options?: ArmLayoutRequestOptions,
+  ): Promise<ArmEpisodeLayoutResponse> {
+    return this.armClient().getEpisodeLayout(workId, {
+      ...options,
+      locale: options?.locale ?? this.language,
+    });
+  }
+
   public static async fetchPersonDetails(personId: number): Promise<PersonDetails> {
     if (!this.isWorker) {
       return DataWorkerBridge.request<PersonDetails>("fetchPersonDetails", [personId]);
@@ -256,10 +306,12 @@ export class ApiClient {
         entries = await SyncApiClient.fetchSyncFavorites();
       } else if (category === "history" || category === "up-next") {
         const hist = await SyncApiClient.fetchSyncHistory();
-        entries = hist.map((h) => ({
-          tmdbId: h.tmdbId,
-          mediaType: h.mediaType === "episode" ? "tv" : h.mediaType,
-        }));
+        entries = hist.flatMap((h) => h.tmdbId
+          ? [{
+              tmdbId: h.tmdbId,
+              mediaType: h.mediaType === "episode" ? "tv" : h.mediaType,
+            }]
+          : []);
       }
       const seen = new Set<string>();
       const unique = entries.filter((e) => {

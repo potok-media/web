@@ -12,6 +12,18 @@ export const mapStreamEpisode = (ep: StreamEpisode): GenericEpisodeItem => ({
   title: ep.title,
   rawSeason: ep.rawSeason,
   rawEpisode: ep.rawEpisode,
+  workId: ep.workId,
+  episodeId: ep.episodeId,
+  orderingId: ep.orderingId,
+  groupId: ep.groupId,
+  episodeIds: ep.episodeIds,
+  targets: ep.targets,
+  resolutionState: ep.resolutionState,
+  confidence: ep.confidence,
+  bindingMethod: ep.bindingMethod,
+  rawEvidence: ep.rawEvidence,
+  alternatives: ep.alternatives,
+  armAnnotation: ep.armAnnotation,
   fileName: ep.fileName,
   sizeLabel: ep.sizeLabel,
   stillPath: ep.stillPath,
@@ -32,6 +44,10 @@ export const buildPlaybackFromInfo = (
     posterSrc?: string;
     season?: number;
     episode?: number;
+    workId?: string | null;
+    episodeId?: string | null;
+    orderingId?: string | null;
+    groupId?: string | null;
     playlist?: ActivePlayback["playlist"];
     playlistIndex?: number;
     providerId?: string;
@@ -51,6 +67,10 @@ export const buildPlaybackFromInfo = (
   id: base.id,
   season: base.season,
   episode: base.episode,
+  workId: base.workId,
+  episodeId: base.episodeId,
+  orderingId: base.orderingId,
+  groupId: base.groupId,
   streamHash: info.torrentHash,
   fileIndex: info.fileIndex,
   streamType: ALLOWED_STREAM_TYPES.includes(

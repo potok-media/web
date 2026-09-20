@@ -92,6 +92,10 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
     (info: PlaybackInfo, extras: {
       season?: number;
       episode?: number;
+      workId?: string | null;
+      episodeId?: string | null;
+      orderingId?: string | null;
+      groupId?: string | null;
       playlist?: ActivePlayback["playlist"];
       playlistIndex?: number;
       sourceStream?: unknown;
@@ -140,6 +144,10 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
             playFromInfo(info, {
               season: mediaType === "tv" ? singleEp.season : undefined,
               episode: mediaType === "tv" ? singleEp.episode : undefined,
+              workId: singleEp.workId,
+              episodeId: singleEp.episodeId,
+              orderingId: singleEp.orderingId,
+              groupId: singleEp.groupId,
               sourceStream: stream,
               stillSrc: singleEp.stillPath,
             });
@@ -177,6 +185,10 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
           playFromInfo(info, {
             season: mediaType === "tv" ? ep.season : undefined,
             episode: mediaType === "tv" ? ep.episode : undefined,
+            workId: ep.workId,
+            episodeId: ep.episodeId,
+            orderingId: ep.orderingId,
+            groupId: ep.groupId,
             playlist,
             playlistIndex,
             sourceStream: clickedStream,

@@ -3,12 +3,26 @@ import { ApiClient } from "./ApiClient";
 import type { MediaCard } from "./ApiClient";
 import { DataWorkerBridge } from "../utils/worker/DataWorkerBridge";
 import { traktBulkHistoryPayload, traktMediaPayload } from "./syncTraktPayloads";
+import { handleApiResponse } from "./apiClientHelpers";
+import {
+  createSyncHistoryApiClient,
+  type BulkProgressMutationResponse,
+  type ProgressMutationResponse,
+  type RemoveProgressRequest,
+  type SaveBulkProgressRequest,
+  type SaveProgressRequest,
+} from "./SyncHistoryApiClient";
+import type { ArmEpisodeGroupId, ArmEpisodeId, ArmOrderingId, ArmWorkId } from "./ArmTypes";
 
 export interface UserHistoryEntry {
-  tmdbId: string;
+  tmdbId?: string;
   mediaType: string;
   seasonNumber?: number;
   episodeNumber?: number;
+  workId?: ArmWorkId;
+  episodeId?: ArmEpisodeId;
+  orderingId?: ArmOrderingId;
+  groupId?: ArmEpisodeGroupId;
   progressSeconds: number;
   durationSeconds: number;
   lastWatchedAt?: string;
@@ -25,6 +39,46 @@ export class SyncApiClient {
     return Storage.get<string>("syncStrategy", "none");
   }
 
+  private static historyClient() {
+    return createSyncHistoryApiClient({
+      post: async <T>(path: string, body: unknown): Promise<T> => {
+        const res = await fetch(`${ApiClient.baseURL}${path}`, {
+          method: "POST",
+          headers: ApiClient.headers,
+          body: JSON.stringify(body),
+        });
+        return handleApiResponse<T>(res, "Failed to mutate sync history");
+      },
+    });
+  }
+
+  public static async saveHistoryProgress(
+    request: SaveProgressRequest,
+  ): Promise<ProgressMutationResponse> {
+    if (typeof window !== "undefined") {
+      return DataWorkerBridge.request<ProgressMutationResponse>("sync_saveHistoryProgress", [request]);
+    }
+    return this.historyClient().saveProgress(request);
+  }
+
+  public static async removeHistoryProgress(
+    request: RemoveProgressRequest,
+  ): Promise<ProgressMutationResponse> {
+    if (typeof window !== "undefined") {
+      return DataWorkerBridge.request<ProgressMutationResponse>("sync_removeHistoryProgress", [request]);
+    }
+    return this.historyClient().removeProgress(request);
+  }
+
+  public static async saveHistoryBulkProgress(
+    request: SaveBulkProgressRequest,
+  ): Promise<BulkProgressMutationResponse> {
+    if (typeof window !== "undefined") {
+      return DataWorkerBridge.request<BulkProgressMutationResponse>("sync_saveHistoryBulkProgress", [request]);
+    }
+    return this.historyClient().saveBulkProgress(request);
+  }
+
   public static async fetchSyncHistory(): Promise<UserHistoryEntry[]> {
     if (typeof window !== "undefined") {
       return DataWorkerBridge.request<UserHistoryEntry[]>("sync_fetchSyncHistory", []);
@@ -36,11 +90,18 @@ export class SyncApiClient {
       if (!res.ok) throw new Error(`Failed to fetch sync history (Status ${res.status})`);
       return res.json();
     } else if (this.syncStrategy === "trakt") {
-      const res = await fetch(`${ApiClient.baseURL}/api/library/history`, {
-        headers: ApiClient.headers,
-      });
-      if (!res.ok) throw new Error(`Failed to fetch Trakt history (Status ${res.status})`);
-      const cards = await res.json() as MediaCard[];
+      const [localResponse, traktResponse] = await Promise.all([
+        fetch(`${ApiClient.baseURL}/api/sync/history`, { headers: ApiClient.headers }),
+        fetch(`${ApiClient.baseURL}/api/library/history`, { headers: ApiClient.headers }),
+      ]);
+      if (!localResponse.ok) {
+        throw new Error(`Failed to fetch sync history (Status ${localResponse.status})`);
+      }
+      if (!traktResponse.ok) {
+        throw new Error(`Failed to fetch Trakt history (Status ${traktResponse.status})`);
+      }
+      const localEntries = await localResponse.json() as UserHistoryEntry[];
+      const cards = await traktResponse.json() as MediaCard[];
       const entries: UserHistoryEntry[] = [];
       for (const c of cards) {
         if (c.progress?.watchedEpisodes && c.progress.watchedEpisodes.length > 0) {
@@ -65,7 +126,7 @@ export class SyncApiClient {
           lastWatchedAt: new Date().toISOString(),
         });
       }
-      return entries;
+      return [...localEntries, ...entries];
     }
     return [];
   }

@@ -1,3 +1,11 @@
+import type {
+  ArmEpisodeAnnotationSummary,
+  ArmEpisodeGroupId,
+  ArmEpisodeId,
+  ArmMediaSummary,
+  ArmOrderingId,
+} from "./ArmTypes";
+
 export interface ServiceInfo {
   configured: boolean;
   online: boolean;
@@ -70,6 +78,8 @@ export interface MediaCard {
   kpId?: string;
   imdbId?: string;
   airDateTime?: string;
+  /** Potok-owned identity; absent on older Gateways and explicit when ARM is unresolved. */
+  arm?: ArmMediaSummary;
 }
 
 export interface WatchProgress {
@@ -83,6 +93,8 @@ export interface WatchProgress {
   nextSeason?: number;
   nextEpisode?: number;
   watchedEpisodes?: { season: number; number: number }[];
+  /** Canonical ARM watched identity. Legacy coordinates are only a compatibility projection. */
+  watchedEpisodeIds?: ArmEpisodeId[];
 }
 
 export interface HeroItem {
@@ -143,7 +155,7 @@ export interface DeviceCodeResponse {
 }
 
 export interface TvEpisode {
-  id: number;
+  id: number | string;
   name: string;
   overview?: string;
   episodeNumber: number;
@@ -151,6 +163,14 @@ export interface TvEpisode {
   airDate?: string;
   stillPath?: string;
   still_path?: string;
+  armEpisodeId?: ArmEpisodeId;
+  armGroupId?: ArmEpisodeGroupId;
+  armOrderingId?: ArmOrderingId;
+  armOrdinal?: string;
+  /** Compatibility projection only. Never substitute the Potok display placement here. */
+  tmdbSeasonNumber?: number;
+  tmdbEpisodeNumber?: number;
+  armAnnotation?: ArmEpisodeAnnotationSummary | null;
 }
 
 export interface TvSeason {

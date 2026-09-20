@@ -14,8 +14,15 @@ export function initDeclarativeStreamListeners(): void {
       const { requestId, query, sourceId } = msg.payload;
       const source = (sourceId && registeredStreamSources.get(sourceId)) || Array.from(registeredStreamSources.values())[0];
       if (source) {
+        const emitProgress = (partial: unknown) => {
+          window.parent.postMessage({
+            source: 'potok-plugin-sdk',
+            action: 'STREAM_SOURCE_SEARCH_PROGRESS',
+            payload: { requestId, data: partial }
+          }, hostOrigin);
+        };
         try {
-          const data = await source.search(query);
+          const data = await source.search(query, emitProgress);
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_SEARCH_RESPONSE',

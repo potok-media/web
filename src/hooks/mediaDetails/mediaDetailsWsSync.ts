@@ -6,7 +6,13 @@ interface WsSyncPayload {
   seasonNumber?: number;
   episodeNumber?: number;
   isWatched?: boolean;
-  changes?: { seasonNumber: number; episodeNumber: number; isWatched: boolean }[];
+  episodeId?: string;
+  changes?: {
+    seasonNumber?: number;
+    episodeNumber?: number;
+    episodeId?: string;
+    isWatched: boolean;
+  }[];
   listType?: string;
   action?: string;
 }
@@ -28,11 +34,16 @@ export function applyMediaWsSyncEvent(
   ApiClient.invalidateCache();
 
   if (event === "sync:history:changed") {
-    const { seasonNumber, episodeNumber, isWatched: watchState } = payload;
+    const { seasonNumber, episodeNumber, episodeId, isWatched: watchState } = payload;
     const prev = mediaRef.current;
     if (!prev || watchState === undefined) return;
 
     let watchedEpisodes = [...(prev.progress?.watchedEpisodes || [])];
+    const watchedEpisodeIds = new Set(prev.progress?.watchedEpisodeIds ?? []);
+    if (episodeId) {
+      if (watchState) watchedEpisodeIds.add(episodeId);
+      else watchedEpisodeIds.delete(episodeId);
+    }
     if (mediaType === "tv" && seasonNumber !== undefined && episodeNumber !== undefined) {
       if (watchState) {
         if (!watchedEpisodes.some((ep) => ep.season === seasonNumber && ep.number === episodeNumber)) {
@@ -45,7 +56,13 @@ export function applyMediaWsSyncEvent(
       }
     }
 
-    const updatedMedia = mergeWatchedEpisodes(prev, watchedEpisodes, mediaType, watchState);
+    const updatedMedia = mergeWatchedEpisodes(
+      prev,
+      watchedEpisodes,
+      mediaType,
+      watchState,
+      [...watchedEpisodeIds],
+    );
     mediaRef.current = updatedMedia;
     setters.setMedia(updatedMedia);
     setters.setIsWatched(mediaType === "movie" ? watchState : checkIsWatched(updatedMedia));
@@ -58,8 +75,14 @@ export function applyMediaWsSyncEvent(
     if (!prev || !changes) return;
 
     let watchedEpisodes = [...(prev.progress?.watchedEpisodes || [])];
+    const watchedEpisodeIds = new Set(prev.progress?.watchedEpisodeIds ?? []);
     for (const ch of changes) {
-      const { seasonNumber, episodeNumber, isWatched: watchState } = ch;
+      const { seasonNumber, episodeNumber, episodeId, isWatched: watchState } = ch;
+      if (episodeId) {
+        if (watchState) watchedEpisodeIds.add(episodeId);
+        else watchedEpisodeIds.delete(episodeId);
+      }
+      if (seasonNumber === undefined || episodeNumber === undefined) continue;
       if (watchState) {
         if (!watchedEpisodes.some((ep) => ep.season === seasonNumber && ep.number === episodeNumber)) {
           watchedEpisodes.push({ season: seasonNumber, number: episodeNumber });
@@ -71,7 +94,13 @@ export function applyMediaWsSyncEvent(
       }
     }
 
-    const updatedMedia = mergeWatchedEpisodes(prev, watchedEpisodes, mediaType);
+    const updatedMedia = mergeWatchedEpisodes(
+      prev,
+      watchedEpisodes,
+      mediaType,
+      undefined,
+      [...watchedEpisodeIds],
+    );
     mediaRef.current = updatedMedia;
     setters.setMedia(updatedMedia);
     setters.setIsWatched(checkIsWatched(updatedMedia));

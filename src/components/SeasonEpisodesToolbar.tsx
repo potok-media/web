@@ -7,6 +7,9 @@ import { Button, IconButton, PopoverItem } from "./ui";
 interface SeasonEpisodesToolbarProps {
   activeSeason: number;
   numberOfSeasons: number;
+  episodeGroups?: { id: string; title: string }[];
+  activeGroupId?: string;
+  setActiveGroupId?: (groupId: string) => void;
   showSeasonPopover: boolean;
   setShowSeasonPopover: React.Dispatch<React.SetStateAction<boolean>>;
   setActiveSeason: (season: number) => void;
@@ -23,6 +26,9 @@ interface SeasonEpisodesToolbarProps {
 export const SeasonEpisodesToolbar: React.FC<SeasonEpisodesToolbarProps> = ({
   activeSeason,
   numberOfSeasons,
+  episodeGroups,
+  activeGroupId,
+  setActiveGroupId,
   showSeasonPopover,
   setShowSeasonPopover,
   setActiveSeason,
@@ -36,6 +42,7 @@ export const SeasonEpisodesToolbar: React.FC<SeasonEpisodesToolbarProps> = ({
   onOpenAllEpisodes,
 }) => {
   const { t } = useTranslation("media");
+  const activeGroup = episodeGroups?.find((group) => group.id === activeGroupId);
 
   return (
     <div className="season-selector-row">
@@ -46,7 +53,7 @@ export const SeasonEpisodesToolbar: React.FC<SeasonEpisodesToolbarProps> = ({
           onClick={() => setShowSeasonPopover((prev) => !prev)}
           aria-expanded={showSeasonPopover}
         >
-          <span>{t("seasons.season", { number: activeSeason })}</span>
+          <span>{activeGroup?.title ?? t("seasons.season", { number: activeSeason })}</span>
           <ChevronDown size="0.875rem" />
         </Button>
 
@@ -54,24 +61,40 @@ export const SeasonEpisodesToolbar: React.FC<SeasonEpisodesToolbarProps> = ({
           <>
             <div className="popover-overlay" onClick={() => setShowSeasonPopover(false)} />
             <div className="season-popover-menu">
-              {Array.from({ length: numberOfSeasons }).map((_, idx) => {
-                const sNum = idx + 1;
-                return (
-                  <PopoverItem
-                    key={sNum}
-                    active={activeSeason === sNum}
-                    className="season-popover-item"
-                    onClick={() => {
-                      setActiveSeason(sNum);
-                      setShowSeasonPopover(false);
-                    }}
-                  >
-                    <Tv size="1rem" className="season-item-icon" />
-                    <span>{t("seasons.season", { number: sNum })}</span>
-                    {activeSeason === sNum && <Check size="1rem" className="season-active-check" />}
-                  </PopoverItem>
-                );
-              })}
+              {episodeGroups?.length
+                ? episodeGroups.map((group) => (
+                    <PopoverItem
+                      key={group.id}
+                      active={activeGroupId === group.id}
+                      className="season-popover-item"
+                      onClick={() => {
+                        setActiveGroupId?.(group.id);
+                        setShowSeasonPopover(false);
+                      }}
+                    >
+                      <Tv size="1rem" className="season-item-icon" />
+                      <span>{group.title}</span>
+                      {activeGroupId === group.id && <Check size="1rem" className="season-active-check" />}
+                    </PopoverItem>
+                  ))
+                : Array.from({ length: numberOfSeasons }).map((_, idx) => {
+                    const sNum = idx + 1;
+                    return (
+                      <PopoverItem
+                        key={sNum}
+                        active={activeSeason === sNum}
+                        className="season-popover-item"
+                        onClick={() => {
+                          setActiveSeason(sNum);
+                          setShowSeasonPopover(false);
+                        }}
+                      >
+                        <Tv size="1rem" className="season-item-icon" />
+                        <span>{t("seasons.season", { number: sNum })}</span>
+                        {activeSeason === sNum && <Check size="1rem" className="season-active-check" />}
+                      </PopoverItem>
+                    );
+                  })}
             </div>
           </>
         )}
@@ -103,7 +126,15 @@ export const SeasonEpisodesToolbar: React.FC<SeasonEpisodesToolbarProps> = ({
                   }}
                 >
                   <Eye size="1rem" className="watch-item-icon" />
-                  <span>{isSeasonFullyWatched ? t("seasons.unmark") : t("seasons.markSeason")}</span>
+                  <span>
+                    {activeGroup
+                      ? isSeasonFullyWatched
+                        ? t("seasons.unmarkGroup")
+                        : t("seasons.markGroup")
+                      : isSeasonFullyWatched
+                        ? t("seasons.unmark")
+                        : t("seasons.markSeason")}
+                  </span>
                 </PopoverItem>
                 <PopoverItem
                   className="watch-popover-item"

@@ -7,14 +7,16 @@ import { FilmOff } from "./common/FilmOff";
 import type { TvEpisode } from "../network/ApiTypes";
 import { formatLocalizedDate } from "../utils/formatDate";
 import { getActiveLanguage, toIntlLocale } from "../utils/language";
+import { EpisodeAnnotationBadge } from "./common/EpisodeAnnotationBadge";
 
 interface EpisodesListPopupProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   seasonNumber: number;
+  groupTitle?: string;
   episodes: TvEpisode[];
-  isEpisodeWatched: (episodeNumber: number) => boolean;
+  isEpisodeWatched: (episode: TvEpisode) => boolean;
 }
 
 /**
@@ -28,13 +30,14 @@ export const EpisodesListPopup: React.FC<EpisodesListPopupProps> = ({
   onClose,
   title,
   seasonNumber,
+  groupTitle,
   episodes,
   isEpisodeWatched,
 }) => {
   const { t } = useTranslation("media");
 
   const watchedCount = useMemo(
-    () => episodes.filter((ep) => isEpisodeWatched(ep.episodeNumber)).length,
+    () => episodes.filter(isEpisodeWatched).length,
     [episodes, isEpisodeWatched],
   );
 
@@ -67,7 +70,7 @@ export const EpisodesListPopup: React.FC<EpisodesListPopupProps> = ({
           <div className="modal-title-text-group">
             <h3 className="modal-title modal-title-custom-size">{title}</h3>
             <span className="modal-subtitle modal-subtitle-text">
-              {t("seasons.season", { number: seasonNumber })}
+              {groupTitle ?? t("seasons.season", { number: seasonNumber })}
             </span>
             {episodes.length > 0 && (
               <div className="tv-progress-container">
@@ -95,7 +98,7 @@ export const EpisodesListPopup: React.FC<EpisodesListPopupProps> = ({
         <div className="files-list-container episode-files-list">
           <div className="episode-popup-rows-list episode-popup-rows-scroll">
             {episodes.map((ep) => {
-              const watched = isEpisodeWatched(ep.episodeNumber);
+              const watched = isEpisodeWatched(ep);
               const still = ep.stillPath || ep.still_path;
               const subtitle = formatDate(ep.airDate);
               return (
@@ -128,12 +131,15 @@ export const EpisodesListPopup: React.FC<EpisodesListPopupProps> = ({
                     {ep.overview && <p className="episode-popup-overview">{ep.overview}</p>}
                   </div>
 
-                  {watched && (
+                  {(ep.armAnnotation || watched) && (
                     <div className="file-card-details-panel">
+                      <EpisodeAnnotationBadge annotation={ep.armAnnotation} />
+                      {watched && (
                       <div className="file-card-watched-badge">
                         <Check size="0.75rem" strokeWidth={3} />
                         <span>{t("selector.watched")}</span>
                       </div>
+                      )}
                     </div>
                   )}
                 </div>

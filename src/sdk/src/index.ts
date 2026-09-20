@@ -1,5 +1,6 @@
 import { CallbackRegistry, CallbackScope, type CallbackFunction } from "./core/registry";
 import { HttpClient } from "./core/http";
+import { ArmSdkClient } from "./core/arm";
 import { LocalStorageBridge } from "./core/storage";
 import { SDK_TYPINGS } from "./sdkTypings";
 import type { UIComponent } from "./components/base";
@@ -153,6 +154,7 @@ const getRegisteredSources = (): Map<string, SourceLookupFn> => {
 
 // Formal static named exports as required by step 2
 export const http = HttpClient;
+export const arm = ArmSdkClient;
 
 import { i18n, initSdkI18n, handleLanguageChanged } from "./i18n";
 export { i18n };
@@ -434,6 +436,7 @@ export function initPotokSDK(): void {
   win.PotokSDK.permissions = initialState.permissions || [];
   win.PotokSDK.config = initialState.config || {};
   win.PotokSDK.i18n = i18n;
+  win.PotokSDK.arm = arm;
   win.PotokSDK.typings = SDK_TYPINGS;
   
   win.PotokSDK.onSettingsChanged = (cb: (key: string, value: unknown, currentSettings: Record<string, unknown>) => void) => {
@@ -541,6 +544,7 @@ if (typeof window !== 'undefined') {
 export * from "./core/state";
 export * from "./core/registry";
 export * from "./core/http";
+export * from "./core/arm";
 export * from "./core/storage";
 export * from "./components/base";
 export * from "./components/common";

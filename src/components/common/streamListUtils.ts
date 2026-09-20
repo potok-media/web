@@ -18,6 +18,20 @@ export type ExtendedStreamPayload = RawStreamPayload & {
 
 type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
 
+/** Empty vs skeleton vs rows while a live search is still running. */
+export function streamListViewFlags(
+  loading: boolean,
+  isSearching: boolean,
+  itemCount: number,
+): { inFlight: boolean; showSkeletons: boolean; showEmpty: boolean } {
+  const inFlight = loading || isSearching;
+  return {
+    inFlight,
+    showSkeletons: inFlight && itemCount === 0,
+    showEmpty: !inFlight && itemCount === 0,
+  };
+}
+
 export function getStreamProvider(stream: ExtendedStreamPayload): string {
   return stream.provider || stream.tracker || "";
 }

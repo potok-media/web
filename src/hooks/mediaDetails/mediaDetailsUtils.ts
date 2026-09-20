@@ -19,12 +19,14 @@ export function mergeWatchedEpisodes(
   watchedEpisodes: { season: number; number: number }[],
   mediaType: string,
   watchState?: boolean,
+  watchedEpisodeIds: string[] = prev.progress?.watchedEpisodeIds ?? [],
 ): MediaCard {
   const progress: WatchProgress = {
     completed: prev.progress?.completed ?? 0,
     aired: prev.progress?.aired ?? 0,
     percentage: prev.progress?.percentage ?? 0,
     watchedEpisodes,
+    watchedEpisodeIds,
     lastEpisodeTitle: prev.progress?.lastEpisodeTitle,
     lastSeason: prev.progress?.lastSeason,
     lastEpisode: prev.progress?.lastEpisode,

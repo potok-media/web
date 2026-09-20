@@ -3,7 +3,7 @@ export interface RegisteredStreamSource {
   id: string;
   name?: string;
   supportedTypes?: unknown;
-  search(query: unknown): unknown;
+  search(query: unknown, onProgress?: (partial: unknown) => void): unknown;
   getEpisodes?(stream: unknown, context: unknown): unknown;
   getSeasonsMetadata?(stream: unknown, context: unknown): unknown;
   saveSeasonOverride?(

@@ -17,6 +17,7 @@ export type StreamSource = {
 export interface StreamContext {
   type: "movie" | "tv";
   tmdbId: number;
+  workId?: string;
   title: string;
   season?: number;
   episode?: number;
@@ -41,6 +42,12 @@ export interface EpisodesResponse {
   seasonMap?: Record<string, { season: number; offset: number }>;
   fileMap?: FileOverrideMap;
   parsingSuspect?: boolean;
+  arm?: {
+    state: "resolved" | "partial" | "ambiguous" | "unresolved";
+    workId?: string | null;
+    orderingId?: string | null;
+    graphVersion?: string | null;
+  } | null;
 }
 
 export interface PlaylistResolveBridge {

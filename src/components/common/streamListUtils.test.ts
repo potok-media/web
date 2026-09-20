@@ -5,6 +5,7 @@ import {
   isSameStream,
   mapStreamToUI,
   mergePinStream,
+  streamListViewFlags,
   type ExtendedStreamPayload,
 } from "./streamListUtils";
 
@@ -63,5 +64,25 @@ describe("mapStreamToUI", () => {
     const ui = mapStreamToUI({ title: "Show" }, 0, t);
     expect(ui.overrideBadge).toBeUndefined();
     expect(ui.isLastSelected).toBeUndefined();
+  });
+});
+
+describe("streamListViewFlags", () => {
+  it("shows skeletons only while a search is in flight and the list is empty", () => {
+    expect(streamListViewFlags(true, false, 0)).toEqual({
+      inFlight: true,
+      showSkeletons: true,
+      showEmpty: false,
+    });
+    expect(streamListViewFlags(false, true, 3)).toEqual({
+      inFlight: true,
+      showSkeletons: false,
+      showEmpty: false,
+    });
+    expect(streamListViewFlags(false, false, 0)).toEqual({
+      inFlight: false,
+      showSkeletons: false,
+      showEmpty: true,
+    });
   });
 });

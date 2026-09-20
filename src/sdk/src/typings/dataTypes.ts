@@ -82,6 +82,7 @@ export const dataTypesDts = `
     nextSeason?: number;
     nextEpisode?: number;
     watchedEpisodes?: { season: number; number: number }[];
+    watchedEpisodeIds?: string[];
   }
 
   /** A single cast/crew member shown by MediaCast. */
@@ -124,5 +125,7 @@ export const dataTypesDts = `
     cast?: SDKCastMember[];
     kpId?: string;
     imdbId?: string;
+    /** Potok-owned identity summary, additive to legacy TMDB metadata. */
+    arm?: SDKArmMediaSummary;
   }
 `;

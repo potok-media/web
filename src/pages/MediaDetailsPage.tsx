@@ -111,17 +111,19 @@ export const MediaDetailsPage: React.FC = () => {
       />
 
       <div className="details-bottom-sections">
-        {media.mediaType === "tv" && media.numberOfSeasons !== undefined && media.numberOfSeasons > 0 && (
+        {media.mediaType === "tv" && ((media.numberOfSeasons ?? 0) > 0 || media.arm?.workId) && (
           <div className="details-fullwidth-section">
             <SeasonEpisodesSection
               mediaId={media.id}
               mediaTitle={media.title}
-              numberOfSeasons={media.numberOfSeasons!}
+              numberOfSeasons={media.numberOfSeasons ?? 0}
+              arm={media.arm}
               selectedEpisode={selectedEpisode}
               onEpisodeClick={(ep, seasonNum) => {
                 setSelectedEpisode({ episode: ep, seasonNumber: seasonNum });
               }}
               watchedEpisodes={media.progress?.watchedEpisodes || []}
+              watchedEpisodeIds={media.progress?.watchedEpisodeIds || []}
               toggleEpisodeWatched={toggleEpisodeWatched}
               toggleSeasonWatched={toggleSeasonWatched}
               onOpenMultiPicker={() => setIsMultiPickerOpen(true)}

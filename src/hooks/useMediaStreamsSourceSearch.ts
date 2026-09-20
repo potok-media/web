@@ -11,6 +11,7 @@ interface UseMediaStreamsSourceSearchParams {
   mediaOriginalTitle?: string;
   mediaEnglishTitle?: string;
   mediaImdbId?: string;
+  workId?: string;
   season?: number;
   episode?: number;
   activeTabParam?: string;
@@ -25,6 +26,7 @@ export function useMediaStreamsSourceSearch({
   mediaOriginalTitle,
   mediaEnglishTitle,
   mediaImdbId,
+  workId,
   season,
   episode,
   activeTabParam,
@@ -116,6 +118,7 @@ export function useMediaStreamsSourceSearch({
           englishTitle: mediaEnglishTitle,
           imdbId: mediaImdbId,
           tmdbId: mediaId,
+          workId,
           type: mediaType as "movie" | "tv",
           season,
           episode,
@@ -123,6 +126,11 @@ export function useMediaStreamsSourceSearch({
         },
       },
       TORRENT_SEARCH_HTTP_TIMEOUT_MS,
+      (partial) => {
+        if (activeRequestIdRef.current !== reqId) return;
+        if (!Array.isArray(partial)) return;
+        setStreams(partial);
+      },
     )
       .then((results) => {
         if (activeRequestIdRef.current !== reqId) return;
@@ -143,6 +151,7 @@ export function useMediaStreamsSourceSearch({
     mediaOriginalTitle,
     mediaEnglishTitle,
     mediaImdbId,
+    workId,
     activeTab,
     activeSource,
     season,

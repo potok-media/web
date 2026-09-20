@@ -1,11 +1,22 @@
-import type { SDKSubtitleInfo, SDKPlaybackSession, SDKThumbnails } from "../sdk/src/types";
+import type {
+  SDKPlaybackSession,
+  SDKReleaseBindingTarget,
+  SDKSubtitleInfo,
+  SDKThumbnails,
+} from "../sdk/src/types";
 
 export type ConnectionState = "checking" | "connected" | "offline" | "setupRequired";
 
 export interface PlaylistItem {
   id?: string;
-  season: number;
-  episode: number;
+  workId?: string | null;
+  episodeId?: string | null;
+  orderingId?: string | null;
+  groupId?: string | null;
+  episodeIds?: string[];
+  targets?: SDKReleaseBindingTarget[];
+  season?: number;
+  episode?: number;
   title?: string;
   streamUrl: string;
   streamType?: "m3u8" | "mp4" | "hls" | "dash";
@@ -33,6 +44,10 @@ export interface ActivePlayback {
   id: number;
   season?: number;
   episode?: number;
+  workId?: string | null;
+  episodeId?: string | null;
+  orderingId?: string | null;
+  groupId?: string | null;
   streamHash?: string;
   fileIndex?: string;
   streamType?: "m3u8" | "mp4" | "hls" | "dash";

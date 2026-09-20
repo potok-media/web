@@ -2,6 +2,7 @@ import React, { useRef, useCallback } from "react";
 import { Check } from "lucide-react";
 import { FilmOff } from "./common/FilmOff";
 import type { TvEpisode } from "../network/ApiTypes";
+import { EpisodeAnnotationBadge } from "./common/EpisodeAnnotationBadge";
 
 interface EpisodeCardProps {
   episode: TvEpisode;
@@ -139,6 +140,7 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
             </div>
           )
         )}
+        <EpisodeAnnotationBadge annotation={episode.armAnnotation} overlay />
       </div>
       <span className="episode-number-title">
         {episode.episodeNumber && episode.episodeNumber > 0 ? `${episode.episodeNumber}. ` : ""}{episode.name}

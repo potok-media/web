@@ -3,6 +3,7 @@ import { Storage } from "../utils/StorageService";
 import { SyncApiClient } from "../network/SyncApiClient";
 import { logger } from "../utils/logger";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
+import { toPlaybackProgressRequest } from "../features/arm/playbackHistoryModel";
 
 export interface PlaybackProgress {
   progressSeconds: number;
@@ -18,6 +19,10 @@ interface UsePlaybackTrackerParams {
     mediaType: string;
     season?: number;
     episode?: number;
+    workId?: string | null;
+    episodeId?: string | null;
+    orderingId?: string | null;
+    groupId?: string | null;
     title?: string;
     originalTitle?: string;
     posterSrc?: string;
@@ -46,14 +51,33 @@ export function usePlaybackTracker({
 }: UsePlaybackTrackerParams) {
   const lastSavedTimeRef = useRef<number>(0);
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const { id, mediaType, season, episode } = playback;
+  const {
+    id,
+    mediaType,
+    season,
+    episode,
+    workId,
+    episodeId,
+    orderingId,
+    groupId,
+    title,
+    originalTitle,
+    posterSrc,
+    backdropSrc,
+    streamHash,
+    fileIndex,
+    providerId,
+    voice,
+    sourceStream,
+    stillSrc,
+  } = playback;
   const audioNameRef = useRef(audioName);
   audioNameRef.current = audioName;
 
   // Reset last saved time when media ID / episode changes
   useEffect(() => {
     lastSavedTimeRef.current = 0;
-  }, [id, season, episode]);
+  }, [id, season, episode, episodeId]);
 
   // Continue cursor: announce as soon as this episode is opened, not after 15s / 2%.
   useEffect(() => {
@@ -69,7 +93,7 @@ export function usePlaybackTracker({
     broadcastProgress(actual, duration, false);
     // Identity-only: a new file/episode should pin immediately.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, season, episode, playback.streamHash, playback.fileIndex]);
+  }, [id, season, episode, episodeId, streamHash, fileIndex]);
 
   const getStorageKeys = useCallback(() => {
     const s = season ?? 0;
@@ -79,26 +103,52 @@ export function usePlaybackTracker({
     return { progressKey, resumeKey };
   }, [id, season, episode]);
 
+  // The opaque plugin-owned sourceStream is intentionally forwarded by identity; React Compiler cannot
+  // prove that this manually stable event bridge is safe to rewrite.
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const broadcastProgress = useCallback((actualTime: number, durationVal: number, isCompleted: boolean) => {
     ExtensionRegistry.broadcast("PLAYBACK_PROGRESS", {
       id,
       mediaType,
       season,
       episode,
-      title: playback.originalTitle || playback.title,
-      posterSrc: playback.posterSrc,
-      backdropSrc: playback.backdropSrc,
-      streamHash: playback.streamHash,
-      fileIndex: playback.fileIndex,
-      providerId: playback.providerId,
-      voice: audioNameRef.current || playback.voice,
-      sourceStream: playback.sourceStream,
-      stillSrc: playback.stillSrc,
+      workId,
+      episodeId,
+      orderingId,
+      groupId,
+      title: originalTitle || title,
+      posterSrc,
+      backdropSrc,
+      streamHash,
+      fileIndex,
+      providerId,
+      voice: audioNameRef.current || voice,
+      sourceStream,
+      stillSrc,
       progressSeconds: Math.floor(Math.max(0, actualTime)),
       durationSeconds: Math.floor(Math.max(0, durationVal)),
       isCompleted,
     });
-  }, [id, mediaType, season, episode, playback]);
+  }, [
+    id,
+    mediaType,
+    season,
+    episode,
+    workId,
+    episodeId,
+    orderingId,
+    groupId,
+    originalTitle,
+    title,
+    posterSrc,
+    backdropSrc,
+    streamHash,
+    fileIndex,
+    providerId,
+    voice,
+    sourceStream,
+    stillSrc,
+  ]);
 
   const saveProgress = useCallback((
     currentTime: number,
@@ -144,18 +194,40 @@ export function usePlaybackTracker({
       const strategy = Storage.get<string>("syncStrategy", "none");
       // Remote history is keyed by TMDB id — a plugin-opened stream legitimately has id 0, so skip the remote
       // sync for it (local resume still works). Only sync when there's a real TMDB id.
-      if (id > 0 && (strategy === "server" || strategy === "trakt")) {
-        SyncApiClient.saveSyncProgress(
-          id.toString(),
-          mediaType,
-          season,
-          episode,
-          Math.floor(actualTime),
-          Math.floor(durationVal)
-        ).catch((err) => logger.error("[Sync] Failed to save progress:", err));
+      if ((id > 0 || workId) && (strategy === "server" || strategy === "trakt")) {
+        const progressSeconds = Math.floor(actualTime);
+        const durationSeconds = Math.floor(durationVal);
+        const save = workId && episodeId
+          ? SyncApiClient.saveHistoryProgress(toPlaybackProgressRequest(
+              { id, mediaType, season, episode, workId, episodeId, orderingId, groupId },
+              progressSeconds,
+              durationSeconds,
+              strategy === "trakt",
+            ))
+          : SyncApiClient.saveSyncProgress(
+              id.toString(),
+              mediaType,
+              season,
+              episode,
+              progressSeconds,
+              durationSeconds,
+            );
+        save.catch((err) => logger.error("[Sync] Failed to save progress:", err));
       }
     }
-  }, [id, mediaType, season, episode, seekOffset, getStorageKeys, playback, broadcastProgress]);
+  }, [
+    id,
+    mediaType,
+    season,
+    episode,
+    workId,
+    episodeId,
+    orderingId,
+    groupId,
+    seekOffset,
+    getStorageKeys,
+    broadcastProgress,
+  ]);
 
   const handleManualSave = useCallback(() => {
     const video = videoRef.current;
@@ -217,15 +289,24 @@ export function usePlaybackTracker({
       // Удаляем с бэкенда/Trakt прогресс (переходит в статус полностью просмотрено)
       const strategy = Storage.get<string>("syncStrategy", "none");
       // Plugin streams have TMDB id 0 (a valid value) — don't push them to remote history.
-      if (id > 0 && (strategy === "server" || strategy === "trakt")) {
-        SyncApiClient.saveSyncProgress(
-          id.toString(),
-          mediaType,
-          season,
-          episode,
-          Math.floor(duration),
-          Math.floor(duration)
-        ).catch((err) => logger.error("[Sync] Failed to mark completed on ended:", err));
+      if ((id > 0 || workId) && (strategy === "server" || strategy === "trakt")) {
+        const completed = Math.floor(duration);
+        const save = workId && episodeId
+          ? SyncApiClient.saveHistoryProgress(toPlaybackProgressRequest(
+              { id, mediaType, season, episode, workId, episodeId, orderingId, groupId },
+              completed,
+              completed,
+              strategy === "trakt",
+            ))
+          : SyncApiClient.saveSyncProgress(
+              id.toString(),
+              mediaType,
+              season,
+              episode,
+              completed,
+              completed,
+            );
+        save.catch((err) => logger.error("[Sync] Failed to mark completed on ended:", err));
       }
     };
 
@@ -250,7 +331,21 @@ export function usePlaybackTracker({
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("pagehide", handleBeforeUnload);
     };
-  }, [videoRef, saveProgress, getStorageKeys, id, mediaType, season, episode, duration, broadcastProgress]);
+  }, [
+    videoRef,
+    saveProgress,
+    getStorageKeys,
+    id,
+    mediaType,
+    season,
+    episode,
+    workId,
+    episodeId,
+    orderingId,
+    groupId,
+    duration,
+    broadcastProgress,
+  ]);
 
   return {
     saveProgress: handleManualSave

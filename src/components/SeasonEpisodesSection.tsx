@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { useTranslation } from "react-i18next";
 import { useSeasonEpisodes } from "../hooks/useSeasonEpisodes";
 import type { TvEpisode } from "../network/ApiTypes";
+import type { ArmMediaSummary } from "../network/ArmTypes";
+import { useArmEpisodeLayout } from "../hooks/useArmEpisodeLayout";
 import { EpisodeCard } from "./EpisodeCard";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ScrollView } from "./common/ScrollView";
@@ -11,6 +13,7 @@ import { SeasonEpisodesToolbar } from "./SeasonEpisodesToolbar";
 import { EpisodeContextMenu } from "./EpisodeContextMenu";
 import { EpisodesListPopup } from "./EpisodesListPopup";
 import { LayoutList } from "lucide-react";
+import { isEpisodeWatched as episodeIsWatched } from "../features/arm/episodeHistoryModel";
 
 // Cap the carousel so long seasons don't render hundreds of cards or force endless scrolling.
 // When a season has more episodes, the last slot becomes an "All" card that opens the full list popup.
@@ -20,20 +23,29 @@ interface SeasonEpisodesSectionProps {
   mediaId: number;
   mediaTitle?: string;
   numberOfSeasons: number;
+  arm?: ArmMediaSummary;
   onEpisodeClick: (episode: TvEpisode, seasonNumber: number) => void;
   selectedEpisode?: { episode: TvEpisode; seasonNumber: number } | null;
   watchedEpisodes?: { season: number; number: number }[];
-  toggleEpisodeWatched?: (seasonNumber: number, episodeNumber: number, nextState: boolean) => Promise<void>;
-  toggleSeasonWatched?: (seasonNumber: number, episodesList: TvEpisode[], nextState: boolean) => Promise<void>;
+  watchedEpisodeIds?: string[];
+  toggleEpisodeWatched?: (episode: TvEpisode, nextState: boolean) => Promise<void>;
+  toggleSeasonWatched?: (
+    seasonNumber: number | undefined,
+    episodesList: TvEpisode[],
+    nextState: boolean,
+    groupTitle?: string,
+  ) => Promise<void>;
   onOpenMultiPicker?: () => void;
 }
 
 export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   mediaId,
   numberOfSeasons,
+  arm,
   onEpisodeClick,
   selectedEpisode,
   watchedEpisodes = [],
+  watchedEpisodeIds = [],
   toggleEpisodeWatched,
   toggleSeasonWatched,
   onOpenMultiPicker,
@@ -41,12 +53,30 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
 }) => {
   const { t } = useTranslation("media");
   const [activeSeason, setActiveSeason] = useState(1);
+  const [activeGroupId, setActiveGroupId] = useState<string>();
   const [showSeasonPopover, setShowSeasonPopover] = useState(false);
   const [showWatchPopover, setShowWatchPopover] = useState(false);
   const [showAllEpisodesPopup, setShowAllEpisodesPopup] = useState(false);
 
-  const { episodes, loading } = useSeasonEpisodes(mediaId, activeSeason);
+  const armLayout = useArmEpisodeLayout({ tmdbId: mediaId, summary: arm });
+  const usesArmLayout = armLayout.status === "arm";
+  // Preload the legacy season while ARM resolves so an older/uncovered Gateway falls back without a
+  // second network waterfall. Once an ARM layout wins, the legacy request is disabled and cached.
+  const legacySeason = useSeasonEpisodes(mediaId, activeSeason, !usesArmLayout);
+  const activeGroup = armLayout.groups.find((group) => group.id === activeGroupId) ?? armLayout.groups[0];
+  const episodes = useMemo(
+    () => usesArmLayout ? activeGroup?.episodes ?? [] : legacySeason.episodes,
+    [activeGroup, legacySeason.episodes, usesArmLayout],
+  );
+  const loading = armLayout.status === "loading" || (!usesArmLayout && legacySeason.loading);
   const hasMoreThanCarousel = episodes.length > CAROUSEL_LIMIT;
+
+  useEffect(() => {
+    if (!usesArmLayout || armLayout.groups.length === 0) return;
+    if (!activeGroupId || !armLayout.groups.some((group) => group.id === activeGroupId)) {
+      setActiveGroupId(armLayout.groups[0].id);
+    }
+  }, [activeGroupId, armLayout.groups, usesArmLayout]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -96,26 +126,44 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
     setShowAllEpisodesPopup(false);
     const el = scrollRef.current;
     if (el) el.scrollLeft = 0;
-  }, [activeSeason]);
+  }, [activeGroupId, activeSeason]);
 
   const isSeasonFullyWatched = useMemo(() => {
     if (episodes.length === 0) return false;
-    return episodes.every((ep) =>
-      watchedEpisodes.some((we) => we.season === activeSeason && we.number === ep.episodeNumber),
-    );
-  }, [episodes, watchedEpisodes, activeSeason]);
+    return episodes.every((episode) => episodeIsWatched(episode, {
+      episodeIds: watchedEpisodeIds,
+      legacyCoordinates: watchedEpisodes,
+    }));
+  }, [episodes, watchedEpisodeIds, watchedEpisodes]);
 
-  const isEpisodeWatched = useCallback((episodeNumber: number) => {
-    return watchedEpisodes.some((we) => we.season === activeSeason && we.number === episodeNumber);
-  }, [watchedEpisodes, activeSeason]);
+  const isEpisodeWatched = useCallback((episode: TvEpisode) => {
+    return episodeIsWatched(episode, {
+      episodeIds: watchedEpisodeIds,
+      legacyCoordinates: watchedEpisodes,
+    });
+  }, [watchedEpisodeIds, watchedEpisodes]);
 
   const handleEpisodeClick = useCallback((episode: TvEpisode) => {
-    onEpisodeClick(episode, activeSeason);
+    onEpisodeClick(episode, episode.seasonNumber ?? activeSeason);
   }, [onEpisodeClick, activeSeason]);
 
   const handleEpisodeContextMenu = useCallback((episode: TvEpisode, clientX: number, clientY: number) => {
     setContextMenu({ episode, x: clientX, y: clientY });
   }, []);
+
+  const handleToggleDisplayedGroup = useCallback(async (
+    seasonNumber: number,
+    episodesList: TvEpisode[],
+    nextState: boolean,
+  ) => {
+    if (!toggleSeasonWatched) return;
+    await toggleSeasonWatched(
+      usesArmLayout ? undefined : seasonNumber,
+      episodesList,
+      nextState,
+      usesArmLayout ? activeGroup?.title : undefined,
+    );
+  }, [activeGroup?.title, toggleSeasonWatched, usesArmLayout]);
 
   return (
     <section className="season-episodes-section">
@@ -124,6 +172,9 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
       <SeasonEpisodesToolbar
         activeSeason={activeSeason}
         numberOfSeasons={numberOfSeasons}
+        episodeGroups={usesArmLayout ? armLayout.groups : undefined}
+        activeGroupId={activeGroup?.id}
+        setActiveGroupId={setActiveGroupId}
         showSeasonPopover={showSeasonPopover}
         setShowSeasonPopover={setShowSeasonPopover}
         setActiveSeason={setActiveSeason}
@@ -131,8 +182,8 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
         episodes={episodes}
         showWatchPopover={showWatchPopover}
         setShowWatchPopover={setShowWatchPopover}
-        toggleSeasonWatched={toggleSeasonWatched}
-        onOpenMultiPicker={onOpenMultiPicker}
+        toggleSeasonWatched={handleToggleDisplayedGroup}
+        onOpenMultiPicker={usesArmLayout ? undefined : onOpenMultiPicker}
         showAllEpisodes={!loading && hasMoreThanCarousel}
         onOpenAllEpisodes={() => setShowAllEpisodesPopup(true)}
       />
@@ -170,10 +221,10 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
             onScroll={checkScrollLimits}
           >
             {episodes.slice(0, CAROUSEL_LIMIT).map((ep) => {
-              const watched = isEpisodeWatched(ep.episodeNumber);
+              const watched = isEpisodeWatched(ep);
               return (
                 <EpisodeCard
-                  key={ep.id}
+                  key={ep.armEpisodeId ?? ep.id}
                   episode={ep}
                   onClick={handleEpisodeClick}
                   isActive={selectedEpisode?.episode.id === ep.id}
@@ -222,10 +273,10 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
         <EpisodeContextMenu
           x={contextMenu.x}
           y={contextMenu.y}
-          isWatched={isEpisodeWatched(contextMenu.episode.episodeNumber)}
+          isWatched={isEpisodeWatched(contextMenu.episode)}
           onToggleWatched={() => {
-            const watched = isEpisodeWatched(contextMenu.episode.episodeNumber);
-            toggleEpisodeWatched?.(activeSeason, contextMenu.episode.episodeNumber, !watched);
+            const watched = isEpisodeWatched(contextMenu.episode);
+            void toggleEpisodeWatched?.(contextMenu.episode, !watched);
             setContextMenu(null);
           }}
           onClose={() => setContextMenu(null)}
@@ -237,7 +288,8 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
           isOpen={showAllEpisodesPopup}
           onClose={() => setShowAllEpisodesPopup(false)}
           title={mediaTitle || t("seasons.episodeSelection")}
-          seasonNumber={activeSeason}
+          seasonNumber={activeGroup?.displayNumber ?? activeSeason}
+          groupTitle={usesArmLayout ? activeGroup?.title : undefined}
           episodes={episodes}
           isEpisodeWatched={isEpisodeWatched}
         />

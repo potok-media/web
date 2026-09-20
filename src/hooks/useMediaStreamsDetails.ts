@@ -92,7 +92,19 @@ export function useMediaStreamsDetails({
         const epNum = mapped.episode;
         let isWatched = false;
 
-        if (sNum !== undefined && epNum !== undefined) {
+        if (mapped.episodeId) {
+          isWatched = currentMedia?.progress?.watchedEpisodeIds?.includes(mapped.episodeId) === true;
+          if (!isWatched) {
+            const entry = remoteHistory.find((item) => item.episodeId === mapped.episodeId);
+            if (entry) {
+              isWatched = entry.progressSeconds >= entry.durationSeconds
+                || (entry.durationSeconds > 0
+                  && entry.progressSeconds / entry.durationSeconds >= 0.9);
+            }
+          }
+        }
+
+        if (!isWatched && sNum !== undefined && epNum !== undefined) {
           if (
             currentMedia &&
             String(currentMedia.id) === String(mediaId) &&
