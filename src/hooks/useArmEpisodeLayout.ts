@@ -1,18 +1,36 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ApiClient } from "../network/ApiClient";
-import { canReadArmLayout, type ArmCoverageState, type ArmMediaSummary } from "../network/ArmTypes";
-import { toEpisodeGroupPresentations, type EpisodeGroupPresentation } from "../features/arm/episodeLayoutModel";
+import {
+  canReadArmLayout,
+  type ArmCoverageState,
+  type ArmMediaSummary,
+} from "../network/ArmTypes";
+import {
+  toEpisodeGroupPresentations,
+  toProvisionalGroupPresentations,
+  type EpisodeGroupPresentation,
+} from "../features/arm/episodeLayoutModel";
+import { getArmLayoutCached, getArmResolveCached } from "../features/arm/armLayoutCache";
 
-type ArmEpisodeLayoutState =
-  | { status: "loading"; groups: EpisodeGroupPresentation[]; coverageState: ArmCoverageState }
-  | { status: "arm"; groups: EpisodeGroupPresentation[]; coverageState: ArmCoverageState }
-  | { status: "providerFallback"; groups: EpisodeGroupPresentation[]; coverageState: ArmCoverageState };
+type ArmEpisodeLayoutStatus = "loading" | "arm" | "provisional" | "providerFallback";
+
+interface ArmEpisodeLayoutState {
+  status: ArmEpisodeLayoutStatus;
+  groups: EpisodeGroupPresentation[];
+  coverageState: ArmCoverageState;
+}
 
 interface UseArmEpisodeLayoutOptions {
   tmdbId: number;
-  summary?: ArmMediaSummary;
+  summary?: ArmMediaSummary | null;
+  /** Movies never enter the ARM season flow. */
+  enabled?: boolean;
 }
+
+// Identity hydration on the backend is asynchronous; one delayed re-resolve picks up the real
+// layout once it lands. Never blocks the UI — the provisional/legacy view stays on screen.
+const HYDRATION_RETRY_MS = 45000;
 
 const initialState: ArmEpisodeLayoutState = {
   status: "loading",
@@ -20,65 +38,114 @@ const initialState: ArmEpisodeLayoutState = {
   coverageState: "unresolved",
 };
 
+const providerFallbackState = (coverageState: ArmCoverageState): ArmEpisodeLayoutState => ({
+  status: "providerFallback",
+  groups: [],
+  coverageState,
+});
+
+const isAbort = (error: unknown): boolean =>
+  error instanceof Error && error.name === "AbortError";
+
 /**
- * Resolves Potok identity and loads the Potok Default Ordering. A missing/old ARM endpoint is a normal
- * compatibility state: callers render the existing TMDB season UI through `providerFallback`.
+ * Resolves Potok identity and loads the Potok Default Ordering. A missing/old ARM endpoint is a
+ * normal compatibility state: callers render the existing TMDB season UI through
+ * `providerFallback`. A `providerFallback` resolve carrying a provisional layout renders that
+ * TMDB-cache structure through `provisional` while hydration finishes in the background.
  */
-export function useArmEpisodeLayout({ tmdbId, summary }: UseArmEpisodeLayoutOptions): ArmEpisodeLayoutState {
+export function useArmEpisodeLayout({
+  tmdbId,
+  summary,
+  enabled = true,
+}: UseArmEpisodeLayoutOptions): ArmEpisodeLayoutState {
   const { i18n } = useTranslation();
   const [state, setState] = useState<ArmEpisodeLayoutState>(initialState);
 
+  const summaryWorkId = summary?.workId ?? null;
+  const summaryGraphVersion = summary?.graphVersion ?? null;
+  const summaryCoverageState: ArmCoverageState = summary?.coverageState ?? "unresolved";
+  const summaryPresent = summary != null;
+  const summaryReadable = canReadArmLayout(summary);
+
   useEffect(() => {
-    if (!tmdbId) {
-      setState({ status: "providerFallback", groups: [], coverageState: "providerFallback" });
+    if (!enabled || !tmdbId) {
+      setState(providerFallbackState(summaryReadable ? summaryCoverageState : "providerFallback"));
       return;
     }
 
-    if (summary && !canReadArmLayout(summary)) {
-      setState({ status: "providerFallback", groups: [], coverageState: summary.coverageState });
+    if (summaryPresent && !summaryReadable) {
+      setState(providerFallbackState(summaryCoverageState));
       return;
     }
 
     const controller = new AbortController();
-    setState({ status: "loading", groups: [], coverageState: summary?.coverageState ?? "unresolved" });
+    const { signal } = controller;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const load = async () => {
+    setState({ status: "loading", groups: [], coverageState: summaryCoverageState });
+
+    const scheduleHydrationRetry = (hydrationQueued: boolean | undefined, retry: () => void) => {
+      if (!hydrationQueued || retryTimer || signal.aborted) return;
+      retryTimer = setTimeout(() => {
+        retryTimer = null;
+        if (!signal.aborted) retry();
+      }, HYDRATION_RETRY_MS);
+    };
+
+    const load = async (revalidating = false) => {
       try {
-        let workId = canReadArmLayout(summary) ? summary.workId : null;
+        const locale = i18n.language;
+        const imageBaseUrl = ApiClient.baseURL;
+        let workId = summaryReadable && summaryWorkId ? summaryWorkId : null;
+
         if (!workId) {
-          const resolved = await ApiClient.resolveArmWork(
-            { provider: "tmdb", entityKind: "tv", value: String(tmdbId) },
-            { locale: i18n.language, signal: controller.signal },
-          );
+          const reference = { provider: "tmdb", entityKind: "tv", value: String(tmdbId) };
+          const resolved = await getArmResolveCached(reference, locale, (ifNoneMatch) =>
+            ApiClient.resolveArmWork(reference, { locale, signal, ifNoneMatch }), revalidating);
+          if (signal.aborted) return;
+
+          const provisional = resolved.provisionalLayout;
+          if (resolved.coverageState === "providerFallback" && provisional?.groups.length) {
+            const groups = toProvisionalGroupPresentations(provisional, { imageBaseUrl });
+            if (groups.length > 0) {
+              scheduleHydrationRetry(resolved.hydrationQueued, () => void load(true));
+              setState({ status: "provisional", groups, coverageState: resolved.coverageState });
+              return;
+            }
+          }
+
           workId = resolved.work?.id ?? null;
-        }
-        if (!workId) {
-          setState({ status: "providerFallback", groups: [], coverageState: "providerFallback" });
-          return;
+          if (!workId) {
+            scheduleHydrationRetry(resolved.hydrationQueued, () => void load(true));
+            setState(providerFallbackState(resolved.coverageState));
+            return;
+          }
         }
 
-        const layout = await ApiClient.fetchArmEpisodeLayout(workId, {
-          locale: i18n.language,
-          ordering: "default",
-          signal: controller.signal,
-        });
-        if (controller.signal.aborted) return;
+        const layout = await getArmLayoutCached(workId, "default", locale, (ifNoneMatch) =>
+          ApiClient.fetchArmEpisodeLayout(workId, { locale, ordering: "default", signal, ifNoneMatch }), revalidating);
+        if (signal.aborted) return;
 
-        const groups = toEpisodeGroupPresentations(layout);
+        const groups = toEpisodeGroupPresentations(layout, { imageBaseUrl });
         if (groups.length === 0 || layout.resolutionState === "unresolved") {
-          setState({ status: "providerFallback", groups: [], coverageState: layout.coverageState });
+          setState(providerFallbackState(layout.coverageState));
           return;
         }
         setState({ status: "arm", groups, coverageState: layout.coverageState });
       } catch (error) {
-        if (error instanceof Error && error.name === "AbortError") return;
-        setState({ status: "providerFallback", groups: [], coverageState: "providerFallback" });
+        if (signal.aborted || isAbort(error)) return;
+        setState(providerFallbackState("providerFallback"));
       }
     };
 
     void load();
-    return () => controller.abort();
-  }, [i18n.language, summary, tmdbId]);
+    return () => {
+      controller.abort();
+      if (retryTimer) clearTimeout(retryTimer);
+    };
+    // Depend on summary scalars only — the object identity changes per render once the gateway
+    // ships the `arm` field, and depending on it aborts the in-flight load on every render.
+  }, [enabled, i18n.language, summaryWorkId, summaryGraphVersion, summaryPresent, summaryReadable, summaryCoverageState, tmdbId]);
 
   return state;
 }

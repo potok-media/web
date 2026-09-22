@@ -1,5 +1,6 @@
 import type {
   ArmEpisodeLayoutResponse,
+  ArmGraphVersion,
   ArmProviderReference,
   ArmResolveResponse,
   ArmWorkId,
@@ -17,13 +18,33 @@ export class ArmApiError extends Error {
   }
 }
 
+/**
+ * Raw ARM response. `status: 304` means the caller's `If-None-Match` validator still holds and
+ * `body` is absent — that is a cache hit, not an error.
+ */
+export interface ArmHttpResponse<T> {
+  status: number;
+  etag: string | null;
+  graphVersion: ArmGraphVersion | null;
+  body?: T;
+}
+
+export interface ArmTransportGetOptions {
+  signal?: AbortSignal;
+  ifNoneMatch?: string;
+}
+
 export interface ArmHttpTransport {
-  get<T>(path: string, options?: { signal?: AbortSignal }): Promise<T>;
+  get<T>(
+    path: string,
+    options?: ArmTransportGetOptions,
+  ): Promise<ArmHttpResponse<T>>;
 }
 
 export interface ArmRequestOptions {
   locale?: string;
   signal?: AbortSignal;
+  ifNoneMatch?: string;
 }
 
 export interface ArmLayoutRequestOptions extends ArmRequestOptions {
@@ -31,12 +52,18 @@ export interface ArmLayoutRequestOptions extends ArmRequestOptions {
 }
 
 export interface ArmClient {
-  resolveWork(reference: ArmProviderReference, options?: ArmRequestOptions): Promise<ArmResolveResponse>;
-  getWork(workId: ArmWorkId, options?: ArmRequestOptions): Promise<ArmWorkResponse>;
+  resolveWork(
+    reference: ArmProviderReference,
+    options?: ArmRequestOptions,
+  ): Promise<ArmHttpResponse<ArmResolveResponse>>;
+  getWork(
+    workId: ArmWorkId,
+    options?: ArmRequestOptions,
+  ): Promise<ArmHttpResponse<ArmWorkResponse>>;
   getEpisodeLayout(
     workId: ArmWorkId,
     options?: ArmLayoutRequestOptions,
-  ): Promise<ArmEpisodeLayoutResponse>;
+  ): Promise<ArmHttpResponse<ArmEpisodeLayoutResponse>>;
 }
 
 function appendQuery(path: string, query: Record<string, string | undefined>): string {
@@ -50,6 +77,11 @@ function appendQuery(path: string, query: Record<string, string | undefined>): s
 
 const segment = (value: string): string => encodeURIComponent(value);
 
+const requestOptions = (options?: ArmRequestOptions) => ({
+  signal: options?.signal,
+  ifNoneMatch: options?.ifNoneMatch,
+});
+
 export function createArmApiClient(transport: ArmHttpTransport): ArmClient {
   return {
     resolveWork(reference, options) {
@@ -59,16 +91,18 @@ export function createArmApiClient(transport: ArmHttpTransport): ArmClient {
         segment(reference.entityKind),
         segment(reference.value),
       ].join("/");
-      return transport.get<ArmResolveResponse>(appendQuery(path, { locale: options?.locale }), {
-        signal: options?.signal,
-      });
+      return transport.get<ArmResolveResponse>(
+        appendQuery(path, { locale: options?.locale }),
+        requestOptions(options),
+      );
     },
 
     getWork(workId, options) {
       const path = `/api/arm/v1/works/${segment(workId)}`;
-      return transport.get<ArmWorkResponse>(appendQuery(path, { locale: options?.locale }), {
-        signal: options?.signal,
-      });
+      return transport.get<ArmWorkResponse>(
+        appendQuery(path, { locale: options?.locale }),
+        requestOptions(options),
+      );
     },
 
     getEpisodeLayout(workId, options) {
@@ -78,7 +112,7 @@ export function createArmApiClient(transport: ArmHttpTransport): ArmClient {
           ordering: options?.ordering ?? "default",
           locale: options?.locale,
         }),
-        { signal: options?.signal },
+        requestOptions(options),
       );
     },
   };

@@ -91,10 +91,37 @@ export interface ArmWorkSummary {
   providerReferences: ArmProviderReference[];
 }
 
+/**
+ * TMDB-cache-built structure published while ARM identity is still hydrating. Episodes carry
+ * display coordinates only — never Potok ids — so clients must treat them as legacy episodes.
+ */
+export interface ArmProvisionalEpisode {
+  displaySeasonNumber?: number | null;
+  displayEpisodeNumber?: number | null;
+  displayTitle?: string | ArmLocalizedText | null;
+  overview?: string | null;
+  stillPath?: string | null;
+  airDate?: string | null;
+}
+
+export interface ArmProvisionalGroup {
+  kind?: string | null;
+  displayNumber?: number | null;
+  sortPosition?: number | null;
+  displayTitle?: string | ArmLocalizedText | null;
+  episodes: ArmProvisionalEpisode[];
+}
+
+export interface ArmProvisionalLayout {
+  groups: ArmProvisionalGroup[];
+}
+
 export interface ArmResolveResponse extends ArmResponseEnvelope {
   query: ArmProviderReference;
   work: ArmWorkSummary | null;
   alternatives: ArmWorkSummary[];
+  provisionalLayout?: ArmProvisionalLayout | null;
+  hydrationQueued?: boolean;
 }
 
 export interface ArmWorkResponse extends ArmResponseEnvelope {

@@ -118,6 +118,7 @@ export const MediaDetailsPage: React.FC = () => {
               mediaTitle={media.title}
               numberOfSeasons={media.numberOfSeasons ?? 0}
               arm={media.arm}
+              armEnabled={media.mediaType === "tv"}
               selectedEpisode={selectedEpisode}
               onEpisodeClick={(ep, seasonNum) => {
                 setSelectedEpisode({ episode: ep, seasonNumber: seasonNum });

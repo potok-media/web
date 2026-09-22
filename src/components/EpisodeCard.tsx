@@ -143,7 +143,11 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
         <EpisodeAnnotationBadge annotation={episode.armAnnotation} overlay />
       </div>
       <span className="episode-number-title">
-        {episode.episodeNumber && episode.episodeNumber > 0 ? `${episode.episodeNumber}. ` : ""}{episode.name}
+        {episode.name
+          ? `${episode.episodeNumber && episode.episodeNumber > 0 ? `${episode.episodeNumber}. ` : ""}${episode.name}`
+          : episode.episodeNumber && episode.episodeNumber > 0
+            ? `${episode.episodeNumber}`
+            : ""}
       </span>
       {episode.airDate && (
         <span className="episode-air-date">

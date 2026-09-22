@@ -24,6 +24,8 @@ interface SeasonEpisodesSectionProps {
   mediaTitle?: string;
   numberOfSeasons: number;
   arm?: ArmMediaSummary;
+  /** ARM season layout is TV-only; movies keep the legacy path untouched. */
+  armEnabled?: boolean;
   onEpisodeClick: (episode: TvEpisode, seasonNumber: number) => void;
   selectedEpisode?: { episode: TvEpisode; seasonNumber: number } | null;
   watchedEpisodes?: { season: number; number: number }[];
@@ -42,6 +44,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   mediaId,
   numberOfSeasons,
   arm,
+  armEnabled = true,
   onEpisodeClick,
   selectedEpisode,
   watchedEpisodes = [],
@@ -58,12 +61,23 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   const [showWatchPopover, setShowWatchPopover] = useState(false);
   const [showAllEpisodesPopup, setShowAllEpisodesPopup] = useState(false);
 
-  const armLayout = useArmEpisodeLayout({ tmdbId: mediaId, summary: arm });
-  const usesArmLayout = armLayout.status === "arm";
+  const armLayout = useArmEpisodeLayout({ tmdbId: mediaId, summary: arm, enabled: armEnabled });
+  const usesArmLayout = armLayout.status === "arm" || armLayout.status === "provisional";
   // Preload the legacy season while ARM resolves so an older/uncovered Gateway falls back without a
   // second network waterfall. Once an ARM layout wins, the legacy request is disabled and cached.
   const legacySeason = useSeasonEpisodes(mediaId, activeSeason, !usesArmLayout);
-  const activeGroup = armLayout.groups.find((group) => group.id === activeGroupId) ?? armLayout.groups[0];
+  // Untitled season groups arrive with an empty title and a fallback descriptor — finalize the
+  // localized "Season {number}" string here so the mapper stays i18n-free.
+  const armGroups = useMemo(
+    () => armLayout.groups.map((group) => ({
+      ...group,
+      title: group.title || (group.titleFallback?.kind === "season"
+        ? t("seasons.season", { number: group.titleFallback.number ?? group.displayNumber ?? 0 })
+        : group.title),
+    })),
+    [armLayout.groups, t],
+  );
+  const activeGroup = armGroups.find((group) => group.id === activeGroupId) ?? armGroups[0];
   const episodes = useMemo(
     () => usesArmLayout ? activeGroup?.episodes ?? [] : legacySeason.episodes,
     [activeGroup, legacySeason.episodes, usesArmLayout],
@@ -72,11 +86,11 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   const hasMoreThanCarousel = episodes.length > CAROUSEL_LIMIT;
 
   useEffect(() => {
-    if (!usesArmLayout || armLayout.groups.length === 0) return;
-    if (!activeGroupId || !armLayout.groups.some((group) => group.id === activeGroupId)) {
-      setActiveGroupId(armLayout.groups[0].id);
+    if (!usesArmLayout || armGroups.length === 0) return;
+    if (!activeGroupId || !armGroups.some((group) => group.id === activeGroupId)) {
+      setActiveGroupId(armGroups[0].id);
     }
-  }, [activeGroupId, armLayout.groups, usesArmLayout]);
+  }, [activeGroupId, armGroups, usesArmLayout]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -172,7 +186,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
       <SeasonEpisodesToolbar
         activeSeason={activeSeason}
         numberOfSeasons={numberOfSeasons}
-        episodeGroups={usesArmLayout ? armLayout.groups : undefined}
+        episodeGroups={usesArmLayout ? armGroups : undefined}
         activeGroupId={activeGroup?.id}
         setActiveGroupId={setActiveGroupId}
         showSeasonPopover={showSeasonPopover}
@@ -183,7 +197,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
         showWatchPopover={showWatchPopover}
         setShowWatchPopover={setShowWatchPopover}
         toggleSeasonWatched={handleToggleDisplayedGroup}
-        onOpenMultiPicker={usesArmLayout ? undefined : onOpenMultiPicker}
+        onOpenMultiPicker={armLayout.status === "arm" ? undefined : onOpenMultiPicker}
         showAllEpisodes={!loading && hasMoreThanCarousel}
         onOpenAllEpisodes={() => setShowAllEpisodesPopup(true)}
       />
@@ -224,7 +238,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
               const watched = isEpisodeWatched(ep);
               return (
                 <EpisodeCard
-                  key={ep.armEpisodeId ?? ep.id}
+                  key={ep.armEpisodeId ?? `${activeGroup?.id ?? activeSeason}-${ep.armOrdinal ?? ep.id}`}
                   episode={ep}
                   onClick={handleEpisodeClick}
                   isActive={selectedEpisode?.episode.id === ep.id}

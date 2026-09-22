@@ -3,7 +3,7 @@ import { SettingsService } from "../utils/SettingsService";
 import { MemorySafeCache } from "./MemorySafeCache";
 import { SyncApiClient } from "./SyncApiClient";
 import { ensureAbsoluteURL, handleApiResponse } from "./apiClientHelpers";
-import { createArmApiClient, type ArmLayoutRequestOptions, type ArmRequestOptions } from "./ArmApiClient";
+import { createArmApiClient, type ArmHttpResponse, type ArmLayoutRequestOptions, type ArmRequestOptions, type ArmTransportGetOptions } from "./ArmApiClient";
 import { ApiError } from "./ApiTypes";
 import { webSocketClient } from "./WebSocketClient";
 import type { ExtensionManifest } from "@potok/sdk-types";
@@ -197,12 +197,25 @@ export class ApiClient {
 
   private static armClient() {
     return createArmApiClient({
-      get: async <T>(path: string, options?: { signal?: AbortSignal }): Promise<T> => {
+      get: async <T>(
+        path: string,
+        options?: ArmTransportGetOptions,
+      ): Promise<ArmHttpResponse<T>> => {
+        const headers = new Headers(this.headers);
+        if (options?.ifNoneMatch) {
+          headers.set("If-None-Match", options.ifNoneMatch);
+        }
         const res = await fetch(`${this.baseURL}${path}`, {
-          headers: this.headers,
+          headers,
           signal: options?.signal,
         });
-        return handleApiResponse<T>(res, "Failed to read Potok ARM");
+        const etag = res.headers.get("ETag");
+        const graphVersion = res.headers.get("X-Arm-Graph-Version");
+        if (res.status === 304) {
+          return { status: 304, etag, graphVersion };
+        }
+        const body = await handleApiResponse<T>(res, "Failed to read Potok ARM");
+        return { status: res.status, etag, graphVersion, body };
       },
     });
   }
@@ -210,7 +223,7 @@ export class ApiClient {
   public static resolveArmWork(
     reference: ArmProviderReference,
     options?: ArmRequestOptions,
-  ): Promise<ArmResolveResponse> {
+  ): Promise<ArmHttpResponse<ArmResolveResponse>> {
     return this.armClient().resolveWork(reference, {
       ...options,
       locale: options?.locale ?? this.language,
@@ -220,7 +233,7 @@ export class ApiClient {
   public static fetchArmWork(
     workId: ArmWorkId,
     options?: ArmRequestOptions,
-  ): Promise<ArmWorkResponse> {
+  ): Promise<ArmHttpResponse<ArmWorkResponse>> {
     return this.armClient().getWork(workId, {
       ...options,
       locale: options?.locale ?? this.language,
@@ -230,7 +243,7 @@ export class ApiClient {
   public static fetchArmEpisodeLayout(
     workId: ArmWorkId,
     options?: ArmLayoutRequestOptions,
-  ): Promise<ArmEpisodeLayoutResponse> {
+  ): Promise<ArmHttpResponse<ArmEpisodeLayoutResponse>> {
     return this.armClient().getEpisodeLayout(workId, {
       ...options,
       locale: options?.locale ?? this.language,
