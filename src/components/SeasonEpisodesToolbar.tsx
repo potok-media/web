@@ -1,13 +1,14 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, Tv, Check, Eye, ListTodo, LayoutList } from "lucide-react";
 import type { TvEpisode } from "../network/ApiTypes";
 import { Button, IconButton, PopoverItem } from "./ui";
+import { groupKindLabel, orderGroupsByKind } from "./seasonGroupLabels";
 
 interface SeasonEpisodesToolbarProps {
   activeSeason: number;
   numberOfSeasons: number;
-  episodeGroups?: { id: string; title: string }[];
+  episodeGroups?: { id: string; title: string; kind?: string }[];
   activeGroupId?: string;
   setActiveGroupId?: (groupId: string) => void;
   showSeasonPopover: boolean;
@@ -44,6 +45,21 @@ export const SeasonEpisodesToolbar: React.FC<SeasonEpisodesToolbarProps> = ({
   const { t } = useTranslation("media");
   const activeGroup = episodeGroups?.find((group) => group.id === activeGroupId);
 
+  // Cluster the flat group list by kind (seasons first, then specials/movies/ova/…) so a mixed
+  // anime layout doesn't interleave specials between numbered seasons. Headers only appear when
+  // more than one kind is present.
+  const groupClusters = useMemo(() => {
+    if (!episodeGroups?.length) return [];
+    const clusters: { kind: string; groups: { id: string; title: string; kind?: string }[] }[] = [];
+    for (const group of orderGroupsByKind(episodeGroups)) {
+      const kind = group.kind ?? "season";
+      const last = clusters[clusters.length - 1];
+      if (last && last.kind === kind) last.groups.push(group);
+      else clusters.push({ kind, groups: [group] });
+    }
+    return clusters;
+  }, [episodeGroups]);
+
   return (
     <div className="season-selector-row">
       <div className="season-select-wrapper">
@@ -62,20 +78,27 @@ export const SeasonEpisodesToolbar: React.FC<SeasonEpisodesToolbarProps> = ({
             <div className="popover-overlay" onClick={() => setShowSeasonPopover(false)} />
             <div className="season-popover-menu">
               {episodeGroups?.length
-                ? episodeGroups.map((group) => (
-                    <PopoverItem
-                      key={group.id}
-                      active={activeGroupId === group.id}
-                      className="season-popover-item"
-                      onClick={() => {
-                        setActiveGroupId?.(group.id);
-                        setShowSeasonPopover(false);
-                      }}
-                    >
-                      <Tv size="1rem" className="season-item-icon" />
-                      <span>{group.title}</span>
-                      {activeGroupId === group.id && <Check size="1rem" className="season-active-check" />}
-                    </PopoverItem>
+                ? groupClusters.map((cluster) => (
+                    <React.Fragment key={cluster.kind}>
+                      {groupClusters.length > 1 && (
+                        <div className="popover-header">{groupKindLabel(cluster.kind, t)}</div>
+                      )}
+                      {cluster.groups.map((group) => (
+                        <PopoverItem
+                          key={group.id}
+                          active={activeGroupId === group.id}
+                          className="season-popover-item"
+                          onClick={() => {
+                            setActiveGroupId?.(group.id);
+                            setShowSeasonPopover(false);
+                          }}
+                        >
+                          <Tv size="1rem" className="season-item-icon" />
+                          <span>{group.title}</span>
+                          {activeGroupId === group.id && <Check size="1rem" className="season-active-check" />}
+                        </PopoverItem>
+                      ))}
+                    </React.Fragment>
                   ))
                 : Array.from({ length: numberOfSeasons }).map((_, idx) => {
                     const sNum = idx + 1;

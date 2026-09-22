@@ -14,6 +14,7 @@ import { EpisodeContextMenu } from "./EpisodeContextMenu";
 import { EpisodesListPopup } from "./EpisodesListPopup";
 import { LayoutList } from "lucide-react";
 import { isEpisodeWatched as episodeIsWatched } from "../features/arm/episodeHistoryModel";
+import { finalizeGroupTitle, orderGroupsByKind } from "./seasonGroupLabels";
 
 // Cap the carousel so long seasons don't render hundreds of cards or force endless scrolling.
 // When a season has more episodes, the last slot becomes an "All" card that opens the full list popup.
@@ -66,14 +67,14 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   // Preload the legacy season while ARM resolves so an older/uncovered Gateway falls back without a
   // second network waterfall. Once an ARM layout wins, the legacy request is disabled and cached.
   const legacySeason = useSeasonEpisodes(mediaId, activeSeason, !usesArmLayout);
-  // Untitled season groups arrive with an empty title and a fallback descriptor — finalize the
-  // localized "Season {number}" string here so the mapper stays i18n-free.
+  // Untitled groups arrive with an empty title and a fallback descriptor — finalize the
+  // localized per-kind label ("Season {number}", "Specials", …) here so the mapper stays
+  // i18n-free. Kind-priority ordering keeps seasons ahead of specials/movies/ova, so the
+  // default selection stays the first season even when specials sort first by position.
   const armGroups = useMemo(
-    () => armLayout.groups.map((group) => ({
+    () => orderGroupsByKind(armLayout.groups).map((group) => ({
       ...group,
-      title: group.title || (group.titleFallback?.kind === "season"
-        ? t("seasons.season", { number: group.titleFallback.number ?? group.displayNumber ?? 0 })
-        : group.title),
+      title: finalizeGroupTitle(group, t),
     })),
     [armLayout.groups, t],
   );

@@ -193,6 +193,52 @@ describe("ARM episode layout presentation", () => {
     expect(specials.titleFallback).toBeUndefined();
   });
 
+  it("defers untitled specials/movie groups to a kind-aware localized fallback", () => {
+    const layout: ArmEpisodeLayoutResponse = {
+      graphVersion: "graph-12",
+      resolutionState: "resolved",
+      coverageState: "complete",
+      warnings: [],
+      workId: "work-6",
+      ordering: { id: "ordering-default", kind: "potokDefault", isDefault: true },
+      groups: [
+        {
+          id: "specials-0",
+          kind: "specials",
+          displayNumber: 0,
+          sortPosition: 1,
+          displayTitle: null,
+          episodes: [],
+        },
+        {
+          id: "movie-1",
+          kind: "movie",
+          displayNumber: 1,
+          sortPosition: 2,
+          displayTitle: null,
+          episodes: [],
+        },
+        {
+          id: "cour-x",
+          kind: "cour",
+          sortPosition: 3,
+          displayTitle: null,
+          episodes: [],
+        },
+      ],
+    };
+
+    const [specials, movie, cour] = toEpisodeGroupPresentations(layout);
+
+    expect(specials.title).toBe("");
+    expect(specials.titleFallback).toEqual({ kind: "specials", number: 0 });
+    expect(movie.title).toBe("");
+    expect(movie.titleFallback).toEqual({ kind: "movie", number: 1 });
+    // Unknown kinds still defer with their raw kind — the component renders it as-is.
+    expect(cour.title).toBe("");
+    expect(cour.titleFallback).toEqual({ kind: "cour", number: null });
+  });
+
   it("keeps decimal display numbers for split episodes", () => {
     const layout: ArmEpisodeLayoutResponse = {
       graphVersion: "graph-10",
@@ -333,5 +379,32 @@ describe("ARM episode layout presentation", () => {
       stillPath: "http://localhost:5001/media/tmdb/t/p/w500/prov.jpg",
     });
     expect(second.episodes[0].armEpisodeId).toBeUndefined();
+  });
+
+  it("defers untitled provisional specials groups (TMDB season 0) to the kind fallback", () => {
+    const groups = toProvisionalGroupPresentations({
+      groups: [
+        {
+          kind: "specials",
+          displayNumber: 0,
+          sortPosition: 0,
+          displayTitle: null,
+          episodes: [{ displaySeasonNumber: 0, displayEpisodeNumber: 1, displayTitle: null }],
+        },
+        {
+          kind: "movie",
+          displayNumber: null,
+          sortPosition: 1,
+          displayTitle: null,
+          episodes: [{ displaySeasonNumber: null, displayEpisodeNumber: 1, displayTitle: null }],
+        },
+      ],
+    });
+
+    expect(groups[0].kind).toBe("specials");
+    expect(groups[0].title).toBe("");
+    expect(groups[0].titleFallback).toEqual({ kind: "specials", number: 0 });
+    expect(groups[1].kind).toBe("movie");
+    expect(groups[1].titleFallback).toEqual({ kind: "movie", number: null });
   });
 });

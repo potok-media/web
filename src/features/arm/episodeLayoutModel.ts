@@ -13,7 +13,8 @@ import { resizeTmdbImage } from "../../utils/mediaUtils";
 const STILL_SIZE = "w500";
 
 export interface EpisodeGroupTitleFallback {
-  kind: "season";
+  /** Canonical backend taxonomy: season | specials | movie | ova | credits | trailers | parodies. */
+  kind: string;
   number: number | null;
 }
 
@@ -21,7 +22,7 @@ export interface EpisodeGroupPresentation {
   id: string;
   kind: string;
   title: string;
-  /** Set when the title must be finalized by the component (localized "Season {number}"). */
+  /** Set when the title must be finalized by the component (localized per group kind). */
   titleFallback?: EpisodeGroupTitleFallback;
   displayNumber?: number | null;
   episodes: TvEpisode[];
@@ -97,13 +98,11 @@ function groupTitle(group: {
 }): { title: string; titleFallback?: EpisodeGroupTitleFallback } {
   const explicit = textValue(group.displayTitle) ?? firstName(group.names);
   if (explicit) return { title: explicit };
-  if (group.kind === "season") {
-    return {
-      title: "",
-      titleFallback: { kind: "season", number: finiteNumber(group.displayNumber) ?? null },
-    };
-  }
-  return { title: group.kind };
+  // Any untitled group defers to the component for a localized label keyed by its actual kind.
+  return {
+    title: "",
+    titleFallback: { kind: group.kind, number: finiteNumber(group.displayNumber) ?? null },
+  };
 }
 
 export function toEpisodeGroupPresentations(
