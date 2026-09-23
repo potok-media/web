@@ -177,13 +177,17 @@ export const StreamList: React.FC<StreamListProps> = ({
         {showSkeletons ? (
           <StreamSkeletonList />
         ) : displayStreams.length > 0 ? (
-          displayStreams.map((item, index) => (
-            <StreamRowComponent
-              key={`${item.ui.id || "stream"}-${index}`}
-              stream={item.ui}
-              onClick={handleSelectStream}
-            />
-          ))
+          <>
+            {displayStreams.map((item, index) => (
+              <StreamRowComponent
+                key={item.ui.id || `stream-${index}`}
+                stream={item.ui}
+                onClick={handleSelectStream}
+              />
+            ))}
+            {/* Keep the skeleton pulsing at the bottom until the stream fully completes. */}
+            {inFlight && <StreamSkeletonList />}
+          </>
         ) : showEmpty ? (
           <div className="stream-empty-state stream-empty-state--padded">
             <ShieldAlert size="2.5rem" opacity={0.5} />

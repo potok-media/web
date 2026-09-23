@@ -171,6 +171,10 @@ export function useMediaStreamsSourceSearch({
     }
     resultsCache.current.delete(activeTab);
     shouldForceNextSearchRef.current = true;
+    // Clear stale rows immediately so the skeleton shows until the first batch arrives.
+    setStreams([]);
+    setLoading(true);
+    setSearchStartedAt(Date.now());
     setRefreshTrigger((prev) => prev + 1);
   }, [activeTab, loading]);
 
