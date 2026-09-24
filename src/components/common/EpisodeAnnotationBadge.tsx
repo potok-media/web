@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import type { ArmEpisodeAnnotationSummary } from "../../network/ArmTypes";
+import { resolveEpisodeAnnotationBadge } from "./episodeAnnotationBadgeModel";
 
 interface EpisodeAnnotationBadgeProps {
   annotation?: ArmEpisodeAnnotationSummary | null;
@@ -12,22 +13,19 @@ export const EpisodeAnnotationBadge: React.FC<EpisodeAnnotationBadgeProps> = ({
   overlay = false,
 }) => {
   const { t } = useTranslation("media");
-  if (!annotation || (annotation.relation !== "filler" && annotation.relation !== "mixed")) {
+  const badge = resolveEpisodeAnnotationBadge(annotation);
+  if (!badge) {
     return null;
   }
 
-  const label = annotation.relation === "filler"
-    ? t("episode.annotationFiller")
-    : t("episode.annotationMixed");
-  const confidence = Math.round(Math.max(0, Math.min(1, annotation.confidence)) * 100);
-  const disputed = annotation.resolutionState === "disputed";
-  const title = disputed
-    ? t("episode.annotationDisputedTitle", { label, confidence })
-    : t("episode.annotationTitle", { label, confidence });
+  const label = t(badge.labelKey);
+  const title = badge.disputed
+    ? t("episode.annotationDisputedTitle", { label, confidence: badge.confidencePercent })
+    : t("episode.annotationTitle", { label, confidence: badge.confidencePercent });
 
   return (
     <span
-      className={`episode-annotation-badge${overlay ? " episode-annotation-badge--overlay" : ""}${disputed ? " episode-annotation-badge--disputed" : ""}`}
+      className={`episode-annotation-badge episode-annotation-badge--${badge.tone}${overlay ? " episode-annotation-badge--overlay" : ""}${badge.disputed ? " episode-annotation-badge--disputed" : ""}`}
       title={title}
     >
       {label}

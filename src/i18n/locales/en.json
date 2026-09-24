@@ -420,6 +420,7 @@
       "backToShow": "Back to series overview",
       "annotationFiller": "Filler",
       "annotationMixed": "Mixed",
+      "annotationRecap": "Recap",
       "annotationTitle": "{{label}} · {{confidence}}% confidence",
       "annotationDisputedTitle": "{{label}} · disputed data · {{confidence}}% confidence"
     },

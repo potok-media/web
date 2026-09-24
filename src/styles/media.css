@@ -4906,12 +4906,24 @@ button.popover-item.season-popover-item.active .season-item-icon {
   align-items: center;
   width: fit-content;
   padding: 0.1875rem 0.5rem;
-  border: 0.0625rem solid var(--warning-border);
+  border: 0.0625rem solid transparent;
   border-radius: var(--radius-full);
-  background: var(--warning-dim);
-  color: var(--warning);
   font: var(--font-caption-bold);
   white-space: nowrap;
+}
+
+/* filler: the viewer likely wants to skip — warning tone. */
+.episode-annotation-badge--warning {
+  border-color: var(--warning-border);
+  background: var(--warning-dim);
+  color: var(--warning);
+}
+
+/* mixed/recap: worth knowing, not a warning — neutral attention tone. */
+.episode-annotation-badge--neutral {
+  border-color: var(--accent-semi);
+  background: var(--accent-dim);
+  color: var(--accent);
 }
 
 .episode-annotation-badge--overlay {

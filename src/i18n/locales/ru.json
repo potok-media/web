@@ -428,6 +428,7 @@
       "backToShow": "Вернуться к описанию сериала",
       "annotationFiller": "Филлер",
       "annotationMixed": "Смешанный",
+      "annotationRecap": "Рекап",
       "annotationTitle": "{{label}} · уверенность {{confidence}}%",
       "annotationDisputedTitle": "{{label}} · данные оспариваются · уверенность {{confidence}}%"
     },
