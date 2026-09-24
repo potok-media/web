@@ -4858,6 +4858,15 @@ button.popover-item.season-popover-item.active {
 .season-item-icon,
 .watch-item-icon {
   opacity: 0.7;
+  flex-shrink: 0;
+}
+
+button.popover-item.season-popover-item > span,
+button.popover-item.watch-popover-item > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 button.popover-item.season-popover-item.active .season-item-icon {
