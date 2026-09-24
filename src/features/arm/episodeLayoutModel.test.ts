@@ -228,7 +228,16 @@ describe("ARM episode layout presentation", () => {
           displayNumber: 0,
           sortPosition: 1,
           displayTitle: null,
-          episodes: [],
+          episodes: [
+            {
+              id: "specials-0-ep",
+              groupId: "specials-0",
+              ordinal: "1",
+              sortPosition: 1,
+              displayTitle: { value: "Special One", requestedLocale: "en", resolvedLocale: "en", role: "official", usedFallback: false },
+              providerReferences: [],
+            },
+          ],
         },
         {
           id: "movie-1",
@@ -236,7 +245,16 @@ describe("ARM episode layout presentation", () => {
           displayNumber: 1,
           sortPosition: 2,
           displayTitle: null,
-          episodes: [],
+          episodes: [
+            {
+              id: "movie-1-ep",
+              groupId: "movie-1",
+              ordinal: "1",
+              sortPosition: 1,
+              displayTitle: { value: "Movie One", requestedLocale: "en", resolvedLocale: "en", role: "official", usedFallback: false },
+              providerReferences: [],
+            },
+          ],
         },
         {
           id: "cour-x",
@@ -252,22 +270,22 @@ describe("ARM episode layout presentation", () => {
 
     // A lone group of a collapsed kind still gets the synthetic id and the number-less kind
     // fallback, so the component renders the generic localized label ("Спешлы" / "Фильмы").
-    expect(specials).toEqual({
+    expect(specials).toMatchObject({
       id: "collapsed-specials",
       kind: "specials",
       title: "",
       titleFallback: { kind: "specials", number: null },
       displayNumber: null,
-      episodes: [],
     });
-    expect(movie).toEqual({
+    expect(specials.episodes.map((episode) => episode.id)).toEqual(["specials-0-ep"]);
+    expect(movie).toMatchObject({
       id: "collapsed-movie",
       kind: "movie",
       title: "",
       titleFallback: { kind: "movie", number: null },
       displayNumber: null,
-      episodes: [],
     });
+    expect(movie.episodes.map((episode) => episode.id)).toEqual(["movie-1-ep"]);
     // Unknown kinds stay individual and still defer with their raw kind.
     expect(cour.id).toBe("cour-x");
     expect(cour.title).toBe("");
@@ -424,14 +442,14 @@ describe("ARM episode layout presentation", () => {
           displayNumber: 0,
           sortPosition: 0,
           displayTitle: null,
-          episodes: [{ displaySeasonNumber: 0, displayEpisodeNumber: 1, displayTitle: null }],
+          episodes: [{ displaySeasonNumber: 0, displayEpisodeNumber: 1, displayTitle: "Special One" }],
         },
         {
           kind: "movie",
           displayNumber: null,
           sortPosition: 1,
           displayTitle: null,
-          episodes: [{ displaySeasonNumber: null, displayEpisodeNumber: 1, displayTitle: null }],
+          episodes: [{ displaySeasonNumber: null, displayEpisodeNumber: 1, displayTitle: "Movie One" }],
         },
       ],
     });
@@ -475,7 +493,13 @@ describe("ARM episode group collapsing", () => {
           groupId: group.id,
           ordinal: episode.ordinal ?? episode.id,
           sortPosition: episode.sortPosition,
-          displayTitle: null,
+          displayTitle: {
+            value: `Title ${episode.id}`,
+            requestedLocale: "en",
+            resolvedLocale: "en",
+            role: "official",
+            usedFallback: false,
+          },
           providerReferences: [],
         })),
       })),
@@ -607,5 +631,81 @@ describe("ARM episode group collapsing", () => {
     expect(finalizeGroupTitle(groups[1], tRu)).toBe("Фильмы");
     expect(finalizeGroupTitle(groups[0], tEn)).toBe("Specials");
     expect(finalizeGroupTitle(groups[1], tEn)).toBe("Movies");
+  });
+
+  it("drops episodes with neither a title nor a still from collapsed entries", () => {
+    const groups = toEpisodeGroupPresentations(
+      layoutWith([
+        {
+          id: "movie-1",
+          kind: "movie",
+          sortPosition: 1,
+          episodes: [
+            { id: "mv-titled", sortPosition: 1 },
+            { id: "mv-empty", sortPosition: 2 },
+          ],
+        },
+      ]),
+    );
+    // The fixture titles every episode; strip the second one down to a bare number card.
+    const [collapsed] = groups;
+    expect(collapsed.episodes.map((episode) => episode.id)).toEqual(["mv-titled", "mv-empty"]);
+
+    const bare = toEpisodeGroupPresentations({
+      ...layoutWith([]),
+      groups: [
+        {
+          id: "movie-1",
+          kind: "movie",
+          sortPosition: 1,
+          displayTitle: null,
+          episodes: [
+            {
+              id: "mv-titled",
+              groupId: "movie-1",
+              ordinal: "1",
+              sortPosition: 1,
+              displayTitle: null,
+              stillPath: "/still.jpg",
+              providerReferences: [],
+            },
+            {
+              id: "mv-empty",
+              groupId: "movie-1",
+              ordinal: "2",
+              sortPosition: 2,
+              displayTitle: null,
+              providerReferences: [],
+            },
+          ],
+        },
+      ],
+    });
+    expect(bare[0].episodes.map((episode) => episode.id)).toEqual(["mv-titled"]);
+  });
+
+  it("skips the collapsed entry entirely when no episode is displayable", () => {
+    const groups = toEpisodeGroupPresentations({
+      ...layoutWith([]),
+      groups: [
+        {
+          id: "specials-1",
+          kind: "specials",
+          sortPosition: 1,
+          displayTitle: null,
+          episodes: [
+            {
+              id: "sp-empty",
+              groupId: "specials-1",
+              ordinal: "1",
+              sortPosition: 1,
+              displayTitle: null,
+              providerReferences: [],
+            },
+          ],
+        },
+      ],
+    });
+    expect(groups).toEqual([]);
   });
 });

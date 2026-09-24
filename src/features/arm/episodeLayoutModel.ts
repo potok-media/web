@@ -119,6 +119,17 @@ const COLLAPSED_GROUP_KINDS = new Set(["specials", "movie"]);
  * history and streams wiring keep working. The empty title plus a number-less kind fallback makes
  * the component render the generic localized kind label ("Спешлы" / "Фильмы").
  */
+/**
+ * A collapsed Films/Specials card is an independent item: with neither a title nor a still
+ * it renders as a bare "1" and carries no information, so it is dropped (owner's rule).
+ * The ordinal-echo fallback name ("1" from ordinal "1") does not count as a title.
+ */
+function isDisplayableEpisode(episode: TvEpisode): boolean {
+  if (episode.stillPath) return true;
+  if (!episode.name) return false;
+  return episode.name !== episode.armOrdinal && episode.name !== String(episode.episodeNumber);
+}
+
 export function collapseKindGroupPresentations(
   groups: EpisodeGroupPresentation[],
 ): EpisodeGroupPresentation[] {
@@ -130,6 +141,9 @@ export function collapseKindGroupPresentations(
       continue;
     }
     let collapsed = collapsedByKind.get(group.kind);
+    const displayable = group.episodes.filter(isDisplayableEpisode);
+    if (!collapsed && displayable.length === 0)
+      continue;
     if (!collapsed) {
       collapsed = {
         id: `collapsed-${group.kind}`,
@@ -142,7 +156,7 @@ export function collapseKindGroupPresentations(
       collapsedByKind.set(group.kind, collapsed);
       result.push(collapsed);
     }
-    collapsed.episodes.push(...group.episodes);
+    collapsed.episodes.push(...displayable);
   }
   return result;
 }
