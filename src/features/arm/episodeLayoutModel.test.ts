@@ -1,6 +1,26 @@
 import { describe, expect, it } from "vitest";
+import type { TFunction } from "i18next";
 import type { ArmEpisodeLayoutResponse } from "../../network/ArmTypes";
 import { toEpisodeGroupPresentations, toProvisionalGroupPresentations } from "./episodeLayoutModel";
+import { finalizeGroupTitle, orderGroupsByKind } from "../../components/seasonGroupLabels";
+import enTranslations from "../../i18n/locales/en.json";
+import ruTranslations from "../../i18n/locales/ru.json";
+
+/** Minimal `t` over the bundled locale JSON — enough for the plain-string `media.seasons` keys. */
+function translatorFor(translations: typeof enTranslations): TFunction<"media"> {
+  return ((key: string) => {
+    const value = key
+      .split(".")
+      .reduce<unknown>(
+        (node, part) => (node as Record<string, unknown> | undefined)?.[part],
+        translations.media,
+      );
+    return typeof value === "string" ? value : key;
+  }) as TFunction<"media">;
+}
+
+const tEn = translatorFor(enTranslations);
+const tRu = translatorFor(ruTranslations);
 
 describe("ARM episode layout presentation", () => {
   it("keeps Potok group and episode identities while exposing TMDB only as a projection", () => {
@@ -193,7 +213,7 @@ describe("ARM episode layout presentation", () => {
     expect(specials.titleFallback).toBeUndefined();
   });
 
-  it("defers untitled specials/movie groups to a kind-aware localized fallback", () => {
+  it("collapses untitled specials/movie groups into one kind-labeled entry each", () => {
     const layout: ArmEpisodeLayoutResponse = {
       graphVersion: "graph-12",
       resolutionState: "resolved",
@@ -230,11 +250,26 @@ describe("ARM episode layout presentation", () => {
 
     const [specials, movie, cour] = toEpisodeGroupPresentations(layout);
 
-    expect(specials.title).toBe("");
-    expect(specials.titleFallback).toEqual({ kind: "specials", number: 0 });
-    expect(movie.title).toBe("");
-    expect(movie.titleFallback).toEqual({ kind: "movie", number: 1 });
-    // Unknown kinds still defer with their raw kind — the component renders it as-is.
+    // A lone group of a collapsed kind still gets the synthetic id and the number-less kind
+    // fallback, so the component renders the generic localized label ("Спешлы" / "Фильмы").
+    expect(specials).toEqual({
+      id: "collapsed-specials",
+      kind: "specials",
+      title: "",
+      titleFallback: { kind: "specials", number: null },
+      displayNumber: null,
+      episodes: [],
+    });
+    expect(movie).toEqual({
+      id: "collapsed-movie",
+      kind: "movie",
+      title: "",
+      titleFallback: { kind: "movie", number: null },
+      displayNumber: null,
+      episodes: [],
+    });
+    // Unknown kinds stay individual and still defer with their raw kind.
+    expect(cour.id).toBe("cour-x");
     expect(cour.title).toBe("");
     expect(cour.titleFallback).toEqual({ kind: "cour", number: null });
   });
@@ -381,7 +416,7 @@ describe("ARM episode layout presentation", () => {
     expect(second.episodes[0].armEpisodeId).toBeUndefined();
   });
 
-  it("defers untitled provisional specials groups (TMDB season 0) to the kind fallback", () => {
+  it("collapses untitled provisional specials groups (TMDB season 0) into kind-labeled entries", () => {
     const groups = toProvisionalGroupPresentations({
       groups: [
         {
@@ -401,10 +436,176 @@ describe("ARM episode layout presentation", () => {
       ],
     });
 
+    expect(groups[0].id).toBe("collapsed-specials");
     expect(groups[0].kind).toBe("specials");
     expect(groups[0].title).toBe("");
-    expect(groups[0].titleFallback).toEqual({ kind: "specials", number: 0 });
+    expect(groups[0].titleFallback).toEqual({ kind: "specials", number: null });
+    expect(groups[0].episodes.map((episode) => episode.id)).toEqual(["provisional-0-1"]);
+    expect(groups[1].id).toBe("collapsed-movie");
     expect(groups[1].kind).toBe("movie");
     expect(groups[1].titleFallback).toEqual({ kind: "movie", number: null });
+  });
+});
+
+describe("ARM episode group collapsing", () => {
+  function layoutWith(
+    groups: {
+      id: string;
+      kind: string;
+      sortPosition: number;
+      displayNumber?: number;
+      episodes: { id: string; sortPosition: number; ordinal?: string }[];
+    }[],
+  ): ArmEpisodeLayoutResponse {
+    return {
+      graphVersion: "graph-20",
+      resolutionState: "resolved",
+      coverageState: "complete",
+      warnings: [],
+      workId: "work-20",
+      ordering: { id: "ordering-default", kind: "potokDefault", isDefault: true },
+      groups: groups.map((group) => ({
+        id: group.id,
+        kind: group.kind,
+        displayNumber: group.displayNumber,
+        sortPosition: group.sortPosition,
+        displayTitle: null,
+        episodes: group.episodes.map((episode) => ({
+          id: episode.id,
+          groupId: group.id,
+          ordinal: episode.ordinal ?? episode.id,
+          sortPosition: episode.sortPosition,
+          displayTitle: null,
+          providerReferences: [],
+        })),
+      })),
+    };
+  }
+
+  it("merges multiple movie groups into one entry with episodes in stable group-then-episode order", () => {
+    const groups = toEpisodeGroupPresentations(
+      layoutWith([
+        {
+          id: "movie-2",
+          kind: "movie",
+          sortPosition: 2,
+          episodes: [
+            { id: "movie-2-ep-b", sortPosition: 2 },
+            { id: "movie-2-ep-a", sortPosition: 1 },
+          ],
+        },
+        {
+          id: "movie-1",
+          kind: "movie",
+          sortPosition: 1,
+          episodes: [
+            { id: "movie-1-ep-b", sortPosition: 2 },
+            { id: "movie-1-ep-a", sortPosition: 1 },
+          ],
+        },
+      ]),
+    );
+
+    expect(groups).toHaveLength(1);
+    const [collapsed] = groups;
+    expect(collapsed.id).toBe("collapsed-movie");
+    expect(collapsed.kind).toBe("movie");
+    expect(collapsed.title).toBe("");
+    expect(collapsed.titleFallback).toEqual({ kind: "movie", number: null });
+    expect(collapsed.episodes.map((episode) => episode.id)).toEqual([
+      "movie-1-ep-a",
+      "movie-1-ep-b",
+      "movie-2-ep-a",
+      "movie-2-ep-b",
+    ]);
+    // Episode identity stays attached to the source group so watched/history/streams keep working.
+    expect(collapsed.episodes.map((episode) => episode.armEpisodeId)).toEqual([
+      "movie-1-ep-a",
+      "movie-1-ep-b",
+      "movie-2-ep-a",
+      "movie-2-ep-b",
+    ]);
+    expect(collapsed.episodes.map((episode) => episode.armGroupId)).toEqual([
+      "movie-1",
+      "movie-1",
+      "movie-2",
+      "movie-2",
+    ]);
+  });
+
+  it("merges multiple specials groups into one entry", () => {
+    const groups = toEpisodeGroupPresentations(
+      layoutWith([
+        {
+          id: "specials-b",
+          kind: "specials",
+          sortPosition: 2,
+          episodes: [{ id: "special-b-ep", sortPosition: 1 }],
+        },
+        {
+          id: "specials-a",
+          kind: "specials",
+          sortPosition: 1,
+          episodes: [{ id: "special-a-ep", sortPosition: 1 }],
+        },
+      ]),
+    );
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0].id).toBe("collapsed-specials");
+    expect(groups[0].kind).toBe("specials");
+    expect(groups[0].titleFallback).toEqual({ kind: "specials", number: null });
+    expect(groups[0].episodes.map((episode) => episode.armEpisodeId)).toEqual([
+      "special-a-ep",
+      "special-b-ep",
+    ]);
+  });
+
+  it("keeps seasons individual and season-first when specials sort between them", () => {
+    const groups = toEpisodeGroupPresentations(
+      layoutWith([
+        { id: "season-1", kind: "season", sortPosition: 1, displayNumber: 1, episodes: [{ id: "s1e1", sortPosition: 1 }] },
+        { id: "specials-a", kind: "specials", sortPosition: 2, episodes: [{ id: "sp1", sortPosition: 1 }] },
+        { id: "season-2", kind: "season", sortPosition: 3, displayNumber: 2, episodes: [{ id: "s2e1", sortPosition: 1 }] },
+        { id: "specials-b", kind: "specials", sortPosition: 4, episodes: [{ id: "sp2", sortPosition: 1 }] },
+        { id: "movie-1", kind: "movie", sortPosition: 5, episodes: [{ id: "mv1", sortPosition: 1 }] },
+      ]),
+    );
+
+    expect(groups.map((group) => group.id)).toEqual([
+      "season-1",
+      "collapsed-specials",
+      "season-2",
+      "collapsed-movie",
+    ]);
+    // Seasons keep their own ids, numbers and fallback descriptors.
+    expect(groups[0].titleFallback).toEqual({ kind: "season", number: 1 });
+    expect(groups[2].titleFallback).toEqual({ kind: "season", number: 2 });
+    expect(groups[1].episodes.map((episode) => episode.armEpisodeId)).toEqual(["sp1", "sp2"]);
+
+    // Kind-priority ordering (what the section applies before picking the default group) puts both
+    // seasons ahead of the collapsed specials/movies, so the default selection stays a season.
+    const ordered = orderGroupsByKind(groups);
+    expect(ordered.map((group) => group.id)).toEqual([
+      "season-1",
+      "season-2",
+      "collapsed-specials",
+      "collapsed-movie",
+    ]);
+    expect(ordered[0].kind).toBe("season");
+  });
+
+  it("finalizes collapsed entries to the localized kind label via the existing helpers", () => {
+    const groups = toEpisodeGroupPresentations(
+      layoutWith([
+        { id: "specials-a", kind: "specials", sortPosition: 1, episodes: [{ id: "sp1", sortPosition: 1 }] },
+        { id: "movie-1", kind: "movie", sortPosition: 2, episodes: [{ id: "mv1", sortPosition: 1 }] },
+      ]),
+    );
+
+    expect(finalizeGroupTitle(groups[0], tRu)).toBe("Спешлы");
+    expect(finalizeGroupTitle(groups[1], tRu)).toBe("Фильмы");
+    expect(finalizeGroupTitle(groups[0], tEn)).toBe("Specials");
+    expect(finalizeGroupTitle(groups[1], tEn)).toBe("Movies");
   });
 });

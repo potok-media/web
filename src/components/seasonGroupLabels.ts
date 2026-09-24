@@ -22,7 +22,7 @@ export function groupKindLabel(kind: string, t: TFunction<"media">): string {
     case "specials":
       return t("seasons.specials");
     case "movie":
-      return t("seasons.movie");
+      return t("seasons.movies");
     case "ova":
       return t("seasons.ova");
     case "credits":

@@ -105,11 +105,53 @@ function groupTitle(group: {
   };
 }
 
+/**
+ * Kinds the picker renders as one combined entry: enumerated "Movie"/"Specials" tabs carry no
+ * information, so every group of these kinds merges into a single synthetic presentation.
+ */
+const COLLAPSED_GROUP_KINDS = new Set(["specials", "movie"]);
+
+/**
+ * Collapses all specials-kind groups into one presentation and all movie-kind groups into one.
+ * Input groups must already be sorted by sortPosition (with episodes sorted inside each group), so
+ * the merged episode list keeps group-then-episode order. Episode objects are carried over
+ * untouched — `armEpisodeId`/`armGroupId` still point at the source group, so watched state,
+ * history and streams wiring keep working. The empty title plus a number-less kind fallback makes
+ * the component render the generic localized kind label ("Спешлы" / "Фильмы").
+ */
+export function collapseKindGroupPresentations(
+  groups: EpisodeGroupPresentation[],
+): EpisodeGroupPresentation[] {
+  const collapsedByKind = new Map<string, EpisodeGroupPresentation>();
+  const result: EpisodeGroupPresentation[] = [];
+  for (const group of groups) {
+    if (!COLLAPSED_GROUP_KINDS.has(group.kind)) {
+      result.push(group);
+      continue;
+    }
+    let collapsed = collapsedByKind.get(group.kind);
+    if (!collapsed) {
+      collapsed = {
+        id: `collapsed-${group.kind}`,
+        kind: group.kind,
+        title: "",
+        titleFallback: { kind: group.kind, number: null },
+        displayNumber: null,
+        episodes: [],
+      };
+      collapsedByKind.set(group.kind, collapsed);
+      result.push(collapsed);
+    }
+    collapsed.episodes.push(...group.episodes);
+  }
+  return result;
+}
+
 export function toEpisodeGroupPresentations(
   layout: ArmEpisodeLayoutResponse,
   options?: EpisodeLayoutPresentationOptions,
 ): EpisodeGroupPresentation[] {
-  return [...layout.groups]
+  return collapseKindGroupPresentations([...layout.groups]
     .sort((a, b) => a.sortPosition - b.sortPosition)
     .map((group) => ({
       id: group.id,
@@ -143,7 +185,7 @@ export function toEpisodeGroupPresentations(
             tmdbEpisodeNumber: tmdb?.episode,
           };
         }),
-    }));
+    })));
 }
 
 /**
@@ -155,7 +197,7 @@ export function toProvisionalGroupPresentations(
   provisional: ArmProvisionalLayout,
   options?: EpisodeLayoutPresentationOptions,
 ): EpisodeGroupPresentation[] {
-  return provisional.groups
+  return collapseKindGroupPresentations(provisional.groups
     .map((group, index) => ({ group, index }))
     .sort((a, b) => (finiteNumber(a.group.sortPosition) ?? a.index) - (finiteNumber(b.group.sortPosition) ?? b.index))
     .map(({ group, index }) => {
@@ -180,5 +222,5 @@ export function toProvisionalGroupPresentations(
           };
         }),
       };
-    });
+    }));
 }
