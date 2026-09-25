@@ -87,3 +87,11 @@ public/assets/
 # 🧩 Generated SDK bundle — compiled from src/sdk into public/sdk on every build.
 public/sdk/
 /dev-plugins/
+
+# Agent/tooling state — local only, never commit
+.serena/
+.claude/
+.superpowers/
+.antigravitycli/
+.playwright-mcp/
+docs/
