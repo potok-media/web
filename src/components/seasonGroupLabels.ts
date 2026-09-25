@@ -2,7 +2,7 @@ import type { TFunction } from "i18next";
 import type { EpisodeGroupPresentation } from "../features/arm/episodeLayoutModel";
 
 // Canonical ARM group taxonomy (backend docs/arm-snapshot-v1.md); unknown kinds sort last.
-const GROUP_KIND_ORDER = ["season", "specials", "movie", "ova", "credits", "trailers", "parodies"];
+const GROUP_KIND_ORDER = ["season", "sides", "specials", "movie", "ova", "credits", "trailers", "parodies"];
 
 function kindRank(kind: string): number {
   const index = GROUP_KIND_ORDER.indexOf(kind);
@@ -19,6 +19,8 @@ export function groupKindLabel(kind: string, t: TFunction<"media">): string {
   switch (kind) {
     case "season":
       return t("seasons.seasonsHeader");
+    case "sides":
+      return t("seasons.sides");
     case "specials":
       return t("seasons.specials");
     case "movie":

@@ -585,6 +585,40 @@ describe("ARM episode group collapsing", () => {
     ]);
   });
 
+  it("merges multiple sides groups into one entry and orders it between seasons and specials", () => {
+    const groups = toEpisodeGroupPresentations(
+      layoutWith([
+        { id: "season-1", kind: "season", sortPosition: 1, displayNumber: 1, episodes: [{ id: "s1e1", sortPosition: 1 }] },
+        { id: "sides-b", kind: "sides", sortPosition: 2, episodes: [{ id: "side-b-ep", sortPosition: 1 }] },
+        { id: "specials-a", kind: "specials", sortPosition: 3, episodes: [{ id: "sp1", sortPosition: 1 }] },
+        { id: "sides-a", kind: "sides", sortPosition: 4, episodes: [{ id: "side-a-ep", sortPosition: 1 }] },
+      ]),
+    );
+
+    expect(groups.map((group) => group.id)).toEqual([
+      "season-1",
+      "collapsed-sides",
+      "collapsed-specials",
+    ]);
+    const sides = groups[1];
+    expect(sides.kind).toBe("sides");
+    expect(sides.title).toBe("");
+    expect(sides.titleFallback).toEqual({ kind: "sides", number: null });
+    // Both sides groups merged, episodes keep source-group identity in sortPosition order.
+    expect(sides.episodes.map((episode) => episode.armEpisodeId)).toEqual(["side-b-ep", "side-a-ep"]);
+    expect(sides.episodes.map((episode) => episode.armGroupId)).toEqual(["sides-b", "sides-a"]);
+
+    // Kind-priority ordering keeps sides between seasons and specials.
+    expect(orderGroupsByKind(groups).map((group) => group.id)).toEqual([
+      "season-1",
+      "collapsed-sides",
+      "collapsed-specials",
+    ]);
+
+    expect(finalizeGroupTitle(sides, tRu)).toBe("Сайды");
+    expect(finalizeGroupTitle(sides, tEn)).toBe("Side stories");
+  });
+
   it("keeps seasons individual and season-first when specials sort between them", () => {
     const groups = toEpisodeGroupPresentations(
       layoutWith([

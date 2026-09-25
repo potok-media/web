@@ -106,13 +106,13 @@ function groupTitle(group: {
 }
 
 /**
- * Kinds the picker renders as one combined entry: enumerated "Movie"/"Specials" tabs carry no
- * information, so every group of these kinds merges into a single synthetic presentation.
+ * Kinds the picker renders as one combined entry: enumerated "Movie"/"Specials"/"Sides" tabs carry
+ * no information, so every group of these kinds merges into a single synthetic presentation.
  */
-const COLLAPSED_GROUP_KINDS = new Set(["specials", "movie"]);
+const COLLAPSED_GROUP_KINDS = new Set(["sides", "specials", "movie"]);
 
 /**
- * Collapses all specials-kind groups into one presentation and all movie-kind groups into one.
+ * Collapses all sides/specials/movie groups into one presentation per kind.
  * Input groups must already be sorted by sortPosition (with episodes sorted inside each group), so
  * the merged episode list keeps group-then-episode order. Episode objects are carried over
  * untouched — `armEpisodeId`/`armGroupId` still point at the source group, so watched state,
