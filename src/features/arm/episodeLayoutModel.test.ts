@@ -141,7 +141,13 @@ describe("ARM episode layout presentation", () => {
               groupId: "ova",
               ordinal: "OVA 1",
               sortPosition: 1,
-              displayTitle: null,
+              displayTitle: {
+                value: "Training of the Dead",
+                requestedLocale: "ru-RU",
+                resolvedLocale: "en",
+                role: "official",
+                usedFallback: true,
+              },
               providerReferences: [],
             },
           ],
@@ -150,9 +156,10 @@ describe("ARM episode layout presentation", () => {
     };
 
     const [group] = toEpisodeGroupPresentations(layout);
+    expect(group.id).toBe("collapsed-ova");
     expect(group.episodes[0]).toMatchObject({
       id: "episode-ova",
-      name: "OVA 1",
+      name: "Training of the Dead",
       armEpisodeId: "episode-ova",
       armOrdinal: "OVA 1",
     });
@@ -617,6 +624,26 @@ describe("ARM episode group collapsing", () => {
 
     expect(finalizeGroupTitle(sides, tRu)).toBe("Сайды");
     expect(finalizeGroupTitle(sides, tEn)).toBe("Side stories");
+  });
+
+  it("merges multiple ova groups into one entry labeled OVA", () => {
+    const groups = toEpisodeGroupPresentations(
+      layoutWith([
+        { id: "season-1", kind: "season", sortPosition: 1, displayNumber: 1, episodes: [{ id: "s1e1", sortPosition: 1 }] },
+        { id: "ova-a", kind: "ova", sortPosition: 2, episodes: [{ id: "ova-ep-1", sortPosition: 1 }] },
+        { id: "ova-b", kind: "ova", sortPosition: 3, episodes: [{ id: "ova-ep-2", sortPosition: 1 }] },
+      ]),
+    );
+
+    expect(groups.map((group) => group.id)).toEqual(["season-1", "collapsed-ova"]);
+    const ova = groups[1];
+    expect(ova.kind).toBe("ova");
+    expect(ova.titleFallback).toEqual({ kind: "ova", number: null });
+    expect(ova.episodes.map((episode) => episode.armEpisodeId)).toEqual(["ova-ep-1", "ova-ep-2"]);
+    expect(ova.episodes.map((episode) => episode.armGroupId)).toEqual(["ova-a", "ova-b"]);
+
+    expect(finalizeGroupTitle(ova, tRu)).toBe("OVA");
+    expect(finalizeGroupTitle(ova, tEn)).toBe("OVA");
   });
 
   it("keeps seasons individual and season-first when specials sort between them", () => {
