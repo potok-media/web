@@ -385,6 +385,8 @@ export interface SDKStreamEpisode {
   title: string;
   stillPath?: string;
   airDate?: string;
+  /** Opaque plugin-owned progress identity — the host uses it verbatim as the local progress/resume key. */
+  progressId?: string;
   url: string;
   audios?: { id: string; name: string; url: string }[];
   headers?: Record<string, string>;
