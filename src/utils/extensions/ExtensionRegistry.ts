@@ -35,7 +35,7 @@ class ExtensionRegistryManager {
   private sandboxIframes = new Map<string, HTMLIFrameElement>();
 
   // Declarative Stream Sources
-  private streamSources = new Map<string, { id: string; name: string; supportedTypes: ('movie' | 'tv')[]; pluginId: string }>();
+  private streamSources = new Map<string, { id: string; name: string; supportedTypes: ('movie' | 'tv')[]; pluginId: string; capabilities?: { fileOverride?: boolean; episodeBinding?: boolean } }>();
 
   // In-flight active promises
   private activePromises = new Map<string, SandboxPromiseRecord>();
@@ -242,7 +242,7 @@ class ExtensionRegistryManager {
   }
 
   // --- Declarative Stream Sources ---
-  registerStreamSource(pluginId: string, source: { id: string; name: string; supportedTypes: ('movie' | 'tv')[]; capabilities?: { fileOverride?: boolean } }) {
+  registerStreamSource(pluginId: string, source: { id: string; name: string; supportedTypes: ('movie' | 'tv')[]; capabilities?: { fileOverride?: boolean; episodeBinding?: boolean } }) {
     this.streamSources.set(source.id, { ...source, pluginId });
     this.notify();
   }
@@ -280,6 +280,7 @@ class ExtensionRegistryManager {
         action === "STREAM_SOURCE_SAVE_OVERRIDE" ||
         action === "STREAM_SOURCE_CLEAR_OVERRIDE" ||
         action === "STREAM_SOURCE_SAVE_FILE_OVERRIDE" ||
+        action === "STREAM_SOURCE_SAVE_EPISODE_BINDING" ||
         action === "STREAM_SOURCE_CLEAR_FILE_OVERRIDE" ||
         action === "STREAM_SOURCE_GET_PLAYBACK_INFO"
       ) {

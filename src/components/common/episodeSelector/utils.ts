@@ -10,6 +10,9 @@ export const getStreamType = (ep: GenericEpisodeItem): string => {
 
 export const SENTINEL_KEY = "_";
 
+export const isArmEpisode = (episode: GenericEpisodeItem): boolean =>
+  episode.resolutionState !== undefined || Boolean(episode.groupId || episode.orderingId || episode.episodeId);
+
 export const resolvedSeasonNumbers = (episodes: GenericEpisodeItem[]): number[] =>
   Array.from(new Set(
     episodes
@@ -19,6 +22,7 @@ export const resolvedSeasonNumbers = (episodes: GenericEpisodeItem[]): number[] 
 
 const sourceSectionKey = (episode: GenericEpisodeItem): string => {
   if (episode.groupId) return `arm:${episode.groupId}`;
+  if (isArmEpisode(episode)) return SENTINEL_KEY;
   if (episode.rawSeason !== undefined) return String(episode.rawSeason);
   if (episode.season !== undefined) return `display:${episode.season}`;
   return SENTINEL_KEY;
@@ -38,18 +42,27 @@ export const buildEpisodeSourceSections = (episodes: GenericEpisodeItem[]): Epis
       const rawEpisodes = items
         .map((episode) => episode.rawEpisode)
         .filter((number): number is number => number !== undefined);
-      const displayedSeason = items.find((episode) => episode.season !== undefined)?.season;
+      const canonical = isArmEpisode(items[0]);
+      const displayedSeason = canonical
+        ? items.find((episode) => episode.groupDisplayNumber !== undefined)?.groupDisplayNumber
+        : items.find((episode) => episode.season !== undefined)?.season;
       return {
         key,
         rawSeason: items[0].rawSeason,
         displayedSeason,
-        unresolved: !items.some((episode) => episode.groupId || episode.season !== undefined),
+        unresolved: canonical ? !items.some((episode) => episode.groupId) : displayedSeason === undefined,
         rawFirstEp: rawEpisodes.length ? Math.min(...rawEpisodes) : 1,
+        groupTitle: items.find((episode) => episode.groupTitle)?.groupTitle,
+        groupKind: items.find((episode) => episode.groupKind)?.groupKind,
         episodes: items,
       };
     })
     .sort((left, right) => {
       if (left.unresolved !== right.unresolved) return left.unresolved ? 1 : -1;
+      // Canonical rows arrive in ARM ordering; provider season numbers and group kinds must not reorder it.
+      const leftCanonical = isArmEpisode(left.episodes[0]);
+      const rightCanonical = isArmEpisode(right.episodes[0]);
+      if (leftCanonical || rightCanonical) return Number(rightCanonical) - Number(leftCanonical);
       return (left.displayedSeason ?? 0) - (right.displayedSeason ?? 0) ||
         (left.rawSeason ?? 0) - (right.rawSeason ?? 0);
     });
@@ -64,7 +77,8 @@ export const hasEpisodeParsingWarning = ({
   mediaType: string;
   parserVerdict?: boolean;
 }): boolean => {
-  if (parserVerdict) return true;
+  if (parserVerdict !== undefined) return parserVerdict;
+  if (episodes.length > 0 && episodes.every((episode) => episode.episodeId && episode.groupId)) return false;
   const seasons = resolvedSeasonNumbers(episodes);
   return mediaType === "tv" && seasons.length > 0 && seasons.every((season) => season === 0);
 };

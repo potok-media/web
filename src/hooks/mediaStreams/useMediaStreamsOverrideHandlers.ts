@@ -1,6 +1,6 @@
-import { useCallback } from "react";
-import type { RawStreamPayload } from "@potok/sdk-types";
-import { clearFileOverride, clearSeasonOverride, saveFileOverride, saveSeasonOverride } from "./mediaStreamsOverride";
+import { useCallback, useEffect, useRef } from "react";
+import type { RawStreamPayload, SDKEpisodeBindingOverride } from "@potok/sdk-types";
+import { clearFileOverride, clearSeasonOverride, saveEpisodeBinding, saveFileOverride, saveSeasonOverride } from "./mediaStreamsOverride";
 import type { EpisodesResponse, StreamContext, StreamSource } from "./mediaStreamsTypes";
 
 interface UseMediaStreamsOverrideHandlersParams {
@@ -20,14 +20,26 @@ export function useMediaStreamsOverrideHandlers({
   refreshEpisodes,
   onError,
 }: UseMediaStreamsOverrideHandlersParams) {
+  const generation = useRef(0);
+  useEffect(() => {
+    generation.current++;
+    setIsSaving(false);
+    return () => {
+      // Request generations must change on cleanup to discard late saves for a closed release.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      generation.current++;
+    };
+  }, [activeSource?.pluginId, clickedStream, context, setIsSaving]);
+
   const runOverride = useCallback(
     (runner: () => Promise<EpisodesResponse>) => {
       if (!activeSource || !clickedStream) return;
+      const requestGeneration = generation.current;
       setIsSaving(true);
       runner()
-        .then(refreshEpisodes)
-        .catch(onError)
-        .finally(() => setIsSaving(false));
+        .then((response) => { if (requestGeneration === generation.current) refreshEpisodes(response); })
+        .catch((error) => { if (requestGeneration === generation.current) onError(error); })
+        .finally(() => { if (requestGeneration === generation.current) setIsSaving(false); });
     },
     [activeSource, clickedStream, onError, refreshEpisodes, setIsSaving],
   );
@@ -68,5 +80,13 @@ export function useMediaStreamsOverrideHandlers({
     [activeSource, clickedStream, context, runOverride],
   );
 
-  return { handleApplyOverride, handleResetOverride, handleApplyFileOverride, handleResetFileOverride };
+  const handleApplyEpisodeBinding = useCallback(
+    (override: SDKEpisodeBindingOverride) => {
+      if (!activeSource?.capabilities?.episodeBinding || !clickedStream) return;
+      runOverride(() => saveEpisodeBinding(activeSource, clickedStream, context, override));
+    },
+    [activeSource, clickedStream, context, runOverride],
+  );
+
+  return { handleApplyOverride, handleResetOverride, handleApplyFileOverride, handleResetFileOverride, handleApplyEpisodeBinding };
 }

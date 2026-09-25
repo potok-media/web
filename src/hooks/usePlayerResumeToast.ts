@@ -1,3 +1,4 @@
+import { playbackStorageKeys } from "../utils/playbackIdentity";
 import { useCallback, useEffect, useState } from "react";
 import type { ActivePlayback } from "../context/playbackTypes";
 
@@ -8,10 +9,11 @@ export function usePlayerResumeToast(
   const [showResumeToast, setShowResumeToast] = useState(false);
   const [resumeTime, setResumeTime] = useState(0);
 
+  const resumeKey = playbackStorageKeys(playback).resumeKey;
+
   useEffect(() => {
     if (isMetadataLoading || playback.startAtZero) return; // no resume prompt in co-watch
     if (typeof playback.startAt === "number" && playback.startAt > 0) return; // explicit continue already seeked
-    const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
     const savedResume = localStorage.getItem(resumeKey);
     if (!savedResume) return;
     const parsed = Number(savedResume);
@@ -23,7 +25,7 @@ export function usePlayerResumeToast(
     // stuck on screen. Deps are only the episode identity + loading flag, so the timer survives to completion.
     const timer = setTimeout(() => setShowResumeToast(false), 5000);
     return () => clearTimeout(timer);
-  }, [isMetadataLoading, playback.id, playback.season, playback.episode, playback.startAtZero, playback.startAt]);
+  }, [isMetadataLoading, resumeKey, playback.startAtZero, playback.startAt]);
 
   const resetResumeToast = useCallback(() => {
     setShowResumeToast(false);

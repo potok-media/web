@@ -5,8 +5,11 @@ import { IconButton } from "../../ui";
 import { formatLocalizedDate } from "../../../utils/formatDate";
 import { getActiveLanguage, toIntlLocale } from "../../../utils/language";
 import type { FileOverrideEntry, FileOverrideMode, GenericEpisodeItem } from "./types";
-import { getStreamType } from "./utils";
+import { getStreamType, isArmEpisode } from "./utils";
 import { EpisodeAnnotationBadge } from "../EpisodeAnnotationBadge";
+import { groupKindLabel } from "../../seasonGroupLabels";
+import { ApiClient } from "../../../network/ApiClient";
+import { resolveEpisodeStillUrl } from "./artwork";
 
 interface EpisodeSelectorRowProps {
   episodeItem: GenericEpisodeItem;
@@ -18,32 +21,6 @@ interface EpisodeSelectorRowProps {
   fileOverride?: FileOverrideEntry;
   onEditFile?: (fileId: string, mode: FileOverrideMode) => void;
   onResetFileOverride?: (fileId: string) => void;
-}
-
-function episodeRowEqual(prev: EpisodeSelectorRowProps, next: EpisodeSelectorRowProps) {
-  const a = prev.episodeItem;
-  const b = next.episodeItem;
-  return (
-    prev.onPlay === next.onPlay &&
-    prev.onEditFile === next.onEditFile &&
-    prev.onResetFileOverride === next.onResetFileOverride &&
-    prev.mediaType === next.mediaType &&
-    prev.backdropSrc === next.backdropSrc &&
-    prev.posterSrc === next.posterSrc &&
-    prev.fileOverrideEnabled === next.fileOverrideEnabled &&
-    prev.fileOverride === next.fileOverride &&
-    a.id === b.id &&
-    a.isWatched === b.isWatched &&
-    a.title === b.title &&
-    a.fileName === b.fileName &&
-    a.stillPath === b.stillPath &&
-    a.sizeLabel === b.sizeLabel &&
-    a.season === b.season &&
-    a.episode === b.episode &&
-    a.armAnnotation?.relation === b.armAnnotation?.relation &&
-    a.armAnnotation?.confidence === b.armAnnotation?.confidence &&
-    a.armAnnotation?.resolutionState === b.armAnnotation?.resolutionState
-  );
 }
 
 export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
@@ -60,20 +37,27 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
   const { t } = useTranslation("media");
 
   const stop = (e: React.MouseEvent) => e.stopPropagation();
+  const canonical = isArmEpisode(episodeItem);
+  const displayOrdinal = canonical
+    ? episodeItem.displayOrdinal?.trim()
+    : episodeItem.episode !== undefined && episodeItem.episode > 0 ? String(episodeItem.episode) : undefined;
   const displayTitle =
-    episodeItem.title || episodeItem.fileName || (episodeItem.episode !== undefined
-      ? t("episode.fallbackName", { number: episodeItem.episode })
+    episodeItem.title || episodeItem.fileName || (displayOrdinal
+      ? t("episode.fallbackName", { number: displayOrdinal })
       : t("selector.unresolvedEpisode"));
 
   let displaySubtitle = "";
-  if (mediaType === "tv") {
-    displaySubtitle = episodeItem.season === undefined
+  const displaySeason = canonical ? episodeItem.groupDisplayNumber : episodeItem.season;
+  if (mediaType === "tv" || episodeItem.groupId) {
+    displaySubtitle = episodeItem.groupTitle || (episodeItem.groupKind && episodeItem.groupKind !== "season"
+      ? groupKindLabel(episodeItem.groupKind, t)
+      : displaySeason === undefined
       ? episodeItem.groupId
         ? t("selector.episodeGroup")
         : t("selector.unresolved")
-      : episodeItem.season === 0
+      : displaySeason === 0
         ? t("selector.specials")
-        : t("selector.season", { number: episodeItem.season });
+        : t("selector.season", { number: displaySeason }));
     if (episodeItem.airDate) {
       try {
         const airDateStr = formatLocalizedDate(
@@ -88,7 +72,9 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
     }
   }
 
-  const imageUrl = episodeItem.stillPath || backdropSrc || posterSrc;
+  const imageUrl = (canonical
+    ? resolveEpisodeStillUrl(episodeItem.stillPath, ApiClient.baseURL)
+    : episodeItem.stillPath) || backdropSrc || posterSrc;
 
   const getAudiosLabel = (audios: GenericEpisodeItem["audios"]) => {
     if (!audios?.length) return "";
@@ -106,7 +92,7 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
       tabIndex={0}
       role="button"
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
+        if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
           e.preventDefault();
           onPlay(episodeItem);
         }
@@ -119,8 +105,8 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
           <div className="file-card-preview-placeholder" />
         )}
         <div className="file-card-banner-overlay" />
-        {episodeItem.episode !== undefined && episodeItem.episode > 0 && (
-          <span className="file-card-bg-number">{episodeItem.episode}</span>
+        {displayOrdinal && (
+          <span className="file-card-bg-number">{displayOrdinal}</span>
         )}
         {episodeItem.isWatched && (
           <div className="file-card-badge-checked">
@@ -159,10 +145,12 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
             title={fileOverride.mode === "pin" ? t("fileOverride.pinnedTo") : t("fileOverride.anchoredFrom")}
           >
             {fileOverride.mode === "pin" ? <Pin size="0.6875rem" /> : <Anchor size="0.6875rem" />}
-            {fileOverride.season === 0
+            {fileOverride.armTarget
+              ? episodeItem.displayOrdinal || t("fileOverride.assigned")
+              : fileOverride.season === 0
               ? t("selector.specials")
               : `S${fileOverride.season}`}
-            {`·E${fileOverride.episode}`}
+            {!fileOverride.armTarget && fileOverride.episode != null && `·E${fileOverride.episode}`}
           </span>
         )}
       </div>
@@ -214,4 +202,4 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
       </IconButton>
     </div>
   );
-}, episodeRowEqual);
+});

@@ -1,7 +1,25 @@
 import { ExtensionRegistry } from "../../utils/extensions/ExtensionRegistry";
 import type { EpisodesResponse, StreamContext } from "./mediaStreamsTypes";
-import type { RawStreamPayload } from "@potok/sdk-types";
+import type { RawStreamPayload, SDKEpisodeBindingOverride } from "@potok/sdk-types";
 import type { StreamSource } from "./mediaStreamsTypes";
+
+export async function saveEpisodeBinding(
+  activeSource: StreamSource,
+  clickedStream: RawStreamPayload,
+  context: StreamContext,
+  override: SDKEpisodeBindingOverride,
+): Promise<EpisodesResponse> {
+  await ExtensionRegistry.sendSandboxRequest<void>(
+    activeSource.pluginId,
+    "STREAM_SOURCE_SAVE_EPISODE_BINDING",
+    { stream: clickedStream, context, override },
+  );
+  return ExtensionRegistry.sendSandboxRequest<EpisodesResponse>(
+    activeSource.pluginId,
+    "STREAM_SOURCE_GET_EPISODES",
+    { stream: clickedStream, context },
+  );
+}
 
 export async function saveSeasonOverride(
   activeSource: StreamSource,

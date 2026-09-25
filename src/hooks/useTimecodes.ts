@@ -1,83 +1,36 @@
 import { useEffect, useState } from "react";
-import { logger } from "../utils/logger";
+import { ApiClient } from "../network/ApiClient";
+import { EMPTY_TIMECODES, loadPlayerTimecodes, type PlayerTimecodes, type PlayerTimecodesRequest } from "../utils/playerTimecodes";
 
-interface TimecodeRange {
-  start: number;
-  end: number;
-}
+export type { TimecodeRange } from "../utils/playerTimecodes";
 
-export function useTimecodes(
-  tmdbId: number,
-  season: number | undefined,
-  episode: number | undefined,
-  isTv: boolean,
-  duration: number
-) {
-  const [introRange, setIntroRange] = useState<TimecodeRange | null>(null);
-  const [outroRange, setOutroRange] = useState<TimecodeRange | null>(null);
+export function useTimecodes({
+  tmdbId, season, episode, armEpisodeId, isTv, duration, streamUrl,
+}: Omit<PlayerTimecodesRequest, "durationMs"> & { duration: number; streamUrl: string }) {
+  // Keep the millisecond duration within the media timeline, including fractional-ms containers.
+  const durationMs = Number.isFinite(duration) && duration > 0 ? Math.floor(duration * 1000) : 0;
+  const requestKey = JSON.stringify([tmdbId, season, episode, armEpisodeId, isTv, durationMs, streamUrl]);
+  const [result, setResult] = useState<{ key: string; ranges: PlayerTimecodes } | null>(null);
 
-  // Fetch Intro & Outro from TheIntroDB
   useEffect(() => {
-    if (!isTv) return;
-    let isMounted = true;
+    const controller = new AbortController();
+    void loadPlayerTimecodes(
+      { tmdbId, season, episode, armEpisodeId, isTv, durationMs },
+      {
+        getEpisodeSegments: (episodeId, options) => ApiClient.fetchArmEpisodeSegments(episodeId, options),
+        fetch: (...args) => fetch(...args),
+      },
+      controller.signal,
+    ).then((ranges) => {
+      if (!controller.signal.aborted) setResult({ key: requestKey, ranges });
+    });
+    return () => controller.abort();
+  }, [tmdbId, season, episode, armEpisodeId, isTv, durationMs, requestKey]);
 
-    const fetchTimecodes = async () => {
-      try {
-        const s = season || 1;
-        const e = episode || 1;
-        const urlTidb = `https://api.theintrodb.org/v2/media?tmdb_id=${tmdbId}&season=${s}&episode=${e}`;
-        const response = await fetch(urlTidb, { method: "GET", headers: { "Accept": "application/json" } });
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (isMounted && data) {
-            let foundIntro: TimecodeRange | null = null;
-            let foundOutro: TimecodeRange | null = null;
-
-            if (Array.isArray(data.intro) && data.intro.length > 0) {
-              const introObj = data.intro[0];
-              foundIntro = {
-                start: (introObj.start_ms ?? 0) / 1000,
-                end: (introObj.end_ms ?? 0) / 1000,
-              };
-            }
-
-            if (Array.isArray(data.credits) && data.credits.length > 0) {
-              const creditsObj = data.credits[0];
-              foundOutro = {
-                start: (creditsObj.start_ms ?? 0) / 1000,
-                end: (creditsObj.end_ms ?? 0) / 1000,
-              };
-            }
-
-            if (foundIntro) setIntroRange(foundIntro);
-            if (foundOutro) setOutroRange(foundOutro);
-            if (foundIntro || foundOutro) return;
-          }
-        }
-      } catch (err) {
-        logger.warn("Could not retrieve segment data from TheIntroDB:", err);
-      }
-
-      // Default fallback if query fails
-      if (isMounted) {
-        setIntroRange({ start: 15, end: 95 });
-      }
-    };
-
-    fetchTimecodes();
-    return () => {
-      isMounted = false;
-    };
-  }, [tmdbId, season, episode, isTv]);
-
-  // Outro standard fallback based on video duration
-  useEffect(() => {
-    if (!isTv || outroRange || duration <= 0) return;
-    if (duration > 180) {
-      setOutroRange({ start: duration - 120, end: duration });
-    }
-  }, [duration, outroRange, isTv]);
-
-  return { introRange, outroRange };
+  // Hide the previous episode/release's ranges before the cleanup effect runs.
+  if (result?.key !== requestKey) return EMPTY_TIMECODES;
+  return {
+    introRange: result.ranges.introRange && result.ranges.introRange.end <= duration ? result.ranges.introRange : null,
+    outroRange: result.ranges.outroRange && result.ranges.outroRange.end <= duration ? result.ranges.outroRange : null,
+  };
 }

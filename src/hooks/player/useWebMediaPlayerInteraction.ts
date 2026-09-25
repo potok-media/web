@@ -40,6 +40,7 @@ export function useWebMediaPlayerInteraction({
     bytesPerSec,
     hasProgressSince,
     displayDuration,
+    timecodeDuration,
     handleClose,
     handleUserActivity,
     menus,
@@ -151,13 +152,15 @@ export function useWebMediaPlayerInteraction({
     else video.pause();
   };
 
-  const timecodes = useTimecodes(
-    playback.id,
-    playback.season,
-    playback.episode,
-    playback.mediaType === "tv",
-    displayDuration,
-  );
+  const timecodes = useTimecodes({
+    tmdbId: playback.id,
+    season: playback.season,
+    episode: playback.episode,
+    armEpisodeId: playback.episodeId,
+    isTv: playback.mediaType === "tv",
+    duration: timecodeDuration,
+    streamUrl: playback.streamUrl,
+  });
   const introRange = metadata.localIntroRange || timecodes.introRange;
   const outroRange = metadata.localOutroRange || timecodes.outroRange;
 

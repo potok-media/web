@@ -5,6 +5,8 @@ import { EpisodeSelectorRow } from "./EpisodeSelectorRow";
 import { IconButton } from "../../ui";
 import type { EpisodeSourceSection, FileOverrideEntry, FileOverrideMode } from "./types";
 import { SENTINEL_KEY } from "./utils";
+import { sectionBindingAnchorIds } from "./armOverrideModel";
+import { groupKindLabel } from "../../seasonGroupLabels";
 
 interface EpisodeSelectorBodyProps {
   mediaType: string;
@@ -15,12 +17,13 @@ interface EpisodeSelectorBodyProps {
   backdropSrc?: string;
   posterSrc?: string;
   onPlay: (episode: EpisodeSourceSection["episodes"][number]) => void;
-  onEditSection: (section: { rawSeason: number | undefined; rawFirstEp: number }) => void;
+  onEditSection: (section: EpisodeSourceSection) => void;
   onResetOverride?: (sourceSeason: number | null) => void;
   fileOverrideEnabled?: boolean;
   fileMap?: Record<string, FileOverrideEntry>;
   onEditFile?: (fileId: string, mode: FileOverrideMode) => void;
   onResetFileOverride?: (fileId: string) => void;
+  canonicalBindingEnabled?: boolean;
 }
 
 export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
@@ -37,6 +40,7 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
   fileMap = {},
   onEditFile,
   onResetFileOverride,
+  canonicalBindingEnabled = false,
 }) => {
   const { t } = useTranslation("media");
 
@@ -47,18 +51,21 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
           sourceSections.map((section) => {
             const srcRaw = section.rawSeason;
             const mapEntry = seasonMap[srcRaw === undefined ? SENTINEL_KEY : String(srcRaw)];
+            const bindingAnchorIds = canonicalBindingEnabled ? sectionBindingAnchorIds(section, fileMap) : [];
             return (
               <div key={section.key} className="episode-season-group">
-                {mediaType === "tv" && (
+                {(mediaType === "tv" || canonicalBindingEnabled) && (
                   <div className="season-section-header">
                     <h3 className="season-section-title">
-                      {section.unresolved
+                      {section.groupTitle || (section.unresolved
                         ? t("selector.unresolved")
+                        : section.groupKind && section.groupKind !== "season"
+                        ? groupKindLabel(section.groupKind, t)
                         : section.displayedSeason === 0
                         ? t("selector.specials")
                         : section.displayedSeason !== undefined
                           ? t("selector.season", { number: section.displayedSeason })
-                          : t("selector.episodeGroup")}
+                          : t("selector.episodeGroup"))}
                     </h3>
                     {mapEntry && (
                       <span className="season-map-badge">
@@ -72,10 +79,20 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
                     <IconButton
                       className="season-edit-pencil"
                       onClick={() => onEditSection(section)}
-                      aria-label={t("selector.editSeasonMapping")}
+                      aria-label={t(canonicalBindingEnabled ? "selector.editMapping" : "selector.editSeasonMapping")}
                     >
                       <Pencil size="0.9375rem" />
                     </IconButton>
+                    {canonicalBindingEnabled && onResetFileOverride && bindingAnchorIds.map((anchorId) => (
+                      <IconButton
+                        key={anchorId}
+                        className="season-edit-pencil"
+                        onClick={() => onResetFileOverride(anchorId)}
+                        aria-label={t("selector.resetSeasonMapping")}
+                      >
+                        <RotateCcw size="0.9375rem" />
+                      </IconButton>
+                    ))}
                     {mapEntry && onResetOverride && (
                       <IconButton
                         className="season-edit-pencil"

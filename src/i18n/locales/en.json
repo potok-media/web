@@ -467,10 +467,18 @@
       "savingOffset": "Saving offset..."
     },
     "override": {
+      "pinPrompt": "Which episode does this file contain?",
+      "armLoading": "Loading episodes…",
+      "armError": "Could not load episodes. Try again.",
+      "armEmpty": "No episodes are available for this title yet. You can still play the file without a binding.",
+      "group": "Episode group",
+      "search": "Search by number or title",
+      "noMatches": "No matching episodes. Try another search.",
       "loading": "Loading episodes from TMDB...",
       "prompt": "Which episode does this list start from?"
     },
     "fileOverride": {
+      "assigned": "Assigned",
       "anchorFromHere": "Renumber from this file",
       "pinThisFile": "Pin just this file",
       "reset": "Reset file override",

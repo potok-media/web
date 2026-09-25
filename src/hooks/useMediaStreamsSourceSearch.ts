@@ -12,6 +12,9 @@ interface UseMediaStreamsSourceSearchParams {
   mediaEnglishTitle?: string;
   mediaImdbId?: string;
   workId?: string;
+  orderingId?: string;
+  groupId?: string;
+  episodeId?: string;
   season?: number;
   episode?: number;
   activeTabParam?: string;
@@ -27,6 +30,9 @@ export function useMediaStreamsSourceSearch({
   mediaEnglishTitle,
   mediaImdbId,
   workId,
+  orderingId,
+  groupId,
+  episodeId,
   season,
   episode,
   activeTabParam,
@@ -74,10 +80,14 @@ export function useMediaStreamsSourceSearch({
   const resultsCache = useRef<Map<string, RawStreamPayload[]>>(new Map());
   const activeRequestIdRef = useRef<string>("");
   const shouldForceNextSearchRef = useRef(false);
+  const searchKey = JSON.stringify([
+    activeTab, mediaType, mediaId, workId, orderingId, groupId, episodeId, season, episode,
+    mediaTitle, mediaOriginalTitle, mediaEnglishTitle, mediaImdbId,
+  ]);
 
   useEffect(() => {
     if (activeTab) {
-      const cached = resultsCache.current.get(activeTab);
+      const cached = resultsCache.current.get(searchKey);
       if (cached) {
         setStreams(cached);
         setLoading(false);
@@ -88,11 +98,12 @@ export function useMediaStreamsSourceSearch({
     } else if (sources.length === 0 && !loadingMediaDetails) {
       setLoading(false);
     }
-  }, [activeTab, sources.length, loadingMediaDetails]);
+  }, [activeTab, searchKey, sources.length, loadingMediaDetails]);
 
   useEffect(() => {
+    activeRequestIdRef.current = "";
     if (!mediaTitle || !activeTab || !activeSource) return;
-    const cached = resultsCache.current.get(activeTab);
+    const cached = resultsCache.current.get(searchKey);
     if (cached) {
       setStreams(cached);
       setLoading(false);
@@ -119,6 +130,9 @@ export function useMediaStreamsSourceSearch({
           imdbId: mediaImdbId,
           tmdbId: mediaId,
           workId,
+          orderingId,
+          groupId,
+          episodeId,
           type: mediaType as "movie" | "tv",
           season,
           episode,
@@ -134,7 +148,7 @@ export function useMediaStreamsSourceSearch({
     )
       .then((results) => {
         if (activeRequestIdRef.current !== reqId) return;
-        resultsCache.current.set(activeTab, results || []);
+        resultsCache.current.set(searchKey, results || []);
         setStreams(results || []);
       })
       .catch((err) => {
@@ -146,12 +160,19 @@ export function useMediaStreamsSourceSearch({
         setLoading(false);
         setSearchStartedAt(null);
       });
+    return () => {
+      if (activeRequestIdRef.current === reqId) activeRequestIdRef.current = "";
+    };
   }, [
+    searchKey,
     mediaTitle,
     mediaOriginalTitle,
     mediaEnglishTitle,
     mediaImdbId,
     workId,
+    orderingId,
+    groupId,
+    episodeId,
     activeTab,
     activeSource,
     season,
@@ -169,14 +190,14 @@ export function useMediaStreamsSourceSearch({
       setSearchStartedAt(null);
       return;
     }
-    resultsCache.current.delete(activeTab);
+    resultsCache.current.delete(searchKey);
     shouldForceNextSearchRef.current = true;
     // Clear stale rows immediately so the skeleton shows until the first batch arrives.
     setStreams([]);
     setLoading(true);
     setSearchStartedAt(Date.now());
     setRefreshTrigger((prev) => prev + 1);
-  }, [activeTab, loading]);
+  }, [activeTab, searchKey, loading]);
 
   return {
     sources,

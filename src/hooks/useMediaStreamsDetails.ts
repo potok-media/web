@@ -10,6 +10,7 @@ import { Storage } from "../utils/StorageService";
 import type { PlaybackProgress } from "./usePlaybackTracker";
 import type { GenericEpisodeItem } from "../components/common/episodeSelector/types";
 import { mapStreamEpisode } from "../utils/mediaStreamsPlayback";
+import { playbackStorageKeys } from "../utils/playbackIdentity";
 
 interface UseMediaStreamsDetailsParams {
   mediaType?: string;
@@ -64,6 +65,7 @@ export function useMediaStreamsDetails({
   useEffect(() => {
     if (initialMedia) {
       setMediaDetails(initialMedia);
+      setLoadingMediaDetails(false);
       return;
     }
     if (!mediaType || !mediaId) return;
@@ -75,11 +77,14 @@ export function useMediaStreamsDetails({
       return;
     }
 
+    let cancelled = false;
+    setMediaDetails(null);
     setLoadingMediaDetails(true);
     ApiClient.fetchMediaDetails(mediaType, mediaId)
-      .then(setMediaDetails)
-      .catch(handleOnError)
-      .finally(() => setLoadingMediaDetails(false));
+      .then((details) => { if (!cancelled) setMediaDetails(details); })
+      .catch((error) => { if (!cancelled) handleOnError(error); })
+      .finally(() => { if (!cancelled) setLoadingMediaDetails(false); });
+    return () => { cancelled = true; };
   }, [mediaType, mediaId, initialMedia, handleOnError, i18n.language]);
 
   const currentMedia = mediaDetails;
@@ -102,6 +107,30 @@ export function useMediaStreamsDetails({
                   && entry.progressSeconds / entry.durationSeconds >= 0.9);
             }
           }
+          if (!isWatched) {
+            const { progressKey } = playbackStorageKeys({ ...mapped, id: mediaId, mediaType: "tv" });
+            const local = Storage.get<PlaybackProgress | null>(progressKey, null);
+            isWatched = local?.isCompleted === true || !!(local && local.durationSeconds > 0
+              && local.progressSeconds / local.durationSeconds >= 0.9);
+          }
+        }
+
+        // Files without episode coordinates (unresolved or joined): match the local progress the player
+        // recorded under the plugin-owned opaque identity. Never fall back to a bare title-level key —
+        // that would share one watched state across every unresolved file of the title.
+        if (!isWatched && !mapped.episodeId && (sNum === undefined || epNum === undefined)
+            && (mapped.progressId || mapped.url || ((mapped.episodeIds?.length ?? 0) > 1 && mapped.workId))) {
+          const { progressKey } = playbackStorageKeys({
+            id: mediaId,
+            mediaType: "tv",
+            workId: mapped.workId,
+            episodeIds: mapped.episodeIds,
+            progressId: mapped.progressId,
+            streamUrl: mapped.url,
+          });
+          const local = Storage.get<PlaybackProgress | null>(progressKey, null);
+          isWatched = local?.isCompleted === true || !!(local && local.durationSeconds > 0
+            && local.progressSeconds / local.durationSeconds >= 0.9);
         }
 
         if (!isWatched && sNum !== undefined && epNum !== undefined) {

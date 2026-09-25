@@ -145,6 +145,24 @@ export function initDeclarativeStreamListeners(): void {
           payload: { requestId, data: null, error: 'Method clearSeasonOverride not implemented' }
         }, hostOrigin);
       }
+    } else if (msg.action === 'STREAM_SOURCE_SAVE_EPISODE_BINDING') {
+      const { requestId, stream, context, override, sourceId } = msg.payload;
+      const source = (sourceId && registeredStreamSources.get(sourceId)) || Array.from(registeredStreamSources.values())[0];
+      try {
+        if (!source?.saveEpisodeBinding) throw new Error('Method saveEpisodeBinding not implemented');
+        await source.saveEpisodeBinding(stream, context, override);
+        window.parent.postMessage({
+          source: 'potok-plugin-sdk',
+          action: 'STREAM_SOURCE_SAVE_EPISODE_BINDING_RESPONSE',
+          payload: { requestId, data: null, error: null }
+        }, hostOrigin);
+      } catch (err: unknown) {
+        window.parent.postMessage({
+          source: 'potok-plugin-sdk',
+          action: 'STREAM_SOURCE_SAVE_EPISODE_BINDING_RESPONSE',
+          payload: { requestId, data: null, error: errorMessage(err) || 'Failed to save episode binding' }
+        }, hostOrigin);
+      }
     } else if (msg.action === 'STREAM_SOURCE_SAVE_FILE_OVERRIDE') {
       // Per-FILE override: pin/anchor ONE torrent file to (season, episode). mode = "anchor" | "pin".
       const { requestId, stream, context, fileId, season, episode, mode, sourceId } = msg.payload;

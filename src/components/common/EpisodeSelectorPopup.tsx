@@ -24,6 +24,11 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
   fileMap = {},
   onApplyFileOverride,
   onResetFileOverride,
+  armLayout,
+  armLayoutLoading = false,
+  armLayoutError,
+  onRetryArmLayout,
+  onApplyEpisodeBinding,
   seasonMap = {},
   seasons = [],
   seasonsLoading = false,
@@ -34,9 +39,11 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
   mediaType = "tv",
 }) => {
   const { t } = useTranslation("media");
+  const canonicalBindingEnabled = Boolean(onApplyEpisodeBinding);
 
   const {
     isEditing,
+    editingFile,
     sourceSections,
     firstEpId,
     completedCount,
@@ -46,6 +53,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
     handleEditFile,
     handleCancelEditing,
     handleApplyOverrideInternal,
+    handleApplyEpisodeBinding,
     handleOpenAsPlaylist,
   } = useEpisodeSelectorState({
     isOpen,
@@ -54,6 +62,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
     onStartEditing,
     onApplyOverride,
     onApplyFileOverride,
+    onApplyEpisodeBinding,
   });
 
   const handlePlay = useCallback(
@@ -96,6 +105,13 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
             seasons={seasons}
             seasonsLoading={seasonsLoading}
             onApplyOverride={handleApplyOverrideInternal}
+            canonicalBindingEnabled={canonicalBindingEnabled}
+            armLayout={armLayout}
+            armLayoutLoading={armLayoutLoading}
+            armLayoutError={armLayoutError}
+            onRetryArmLayout={onRetryArmLayout}
+            onApplyEpisodeBinding={handleApplyEpisodeBinding}
+            overrideMode={editingFile?.mode ?? "anchor"}
           />
         ) : (
           <EpisodeSelectorBody
@@ -113,6 +129,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
             fileMap={fileMap}
             onEditFile={handleEditFile}
             onResetFileOverride={onResetFileOverride}
+            canonicalBindingEnabled={canonicalBindingEnabled}
           />
         )}
 

@@ -56,7 +56,8 @@ export function useWebMediaPlayerCore({
     metadata.isMetadataLoading,
   );
 
-  const displayDuration = metadata.metadataDuration > 0 ? metadata.metadataDuration : duration || 100;
+  const timecodeDuration = metadata.metadataDuration > 0 ? metadata.metadataDuration : duration;
+  const displayDuration = timecodeDuration || 100;
 
   const audioName = metadata.audioTracks.find((t) => t.id === metadata.currentAudioTrack)?.name
     || playback.voice;
@@ -205,6 +206,7 @@ export function useWebMediaPlayerCore({
     bytesPerSec,
     hasProgressSince,
     displayDuration,
+    timecodeDuration,
     handleClose,
     controlsVisible,
     handleUserActivity,

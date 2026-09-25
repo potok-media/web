@@ -48,8 +48,12 @@ export interface ActivePlayback {
   episodeId?: string | null;
   orderingId?: string | null;
   groupId?: string | null;
+  episodeIds?: string[];
+  targets?: SDKReleaseBindingTarget[];
   streamHash?: string;
   fileIndex?: string;
+  /** Opaque plugin-owned progress identity — used verbatim as the local progress/resume key. */
+  progressId?: string;
   streamType?: "m3u8" | "mp4" | "hls" | "dash";
   audios?: { name: string; url: string }[];
   audioNames?: string[];

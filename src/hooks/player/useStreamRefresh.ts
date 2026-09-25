@@ -1,3 +1,4 @@
+import { playbackStorageKeys } from "../../utils/playbackIdentity";
 import { useCallback, useRef, type RefObject, type MutableRefObject } from "react";
 import type { ActivePlayback } from "../../context/playbackTypes";
 
@@ -13,7 +14,7 @@ export function useStreamRefresh({ playback, videoRef, seekOffsetRef }: UseStrea
 
   const handleRefreshStream = useCallback(() => {
     const current = playbackRef.current;
-    const resumeKey = `potok_playback_resume:${current.id}:${current.season ?? 0}:${current.episode ?? 0}`;
+    const { resumeKey } = playbackStorageKeys(current);
     const video = videoRef.current;
     const currentLoc = video ? video.currentTime : 0;
     const seekedTime =

@@ -4,6 +4,7 @@ import {
   createArmApiClient,
   type ArmHttpResponse,
   type ArmHttpTransport,
+  type ArmTransportGetOptions,
 } from "./ArmApiClient";
 import type { ArmEpisodeLayoutResponse, ArmResolveResponse } from "./ArmTypes";
 
@@ -37,6 +38,21 @@ const ok = <T>(body: T): ArmHttpResponse<T> => ({
 });
 
 describe("ARM client", () => {
+  it("requests segments by canonical episode identity and release duration with cancellation", async () => {
+    const seen: { path: string; signal?: AbortSignal }[] = [];
+    const controller = new AbortController();
+    const client = createArmApiClient({
+      async get<T>(path: string, options?: ArmTransportGetOptions): Promise<ArmHttpResponse<T>> {
+        seen.push({ path, signal: options?.signal });
+        return { status: 200, etag: null, graphVersion: null };
+      },
+    });
+    await client.getEpisodeSegments("episode/id", { durationMs: 1440123, signal: controller.signal });
+    expect(seen).toEqual([{
+      path: "/api/arm/v1/episodes/episode%2Fid/segments?durationMs=1440123", signal: controller.signal,
+    }]);
+  });
+
   it("resolves a typed provider reference with the requested locale", async () => {
     const seen: string[] = [];
     const transport: ArmHttpTransport = {

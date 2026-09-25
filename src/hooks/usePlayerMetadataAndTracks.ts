@@ -79,25 +79,30 @@ export function usePlayerMetadataAndTracks(
   subtitleTracksRef.current = subtitleTracks;
 
   const [isMetadataLoading, setIsMetadataLoading] = useState(() => !!playback?.requiresBuffering);
-  const [metadataDuration, setMetadataDuration] = useState(() => {
-    if (playbackMeta?.duration && playbackMeta.duration > 0) return playbackMeta.duration;
-    return 0;
-  });
+  const metadataDuration = playbackMeta?.duration && Number.isFinite(playbackMeta.duration) && playbackMeta.duration > 0
+    ? playbackMeta.duration : 0;
   const [isMetadataFetched, setIsMetadataFetched] = useState(() => {
     return !!(playbackMeta?.subtitles && playbackMeta.subtitles.length > 0);
   });
-  const [localIntroRange, setLocalIntroRange] = useState<{ start: number; end: number } | null>(() => {
-    if (playback && typeof playback.introStart === "number" && typeof playback.introEnd === "number" && playback.introEnd > playback.introStart) {
-      return { start: playback.introStart, end: playback.introEnd };
+  const introStartVal = playback?.introStart;
+  const introEndVal = playback?.introEnd;
+  const outroStartVal = playback?.outroStart;
+  const outroEndVal = playback?.outroEnd;
+  // These values belong to the current descriptor, not to the previous episode's state.
+  const localIntroRange = useMemo(() => {
+    if (typeof introStartVal === "number" && typeof introEndVal === "number"
+      && Number.isFinite(introStartVal) && Number.isFinite(introEndVal) && introStartVal >= 0 && introEndVal > introStartVal) {
+      return { start: introStartVal, end: introEndVal };
     }
     return null;
-  });
-  const [localOutroRange, setLocalOutroRange] = useState<{ start: number; end: number } | null>(() => {
-    if (playback && typeof playback.outroStart === "number" && typeof playback.outroEnd === "number" && playback.outroEnd > playback.outroStart) {
-      return { start: playback.outroStart, end: playback.outroEnd };
+  }, [introStartVal, introEndVal]);
+  const localOutroRange = useMemo(() => {
+    if (typeof outroStartVal === "number" && typeof outroEndVal === "number"
+      && Number.isFinite(outroStartVal) && Number.isFinite(outroEndVal) && outroStartVal >= 0 && outroEndVal > outroStartVal) {
+      return { start: outroStartVal, end: outroEndVal };
     }
     return null;
-  });
+  }, [outroStartVal, outroEndVal]);
 
   const syncNativeTextTracks = useCallback((video: HTMLVideoElement | null) => {
     if (!video) return;
@@ -148,19 +153,11 @@ export function usePlayerMetadataAndTracks(
   }, [audios, initialStreamUrl]);
 
   const subtitlesJson = JSON.stringify(playbackMeta?.subtitles);
-  const durationVal = playbackMeta?.duration;
-  const introStartVal = playback?.introStart;
-  const introEndVal = playback?.introEnd;
-  const outroStartVal = playback?.outroStart;
-  const outroEndVal = playback?.outroEnd;
 
   useEffect(() => {
     setInjectedSubtitles([]);
     setSubtitleTracks([]);
     setSelectedSubStableId(null);
-    setMetadataDuration(0);
-    setLocalIntroRange(null);
-    setLocalOutroRange(null);
     setIsMetadataFetched(true);
   }, [streamHash, fileIndex]);
 
@@ -180,23 +177,11 @@ export function usePlayerMetadataAndTracks(
       setInjectedSubtitles((prev) => mergeAndDeduplicateSubtitles(prev, initialSubs));
     }
 
-    if (playbackMeta?.duration && playbackMeta.duration > 0) {
-      setMetadataDuration(playbackMeta.duration);
-    }
-
-    if (typeof introStartVal === "number" && typeof introEndVal === "number" && introEndVal > introStartVal) {
-      setLocalIntroRange({ start: introStartVal, end: introEndVal });
-    }
-
-    if (typeof outroStartVal === "number" && typeof outroEndVal === "number" && outroEndVal > outroStartVal) {
-      setLocalOutroRange({ start: outroStartVal, end: outroEndVal });
-    }
-
     setIsMetadataFetched(true);
     // Keyed on the enrichable primitives only — NOT the whole `playback` object — so this re-merges on a
     // real subtitles/duration enrich without coupling to descriptor identity.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subtitlesJson, durationVal, introStartVal, introEndVal, outroStartVal, outroEndVal]);
+  }, [subtitlesJson]);
 
   const { subtitleFetchPromises, fetchSubtitleWindow } = useSubtitleWindowFetch(streamHash, fileIndex);
 

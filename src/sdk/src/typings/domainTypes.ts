@@ -150,6 +150,28 @@ export const domainTypesDts = `
     compatibility?: { season?: number | null; episode?: number | null } | null;
   }
 
+  interface SDKArmBindingTarget {
+    workId: string;
+    orderingId: string;
+    groupId: string;
+    episodeId: string;
+  }
+
+  interface SDKEpisodeBindingOverride {
+    fileId: string;
+    mode: 'pin' | 'anchor';
+    armTarget: SDKArmBindingTarget;
+    scopeFileIds?: string[];
+  }
+
+  interface SDKFileOverrideEntry {
+    season?: number | null;
+    episode?: number | null;
+    mode: string;
+    armTarget?: SDKArmBindingTarget | null;
+    scopeFileIds?: string[] | null;
+  }
+
   /** A single TV episode used by EpisodeCard/EpisodesSection. */
   interface SDKTvEpisode {
     id?: number | string;
@@ -183,7 +205,11 @@ export const domainTypesDts = `
     episodeId?: string | null;
     orderingId?: string | null;
     groupId?: string | null;
-    /** All canonical episodes covered by this file. episodeId remains the compatibility primary. */
+    groupTitle?: string;
+    groupDisplayNumber?: number;
+    groupKind?: string;
+    displayOrdinal?: string;
+    /** All canonical episodes covered by this file. For joined files, episodeId should be null. */
     episodeIds?: string[];
     targets?: SDKReleaseBindingTarget[];
     resolutionState?: 'resolved' | 'ambiguous' | 'unresolved';
@@ -207,6 +233,8 @@ export const domainTypesDts = `
     title: string;
     stillPath?: string;
     airDate?: string;
+    /** Opaque plugin-owned progress identity — the host uses it verbatim as the local progress/resume key. */
+    progressId?: string;
     url: string;
     audios?: { id: string; name: string; url: string }[];
     headers?: Record<string, string>;
@@ -306,12 +334,13 @@ export const domainTypesDts = `
     id: string;
     name: string;
     supportedTypes: ('movie' | 'tv')[];
-    search(query: { title: string; originalTitle?: string; englishTitle?: string; year?: number; imdbId?: string; tmdbId?: number; workId?: string; type: 'movie' | 'tv'; season?: number; episode?: number; forceSearch?: boolean }, onProgress?: (streams: SDKRawStreamPayload[]) => void): Promise<SDKRawStreamPayload[]>;
-    getEpisodes?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number; workId?: string; season?: number; episode?: number }): Promise<{ episodes: SDKStreamEpisode[]; tmdbSeasonsCount: number; parsingSuspect?: boolean }>;
+    search(query: { title: string; originalTitle?: string; englishTitle?: string; year?: number; imdbId?: string; tmdbId?: number; workId?: string; orderingId?: string; groupId?: string; episodeId?: string; type: 'movie' | 'tv'; season?: number; episode?: number; forceSearch?: boolean }, onProgress?: (streams: SDKRawStreamPayload[]) => void): Promise<SDKRawStreamPayload[]>;
+    getEpisodes?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number; workId?: string; orderingId?: string; groupId?: string; episodeId?: string; season?: number; episode?: number }): Promise<{ episodes: SDKStreamEpisode[]; tmdbSeasonsCount?: number; parsingSuspect?: boolean; seasonMap?: Record<string, { season: number; offset: number }>; fileMap?: Record<string, SDKFileOverrideEntry>; arm?: { state: string; workId?: string | null; orderingId?: string | null; graphVersion?: string | null } | null }>;
     // Optional per-FILE overrides. Implement BOTH to opt into the host's per-file anchor/pin editing UI.
     // mode: 'anchor' (renumber the run from this file) | 'pin' (fix just this file, e.g. a special).
     saveFileOverride?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number }, fileId: string, season: number, episode: number, mode: 'anchor' | 'pin'): Promise<void>;
     clearFileOverride?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number }, fileId: string): Promise<void>;
-    getPlaybackInfo(stream: SDKRawStreamPayload, episode?: SDKStreamEpisode, context?: { type: 'movie' | 'tv'; tmdbId: number; workId?: string; season?: number; episode?: number }): Promise<SDKPlaybackInfo>;
+    saveEpisodeBinding?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number; workId?: string; orderingId?: string; groupId?: string; episodeId?: string }, override: SDKEpisodeBindingOverride): Promise<void>;
+    getPlaybackInfo(stream: SDKRawStreamPayload, episode?: SDKStreamEpisode, context?: { type: 'movie' | 'tv'; tmdbId: number; workId?: string; orderingId?: string; groupId?: string; episodeId?: string; season?: number; episode?: number }): Promise<SDKPlaybackInfo>;
   }
 `;

@@ -10,6 +10,10 @@ interface UseMediaStreamsParams {
   mediaId: number;
   season?: number;
   episode?: number;
+  workId?: string;
+  orderingId?: string;
+  groupId?: string;
+  episodeId?: string;
   initialMedia?: MediaCard;
   activeTab?: string;
 }
@@ -19,6 +23,10 @@ export function useMediaStreams({
   mediaId,
   season,
   episode,
+  workId,
+  orderingId,
+  groupId,
+  episodeId,
   initialMedia,
   activeTab: activeTabParam,
 }: UseMediaStreamsParams) {
@@ -31,7 +39,10 @@ export function useMediaStreams({
     mediaOriginalTitle: details.currentMedia?.originalTitle,
     mediaEnglishTitle: details.currentMedia?.englishTitle,
     mediaImdbId: details.currentMedia?.imdbId,
-    workId: details.currentMedia?.arm?.workId || undefined,
+    workId: workId || details.currentMedia?.arm?.workId || undefined,
+    orderingId: orderingId || details.currentMedia?.arm?.defaultOrderingId || undefined,
+    groupId,
+    episodeId,
     season,
     episode,
     activeTabParam,
@@ -43,12 +54,16 @@ export function useMediaStreams({
     () => ({
       type: mediaType as "movie" | "tv",
       tmdbId: mediaId,
-      workId: details.currentMedia?.arm?.workId || undefined,
+      workId: workId || details.currentMedia?.arm?.workId || undefined,
+      orderingId: orderingId || details.currentMedia?.arm?.defaultOrderingId || undefined,
+      groupId,
+      episodeId,
       title: details.currentMedia?.title || "",
       season,
       episode,
     }),
-    [mediaType, mediaId, details.currentMedia?.arm?.workId, details.currentMedia?.title, season, episode],
+    [mediaType, mediaId, workId, orderingId, groupId, episodeId, details.currentMedia?.arm?.workId,
+      details.currentMedia?.arm?.defaultOrderingId, details.currentMedia?.title, season, episode],
   );
 
   const lastSelectedStream = useLastSelectedStream(mediaType, mediaId, search.activeSource?.pluginId);
@@ -86,9 +101,13 @@ export function useMediaStreams({
     handleResetOverride: episodePlay.handleResetOverride,
     handleApplyFileOverride: episodePlay.handleApplyFileOverride,
     handleResetFileOverride: episodePlay.handleResetFileOverride,
+    handleApplyEpisodeBinding: episodePlay.handleApplyEpisodeBinding,
     fileOverrideEnabled: episodePlay.fileOverrideEnabled,
     seasons: episodePlay.seasons,
     seasonsLoading: episodePlay.seasonsLoading,
+    armLayout: episodePlay.armLayout,
+    armLayoutLoading: episodePlay.armLayoutLoading,
+    armLayoutError: episodePlay.armLayoutError,
     isSaving: episodePlay.isSaving,
     actionLoading: episodePlay.actionLoading,
     handleClosePopup: episodePlay.handleClosePopup,

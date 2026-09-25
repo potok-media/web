@@ -1,8 +1,10 @@
 import type {
+  ArmEpisodeId,
   ArmEpisodeLayoutResponse,
   ArmGraphVersion,
   ArmProviderReference,
   ArmResolveResponse,
+  ArmReleaseVariantSegmentsResponse,
   ArmWorkId,
   ArmWorkResponse,
 } from "./ArmTypes";
@@ -51,6 +53,10 @@ export interface ArmLayoutRequestOptions extends ArmRequestOptions {
   ordering?: "default" | string;
 }
 
+export interface ArmSegmentsRequestOptions extends ArmRequestOptions {
+  durationMs: number;
+}
+
 export interface ArmClient {
   resolveWork(
     reference: ArmProviderReference,
@@ -64,6 +70,10 @@ export interface ArmClient {
     workId: ArmWorkId,
     options?: ArmLayoutRequestOptions,
   ): Promise<ArmHttpResponse<ArmEpisodeLayoutResponse>>;
+  getEpisodeSegments(
+    episodeId: ArmEpisodeId,
+    options: ArmSegmentsRequestOptions,
+  ): Promise<ArmHttpResponse<ArmReleaseVariantSegmentsResponse>>;
 }
 
 function appendQuery(path: string, query: Record<string, string | undefined>): string {
@@ -111,6 +121,15 @@ export function createArmApiClient(transport: ArmHttpTransport): ArmClient {
         appendQuery(path, {
           ordering: options?.ordering ?? "default",
           locale: options?.locale,
+        }),
+        requestOptions(options),
+      );
+    },
+
+    getEpisodeSegments(episodeId, options) {
+      return transport.get<ArmReleaseVariantSegmentsResponse>(
+        appendQuery(`/api/arm/v1/episodes/${segment(episodeId)}/segments`, {
+          durationMs: String(options.durationMs),
         }),
         requestOptions(options),
       );

@@ -1,3 +1,4 @@
+import { canSyncPlaybackIdentity, playbackStorageKeys } from "../utils/playbackIdentity";
 import { useEffect, useRef, useCallback } from "react";
 import { Storage } from "../utils/StorageService";
 import { SyncApiClient } from "../network/SyncApiClient";
@@ -21,6 +22,8 @@ interface UsePlaybackTrackerParams {
     episode?: number;
     workId?: string | null;
     episodeId?: string | null;
+    episodeIds?: string[];
+    streamUrl?: string;
     orderingId?: string | null;
     groupId?: string | null;
     title?: string;
@@ -29,6 +32,7 @@ interface UsePlaybackTrackerParams {
     backdropSrc?: string;
     streamHash?: string;
     fileIndex?: string;
+    progressId?: string;
     providerId?: string;
     voice?: string;
     sourceStream?: unknown;
@@ -58,6 +62,7 @@ export function usePlaybackTracker({
     episode,
     workId,
     episodeId,
+    episodeIds,
     orderingId,
     groupId,
     title,
@@ -66,22 +71,25 @@ export function usePlaybackTracker({
     backdropSrc,
     streamHash,
     fileIndex,
+    progressId,
     providerId,
     voice,
     sourceStream,
     stillSrc,
   } = playback;
+  const { progressKey, resumeKey } = playbackStorageKeys(playback);
+  const canSync = canSyncPlaybackIdentity(playback);
   const audioNameRef = useRef(audioName);
   audioNameRef.current = audioName;
 
   // Reset last saved time when media ID / episode changes
   useEffect(() => {
     lastSavedTimeRef.current = 0;
-  }, [id, season, episode, episodeId]);
+  }, [progressKey]);
 
   // Continue cursor: announce as soon as this episode is opened, not after 15s / 2%.
   useEffect(() => {
-    if (!playback.streamHash || playback.fileIndex == null || playback.fileIndex === "") return;
+    if (!playback.progressId && !(playback.streamHash && playback.fileIndex != null && playback.fileIndex !== "")) return;
     const video = videoRef.current;
     const current = video?.currentTime ?? 0;
     const actual =
@@ -93,15 +101,9 @@ export function usePlaybackTracker({
     broadcastProgress(actual, duration, false);
     // Identity-only: a new file/episode should pin immediately.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, season, episode, episodeId, streamHash, fileIndex]);
+  }, [id, season, episode, episodeId, progressId, streamHash, fileIndex]);
 
-  const getStorageKeys = useCallback(() => {
-    const s = season ?? 0;
-    const e = episode ?? 0;
-    const progressKey = `potok_progress:${id}:${s}:${e}`;
-    const resumeKey = `potok_playback_resume:${id}:${s}:${e}`;
-    return { progressKey, resumeKey };
-  }, [id, season, episode]);
+  const getStorageKeys = useCallback(() => ({ progressKey, resumeKey }), [progressKey, resumeKey]);
 
   // The opaque plugin-owned sourceStream is intentionally forwarded by identity; React Compiler cannot
   // prove that this manually stable event bridge is safe to rewrite.
@@ -114,6 +116,7 @@ export function usePlaybackTracker({
       episode,
       workId,
       episodeId,
+      episodeIds,
       orderingId,
       groupId,
       title: originalTitle || title,
@@ -136,6 +139,7 @@ export function usePlaybackTracker({
     episode,
     workId,
     episodeId,
+    episodeIds,
     orderingId,
     groupId,
     originalTitle,
@@ -194,7 +198,7 @@ export function usePlaybackTracker({
       const strategy = Storage.get<string>("syncStrategy", "none");
       // Remote history is keyed by TMDB id — a plugin-opened stream legitimately has id 0, so skip the remote
       // sync for it (local resume still works). Only sync when there's a real TMDB id.
-      if ((id > 0 || workId) && (strategy === "server" || strategy === "trakt")) {
+      if (canSync && (strategy === "server" || strategy === "trakt")) {
         const progressSeconds = Math.floor(actualTime);
         const durationSeconds = Math.floor(durationVal);
         const save = workId && episodeId
@@ -224,6 +228,7 @@ export function usePlaybackTracker({
     episodeId,
     orderingId,
     groupId,
+    canSync,
     seekOffset,
     getStorageKeys,
     broadcastProgress,
@@ -289,7 +294,7 @@ export function usePlaybackTracker({
       // Удаляем с бэкенда/Trakt прогресс (переходит в статус полностью просмотрено)
       const strategy = Storage.get<string>("syncStrategy", "none");
       // Plugin streams have TMDB id 0 (a valid value) — don't push them to remote history.
-      if ((id > 0 || workId) && (strategy === "server" || strategy === "trakt")) {
+      if (canSync && (strategy === "server" || strategy === "trakt")) {
         const completed = Math.floor(duration);
         const save = workId && episodeId
           ? SyncApiClient.saveHistoryProgress(toPlaybackProgressRequest(
@@ -344,6 +349,7 @@ export function usePlaybackTracker({
     orderingId,
     groupId,
     duration,
+    canSync,
     broadcastProgress,
   ]);
 

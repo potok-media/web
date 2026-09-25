@@ -3,7 +3,7 @@ import { SettingsService } from "../utils/SettingsService";
 import { MemorySafeCache } from "./MemorySafeCache";
 import { SyncApiClient } from "./SyncApiClient";
 import { ensureAbsoluteURL, handleApiResponse } from "./apiClientHelpers";
-import { createArmApiClient, type ArmHttpResponse, type ArmLayoutRequestOptions, type ArmRequestOptions, type ArmTransportGetOptions } from "./ArmApiClient";
+import { createArmApiClient, type ArmHttpResponse, type ArmLayoutRequestOptions, type ArmRequestOptions, type ArmSegmentsRequestOptions, type ArmTransportGetOptions } from "./ArmApiClient";
 import { ApiError } from "./ApiTypes";
 import { webSocketClient } from "./WebSocketClient";
 import type { ExtensionManifest } from "@potok/sdk-types";
@@ -23,9 +23,11 @@ import type {
   PersonDetails,
 } from "./ApiTypes";
 import type {
+  ArmEpisodeId,
   ArmEpisodeLayoutResponse,
   ArmProviderReference,
   ArmResolveResponse,
+  ArmReleaseVariantSegmentsResponse,
   ArmWorkId,
   ArmWorkResponse,
 } from "./ArmTypes";
@@ -248,6 +250,13 @@ export class ApiClient {
       ...options,
       locale: options?.locale ?? this.language,
     });
+  }
+
+  public static fetchArmEpisodeSegments(
+    episodeId: ArmEpisodeId,
+    options: ArmSegmentsRequestOptions,
+  ): Promise<ArmHttpResponse<ArmReleaseVariantSegmentsResponse>> {
+    return this.armClient().getEpisodeSegments(episodeId, options);
   }
 
   public static async fetchPersonDetails(personId: number): Promise<PersonDetails> {

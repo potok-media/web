@@ -55,4 +55,25 @@ describe("episode selector ARM fallbacks", () => {
     expect(section).toMatchObject({ key: "arm:special-group", unresolved: false });
     expect(section.displayedSeason).toBeUndefined();
   });
+
+  it("preserves ARM group ordering even when an OVA precedes a season", () => {
+    const sections = buildEpisodeSourceSections([
+      episode({ id: "ova-file", groupId: "ova", groupKind: "ova" }),
+      episode({ id: "main-file", groupId: "main", groupKind: "season", season: 1 }),
+    ]);
+    expect(sections.map((section) => section.key)).toEqual(["arm:ova", "arm:main"]);
+    expect(sections[0].displayedSeason).toBeUndefined();
+  });
+
+  it("keeps unresolved ARM files out of legacy TMDB season groups", () => {
+    const source = episode({ resolutionState: "unresolved", season: 7, episode: 12 });
+    const section = buildEpisodeSourceSections([source])[0];
+    expect(section).toMatchObject({ key: "_", unresolved: true, displayedSeason: undefined });
+    expect(section.episodes[0]).toBe(source);
+    expect(source.season).toBe(7);
+  });
+
+  it("respects an explicit successful parser verdict for all-specials releases", () => {
+    expect(hasEpisodeParsingWarning({ episodes: [episode({ season: 0, episode: 1 })], mediaType: "tv", parserVerdict: false })).toBe(false);
+  });
 });

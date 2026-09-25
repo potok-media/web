@@ -20,10 +20,17 @@ export const MediaStreamsPage: React.FC = () => {
   const { activePlayback } = usePlayback();
 
   const mediaId = Number(id);
-  const state = location.state as { season?: number; episode?: number; media?: MediaCard } | null;
+  const state = location.state as {
+    season?: number; episode?: number; media?: MediaCard;
+    workId?: string; orderingId?: string; groupId?: string; episodeId?: string;
+  } | null;
   const season = state?.season ?? (searchParams.get("season") ? Number(searchParams.get("season")) : undefined);
   const episode = state?.episode ?? (searchParams.get("episode") ? Number(searchParams.get("episode")) : undefined);
   const initialMedia = state?.media;
+  const workId = state?.workId || searchParams.get("workId") || undefined;
+  const orderingId = state?.orderingId || searchParams.get("orderingId") || undefined;
+  const groupId = state?.groupId || searchParams.get("groupId") || undefined;
+  const episodeId = state?.episodeId || searchParams.get("episodeId") || undefined;
 
   const {
     currentMedia,
@@ -46,6 +53,10 @@ export const MediaStreamsPage: React.FC = () => {
     handleResetOverride,
     handleApplyFileOverride,
     handleResetFileOverride,
+    handleApplyEpisodeBinding,
+    armLayout,
+    armLayoutLoading,
+    armLayoutError,
     lastSelected,
     fileOverrideEnabled,
     isSaving,
@@ -55,6 +66,10 @@ export const MediaStreamsPage: React.FC = () => {
     mediaId,
     season,
     episode,
+    workId,
+    orderingId,
+    groupId,
+    episodeId,
     initialMedia,
     activeTab: tab,
   });
@@ -109,6 +124,11 @@ export const MediaStreamsPage: React.FC = () => {
         fileMap={episodeSelectorData.fileMap}
         onApplyFileOverride={handleApplyFileOverride}
         onResetFileOverride={handleResetFileOverride}
+        onApplyEpisodeBinding={handleApplyEpisodeBinding}
+        armLayout={armLayout}
+        armLayoutLoading={armLayoutLoading}
+        armLayoutError={armLayoutError}
+        onRetryArmLayout={handleStartEditing}
         seasonMap={episodeSelectorData.seasonMap}
         seasons={seasons}
         seasonsLoading={seasonsLoading}

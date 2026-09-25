@@ -1,4 +1,4 @@
-import type { SDKReleaseBindingTarget, SDKTvSeason } from "../../../sdk/src/types";
+import type { SDKArmEpisodeLayoutResponse, SDKEpisodeBindingOverride, SDKFileOverrideEntry, SDKReleaseBindingTarget, SDKTvSeason } from "../../../sdk/src/types";
 import type { ArmEpisodeAnnotationSummary } from "../../../network/ArmTypes";
 
 export interface GenericEpisodeItem {
@@ -11,6 +11,10 @@ export interface GenericEpisodeItem {
   episodeId?: string | null;
   orderingId?: string | null;
   groupId?: string | null;
+  groupTitle?: string | null;
+  groupDisplayNumber?: number;
+  groupKind?: string | null;
+  displayOrdinal?: string | null;
   episodeIds?: string[];
   targets?: SDKReleaseBindingTarget[];
   resolutionState?: "resolved" | "ambiguous" | "unresolved";
@@ -37,6 +41,7 @@ export interface GenericEpisodeItem {
   airDate?: string;
   isWatched?: boolean;
   sizeLabel?: string;
+  progressId?: string;
   audios: Array<{ id: string; name: string; url?: string }>;
   url?: string;
 }
@@ -47,16 +52,15 @@ export interface EpisodeSourceSection {
   displayedSeason: number | undefined;
   unresolved: boolean;
   rawFirstEp: number;
+  groupTitle?: string | null;
+  groupDisplayNumber?: number;
+  groupKind?: string | null;
   episodes: GenericEpisodeItem[];
 }
 
 export type FileOverrideMode = "anchor" | "pin";
 
-export interface FileOverrideEntry {
-  season: number;
-  episode: number;
-  mode: string;
-}
+export type FileOverrideEntry = SDKFileOverrideEntry;
 
 export interface EpisodeSelectorPopupProps {
   isOpen: boolean;
@@ -74,6 +78,11 @@ export interface EpisodeSelectorPopupProps {
   fileMap?: Record<string, FileOverrideEntry>;
   onApplyFileOverride?: (fileId: string, season: number, episode: number, mode: FileOverrideMode) => void;
   onResetFileOverride?: (fileId: string) => void;
+  armLayout?: SDKArmEpisodeLayoutResponse | null;
+  armLayoutLoading?: boolean;
+  armLayoutError?: boolean;
+  onRetryArmLayout?: () => void;
+  onApplyEpisodeBinding?: (override: SDKEpisodeBindingOverride) => void;
   seasonMap?: Record<string, { season: number; offset: number }>;
   seasons?: SDKTvSeason[];
   seasonsLoading?: boolean;

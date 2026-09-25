@@ -1,3 +1,4 @@
+import { playbackStorageKeys } from "../playbackIdentity";
 import type { RefObject } from "react";
 import type Hls from "hls.js";
 import type { ActivePlayback } from "../../context/playbackTypes";
@@ -34,7 +35,7 @@ export function getPlaybackResumePosition(playback: ActivePlayback): number {
   if (typeof playback.startAt === "number" && Number.isFinite(playback.startAt) && playback.startAt > 0) {
     return playback.startAt;
   }
-  const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
+  const { resumeKey } = playbackStorageKeys(playback);
   const savedResume = localStorage.getItem(resumeKey);
   if (!savedResume) return 0;
   const parsed = Number(savedResume);

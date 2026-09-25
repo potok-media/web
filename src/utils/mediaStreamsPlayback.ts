@@ -1,5 +1,5 @@
 import type { PlaybackInfo } from "@potok/sdk-types";
-import type { StreamEpisode } from "@potok/sdk-types";
+import type { StreamEpisode, SDKReleaseBindingTarget } from "@potok/sdk-types";
 import type { ActivePlayback } from "../context/playbackTypes";
 import type { GenericEpisodeItem } from "../components/common/episodeSelector/types";
 
@@ -16,6 +16,10 @@ export const mapStreamEpisode = (ep: StreamEpisode): GenericEpisodeItem => ({
   episodeId: ep.episodeId,
   orderingId: ep.orderingId,
   groupId: ep.groupId,
+  groupTitle: ep.groupTitle,
+  groupDisplayNumber: ep.groupDisplayNumber,
+  groupKind: ep.groupKind,
+  displayOrdinal: ep.displayOrdinal,
   episodeIds: ep.episodeIds,
   targets: ep.targets,
   resolutionState: ep.resolutionState,
@@ -28,6 +32,7 @@ export const mapStreamEpisode = (ep: StreamEpisode): GenericEpisodeItem => ({
   sizeLabel: ep.sizeLabel,
   stillPath: ep.stillPath,
   airDate: ep.airDate,
+  progressId: ep.progressId,
   audios: ep.audios || [],
   url: ep.url,
 });
@@ -48,6 +53,9 @@ export const buildPlaybackFromInfo = (
     episodeId?: string | null;
     orderingId?: string | null;
     groupId?: string | null;
+    episodeIds?: string[];
+    targets?: SDKReleaseBindingTarget[];
+    progressId?: string;
     playlist?: ActivePlayback["playlist"];
     playlistIndex?: number;
     providerId?: string;
@@ -71,6 +79,9 @@ export const buildPlaybackFromInfo = (
   episodeId: base.episodeId,
   orderingId: base.orderingId,
   groupId: base.groupId,
+  episodeIds: base.episodeIds,
+  targets: base.targets,
+  progressId: info.progressId ?? base.progressId,
   streamHash: info.torrentHash,
   fileIndex: info.fileIndex,
   streamType: ALLOWED_STREAM_TYPES.includes(

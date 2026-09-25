@@ -169,6 +169,34 @@ export interface ArmEpisodeAnnotationsResponse extends ArmResponseEnvelope {
   episodes: ArmEpisodeAnnotationSummary[];
 }
 
+export interface ArmReleaseVariant {
+  id: string;
+  workId: ArmWorkId;
+  episodeId: ArmEpisodeId | null;
+  releaseId: string;
+  fileId: string | null;
+  fingerprint: string | null;
+  durationMs: number | null;
+}
+
+export interface ArmTimedSegment {
+  id: string;
+  releaseVariantId: string;
+  kind: "intro" | "opening" | "recap" | "ending" | "preview" | "credits" | "sponsor" | "other";
+  startMs: number;
+  endMs: number;
+  confidence: number;
+  sourceId: string;
+  provenance: string | null;
+  publicationPolicy: ArmPublicationPolicy;
+}
+
+export interface ArmReleaseVariantSegmentsResponse extends ArmResponseEnvelope {
+  requestedReleaseVariantId: string | null;
+  releaseVariant: ArmReleaseVariant | null;
+  segments: ArmTimedSegment[];
+}
+
 export interface ArmEpisodeGroup {
   id: ArmEpisodeGroupId;
   kind: string;

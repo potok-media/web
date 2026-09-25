@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import type { PlaylistItem } from "../context/playbackTypes";
 import type { EpisodeSourceSection, FileOverrideMode, GenericEpisodeItem } from "../components/common/episodeSelector/types";
 import { buildEpisodeSourceSections, resolvedSeasonNumbers } from "../components/common/episodeSelector/utils";
+import { buildEpisodeBindingOverride } from "../components/common/episodeSelector/armOverrideModel";
+import type { SDKArmBindingTarget, SDKEpisodeBindingOverride } from "../sdk/src/types";
 
 interface PlaylistOverrideBridge {
   potok_playlist_override?: PlaylistItem[];
@@ -15,6 +17,7 @@ interface UseEpisodeSelectorStateParams {
   onStartEditing?: () => void;
   onApplyOverride?: (sourceSeason: number | null, targetSeason: number, offset: number) => void;
   onApplyFileOverride?: (fileId: string, season: number, episode: number, mode: FileOverrideMode) => void;
+  onApplyEpisodeBinding?: (override: SDKEpisodeBindingOverride) => void;
 }
 
 export function useEpisodeSelectorState({
@@ -24,6 +27,7 @@ export function useEpisodeSelectorState({
   onStartEditing,
   onApplyOverride,
   onApplyFileOverride,
+  onApplyEpisodeBinding,
 }: UseEpisodeSelectorStateParams) {
   const { t } = useTranslation("media");
   const [selectedSeason, setSelectedSeason] = useState(1);
@@ -31,6 +35,7 @@ export function useEpisodeSelectorState({
   const [editingSource, setEditingSource] = useState<{
     sourceSeason: number | null;
     rawFirstEp: number;
+    sectionKey: string;
   } | null>(null);
   // When set, the target picker applies a per-FILE override (anchor/pin) instead of a per-season one.
   const [editingFile, setEditingFile] = useState<{ id: string; mode: FileOverrideMode } | null>(null);
@@ -62,9 +67,9 @@ export function useEpisodeSelectorState({
   }, [isOpen]);
 
   const handleEditSection = useCallback(
-    (section: { rawSeason: number | undefined; rawFirstEp: number }) => {
+    (section: EpisodeSourceSection) => {
       setEditingFile(null);
-      setEditingSource({ sourceSeason: section.rawSeason ?? null, rawFirstEp: section.rawFirstEp });
+      setEditingSource({ sourceSeason: section.rawSeason ?? null, rawFirstEp: section.rawFirstEp, sectionKey: section.key });
       setIsEditing(true);
       onStartEditing?.();
     },
@@ -158,6 +163,19 @@ export function useEpisodeSelectorState({
     }
   }, [episodes, onPlay, selectedSeason, t]);
 
+  const handleApplyEpisodeBinding = useCallback((target: SDKArmBindingTarget) => {
+    if (!onApplyEpisodeBinding) return;
+    const override = buildEpisodeBindingOverride({
+      target,
+      sections: sourceSections,
+      editingFile,
+      editingSectionKey: editingSource?.sectionKey,
+    });
+    if (!override) return;
+    onApplyEpisodeBinding(override);
+    handleCancelEditing();
+  }, [onApplyEpisodeBinding, sourceSections, editingFile, editingSource, handleCancelEditing]);
+
   const completedCount = episodes.filter((e) => e.isWatched).length;
   const totalCount = episodes.length;
   const percentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
@@ -174,6 +192,7 @@ export function useEpisodeSelectorState({
     handleEditFile,
     handleCancelEditing,
     handleApplyOverrideInternal,
+    handleApplyEpisodeBinding,
     handleOpenAsPlaylist,
   };
 }

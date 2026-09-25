@@ -25,6 +25,7 @@ export interface RegisteredStreamSource {
     mode: unknown
   ): unknown;
   clearFileOverride?(stream: unknown, context: unknown, fileId: unknown): unknown;
+  saveEpisodeBinding?(stream: unknown, context: unknown, override: unknown): unknown;
   getPlaybackInfo?(stream: unknown, episode: unknown, context: unknown): unknown;
   getPlaybackMetadata?(stream: unknown, episode: unknown, context: unknown): unknown;
   refreshStreamUrl?(payload: unknown): Record<string, unknown> | Promise<Record<string, unknown>>;
@@ -47,7 +48,10 @@ export const streamsSpace = {
         // Capability flags the host uses to gate optional UI. fileOverride = per-file anchor/pin editing.
         capabilities: {
           fileOverride:
-            typeof source.saveFileOverride === 'function' &&
+            (typeof source.saveFileOverride === 'function' || typeof source.saveEpisodeBinding === 'function') &&
+            typeof source.clearFileOverride === 'function',
+          episodeBinding:
+            typeof source.saveEpisodeBinding === 'function' &&
             typeof source.clearFileOverride === 'function'
         }
       }

@@ -1,3 +1,4 @@
+import { playbackStorageKeys } from "../utils/playbackIdentity";
 import { useMemo, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import type Hls from "hls.js";
@@ -55,7 +56,7 @@ export function usePlayerTrackSwitching({
         ? seekOffset + video.currentTime
         : video.currentTime
       : 0;
-    const resumeKey = `potok_playback_resume:${playback.id}:${playback.season ?? 0}:${playback.episode ?? 0}`;
+    const { resumeKey } = playbackStorageKeys(playback);
     localStorage.setItem(resumeKey, time.toString());
     setCurrentAudioTrack(id);
     const newUrl =

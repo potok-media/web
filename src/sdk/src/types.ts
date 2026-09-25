@@ -192,6 +192,30 @@ export interface SDKReleaseBindingTarget {
   compatibility?: { season?: number | null; episode?: number | null } | null;
 }
 
+/** A manual selection in one ARM ordering; display numbers are never its identity. */
+export interface SDKArmBindingTarget {
+  workId: string;
+  orderingId: string;
+  groupId: string;
+  episodeId: string;
+}
+
+export interface SDKEpisodeBindingOverride {
+  fileId: string;
+  mode: 'pin' | 'anchor';
+  armTarget: SDKArmBindingTarget;
+  /** Exact files covered by an anchor, traversed in manifest order. */
+  scopeFileIds?: string[];
+}
+
+export interface SDKFileOverrideEntry {
+  season?: number | null;
+  episode?: number | null;
+  mode: string;
+  armTarget?: SDKArmBindingTarget | null;
+  scopeFileIds?: string[] | null;
+}
+
 export interface SDKWatchProgress {
   completed: number;
   aired: number;
@@ -345,7 +369,11 @@ export interface SDKStreamEpisode {
   episodeId?: string | null;
   orderingId?: string | null;
   groupId?: string | null;
-  /** All canonical episodes covered by this file. `episodeId` remains the compatibility primary. */
+  groupTitle?: string;
+  groupDisplayNumber?: number;
+  groupKind?: string;
+  displayOrdinal?: string;
+  /** All canonical episodes covered by this file. For joined files, episodeId should be null. */
   episodeIds?: string[];
   targets?: SDKReleaseBindingTarget[];
   resolutionState?: 'resolved' | 'ambiguous' | 'unresolved';
@@ -413,6 +441,8 @@ export interface SDKPlaybackInfo {
   episode?: number;
   torrentHash?: string;
   fileIndex?: string;
+  /** Opaque plugin-owned progress identity — the host uses it verbatim as the local progress/resume key. */
+  progressId?: string;
   audios?: { id: string; name: string; url: string }[];
   headers?: Record<string, string>;
   providerId?: string;
@@ -1334,6 +1364,9 @@ export interface LookupQuery {
   type: 'movie' | 'tv';
   tmdbId: number;
   workId?: string;
+  orderingId?: string;
+  groupId?: string;
+  episodeId?: string;
   season?: number;
   episode?: number;
 }
@@ -1413,6 +1446,9 @@ export interface StreamSearchQuery {
   imdbId?: string;
   tmdbId?: number;
   workId?: string;
+  orderingId?: string;
+  groupId?: string;
+  episodeId?: string;
   type: 'movie' | 'tv';
   season?: number;
   episode?: number;
@@ -1437,7 +1473,11 @@ export interface StreamEpisode {
   episodeId?: string | null;
   orderingId?: string | null;
   groupId?: string | null;
-  /** All canonical episodes covered by this file. `episodeId` remains the compatibility primary. */
+  groupTitle?: string;
+  groupDisplayNumber?: number;
+  groupKind?: string;
+  displayOrdinal?: string;
+  /** All canonical episodes covered by this file. For joined files, episodeId should be null. */
   episodeIds?: string[];
   targets?: SDKReleaseBindingTarget[];
   resolutionState?: 'resolved' | 'ambiguous' | 'unresolved';
@@ -1453,6 +1493,9 @@ export interface StreamEpisode {
   sizeLabel?: string;
   stillPath?: string;
   airDate?: string;
+  /** Opaque plugin-owned progress identity — the host uses it verbatim as the local progress/resume key,
+   * without knowing anything about the transport behind it. */
+  progressId?: string;
   url: string;
   audios?: { id: string; name: string; url: string }[];
   headers?: Record<string, string>;
@@ -1466,6 +1509,8 @@ export interface PlaybackInfo {
   episode?: number;
   torrentHash?: string;
   fileIndex?: string;
+  /** Opaque plugin-owned progress identity — the host uses it verbatim as the local progress/resume key. */
+  progressId?: string;
   audios?: { id: string; name: string; url: string }[];
   headers?: Record<string, string>;
   providerId?: string;
@@ -1486,9 +1531,17 @@ export interface SeasonOverrideEntry { season: number; offset: number; }
 
 export interface StreamSourceEpisodesResult {
   episodes: StreamEpisode[];
-  tmdbSeasonsCount: number;
+  tmdbSeasonsCount?: number;
   /** Current per-season overrides for this release: source-season key (or "_" sentinel) → {targetSeason, offset}. */
   seasonMap?: Record<string, SeasonOverrideEntry>;
+  fileMap?: Record<string, SDKFileOverrideEntry>;
+  parsingSuspect?: boolean;
+  arm?: {
+    state: 'resolved' | 'partial' | 'ambiguous' | 'unresolved';
+    workId?: string | null;
+    orderingId?: string | null;
+    graphVersion?: string | null;
+  } | null;
 }
 
 /** Deferred slow half of a playback descriptor. getPlaybackInfo returns instantly (so the player opens with
@@ -1511,6 +1564,9 @@ export interface DeclarativeStreamSource {
   getSeasonsMetadata?(stream: RawStreamPayload, context: LookupQuery): Promise<Record<string, unknown>[]>;
   saveSeasonOverride?(stream: RawStreamPayload, context: LookupQuery, sourceSeason: number | null, targetSeason: number, offset: number): Promise<void>;
   clearSeasonOverride?(stream: RawStreamPayload, context: LookupQuery, sourceSeason: number | null): Promise<void>;
+  saveFileOverride?(stream: RawStreamPayload, context: LookupQuery, fileId: string, season: number, episode: number, mode: 'anchor' | 'pin'): Promise<void>;
+  clearFileOverride?(stream: RawStreamPayload, context: LookupQuery, fileId: string): Promise<void>;
+  saveEpisodeBinding?(stream: RawStreamPayload, context: LookupQuery, override: SDKEpisodeBindingOverride): Promise<void>;
   getPlaybackInfo(stream: RawStreamPayload, episode?: StreamEpisode, context?: LookupQuery): Promise<PlaybackInfo>;
   /** Deferred enrichment (subtitles + duration) fetched AFTER getPlaybackInfo so a slow probe never blocks
    *  player-open. Optional: if absent, the descriptor from getPlaybackInfo is treated as complete. */
