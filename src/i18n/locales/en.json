@@ -455,6 +455,7 @@
       "progress": "Episodes watched: {{completed}} of {{total}} ({{percentage}}%)",
       "parsingHintQuestion": "Couldn't detect the seasons?",
       "parsingHintBody": "You may need to set the episode mapping for tracking.",
+      "parsingHintAction": "Set mapping",
       "more": "More",
       "openAsPlaylist": "Open as playlist",
       "editMapping": "Edit mapping",

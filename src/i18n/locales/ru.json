@@ -463,6 +463,7 @@
       "progress": "Просмотрено серий: {{completed}} из {{total}} ({{percentage}}%)",
       "parsingHintQuestion": "Не удалось распознать сезоны?",
       "parsingHintBody": "Возможно, понадобится указать соответствие серий для отслеживания.",
+      "parsingHintAction": "Указать соответствие",
       "more": "Дополнительно",
       "openAsPlaylist": "Открыть как плейлист",
       "editMapping": "Править соответствие",
