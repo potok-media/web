@@ -1,24 +1,24 @@
 import { describe, expect, it } from "vitest";
-import type { ArmEpisodeGroup, ArmEpisodeLayoutResponse, ArmEpisodePlacement } from "../../../network/ArmTypes";
+import type { ArmEpisodeLayoutResponse, ArmLayoutEpisode, ArmLayoutGroup } from "../../../network/ArmTypes";
 import { buildEpisodeBindingOverride, sectionBindingAnchorIds, toArmOverrideGroups } from "./armOverrideModel";
 import { buildEpisodeSourceSections } from "./utils";
 import type { GenericEpisodeItem } from "./types";
 
-const target = { workId: "work", orderingId: "order", groupId: "ova-a", episodeId: "ova-1" };
-function placement(id: string, groupId: string, overrides: Partial<ArmEpisodePlacement> = {}): ArmEpisodePlacement {
-  return { id, groupId, ordinal: "1", sortPosition: 1, displayTitle: null, providerReferences: [], ...overrides };
+const target = { workId: "work", entryId: "ova-a", episodeId: "ova-1" };
+function episode(id: string, overrides: Partial<ArmLayoutEpisode> = {}): ArmLayoutEpisode {
+  return { id, number: 1, title: null, ...overrides };
 }
-function group(id: string, episodes: ArmEpisodePlacement[], overrides: Partial<ArmEpisodeGroup> = {}): ArmEpisodeGroup {
-  return { id, kind: "ova", sortPosition: 1, displayTitle: null, episodes, ...overrides };
+function group(id: string, episodes: ArmLayoutEpisode[], overrides: Partial<ArmLayoutGroup> = {}): ArmLayoutGroup {
+  return { id, kind: "ova", number: 1, title: null, episodes, ...overrides };
 }
-function layout(groups: ArmEpisodeGroup[], overrides: Partial<ArmEpisodeLayoutResponse> = {}): ArmEpisodeLayoutResponse {
+function layout(groups: ArmLayoutGroup[], overrides: Partial<ArmEpisodeLayoutResponse> = {}): ArmEpisodeLayoutResponse {
   return {
-    graphVersion: "graph", resolutionState: "resolved", coverageState: "complete", warnings: [],
-    workId: "work", ordering: { id: "order", kind: "default", isDefault: true }, groups, ...overrides,
+    work: { id: "work", title: null, titles: {} },
+    graphVersion: "graph", groups, ...overrides,
   };
 }
-function file(id: string, groupId: string, overrides: Partial<GenericEpisodeItem> = {}): GenericEpisodeItem {
-  return { id, groupId, audios: [], ...overrides };
+function file(id: string, entryId: string, overrides: Partial<GenericEpisodeItem> = {}): GenericEpisodeItem {
+  return { id, entryId, audios: [], ...overrides };
 }
 const sections = buildEpisodeSourceSections([
   file("main-1", "season"), file("main-2", "season"), file("main-3", "season"),
@@ -34,39 +34,31 @@ describe("canonical override targets", () => {
     expect(section.episodes[0].season).toBe(7);
     expect(buildEpisodeSourceSections([file("main", "season", { season: 7 })])[0].displayedSeason).toBeUndefined();
   });
-  it("preserves distinct specials/movie/OVA groups with the same ordinal", () => {
+  it("preserves distinct specials/movie/OVA groups in the backend's kind order", () => {
     const groups = toArmOverrideGroups(layout([
-      group("specials-a", [placement("s1", "specials-a")], { kind: "specials", sortPosition: 2 }),
-      group("specials-b", [placement("s2", "specials-b")], { kind: "specials", sortPosition: 3 }),
-      group("ova-a", [placement("ova-1", "ova-a")], { kind: "ova", sortPosition: 1 }),
-      group("movie", [placement("movie-1", "movie")], { kind: "movie", sortPosition: 4 }),
+      group("ova-a", [episode("ova-1")], { kind: "ova" }),
+      group("specials-a", [episode("s1")], { kind: "specials" }),
+      group("specials-b", [episode("s2")], { kind: "specials" }),
+      group("movie", [episode("movie-1")], { kind: "movie" }),
     ]));
     expect(groups.map((value) => value.id)).toEqual(["ova-a", "specials-a", "specials-b", "movie"]);
     expect(groups[0].episodes[0].target).toEqual(target);
-    expect(new Set(groups.flatMap((value) => value.episodes.map((episode) => episode.target.episodeId))).size).toBe(4);
+    expect(new Set(groups.flatMap((value) => value.episodes.map((item) => item.target.episodeId))).size).toBe(4);
   });
 
-  it("never turns provisional or ambiguous numbers into manual identities", () => {
-    const groups = [group("ova-a", [placement("ova-1", "ova-a")])];
-    expect(toArmOverrideGroups(layout(groups, { ordering: null }))).toEqual([]);
-    expect(toArmOverrideGroups(layout(groups, { resolutionState: "ambiguous" }))).toEqual([]);
-    expect(toArmOverrideGroups(layout(groups, { resolutionState: "unresolved" }))).toEqual([]);
-    expect(toArmOverrideGroups(layout(groups, { resolutionState: "partial" }))).toHaveLength(1);
+  it("never turns a missing work identity into manual targets", () => {
+    expect(toArmOverrideGroups(null)).toEqual([]);
+    expect(toArmOverrideGroups(undefined)).toEqual([]);
   });
 
-  it("rejects a misplaced episode instead of combining its ID with the wrong group", () => {
-    expect(toArmOverrideGroups(layout([group("ova-a", [placement("wrong", "ova-b")])]))).toEqual([]);
-  });
-
-  it("preserves nonnumeric ordinals and filler evidence without fake episode one", () => {
-    const annotation = { episodeId: "ova-1", relation: "filler" as const, recommendation: "skip" as const,
-      resolutionState: "resolved" as const, confidence: 1, evidence: [] };
+  it("keeps fractional numbers and the filler verdict on the override episode", () => {
+    const filler = { status: "filler" as const, confidence: 1, disputed: false };
     const groups = toArmOverrideGroups(layout([group("ova-a", [
-      placement("blank", "ova-a", { ordinal: "", sortPosition: 2 }),
-      placement("ova-1", "ova-a", { ordinal: "OVA 1", annotation }),
+      episode("ova-1", { number: 1.5, filler }),
+      episode("ova-2", { number: 2, title: "Second" }),
     ])]));
-    expect(groups[0].episodes[0]).toMatchObject({ ordinal: "OVA 1", annotation });
-    expect(groups[0].episodes[1].ordinal).toBe("");
+    expect(groups[0].episodes[0]).toMatchObject({ ordinal: "1.5", filler });
+    expect(groups[0].episodes[1]).toMatchObject({ ordinal: "2", title: "Second" });
   });
 });
 

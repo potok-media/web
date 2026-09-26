@@ -1,4 +1,4 @@
-import type { ArmEpisodeAnnotationSummary } from "../../network/ArmTypes";
+import type { ArmEpisodeFiller } from "../../network/ArmTypes";
 
 export type EpisodeAnnotationBadgeTone = "warning" | "neutral";
 
@@ -13,21 +13,20 @@ export interface EpisodeAnnotationBadgeModel {
 }
 
 /**
- * Maps an ARM episode annotation to badge presentation. Canon and unknown relations are
- * the default viewing path and render nothing; only relations the viewer should act on
- * (filler/mixed/recap) produce a badge.
+ * Maps an ARM episode filler verdict to badge presentation. Canon is the default viewing path
+ * and renders nothing; only statuses the viewer should act on (filler/mixed/recap) produce a badge.
  */
 export function resolveEpisodeAnnotationBadge(
-  annotation?: ArmEpisodeAnnotationSummary | null,
+  filler?: ArmEpisodeFiller | null,
 ): EpisodeAnnotationBadgeModel | null {
-  if (!annotation) return null;
+  if (!filler) return null;
 
   const base = {
-    confidencePercent: Math.round(Math.max(0, Math.min(1, annotation.confidence)) * 100),
-    disputed: annotation.resolutionState === "disputed",
+    confidencePercent: Math.round(Math.max(0, Math.min(1, filler.confidence ?? 0)) * 100),
+    disputed: filler.disputed,
   };
 
-  switch (annotation.relation) {
+  switch (filler.status) {
     case "filler":
       return { ...base, labelKey: "episode.annotationFiller", tone: "warning" };
     case "mixed":

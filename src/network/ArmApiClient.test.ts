@@ -9,25 +9,18 @@ import {
 import type { ArmEpisodeLayoutResponse, ArmResolveResponse } from "./ArmTypes";
 
 const resolved: ArmResolveResponse = {
+  workId: "01900000-0000-7000-8000-000000000001",
   graphVersion: "graph-1",
-  resolutionState: "resolved",
-  coverageState: "complete",
-  warnings: [],
-  query: { provider: "tmdb", entityKind: "tv", value: "1399" },
-  alternatives: [],
+};
+
+const layout: ArmEpisodeLayoutResponse = {
   work: {
     id: "01900000-0000-7000-8000-000000000001",
-    kind: "series",
-    defaultOrderingId: "01900000-0000-7000-8000-000000000002",
-    displayTitle: {
-      value: "Game of Thrones",
-      requestedLocale: "en-US",
-      resolvedLocale: "en-US",
-      role: "official",
-      usedFallback: false,
-    },
-    providerReferences: [{ provider: "tmdb", entityKind: "tv", value: "1399" }],
+    title: "Frieren",
+    titles: { official: "Frieren", en: "Frieren: Beyond Journey's End", ru: "Фрирен", original: null },
   },
+  graphVersion: "graph-1",
+  groups: [],
 };
 
 const ok = <T>(body: T): ArmHttpResponse<T> => ({
@@ -69,31 +62,18 @@ describe("ARM client", () => {
     );
 
     expect(seen).toEqual([
-      "/api/arm/v1/resolve/tmdb/tv/1399%2Fseason%201?locale=ru-RU",
+      "/api/arm/v1/works/resolve/tmdb/tv/1399%2Fseason%201?locale=ru-RU",
     ]);
-    expect(result.body?.work?.id).toBe("01900000-0000-7000-8000-000000000001");
+    expect(result.body?.workId).toBe("01900000-0000-7000-8000-000000000001");
     expect(result.etag).toBe("\"arm-graph-1-abc\"");
   });
 
-  it("requests the Potok default ordering unless another ordering is selected", async () => {
+  it("requests the full layout and supports a single-entry slice via groupId", async () => {
     const seen: string[] = [];
-    const response: ArmEpisodeLayoutResponse = {
-      graphVersion: "graph-1",
-      resolutionState: "resolved",
-      coverageState: "complete",
-      warnings: [],
-      workId: "01900000-0000-7000-8000-000000000001",
-      ordering: {
-        id: "01900000-0000-7000-8000-000000000002",
-        kind: "potokDefault",
-        isDefault: true,
-      },
-      groups: [],
-    };
     const transport: ArmHttpTransport = {
       async get<T>(path: string): Promise<ArmHttpResponse<T>> {
         seen.push(path);
-        return ok(response) as ArmHttpResponse<T>;
+        return ok(layout) as ArmHttpResponse<T>;
       },
     };
 
@@ -101,9 +81,14 @@ describe("ARM client", () => {
     await client.getEpisodeLayout("01900000-0000-7000-8000-000000000001", {
       locale: "en-US",
     });
+    await client.getEpisodeLayout("01900000-0000-7000-8000-000000000001", {
+      locale: "en-US",
+      groupId: "01900000-0000-7000-8000-0000000000aa",
+    });
 
     expect(seen).toEqual([
-      "/api/arm/v1/works/01900000-0000-7000-8000-000000000001/layout?ordering=default&locale=en-US",
+      "/api/arm/v1/works/01900000-0000-7000-8000-000000000001/layout?locale=en-US",
+      "/api/arm/v1/works/01900000-0000-7000-8000-000000000001/layout?groupId=01900000-0000-7000-8000-0000000000aa&locale=en-US",
     ]);
   });
 
@@ -121,16 +106,12 @@ describe("ARM client", () => {
       { provider: "tmdb", entityKind: "tv", value: "1399" },
       { ifNoneMatch: "\"arm-graph-1-abc\"" },
     );
-    await client.getWork("01900000-0000-7000-8000-000000000001", {
-      ifNoneMatch: "\"arm-graph-1-def\"",
-    });
     await client.getEpisodeLayout("01900000-0000-7000-8000-000000000001", {
       ifNoneMatch: "\"arm-graph-1-ghi\"",
     });
 
     expect(seen).toEqual([
       "\"arm-graph-1-abc\"",
-      "\"arm-graph-1-def\"",
       "\"arm-graph-1-ghi\"",
     ]);
   });
@@ -159,7 +140,7 @@ describe("ARM client", () => {
 
     const client = createArmApiClient(transport);
 
-    await expect(client.getWork("01900000-0000-7000-8000-000000000001")).rejects.toMatchObject({
+    await expect(client.getEpisodeLayout("01900000-0000-7000-8000-000000000001")).rejects.toMatchObject({
       name: "ArmApiError",
       status: 503,
     });

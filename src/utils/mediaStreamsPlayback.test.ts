@@ -6,15 +6,11 @@ import { buildPlaybackFromInfo, mapStreamEpisode } from "./mediaStreamsPlayback"
 const joinedTargets = [
   {
     episodeId: "episode-1",
-    orderingId: "ordering-default",
-    groupId: "group-main",
-    compatibility: { season: 1, episode: 1 },
+    entryId: "entry-main",
   },
   {
     episodeId: "episode-2",
-    orderingId: "ordering-default",
-    groupId: "group-main",
-    compatibility: { season: 1, episode: 2 },
+    entryId: "entry-main",
   },
 ];
 

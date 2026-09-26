@@ -12,14 +12,12 @@ vi.mock("react-i18next", () => ({ useTranslation: () => ({
   t: (key: string, options?: { number?: number }) => options?.number !== undefined ? `${key}:${options.number}` : key,
 }) }));
 const layout: SDKArmEpisodeLayoutResponse = {
-  workId: "work", ordering: { id: "order", kind: "default", isDefault: true }, graphVersion: "graph",
-  resolutionState: "resolved", coverageState: "complete", warnings: [], groups: [{
-    id: "ova", kind: "ova", sortPosition: 1, displayTitle: null, episodes: [{
-      id: "ova-episode", groupId: "ova", ordinal: "OVA 1", sortPosition: 1,
-      displayTitle: null, providerReferences: [], annotation: {
-        episodeId: "ova-episode", relation: "filler", recommendation: "skip", confidence: 1,
-        resolutionState: "resolved", evidence: [],
-      },
+  work: { id: "work", title: null, titles: {} },
+  graphVersion: "graph",
+  groups: [{
+    id: "ova", kind: "ova", number: 1, title: null, episodes: [{
+      id: "ova-episode", number: 1, title: "OVA 1",
+      filler: { status: "filler", confidence: 1, disputed: false },
     }],
   }],
 };
@@ -29,7 +27,7 @@ const base = { seasons: legacySeasons, seasonsLoading: false, onApplyOverride: v
 describe("ARM episode override picker states", () => {
   it("renders ARM ordinal and TMDB artwork while preserving provider coordinates", () => {
     const episodeItem = Object.freeze({
-      id: "file", title: "TMDB special title", groupId: "specials", groupKind: "specials",
+      id: "file", title: "TMDB special title", entryId: "specials", groupKind: "specials",
       displayOrdinal: "24.5", season: 0, episode: 7, stillPath: "/tmdb-still.jpg", audios: [],
     });
     const html = renderToStaticMarkup(createElement(EpisodeSelectorRow, { mediaType: "tv", onPlay: vi.fn(), episodeItem }));
@@ -42,7 +40,7 @@ describe("ARM episode override picker states", () => {
   it("does not use TMDB numbers as fallback ARM titles or ordinals", () => {
     const html = renderToStaticMarkup(createElement(EpisodeSelectorRow, {
       mediaType: "tv", onPlay: vi.fn(), episodeItem: {
-        id: "file", groupId: "cour", groupKind: "season", season: 7, episode: 12, audios: [],
+        id: "file", entryId: "cour", groupKind: "season", season: 7, episode: 12, audios: [],
       },
     }));
     expect(html).not.toContain('class="file-card-bg-number"');
@@ -53,7 +51,7 @@ describe("ARM episode override picker states", () => {
   it("uses the ARM group number for a row caption with a different TMDB projection", () => {
     const html = renderToStaticMarkup(createElement(EpisodeSelectorRow, {
       mediaType: "tv", onPlay: vi.fn(), episodeItem: {
-        id: "file", groupId: "cour", groupKind: "season", groupDisplayNumber: 2,
+        id: "file", entryId: "cour", groupKind: "season", groupDisplayNumber: 2,
         season: 7, episode: 12, audios: [],
       },
     }));
@@ -81,7 +79,7 @@ describe("ARM episode override picker states", () => {
 
   it("has a clear empty state if canonical layout has no usable identities", () => {
     const html = renderToStaticMarkup(createElement(EpisodeOverridePicker, {
-      ...base, canonicalBindingEnabled: true, armLayout: { ...layout, ordering: null },
+      ...base, canonicalBindingEnabled: true, armLayout: { ...layout, groups: [] },
     }));
     expect(html).toContain("override.armEmpty");
     expect(html).not.toContain("Legacy episode");

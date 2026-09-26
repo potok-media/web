@@ -1,8 +1,6 @@
 import type { MediaCard, TvEpisode } from "../../network/ApiTypes";
 import type {
-  ArmEpisodeGroupId,
   ArmEpisodeId,
-  ArmOrderingId,
   ArmWorkId,
 } from "../../network/ArmTypes";
 
@@ -13,8 +11,6 @@ export interface EpisodeHistoryIdentity {
   episodeNumber?: number;
   workId?: ArmWorkId;
   episodeId?: ArmEpisodeId;
-  orderingId?: ArmOrderingId;
-  groupId?: ArmEpisodeGroupId;
 }
 
 export interface EpisodeWatchedState {
@@ -26,7 +22,6 @@ export interface BulkEpisodeHistoryChange {
   seasonNumber?: number;
   episodeNumber?: number;
   episodeId?: ArmEpisodeId;
-  groupId?: ArmEpisodeGroupId;
   isWatched: boolean;
 }
 
@@ -34,7 +29,6 @@ export interface BulkEpisodeHistoryRequest {
   tmdbId?: string;
   mediaType: string;
   workId?: ArmWorkId;
-  orderingId?: ArmOrderingId;
   changes: BulkEpisodeHistoryChange[];
 }
 
@@ -53,8 +47,6 @@ export function toEpisodeHistoryIdentity(
       mediaType: "episode",
       workId: media.arm.workId,
       episodeId: episode.armEpisodeId,
-      ...(episode.armOrderingId ? { orderingId: episode.armOrderingId } : {}),
-      ...(episode.armGroupId ? { groupId: episode.armGroupId } : {}),
       ...(episode.tmdbSeasonNumber !== undefined
         ? { seasonNumber: episode.tmdbSeasonNumber }
         : {}),
@@ -103,14 +95,10 @@ export function toBulkEpisodeHistoryRequest(
     && episodes.every((episode) => episode.armEpisodeId);
 
   if (isArmMutation) {
-    const orderingId = episodes.find((episode) => episode.armOrderingId)?.armOrderingId
-      ?? media.arm?.defaultOrderingId
-      ?? undefined;
     return {
       ...(tmdbId ? { tmdbId } : {}),
       mediaType: "episode",
       workId: media.arm!.workId!,
-      ...(orderingId ? { orderingId } : {}),
       changes: episodes.map((episode) => ({
         ...(episode.tmdbSeasonNumber !== undefined
           ? { seasonNumber: episode.tmdbSeasonNumber }
@@ -119,7 +107,6 @@ export function toBulkEpisodeHistoryRequest(
           ? { episodeNumber: episode.tmdbEpisodeNumber }
           : {}),
         episodeId: episode.armEpisodeId!,
-        ...(episode.armGroupId ? { groupId: episode.armGroupId } : {}),
         isWatched,
       })),
     };

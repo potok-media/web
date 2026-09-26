@@ -18,8 +18,7 @@ export interface StreamContext {
   type: "movie" | "tv";
   tmdbId: number;
   workId?: string;
-  orderingId?: string;
-  groupId?: string;
+  entryId?: string;
   episodeId?: string;
   title: string;
   season?: number;
@@ -49,7 +48,6 @@ export interface EpisodesResponse {
   arm?: {
     state: "resolved" | "partial" | "ambiguous" | "unresolved";
     workId?: string | null;
-    orderingId?: string | null;
     graphVersion?: string | null;
   } | null;
 }

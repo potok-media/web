@@ -1,8 +1,6 @@
 import type { SaveProgressRequest } from "../../network/SyncHistoryApiClient";
 import type {
-  ArmEpisodeGroupId,
   ArmEpisodeId,
-  ArmOrderingId,
   ArmWorkId,
 } from "../../network/ArmTypes";
 
@@ -13,8 +11,6 @@ export interface PlaybackHistorySource {
   episode?: number;
   workId?: ArmWorkId | null;
   episodeId?: ArmEpisodeId | null;
-  orderingId?: ArmOrderingId | null;
-  groupId?: ArmEpisodeGroupId | null;
 }
 
 export function toPlaybackProgressRequest(
@@ -33,8 +29,6 @@ export function toPlaybackProgressRequest(
       mediaType: "episode",
       workId: playback.workId,
       episodeId: playback.episodeId,
-      ...(playback.orderingId ? { orderingId: playback.orderingId } : {}),
-      ...(playback.groupId ? { groupId: playback.groupId } : {}),
       ...(playback.season !== undefined ? { seasonNumber: playback.season } : {}),
       ...(playback.episode !== undefined ? { episodeNumber: playback.episode } : {}),
       progressSeconds,

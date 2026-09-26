@@ -1,9 +1,8 @@
 import type {
-  ArmEpisodeAnnotationSummary,
-  ArmEpisodeGroupId,
+  ArmEntryId,
+  ArmEpisodeFiller,
   ArmEpisodeId,
   ArmMediaSummary,
-  ArmOrderingId,
 } from "./ArmTypes";
 
 export interface ServiceInfo {
@@ -164,13 +163,13 @@ export interface TvEpisode {
   stillPath?: string;
   still_path?: string;
   armEpisodeId?: ArmEpisodeId;
-  armGroupId?: ArmEpisodeGroupId;
-  armOrderingId?: ArmOrderingId;
-  armOrdinal?: string;
+  /** Graph entry (group) the episode belongs to — the binding/playback `entryId`. */
+  armEntryId?: ArmEntryId;
+  armNumber?: number;
   /** Compatibility projection only. Never substitute the Potok display placement here. */
   tmdbSeasonNumber?: number;
   tmdbEpisodeNumber?: number;
-  armAnnotation?: ArmEpisodeAnnotationSummary | null;
+  filler?: ArmEpisodeFiller | null;
 }
 
 export interface TvSeason {

@@ -83,7 +83,7 @@ const ArmEpisodeOverridePicker: React.FC<Pick<EpisodeOverridePickerProps,
               const still = resolveEpisodeStillUrl(episode.stillPath, ApiClient.baseURL);
               return (
                 <Pressable
-                  key={`${episode.target.groupId}:${episode.target.episodeId}`}
+                  key={`${episode.target.entryId}:${episode.target.episodeId}`}
                   className="episode-picker-card episode-picker-card--canonical"
                   onPress={() => onApplyEpisodeBinding?.(episode.target)}
                   data-episode-id={episode.target.episodeId}
@@ -93,7 +93,7 @@ const ArmEpisodeOverridePicker: React.FC<Pick<EpisodeOverridePickerProps,
                       <div className="episode-still-fallback-placeholder"><FilmOff size="1.75rem" /></div>
                     )}
                     {episode.ordinal && <span className="episode-card-badge">{episode.ordinal}</span>}
-                    <EpisodeAnnotationBadge annotation={episode.annotation} overlay />
+                    <EpisodeAnnotationBadge filler={episode.filler} overlay />
                   </div>
                   <div className="episode-card-info">
                     <span className="episode-card-title" title={title}>{title}</span>

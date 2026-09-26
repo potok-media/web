@@ -1,19 +1,19 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import type { ArmEpisodeAnnotationSummary } from "../../network/ArmTypes";
+import type { ArmEpisodeFiller } from "../../network/ArmTypes";
 import { resolveEpisodeAnnotationBadge } from "./episodeAnnotationBadgeModel";
 
 interface EpisodeAnnotationBadgeProps {
-  annotation?: ArmEpisodeAnnotationSummary | null;
+  filler?: ArmEpisodeFiller | null;
   overlay?: boolean;
 }
 
 export const EpisodeAnnotationBadge: React.FC<EpisodeAnnotationBadgeProps> = ({
-  annotation,
+  filler,
   overlay = false,
 }) => {
   const { t } = useTranslation("media");
-  const badge = resolveEpisodeAnnotationBadge(annotation);
+  const badge = resolveEpisodeAnnotationBadge(filler);
   if (!badge) {
     return null;
   }

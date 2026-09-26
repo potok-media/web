@@ -64,7 +64,7 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
       selectionGeneration.current++;
       editRequest.current?.abort();
     };
-  }, [mediaId, mediaType, activeSource?.pluginId, context.workId, context.orderingId, context.groupId, context.episodeId]);
+  }, [mediaId, mediaType, activeSource?.pluginId, context.workId, context.entryId, context.episodeId]);
 
   const selectorLabels = useMemo(
     () => ({
@@ -127,8 +127,7 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
       episode?: number;
       workId?: string | null;
       episodeId?: string | null;
-      orderingId?: string | null;
-      groupId?: string | null;
+      entryId?: string | null;
       episodeIds?: string[];
       targets?: SDKReleaseBindingTarget[];
       progressId?: string;
@@ -191,8 +190,7 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
               episode: mediaType === "tv" ? singleEp.episode : undefined,
               workId: singleEp.workId,
               episodeId: singleEp.episodeId,
-              orderingId: singleEp.orderingId,
-              groupId: singleEp.groupId,
+              entryId: singleEp.entryId,
               episodeIds: singleEp.episodeIds,
               targets: singleEp.targets,
               progressId: singleEp.progressId,
@@ -237,8 +235,7 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
             episode: mediaType === "tv" ? ep.episode : undefined,
             workId: ep.workId,
             episodeId: ep.episodeId,
-            orderingId: ep.orderingId,
-            groupId: ep.groupId,
+            entryId: ep.entryId,
             episodeIds: ep.episodeIds,
             targets: ep.targets,
             progressId: ep.progressId,
@@ -267,7 +264,6 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
       void loadArmBindingLayout({
         ...context,
         workId: episodeSelectorData?.arm?.workId || context.workId,
-        orderingId: episodeSelectorData?.arm?.orderingId || context.orderingId,
       }, {
         resolveWork: (reference, options) => ApiClient.resolveArmWork(reference, options),
         getEpisodeLayout: (workId, options) => ApiClient.fetchArmEpisodeLayout(workId, options),

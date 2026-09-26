@@ -3,22 +3,19 @@ import { useTranslation } from "react-i18next";
 import { ApiClient } from "../network/ApiClient";
 import {
   canReadArmLayout,
-  type ArmCoverageState,
   type ArmMediaSummary,
 } from "../network/ArmTypes";
 import {
   toEpisodeGroupPresentations,
-  toProvisionalGroupPresentations,
   type EpisodeGroupPresentation,
 } from "../features/arm/episodeLayoutModel";
 import { getArmLayoutCached, getArmResolveCached } from "../features/arm/armLayoutCache";
 
-type ArmEpisodeLayoutStatus = "loading" | "arm" | "provisional" | "providerFallback";
+type ArmEpisodeLayoutStatus = "loading" | "arm" | "providerFallback";
 
 interface ArmEpisodeLayoutState {
   status: ArmEpisodeLayoutStatus;
   groups: EpisodeGroupPresentation[];
-  coverageState: ArmCoverageState;
 }
 
 interface UseArmEpisodeLayoutOptions {
@@ -29,29 +26,27 @@ interface UseArmEpisodeLayoutOptions {
 }
 
 // Identity hydration on the backend is asynchronous; one delayed re-resolve picks up the real
-// layout once it lands. Never blocks the UI — the provisional/legacy view stays on screen.
+// layout once it lands. Never blocks the UI — the legacy view stays on screen.
 const HYDRATION_RETRY_MS = 45000;
 
 const initialState: ArmEpisodeLayoutState = {
   status: "loading",
   groups: [],
-  coverageState: "unresolved",
 };
 
-const providerFallbackState = (coverageState: ArmCoverageState): ArmEpisodeLayoutState => ({
+const providerFallbackState: ArmEpisodeLayoutState = {
   status: "providerFallback",
   groups: [],
-  coverageState,
-});
+};
 
 const isAbort = (error: unknown): boolean =>
   error instanceof Error && error.name === "AbortError";
 
 /**
- * Resolves Potok identity and loads the Potok Default Ordering. A missing/old ARM endpoint is a
+ * Resolves Potok identity and loads the ARM v2 graph layout. A missing/old ARM endpoint is a
  * normal compatibility state: callers render the existing TMDB season UI through
- * `providerFallback`. A `providerFallback` resolve carrying a provisional layout renders that
- * TMDB-cache structure through `provisional` while hydration finishes in the background.
+ * `providerFallback`. An unresolved resolve queues targeted hydration on the backend, so one
+ * delayed retry picks the work up once the next graph build lands.
  */
 export function useArmEpisodeLayout({
   tmdbId,
@@ -63,18 +58,17 @@ export function useArmEpisodeLayout({
 
   const summaryWorkId = summary?.workId ?? null;
   const summaryGraphVersion = summary?.graphVersion ?? null;
-  const summaryCoverageState: ArmCoverageState = summary?.coverageState ?? "unresolved";
   const summaryPresent = summary != null;
   const summaryReadable = canReadArmLayout(summary);
 
   useEffect(() => {
     if (!enabled || !tmdbId) {
-      setState(providerFallbackState(summaryReadable ? summaryCoverageState : "providerFallback"));
+      setState(providerFallbackState);
       return;
     }
 
     if (summaryPresent && !summaryReadable) {
-      setState(providerFallbackState(summaryCoverageState));
+      setState(providerFallbackState);
       return;
     }
 
@@ -82,10 +76,10 @@ export function useArmEpisodeLayout({
     const { signal } = controller;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
-    setState({ status: "loading", groups: [], coverageState: summaryCoverageState });
+    setState(initialState);
 
-    const scheduleHydrationRetry = (hydrationQueued: boolean | undefined, retry: () => void) => {
-      if (!hydrationQueued || retryTimer || signal.aborted) return;
+    const scheduleHydrationRetry = (retry: () => void) => {
+      if (retryTimer || signal.aborted) return;
       retryTimer = setTimeout(() => {
         retryTimer = null;
         if (!signal.aborted) retry();
@@ -104,37 +98,27 @@ export function useArmEpisodeLayout({
             ApiClient.resolveArmWork(reference, { locale, signal, ifNoneMatch }), revalidating);
           if (signal.aborted) return;
 
-          const provisional = resolved.provisionalLayout;
-          if (resolved.coverageState === "providerFallback" && provisional?.groups.length) {
-            const groups = toProvisionalGroupPresentations(provisional, { imageBaseUrl });
-            if (groups.length > 0) {
-              scheduleHydrationRetry(resolved.hydrationQueued, () => void load(true));
-              setState({ status: "provisional", groups, coverageState: resolved.coverageState });
-              return;
-            }
-          }
-
-          workId = resolved.work?.id ?? null;
+          workId = resolved.workId ?? null;
           if (!workId) {
-            scheduleHydrationRetry(resolved.hydrationQueued, () => void load(true));
-            setState(providerFallbackState(resolved.coverageState));
+            scheduleHydrationRetry(() => void load(true));
+            setState(providerFallbackState);
             return;
           }
         }
 
-        const layout = await getArmLayoutCached(workId, "default", locale, (ifNoneMatch) =>
-          ApiClient.fetchArmEpisodeLayout(workId, { locale, ordering: "default", signal, ifNoneMatch }), revalidating);
+        const layout = await getArmLayoutCached(workId, locale, (ifNoneMatch) =>
+          ApiClient.fetchArmEpisodeLayout(workId, { locale, signal, ifNoneMatch }), revalidating);
         if (signal.aborted) return;
 
         const groups = toEpisodeGroupPresentations(layout, { imageBaseUrl });
-        if (groups.length === 0 || layout.resolutionState === "unresolved") {
-          setState(providerFallbackState(layout.coverageState));
+        if (groups.length === 0) {
+          setState(providerFallbackState);
           return;
         }
-        setState({ status: "arm", groups, coverageState: layout.coverageState });
+        setState({ status: "arm", groups });
       } catch (error) {
         if (signal.aborted || isAbort(error)) return;
-        setState(providerFallbackState("providerFallback"));
+        setState(providerFallbackState);
       }
     };
 
@@ -145,7 +129,7 @@ export function useArmEpisodeLayout({
     };
     // Depend on summary scalars only — the object identity changes per render once the gateway
     // ships the `arm` field, and depending on it aborts the in-flight load on every render.
-  }, [enabled, i18n.language, summaryWorkId, summaryGraphVersion, summaryPresent, summaryReadable, summaryCoverageState, tmdbId]);
+  }, [enabled, i18n.language, summaryWorkId, summaryGraphVersion, summaryPresent, summaryReadable, tmdbId]);
 
   return state;
 }

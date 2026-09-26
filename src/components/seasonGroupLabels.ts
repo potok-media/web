@@ -1,8 +1,8 @@
 import type { TFunction } from "i18next";
 import type { EpisodeGroupPresentation } from "../features/arm/episodeLayoutModel";
 
-// Canonical ARM group taxonomy (backend docs/arm-snapshot-v1.md); unknown kinds sort last.
-const GROUP_KIND_ORDER = ["season", "sides", "specials", "movie", "ova", "credits", "trailers", "parodies"];
+// Canonical ARM v2 group taxonomy in the backend's sort order; unknown kinds sort last.
+const GROUP_KIND_ORDER = ["season", "sides", "movie", "ova", "specials", "credits", "trailers", "parodies"];
 
 function kindRank(kind: string): number {
   const index = GROUP_KIND_ORDER.indexOf(kind);

@@ -23,7 +23,7 @@ export function mapSdkTvEpisode(episode: SDKTvEpisode, seasonNumber: number): Tv
     airDate: episode.airDate ?? episode.air_date,
     stillPath: episode.stillPath ?? episode.still_path,
     still_path: episode.still_path ?? episode.stillPath,
-    armAnnotation: episode.armAnnotation,
+    filler: episode.filler,
   };
 }
 
@@ -87,8 +87,7 @@ export function mapSdkStreamEpisodes(episodes: SDKStreamEpisode[] | undefined): 
     rawEpisode: ep.rawEpisode,
     workId: ep.workId,
     episodeId: ep.episodeId,
-    orderingId: ep.orderingId,
-    groupId: ep.groupId,
+    entryId: ep.entryId,
     groupTitle: ep.groupTitle,
     groupDisplayNumber: ep.groupDisplayNumber,
     groupKind: ep.groupKind,
@@ -100,7 +99,7 @@ export function mapSdkStreamEpisodes(episodes: SDKStreamEpisode[] | undefined): 
     bindingMethod: ep.bindingMethod,
     rawEvidence: ep.rawEvidence,
     alternatives: ep.alternatives,
-    armAnnotation: ep.armAnnotation,
+    filler: ep.filler,
     title: ep.title,
     stillPath: ep.stillPath,
     airDate: ep.airDate,

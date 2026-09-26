@@ -19,7 +19,7 @@ describe("canonical binding SDK bridge", () => {
 
   const override = {
     fileId: "file-3", mode: "anchor",
-    armTarget: { workId: "work", orderingId: "ordering", groupId: "ova", episodeId: "ova-1" },
+    armTarget: { workId: "work", entryId: "ova", episodeId: "ova-1" },
     scopeFileIds: ["file-3", "file-5"],
   };
   const request = {

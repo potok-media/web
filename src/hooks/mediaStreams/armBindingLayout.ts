@@ -5,10 +5,9 @@ interface BindingLayoutContext {
   tmdbId: number;
   type: "movie" | "tv";
   workId?: string | null;
-  orderingId?: string | null;
 }
 
-/** Correction targets must come from a real ARM ordering, never a provisional numeric list. */
+/** Correction targets must come from the real ARM graph, never a provider-parsed numeric list. */
 export async function loadArmBindingLayout(
   context: BindingLayoutContext,
   client: Pick<ArmClient, "resolveWork" | "getEpisodeLayout">,
@@ -23,21 +22,16 @@ export async function loadArmBindingLayout(
       { locale, signal },
     );
     if (signal.aborted) throw new DOMException("Aborted", "AbortError");
-    if (resolved.status !== 200 || !resolved.body?.work
-      || !["resolved", "partial"].includes(resolved.body.resolutionState)) {
+    if (resolved.status !== 200 || !resolved.body?.workId) {
       throw new Error("Canonical work identity is unavailable");
     }
-    workId = resolved.body.work.id;
+    workId = resolved.body.workId;
   }
-  const response = await client.getEpisodeLayout(workId, {
-    ordering: context.orderingId || "default", locale, signal,
-  });
+  const response = await client.getEpisodeLayout(workId, { locale, signal });
   if (signal.aborted) throw new DOMException("Aborted", "AbortError");
   const layout = response.body;
-  if (response.status !== 200 || !layout?.ordering || layout.workId !== workId
-    || !["resolved", "partial"].includes(layout.resolutionState)
-    || (context.orderingId && layout.ordering.id !== context.orderingId)) {
-    throw new Error("Canonical episode ordering is unavailable");
+  if (response.status !== 200 || layout?.work?.id !== workId || !layout.groups.length) {
+    throw new Error("Canonical episode layout is unavailable");
   }
   return layout;
 }

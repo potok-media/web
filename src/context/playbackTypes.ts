@@ -11,8 +11,7 @@ export interface PlaylistItem {
   id?: string;
   workId?: string | null;
   episodeId?: string | null;
-  orderingId?: string | null;
-  groupId?: string | null;
+  entryId?: string | null;
   episodeIds?: string[];
   targets?: SDKReleaseBindingTarget[];
   season?: number;
@@ -46,8 +45,7 @@ export interface ActivePlayback {
   episode?: number;
   workId?: string | null;
   episodeId?: string | null;
-  orderingId?: string | null;
-  groupId?: string | null;
+  entryId?: string | null;
   episodeIds?: string[];
   targets?: SDKReleaseBindingTarget[];
   streamHash?: string;

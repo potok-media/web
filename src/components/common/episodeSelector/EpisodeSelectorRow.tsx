@@ -48,11 +48,11 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
 
   let displaySubtitle = "";
   const displaySeason = canonical ? episodeItem.groupDisplayNumber : episodeItem.season;
-  if (mediaType === "tv" || episodeItem.groupId) {
+  if (mediaType === "tv" || episodeItem.entryId) {
     displaySubtitle = episodeItem.groupTitle || (episodeItem.groupKind && episodeItem.groupKind !== "season"
       ? groupKindLabel(episodeItem.groupKind, t)
       : displaySeason === undefined
-      ? episodeItem.groupId
+      ? episodeItem.entryId
         ? t("selector.episodeGroup")
         : t("selector.unresolved")
       : displaySeason === 0
@@ -128,7 +128,7 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
       </div>
 
       <div className="file-card-details-panel">
-        <EpisodeAnnotationBadge annotation={episodeItem.armAnnotation} />
+        <EpisodeAnnotationBadge filler={episodeItem.filler} />
         {episodeItem.isWatched && (
           <div className="file-card-watched-badge">
             <Check size="0.75rem" strokeWidth={3} />

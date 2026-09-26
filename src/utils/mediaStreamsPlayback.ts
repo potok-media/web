@@ -14,8 +14,7 @@ export const mapStreamEpisode = (ep: StreamEpisode): GenericEpisodeItem => ({
   rawEpisode: ep.rawEpisode,
   workId: ep.workId,
   episodeId: ep.episodeId,
-  orderingId: ep.orderingId,
-  groupId: ep.groupId,
+  entryId: ep.entryId,
   groupTitle: ep.groupTitle,
   groupDisplayNumber: ep.groupDisplayNumber,
   groupKind: ep.groupKind,
@@ -27,7 +26,7 @@ export const mapStreamEpisode = (ep: StreamEpisode): GenericEpisodeItem => ({
   bindingMethod: ep.bindingMethod,
   rawEvidence: ep.rawEvidence,
   alternatives: ep.alternatives,
-  armAnnotation: ep.armAnnotation,
+  filler: ep.filler,
   fileName: ep.fileName,
   sizeLabel: ep.sizeLabel,
   stillPath: ep.stillPath,
@@ -51,8 +50,7 @@ export const buildPlaybackFromInfo = (
     episode?: number;
     workId?: string | null;
     episodeId?: string | null;
-    orderingId?: string | null;
-    groupId?: string | null;
+    entryId?: string | null;
     episodeIds?: string[];
     targets?: SDKReleaseBindingTarget[];
     progressId?: string;
@@ -77,8 +75,7 @@ export const buildPlaybackFromInfo = (
   episode: base.episode,
   workId: base.workId,
   episodeId: base.episodeId,
-  orderingId: base.orderingId,
-  groupId: base.groupId,
+  entryId: base.entryId,
   episodeIds: base.episodeIds,
   targets: base.targets,
   progressId: info.progressId ?? base.progressId,

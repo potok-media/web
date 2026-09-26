@@ -12,7 +12,6 @@ export const hostApiDts = `
     /** Potok-owned media identity and episode topology. Uses the host Gateway and auth automatically. */
     arm: {
       resolveWork(reference: SDKArmProviderReference, options?: SDKArmRequestOptions): Promise<SDKArmResolveResponse>;
-      getWork(workId: string, options?: SDKArmRequestOptions): Promise<SDKArmWorkResponse>;
       getEpisodeLayout(workId: string, options?: SDKArmLayoutRequestOptions): Promise<SDKArmEpisodeLayoutResponse>;
     };
     /** Localization (i18n). A plugin can read host strings and register its own dictionaries. */

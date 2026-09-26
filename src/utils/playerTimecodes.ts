@@ -1,5 +1,5 @@
 import type { ArmClient } from "../network/ArmApiClient";
-import type { ArmReleaseVariantSegmentsResponse } from "../network/ArmTypes";
+import type { ArmEpisodeSegmentsResponse } from "../network/ArmTypes";
 
 export interface TimecodeRange {
   start: number;
@@ -26,8 +26,6 @@ interface TimecodeSources {
 }
 
 export const EMPTY_TIMECODES: PlayerTimecodes = { introRange: null, outroRange: null };
-// Keep aligned with the Gateway's episode-segment release selection policy.
-const ARM_DURATION_TOLERANCE_MS = 2000;
 const REQUEST_TIMEOUT_MS = 5000;
 
 function range(startMs: unknown, endMs: unknown, durationMs: number): TimecodeRange | null {
@@ -37,21 +35,17 @@ function range(startMs: unknown, endMs: unknown, durationMs: number): TimecodeRa
   return { start: startMs / 1000, end: endMs / 1000 };
 }
 
+/**
+ * The backend already picked the cut nearest to the requested duration (±2 s) — an empty
+ * `segments` list is the explicit "no compatible cut" answer, not an error.
+ */
 function armTimecodes(
-  data: ArmReleaseVariantSegmentsResponse | undefined,
-  episodeId: string,
+  data: ArmEpisodeSegmentsResponse | undefined,
   durationMs: number,
 ): PlayerTimecodes {
-  const variant = data?.releaseVariant;
-  if (!variant || variant.episodeId !== episodeId
-    || (data?.resolutionState !== "resolved" && data?.resolutionState !== "partial")
-    || typeof variant.durationMs !== "number" || !Number.isFinite(variant.durationMs)
-    || variant.durationMs <= 0 || Math.abs(variant.durationMs - durationMs) > ARM_DURATION_TOLERANCE_MS
-    || !Array.isArray(data.segments)) return EMPTY_TIMECODES;
+  if (!Array.isArray(data?.segments)) return EMPTY_TIMECODES;
 
-  const segments = data.segments
-    .filter((segment) => segment.releaseVariantId === variant.id)
-    .toSorted((a, b) => a.startMs - b.startMs);
+  const segments = data.segments.toSorted((a, b) => a.startMs - b.startMs);
   const firstRange = (kinds: string[]) => {
     for (const segment of segments) {
       if (!kinds.includes(segment.kind)) continue;
@@ -110,7 +104,7 @@ export async function loadPlayerTimecodes(
     try {
       const response = await withTimeout((signal) => sources.getEpisodeSegments(armEpisodeId, { durationMs, signal }), signal);
       if (signal.aborted) return EMPTY_TIMECODES;
-      arm = armTimecodes(response.status === 200 ? response.body : undefined, armEpisodeId, durationMs);
+      arm = armTimecodes(response.status === 200 ? response.body : undefined, durationMs);
       if (arm.introRange && arm.outroRange) return arm;
     } catch {
       // Provider outages and timeout are ordinary fallback conditions.

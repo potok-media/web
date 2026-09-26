@@ -1,12 +1,12 @@
 import type {
   ArmEpisodeId,
+  ArmEntryId,
   ArmEpisodeLayoutResponse,
+  ArmEpisodeSegmentsResponse,
   ArmGraphVersion,
   ArmProviderReference,
   ArmResolveResponse,
-  ArmReleaseVariantSegmentsResponse,
   ArmWorkId,
-  ArmWorkResponse,
 } from "./ArmTypes";
 
 export class ArmApiError extends Error {
@@ -50,7 +50,8 @@ export interface ArmRequestOptions {
 }
 
 export interface ArmLayoutRequestOptions extends ArmRequestOptions {
-  ordering?: "default" | string;
+  /** Optional single-entry slice: the layout then carries only the group with this entryId. */
+  groupId?: ArmEntryId;
 }
 
 export interface ArmSegmentsRequestOptions extends ArmRequestOptions {
@@ -62,10 +63,6 @@ export interface ArmClient {
     reference: ArmProviderReference,
     options?: ArmRequestOptions,
   ): Promise<ArmHttpResponse<ArmResolveResponse>>;
-  getWork(
-    workId: ArmWorkId,
-    options?: ArmRequestOptions,
-  ): Promise<ArmHttpResponse<ArmWorkResponse>>;
   getEpisodeLayout(
     workId: ArmWorkId,
     options?: ArmLayoutRequestOptions,
@@ -73,7 +70,7 @@ export interface ArmClient {
   getEpisodeSegments(
     episodeId: ArmEpisodeId,
     options: ArmSegmentsRequestOptions,
-  ): Promise<ArmHttpResponse<ArmReleaseVariantSegmentsResponse>>;
+  ): Promise<ArmHttpResponse<ArmEpisodeSegmentsResponse>>;
 }
 
 function appendQuery(path: string, query: Record<string, string | undefined>): string {
@@ -96,7 +93,7 @@ export function createArmApiClient(transport: ArmHttpTransport): ArmClient {
   return {
     resolveWork(reference, options) {
       const path = [
-        "/api/arm/v1/resolve",
+        "/api/arm/v1/works/resolve",
         segment(reference.provider),
         segment(reference.entityKind),
         segment(reference.value),
@@ -107,19 +104,11 @@ export function createArmApiClient(transport: ArmHttpTransport): ArmClient {
       );
     },
 
-    getWork(workId, options) {
-      const path = `/api/arm/v1/works/${segment(workId)}`;
-      return transport.get<ArmWorkResponse>(
-        appendQuery(path, { locale: options?.locale }),
-        requestOptions(options),
-      );
-    },
-
     getEpisodeLayout(workId, options) {
       const path = `/api/arm/v1/works/${segment(workId)}/layout`;
       return transport.get<ArmEpisodeLayoutResponse>(
         appendQuery(path, {
-          ordering: options?.ordering ?? "default",
+          groupId: options?.groupId,
           locale: options?.locale,
         }),
         requestOptions(options),
@@ -127,7 +116,7 @@ export function createArmApiClient(transport: ArmHttpTransport): ArmClient {
     },
 
     getEpisodeSegments(episodeId, options) {
-      return transport.get<ArmReleaseVariantSegmentsResponse>(
+      return transport.get<ArmEpisodeSegmentsResponse>(
         appendQuery(`/api/arm/v1/episodes/${segment(episodeId)}/segments`, {
           durationMs: String(options.durationMs),
         }),

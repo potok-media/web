@@ -40,8 +40,8 @@ describe("episode selector ARM fallbacks", () => {
 
   it("keeps distinct ARM groups separate even when raw season evidence is identical", () => {
     const sections = buildEpisodeSourceSections([
-      episode({ id: "cour-1", groupId: "group-a", rawSeason: 1, season: 1, episode: 1 }),
-      episode({ id: "cour-2", groupId: "group-b", rawSeason: 1, season: 1, episode: 13 }),
+      episode({ id: "cour-1", entryId: "group-a", rawSeason: 1, season: 1, episode: 1 }),
+      episode({ id: "cour-2", entryId: "group-b", rawSeason: 1, season: 1, episode: 13 }),
     ]);
 
     expect(sections.map((section) => section.key)).toEqual(["arm:group-a", "arm:group-b"]);
@@ -49,7 +49,7 @@ describe("episode selector ARM fallbacks", () => {
 
   it("does not label a canonical ARM group unresolved when it has no numeric projection", () => {
     const section = buildEpisodeSourceSections([
-      episode({ groupId: "special-group", resolutionState: "resolved" }),
+      episode({ entryId: "special-group", resolutionState: "resolved" }),
     ])[0];
 
     expect(section).toMatchObject({ key: "arm:special-group", unresolved: false });
@@ -58,8 +58,8 @@ describe("episode selector ARM fallbacks", () => {
 
   it("preserves ARM group ordering even when an OVA precedes a season", () => {
     const sections = buildEpisodeSourceSections([
-      episode({ id: "ova-file", groupId: "ova", groupKind: "ova" }),
-      episode({ id: "main-file", groupId: "main", groupKind: "season", season: 1 }),
+      episode({ id: "ova-file", entryId: "ova", groupKind: "ova" }),
+      episode({ id: "main-file", entryId: "main", groupKind: "season", season: 1 }),
     ]);
     expect(sections.map((section) => section.key)).toEqual(["arm:ova", "arm:main"]);
     expect(sections[0].displayedSeason).toBeUndefined();

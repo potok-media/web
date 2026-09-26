@@ -24,8 +24,7 @@ interface UsePlaybackTrackerParams {
     episodeId?: string | null;
     episodeIds?: string[];
     streamUrl?: string;
-    orderingId?: string | null;
-    groupId?: string | null;
+    entryId?: string | null;
     title?: string;
     originalTitle?: string;
     posterSrc?: string;
@@ -63,8 +62,7 @@ export function usePlaybackTracker({
     workId,
     episodeId,
     episodeIds,
-    orderingId,
-    groupId,
+    entryId,
     title,
     originalTitle,
     posterSrc,
@@ -117,8 +115,7 @@ export function usePlaybackTracker({
       workId,
       episodeId,
       episodeIds,
-      orderingId,
-      groupId,
+      entryId,
       title: originalTitle || title,
       posterSrc,
       backdropSrc,
@@ -140,8 +137,7 @@ export function usePlaybackTracker({
     workId,
     episodeId,
     episodeIds,
-    orderingId,
-    groupId,
+    entryId,
     originalTitle,
     title,
     posterSrc,
@@ -203,7 +199,7 @@ export function usePlaybackTracker({
         const durationSeconds = Math.floor(durationVal);
         const save = workId && episodeId
           ? SyncApiClient.saveHistoryProgress(toPlaybackProgressRequest(
-              { id, mediaType, season, episode, workId, episodeId, orderingId, groupId },
+              { id, mediaType, season, episode, workId, episodeId },
               progressSeconds,
               durationSeconds,
               strategy === "trakt",
@@ -226,8 +222,7 @@ export function usePlaybackTracker({
     episode,
     workId,
     episodeId,
-    orderingId,
-    groupId,
+    entryId,
     canSync,
     seekOffset,
     getStorageKeys,
@@ -298,7 +293,7 @@ export function usePlaybackTracker({
         const completed = Math.floor(duration);
         const save = workId && episodeId
           ? SyncApiClient.saveHistoryProgress(toPlaybackProgressRequest(
-              { id, mediaType, season, episode, workId, episodeId, orderingId, groupId },
+              { id, mediaType, season, episode, workId, episodeId },
               completed,
               completed,
               strategy === "trakt",
@@ -346,8 +341,7 @@ export function usePlaybackTracker({
     episode,
     workId,
     episodeId,
-    orderingId,
-    groupId,
+    entryId,
     duration,
     canSync,
     broadcastProgress,

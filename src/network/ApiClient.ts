@@ -25,11 +25,10 @@ import type {
 import type {
   ArmEpisodeId,
   ArmEpisodeLayoutResponse,
+  ArmEpisodeSegmentsResponse,
   ArmProviderReference,
   ArmResolveResponse,
-  ArmReleaseVariantSegmentsResponse,
   ArmWorkId,
-  ArmWorkResponse,
 } from "./ArmTypes";
 
 export type {
@@ -232,16 +231,6 @@ export class ApiClient {
     });
   }
 
-  public static fetchArmWork(
-    workId: ArmWorkId,
-    options?: ArmRequestOptions,
-  ): Promise<ArmHttpResponse<ArmWorkResponse>> {
-    return this.armClient().getWork(workId, {
-      ...options,
-      locale: options?.locale ?? this.language,
-    });
-  }
-
   public static fetchArmEpisodeLayout(
     workId: ArmWorkId,
     options?: ArmLayoutRequestOptions,
@@ -255,7 +244,7 @@ export class ApiClient {
   public static fetchArmEpisodeSegments(
     episodeId: ArmEpisodeId,
     options: ArmSegmentsRequestOptions,
-  ): Promise<ArmHttpResponse<ArmReleaseVariantSegmentsResponse>> {
+  ): Promise<ArmHttpResponse<ArmEpisodeSegmentsResponse>> {
     return this.armClient().getEpisodeSegments(episodeId, options);
   }
 

@@ -61,8 +61,8 @@ export function useMediaDetailsHistoryActions({
         showHUDRef.current(
           "success",
           nextState
-            ? t("details.toasts.episodeMarked", { number: episode.armOrdinal ?? episode.episodeNumber })
-            : t("details.toasts.episodeRemoved", { number: episode.armOrdinal ?? episode.episodeNumber }),
+            ? t("details.toasts.episodeMarked", { number: episode.armNumber ?? episode.episodeNumber })
+            : t("details.toasts.episodeRemoved", { number: episode.armNumber ?? episode.episodeNumber }),
         );
         if (!identity.episodeId) await refetch(true);
       } catch {

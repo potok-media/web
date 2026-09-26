@@ -11,7 +11,7 @@ export const getStreamType = (ep: GenericEpisodeItem): string => {
 export const SENTINEL_KEY = "_";
 
 export const isArmEpisode = (episode: GenericEpisodeItem): boolean =>
-  episode.resolutionState !== undefined || Boolean(episode.groupId || episode.orderingId || episode.episodeId);
+  episode.resolutionState !== undefined || Boolean(episode.entryId || episode.episodeId);
 
 export const resolvedSeasonNumbers = (episodes: GenericEpisodeItem[]): number[] =>
   Array.from(new Set(
@@ -21,7 +21,7 @@ export const resolvedSeasonNumbers = (episodes: GenericEpisodeItem[]): number[] 
   )).sort((left, right) => left - right);
 
 const sourceSectionKey = (episode: GenericEpisodeItem): string => {
-  if (episode.groupId) return `arm:${episode.groupId}`;
+  if (episode.entryId) return `arm:${episode.entryId}`;
   if (isArmEpisode(episode)) return SENTINEL_KEY;
   if (episode.rawSeason !== undefined) return String(episode.rawSeason);
   if (episode.season !== undefined) return `display:${episode.season}`;
@@ -50,7 +50,7 @@ export const buildEpisodeSourceSections = (episodes: GenericEpisodeItem[]): Epis
         key,
         rawSeason: items[0].rawSeason,
         displayedSeason,
-        unresolved: canonical ? !items.some((episode) => episode.groupId) : displayedSeason === undefined,
+        unresolved: canonical ? !items.some((episode) => episode.entryId) : displayedSeason === undefined,
         rawFirstEp: rawEpisodes.length ? Math.min(...rawEpisodes) : 1,
         groupTitle: items.find((episode) => episode.groupTitle)?.groupTitle,
         groupKind: items.find((episode) => episode.groupKind)?.groupKind,
@@ -78,7 +78,7 @@ export const hasEpisodeParsingWarning = ({
   parserVerdict?: boolean;
 }): boolean => {
   if (parserVerdict !== undefined) return parserVerdict;
-  if (episodes.length > 0 && episodes.every((episode) => episode.episodeId && episode.groupId)) return false;
+  if (episodes.length > 0 && episodes.every((episode) => episode.episodeId && episode.entryId)) return false;
   const seasons = resolvedSeasonNumbers(episodes);
   return mediaType === "tv" && seasons.length > 0 && seasons.every((season) => season === 0);
 };
