@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  AlertTriangle,
   ArrowLeft,
   CheckCircle2,
   ListVideo,
@@ -20,7 +19,6 @@ interface EpisodeSelectorHeaderProps {
   completedCount: number;
   totalCount: number;
   percentage: number;
-  parsingFailed: boolean;
   onStartEditing?: () => void;
   onOpenAsPlaylist?: () => void;
 }
@@ -35,7 +33,6 @@ export const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React
   completedCount,
   totalCount,
   percentage,
-  parsingFailed,
   onStartEditing,
   onOpenAsPlaylist,
 }) => {
@@ -66,18 +63,6 @@ export const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React
         <div className="modal-title-text-group">
           <h3 className="modal-title modal-title-custom-size" title={title}>{title}</h3>
           {subtitle && <span className="modal-subtitle modal-subtitle-text" title={subtitle}>{subtitle}</span>}
-
-          {parsingFailed && !isEditing && (
-            <div className="parsing-hint-pill" title={t("selector.parsingHintBody")}>
-              <AlertTriangle size="0.8125rem" />
-              <span className="parsing-hint-text">{t("selector.parsingHintQuestion")}</span>
-              {onStartEditing && (
-                <button type="button" className="parsing-hint-action" onClick={onStartEditing}>
-                  {t("selector.parsingHintAction")}
-                </button>
-              )}
-            </div>
-          )}
 
           {mediaType === "tv" && totalCount > 0 && (
             <div className="tv-progress-container">

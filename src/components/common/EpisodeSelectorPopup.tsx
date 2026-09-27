@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { AlertTriangle } from "lucide-react";
 import { Overlay } from "./Overlay";
 import { EpisodeSelectorHeader } from "./episodeSelector/EpisodeSelectorHeader";
 import { EpisodeOverridePicker } from "./episodeSelector/EpisodeOverridePicker";
@@ -95,9 +96,25 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
         completedCount={completedCount}
         totalCount={totalCount}
         percentage={percentage}
-        parsingFailed={parsingFailed}
         onOpenAsPlaylist={handleOpenAsPlaylist}
       />
+
+      {parsingFailed && !isEditing && (
+        <div className="parsing-hint-strip" title={t("selector.parsingHintBody")}>
+          <AlertTriangle size="0.8125rem" />
+          <span className="parsing-hint-text">{t("selector.parsingHintQuestion")}</span>
+          <button
+            type="button"
+            className="parsing-hint-action"
+            onClick={() => {
+              if (sourceSections.length > 0) handleEditSection(sourceSections[0]);
+              else onStartEditing?.();
+            }}
+          >
+            {t("selector.parsingHintAction")}
+          </button>
+        </div>
+      )}
 
       <div className="episode-popup-body episode-popup-body-flex">
         {isEditing ? (
