@@ -17,13 +17,6 @@ export interface SDKArmTmdbCoordinate {
   episode: number;
 }
 
-export interface SDKArmTitles {
-  official?: string | null;
-  en?: string | null;
-  ru?: string | null;
-  original?: string | null;
-}
-
 export interface SDKArmProviderReference {
   provider: string;
   entityKind: string;
@@ -32,8 +25,6 @@ export interface SDKArmProviderReference {
 
 export interface SDKArmWork {
   id: string;
-  title: string | null;
-  titles: SDKArmTitles;
 }
 
 /** Null workId means the provider reference did not resolve to a Potok work. */
@@ -42,13 +33,13 @@ export interface SDKArmResolveResponse {
   graphVersion?: string | null;
 }
 
+/**
+ * Identity and structure only — no display metadata. Overlay titles/stills from TMDB by the
+ * `tmdb` coordinate (the host exposes a cached season fetch for this).
+ */
 export interface SDKArmEpisode {
   id: string;
   number: number;
-  title?: string | null;
-  overview?: string | null;
-  stillPath?: string | null;
-  airDate?: string | null;
   filler?: SDKArmEpisodeFiller | null;
   tmdb?: SDKArmTmdbCoordinate | null;
 }
@@ -58,9 +49,10 @@ export interface SDKArmEpisodeGroup {
   id: string;
   kind: "season" | "sides" | "movie" | "ova" | "specials" | string;
   number: number;
-  title?: string | null;
   anilistId?: number | null;
   malId?: number | null;
+  tmdbShow?: number | null;
+  tmdbSeason?: number | null;
   episodes: SDKArmEpisode[];
 }
 

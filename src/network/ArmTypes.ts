@@ -20,18 +20,8 @@ export interface ArmTmdbCoordinate {
   episode: number;
 }
 
-/** All published title variants of a work (locale-selected `title` is separate). */
-export interface ArmTitles {
-  official?: string | null;
-  en?: string | null;
-  ru?: string | null;
-  original?: string | null;
-}
-
 export interface ArmWorkSummary {
   id: ArmWorkId;
-  title: string | null;
-  titles: ArmTitles;
 }
 
 /** Provider identity probe used only as the resolve-work request input. */
@@ -41,28 +31,30 @@ export interface ArmProviderReference {
   value: string;
 }
 
+/**
+ * One graph episode: identity and structure only. Display metadata (title, overview, still,
+ * air date) is NOT carried by the graph — overlay it from TMDB by the `tmdb` coordinate.
+ */
 export interface ArmLayoutEpisode {
   id: ArmEpisodeId;
   number: number;
-  title?: string | null;
-  overview?: string | null;
-  stillPath?: string | null;
-  airDate?: string | null;
   filler?: ArmEpisodeFiller | null;
   tmdb?: ArmTmdbCoordinate | null;
 }
 
 /**
  * One graph entry (a season/sides/movie/ova/specials block). The entry id doubles as the
- * group id: `id` IS the `entryId` used in binding targets and playback wiring.
+ * group id: `id` IS the `entryId` used in binding targets and playback wiring. The TMDB
+ * season coordinate (when bridged) is where display metadata comes from.
  */
 export interface ArmLayoutGroup {
   id: ArmEntryId;
   kind: "season" | "sides" | "movie" | "ova" | "specials" | string;
   number: number;
-  title?: string | null;
   anilistId?: number | null;
   malId?: number | null;
+  tmdbShow?: number | null;
+  tmdbSeason?: number | null;
   episodes: ArmLayoutEpisode[];
 }
 

@@ -15,7 +15,7 @@ const resolveResponse: ArmResolveResponse = {
 };
 
 const layoutResponse: ArmEpisodeLayoutResponse = {
-  work: { id: "work-1", title: null, titles: {} },
+  work: { id: "work-1" },
   graphVersion: "graph-1",
   groups: [],
 };

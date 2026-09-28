@@ -3,14 +3,13 @@ import { loadArmBindingLayout } from "./armBindingLayout";
 import type { ArmEpisodeLayoutResponse, ArmResolveResponse } from "../../network/ArmTypes";
 
 const layout: ArmEpisodeLayoutResponse = {
-  work: { id: "work", title: null, titles: {} },
+  work: { id: "work" },
   graphVersion: "graph-1",
   groups: [{
     id: "entry-season-1",
     kind: "season",
     number: 1,
-    title: null,
-    episodes: [{ id: "episode-1", number: 1, title: null }],
+    episodes: [{ id: "episode-1", number: 1 }],
   }],
 };
 const resolved: ArmResolveResponse = {

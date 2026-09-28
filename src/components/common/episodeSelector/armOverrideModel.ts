@@ -22,7 +22,8 @@ export interface ArmOverrideGroup {
 /**
  * Maps the v2 graph layout to picker groups. Groups arrive in the backend's kind-aware order
  * with episodes ordered by number; every canonical entry stays intact — equal display numbers
- * are not equal identities.
+ * are not equal identities. The graph carries no display metadata: the picker renders
+ * ordinals (and filler badges), titles/stills come from TMDB on the consumer side.
  */
 export function toArmOverrideGroups(layout: ArmEpisodeLayoutResponse | null | undefined): ArmOverrideGroup[] {
   const workId = layout?.work?.id;
@@ -35,16 +36,14 @@ export function toArmOverrideGroups(layout: ArmEpisodeLayoutResponse | null | un
         target: { workId, entryId: group.id, episodeId: episode.id },
         ordinal: typeof episode.number === "number" && Number.isFinite(episode.number)
           ? String(episode.number) : "",
-        title: episode.title?.trim() || "",
-        stillPath: episode.stillPath,
-        airDate: episode.airDate,
+        title: "",
         filler: episode.filler,
       }));
     if (!episodes.length) return [];
     return [{
       id: group.id,
       kind: group.kind,
-      title: group.title?.trim() || "",
+      title: "",
       displayNumber: typeof group.number === "number" && Number.isFinite(group.number) ? group.number : null,
       episodes,
     }];

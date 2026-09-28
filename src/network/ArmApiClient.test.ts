@@ -16,8 +16,6 @@ const resolved: ArmResolveResponse = {
 const layout: ArmEpisodeLayoutResponse = {
   work: {
     id: "01900000-0000-7000-8000-000000000001",
-    title: "Frieren",
-    titles: { official: "Frieren", en: "Frieren: Beyond Journey's End", ru: "Фрирен", original: null },
   },
   graphVersion: "graph-1",
   groups: [],

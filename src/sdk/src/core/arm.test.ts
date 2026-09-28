@@ -8,7 +8,7 @@ const resolveResponse: SDKArmResolveResponse = {
 };
 
 const layoutResponse: SDKArmEpisodeLayoutResponse = {
-  work: { id: "work-1", title: "Frieren", titles: { official: "Frieren", en: null, ru: null, original: null } },
+  work: { id: "work-1" },
   graphVersion: "graph-1",
   groups: [],
 };

@@ -4,10 +4,7 @@ import type {
   ArmLayoutEpisode,
   ArmLayoutGroup,
 } from "../../network/ArmTypes";
-import { resizeTmdbImage } from "../../utils/mediaUtils";
-
-// Matches the legacy season pipeline (useSeasonEpisodes.ts): episode stills decode at w500.
-const STILL_SIZE = "w500";
+import { fetchTmdbSeasonMeta } from "./tmdbSeasonMeta";
 
 export interface EpisodeGroupTitleFallback {
   /** Canonical backend taxonomy: season | sides | movie | ova | specials. */
@@ -22,43 +19,85 @@ export interface EpisodeGroupPresentation {
   /** Set when the title must be finalized by the component (localized per group kind). */
   titleFallback?: EpisodeGroupTitleFallback;
   displayNumber?: number | null;
+  /** The TMDB season coordinate the group's display metadata overlays from (when bridged). */
+  tmdbShow?: number | null;
+  tmdbSeason?: number | null;
   episodes: TvEpisode[];
-}
-
-export interface EpisodeLayoutPresentationOptions {
-  /** Gateway base URL used to proxy raw TMDB-relative still paths. */
-  imageBaseUrl?: string;
 }
 
 function finiteNumber(value: number | null | undefined): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
-function textValue(value: string | null | undefined): string | undefined {
-  const trimmed = value?.trim();
-  return trimmed || undefined;
-}
-
-function stillUrl(
-  stillPath: string | null | undefined,
-  imageBaseUrl: string | undefined,
-): string | undefined {
-  if (!stillPath) return undefined;
-  if (/^https?:\/\//i.test(stillPath)) return resizeTmdbImage(stillPath, STILL_SIZE);
-  if (!imageBaseUrl) return stillPath;
-  const base = imageBaseUrl.replace(/\/$/, "");
-  const path = stillPath.startsWith("/") ? stillPath : `/${stillPath}`;
-  return `${base}/media/tmdb/t/p/${STILL_SIZE}${path}`;
-}
-
-function groupTitle(group: ArmLayoutGroup): { title: string; titleFallback?: EpisodeGroupTitleFallback } {
-  const explicit = textValue(group.title);
-  if (explicit) return { title: explicit };
-  // Any untitled group defers to the component for a localized label keyed by its actual kind.
+/**
+ * Structure-only mapping (ARM carries no display metadata since the identity-only narrowing):
+ * every episode starts nameless and still-less; overlayTmdbEpisodeMeta fills display fields
+ * from TMDB by the bridge coordinates. Collapsing runs AFTER the overlay so the
+ * displayability filter sees real metadata.
+ */
+function toTvEpisode(
+  episode: ArmLayoutEpisode,
+  group: ArmLayoutGroup,
+): TvEpisode {
   return {
+    id: episode.id,
+    name: "",
+    episodeNumber: finiteNumber(episode.number) ?? 0,
+    seasonNumber: finiteNumber(group.number) ?? 0,
+    armEpisodeId: episode.id,
+    armEntryId: group.id,
+    armNumber: finiteNumber(episode.number),
+    filler: episode.filler ?? null,
+    tmdbSeasonNumber: episode.tmdb?.season,
+    tmdbEpisodeNumber: episode.tmdb?.episode,
+  };
+}
+
+export function toEpisodeGroupPresentations(
+  layout: ArmEpisodeLayoutResponse,
+): EpisodeGroupPresentation[] {
+  return layout.groups.map((group) => ({
+    id: group.id,
+    kind: group.kind,
     title: "",
     titleFallback: { kind: group.kind, number: finiteNumber(group.number) ?? null },
-  };
+    displayNumber: finiteNumber(group.number) ?? null,
+    tmdbShow: group.tmdbShow ?? null,
+    tmdbSeason: group.tmdbSeason ?? null,
+    episodes: group.episodes.map((episode) => toTvEpisode(episode, group)),
+  }));
+}
+
+/**
+ * Fills group titles (localized TMDB season names) and episode display fields (name,
+ * overview, still, air date) from TMDB by each group's bridge coordinate. Unbridged groups
+ * and failed fetches stay bare — cosmetic degradation, never a broken layout.
+ */
+export async function overlayTmdbEpisodeMeta(
+  groups: EpisodeGroupPresentation[],
+): Promise<EpisodeGroupPresentation[]> {
+  return Promise.all(groups.map(async (group) => {
+    if (group.tmdbShow == null || group.tmdbSeason == null) return group;
+    const meta = await fetchTmdbSeasonMeta(group.tmdbShow, group.tmdbSeason);
+    if (!meta) return group;
+    return {
+      ...group,
+      title: meta.seasonName,
+      episodes: group.episodes.map((episode) => {
+        const overlay = episode.tmdbEpisodeNumber != null
+          ? meta.episodes.get(episode.tmdbEpisodeNumber)
+          : undefined;
+        if (!overlay) return episode;
+        return {
+          ...episode,
+          name: overlay.name,
+          overview: overlay.overview,
+          stillPath: overlay.stillPath,
+          airDate: overlay.airDate,
+        };
+      }),
+    };
+  }));
 }
 
 /**
@@ -67,14 +106,6 @@ function groupTitle(group: ArmLayoutGroup): { title: string; titleFallback?: Epi
  */
 const COLLAPSED_GROUP_KINDS = new Set(["sides", "specials", "movie", "ova"]);
 
-/**
- * Collapses all sides/specials/movie/ova groups into one presentation per kind.
- * Input groups arrive in the backend's kind-aware order (with episodes ordered by number inside
- * each group), so the merged episode list keeps group-then-episode order. Episode objects are
- * carried over untouched — `armEpisodeId`/`armEntryId` still point at the source entry, so
- * watched state, history and streams wiring keep working. The empty title plus a number-less
- * kind fallback makes the component render the generic localized kind label ("Спешлы" / "Фильмы").
- */
 /**
  * A collapsed Films/Specials card is an independent item: with neither a title nor a still
  * it renders as a bare "1" and carries no information, so it is dropped (owner's rule).
@@ -86,6 +117,14 @@ function isDisplayableEpisode(episode: TvEpisode): boolean {
   return episode.name !== String(episode.armNumber ?? "") && episode.name !== String(episode.episodeNumber);
 }
 
+/**
+ * Collapses all sides/specials/movie/ova groups into one presentation per kind.
+ * Input groups arrive in the backend's kind-aware order (with episodes ordered by number inside
+ * each group), so the merged episode list keeps group-then-episode order. Episode objects are
+ * carried over untouched — `armEpisodeId`/`armEntryId` still point at the source entry, so
+ * watched state, history and streams wiring keep working. The empty title plus a number-less
+ * kind fallback makes the component render the generic localized kind label ("Спешлы" / "Фильмы").
+ */
 export function collapseKindGroupPresentations(
   groups: EpisodeGroupPresentation[],
 ): EpisodeGroupPresentation[] {
@@ -115,39 +154,4 @@ export function collapseKindGroupPresentations(
     collapsed.episodes.push(...displayable);
   }
   return result;
-}
-
-function toTvEpisode(
-  episode: ArmLayoutEpisode,
-  group: ArmLayoutGroup,
-  options?: EpisodeLayoutPresentationOptions,
-): TvEpisode {
-  return {
-    id: episode.id,
-    name: textValue(episode.title) ?? "",
-    overview: episode.overview ?? undefined,
-    episodeNumber: finiteNumber(episode.number) ?? 0,
-    seasonNumber: finiteNumber(group.number) ?? 0,
-    airDate: episode.airDate ?? undefined,
-    stillPath: stillUrl(episode.stillPath, options?.imageBaseUrl),
-    armEpisodeId: episode.id,
-    armEntryId: group.id,
-    armNumber: finiteNumber(episode.number),
-    filler: episode.filler ?? null,
-    tmdbSeasonNumber: episode.tmdb?.season,
-    tmdbEpisodeNumber: episode.tmdb?.episode,
-  };
-}
-
-export function toEpisodeGroupPresentations(
-  layout: ArmEpisodeLayoutResponse,
-  options?: EpisodeLayoutPresentationOptions,
-): EpisodeGroupPresentation[] {
-  return collapseKindGroupPresentations(layout.groups.map((group) => ({
-    id: group.id,
-    kind: group.kind,
-    ...groupTitle(group),
-    displayNumber: finiteNumber(group.number) ?? null,
-    episodes: group.episodes.map((episode) => toTvEpisode(episode, group, options)),
-  })));
 }

@@ -6,6 +6,8 @@ import {
   type ArmMediaSummary,
 } from "../network/ArmTypes";
 import {
+  collapseKindGroupPresentations,
+  overlayTmdbEpisodeMeta,
   toEpisodeGroupPresentations,
   type EpisodeGroupPresentation,
 } from "../features/arm/episodeLayoutModel";
@@ -89,7 +91,6 @@ export function useArmEpisodeLayout({
     const load = async (revalidating = false) => {
       try {
         const locale = i18n.language;
-        const imageBaseUrl = ApiClient.baseURL;
         let workId = summaryReadable && summaryWorkId ? summaryWorkId : null;
 
         if (!workId) {
@@ -110,12 +111,20 @@ export function useArmEpisodeLayout({
           ApiClient.fetchArmEpisodeLayout(workId, { locale, signal, ifNoneMatch }), revalidating);
         if (signal.aborted) return;
 
-        const groups = toEpisodeGroupPresentations(layout, { imageBaseUrl });
-        if (groups.length === 0) {
+        // Structure first (never blocks the UI), then the TMDB display overlay by the bridge
+        // coordinates; the collapse runs after the overlay so its displayability filter sees
+        // real metadata.
+        const bare = collapseKindGroupPresentations(toEpisodeGroupPresentations(layout));
+        if (bare.length === 0) {
           setState(providerFallbackState);
           return;
         }
-        setState({ status: "arm", groups });
+        setState({ status: "arm", groups: bare });
+
+        const overlaid = collapseKindGroupPresentations(
+          await overlayTmdbEpisodeMeta(toEpisodeGroupPresentations(layout)));
+        if (signal.aborted) return;
+        if (overlaid.length > 0) setState({ status: "arm", groups: overlaid });
       } catch (error) {
         if (signal.aborted || isAbort(error)) return;
         setState(providerFallbackState);

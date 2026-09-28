@@ -6,14 +6,14 @@ import type { GenericEpisodeItem } from "./types";
 
 const target = { workId: "work", entryId: "ova-a", episodeId: "ova-1" };
 function episode(id: string, overrides: Partial<ArmLayoutEpisode> = {}): ArmLayoutEpisode {
-  return { id, number: 1, title: null, ...overrides };
+  return { id, number: 1, ...overrides };
 }
 function group(id: string, episodes: ArmLayoutEpisode[], overrides: Partial<ArmLayoutGroup> = {}): ArmLayoutGroup {
-  return { id, kind: "ova", number: 1, title: null, episodes, ...overrides };
+  return { id, kind: "ova", number: 1, episodes, ...overrides };
 }
 function layout(groups: ArmLayoutGroup[], overrides: Partial<ArmEpisodeLayoutResponse> = {}): ArmEpisodeLayoutResponse {
   return {
-    work: { id: "work", title: null, titles: {} },
+    work: { id: "work" },
     graphVersion: "graph", groups, ...overrides,
   };
 }
@@ -55,10 +55,10 @@ describe("canonical override targets", () => {
     const filler = { status: "filler" as const, confidence: 1, disputed: false };
     const groups = toArmOverrideGroups(layout([group("ova-a", [
       episode("ova-1", { number: 1.5, filler }),
-      episode("ova-2", { number: 2, title: "Second" }),
+      episode("ova-2", { number: 2 }),
     ])]));
     expect(groups[0].episodes[0]).toMatchObject({ ordinal: "1.5", filler });
-    expect(groups[0].episodes[1]).toMatchObject({ ordinal: "2", title: "Second" });
+    expect(groups[0].episodes[1]).toMatchObject({ ordinal: "2" });
   });
 });
 

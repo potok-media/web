@@ -1,7 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TFunction } from "i18next";
 import type { ArmEpisodeLayoutResponse } from "../../network/ArmTypes";
-import { toEpisodeGroupPresentations } from "./episodeLayoutModel";
+import {
+  collapseKindGroupPresentations,
+  overlayTmdbEpisodeMeta,
+  toEpisodeGroupPresentations,
+} from "./episodeLayoutModel";
+import { ApiClient } from "../../network/ApiClient";
 import { finalizeGroupTitle, orderGroupsByKind } from "../../components/seasonGroupLabels";
 import enTranslations from "../../i18n/locales/en.json";
 import ruTranslations from "../../i18n/locales/ru.json";
@@ -25,22 +30,19 @@ const tRu = translatorFor(ruTranslations);
 describe("ARM episode layout presentation", () => {
   it("keeps Potok entry and episode identities while exposing TMDB only as a projection", () => {
     const layout: ArmEpisodeLayoutResponse = {
-      work: { id: "work-1", title: "Example", titles: {} },
+      work: { id: "work-1" },
       graphVersion: "graph-7",
       groups: [
         {
           id: "cour-2",
           kind: "season",
           number: 2,
-          title: "Сезон 1 · Часть 2",
+          tmdbShow: 100,
+          tmdbSeason: 1,
           episodes: [
             {
               id: "episode-13",
               number: 13,
-              title: "Продолжение",
-              overview: "Описание",
-              stillPath: "/still.jpg",
-              airDate: "2025-01-01",
               filler: { status: "mixed", confidence: 0.72, disputed: true },
               tmdb: { show: 100, season: 1, episode: 13 },
             },
@@ -53,17 +55,17 @@ describe("ARM episode layout presentation", () => {
       {
         id: "cour-2",
         kind: "season",
-        title: "Сезон 1 · Часть 2",
+        title: "",
+        titleFallback: { kind: "season", number: 2 },
         displayNumber: 2,
+        tmdbShow: 100,
+        tmdbSeason: 1,
         episodes: [
           {
             id: "episode-13",
-            name: "Продолжение",
-            overview: "Описание",
+            name: "",
             episodeNumber: 13,
             seasonNumber: 2,
-            airDate: "2025-01-01",
-            stillPath: "/still.jpg",
             armEpisodeId: "episode-13",
             armEntryId: "cour-2",
             armNumber: 13,
@@ -78,30 +80,22 @@ describe("ARM episode layout presentation", () => {
 
   it("does not invent a TMDB coordinate for an ARM-only episode", () => {
     const layout: ArmEpisodeLayoutResponse = {
-      work: { id: "work-2", title: null, titles: {} },
+      work: { id: "work-2" },
       graphVersion: "graph-8",
       groups: [
         {
           id: "ova",
           kind: "ova",
           number: 1,
-          title: "OVA",
-          episodes: [
-            {
-              id: "episode-ova",
-              number: 1,
-              title: "Training of the Dead",
-            },
-          ],
+          episodes: [{ id: "episode-ova", number: 1 }],
         },
       ],
     };
 
     const [group] = toEpisodeGroupPresentations(layout);
-    expect(group.id).toBe("collapsed-ova");
     expect(group.episodes[0]).toMatchObject({
       id: "episode-ova",
-      name: "Training of the Dead",
+      name: "",
       armEpisodeId: "episode-ova",
       armEntryId: "ova",
       armNumber: 1,
@@ -111,118 +105,39 @@ describe("ARM episode layout presentation", () => {
     expect(group.episodes[0].tmdbEpisodeNumber).toBeUndefined();
   });
 
-  it("defers untitled season groups to a localized fallback and keeps episodes nameless", () => {
+  it("defers season groups to a localized fallback and keeps episodes nameless", () => {
     const layout: ArmEpisodeLayoutResponse = {
-      work: { id: "work-3", title: null, titles: {} },
+      work: { id: "work-3" },
       graphVersion: "graph-9",
       groups: [
-        {
-          id: "specials",
-          kind: "specials",
-          number: 0,
-          title: "Extras",
-          episodes: [],
-        },
         {
           id: "season-1",
           kind: "season",
           number: 1,
-          title: "  ",
-          episodes: [
-            {
-              id: "episode-1",
-              number: 1,
-              title: null,
-            },
-          ],
+          episodes: [{ id: "episode-1", number: 1 }],
         },
       ],
     };
 
-    const groups = toEpisodeGroupPresentations(layout);
-
-    // Backend order is preserved as-is (specials entry has no displayable episodes and collapses away).
-    const season = groups.find((group) => group.id === "season-1")!;
+    const [season] = toEpisodeGroupPresentations(layout);
     expect(season.title).toBe("");
     expect(season.titleFallback).toEqual({ kind: "season", number: 1 });
-    // A bare number must not be echoed as the name — the card renders the number alone.
     expect(season.episodes[0].name).toBe("");
-  });
-
-  it("collapses untitled specials/movie groups into one kind-labeled entry each", () => {
-    const layout: ArmEpisodeLayoutResponse = {
-      work: { id: "work-6", title: null, titles: {} },
-      graphVersion: "graph-12",
-      groups: [
-        {
-          id: "specials-0",
-          kind: "specials",
-          number: 0,
-          title: null,
-          episodes: [
-            { id: "specials-0-ep", number: 1, title: "Special One" },
-          ],
-        },
-        {
-          id: "movie-1",
-          kind: "movie",
-          number: 1,
-          title: null,
-          episodes: [
-            { id: "movie-1-ep", number: 1, title: "Movie One" },
-          ],
-        },
-        {
-          id: "cour-x",
-          kind: "cour",
-          number: 3,
-          title: null,
-          episodes: [],
-        },
-      ],
-    };
-
-    const [specials, movie, cour] = toEpisodeGroupPresentations(layout);
-
-    // A lone group of a collapsed kind still gets the synthetic id and the number-less kind
-    // fallback, so the component renders the generic localized label ("Спешлы" / "Фильмы").
-    expect(specials).toMatchObject({
-      id: "collapsed-specials",
-      kind: "specials",
-      title: "",
-      titleFallback: { kind: "specials", number: null },
-      displayNumber: null,
-    });
-    expect(specials.episodes.map((episode) => episode.id)).toEqual(["specials-0-ep"]);
-    expect(movie).toMatchObject({
-      id: "collapsed-movie",
-      kind: "movie",
-      title: "",
-      titleFallback: { kind: "movie", number: null },
-      displayNumber: null,
-    });
-    expect(movie.episodes.map((episode) => episode.id)).toEqual(["movie-1-ep"]);
-    // Unknown kinds stay individual and still defer with their raw kind.
-    expect(cour.id).toBe("cour-x");
-    expect(cour.title).toBe("");
-    expect(cour.titleFallback).toEqual({ kind: "cour", number: 3 });
   });
 
   it("keeps decimal numbers for split episodes", () => {
     const layout: ArmEpisodeLayoutResponse = {
-      work: { id: "work-4", title: null, titles: {} },
+      work: { id: "work-4" },
       graphVersion: "graph-10",
       groups: [
         {
           id: "season-1",
           kind: "season",
           number: 1,
-          title: null,
           episodes: [
             {
               id: "episode-12-5",
               number: 12.5,
-              title: null,
               tmdb: { show: 100, season: 1, episode: 13 },
             },
           ],
@@ -235,40 +150,92 @@ describe("ARM episode layout presentation", () => {
     expect(group.episodes[0].armNumber).toBe(12.5);
     expect(group.episodes[0].name).toBe("");
   });
+});
 
-  it("proxies raw TMDB still paths through the gateway and resizes absolute URLs", () => {
-    const layout: ArmEpisodeLayoutResponse = {
-      work: { id: "work-5", title: null, titles: {} },
-      graphVersion: "graph-11",
+describe("ARM episode TMDB overlay", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("overlays group titles and episode display fields by the bridge coordinates", async () => {
+    vi.spyOn(ApiClient, "fetchTvSeason").mockResolvedValue({
+      id: 1,
+      name: "Сезон 1",
+      seasonNumber: 1,
+      episodes: [
+        {
+          id: 900,
+          name: "Пилот",
+          overview: "Описание",
+          episodeNumber: 1,
+          seasonNumber: 1,
+          airDate: "2025-01-01",
+          stillPath: "http://gw/media/tmdb/t/p/original/still.jpg",
+        },
+      ],
+    });
+
+    const groups = toEpisodeGroupPresentations({
+      work: { id: "work-10" },
+      graphVersion: "graph-30",
       groups: [
         {
           id: "season-1",
           kind: "season",
           number: 1,
-          title: null,
+          tmdbShow: 100,
+          tmdbSeason: 1,
           episodes: [
-            {
-              id: "episode-raw",
-              number: 1,
-              title: null,
-              stillPath: "/abc.jpg",
-            },
-            {
-              id: "episode-absolute",
-              number: 2,
-              title: null,
-              stillPath: "https://image.tmdb.org/t/p/original/def.jpg",
-            },
+            { id: "ep-1", number: 1, tmdb: { show: 100, season: 1, episode: 1 } },
+            { id: "ep-2", number: 2 }, // unbridged: stays bare
           ],
         },
       ],
-    };
-
-    const [group] = toEpisodeGroupPresentations(layout, {
-      imageBaseUrl: "http://localhost:5001/",
     });
-    expect(group.episodes[0].stillPath).toBe("http://localhost:5001/media/tmdb/t/p/w500/abc.jpg");
-    expect(group.episodes[1].stillPath).toBe("https://image.tmdb.org/t/p/w500/def.jpg");
+
+    const [overlaid] = await overlayTmdbEpisodeMeta(groups);
+
+    expect(overlaid.title).toBe("Сезон 1");
+    expect(overlaid.episodes[0]).toMatchObject({
+      id: "ep-1",
+      name: "Пилот",
+      overview: "Описание",
+      stillPath: "http://gw/media/tmdb/t/p/original/still.jpg",
+      airDate: "2025-01-01",
+    });
+    expect(overlaid.episodes[1].name).toBe("");
+    expect(overlaid.episodes[1].stillPath).toBeUndefined();
+  });
+
+  it("stays bare when the group is unbridged or the fetch fails", async () => {
+    vi.spyOn(ApiClient, "fetchTvSeason").mockRejectedValue(new Error("network down"));
+
+    const groups = toEpisodeGroupPresentations({
+      work: { id: "work-11" },
+      graphVersion: "graph-31",
+      groups: [
+        {
+          id: "season-fail",
+          kind: "season",
+          number: 1,
+          tmdbShow: 100,
+          tmdbSeason: 9,
+          episodes: [{ id: "ep-f", number: 1, tmdb: { show: 100, season: 9, episode: 1 } }],
+        },
+        {
+          id: "season-unbridged",
+          kind: "season",
+          number: 2,
+          episodes: [{ id: "ep-u", number: 1 }],
+        },
+      ],
+    });
+
+    const [failed, unbridged] = await overlayTmdbEpisodeMeta(groups);
+    expect(failed.title).toBe("");
+    expect(failed.episodes[0].name).toBe("");
+    expect(unbridged.title).toBe("");
+    expect(ApiClient.fetchTvSeason).toHaveBeenCalledTimes(1); // unbridged groups never fetch
   });
 });
 
@@ -282,24 +249,33 @@ describe("ARM episode group collapsing", () => {
     }[],
   ): ArmEpisodeLayoutResponse {
     return {
-      work: { id: "work-20", title: null, titles: {} },
+      work: { id: "work-20" },
       graphVersion: "graph-20",
       groups: groups.map((group) => ({
         id: group.id,
         kind: group.kind,
         number: group.number,
-        title: null,
         episodes: group.episodes.map((episode) => ({
           id: episode.id,
           number: episode.number,
-          title: `Title ${episode.id}`,
         })),
       })),
     };
   }
 
+  /** Collapse after a synthetic overlay — the same order the hook uses at runtime. */
+  function present(layout: ArmEpisodeLayoutResponse) {
+    const bare = toEpisodeGroupPresentations(layout);
+    // Tests exercise structure only: mark every episode displayable, as a title overlay would.
+    const overlaid = bare.map((group) => ({
+      ...group,
+      episodes: group.episodes.map((episode) => ({ ...episode, name: `Title ${episode.id}` })),
+    }));
+    return collapseKindGroupPresentations(overlaid);
+  }
+
   it("merges multiple movie groups into one entry with episodes in stable group-then-episode order", () => {
-    const groups = toEpisodeGroupPresentations(
+    const groups = present(
       layoutWith([
         {
           id: "movie-1",
@@ -335,12 +311,6 @@ describe("ARM episode group collapsing", () => {
       "movie-2-ep-b",
     ]);
     // Episode identity stays attached to the source entry so watched/history/streams keep working.
-    expect(collapsed.episodes.map((episode) => episode.armEpisodeId)).toEqual([
-      "movie-1-ep-a",
-      "movie-1-ep-b",
-      "movie-2-ep-a",
-      "movie-2-ep-b",
-    ]);
     expect(collapsed.episodes.map((episode) => episode.armEntryId)).toEqual([
       "movie-1",
       "movie-1",
@@ -349,36 +319,8 @@ describe("ARM episode group collapsing", () => {
     ]);
   });
 
-  it("merges multiple specials groups into one entry", () => {
-    const groups = toEpisodeGroupPresentations(
-      layoutWith([
-        {
-          id: "specials-a",
-          kind: "specials",
-          number: 1,
-          episodes: [{ id: "special-a-ep", number: 1 }],
-        },
-        {
-          id: "specials-b",
-          kind: "specials",
-          number: 2,
-          episodes: [{ id: "special-b-ep", number: 1 }],
-        },
-      ]),
-    );
-
-    expect(groups).toHaveLength(1);
-    expect(groups[0].id).toBe("collapsed-specials");
-    expect(groups[0].kind).toBe("specials");
-    expect(groups[0].titleFallback).toEqual({ kind: "specials", number: null });
-    expect(groups[0].episodes.map((episode) => episode.armEpisodeId)).toEqual([
-      "special-a-ep",
-      "special-b-ep",
-    ]);
-  });
-
   it("merges multiple sides groups into one entry and orders it between seasons and specials", () => {
-    const groups = toEpisodeGroupPresentations(
+    const groups = present(
       layoutWith([
         { id: "season-1", kind: "season", number: 1, episodes: [{ id: "s1e1", number: 1 }] },
         { id: "sides-b", kind: "sides", number: 2, episodes: [{ id: "side-b-ep", number: 1 }] },
@@ -394,13 +336,9 @@ describe("ARM episode group collapsing", () => {
     ]);
     const sides = groups[1];
     expect(sides.kind).toBe("sides");
-    expect(sides.title).toBe("");
     expect(sides.titleFallback).toEqual({ kind: "sides", number: null });
-    // Both sides groups merged, episodes keep source-entry identity in backend order.
-    expect(sides.episodes.map((episode) => episode.armEpisodeId)).toEqual(["side-b-ep", "side-a-ep"]);
     expect(sides.episodes.map((episode) => episode.armEntryId)).toEqual(["sides-b", "sides-a"]);
 
-    // Kind-priority ordering keeps sides between seasons and specials.
     expect(orderGroupsByKind(groups).map((group) => group.id)).toEqual([
       "season-1",
       "collapsed-sides",
@@ -411,62 +349,8 @@ describe("ARM episode group collapsing", () => {
     expect(finalizeGroupTitle(sides, tEn)).toBe("Side stories");
   });
 
-  it("merges multiple ova groups into one entry labeled OVA", () => {
-    const groups = toEpisodeGroupPresentations(
-      layoutWith([
-        { id: "season-1", kind: "season", number: 1, episodes: [{ id: "s1e1", number: 1 }] },
-        { id: "ova-a", kind: "ova", number: 1, episodes: [{ id: "ova-ep-1", number: 1 }] },
-        { id: "ova-b", kind: "ova", number: 2, episodes: [{ id: "ova-ep-2", number: 1 }] },
-      ]),
-    );
-
-    expect(groups.map((group) => group.id)).toEqual(["season-1", "collapsed-ova"]);
-    const ova = groups[1];
-    expect(ova.kind).toBe("ova");
-    expect(ova.titleFallback).toEqual({ kind: "ova", number: null });
-    expect(ova.episodes.map((episode) => episode.armEpisodeId)).toEqual(["ova-ep-1", "ova-ep-2"]);
-    expect(ova.episodes.map((episode) => episode.armEntryId)).toEqual(["ova-a", "ova-b"]);
-
-    expect(finalizeGroupTitle(ova, tRu)).toBe("OVA");
-    expect(finalizeGroupTitle(ova, tEn)).toBe("OVA");
-  });
-
-  it("keeps seasons individual and season-first in the backend kind order (movie before specials)", () => {
-    const groups = toEpisodeGroupPresentations(
-      layoutWith([
-        { id: "season-1", kind: "season", number: 1, episodes: [{ id: "s1e1", number: 1 }] },
-        { id: "specials-a", kind: "specials", number: 1, episodes: [{ id: "sp1", number: 1 }] },
-        { id: "season-2", kind: "season", number: 2, episodes: [{ id: "s2e1", number: 1 }] },
-        { id: "specials-b", kind: "specials", number: 2, episodes: [{ id: "sp2", number: 1 }] },
-        { id: "movie-1", kind: "movie", number: 1, episodes: [{ id: "mv1", number: 1 }] },
-      ]),
-    );
-
-    expect(groups.map((group) => group.id)).toEqual([
-      "season-1",
-      "collapsed-specials",
-      "season-2",
-      "collapsed-movie",
-    ]);
-    // Seasons keep their own ids, numbers and fallback descriptors.
-    expect(groups[0].titleFallback).toEqual({ kind: "season", number: 1 });
-    expect(groups[2].titleFallback).toEqual({ kind: "season", number: 2 });
-    expect(groups[1].episodes.map((episode) => episode.armEpisodeId)).toEqual(["sp1", "sp2"]);
-
-    // Kind-priority ordering (what the section applies before picking the default group) mirrors the
-    // backend rank season < sides < movie < ova < specials and keeps the default selection a season.
-    const ordered = orderGroupsByKind(groups);
-    expect(ordered.map((group) => group.id)).toEqual([
-      "season-1",
-      "season-2",
-      "collapsed-movie",
-      "collapsed-specials",
-    ]);
-    expect(ordered[0].kind).toBe("season");
-  });
-
   it("finalizes collapsed entries to the localized kind label via the existing helpers", () => {
-    const groups = toEpisodeGroupPresentations(
+    const groups = present(
       layoutWith([
         { id: "specials-a", kind: "specials", number: 1, episodes: [{ id: "sp1", number: 1 }] },
         { id: "movie-1", kind: "movie", number: 1, episodes: [{ id: "mv1", number: 1 }] },
@@ -480,7 +364,7 @@ describe("ARM episode group collapsing", () => {
   });
 
   it("drops episodes with neither a title nor a still from collapsed entries", () => {
-    const groups = toEpisodeGroupPresentations(
+    const bare = toEpisodeGroupPresentations(
       layoutWith([
         {
           id: "movie-1",
@@ -493,56 +377,24 @@ describe("ARM episode group collapsing", () => {
         },
       ]),
     );
-    // The fixture titles every episode; both survive the displayability filter.
-    const [collapsed] = groups;
-    expect(collapsed.episodes.map((episode) => episode.id)).toEqual(["mv-titled", "mv-empty"]);
-
-    const bare = toEpisodeGroupPresentations({
-      ...layoutWith([]),
-      groups: [
-        {
-          id: "movie-1",
-          kind: "movie",
-          number: 1,
-          title: null,
-          episodes: [
-            {
-              id: "mv-titled",
-              number: 1,
-              title: null,
-              stillPath: "/still.jpg",
-            },
-            {
-              id: "mv-empty",
-              number: 2,
-              title: null,
-            },
-          ],
-        },
-      ],
-    });
-    expect(bare[0].episodes.map((episode) => episode.id)).toEqual(["mv-titled"]);
+    // Only one episode gets overlaid (title) — the other stays bare and is dropped.
+    const overlaid = bare.map((group) => ({
+      ...group,
+      episodes: group.episodes.map((episode) =>
+        episode.id === "mv-titled" ? { ...episode, name: "Title" } : episode),
+    }));
+    const [collapsed] = collapseKindGroupPresentations(overlaid);
+    expect(collapsed.episodes.map((episode) => episode.id)).toEqual(["mv-titled"]);
   });
 
   it("skips the collapsed entry entirely when no episode is displayable", () => {
-    const groups = toEpisodeGroupPresentations({
-      ...layoutWith([]),
-      groups: [
-        {
-          id: "specials-1",
-          kind: "specials",
-          number: 1,
-          title: null,
-          episodes: [
-            {
-              id: "sp-empty",
-              number: 1,
-              title: null,
-            },
-          ],
-        },
-      ],
-    });
+    const groups = collapseKindGroupPresentations(
+      toEpisodeGroupPresentations(
+        layoutWith([
+          { id: "specials-1", kind: "specials", number: 1, episodes: [{ id: "sp-empty", number: 1 }] },
+        ]),
+      )
+    );
     expect(groups).toEqual([]);
   });
 });

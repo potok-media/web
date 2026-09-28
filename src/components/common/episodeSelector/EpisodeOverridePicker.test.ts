@@ -12,11 +12,11 @@ vi.mock("react-i18next", () => ({ useTranslation: () => ({
   t: (key: string, options?: { number?: number }) => options?.number !== undefined ? `${key}:${options.number}` : key,
 }) }));
 const layout: SDKArmEpisodeLayoutResponse = {
-  work: { id: "work", title: null, titles: {} },
+  work: { id: "work" },
   graphVersion: "graph",
   groups: [{
-    id: "ova", kind: "ova", number: 1, title: null, episodes: [{
-      id: "ova-episode", number: 1, title: "OVA 1",
+    id: "ova", kind: "ova", number: 1, episodes: [{
+      id: "ova-episode", number: 1,
       filler: { status: "filler", confidence: 1, disputed: false },
     }],
   }],
@@ -90,7 +90,8 @@ describe("ARM episode override picker states", () => {
       ...base, canonicalBindingEnabled: true, armLayout: layout, onApplyEpisodeBinding: vi.fn(),
     }));
     expect(html).toContain("seasons.ova");
-    expect(html).toContain("OVA 1");
+    // The layout carries no titles (identity-only graph): the card renders the ordinal fallback.
+    expect(html).toContain("episode.fallbackName:1");
     expect(html).toContain('data-episode-id="ova-episode"');
     expect(html).toContain("episode.annotationFiller");
     expect(html).toContain('type="search"');
