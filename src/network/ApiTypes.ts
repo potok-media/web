@@ -77,6 +77,8 @@ export interface MediaCard {
   kpId?: string;
   imdbId?: string;
   airDateTime?: string;
+  /** Canonical Potok Media id (ARM work uuid); absent on TMDB live-fallback results. */
+  potokId?: string;
   /** Potok-owned identity; absent on older Gateways and explicit when ARM is unresolved. */
   arm?: ArmMediaSummary;
 }
