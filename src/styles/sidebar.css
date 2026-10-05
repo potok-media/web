@@ -58,6 +58,7 @@
 .sidebar-nav-item {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: var(--space-s);
   padding: 0.625rem 0.875rem 0.625rem 0.6875rem;
   border-radius: var(--radius-m);

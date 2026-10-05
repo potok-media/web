@@ -28,8 +28,8 @@ export function armResolveCacheKey(reference: ArmProviderReference, locale: stri
   return `${reference.provider}/${reference.entityKind}/${reference.value}|${locale}`;
 }
 
-export function armLayoutCacheKey(workId: ArmWorkId, ordering: string, locale: string): string {
-  return `${workId}|${ordering}|${locale}`;
+export function armLayoutCacheKey(workId: ArmWorkId, locale: string): string {
+  return `${workId}|${locale}`;
 }
 
 function readFresh<T>(cache: Map<string, ArmCacheEntry<T>>, key: string): T | null {
@@ -96,12 +96,11 @@ export function getArmResolveCached(
 
 export function getArmLayoutCached(
   workId: ArmWorkId,
-  ordering: string,
   locale: string,
   fetcher: ArmFetcher<ArmEpisodeLayoutResponse>,
   forceRevalidate = false,
 ): Promise<ArmEpisodeLayoutResponse> {
-  return getOrRevalidate(layoutCache, armLayoutCacheKey(workId, ordering, locale), fetcher, forceRevalidate);
+  return getOrRevalidate(layoutCache, armLayoutCacheKey(workId, locale), fetcher, forceRevalidate);
 }
 
 /** Test support: drop every cached resolve/layout entry. */

@@ -99,4 +99,4 @@ services:
 - ⚙️ **Backend** — Gateway · SearchEngine · TorrentGo
 - 🧩 **Плагины и SDK** — `PotokSDK`
 
-🔗 [Сайт](https://potok.rip) · [Вики](https://potok.rip/wiki) · [GitHub](https://github.com/potok-media)
+🔗 [Сайт](https://potok.rip) · [Вики](https://potok.rip/wiki) · [GitHub](https://github.com/potok-media) · [DeepWiki](https://deepwiki.com/potok-media/web)

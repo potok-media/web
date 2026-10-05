@@ -1,237 +1,101 @@
 /** Stable Potok-owned identities. Provider ids must never be used in their place. */
 export type ArmWorkId = string;
+export type ArmEntryId = string;
 export type ArmEpisodeId = string;
-export type ArmOrderingId = string;
-export type ArmEpisodeGroupId = string;
 export type ArmGraphVersion = string;
 
-export type ArmEpisodeRelation = "canon" | "mixed" | "filler" | "recap" | "unknown";
-export type ArmWatchRecommendation = "essential" | "recommended" | "optional" | "skip" | "unknown";
-export type ArmAdaptationBasis = "manga" | "lightNovel" | "novel" | "comic" | "game" | "other";
-export type ArmPublicationPolicy =
-  | "public"
-  | "potok-owned"
-  | "redistributable"
-  | "derived"
-  | "local-only"
-  | "query-only"
-  | "non-redistributable"
-  | "withheld";
+export type ArmFillerStatus = "canon" | "filler" | "mixed" | "recap";
 
-export type ArmResolutionState =
-  | "resolved"
-  | "partial"
-  | "ambiguous"
-  | "disputed"
-  | "unresolved"
-  | "providerError"
-  | "withheld"
-  | "confirmedNone"
-  | "notApplicable";
+/** Filler verdict attached to a layout episode; canon renders no badge. */
+export interface ArmEpisodeFiller {
+  status: ArmFillerStatus;
+  confidence: number | null;
+  disputed: boolean;
+}
 
-export type ArmCoverageState =
-  | "complete"
-  | "partial"
-  | "ambiguous"
-  | "unresolved"
-  | "withheld"
-  | "stale"
-  | "providerFallback";
+/** TMDB episode coordinate published by the graph's TMDB bridge. */
+export interface ArmTmdbCoordinate {
+  show: number;
+  season: number;
+  episode: number;
+}
 
+export interface ArmWorkSummary {
+  id: ArmWorkId;
+}
+
+/** Provider identity probe used only as the resolve-work request input. */
 export interface ArmProviderReference {
   provider: string;
   entityKind: string;
   value: string;
 }
 
-export interface ArmWarning {
-  code: string;
-  message: string;
-}
-
-export type ArmNameRole =
-  | "original"
-  | "official"
-  | "common"
-  | "alias"
-  | "romanized"
-  | "short"
-  | "working";
-
-export interface ArmLocalizedText {
-  value: string;
-  requestedLocale?: string | null;
-  resolvedLocale?: string | null;
-  role: ArmNameRole;
-  usedFallback: boolean;
-}
-
-/** All published title assertions, including ru/en/original-script variants. */
-export interface ArmName {
-  value: string;
-  locale?: string | null;
-  script?: string | null;
-  role: ArmNameRole;
-  sourceId?: string | null;
-}
-
-export interface ArmResponseEnvelope {
-  graphVersion: ArmGraphVersion | null;
-  resolutionState: ArmResolutionState;
-  coverageState: ArmCoverageState;
-  warnings: ArmWarning[];
-}
-
-export interface ArmWorkSummary {
-  id: ArmWorkId;
-  kind: string;
-  defaultOrderingId: ArmOrderingId | null;
-  displayTitle: ArmLocalizedText | null;
-  names?: ArmName[];
-  providerReferences: ArmProviderReference[];
+/**
+ * One graph episode: identity and structure only. Display metadata (title, overview, still,
+ * air date) is NOT carried by the graph — overlay it from TMDB by the `tmdb` coordinate.
+ */
+export interface ArmLayoutEpisode {
+  id: ArmEpisodeId;
+  number: number;
+  filler?: ArmEpisodeFiller | null;
+  tmdb?: ArmTmdbCoordinate | null;
 }
 
 /**
- * TMDB-cache-built structure published while ARM identity is still hydrating. Episodes carry
- * display coordinates only — never Potok ids — so clients must treat them as legacy episodes.
+ * One graph entry (a season/sides/movie/ova/specials block). The entry id doubles as the
+ * group id: `id` IS the `entryId` used in binding targets and playback wiring. The TMDB
+ * season coordinate (when bridged) is where display metadata comes from.
  */
-export interface ArmProvisionalEpisode {
-  displaySeasonNumber?: number | null;
-  displayEpisodeNumber?: number | null;
-  displayTitle?: string | ArmLocalizedText | null;
-  overview?: string | null;
-  stillPath?: string | null;
-  airDate?: string | null;
+export interface ArmLayoutGroup {
+  id: ArmEntryId;
+  kind: "season" | "sides" | "movie" | "ova" | "specials" | string;
+  number: number;
+  anilistId?: number | null;
+  malId?: number | null;
+  tmdbShow?: number | null;
+  tmdbSeason?: number | null;
+  /** Entry title resolved from the structure source (AniList cache) at read time. */
+  title?: string | null;
+  episodes: ArmLayoutEpisode[];
 }
 
-export interface ArmProvisionalGroup {
-  kind?: string | null;
-  displayNumber?: number | null;
-  sortPosition?: number | null;
-  displayTitle?: string | ArmLocalizedText | null;
-  episodes: ArmProvisionalEpisode[];
+/**
+ * GET /api/arm/v1/works/{workId}/layout — the v2 graph structure. Groups arrive in the
+ * backend's kind-aware sort order, episodes ordered by number inside each group; the
+ * client never re-sorts beyond its stable kind-priority display order.
+ */
+export interface ArmEpisodeLayoutResponse {
+  work: ArmWorkSummary;
+  graphVersion: ArmGraphVersion | null;
+  groups: ArmLayoutGroup[];
 }
 
-export interface ArmProvisionalLayout {
-  groups: ArmProvisionalGroup[];
+/** GET /api/arm/v1/works/resolve/{provider}/{entityKind}/{id} — null workId means unresolved. */
+export interface ArmResolveResponse {
+  workId: ArmWorkId | null;
+  graphVersion?: ArmGraphVersion | null;
 }
 
-export interface ArmResolveResponse extends ArmResponseEnvelope {
-  query: ArmProviderReference;
-  work: ArmWorkSummary | null;
-  alternatives: ArmWorkSummary[];
-  provisionalLayout?: ArmProvisionalLayout | null;
-  hydrationQueued?: boolean;
-}
-
-export interface ArmWorkResponse extends ArmResponseEnvelope {
-  work: ArmWorkSummary | null;
-}
-
-export interface ArmEpisodePlacement {
-  id: ArmEpisodeId;
-  groupId: ArmEpisodeGroupId;
-  ordinal: string;
-  sortPosition: number;
-  displayTitle: ArmLocalizedText | null;
-  names?: ArmName[];
-  displaySeasonNumber?: number | null;
-  displayEpisodeNumber?: number | null;
-  overview?: string | null;
-  stillPath?: string | null;
-  airDate?: string | null;
-  providerReferences: ArmProviderReference[];
-  annotation?: ArmEpisodeAnnotationSummary | null;
-}
-
-export interface ArmEpisodeAnnotationEvidence {
-  id: string;
-  episodeId: ArmEpisodeId;
-  relation: ArmEpisodeRelation;
-  recommendation: ArmWatchRecommendation;
-  confidence: number;
-  sourceId: string;
-  provenance?: string | null;
-  publicationPolicy: ArmPublicationPolicy;
-  adaptationBasis?: ArmAdaptationBasis | null;
-}
-
-export interface ArmEpisodeAnnotationSummary {
-  episodeId: ArmEpisodeId;
-  resolutionState: ArmResolutionState;
-  relation: ArmEpisodeRelation;
-  recommendation: ArmWatchRecommendation;
-  confidence: number;
-  evidence: ArmEpisodeAnnotationEvidence[];
-}
-
-export interface ArmEpisodeAnnotationsResponse extends ArmResponseEnvelope {
-  episodes: ArmEpisodeAnnotationSummary[];
-}
-
-export interface ArmReleaseVariant {
-  id: string;
-  workId: ArmWorkId;
-  episodeId: ArmEpisodeId | null;
-  releaseId: string;
-  fileId: string | null;
-  fingerprint: string | null;
-  durationMs: number | null;
-}
-
-export interface ArmTimedSegment {
-  id: string;
-  releaseVariantId: string;
-  kind: "intro" | "opening" | "recap" | "ending" | "preview" | "credits" | "sponsor" | "other";
+export interface ArmEpisodeSegment {
+  kind: string;
   startMs: number;
   endMs: number;
-  confidence: number;
-  sourceId: string;
-  provenance: string | null;
-  publicationPolicy: ArmPublicationPolicy;
 }
 
-export interface ArmReleaseVariantSegmentsResponse extends ArmResponseEnvelope {
-  requestedReleaseVariantId: string | null;
-  releaseVariant: ArmReleaseVariant | null;
-  segments: ArmTimedSegment[];
-}
-
-export interface ArmEpisodeGroup {
-  id: ArmEpisodeGroupId;
-  kind: string;
-  displayNumber?: number | null;
-  sortPosition: number;
-  displayTitle: ArmLocalizedText | null;
-  names?: ArmName[];
-  episodes: ArmEpisodePlacement[];
-}
-
-export interface ArmEpisodeOrdering {
-  id: ArmOrderingId;
-  kind: string;
-  isDefault: boolean;
-}
-
-export interface ArmEpisodeLayoutResponse extends ArmResponseEnvelope {
-  workId: ArmWorkId;
-  ordering: ArmEpisodeOrdering | null;
-  groups: ArmEpisodeGroup[];
+/** GET /api/arm/v1/episodes/{episodeId}/segments — the cut nearest to the requested duration. */
+export interface ArmEpisodeSegmentsResponse {
+  segments: ArmEpisodeSegment[];
 }
 
 /** Additive identity summary attached to legacy TMDB-shaped media cards. */
 export interface ArmMediaSummary {
   workId: ArmWorkId | null;
-  defaultOrderingId: ArmOrderingId | null;
   graphVersion: ArmGraphVersion | null;
-  resolutionState: ArmResolutionState;
-  coverageState: ArmCoverageState;
-  warnings?: ArmWarning[];
 }
 
 export function canReadArmLayout(summary: ArmMediaSummary | null | undefined): summary is ArmMediaSummary & {
   workId: ArmWorkId;
 } {
-  if (!summary?.workId) return false;
-  return summary.resolutionState === "resolved" || summary.resolutionState === "partial";
+  return Boolean(summary?.workId);
 }

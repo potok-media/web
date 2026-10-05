@@ -2,39 +2,39 @@ import { UIComponent, type CompiledComponent } from "../base";
 import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 
 /**
- * Select (Dropdown list)
- *
- * A dropdown list component for selecting a single text value from a predefined array of options. Supports grouping items by category using dividers and headers.
- *
+ * Select (Выпадающий список)
+ * 
+ * Компонент выпадающего списка (Dropdown) для выбора одного текстового значения из предопределенного массива вариантов. Поддерживает группировку элементов по категориям при помощи разделителей и заголовков.
+ * 
  * @example
- * // Filter settings with categories and multiple selection
+ * // Настройки фильтрации с категориями и множественным выбором
  * const { ui, createState } = PotokSDK;
  * const state = createState({ activeFilters: ["1080p", "dub"] });
- *
+ * 
  * function draw() {
  *   ui.render(
  *     Select("filter-select")
- *       .label("Search filters")
+ *       .label("Фильтры поиска")
  *       .variant("glass")
  *       .icon("Filter")
  *       .multiple(true)
  *       .closeOnSelect(false)
- *       .resetLabel("Reset all")
+ *       .resetLabel("Сбросить всё")
  *       .resetValue([])
  *       .options([
- *         { type: "header", label: "Resolution" },
+ *         { type: "header", label: "Разрешение" },
  *         { value: "2160p", label: "4K (2160p)" },
  *         { value: "1080p", label: "Full HD (1080p)" },
  *         { value: "720p", label: "HD (720p)" },
  *         { type: "divider" },
- *         { type: "header", label: "Audio" },
- *         { value: "dub", label: "Dubbed" },
- *         { value: "sub", label: "Subtitles" }
+ *         { type: "header", label: "Озвучка" },
+ *         { value: "dub", label: "Дубляж" },
+ *         { value: "sub", label: "Субтитры" }
  *       ])
  *       .value(state.activeFilters)
  *       .onChange((newVals) => {
  *         state.activeFilters = newVals;
- *         ui.showHUD("success", "Selected: " + newVals.join(", "));
+ *         ui.showHUD("success", "Выбрано: " + newVals.join(", "));
  *       })
  *   );
  * }
@@ -62,9 +62,9 @@ export class SelectBuilder extends UIComponent {
   }
 
   /**
-   * The list title displayed above the select field.
+   * Заголовок списка, выводимый над полем выбора.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   label(v: string): this {
     this._label = v;
@@ -72,9 +72,9 @@ export class SelectBuilder extends UIComponent {
   }
 
   /**
-   * An array of available list items. Options may contain a text value and code, or act as dividers ({ type: 'divider' }) or category headers ({ type: 'header', label: 'Text' }).
+   * Массив доступных элементов списка. Опции могут содержать текстовое значение и код, а также выступать в роли разделителей ({ type: 'divider' }) или заголовков категорий ({ type: 'header', label: 'Текст' }).
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   options(opts: { label?: string; value?: string; type?: "item" | "header" | "divider" }[]): this {
@@ -83,9 +83,9 @@ export class SelectBuilder extends UIComponent {
   }
 
   /**
-   * The currently selected value or an array of selected values in multiple selection mode (multiple).
+   * Текущее выбранное значение или массив выбранных значений при множественном выборе (multiple).
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default ''
    */
   value(v: string | string[]): this {
@@ -94,18 +94,18 @@ export class SelectBuilder extends UIComponent {
   }
 
   /**
-   * A deprecated synonym for value.
+   * Устаревший (deprecated) синоним для value.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   selected(v: string | string[]): this {
     return this.value(v);
   }
 
   /**
-   * Called when a new item or items are selected from the list. Passes the selected value or an array of values in multiple selection mode (multiple).
+   * Вызывается при выборе нового элемента или элементов из списка. Передает выбранное значение или массив значений при множественном выборе (multiple).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onChange(cb: CallbackFunction): this {
     this._onChange = cb;
@@ -113,9 +113,9 @@ export class SelectBuilder extends UIComponent {
   }
 
   /**
-   * The visual style of the dropdown list. 'default' — a standard form field, 'glass' — a stylish semi-transparent button with blur (similar to the buttons in the top filter bar).
+   * Визуальный стиль выпадающего списка. 'default' — стандартное поле формы, 'glass' — стильная полупрозрачная кнопка с размытием (аналогичная кнопкам в верхней панели фильтров).
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'default'
    */
   variant(v: "default" | "glass"): this {
@@ -124,9 +124,9 @@ export class SelectBuilder extends UIComponent {
   }
 
   /**
-   * An icon name from the Lucide library to display inside the button on the left (applies only when variant: 'glass', for example: 'Flame', 'Settings', 'Filter').
+   * Имя иконки из библиотеки Lucide для отображения внутри кнопки слева (применяется только если variant: 'glass', например: 'Flame', 'Settings', 'Filter').
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   icon(v: string): this {
     this._icon = v;
@@ -134,9 +134,9 @@ export class SelectBuilder extends UIComponent {
   }
 
   /**
-   * Determines whether to close the menu when an item is selected. Defaults to true for single selection and false for multiple selection (multiple).
+   * Определяет, закрывать ли меню при выборе элемента. По умолчанию true для обычного выбора и false при множественном выборе (multiple).
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default true
    */
   closeOnSelect(v: boolean): this {
@@ -145,9 +145,9 @@ export class SelectBuilder extends UIComponent {
   }
 
   /**
-   * Enables multiple selection mode. Selected values are returned as an array, and clicks on options toggle their active state without automatically closing the menu.
+   * Включает режим множественного выбора. Выбранные значения возвращаются в виде массива, а клики по опциям переключают их активность без автоматического закрытия меню.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   multiple(v: boolean): this {
@@ -156,9 +156,9 @@ export class SelectBuilder extends UIComponent {
   }
 
   /**
-   * The text of the reset button at the bottom of the popover (if set, the reset button is displayed).
+   * Текст кнопки сброса параметров внизу поповера (если задан, кнопка сброса будет отображаться).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   resetLabel(v: string): this {
     this._resetLabel = v;
@@ -166,9 +166,9 @@ export class SelectBuilder extends UIComponent {
   }
 
   /**
-   * The value set when the reset button is pressed (for example, an empty array [] for multiple selection).
+   * Значение, устанавливаемое при нажатии на кнопку сброса параметров (например, пустой массив [] для множественного выбора).
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default ''
    */
   resetValue(v: string | string[]): this {

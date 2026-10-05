@@ -1,47 +1,21 @@
 // SDK Isolated DTO and schema type definitions
 import type { TvEpisode } from "../../network/ApiTypes";
 
-export type SDKArmResolutionState =
-  | "resolved"
-  | "partial"
-  | "ambiguous"
-  | "disputed"
-  | "unresolved"
-  | "providerError"
-  | "withheld"
-  | "confirmedNone"
-  | "notApplicable";
+export type SDKArmFillerStatus = "canon" | "filler" | "mixed" | "recap";
 
-export type SDKArmCoverageState =
-  | "complete"
-  | "partial"
-  | "ambiguous"
-  | "unresolved"
-  | "withheld"
-  | "stale"
-  | "providerFallback";
+/** Filler verdict attached to a layout episode; canon renders no badge. */
+export interface SDKArmEpisodeFiller {
+  status: SDKArmFillerStatus;
+  confidence: number | null;
+  disputed: boolean;
+}
 
-export type SDKArmNameRole =
-  | "original"
-  | "official"
-  | "common"
-  | "alias"
-  | "romanized"
-  | "short"
-  | "working";
-
-export type SDKArmEpisodeRelation = "canon" | "mixed" | "filler" | "recap" | "unknown";
-export type SDKArmWatchRecommendation = "essential" | "recommended" | "optional" | "skip" | "unknown";
-export type SDKArmAdaptationBasis = "manga" | "lightNovel" | "novel" | "comic" | "game" | "other";
-export type SDKArmPublicationPolicy =
-  | "public"
-  | "potok-owned"
-  | "redistributable"
-  | "derived"
-  | "local-only"
-  | "query-only"
-  | "non-redistributable"
-  | "withheld";
+/** TMDB episode coordinate published by the graph's TMDB bridge. */
+export interface SDKArmTmdbCoordinate {
+  show: number;
+  season: number;
+  episode: number;
+}
 
 export interface SDKArmProviderReference {
   provider: string;
@@ -49,123 +23,48 @@ export interface SDKArmProviderReference {
   value: string;
 }
 
-export interface SDKArmWarning {
-  code: string;
-  message: string;
-}
-
-export interface SDKArmLocalizedText {
-  value: string;
-  requestedLocale?: string | null;
-  resolvedLocale?: string | null;
-  role: SDKArmNameRole;
-  usedFallback: boolean;
-}
-
-export interface SDKArmName {
-  value: string;
-  locale?: string | null;
-  script?: string | null;
-  role: SDKArmNameRole;
-  sourceId?: string | null;
-}
-
-export interface SDKArmEnvelope {
-  graphVersion: string | null;
-  resolutionState: SDKArmResolutionState;
-  coverageState: SDKArmCoverageState;
-  warnings: SDKArmWarning[];
-}
-
 export interface SDKArmWork {
   id: string;
-  kind: string;
-  defaultOrderingId: string | null;
-  displayTitle: SDKArmLocalizedText | null;
-  names?: SDKArmName[];
-  providerReferences: SDKArmProviderReference[];
 }
 
-export interface SDKArmResolveResponse extends SDKArmEnvelope {
-  query: SDKArmProviderReference;
-  work: SDKArmWork | null;
-  alternatives: SDKArmWork[];
+/** Null workId means the provider reference did not resolve to a Potok work. */
+export interface SDKArmResolveResponse {
+  workId: string | null;
+  graphVersion?: string | null;
 }
 
-export interface SDKArmWorkResponse extends SDKArmEnvelope {
-  work: SDKArmWork | null;
-}
-
+/**
+ * Identity and structure only — no display metadata. Overlay titles/stills from TMDB by the
+ * `tmdb` coordinate (the host exposes a cached season fetch for this).
+ */
 export interface SDKArmEpisode {
   id: string;
-  groupId: string;
-  ordinal: string;
-  sortPosition: number;
-  displaySeasonNumber?: number | null;
-  displayEpisodeNumber?: number | null;
-  displayTitle: SDKArmLocalizedText | null;
-  names?: SDKArmName[];
-  overview?: string | null;
-  stillPath?: string | null;
-  airDate?: string | null;
-  providerReferences: SDKArmProviderReference[];
-  annotation?: SDKArmEpisodeAnnotationSummary | null;
+  number: number;
+  filler?: SDKArmEpisodeFiller | null;
+  tmdb?: SDKArmTmdbCoordinate | null;
 }
 
-export interface SDKArmEpisodeAnnotationEvidence {
-  id: string;
-  episodeId: string;
-  relation: SDKArmEpisodeRelation;
-  recommendation: SDKArmWatchRecommendation;
-  confidence: number;
-  sourceId: string;
-  provenance?: string | null;
-  publicationPolicy: SDKArmPublicationPolicy;
-  adaptationBasis?: SDKArmAdaptationBasis | null;
-}
-
-export interface SDKArmEpisodeAnnotationSummary {
-  episodeId: string;
-  resolutionState: SDKArmResolutionState;
-  relation: SDKArmEpisodeRelation;
-  recommendation: SDKArmWatchRecommendation;
-  confidence: number;
-  evidence: SDKArmEpisodeAnnotationEvidence[];
-}
-
-export interface SDKArmEpisodeAnnotationsResponse extends SDKArmEnvelope {
-  episodes: SDKArmEpisodeAnnotationSummary[];
-}
-
+/** One graph entry (season/sides/movie/ova/specials block); `id` IS the binding `entryId`. */
 export interface SDKArmEpisodeGroup {
   id: string;
-  kind: string;
-  displayNumber?: number | null;
-  sortPosition: number;
-  displayTitle: SDKArmLocalizedText | null;
-  names?: SDKArmName[];
+  kind: "season" | "sides" | "movie" | "ova" | "specials" | string;
+  number: number;
+  anilistId?: number | null;
+  malId?: number | null;
+  tmdbShow?: number | null;
+  tmdbSeason?: number | null;
   episodes: SDKArmEpisode[];
 }
 
-export interface SDKArmEpisodeOrdering {
-  id: string;
-  kind: string;
-  isDefault: boolean;
-}
-
-export interface SDKArmEpisodeLayoutResponse extends SDKArmEnvelope {
-  workId: string;
-  ordering: SDKArmEpisodeOrdering | null;
+export interface SDKArmEpisodeLayoutResponse {
+  work: SDKArmWork;
+  graphVersion: string | null;
   groups: SDKArmEpisodeGroup[];
 }
 
 export interface SDKArmMediaSummary {
   workId: string | null;
-  defaultOrderingId: string | null;
   graphVersion: string | null;
-  resolutionState: SDKArmResolutionState;
-  coverageState: SDKArmCoverageState;
-  warnings?: SDKArmWarning[];
 }
 
 export interface SDKReleaseRawEvidence {
@@ -178,25 +77,20 @@ export interface SDKReleaseRawEvidence {
 
 export interface SDKReleaseBindingAlternative {
   episodeId: string;
-  orderingId: string;
-  groupId: string;
+  entryId: string;
   confidence: number;
-  compatibility?: { season?: number | null; episode?: number | null } | null;
 }
 
 /** Canonical episode covered by one release file. Several targets represent a joined file. */
 export interface SDKReleaseBindingTarget {
   episodeId: string;
-  orderingId: string;
-  groupId: string;
-  compatibility?: { season?: number | null; episode?: number | null } | null;
+  entryId: string;
 }
 
-/** A manual selection in one ARM ordering; display numbers are never its identity. */
+/** A manual pick in the ARM graph: (work, entry, episode) — display numbers are never identity. */
 export interface SDKArmBindingTarget {
   workId: string;
-  orderingId: string;
-  groupId: string;
+  entryId: string;
   episodeId: string;
 }
 
@@ -321,7 +215,7 @@ export interface SDKTvEpisode {
   airDate?: string;
   air_date?: string;
   overview?: string;
-  armAnnotation?: SDKArmEpisodeAnnotationSummary | null;
+  filler?: SDKArmEpisodeFiller | null;
 }
 
 export interface SDKTvSeason {
@@ -367,8 +261,7 @@ export interface SDKStreamEpisode {
   rawEpisode?: number;
   workId?: string | null;
   episodeId?: string | null;
-  orderingId?: string | null;
-  groupId?: string | null;
+  entryId?: string | null;
   groupTitle?: string;
   groupDisplayNumber?: number;
   groupKind?: string;
@@ -381,10 +274,12 @@ export interface SDKStreamEpisode {
   bindingMethod?: string | null;
   rawEvidence?: SDKReleaseRawEvidence | null;
   alternatives?: SDKReleaseBindingAlternative[];
-  armAnnotation?: SDKArmEpisodeAnnotationSummary | null;
+  filler?: SDKArmEpisodeFiller | null;
   title: string;
   stillPath?: string;
   airDate?: string;
+  /** Opaque plugin-owned progress identity — the host uses it verbatim as the local progress/resume key. */
+  progressId?: string;
   url: string;
   audios?: { id: string; name: string; url: string }[];
   headers?: Record<string, string>;
@@ -1364,8 +1259,7 @@ export interface LookupQuery {
   type: 'movie' | 'tv';
   tmdbId: number;
   workId?: string;
-  orderingId?: string;
-  groupId?: string;
+  entryId?: string;
   episodeId?: string;
   season?: number;
   episode?: number;
@@ -1446,8 +1340,7 @@ export interface StreamSearchQuery {
   imdbId?: string;
   tmdbId?: number;
   workId?: string;
-  orderingId?: string;
-  groupId?: string;
+  entryId?: string;
   episodeId?: string;
   type: 'movie' | 'tv';
   season?: number;
@@ -1471,8 +1364,7 @@ export interface StreamEpisode {
   rawEpisode?: number;
   workId?: string | null;
   episodeId?: string | null;
-  orderingId?: string | null;
-  groupId?: string | null;
+  entryId?: string | null;
   groupTitle?: string;
   groupDisplayNumber?: number;
   groupKind?: string;
@@ -1485,7 +1377,7 @@ export interface StreamEpisode {
   bindingMethod?: string | null;
   rawEvidence?: SDKReleaseRawEvidence | null;
   alternatives?: SDKReleaseBindingAlternative[];
-  armAnnotation?: SDKArmEpisodeAnnotationSummary | null;
+  filler?: SDKArmEpisodeFiller | null;
   title: string;
   /** Original torrent file name (title is overwritten with the TMDB episode name when matched). */
   fileName?: string;
@@ -1539,7 +1431,6 @@ export interface StreamSourceEpisodesResult {
   arm?: {
     state: 'resolved' | 'partial' | 'ambiguous' | 'unresolved';
     workId?: string | null;
-    orderingId?: string | null;
     graphVersion?: string | null;
   } | null;
 }

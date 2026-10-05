@@ -12,7 +12,7 @@ import {
   type SaveBulkProgressRequest,
   type SaveProgressRequest,
 } from "./SyncHistoryApiClient";
-import type { ArmEpisodeGroupId, ArmEpisodeId, ArmOrderingId, ArmWorkId } from "./ArmTypes";
+import type { ArmEpisodeId, ArmWorkId } from "./ArmTypes";
 
 export interface UserHistoryEntry {
   tmdbId?: string;
@@ -21,8 +21,6 @@ export interface UserHistoryEntry {
   episodeNumber?: number;
   workId?: ArmWorkId;
   episodeId?: ArmEpisodeId;
-  orderingId?: ArmOrderingId;
-  groupId?: ArmEpisodeGroupId;
   progressSeconds: number;
   durationSeconds: number;
   lastWatchedAt?: string;

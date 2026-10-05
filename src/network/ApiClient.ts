@@ -12,6 +12,7 @@ import type {
   ServiceStatus,
   HandshakeResponse,
   MediaCard,
+  MediaSearchResponse,
   WatchProgress,
   HeroItem,
   HomeResponse,
@@ -25,11 +26,10 @@ import type {
 import type {
   ArmEpisodeId,
   ArmEpisodeLayoutResponse,
+  ArmEpisodeSegmentsResponse,
   ArmProviderReference,
   ArmResolveResponse,
-  ArmReleaseVariantSegmentsResponse,
   ArmWorkId,
-  ArmWorkResponse,
 } from "./ArmTypes";
 
 export type {
@@ -148,14 +148,28 @@ export class ApiClient {
     return handleApiResponse<HomeResponse>(res, "Failed to fetch home feed");
   }
 
-  public static async searchMedia(query: string): Promise<MediaCard[]> {
+  public static async searchMedia(query: string, type?: string, signal?: AbortSignal): Promise<MediaSearchResponse> {
     if (!this.isWorker) {
-      return DataWorkerBridge.request<MediaCard[]>("searchMedia", [query]);
+      return DataWorkerBridge.request<MediaSearchResponse>("searchMedia", [query, type]);
     }
-    const res = await fetch(`${this.baseURL}/api/media/search?query=${encodeURIComponent(query)}&language=${encodeURIComponent(this.language)}`, {
+    const typeParam = type ? `&type=${encodeURIComponent(type)}` : "";
+    const res = await fetch(`${this.baseURL}/api/media/search?query=${encodeURIComponent(query)}&language=${encodeURIComponent(this.language)}${typeParam}`, {
       headers: this.headers,
+      signal,
     });
-    return handleApiResponse<MediaCard[]>(res, "Search failed");
+    return handleApiResponse<MediaSearchResponse>(res, "Search failed");
+  }
+
+  public static async fetchTrending(type?: string, signal?: AbortSignal): Promise<MediaCard[]> {
+    if (!this.isWorker) {
+      return DataWorkerBridge.request<MediaCard[]>("fetchTrending", [type]);
+    }
+    const typeParam = type ? `?type=${encodeURIComponent(type)}` : "";
+    const res = await fetch(`${this.baseURL}/api/media/trending${typeParam}`, {
+      headers: this.headers,
+      signal,
+    });
+    return handleApiResponse<MediaCard[]>(res, "Failed to fetch trending");
   }
 
   public static getCachedMediaDetails(mediaType: string, id: number): MediaCard | null {
@@ -232,16 +246,6 @@ export class ApiClient {
     });
   }
 
-  public static fetchArmWork(
-    workId: ArmWorkId,
-    options?: ArmRequestOptions,
-  ): Promise<ArmHttpResponse<ArmWorkResponse>> {
-    return this.armClient().getWork(workId, {
-      ...options,
-      locale: options?.locale ?? this.language,
-    });
-  }
-
   public static fetchArmEpisodeLayout(
     workId: ArmWorkId,
     options?: ArmLayoutRequestOptions,
@@ -255,7 +259,7 @@ export class ApiClient {
   public static fetchArmEpisodeSegments(
     episodeId: ArmEpisodeId,
     options: ArmSegmentsRequestOptions,
-  ): Promise<ArmHttpResponse<ArmReleaseVariantSegmentsResponse>> {
+  ): Promise<ArmHttpResponse<ArmEpisodeSegmentsResponse>> {
     return this.armClient().getEpisodeSegments(episodeId, options);
   }
 

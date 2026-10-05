@@ -11,13 +11,13 @@ export interface PlaylistItem {
   id?: string;
   workId?: string | null;
   episodeId?: string | null;
-  orderingId?: string | null;
-  groupId?: string | null;
+  entryId?: string | null;
   episodeIds?: string[];
   targets?: SDKReleaseBindingTarget[];
   season?: number;
   episode?: number;
   title?: string;
+  filler?: import("../network/ArmTypes").ArmEpisodeFiller | null;
   streamUrl: string;
   streamType?: "m3u8" | "mp4" | "hls" | "dash";
   audios?: { name: string; url: string }[];
@@ -46,8 +46,7 @@ export interface ActivePlayback {
   episode?: number;
   workId?: string | null;
   episodeId?: string | null;
-  orderingId?: string | null;
-  groupId?: string | null;
+  entryId?: string | null;
   episodeIds?: string[];
   targets?: SDKReleaseBindingTarget[];
   streamHash?: string;

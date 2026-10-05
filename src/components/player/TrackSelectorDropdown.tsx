@@ -9,6 +9,7 @@ interface TrackItem {
   name: string;
   loading?: boolean;
   error?: boolean;
+  filler?: boolean;
 }
 
 interface TrackSelectorDropdownProps {
@@ -19,6 +20,7 @@ interface TrackSelectorDropdownProps {
   onSelect: (id: number) => void;
   isOpen: boolean;
   onToggle: () => void;
+  headerExtra?: React.ReactNode;
   showDisableOption?: boolean;
   disableOptionLabel?: string;
   onUploadSubtitle?: (file: File) => void;
@@ -34,6 +36,7 @@ export const TrackSelectorDropdown: React.FC<TrackSelectorDropdownProps> = ({
   onSelect,
   isOpen,
   onToggle,
+  headerExtra,
   showDisableOption = false,
   disableOptionLabel,
   onUploadSubtitle,
@@ -91,7 +94,10 @@ export const TrackSelectorDropdown: React.FC<TrackSelectorDropdownProps> = ({
       </IconButton>
       {isOpen && (
         <div className="selector-dropdown-menu" onClick={(e) => e.stopPropagation()}>
-          <div className="dropdown-menu-header">{title}</div>
+          <div className="dropdown-menu-header">
+            <span>{title}</span>
+            {headerExtra}
+          </div>
           {showDisableOption && (
             <div 
               className={`dropdown-menu-item ${currentItemId === -1 ? "selected" : ""}`}
@@ -107,11 +113,11 @@ export const TrackSelectorDropdown: React.FC<TrackSelectorDropdownProps> = ({
               return (
                 <div
                   key={track.id}
-                  className={`dropdown-menu-item ${currentItemId === track.id ? "selected" : ""}${busy ? " is-busy" : ""}`}
+                  className={`dropdown-menu-item ${currentItemId === track.id ? "selected" : ""}${busy ? " is-busy" : ""}${track.filler ? " is-filler" : ""}`}
                   onClick={() => { if (!busy) onSelect(track.id); }}
                   aria-busy={track.loading || undefined}
                   aria-disabled={busy || undefined}
-                  title={track.error ? t("trackSelector.loadError") : undefined}
+                  title={track.error ? t("trackSelector.loadError") : track.filler ? t("controls.fillerTag") : undefined}
                 >
                   {track.loading && <SpinnerIcon size={14} />}
                   {track.error && <AlertCircle size={14} />}

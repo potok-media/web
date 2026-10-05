@@ -76,8 +76,7 @@ export const MediaDetailsHeroSection: React.FC<MediaDetailsHeroSectionProps> = (
                     originalTitle: media.originalTitle,
                     media,
                     workId: media.arm?.workId,
-                    orderingId: selectedEpisode?.episode.armOrderingId ?? media.arm?.defaultOrderingId,
-                    groupId: selectedEpisode?.episode.armGroupId,
+                    entryId: selectedEpisode?.episode.armEntryId,
                     episodeId: selectedEpisode?.episode.armEpisodeId,
                     season: selectedEpisode?.episode.armEpisodeId
                       ? selectedEpisode.episode.tmdbSeasonNumber

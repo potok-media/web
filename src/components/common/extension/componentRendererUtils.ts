@@ -171,21 +171,6 @@ const SDK_STYLE_VAR_KEYS: Array<keyof React.CSSProperties> = [
   "justifyContent",
 ];
 
-const SDK_STYLE_VAR_MAP: Partial<Record<keyof React.CSSProperties, string>> = {
-  width: "--sdk-width",
-  height: "--sdk-height",
-  flex: "--sdk-flex",
-  padding: "--sdk-padding",
-  margin: "--sdk-margin",
-  marginBottom: "--sdk-margin-bottom",
-  marginTop: "--sdk-margin-top",
-  marginLeft: "--sdk-margin-left",
-  marginRight: "--sdk-margin-right",
-  gap: "--sdk-gap",
-  alignItems: "--sdk-align-items",
-  justifyContent: "--sdk-justify-content",
-};
-
 /** Style-token properties applied inline as-is (not via CSS vars), so they override component classes. */
 const SDK_DIRECT_STYLE_KEYS: Array<keyof React.CSSProperties> = [
   "background",
@@ -198,17 +183,10 @@ const SDK_DIRECT_STYLE_KEYS: Array<keyof React.CSSProperties> = [
   "opacity",
 ];
 
-/** Maps SDK layout props to CSS custom properties + passes curated style tokens through inline. */
+/** Apply only explicit layout props. CSS variables would inherit into nested controls. */
 export function sdkStyleVars(style: React.CSSProperties): React.CSSProperties | undefined {
   const out: Record<string, unknown> = {};
-  for (const key of SDK_STYLE_VAR_KEYS) {
-    const val = style[key];
-    const varName = SDK_STYLE_VAR_MAP[key];
-    if (varName && val != null && val !== "") {
-      out[varName] = String(val);
-    }
-  }
-  for (const key of SDK_DIRECT_STYLE_KEYS) {
+  for (const key of [...SDK_STYLE_VAR_KEYS, ...SDK_DIRECT_STYLE_KEYS]) {
     const val = style[key];
     if (val != null && val !== "") {
       out[key] = val;

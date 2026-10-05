@@ -127,8 +127,7 @@ export function useEpisodeSelectorState({
           id: ep.id,
           workId: ep.workId,
           episodeId: ep.episodeId,
-          orderingId: ep.orderingId,
-          groupId: ep.groupId,
+          entryId: ep.entryId,
           episodeIds: ep.episodeIds,
           targets: ep.targets,
           season: ep.season,
@@ -136,6 +135,7 @@ export function useEpisodeSelectorState({
           title: ep.title || ep.fileName || (ep.episode !== undefined
             ? t("episode.fallbackName", { number: ep.episode })
             : t("selector.unresolvedEpisode")),
+          filler: ep.filler ?? null,
           streamUrl,
           streamType: (streamUrl.includes(".m3u8")
             ? "m3u8"

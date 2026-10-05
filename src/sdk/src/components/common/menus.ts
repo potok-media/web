@@ -2,25 +2,25 @@ import { UIComponent, type CompiledComponent } from "../base";
 import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 
 /**
- * Dropdown (Dropdown menu)
- *
- * A trigger button with a dropdown list of options. Opening/closing is managed by the component itself; selecting an item returns its id.
- *
+ * Dropdown (Выпадающее меню)
+ * 
+ * Кнопка-триггер с выпадающим списком вариантов. Открытие/закрытие управляется самим компонентом; выбор пункта возвращает его id.
+ * 
  * @example
- * // Dropdown sorting
+ * // Выпадающая сортировка
  * const { ui, createState } = PotokSDK;
  * const state = createState({ sort: "new" });
- *
+ * 
  * function draw() {
  *   ui.render(
  *     Dropdown()
- *       .label("Sort")
+ *       .label("Сортировка")
  *       .icon("arrow-up-down")
  *       .value(state.sort)
  *       .items([
- *         { id: "new", label: "Newest first", icon: "clock" },
- *         { id: "rating", label: "By rating", icon: "star" },
- *         { id: "az", label: "Alphabetical" }
+ *         { id: "new", label: "Сначала новые", icon: "clock" },
+ *         { id: "rating", label: "По рейтингу", icon: "star" },
+ *         { id: "az", label: "По алфавиту" }
  *       ])
  *       .onSelect((id) => state.sort = id)
  *   );
@@ -40,34 +40,34 @@ export class DropdownBuilder extends UIComponent {
   }
 
   /**
-   * The default text of the trigger button.
+   * Текст кнопки-триггера по умолчанию.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   label(v: string): this { this._label = v; return this; }
   /**
-   * The Lucide icon name in the trigger.
+   * Имя иконки Lucide в триггере.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   icon(v: string): this { this._icon = v; return this; }
   /**
-   * The menu items.
+   * Пункты меню.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   items(v: { id: string; label: string; icon?: string }[]): this { this._items = v; return this; }
   /**
-   * The identifier of the selected item.
+   * Идентификатор выбранного пункта.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   value(v: string): this { this._value = v; return this; }
   /**
-   * Item selection callback. Passes the id.
+   * Коллбек выбора пункта. Передаёт id.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onSelect(cb: CallbackFunction): this { this._onSelect = cb; return this; }
 
@@ -85,21 +85,21 @@ export class DropdownBuilder extends UIComponent {
 }
 
 /**
- * Segmented (Segmented control)
- *
- * A compact switcher of several connected segments. Controlled by the value; an alternative to Tabs for 2–4 options.
- *
+ * Segmented (Сегмент-контрол)
+ * 
+ * Компактный переключатель из нескольких соединённых сегментов. Управляется значением value; альтернатива Tabs для 2–4 вариантов.
+ * 
  * @example
- * // View switcher
+ * // Переключатель вида
  * const { ui, createState } = PotokSDK;
  * const state = createState({ view: "grid" });
- *
+ * 
  * function draw() {
  *   ui.render(
  *     Segmented()
  *       .items([
- *         { id: "grid", label: "Grid" },
- *         { id: "list", label: "List" }
+ *         { id: "grid", label: "Сетка" },
+ *         { id: "list", label: "Список" }
  *       ])
  *       .value(state.view)
  *       .onChange((id) => state.view = id)
@@ -118,22 +118,22 @@ export class SegmentedBuilder extends UIComponent {
   }
 
   /**
-   * The switcher segments.
+   * Сегменты переключателя.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   items(v: { id: string; label: string }[]): this { this._items = v; return this; }
   /**
-   * The identifier of the active segment.
+   * Идентификатор активного сегмента.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   value(v: string): this { this._value = v; return this; }
   /**
-   * Change callback. Passes the segment id.
+   * Коллбек смены. Передаёт id сегмента.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onChange(cb: CallbackFunction): this { this._onChange = cb; return this; }
 
@@ -151,22 +151,22 @@ export class SegmentedBuilder extends UIComponent {
 }
 
 /**
- * Tabs (Tabs)
- *
- * A horizontal tab bar for switching sections. Controlled by the value; clicking a tab invokes onChange(id), after which the plugin updates its state and re-renders.
- *
+ * Tabs (Вкладки)
+ * 
+ * Горизонтальный таб-бар для переключения секций. Управляется значением value; клик по вкладке вызывает onChange(id), после чего плагин обновляет своё состояние и перерисовывается.
+ * 
  * @example
- * // Tab switching
+ * // Переключение вкладок
  * const { ui, createState } = PotokSDK;
  * const state = createState({ tab: "overview" });
- *
+ * 
  * function draw() {
  *   ui.render(
  *     Tabs()
  *       .items([
- *         { id: "overview", label: "Overview", icon: "info" },
- *         { id: "episodes", label: "Episodes", icon: "list" },
- *         { id: "about", label: "About" }
+ *         { id: "overview", label: "Обзор", icon: "info" },
+ *         { id: "episodes", label: "Серии", icon: "list" },
+ *         { id: "about", label: "О проекте" }
  *       ])
  *       .value(state.tab)
  *       .onChange((id) => state.tab = id)
@@ -185,22 +185,22 @@ export class TabsBuilder extends UIComponent {
   }
 
   /**
-   * An array of tabs: { id, label, icon? }.
+   * Массив вкладок: { id, label, icon? }.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   items(v: { id: string; label: string; icon?: string }[]): this { this._items = v; return this; }
   /**
-   * The identifier of the active tab.
+   * Идентификатор активной вкладки.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   value(v: string): this { this._value = v; return this; }
   /**
-   * Tab change callback. Passes the id of the selected tab.
+   * Коллбек смены вкладки. Передаёт id выбранной вкладки.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onChange(cb: CallbackFunction): this { this._onChange = cb; return this; }
 

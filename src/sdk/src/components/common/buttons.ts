@@ -2,23 +2,23 @@ import { UIComponent, type CompiledComponent } from "../base";
 import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 
 /**
- * Button (Button)
- *
- * An interactive UI element for performing various actions, starting playback, or navigating between pages.
- *
+ * Button (Кнопка)
+ * 
+ * Интерактивный элемент интерфейса для выполнения различных действий, запуска воспроизведения или переходов по страницам.
+ * 
  * @example
- * // Control buttons
+ * // Кнопки управления
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   Card()
- *     .title("Player controls")
+ *     .title("Управление плеером")
  *     .child(
  *       HStack()
  *         .spacing(10)
- *         .child(Button("Watch").variant("primary").icon("play").onClick(() => ui.showHUD("success", "Playing...")))
- *         .child(Button("Settings").variant("secondary").icon("settings").onClick(() => ui.showHUD("info", "Opening settings...")))
- *         .child(Button("Delete").variant("danger").icon("trash").onClick(() => ui.showHUD("error", "Item deleted")))
+ *         .child(Button("Смотреть").variant("primary").icon("play").onClick(() => ui.showHUD("success", "Воспроизведение...")))
+ *         .child(Button("Настройки").variant("secondary").icon("settings").onClick(() => ui.showHUD("info", "Открываем настройки...")))
+ *         .child(Button("Удалить").variant("danger").icon("trash").onClick(() => ui.showHUD("error", "Элемент удален")))
  *     )
  * );
  */
@@ -35,9 +35,9 @@ export class ButtonBuilder extends UIComponent {
   }
 
   /**
-   * The visual style of the button (primary accent color, neutral gray, warning red, transparent background, or the sidebar item style).
+   * Визуальный стиль кнопки (основной цвет акцента, нейтральный серый, красный предупреждающий, прозрачный фон или стиль элемента бокового меню).
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'secondary'
    */
   variant(v: string): this {
@@ -46,9 +46,9 @@ export class ButtonBuilder extends UIComponent {
   }
 
   /**
-   * An icon name from the Lucide collection (for example, 'play', 'settings', 'trash'). The icon is rendered before the text.
+   * Имя иконки из коллекции Lucide (например, 'play', 'settings', 'trash'). Иконка отрисовывается перед текстом.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   icon(v: string): this {
     this._icon = v;
@@ -56,9 +56,9 @@ export class ButtonBuilder extends UIComponent {
   }
 
   /**
-   * A callback function that fires when the button is clicked.
+   * Коллбек-функция обратного вызова, срабатывающая при клике на кнопку.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onClick(cb: CallbackFunction): this {
     this._onClick = cb;
@@ -83,19 +83,19 @@ export class ButtonBuilder extends UIComponent {
 }
 
 /**
- * IconButton (Icon button)
- *
- * A square icon-only button (no text). Requires a label (aria-label) for accessibility.
- *
+ * IconButton (Кнопка-иконка)
+ * 
+ * Квадратная кнопка только с иконкой (без текста). Требует label (aria-label) для доступности.
+ * 
  * @example
- * // Icon buttons
+ * // Кнопки-иконки
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   HStack()
  *     .spacing(8)
- *     .child(IconButton("play").label("Watch").size("lg").accent(true).onClick(() => ui.showHUD("success", "Start")))
- *     .child(IconButton("heart").label("Add to favorites").size("md").onClick(() => ui.showHUD("info", "Added")))
+ *     .child(IconButton("play").label("Смотреть").size("lg").accent(true).onClick(() => ui.showHUD("success", "Пуск")))
+ *     .child(IconButton("heart").label("В избранное").size("md").onClick(() => ui.showHUD("info", "Добавлено")))
  * );
  */
 export class IconButtonBuilder extends UIComponent {
@@ -111,29 +111,29 @@ export class IconButtonBuilder extends UIComponent {
   }
 
   /**
-   * The aria-label text (accessibility and tooltip).
+   * Текст aria-label (доступность и подсказка).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   label(v: string): this { this._label = v; return this; }
   /**
-   * Highlight with the accent color on hover.
+   * Подсвечивать акцентным цветом при наведении.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   accent(v: boolean): this { this._accent = v; return this; }
   /**
-   * The button size.
+   * Размер кнопки.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'md'
    */
   size(v: "sm" | "md" | "lg"): this { this._size = v; return this; }
   /**
-   * Click callback.
+   * Коллбек клика.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onClick(cb: CallbackFunction): this { this._onClick = cb; return this; }
 
@@ -151,22 +151,22 @@ export class IconButtonBuilder extends UIComponent {
 }
 
 /**
- * Chip (Chip/tag)
- *
- * A compact toggleable pill element. Suitable for filters, genres, and quick actions.
- *
+ * Chip (Чип/тег)
+ * 
+ * Компактный переключаемый элемент-пилюля. Подходит для фильтров, жанров и быстрых действий.
+ * 
  * @example
- * // Filter chips
+ * // Чипы-фильтры
  * const { ui, createState } = PotokSDK;
  * const state = createState({ genre: "all" });
- *
+ * 
  * function draw() {
  *   ui.render(
  *     HStack().spacing(8).children(
  *       [
- *         { id: "all", label: "All", icon: "layers" },
- *         { id: "drama", label: "Drama", icon: "drama" },
- *         { id: "comedy", label: "Comedy", icon: "laugh" }
+ *         { id: "all", label: "Все", icon: "layers" },
+ *         { id: "drama", label: "Драма", icon: "drama" },
+ *         { id: "comedy", label: "Комедия", icon: "laugh" }
  *       ].map((g) =>
  *         Chip(g.label).icon(g.icon).active(state.genre === g.id).onClick(() => state.genre = g.id)
  *       )
@@ -187,22 +187,22 @@ export class ChipBuilder extends UIComponent {
   }
 
   /**
-   * The active (selected) state.
+   * Активное (выбранное) состояние.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   active(v: boolean): this { this._active = v; return this; }
   /**
-   * The Lucide icon name before the text.
+   * Имя иконки Lucide перед текстом.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   icon(v: string): this { this._icon = v; return this; }
   /**
-   * Callback for a click on the chip.
+   * Коллбек клика по чипу.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onClick(cb: CallbackFunction): this { this._onClick = cb; return this; }
 

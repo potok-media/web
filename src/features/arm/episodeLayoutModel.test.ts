@@ -1,7 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TFunction } from "i18next";
 import type { ArmEpisodeLayoutResponse } from "../../network/ArmTypes";
-import { toEpisodeGroupPresentations, toProvisionalGroupPresentations } from "./episodeLayoutModel";
+import {
+  collapseKindGroupPresentations,
+  overlayTmdbEpisodeMeta,
+  toEpisodeGroupPresentations,
+} from "./episodeLayoutModel";
+import { ApiClient } from "../../network/ApiClient";
 import { finalizeGroupTitle, orderGroupsByKind } from "../../components/seasonGroupLabels";
 import enTranslations from "../../i18n/locales/en.json";
 import ruTranslations from "../../i18n/locales/ru.json";
@@ -23,57 +28,41 @@ const tEn = translatorFor(enTranslations);
 const tRu = translatorFor(ruTranslations);
 
 describe("ARM episode layout presentation", () => {
-  it("keeps Potok group and episode identities while exposing TMDB only as a projection", () => {
+  it("never renders a group with no episodes, whatever its kind", () => {
     const layout: ArmEpisodeLayoutResponse = {
+      work: { id: "work-1" },
       graphVersion: "graph-7",
-      resolutionState: "resolved",
-      coverageState: "complete",
-      warnings: [],
-      workId: "work-1",
-      ordering: { id: "ordering-default", kind: "potokDefault", isDefault: true },
+      groups: [
+        { id: "empty-season", kind: "season", number: 1, episodes: [] },
+        { id: "empty-movie", kind: "movie", number: 1, episodes: [] },
+        {
+          id: "cour-2",
+          kind: "season",
+          number: 2,
+          episodes: [{ id: "episode-1", number: 1, filler: null, tmdb: null }],
+        },
+      ],
+    };
+
+    expect(toEpisodeGroupPresentations(layout).map((group) => group.id)).toEqual(["cour-2"]);
+  });
+  it("keeps Potok entry and episode identities while exposing TMDB only as a projection", () => {
+    const layout: ArmEpisodeLayoutResponse = {
+      work: { id: "work-1" },
+      graphVersion: "graph-7",
       groups: [
         {
           id: "cour-2",
-          kind: "cour",
-          displayNumber: 2,
-          sortPosition: 2,
-          displayTitle: {
-            value: "Сезон 1 · Часть 2",
-            requestedLocale: "ru-RU",
-            resolvedLocale: "ru-RU",
-            role: "official",
-            usedFallback: false,
-          },
+          kind: "season",
+          number: 2,
+          tmdbShow: 100,
+          tmdbSeason: 1,
           episodes: [
             {
               id: "episode-13",
-              groupId: "cour-2",
-              ordinal: "13",
-              sortPosition: 13,
-              displayTitle: {
-                value: "Продолжение",
-                requestedLocale: "ru-RU",
-                resolvedLocale: "ru-RU",
-                role: "official",
-                usedFallback: false,
-              },
-              displaySeasonNumber: 1,
-              displayEpisodeNumber: 13,
-              overview: "Описание",
-              stillPath: "/still.jpg",
-              airDate: "2025-01-01",
-              annotation: {
-                episodeId: "episode-13",
-                resolutionState: "disputed",
-                relation: "mixed",
-                recommendation: "optional",
-                confidence: 0.72,
-                evidence: [],
-              },
-              providerReferences: [
-                { provider: "tmdb", entityKind: "tv-episode", value: "100/1/13" },
-                { provider: "mal", entityKind: "anime-episode", value: "200/13" },
-              ],
+              number: 13,
+              filler: { status: "mixed", confidence: 0.72, disputed: true },
+              tmdb: { show: 100, season: 1, episode: 13 },
             },
           ],
         },
@@ -83,32 +72,24 @@ describe("ARM episode layout presentation", () => {
     expect(toEpisodeGroupPresentations(layout)).toEqual([
       {
         id: "cour-2",
-        kind: "cour",
-        title: "Сезон 1 · Часть 2",
+        kind: "season",
+        title: "",
+        titleFallback: { kind: "season", number: 2 },
         displayNumber: 2,
+        tmdbShow: 100,
+        tmdbSeason: 1,
         episodes: [
           {
             id: "episode-13",
-            name: "Продолжение",
-            overview: "Описание",
+            name: "",
             episodeNumber: 13,
-            seasonNumber: 1,
-            airDate: "2025-01-01",
-            stillPath: "/still.jpg",
+            seasonNumber: 2,
             armEpisodeId: "episode-13",
-            armGroupId: "cour-2",
-            armOrderingId: "ordering-default",
-            armOrdinal: "13",
+            armEntryId: "cour-2",
+            armNumber: 13,
             tmdbSeasonNumber: 1,
             tmdbEpisodeNumber: 13,
-            armAnnotation: {
-              episodeId: "episode-13",
-              resolutionState: "disputed",
-              relation: "mixed",
-              recommendation: "optional",
-              confidence: 0.72,
-              evidence: [],
-            },
+            filler: { status: "mixed", confidence: 0.72, disputed: true },
           },
         ],
       },
@@ -117,34 +98,14 @@ describe("ARM episode layout presentation", () => {
 
   it("does not invent a TMDB coordinate for an ARM-only episode", () => {
     const layout: ArmEpisodeLayoutResponse = {
+      work: { id: "work-2" },
       graphVersion: "graph-8",
-      resolutionState: "partial",
-      coverageState: "partial",
-      warnings: [],
-      workId: "work-2",
-      ordering: { id: "ordering-default", kind: "potokDefault", isDefault: true },
       groups: [
         {
           id: "ova",
           kind: "ova",
-          sortPosition: 1,
-          displayTitle: {
-            value: "OVA",
-            requestedLocale: "ru-RU",
-            resolvedLocale: "ru-RU",
-            role: "common",
-            usedFallback: false,
-          },
-          episodes: [
-            {
-              id: "episode-ova",
-              groupId: "ova",
-              ordinal: "OVA 1",
-              sortPosition: 1,
-              displayTitle: null,
-              providerReferences: [],
-            },
-          ],
+          number: 1,
+          episodes: [{ id: "episode-ova", number: 1 }],
         },
       ],
     };
@@ -152,171 +113,50 @@ describe("ARM episode layout presentation", () => {
     const [group] = toEpisodeGroupPresentations(layout);
     expect(group.episodes[0]).toMatchObject({
       id: "episode-ova",
-      name: "OVA 1",
+      name: "",
       armEpisodeId: "episode-ova",
-      armOrdinal: "OVA 1",
+      armEntryId: "ova",
+      armNumber: 1,
+      filler: null,
     });
     expect(group.episodes[0].tmdbSeasonNumber).toBeUndefined();
     expect(group.episodes[0].tmdbEpisodeNumber).toBeUndefined();
   });
 
-  it("defers untitled season groups to a localized fallback and keeps episodes nameless", () => {
+  it("defers season groups to a localized fallback and keeps episodes nameless", () => {
     const layout: ArmEpisodeLayoutResponse = {
+      work: { id: "work-3" },
       graphVersion: "graph-9",
-      resolutionState: "resolved",
-      coverageState: "complete",
-      warnings: [],
-      workId: "work-3",
-      ordering: { id: "ordering-default", kind: "potokDefault", isDefault: true },
       groups: [
         {
           id: "season-1",
           kind: "season",
-          displayNumber: 1,
-          sortPosition: 2,
-          displayTitle: { value: "", role: "official", usedFallback: false },
-          episodes: [
-            {
-              id: "episode-1",
-              groupId: "season-1",
-              ordinal: "1",
-              sortPosition: 1,
-              displayTitle: null,
-              providerReferences: [],
-            },
-          ],
-        },
-        {
-          id: "specials",
-          kind: "special",
-          sortPosition: 1,
-          displayTitle: null,
-          names: [{ value: "  ", role: "common" }, { value: "Extras", role: "common" }],
-          episodes: [],
+          number: 1,
+          episodes: [{ id: "episode-1", number: 1 }],
         },
       ],
     };
 
-    const groups = toEpisodeGroupPresentations(layout);
-
-    // Sorted by sortPosition, not by payload order.
-    expect(groups.map((group) => group.id)).toEqual(["specials", "season-1"]);
-
-    const season = groups[1];
+    const [season] = toEpisodeGroupPresentations(layout);
     expect(season.title).toBe("");
     expect(season.titleFallback).toEqual({ kind: "season", number: 1 });
-    // A numeric ordinal must not be echoed as the name — the card renders the number alone.
     expect(season.episodes[0].name).toBe("");
-
-    const specials = groups[0];
-    expect(specials.title).toBe("Extras");
-    expect(specials.titleFallback).toBeUndefined();
   });
 
-  it("collapses untitled specials/movie groups into one kind-labeled entry each", () => {
+  it("keeps decimal numbers for split episodes", () => {
     const layout: ArmEpisodeLayoutResponse = {
-      graphVersion: "graph-12",
-      resolutionState: "resolved",
-      coverageState: "complete",
-      warnings: [],
-      workId: "work-6",
-      ordering: { id: "ordering-default", kind: "potokDefault", isDefault: true },
-      groups: [
-        {
-          id: "specials-0",
-          kind: "specials",
-          displayNumber: 0,
-          sortPosition: 1,
-          displayTitle: null,
-          episodes: [
-            {
-              id: "specials-0-ep",
-              groupId: "specials-0",
-              ordinal: "1",
-              sortPosition: 1,
-              displayTitle: { value: "Special One", requestedLocale: "en", resolvedLocale: "en", role: "official", usedFallback: false },
-              providerReferences: [],
-            },
-          ],
-        },
-        {
-          id: "movie-1",
-          kind: "movie",
-          displayNumber: 1,
-          sortPosition: 2,
-          displayTitle: null,
-          episodes: [
-            {
-              id: "movie-1-ep",
-              groupId: "movie-1",
-              ordinal: "1",
-              sortPosition: 1,
-              displayTitle: { value: "Movie One", requestedLocale: "en", resolvedLocale: "en", role: "official", usedFallback: false },
-              providerReferences: [],
-            },
-          ],
-        },
-        {
-          id: "cour-x",
-          kind: "cour",
-          sortPosition: 3,
-          displayTitle: null,
-          episodes: [],
-        },
-      ],
-    };
-
-    const [specials, movie, cour] = toEpisodeGroupPresentations(layout);
-
-    // A lone group of a collapsed kind still gets the synthetic id and the number-less kind
-    // fallback, so the component renders the generic localized label ("Спешлы" / "Фильмы").
-    expect(specials).toMatchObject({
-      id: "collapsed-specials",
-      kind: "specials",
-      title: "",
-      titleFallback: { kind: "specials", number: null },
-      displayNumber: null,
-    });
-    expect(specials.episodes.map((episode) => episode.id)).toEqual(["specials-0-ep"]);
-    expect(movie).toMatchObject({
-      id: "collapsed-movie",
-      kind: "movie",
-      title: "",
-      titleFallback: { kind: "movie", number: null },
-      displayNumber: null,
-    });
-    expect(movie.episodes.map((episode) => episode.id)).toEqual(["movie-1-ep"]);
-    // Unknown kinds stay individual and still defer with their raw kind.
-    expect(cour.id).toBe("cour-x");
-    expect(cour.title).toBe("");
-    expect(cour.titleFallback).toEqual({ kind: "cour", number: null });
-  });
-
-  it("keeps decimal display numbers for split episodes", () => {
-    const layout: ArmEpisodeLayoutResponse = {
+      work: { id: "work-4" },
       graphVersion: "graph-10",
-      resolutionState: "resolved",
-      coverageState: "complete",
-      warnings: [],
-      workId: "work-4",
-      ordering: { id: "ordering-default", kind: "potokDefault", isDefault: true },
       groups: [
         {
           id: "season-1",
           kind: "season",
-          displayNumber: 1,
-          sortPosition: 1,
-          displayTitle: null,
+          number: 1,
           episodes: [
             {
               id: "episode-12-5",
-              groupId: "season-1",
-              ordinal: "12.5",
-              sortPosition: 12.5,
-              displayTitle: null,
-              displaySeasonNumber: 1,
-              displayEpisodeNumber: 12.5,
-              providerReferences: [],
+              number: 12.5,
+              tmdb: { show: 100, season: 1, episode: 13 },
             },
           ],
         },
@@ -325,143 +165,95 @@ describe("ARM episode layout presentation", () => {
 
     const [group] = toEpisodeGroupPresentations(layout);
     expect(group.episodes[0].episodeNumber).toBe(12.5);
+    expect(group.episodes[0].armNumber).toBe(12.5);
     expect(group.episodes[0].name).toBe("");
   });
+});
 
-  it("proxies raw TMDB still paths through the gateway and resizes absolute URLs", () => {
-    const layout: ArmEpisodeLayoutResponse = {
-      graphVersion: "graph-11",
-      resolutionState: "resolved",
-      coverageState: "complete",
-      warnings: [],
-      workId: "work-5",
-      ordering: { id: "ordering-default", kind: "potokDefault", isDefault: true },
+describe("ARM episode TMDB overlay", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("overlays group titles and episode display fields by the bridge coordinates", async () => {
+    vi.spyOn(ApiClient, "fetchTvSeason").mockResolvedValue({
+      id: 1,
+      name: "Сезон 1",
+      seasonNumber: 1,
+      episodes: [
+        {
+          id: 900,
+          name: "Пилот",
+          overview: "Описание",
+          episodeNumber: 1,
+          seasonNumber: 1,
+          airDate: "2025-01-01",
+          stillPath: "http://gw/media/tmdb/t/p/original/still.jpg",
+        },
+      ],
+    });
+
+    const groups = toEpisodeGroupPresentations({
+      work: { id: "work-10" },
+      graphVersion: "graph-30",
       groups: [
         {
           id: "season-1",
           kind: "season",
-          displayNumber: 1,
-          sortPosition: 1,
-          displayTitle: null,
+          number: 1,
+          tmdbShow: 100,
+          tmdbSeason: 1,
           episodes: [
-            {
-              id: "episode-raw",
-              groupId: "season-1",
-              ordinal: "1",
-              sortPosition: 1,
-              displayTitle: null,
-              stillPath: "/abc.jpg",
-              providerReferences: [],
-            },
-            {
-              id: "episode-absolute",
-              groupId: "season-1",
-              ordinal: "2",
-              sortPosition: 2,
-              displayTitle: null,
-              stillPath: "https://image.tmdb.org/t/p/original/def.jpg",
-              providerReferences: [],
-            },
+            { id: "ep-1", number: 1, tmdb: { show: 100, season: 1, episode: 1 } },
+            { id: "ep-2", number: 2 }, // unbridged: stays bare
           ],
         },
       ],
-    };
-
-    const [group] = toEpisodeGroupPresentations(layout, {
-      imageBaseUrl: "http://localhost:5001/",
     });
-    expect(group.episodes[0].stillPath).toBe("http://localhost:5001/media/tmdb/t/p/w500/abc.jpg");
-    expect(group.episodes[1].stillPath).toBe("https://image.tmdb.org/t/p/w500/def.jpg");
+
+    const [overlaid] = await overlayTmdbEpisodeMeta(groups);
+
+    expect(overlaid.title).toBe("Сезон 1");
+    expect(overlaid.episodes[0]).toMatchObject({
+      id: "ep-1",
+      name: "Пилот",
+      overview: "Описание",
+      stillPath: "http://gw/media/tmdb/t/p/original/still.jpg",
+      airDate: "2025-01-01",
+    });
+    expect(overlaid.episodes[1].name).toBe("");
+    expect(overlaid.episodes[1].stillPath).toBeUndefined();
   });
 
-  it("maps the provisional layout to legacy coordinates without Potok identity", () => {
-    const groups = toProvisionalGroupPresentations(
-      {
-        groups: [
-          {
-            kind: "season",
-            displayNumber: 2,
-            sortPosition: 2,
-            displayTitle: "Второй сезон",
-            episodes: [
-              {
-                displaySeasonNumber: 2,
-                displayEpisodeNumber: 3,
-                displayTitle: "Серия 3",
-                overview: "Описание",
-                stillPath: "/prov.jpg",
-                airDate: "2025-02-02",
-              },
-            ],
-          },
-          {
-            kind: "season",
-            displayNumber: 1,
-            sortPosition: 1,
-            displayTitle: null,
-            episodes: [
-              { displaySeasonNumber: 1, displayEpisodeNumber: 1, displayTitle: null },
-            ],
-          },
-        ],
-      },
-      { imageBaseUrl: "http://localhost:5001" },
-    );
+  it("stays bare when the group is unbridged or the fetch fails", async () => {
+    vi.spyOn(ApiClient, "fetchTvSeason").mockRejectedValue(new Error("network down"));
 
-    expect(groups.map((group) => group.displayNumber)).toEqual([1, 2]);
-
-    const [first, second] = groups;
-    expect(first.title).toBe("");
-    expect(first.titleFallback).toEqual({ kind: "season", number: 1 });
-    expect(first.episodes[0]).toEqual({
-      id: "provisional-1-1",
-      name: "",
-      overview: undefined,
-      episodeNumber: 1,
-      seasonNumber: 1,
-      airDate: undefined,
-      stillPath: undefined,
-    });
-    expect(first.episodes[0].armEpisodeId).toBeUndefined();
-
-    expect(second.title).toBe("Второй сезон");
-    expect(second.episodes[0]).toMatchObject({
-      name: "Серия 3",
-      episodeNumber: 3,
-      seasonNumber: 2,
-      stillPath: "http://localhost:5001/media/tmdb/t/p/w500/prov.jpg",
-    });
-    expect(second.episodes[0].armEpisodeId).toBeUndefined();
-  });
-
-  it("collapses untitled provisional specials groups (TMDB season 0) into kind-labeled entries", () => {
-    const groups = toProvisionalGroupPresentations({
+    const groups = toEpisodeGroupPresentations({
+      work: { id: "work-11" },
+      graphVersion: "graph-31",
       groups: [
         {
-          kind: "specials",
-          displayNumber: 0,
-          sortPosition: 0,
-          displayTitle: null,
-          episodes: [{ displaySeasonNumber: 0, displayEpisodeNumber: 1, displayTitle: "Special One" }],
+          id: "season-fail",
+          kind: "season",
+          number: 1,
+          tmdbShow: 100,
+          tmdbSeason: 9,
+          episodes: [{ id: "ep-f", number: 1, tmdb: { show: 100, season: 9, episode: 1 } }],
         },
         {
-          kind: "movie",
-          displayNumber: null,
-          sortPosition: 1,
-          displayTitle: null,
-          episodes: [{ displaySeasonNumber: null, displayEpisodeNumber: 1, displayTitle: "Movie One" }],
+          id: "season-unbridged",
+          kind: "season",
+          number: 2,
+          episodes: [{ id: "ep-u", number: 1 }],
         },
       ],
     });
 
-    expect(groups[0].id).toBe("collapsed-specials");
-    expect(groups[0].kind).toBe("specials");
-    expect(groups[0].title).toBe("");
-    expect(groups[0].titleFallback).toEqual({ kind: "specials", number: null });
-    expect(groups[0].episodes.map((episode) => episode.id)).toEqual(["provisional-0-1"]);
-    expect(groups[1].id).toBe("collapsed-movie");
-    expect(groups[1].kind).toBe("movie");
-    expect(groups[1].titleFallback).toEqual({ kind: "movie", number: null });
+    const [failed, unbridged] = await overlayTmdbEpisodeMeta(groups);
+    expect(failed.title).toBe("");
+    expect(failed.episodes[0].name).toBe("");
+    expect(unbridged.title).toBe("");
+    expect(ApiClient.fetchTvSeason).toHaveBeenCalledTimes(1); // unbridged groups never fetch
   });
 });
 
@@ -470,61 +262,55 @@ describe("ARM episode group collapsing", () => {
     groups: {
       id: string;
       kind: string;
-      sortPosition: number;
-      displayNumber?: number;
-      episodes: { id: string; sortPosition: number; ordinal?: string }[];
+      number: number;
+      episodes: { id: string; number: number }[];
     }[],
   ): ArmEpisodeLayoutResponse {
     return {
+      work: { id: "work-20" },
       graphVersion: "graph-20",
-      resolutionState: "resolved",
-      coverageState: "complete",
-      warnings: [],
-      workId: "work-20",
-      ordering: { id: "ordering-default", kind: "potokDefault", isDefault: true },
       groups: groups.map((group) => ({
         id: group.id,
         kind: group.kind,
-        displayNumber: group.displayNumber,
-        sortPosition: group.sortPosition,
-        displayTitle: null,
+        number: group.number,
         episodes: group.episodes.map((episode) => ({
           id: episode.id,
-          groupId: group.id,
-          ordinal: episode.ordinal ?? episode.id,
-          sortPosition: episode.sortPosition,
-          displayTitle: {
-            value: `Title ${episode.id}`,
-            requestedLocale: "en",
-            resolvedLocale: "en",
-            role: "official",
-            usedFallback: false,
-          },
-          providerReferences: [],
+          number: episode.number,
         })),
       })),
     };
   }
 
+  /** Collapse after a synthetic overlay — the same order the hook uses at runtime. */
+  function present(layout: ArmEpisodeLayoutResponse) {
+    const bare = toEpisodeGroupPresentations(layout);
+    // Tests exercise structure only: mark every episode displayable, as a title overlay would.
+    const overlaid = bare.map((group) => ({
+      ...group,
+      episodes: group.episodes.map((episode) => ({ ...episode, name: `Title ${episode.id}` })),
+    }));
+    return collapseKindGroupPresentations(overlaid);
+  }
+
   it("merges multiple movie groups into one entry with episodes in stable group-then-episode order", () => {
-    const groups = toEpisodeGroupPresentations(
+    const groups = present(
       layoutWith([
-        {
-          id: "movie-2",
-          kind: "movie",
-          sortPosition: 2,
-          episodes: [
-            { id: "movie-2-ep-b", sortPosition: 2 },
-            { id: "movie-2-ep-a", sortPosition: 1 },
-          ],
-        },
         {
           id: "movie-1",
           kind: "movie",
-          sortPosition: 1,
+          number: 1,
           episodes: [
-            { id: "movie-1-ep-b", sortPosition: 2 },
-            { id: "movie-1-ep-a", sortPosition: 1 },
+            { id: "movie-1-ep-a", number: 1 },
+            { id: "movie-1-ep-b", number: 2 },
+          ],
+        },
+        {
+          id: "movie-2",
+          kind: "movie",
+          number: 2,
+          episodes: [
+            { id: "movie-2-ep-a", number: 1 },
+            { id: "movie-2-ep-b", number: 2 },
           ],
         },
       ]),
@@ -542,14 +328,8 @@ describe("ARM episode group collapsing", () => {
       "movie-2-ep-a",
       "movie-2-ep-b",
     ]);
-    // Episode identity stays attached to the source group so watched/history/streams keep working.
-    expect(collapsed.episodes.map((episode) => episode.armEpisodeId)).toEqual([
-      "movie-1-ep-a",
-      "movie-1-ep-b",
-      "movie-2-ep-a",
-      "movie-2-ep-b",
-    ]);
-    expect(collapsed.episodes.map((episode) => episode.armGroupId)).toEqual([
+    // Episode identity stays attached to the source entry so watched/history/streams keep working.
+    expect(collapsed.episodes.map((episode) => episode.armEntryId)).toEqual([
       "movie-1",
       "movie-1",
       "movie-2",
@@ -557,73 +337,41 @@ describe("ARM episode group collapsing", () => {
     ]);
   });
 
-  it("merges multiple specials groups into one entry", () => {
-    const groups = toEpisodeGroupPresentations(
+  it("merges multiple sides groups into one entry and orders it between seasons and specials", () => {
+    const groups = present(
       layoutWith([
-        {
-          id: "specials-b",
-          kind: "specials",
-          sortPosition: 2,
-          episodes: [{ id: "special-b-ep", sortPosition: 1 }],
-        },
-        {
-          id: "specials-a",
-          kind: "specials",
-          sortPosition: 1,
-          episodes: [{ id: "special-a-ep", sortPosition: 1 }],
-        },
-      ]),
-    );
-
-    expect(groups).toHaveLength(1);
-    expect(groups[0].id).toBe("collapsed-specials");
-    expect(groups[0].kind).toBe("specials");
-    expect(groups[0].titleFallback).toEqual({ kind: "specials", number: null });
-    expect(groups[0].episodes.map((episode) => episode.armEpisodeId)).toEqual([
-      "special-a-ep",
-      "special-b-ep",
-    ]);
-  });
-
-  it("keeps seasons individual and season-first when specials sort between them", () => {
-    const groups = toEpisodeGroupPresentations(
-      layoutWith([
-        { id: "season-1", kind: "season", sortPosition: 1, displayNumber: 1, episodes: [{ id: "s1e1", sortPosition: 1 }] },
-        { id: "specials-a", kind: "specials", sortPosition: 2, episodes: [{ id: "sp1", sortPosition: 1 }] },
-        { id: "season-2", kind: "season", sortPosition: 3, displayNumber: 2, episodes: [{ id: "s2e1", sortPosition: 1 }] },
-        { id: "specials-b", kind: "specials", sortPosition: 4, episodes: [{ id: "sp2", sortPosition: 1 }] },
-        { id: "movie-1", kind: "movie", sortPosition: 5, episodes: [{ id: "mv1", sortPosition: 1 }] },
+        { id: "season-1", kind: "season", number: 1, episodes: [{ id: "s1e1", number: 1 }] },
+        { id: "sides-b", kind: "sides", number: 2, episodes: [{ id: "side-b-ep", number: 1 }] },
+        { id: "specials-a", kind: "specials", number: 3, episodes: [{ id: "sp1", number: 1 }] },
+        { id: "sides-a", kind: "sides", number: 4, episodes: [{ id: "side-a-ep", number: 1 }] },
       ]),
     );
 
     expect(groups.map((group) => group.id)).toEqual([
       "season-1",
+      "collapsed-sides",
       "collapsed-specials",
-      "season-2",
-      "collapsed-movie",
     ]);
-    // Seasons keep their own ids, numbers and fallback descriptors.
-    expect(groups[0].titleFallback).toEqual({ kind: "season", number: 1 });
-    expect(groups[2].titleFallback).toEqual({ kind: "season", number: 2 });
-    expect(groups[1].episodes.map((episode) => episode.armEpisodeId)).toEqual(["sp1", "sp2"]);
+    const sides = groups[1];
+    expect(sides.kind).toBe("sides");
+    expect(sides.titleFallback).toEqual({ kind: "sides", number: null });
+    expect(sides.episodes.map((episode) => episode.armEntryId)).toEqual(["sides-b", "sides-a"]);
 
-    // Kind-priority ordering (what the section applies before picking the default group) puts both
-    // seasons ahead of the collapsed specials/movies, so the default selection stays a season.
-    const ordered = orderGroupsByKind(groups);
-    expect(ordered.map((group) => group.id)).toEqual([
+    expect(orderGroupsByKind(groups).map((group) => group.id)).toEqual([
       "season-1",
-      "season-2",
+      "collapsed-sides",
       "collapsed-specials",
-      "collapsed-movie",
     ]);
-    expect(ordered[0].kind).toBe("season");
+
+    expect(finalizeGroupTitle(sides, tRu)).toBe("Сайды");
+    expect(finalizeGroupTitle(sides, tEn)).toBe("Side stories");
   });
 
   it("finalizes collapsed entries to the localized kind label via the existing helpers", () => {
-    const groups = toEpisodeGroupPresentations(
+    const groups = present(
       layoutWith([
-        { id: "specials-a", kind: "specials", sortPosition: 1, episodes: [{ id: "sp1", sortPosition: 1 }] },
-        { id: "movie-1", kind: "movie", sortPosition: 2, episodes: [{ id: "mv1", sortPosition: 1 }] },
+        { id: "specials-a", kind: "specials", number: 1, episodes: [{ id: "sp1", number: 1 }] },
+        { id: "movie-1", kind: "movie", number: 1, episodes: [{ id: "mv1", number: 1 }] },
       ]),
     );
 
@@ -634,78 +382,37 @@ describe("ARM episode group collapsing", () => {
   });
 
   it("drops episodes with neither a title nor a still from collapsed entries", () => {
-    const groups = toEpisodeGroupPresentations(
+    const bare = toEpisodeGroupPresentations(
       layoutWith([
         {
           id: "movie-1",
           kind: "movie",
-          sortPosition: 1,
+          number: 1,
           episodes: [
-            { id: "mv-titled", sortPosition: 1 },
-            { id: "mv-empty", sortPosition: 2 },
+            { id: "mv-titled", number: 1 },
+            { id: "mv-empty", number: 2 },
           ],
         },
       ]),
     );
-    // The fixture titles every episode; strip the second one down to a bare number card.
-    const [collapsed] = groups;
-    expect(collapsed.episodes.map((episode) => episode.id)).toEqual(["mv-titled", "mv-empty"]);
-
-    const bare = toEpisodeGroupPresentations({
-      ...layoutWith([]),
-      groups: [
-        {
-          id: "movie-1",
-          kind: "movie",
-          sortPosition: 1,
-          displayTitle: null,
-          episodes: [
-            {
-              id: "mv-titled",
-              groupId: "movie-1",
-              ordinal: "1",
-              sortPosition: 1,
-              displayTitle: null,
-              stillPath: "/still.jpg",
-              providerReferences: [],
-            },
-            {
-              id: "mv-empty",
-              groupId: "movie-1",
-              ordinal: "2",
-              sortPosition: 2,
-              displayTitle: null,
-              providerReferences: [],
-            },
-          ],
-        },
-      ],
-    });
-    expect(bare[0].episodes.map((episode) => episode.id)).toEqual(["mv-titled"]);
+    // Only one episode gets overlaid (title) — the other stays bare and is dropped.
+    const overlaid = bare.map((group) => ({
+      ...group,
+      episodes: group.episodes.map((episode) =>
+        episode.id === "mv-titled" ? { ...episode, name: "Title" } : episode),
+    }));
+    const [collapsed] = collapseKindGroupPresentations(overlaid);
+    expect(collapsed.episodes.map((episode) => episode.id)).toEqual(["mv-titled"]);
   });
 
   it("skips the collapsed entry entirely when no episode is displayable", () => {
-    const groups = toEpisodeGroupPresentations({
-      ...layoutWith([]),
-      groups: [
-        {
-          id: "specials-1",
-          kind: "specials",
-          sortPosition: 1,
-          displayTitle: null,
-          episodes: [
-            {
-              id: "sp-empty",
-              groupId: "specials-1",
-              ordinal: "1",
-              sortPosition: 1,
-              displayTitle: null,
-              providerReferences: [],
-            },
-          ],
-        },
-      ],
-    });
+    const groups = collapseKindGroupPresentations(
+      toEpisodeGroupPresentations(
+        layoutWith([
+          { id: "specials-1", kind: "specials", number: 1, episodes: [{ id: "sp-empty", number: 1 }] },
+        ]),
+      )
+    );
     expect(groups).toEqual([]);
   });
 });

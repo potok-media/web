@@ -3,28 +3,28 @@ import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 import type { SDKMediaCard, SDKCastMember } from "../../types";
 
 /**
- * MediaCast (Cast)
- *
- * A horizontal row with cards of the movie's creators or cast. Renders round photos (avatars), the actors' real names and their role names.
- *
+ * MediaCast (Актерский состав)
+ * 
+ * Горизонтальный ряд с карточками создателей фильма или актерского состава. Выводит круглые фотографии (аватары), реальные имена актеров и названия их ролей.
+ * 
  * @example
- * // Cast
+ * // Актерский состав
  * const { ui } = PotokSDK;
- *
- * // The actor's photo is read from profileSrc (per the SDKCastMember shape), not from profilePath.
+ * 
+ * // Фото актёра читается из profileSrc (по форме SDKCastMember), не из profilePath.
  * const actors = [
  *   {
- *     name: "Matthew McConaughey",
- *     character: "Cooper",
+ *     name: "Мэттью Макконахи",
+ *     character: "Купер",
  *     profileSrc: "https://image.tmdb.org/t/p/w185/wD6U1N7Caw58tO43fT245U62y4a.jpg"
  *   },
  *   {
- *     name: "Anne Hathaway",
- *     character: "Amelia Brand",
+ *     name: "Энн Хэтэуэй",
+ *     character: "Амелия Брэнд",
  *     profileSrc: "https://image.tmdb.org/t/p/w185/tLelKoPNiyJCSEtQTz1FGv4TLGc.jpg"
  *   }
  * ];
- *
+ * 
  * ui.render(
  *   MediaCast()
  *     .cast(actors)
@@ -39,9 +39,9 @@ export class MediaCastBuilder extends UIComponent {
   }
 
   /**
-   * Array of actor objects (name, character, profilePath).
+   * Массив объектов актеров (name, character, profilePath).
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   cast(v: SDKCastMember[]): this {
@@ -57,29 +57,29 @@ export class MediaCastBuilder extends UIComponent {
 }
 
 /**
- * MediaRow (Horizontal row)
- *
- * A horizontally scrollable carousel for displaying a list of MediaCard cards. Equipped with a shared title and a "Show all" button.
- *
+ * MediaRow (Горизонтальный ряд)
+ * 
+ * Карусель с горизонтальной прокруткой для отображения списка карточек MediaCard. Снабжена общим заголовком и кнопкой «Показать все».
+ * 
  * @example
- * // Media carousel
+ * // Карусель медиа
  * const { ui } = PotokSDK;
- *
+ * 
  * const movies = [
- *   { id: 157336, title: "Interstellar", subtitle: "2014", mediaType: "movie", posterSrc: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg", tmdbRating: 8.4 },
- *   { id: 335984, title: "Blade Runner 2049", subtitle: "2017", mediaType: "movie", posterSrc: "https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg", kpRating: 7.9 },
- *   { id: 27205, title: "Inception", subtitle: "2010", mediaType: "movie", posterSrc: "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg", imdbRating: 8.8 }
+ *   { id: 157336, title: "Интерстеллар", subtitle: "2014", mediaType: "movie", posterSrc: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg", tmdbRating: 8.4 },
+ *   { id: 335984, title: "Бегущий по лезвию 2049", subtitle: "2017", mediaType: "movie", posterSrc: "https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg", kpRating: 7.9 },
+ *   { id: 27205, title: "Начало", subtitle: "2010", mediaType: "movie", posterSrc: "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg", imdbRating: 8.8 }
  * ];
- *
+ * 
  * ui.render(
  *   MediaRow()
- *     .title("Recommended movies")
+ *     .title("Рекомендуемые фильмы")
  *     .items(movies)
  *     .onCardClick((item) => {
- *       ui.showHUD("info", "Click: " + item.title);
+ *       ui.showHUD("info", "Клик: " + item.title);
  *     })
  *     .onSeeAllClick(() => {
- *       ui.showHUD("success", "Show all!");
+ *       ui.showHUD("success", "Показать все!");
  *     })
  * );
  */
@@ -102,9 +102,9 @@ export class MediaRowBuilder extends UIComponent {
   }
 
   /**
-   * Title for the row section (for example, 'Now watching').
+   * Заголовок для секции ряда (например, 'Сейчас смотрят').
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   title(v: string): this {
     this._title = v;
@@ -112,9 +112,9 @@ export class MediaRowBuilder extends UIComponent {
   }
 
   /**
-   * Array of movie objects to display in the row as cards.
+   * Массив объектов фильмов для отображения в ряду в виде карточек.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   items(v: SDKMediaCard[]): this {
@@ -123,9 +123,9 @@ export class MediaRowBuilder extends UIComponent {
   }
 
   /**
-   * Callback on a click on any movie card in the row.
+   * Коллбек при клике на любую карточку фильма в ряду.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onCardClick(cb: CallbackFunction): this {
     this._onCardClick = cb;
@@ -133,9 +133,9 @@ export class MediaRowBuilder extends UIComponent {
   }
 
   /**
-   * Callback on a click on the "Show all" / "See all" button.
+   * Коллбек при клике на кнопку «Показать все» / «Смотреть все».
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onSeeAllClick(cb: CallbackFunction): this {
     this._onSeeAllClick = cb;

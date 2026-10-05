@@ -2,23 +2,23 @@ import { UIComponent, type CompiledComponent } from "../base";
 import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 
 /**
- * Image (Image)
- *
- * A responsive image with lazy loading and a fallback image on error. Lets a plugin display arbitrary images, not just through MediaCard.
- *
+ * Image (Изображение)
+ * 
+ * Адаптивное изображение с ленивой загрузкой и запасной картинкой (fallback) при ошибке. Позволяет плагину выводить произвольные картинки, а не только через MediaCard.
+ * 
  * @example
- * // Image with aspect ratio and rounding
+ * // Изображение с соотношением сторон и скруглением
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   Image("https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg")
- *     .alt("Poster")
+ *     .alt("Постер")
  *     .aspectRatio("2/3")
  *     .rounded(true)
  *     .fit("cover")
  *     .fallback("https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg")
  *     .width("12rem")
- *     .onClick(() => ui.showHUD("info", "Image clicked"))
+ *     .onClick(() => ui.showHUD("info", "Клик по изображению"))
  * );
  */
 export class ImageBuilder extends UIComponent {
@@ -36,40 +36,40 @@ export class ImageBuilder extends UIComponent {
   }
 
   /**
-   * The alternative text of the image.
+   * Альтернативный текст изображения.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   alt(v: string): this { this._alt = v; return this; }
   /**
-   * The aspect ratio of the frame (for example, '16/9' or '2/3').
+   * Соотношение сторон рамки (например, '16/9' или '2/3').
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   aspectRatio(v: string): this { this._aspectRatio = v; return this; }
   /**
-   * The URL of the fallback image shown on a load error.
+   * URL запасного изображения, показываемого при ошибке загрузки.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   fallback(v: string): this { this._fallback = v; return this; }
   /**
-   * Corner rounding: true for the standard radius or a CSS value.
+   * Скругление углов: true для стандартного радиуса или CSS-значение.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   rounded(v: boolean | string): this { this._rounded = v; return this; }
   /**
-   * The mode for fitting the image into the frame.
+   * Режим вписывания изображения в рамку.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'cover'
    */
   fit(v: "cover" | "contain"): this { this._fit = v; return this; }
   /**
-   * Callback for a click on the image.
+   * Коллбек клика по изображению.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onClick(cb: CallbackFunction): this { this._onClick = cb; return this; }
 
@@ -94,14 +94,14 @@ export class ImageBuilder extends UIComponent {
 }
 
 /**
- * Icon (Icon)
- *
- * A single icon from the Lucide collection (for example, 'play', 'heart', 'settings').
- *
+ * Icon (Иконка)
+ * 
+ * Отдельная иконка из коллекции Lucide (например, 'play', 'heart', 'settings').
+ * 
  * @example
- * // Icon set
+ * // Набор иконок
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   HStack()
  *     .spacing(12)
@@ -121,15 +121,15 @@ export class IconBuilder extends UIComponent {
   }
 
   /**
-   * The icon size (for example, '1.5rem' or 24).
+   * Размер иконки (например, '1.5rem' или 24).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   size(v: string | number): this { this._size = v; return this; }
   /**
-   * The icon color (CSS color).
+   * Цвет иконки (CSS-цвет).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   color(v: string): this { this._color = v; return this; }
 
@@ -139,21 +139,21 @@ export class IconBuilder extends UIComponent {
 }
 
 /**
- * List (Row list)
- *
- * A vertical list of clickable rows with an icon, title, subtitle, badge, and trailing icon.
- *
+ * List (Список строк)
+ * 
+ * Вертикальный список кликабельных строк с иконкой, заголовком, подзаголовком, бейджем и завершающей иконкой.
+ * 
  * @example
- * // Menu item list
+ * // Список пунктов меню
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   List()
  *     .items([
- *       { id: "a", title: "Settings", subtitle: "General options", icon: "settings", trailingIcon: "chevron-right" },
- *       { id: "b", title: "Account", badge: "PRO", icon: "user", trailingIcon: "chevron-right" }
+ *       { id: "a", title: "Настройки", subtitle: "Общие параметры", icon: "settings", trailingIcon: "chevron-right" },
+ *       { id: "b", title: "Аккаунт", badge: "PRO", icon: "user", trailingIcon: "chevron-right" }
  *     ])
- *     .onItemClick((item) => ui.showHUD("info", "Selected: " + item.title))
+ *     .onItemClick((item) => ui.showHUD("info", "Выбрано: " + item.title))
  * );
  */
 export class ListBuilder extends UIComponent {
@@ -166,16 +166,16 @@ export class ListBuilder extends UIComponent {
   }
 
   /**
-   * An array of rows: { id, title, subtitle?, icon?, badge?, trailingIcon?, disabled? }.
+   * Массив строк: { id, title, subtitle?, icon?, badge?, trailingIcon?, disabled? }.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   items(v: { id: string; title: string; subtitle?: string; icon?: string; badge?: string; trailingIcon?: string; disabled?: boolean }[]): this { this._items = v; return this; }
   /**
-   * Callback for a click on a row. Passes the row object.
+   * Коллбек клика по строке. Передаёт объект строки.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onItemClick(cb: CallbackFunction): this { this._onItemClick = cb; return this; }
 

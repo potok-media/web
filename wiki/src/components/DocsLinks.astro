@@ -1,0 +1,8 @@
+---
+const en = Astro.locals.starlightRoute.lang === 'en';
+---
+<a href="/" class="back-link">{en ? 'Back to Potok' : 'Вернуться в Potok'}</a>
+<style>
+  a { color: var(--sl-color-text); font-size: var(--sl-text-sm); text-decoration: none; }
+  a:hover { color: var(--sl-color-text-accent); text-decoration: underline; }
+</style>

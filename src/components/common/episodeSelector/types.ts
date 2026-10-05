@@ -1,5 +1,5 @@
 import type { SDKArmEpisodeLayoutResponse, SDKEpisodeBindingOverride, SDKFileOverrideEntry, SDKReleaseBindingTarget, SDKTvSeason } from "../../../sdk/src/types";
-import type { ArmEpisodeAnnotationSummary } from "../../../network/ArmTypes";
+import type { ArmEpisodeFiller } from "../../../network/ArmTypes";
 
 export interface GenericEpisodeItem {
   id: string;
@@ -9,8 +9,7 @@ export interface GenericEpisodeItem {
   rawEpisode?: number;
   workId?: string | null;
   episodeId?: string | null;
-  orderingId?: string | null;
-  groupId?: string | null;
+  entryId?: string | null;
   groupTitle?: string | null;
   groupDisplayNumber?: number;
   groupKind?: string | null;
@@ -29,12 +28,10 @@ export interface GenericEpisodeItem {
   } | null;
   alternatives?: Array<{
     episodeId: string;
-    orderingId: string;
-    groupId: string;
+    entryId: string;
     confidence: number;
-    compatibility?: { season?: number | null; episode?: number | null } | null;
   }>;
-  armAnnotation?: ArmEpisodeAnnotationSummary | null;
+  filler?: ArmEpisodeFiller | null;
   title?: string;
   fileName?: string;
   stillPath?: string;
@@ -63,6 +60,7 @@ export type FileOverrideMode = "anchor" | "pin";
 export type FileOverrideEntry = SDKFileOverrideEntry;
 
 export interface EpisodeSelectorPopupProps {
+  accessibleModal?: boolean;
   isOpen: boolean;
   onClose: () => void;
   title: string;

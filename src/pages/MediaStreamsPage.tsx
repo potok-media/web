@@ -22,14 +22,13 @@ export const MediaStreamsPage: React.FC = () => {
   const mediaId = Number(id);
   const state = location.state as {
     season?: number; episode?: number; media?: MediaCard;
-    workId?: string; orderingId?: string; groupId?: string; episodeId?: string;
+    workId?: string; entryId?: string; episodeId?: string;
   } | null;
   const season = state?.season ?? (searchParams.get("season") ? Number(searchParams.get("season")) : undefined);
   const episode = state?.episode ?? (searchParams.get("episode") ? Number(searchParams.get("episode")) : undefined);
   const initialMedia = state?.media;
   const workId = state?.workId || searchParams.get("workId") || undefined;
-  const orderingId = state?.orderingId || searchParams.get("orderingId") || undefined;
-  const groupId = state?.groupId || searchParams.get("groupId") || undefined;
+  const entryId = state?.entryId || searchParams.get("entryId") || undefined;
   const episodeId = state?.episodeId || searchParams.get("episodeId") || undefined;
 
   const {
@@ -67,8 +66,7 @@ export const MediaStreamsPage: React.FC = () => {
     season,
     episode,
     workId,
-    orderingId,
-    groupId,
+    entryId,
     episodeId,
     initialMedia,
     activeTab: tab,

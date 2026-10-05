@@ -1,4 +1,4 @@
-import type { ArmEpisodeAnnotationSummary, ArmEpisodeLayoutResponse } from "../../../network/ArmTypes";
+import type { ArmEpisodeFiller, ArmEpisodeLayoutResponse, ArmTmdbCoordinate } from "../../../network/ArmTypes";
 import type { SDKArmBindingTarget, SDKEpisodeBindingOverride } from "../../../sdk/src/types";
 import type { EpisodeSourceSection, FileOverrideEntry, FileOverrideMode } from "./types";
 
@@ -8,7 +8,8 @@ export interface ArmOverrideEpisode {
   title: string;
   stillPath?: string | null;
   airDate?: string | null;
-  annotation?: ArmEpisodeAnnotationSummary | null;
+  filler?: ArmEpisodeFiller | null;
+  tmdb?: ArmTmdbCoordinate | null;
 }
 
 export interface ArmOverrideGroup {
@@ -16,37 +17,41 @@ export interface ArmOverrideGroup {
   kind: string;
   title: string;
   displayNumber?: number | null;
+  tmdbShow?: number | null;
+  tmdbSeason?: number | null;
   episodes: ArmOverrideEpisode[];
 }
 
-/** Keep every canonical group intact: equal display numbers are not equal identities. */
+/**
+ * Maps the v2 graph layout to picker groups. Groups arrive in the backend's kind-aware order
+ * with episodes ordered by number; every canonical entry stays intact — equal display numbers
+ * are not equal identities. Group titles ride the layout (resolved from the structure source
+ * at read time); per-episode titles/stills overlay from TMDB by the `tmdb` coordinate on the
+ * consumer side.
+ */
 export function toArmOverrideGroups(layout: ArmEpisodeLayoutResponse | null | undefined): ArmOverrideGroup[] {
-  if (!layout?.workId || !layout.ordering?.id ||
-    (layout.resolutionState !== "resolved" && layout.resolutionState !== "partial")) return [];
-  const workId = layout.workId;
-  const orderingId = layout.ordering.id;
-  return [...layout.groups].sort((a, b) => a.sortPosition - b.sortPosition).flatMap((group) => {
+  const workId = layout?.work?.id;
+  if (!workId) return [];
+  return layout.groups.flatMap((group) => {
     if (!group.id) return [];
-    const episodes = [...group.episodes]
-      .sort((a, b) => a.sortPosition - b.sortPosition)
-      .filter((episode) => episode.id && episode.groupId === group.id)
+    const episodes = group.episodes
+      .filter((episode) => episode.id)
       .map((episode): ArmOverrideEpisode => ({
-        target: { workId, orderingId, groupId: group.id, episodeId: episode.id },
-        ordinal: episode.ordinal?.trim() || (
-          typeof episode.displayEpisodeNumber === "number" && Number.isFinite(episode.displayEpisodeNumber)
-            ? String(episode.displayEpisodeNumber) : ""
-        ),
-        title: episode.displayTitle?.value?.trim() || episode.names?.find((name) => name.value?.trim())?.value || "",
-        stillPath: episode.stillPath,
-        airDate: episode.airDate,
-        annotation: episode.annotation,
+        target: { workId, entryId: group.id, episodeId: episode.id },
+        ordinal: typeof episode.number === "number" && Number.isFinite(episode.number)
+          ? String(episode.number) : "",
+        title: "",
+        filler: episode.filler,
+        tmdb: episode.tmdb ?? null,
       }));
     if (!episodes.length) return [];
     return [{
       id: group.id,
       kind: group.kind,
-      title: group.displayTitle?.value?.trim() || group.names?.find((name) => name.value?.trim())?.value || "",
-      displayNumber: group.displayNumber,
+      title: group.title ?? "",
+      displayNumber: typeof group.number === "number" && Number.isFinite(group.number) ? group.number : null,
+      tmdbShow: group.tmdbShow ?? null,
+      tmdbSeason: group.tmdbSeason ?? null,
       episodes,
     }];
   });

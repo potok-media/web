@@ -10,28 +10,13 @@ import {
 } from "./armLayoutCache";
 
 const resolveResponse: ArmResolveResponse = {
+  workId: "work-1",
   graphVersion: "graph-1",
-  resolutionState: "resolved",
-  coverageState: "complete",
-  warnings: [],
-  query: { provider: "tmdb", entityKind: "tv", value: "1399" },
-  alternatives: [],
-  work: {
-    id: "work-1",
-    kind: "series",
-    defaultOrderingId: "ordering-1",
-    displayTitle: null,
-    providerReferences: [],
-  },
 };
 
 const layoutResponse: ArmEpisodeLayoutResponse = {
+  work: { id: "work-1" },
   graphVersion: "graph-1",
-  resolutionState: "resolved",
-  coverageState: "complete",
-  warnings: [],
-  workId: "work-1",
-  ordering: { id: "ordering-1", kind: "potokDefault", isDefault: true },
   groups: [],
 };
 
@@ -63,7 +48,7 @@ describe("ARM layout cache", () => {
 
   it("builds keys that isolate provider references and locales", () => {
     expect(armResolveCacheKey(reference, "ru")).toBe("tmdb/tv/1399|ru");
-    expect(armLayoutCacheKey("work-1", "default", "en")).toBe("work-1|default|en");
+    expect(armLayoutCacheKey("work-1", "en")).toBe("work-1|en");
     expect(armResolveCacheKey(reference, "en")).not.toBe(armResolveCacheKey(reference, "ru"));
   });
 
@@ -108,9 +93,9 @@ describe("ARM layout cache", () => {
         : ok(updated, "\"arm-graph-2-b\"");
     };
 
-    const first = await getArmLayoutCached("work-1", "default", "ru", fetcher);
+    const first = await getArmLayoutCached("work-1", "ru", fetcher);
     vi.setSystemTime(new Date("2026-09-22T12:06:00Z"));
-    const second = await getArmLayoutCached("work-1", "default", "ru", fetcher);
+    const second = await getArmLayoutCached("work-1", "ru", fetcher);
 
     expect(first.graphVersion).toBe("graph-1");
     expect(second.graphVersion).toBe("graph-2");
@@ -132,7 +117,7 @@ describe("ARM layout cache", () => {
 
   it("fails loudly when a 304 arrives without anything cached", async () => {
     const fetcher = async (): Promise<ArmHttpResponse<ArmEpisodeLayoutResponse>> => notModified();
-    await expect(getArmLayoutCached("work-1", "default", "ru", fetcher)).rejects.toThrow(
+    await expect(getArmLayoutCached("work-1", "ru", fetcher)).rejects.toThrow(
       /304/,
     );
   });

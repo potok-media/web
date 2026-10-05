@@ -2,25 +2,25 @@ import { UIComponent, type CompiledComponent } from "../base";
 import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 
 /**
- * Avatar (Avatar)
- *
- * A round or square user/actor image with lazy loading. When no image is available, it shows the initials from the name.
- *
+ * Avatar (Аватар)
+ * 
+ * Круглое или квадратное изображение пользователя/актёра с ленивой загрузкой. При отсутствии картинки показывает инициалы из имени.
+ * 
  * @example
- * // Avatars
+ * // Аватары
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   HStack()
  *     .spacing(12)
  *     .alignItems("center")
  *     .children([
  *       Avatar("https://image.tmdb.org/t/p/w185/wD6U1N7Caw58tO43fT245U62y4a.jpg")
- *         .name("Matthew McConaughey")
+ *         .name("Мэттью Макконахи")
  *         .size("lg")
  *         .shape("circle"),
  *       Avatar("")
- *         .name("Anne Hathaway")
+ *         .name("Энн Хэтэуэй")
  *         .size("md")
  *         .shape("square")
  *         .fallback("https://image.tmdb.org/t/p/w185/tLelKoPNiyJCSEtQTz1FGv4TLGc.jpg")
@@ -40,28 +40,28 @@ export class AvatarBuilder extends UIComponent {
   }
 
   /**
-   * The name: initials for the fallback and alt text.
+   * Имя: инициалы для запасного варианта и alt-текст.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   name(v: string): this { this._name = v; return this; }
   /**
-   * The avatar size.
+   * Размер аватара.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'md'
    */
   size(v: "sm" | "md" | "lg"): this { this._size = v; return this; }
   /**
-   * The URL of the fallback image on a load error.
+   * URL запасного изображения при ошибке загрузки.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   fallback(v: string): this { this._fallback = v; return this; }
   /**
-   * The avatar shape.
+   * Форма аватара.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'circle'
    */
   shape(v: "circle" | "square"): this { this._shape = v; return this; }
@@ -72,14 +72,14 @@ export class AvatarBuilder extends UIComponent {
 }
 
 /**
- * Rating (Star rating)
- *
- * A row of stars displaying a score from 0 to max with support for half stars and an optional numeric value.
- *
+ * Rating (Рейтинг звёздами)
+ * 
+ * Строка звёзд, отображающая оценку от 0 до max с поддержкой половинных звёзд и необязательным числовым значением.
+ * 
  * @example
- * // Ratings
+ * // Рейтинги
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   VStack()
  *     .spacing(10)
@@ -101,30 +101,30 @@ export class RatingBuilder extends UIComponent {
   }
 
   /**
-   * The rating value (supports fractional values for half stars).
+   * Значение рейтинга (поддерживает дробное для половинных звёзд).
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 0
    */
   value(v: number): this { this._value = v; return this; }
   /**
-   * The maximum number of stars.
+   * Максимальное число звёзд.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 5
    */
   max(v: number): this { this._max = v; return this; }
   /**
-   * Show the numeric value on the right.
+   * Показывать числовое значение справа.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   showValue(v: boolean): this { this._showValue = v; return this; }
   /**
-   * The star size.
+   * Размер звёзд.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'md'
    */
   size(v: "sm" | "md" | "lg"): this { this._size = v; return this; }
@@ -135,18 +135,18 @@ export class RatingBuilder extends UIComponent {
 }
 
 /**
- * TagList (Tag list)
- *
- * A set of tags/genres as pills. Static by default; they become clickable when onTagClick is set.
- *
+ * TagList (Список тегов)
+ * 
+ * Набор тегов/жанров в виде пилюль. Статичные по умолчанию; при заданном onTagClick становятся кликабельными.
+ * 
  * @example
- * // Genre tags
+ * // Жанры-теги
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   TagList()
- *     .tags(["Fantasy", "Drama", { id: "action", label: "Action" }])
- *     .onTagClick((id) => ui.showHUD("info", "Tag: " + id))
+ *     .tags(["Фэнтези", "Драма", { id: "action", label: "Боевик" }])
+ *     .onTagClick((id) => ui.showHUD("info", "Тег: " + id))
  * );
  */
 export class TagListBuilder extends UIComponent {
@@ -159,16 +159,16 @@ export class TagListBuilder extends UIComponent {
   }
 
   /**
-   * An array of tags: strings or objects { id?, label }.
+   * Массив тегов: строки или объекты { id?, label }.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   tags(v: (string | { id?: string; label: string })[]): this { this._tags = v; return this; }
   /**
-   * Callback for a click on a tag. Passes the id (or string).
+   * Коллбек клика по тегу. Передаёт id (или строку).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onTagClick(cb: CallbackFunction): this { this._onTagClick = cb; return this; }
 

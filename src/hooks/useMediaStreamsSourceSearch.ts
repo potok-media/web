@@ -12,8 +12,7 @@ interface UseMediaStreamsSourceSearchParams {
   mediaEnglishTitle?: string;
   mediaImdbId?: string;
   workId?: string;
-  orderingId?: string;
-  groupId?: string;
+  entryId?: string;
   episodeId?: string;
   season?: number;
   episode?: number;
@@ -30,8 +29,7 @@ export function useMediaStreamsSourceSearch({
   mediaEnglishTitle,
   mediaImdbId,
   workId,
-  orderingId,
-  groupId,
+  entryId,
   episodeId,
   season,
   episode,
@@ -81,7 +79,7 @@ export function useMediaStreamsSourceSearch({
   const activeRequestIdRef = useRef<string>("");
   const shouldForceNextSearchRef = useRef(false);
   const searchKey = JSON.stringify([
-    activeTab, mediaType, mediaId, workId, orderingId, groupId, episodeId, season, episode,
+    activeTab, mediaType, mediaId, workId, entryId, episodeId, season, episode,
     mediaTitle, mediaOriginalTitle, mediaEnglishTitle, mediaImdbId,
   ]);
 
@@ -130,8 +128,7 @@ export function useMediaStreamsSourceSearch({
           imdbId: mediaImdbId,
           tmdbId: mediaId,
           workId,
-          orderingId,
-          groupId,
+          entryId,
           episodeId,
           type: mediaType as "movie" | "tv",
           season,
@@ -170,8 +167,7 @@ export function useMediaStreamsSourceSearch({
     mediaEnglishTitle,
     mediaImdbId,
     workId,
-    orderingId,
-    groupId,
+    entryId,
     episodeId,
     activeTab,
     activeSource,

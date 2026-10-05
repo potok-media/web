@@ -131,9 +131,9 @@ export const EpisodesListPopup: React.FC<EpisodesListPopupProps> = ({
                     {ep.overview && <p className="episode-popup-overview">{ep.overview}</p>}
                   </div>
 
-                  {(ep.armAnnotation || watched) && (
+                  {(ep.filler || watched) && (
                     <div className="file-card-details-panel">
-                      <EpisodeAnnotationBadge annotation={ep.armAnnotation} />
+                      <EpisodeAnnotationBadge filler={ep.filler} />
                       {watched && (
                       <div className="file-card-watched-badge">
                         <Check size="0.75rem" strokeWidth={3} />

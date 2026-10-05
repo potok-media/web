@@ -63,7 +63,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   const [showAllEpisodesPopup, setShowAllEpisodesPopup] = useState(false);
 
   const armLayout = useArmEpisodeLayout({ tmdbId: mediaId, summary: arm, enabled: armEnabled });
-  const usesArmLayout = armLayout.status === "arm" || armLayout.status === "provisional";
+  const usesArmLayout = armLayout.status === "arm";
   // Preload the legacy season while ARM resolves so an older/uncovered Gateway falls back without a
   // second network waterfall. Once an ARM layout wins, the legacy request is disabled and cached.
   const legacySeason = useSeasonEpisodes(mediaId, activeSeason, !usesArmLayout);
@@ -239,7 +239,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
               const watched = isEpisodeWatched(ep);
               return (
                 <EpisodeCard
-                  key={ep.armEpisodeId ?? `${activeGroup?.id ?? activeSeason}-${ep.armOrdinal ?? ep.id}`}
+                  key={ep.armEpisodeId ?? `${activeGroup?.id ?? activeSeason}-${ep.armNumber ?? ep.id}`}
                   episode={ep}
                   onClick={handleEpisodeClick}
                   isActive={selectedEpisode?.episode.id === ep.id}

@@ -1,6 +1,9 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import type { SDKThumbnails } from "../../sdk/src/types";
+import type { PlaylistItem } from "../../context/playbackTypes";
+import { useSkipFillers } from "../../utils/skipFillers";
+import { nextPlayableIndex, playlistItemLabel } from "./playlistNavigation";
 import type { ActivePlayback } from "../../context/playbackTypes";
 import { TimelineSlider } from "./TimelineSlider";
 import { PlayerTransportControls } from "./PlayerTransportControls";
@@ -50,7 +53,7 @@ interface PlayerControlsProps {
   onSelectQualityLevel: (id: number) => void;
   showQualityMenu: boolean;
   onToggleQualityMenu: () => void;
-  playlist?: { season?: number; episode?: number; title?: string }[];
+  playlist?: PlaylistItem[];
   playlistIndex?: number;
   onSelectPlaylistItem?: (index: number) => void;
   showPlaylistMenu?: boolean;
@@ -111,10 +114,17 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
   playback,
 }) => {
   const { t } = useTranslation("player");
+  const [skipFillers] = useSkipFillers();
 
   const hasPlaylist = playlist && playlist.length > 1;
-  const hasPrev = hasPlaylist && playlistIndex !== undefined && playlistIndex > 0;
-  const hasNext = hasPlaylist && playlistIndex !== undefined && playlistIndex + 1 < playlist.length;
+  const prevIndex = hasPlaylist && playlistIndex !== undefined
+    ? nextPlayableIndex(playlist, playlistIndex, -1, skipFillers)
+    : undefined;
+  const nextIndex = hasPlaylist && playlistIndex !== undefined
+    ? nextPlayableIndex(playlist, playlistIndex, 1, skipFillers)
+    : undefined;
+  const hasPrev = prevIndex !== undefined;
+  const hasNext = nextIndex !== undefined;
 
   const fallbackAudioTracks = React.useMemo(
     () => [{ id: -1, name: t("controls.defaultAudioTrack") }],
@@ -128,6 +138,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
       name: item.season !== undefined && item.episode !== undefined
         ? `S${item.season}E${item.episode} - ${item.title || t("controls.episode")}`
         : item.title || t("controls.episodeNumbered", { number: idx + 1 }),
+      filler: item.filler?.status === "filler",
     }));
   }, [playlist, t]);
 
@@ -175,8 +186,11 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             hasPlaylist={hasPlaylist}
             hasPrev={hasPrev}
             hasNext={hasNext}
+            prevIndex={prevIndex}
+            nextIndex={nextIndex}
+            prevLabel={prevIndex !== undefined && playlist ? playlistItemLabel(playlist[prevIndex]) : undefined}
+            nextLabel={nextIndex !== undefined && playlist ? playlistItemLabel(playlist[nextIndex]) : undefined}
             episodeDisabled={episodeDisabled}
-            playlistIndex={playlistIndex}
             onSelectPlaylistItem={onSelectPlaylistItem}
           />
 

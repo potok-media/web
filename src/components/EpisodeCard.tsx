@@ -140,7 +140,7 @@ export const EpisodeCard: React.FC<EpisodeCardProps> = React.memo(({
             </div>
           )
         )}
-        <EpisodeAnnotationBadge annotation={episode.armAnnotation} overlay />
+        <EpisodeAnnotationBadge filler={episode.filler} overlay />
       </div>
       <span className="episode-number-title">
         {episode.name

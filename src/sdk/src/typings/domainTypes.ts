@@ -1,11 +1,26 @@
 export const domainTypesDts = `
-  type SDKArmResolutionState = 'resolved' | 'partial' | 'ambiguous' | 'disputed' | 'unresolved' | 'providerError' | 'withheld' | 'confirmedNone' | 'notApplicable';
-  type SDKArmCoverageState = 'complete' | 'partial' | 'ambiguous' | 'unresolved' | 'withheld' | 'stale' | 'providerFallback';
-  type SDKArmNameRole = 'original' | 'official' | 'common' | 'alias' | 'romanized' | 'short' | 'working';
-  type SDKArmEpisodeRelation = 'canon' | 'mixed' | 'filler' | 'recap' | 'unknown';
-  type SDKArmWatchRecommendation = 'essential' | 'recommended' | 'optional' | 'skip' | 'unknown';
-  type SDKArmAdaptationBasis = 'manga' | 'lightNovel' | 'novel' | 'comic' | 'game' | 'other';
-  type SDKArmPublicationPolicy = 'public' | 'potok-owned' | 'redistributable' | 'derived' | 'local-only' | 'query-only' | 'non-redistributable' | 'withheld';
+  type SDKArmFillerStatus = 'canon' | 'filler' | 'mixed' | 'recap';
+
+  /** Filler verdict attached to a layout episode; canon renders no badge. */
+  interface SDKArmEpisodeFiller {
+    status: SDKArmFillerStatus;
+    confidence: number | null;
+    disputed: boolean;
+  }
+
+  /** TMDB episode coordinate published by the graph's TMDB bridge. */
+  interface SDKArmTmdbCoordinate {
+    show: number;
+    season: number;
+    episode: number;
+  }
+
+  interface SDKArmTitles {
+    official?: string | null;
+    en?: string | null;
+    ru?: string | null;
+    original?: string | null;
+  }
 
   interface SDKArmProviderReference {
     provider: string;
@@ -13,123 +28,49 @@ export const domainTypesDts = `
     value: string;
   }
 
-  interface SDKArmWarning {
-    code: string;
-    message: string;
-  }
-
-  interface SDKArmLocalizedText {
-    value: string;
-    requestedLocale?: string | null;
-    resolvedLocale?: string | null;
-    role: SDKArmNameRole;
-    usedFallback: boolean;
-  }
-
-  interface SDKArmName {
-    value: string;
-    locale?: string | null;
-    script?: string | null;
-    role: SDKArmNameRole;
-    sourceId?: string | null;
-  }
-
-  interface SDKArmEnvelope {
-    graphVersion: string | null;
-    resolutionState: SDKArmResolutionState;
-    coverageState: SDKArmCoverageState;
-    warnings: SDKArmWarning[];
-  }
-
   interface SDKArmWork {
     id: string;
-    kind: string;
-    defaultOrderingId: string | null;
-    displayTitle: SDKArmLocalizedText | null;
-    names?: SDKArmName[];
-    providerReferences: SDKArmProviderReference[];
+    title: string | null;
+    titles: SDKArmTitles;
   }
 
-  interface SDKArmResolveResponse extends SDKArmEnvelope {
-    query: SDKArmProviderReference;
-    work: SDKArmWork | null;
-    alternatives: SDKArmWork[];
-  }
-
-  interface SDKArmWorkResponse extends SDKArmEnvelope {
-    work: SDKArmWork | null;
+  /** Null workId means the provider reference did not resolve to a Potok work. */
+  interface SDKArmResolveResponse {
+    workId: string | null;
+    graphVersion?: string | null;
   }
 
   interface SDKArmEpisode {
     id: string;
-    groupId: string;
-    ordinal: string;
-    sortPosition: number;
-    displaySeasonNumber?: number | null;
-    displayEpisodeNumber?: number | null;
-    displayTitle: SDKArmLocalizedText | null;
-    names?: SDKArmName[];
+    number: number;
+    title?: string | null;
     overview?: string | null;
     stillPath?: string | null;
     airDate?: string | null;
-    providerReferences: SDKArmProviderReference[];
-    annotation?: SDKArmEpisodeAnnotationSummary | null;
+    filler?: SDKArmEpisodeFiller | null;
+    tmdb?: SDKArmTmdbCoordinate | null;
   }
 
-  interface SDKArmEpisodeAnnotationEvidence {
-    id: string;
-    episodeId: string;
-    relation: SDKArmEpisodeRelation;
-    recommendation: SDKArmWatchRecommendation;
-    confidence: number;
-    sourceId: string;
-    provenance?: string | null;
-    publicationPolicy: SDKArmPublicationPolicy;
-    adaptationBasis?: SDKArmAdaptationBasis | null;
-  }
-
-  interface SDKArmEpisodeAnnotationSummary {
-    episodeId: string;
-    resolutionState: SDKArmResolutionState;
-    relation: SDKArmEpisodeRelation;
-    recommendation: SDKArmWatchRecommendation;
-    confidence: number;
-    evidence: SDKArmEpisodeAnnotationEvidence[];
-  }
-
-  interface SDKArmEpisodeAnnotationsResponse extends SDKArmEnvelope {
-    episodes: SDKArmEpisodeAnnotationSummary[];
-  }
-
+  /** One graph entry (season/sides/movie/ova/specials block); \`id\` IS the binding \`entryId\`. */
   interface SDKArmEpisodeGroup {
     id: string;
-    kind: string;
-    displayNumber?: number | null;
-    sortPosition: number;
-    displayTitle: SDKArmLocalizedText | null;
-    names?: SDKArmName[];
+    kind: 'season' | 'sides' | 'movie' | 'ova' | 'specials' | string;
+    number: number;
+    title?: string | null;
+    anilistId?: number | null;
+    malId?: number | null;
     episodes: SDKArmEpisode[];
   }
 
-  interface SDKArmEpisodeOrdering {
-    id: string;
-    kind: string;
-    isDefault: boolean;
-  }
-
-  interface SDKArmEpisodeLayoutResponse extends SDKArmEnvelope {
-    workId: string;
-    ordering: SDKArmEpisodeOrdering | null;
+  interface SDKArmEpisodeLayoutResponse {
+    work: SDKArmWork;
+    graphVersion: string | null;
     groups: SDKArmEpisodeGroup[];
   }
 
   interface SDKArmMediaSummary {
     workId: string | null;
-    defaultOrderingId: string | null;
     graphVersion: string | null;
-    resolutionState: SDKArmResolutionState;
-    coverageState: SDKArmCoverageState;
-    warnings?: SDKArmWarning[];
   }
 
   interface SDKArmRequestOptions {
@@ -139,21 +80,19 @@ export const domainTypesDts = `
   }
 
   interface SDKArmLayoutRequestOptions extends SDKArmRequestOptions {
-    ordering?: 'default' | string;
+    /** Optional single-entry slice: the layout then carries only the group with this entryId. */
+    groupId?: string;
   }
 
   /** One canonical episode covered by a release file; joined files publish several targets. */
   interface SDKReleaseBindingTarget {
     episodeId: string;
-    orderingId: string;
-    groupId: string;
-    compatibility?: { season?: number | null; episode?: number | null } | null;
+    entryId: string;
   }
 
   interface SDKArmBindingTarget {
     workId: string;
-    orderingId: string;
-    groupId: string;
+    entryId: string;
     episodeId: string;
   }
 
@@ -183,7 +122,7 @@ export const domainTypesDts = `
     airDate?: string;
     air_date?: string;
     overview?: string;
-    armAnnotation?: SDKArmEpisodeAnnotationSummary | null;
+    filler?: SDKArmEpisodeFiller | null;
   }
 
   /** A TV season with its episodes. */
@@ -203,8 +142,7 @@ export const domainTypesDts = `
     rawEpisode?: number;
     workId?: string | null;
     episodeId?: string | null;
-    orderingId?: string | null;
-    groupId?: string | null;
+    entryId?: string | null;
     groupTitle?: string;
     groupDisplayNumber?: number;
     groupKind?: string;
@@ -224,12 +162,10 @@ export const domainTypesDts = `
     } | null;
     alternatives?: Array<{
       episodeId: string;
-      orderingId: string;
-      groupId: string;
+      entryId: string;
       confidence: number;
-      compatibility?: { season?: number | null; episode?: number | null } | null;
     }>;
-    armAnnotation?: SDKArmEpisodeAnnotationSummary | null;
+    filler?: SDKArmEpisodeFiller | null;
     title: string;
     stillPath?: string;
     airDate?: string;
@@ -334,13 +270,13 @@ export const domainTypesDts = `
     id: string;
     name: string;
     supportedTypes: ('movie' | 'tv')[];
-    search(query: { title: string; originalTitle?: string; englishTitle?: string; year?: number; imdbId?: string; tmdbId?: number; workId?: string; orderingId?: string; groupId?: string; episodeId?: string; type: 'movie' | 'tv'; season?: number; episode?: number; forceSearch?: boolean }, onProgress?: (streams: SDKRawStreamPayload[]) => void): Promise<SDKRawStreamPayload[]>;
-    getEpisodes?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number; workId?: string; orderingId?: string; groupId?: string; episodeId?: string; season?: number; episode?: number }): Promise<{ episodes: SDKStreamEpisode[]; tmdbSeasonsCount?: number; parsingSuspect?: boolean; seasonMap?: Record<string, { season: number; offset: number }>; fileMap?: Record<string, SDKFileOverrideEntry>; arm?: { state: string; workId?: string | null; orderingId?: string | null; graphVersion?: string | null } | null }>;
+    search(query: { title: string; originalTitle?: string; englishTitle?: string; year?: number; imdbId?: string; tmdbId?: number; workId?: string; entryId?: string; episodeId?: string; type: 'movie' | 'tv'; season?: number; episode?: number; forceSearch?: boolean }, onProgress?: (streams: SDKRawStreamPayload[]) => void): Promise<SDKRawStreamPayload[]>;
+    getEpisodes?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number; workId?: string; entryId?: string; episodeId?: string; season?: number; episode?: number }): Promise<{ episodes: SDKStreamEpisode[]; tmdbSeasonsCount?: number; parsingSuspect?: boolean; seasonMap?: Record<string, { season: number; offset: number }>; fileMap?: Record<string, SDKFileOverrideEntry>; arm?: { state: string; workId?: string | null; graphVersion?: string | null } | null }>;
     // Optional per-FILE overrides. Implement BOTH to opt into the host's per-file anchor/pin editing UI.
     // mode: 'anchor' (renumber the run from this file) | 'pin' (fix just this file, e.g. a special).
     saveFileOverride?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number }, fileId: string, season: number, episode: number, mode: 'anchor' | 'pin'): Promise<void>;
     clearFileOverride?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number }, fileId: string): Promise<void>;
-    saveEpisodeBinding?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number; workId?: string; orderingId?: string; groupId?: string; episodeId?: string }, override: SDKEpisodeBindingOverride): Promise<void>;
-    getPlaybackInfo(stream: SDKRawStreamPayload, episode?: SDKStreamEpisode, context?: { type: 'movie' | 'tv'; tmdbId: number; workId?: string; orderingId?: string; groupId?: string; episodeId?: string; season?: number; episode?: number }): Promise<SDKPlaybackInfo>;
+    saveEpisodeBinding?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number; workId?: string; entryId?: string; episodeId?: string }, override: SDKEpisodeBindingOverride): Promise<void>;
+    getPlaybackInfo(stream: SDKRawStreamPayload, episode?: SDKStreamEpisode, context?: { type: 'movie' | 'tv'; tmdbId: number; workId?: string; entryId?: string; episodeId?: string; season?: number; episode?: number }): Promise<SDKPlaybackInfo>;
   }
 `;

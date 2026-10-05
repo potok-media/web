@@ -3,13 +3,18 @@ import { loadArmBindingLayout } from "./armBindingLayout";
 import type { ArmEpisodeLayoutResponse, ArmResolveResponse } from "../../network/ArmTypes";
 
 const layout: ArmEpisodeLayoutResponse = {
-  graphVersion: "graph-1", resolutionState: "resolved", coverageState: "complete", warnings: [],
-  workId: "work", ordering: { id: "ordering", kind: "potokDefault", isDefault: true }, groups: [],
+  work: { id: "work" },
+  graphVersion: "graph-1",
+  groups: [{
+    id: "entry-season-1",
+    kind: "season",
+    number: 1,
+    episodes: [{ id: "episode-1", number: 1 }],
+  }],
 };
 const resolved: ArmResolveResponse = {
-  graphVersion: "graph-1", resolutionState: "resolved", coverageState: "complete", warnings: [],
-  query: { provider: "tmdb", entityKind: "tv", value: "123" }, alternatives: [],
-  work: { id: "work", kind: "series", defaultOrderingId: "ordering", displayTitle: null, providerReferences: [] },
+  workId: "work",
+  graphVersion: "graph-1",
 };
 const makeClient = () => ({
   resolveWork: vi.fn(async () => ({ status: 200, etag: null, graphVersion: "graph-1", body: resolved })),
@@ -17,38 +22,36 @@ const makeClient = () => ({
 });
 
 describe("canonical correction layout", () => {
-  it("loads the selected ordering directly without translating its identity through TMDB", async () => {
+  it("loads the work layout directly without translating its identity through TMDB", async () => {
     const client = makeClient();
     const signal = new AbortController().signal;
-    expect(await loadArmBindingLayout({ tmdbId: 123, type: "tv", workId: "work", orderingId: "ordering" }, client, "ru", signal)).toBe(layout);
+    expect(await loadArmBindingLayout({ tmdbId: 123, type: "tv", workId: "work" }, client, "ru", signal)).toBe(layout);
     expect(client.resolveWork).not.toHaveBeenCalled();
-    expect(client.getEpisodeLayout).toHaveBeenCalledWith("work", { ordering: "ordering", locale: "ru", signal });
+    expect(client.getEpisodeLayout).toHaveBeenCalledWith("work", { locale: "ru", signal });
   });
 
-  it("resolves a legacy entry point to a real work before loading its default ordering", async () => {
+  it("resolves a legacy entry point to a real work before loading its layout", async () => {
     const client = makeClient();
     const signal = new AbortController().signal;
     await loadArmBindingLayout({ tmdbId: 123, type: "tv" }, client, "ru", signal);
     expect(client.resolveWork).toHaveBeenCalledWith({ provider: "tmdb", entityKind: "tv", value: "123" }, { locale: "ru", signal });
-    expect(client.getEpisodeLayout).toHaveBeenCalledWith("work", { ordering: "default", locale: "ru", signal });
+    expect(client.getEpisodeLayout).toHaveBeenCalledWith("work", { locale: "ru", signal });
   });
 
-  it.each(["ambiguous", "unresolved", "providerError"] as const)("does not turn a %s work response into selectable episode identities", async (resolutionState) => {
+  it("does not turn an unresolved work response into selectable episode identities", async () => {
     const client = makeClient();
-    client.resolveWork.mockResolvedValueOnce({ status: 200, etag: null, graphVersion: "graph-1", body: { ...resolved, resolutionState } });
+    client.resolveWork.mockResolvedValueOnce({ status: 200, etag: null, graphVersion: "graph-1", body: { workId: null, graphVersion: "graph-1" } });
     await expect(loadArmBindingLayout({ tmdbId: 123, type: "tv" }, client, "ru", new AbortController().signal)).rejects.toThrow("work identity");
     expect(client.getEpisodeLayout).not.toHaveBeenCalled();
   });
 
   it.each([
-    { ...layout, workId: "other-work" },
-    { ...layout, ordering: { id: "other-ordering", kind: "tmdb", isDefault: false } },
-    { ...layout, ordering: null },
-    { ...layout, resolutionState: "ambiguous" as const },
-  ])("rejects a stale or unusable ordering", async (body) => {
+    { ...layout, work: { ...layout.work, id: "other-work" } },
+    { ...layout, groups: [] },
+  ])("rejects a stale or empty layout", async (body) => {
     const client = makeClient();
     client.getEpisodeLayout.mockResolvedValueOnce({ status: 200, etag: null, graphVersion: "graph-1", body });
-    await expect(loadArmBindingLayout({ tmdbId: 123, type: "tv", workId: "work", orderingId: "ordering" }, client, "ru", new AbortController().signal)).rejects.toThrow("episode ordering");
+    await expect(loadArmBindingLayout({ tmdbId: 123, type: "tv", workId: "work" }, client, "ru", new AbortController().signal)).rejects.toThrow("episode layout");
   });
 
   it("discards a completed request if the user changed release while resolving the work", async () => {

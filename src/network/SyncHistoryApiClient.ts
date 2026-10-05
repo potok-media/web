@@ -1,7 +1,5 @@
 import type {
-  ArmEpisodeGroupId,
   ArmEpisodeId,
-  ArmOrderingId,
   ArmWorkId,
 } from "./ArmTypes";
 
@@ -42,8 +40,6 @@ export interface HistoryIdentity {
   episodeNumber?: number;
   workId?: ArmWorkId;
   episodeId?: ArmEpisodeId;
-  orderingId?: ArmOrderingId;
-  groupId?: ArmEpisodeGroupId;
 }
 
 export interface SaveProgressRequest extends HistoryIdentity {
@@ -61,14 +57,12 @@ export interface BulkProgressChange {
   episodeNumber?: number;
   isWatched: boolean;
   episodeId?: ArmEpisodeId;
-  groupId?: ArmEpisodeGroupId;
 }
 
 export interface SaveBulkProgressRequest {
   tmdbId?: string;
   mediaType: string;
   workId?: ArmWorkId;
-  orderingId?: ArmOrderingId;
   changes: BulkProgressChange[];
   syncTrakt?: boolean;
 }

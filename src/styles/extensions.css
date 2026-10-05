@@ -184,21 +184,7 @@
   flex-shrink: 0;
 }
 
-/* SDK dynamic layout props via CSS custom properties */
-.potok-sdk-props {
-  width: var(--sdk-width, unset);
-  height: var(--sdk-height, unset);
-  flex: var(--sdk-flex, unset);
-  padding: var(--sdk-padding, unset);
-  margin: var(--sdk-margin, unset);
-  margin-bottom: var(--sdk-margin-bottom, unset);
-  margin-top: var(--sdk-margin-top, unset);
-  margin-left: var(--sdk-margin-left, unset);
-  margin-right: var(--sdk-margin-right, unset);
-  gap: var(--sdk-gap, unset);
-  align-items: var(--sdk-align-items, unset);
-  justify-content: var(--sdk-justify-content, unset);
-}
+/* Explicit SDK layout props are applied inline; defaults belong to each component. */
 
 .potok-extension-slot-container,
 .potok-extension-slot-contents {
@@ -1782,27 +1768,6 @@ input:checked + .slider-round:before {
     width: 100%;
     height: 40px;
   }
-}
-
-/* Force emulated screens (sandbox previews) to always render in dark mode colors even when the parent wiki theme is light */
-.potok-page-emu {
-  --bg-primary: #0c1017;
-  --bg-secondary: #0f141c;
-  --bg-active: rgba(255, 255, 255, 0.08);
-  --border-color: rgba(255, 255, 255, 0.08);
-  --text-primary: HSL(0, 0%, 96%);
-  --text-secondary: HSL(0, 0%, 75%);
-  --text-tertiary: HSL(0, 0%, 55%);
-  --text-muted: HSL(0, 0%, 55%);
-  --bg-surface: HSL(240, 5%, 13%);
-  --bg-surface-high: HSL(240, 5%, 17%);
-  --bg-surface-highest: HSL(240, 4%, 23%);
-  --glass-border: 1px solid RGBA(255, 255, 255, 0.08);
-  --glass-bg: RGBA(15, 15, 20, 0.65);
-  --accent-color: HSL(200, 85%, 55%);
-  --accent-hover: HSL(200, 85%, 47%);
-  --color-accent: HSL(200, 85%, 55%);
-  --accent: HSL(200, 85%, 55%);
 }
 
 

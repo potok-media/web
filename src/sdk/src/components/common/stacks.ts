@@ -1,21 +1,21 @@
 import { UIComponent, LayoutComponent } from "../base";
 
 /**
- * VStack (Vertical stack)
- *
- * A container that arranges child components vertically, one below another.
- *
+ * VStack (Вертикальный стек)
+ * 
+ * Контейнер, который выстраивает дочерние компоненты вертикально друг под другом.
+ * 
  * @example
- * // Vertical stack
+ * // Вертикальный стек
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   VStack()
  *     .spacing(20)
  *     .alignItems("center")
- *     .child(Heading("Heading"))
- *     .child(Text("A paragraph of text below the heading."))
- *     .child(Button("OK"))
+ *     .child(Heading("Заголовок"))
+ *     .child(Text("Параграф текста под заголовком."))
+ *     .child(Button("Ок"))
  * );
  */
 export class VStackBuilder extends LayoutComponent {
@@ -25,22 +25,22 @@ export class VStackBuilder extends LayoutComponent {
 }
 
 /**
- * HStack (Horizontal stack)
- *
- * A container that arranges child components horizontally from left to right.
- *
+ * HStack (Горизонтальный стек)
+ * 
+ * Контейнер, который выстраивает дочерние компоненты горизонтально слева направо.
+ * 
  * @example
- * // Horizontal stack
+ * // Горизонтальный стек
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   HStack()
  *     .spacing(15)
  *     .justifyContent("between")
  *     .alignItems("center")
- *     .child(Text("Item 1"))
- *     .child(Text("Item 2"))
- *     .child(Button("Button"))
+ *     .child(Text("Элемент 1"))
+ *     .child(Text("Элемент 2"))
+ *     .child(Button("Кнопка"))
  * );
  */
 export class HStackBuilder extends LayoutComponent {
@@ -50,21 +50,21 @@ export class HStackBuilder extends LayoutComponent {
 }
 
 /**
- * Grid (Grid)
- *
- * A container that renders a responsive grid of cells with a fixed minimum column width.
- *
+ * Grid (Сетка)
+ * 
+ * Контейнер, который отрисовывает адаптивную сетку ячеек с фиксированной минимальной шириной колонки.
+ * 
  * @example
- * // Responsive grid
+ * // Адаптивная сетка
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   Grid()
  *     .minWidth("8rem")
  *     .gap("1rem")
- *     .child(Card().title("Card 1").child(Text("Text")))
- *     .child(Card().title("Card 2").child(Text("Text")))
- *     .child(Card().title("Card 3").child(Text("Text")))
+ *     .child(Card().title("Карточка 1").child(Text("Текст")))
+ *     .child(Card().title("Карточка 2").child(Text("Текст")))
+ *     .child(Card().title("Карточка 3").child(Text("Текст")))
  * );
  */
 export class GridBuilder extends LayoutComponent {
@@ -78,9 +78,9 @@ export class GridBuilder extends LayoutComponent {
   }
 
   /**
-   * The minimum allowed width of a single grid column (for example, '12rem').
+   * Минимально допустимая ширина одной колонки сетки (например, '12rem').
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default '180px'
    */
   minWidth(v: string): this {
@@ -89,9 +89,9 @@ export class GridBuilder extends LayoutComponent {
   }
 
   /**
-   * The gap/spacing between grid cells (for example, '1rem').
+   * Зазор/отступ между ячейками сетки (например, '1rem').
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'var(--space-m)'
    */
   gap(v: string): this {
@@ -109,19 +109,19 @@ export class GridBuilder extends LayoutComponent {
 }
 
 /**
- * Spacer (Spacer)
- *
- * An empty flexible element (spacer) that fills all available free space inside a flex container. Useful inside HStack or VStack to push elements toward the edges.
- *
+ * Spacer (Распорка)
+ * 
+ * Пустой упругий элемент (распорка), заполняющий все доступное свободное пространство во флекс-контейнере. Полезен внутри HStack или VStack для прижатия элементов к краям.
+ * 
  * @example
- * // Spacer
+ * // Распорка
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   HStack()
- *     .child(Text("Left side"))
+ *     .child(Text("Левая сторона"))
  *     .child(Spacer())
- *     .child(Text("Right side"))
+ *     .child(Text("Правая сторона"))
  * );
  */
 export class SpacerBuilder extends UIComponent {
@@ -135,20 +135,20 @@ export class SpacerBuilder extends UIComponent {
 }
 
 /**
- * Divider (Divider)
- *
- * A thin horizontal divider line for visually separating content blocks or rows in lists.
- *
+ * Divider (Разделитель)
+ * 
+ * Горизонтальная тонкая линия-разделитель для визуального отделения блоков контента или строк в списках.
+ * 
  * @example
- * // Divider
+ * // Разделитель
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   VStack()
  *     .spacing(12)
- *     .child(Text("Text above"))
+ *     .child(Text("Текст сверху"))
  *     .child(Divider())
- *     .child(Text("Text below"))
+ *     .child(Text("Текст снизу"))
  * );
  */
 export class DividerBuilder extends UIComponent {
@@ -164,27 +164,27 @@ export class DividerBuilder extends UIComponent {
 // Sidebar category group — lets a plugin add its OWN titled section (like "MEDIA LIBRARY") to the sidebar,
 // not just buttons into existing sections. Use with sidebar-item Buttons inside the 'sidebar-groups' slot.
 /**
- * SidebarGroup (Sidebar category)
- *
- * A custom sidebar section with a category title and buttons — like the built-in "MEDIA LIBRARY". Contributed into the 'sidebar-groups' slot (registerSlotContribution), with Button().variant('sidebar-item') buttons placed inside. Lets a plugin add a WHOLE category, not just buttons into an existing one.
- *
+ * SidebarGroup (Категория бокового меню)
+ * 
+ * Собственная секция боковой панели с заголовком-категорией и кнопками — как встроенная «МЕДИАТЕКА». Контрибьютится в слот 'sidebar-groups' (registerSlotContribution), внутрь кладутся кнопки Button().variant('sidebar-item'). Позволяет плагину добавить ЦЕЛУЮ категорию, а не только кнопки в существующую.
+ * 
  * @example
- * // A custom sidebar category (in a real plugin — a layout for the 'sidebar-groups' slot)
+ * // Своя категория в боковом меню (в реальном плагине — layout для слота 'sidebar-groups')
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
- *   SidebarGroup("Anime")
+ *   SidebarGroup("Аниме")
  *     .child(
- *       Button("Catalog")
+ *       Button("Каталог")
  *         .variant("sidebar-item")
  *         .icon("clapperboard")
  *         .onClick(() => ui.navigateTo("/extensions/potok-shikimori"))
  *     )
  *     .child(
- *       Button("Random")
+ *       Button("Случайное")
  *         .variant("sidebar-item")
  *         .icon("shuffle")
- *         .onClick(() => ui.showHUD("info", "Random anime"))
+ *         .onClick(() => ui.showHUD("info", "Случайное аниме"))
  *     )
  * );
  */

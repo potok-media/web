@@ -307,7 +307,9 @@
       "fullscreen": "Во весь экран",
       "watchTogetherTitle": "Смотреть вместе",
       "watchTogetherAria": "Начать совместный просмотр",
-      "chatTitle": "Чат"
+      "chatTitle": "Чат",
+      "skipFillers": "Пропускать филлеры",
+      "fillerTag": "Филлер"
     },
     "playback": {
       "accessRestricted": "Доступ к воспроизведению ограничен.",
@@ -463,6 +465,7 @@
       "progress": "Просмотрено серий: {{completed}} из {{total}} ({{percentage}}%)",
       "parsingHintQuestion": "Не удалось распознать сезоны?",
       "parsingHintBody": "Возможно, понадобится указать соответствие серий для отслеживания.",
+      "parsingHintAction": "Указать соответствие",
       "more": "Дополнительно",
       "openAsPlaylist": "Открыть как плейлист",
       "editMapping": "Править соответствие",
@@ -604,6 +607,7 @@
       "season": "Сезон {{number}}",
       "seasonsHeader": "Сезоны",
       "seasonTitled": "Сезон {{number}}: {{title}}",
+      "sides": "Сайды",
       "specials": "Спешлы",
       "movie": "Фильм",
       "movies": "Фильмы",
@@ -672,6 +676,25 @@
       "playbackInfoEmpty": "Не удалось получить информацию о воспроизведении: пустой ответ от плагина",
       "fileSelection": "Выбор файла",
       "episodeSelection": "Выбор серии"
+    },
+    "search": {
+      "palettePlaceholder": "Фильмы, сериалы, аниме...",
+      "recentTitle": "Недавние запросы",
+      "trendingTitle": "Популярное сейчас",
+      "matchedOn": "Совпадение:",
+      "showAll": "Показать все ({{count}})",
+      "chips": {
+        "all": "Все"
+      },
+      "type": {
+        "anime": "Аниме",
+        "movie": "Фильмы",
+        "tv": "Сериалы"
+      },
+      "seasons_one": "{{count}} сезон",
+      "seasons_few": "{{count}} сезона",
+      "seasons_many": "{{count}} сезонов",
+      "seasons_other": "{{count}} сезона"
     }
   },
   "profile": {
@@ -967,10 +990,22 @@
       "logsTitle": "КОНСОЛЬ ЛОГОВ",
       "clearLogs": "Очистить",
       "logsEmpty": "Логи пусты. Запустите код и совершите действия.",
-      "previewTitle": "Эмулируемый Экран Potok",
+      "previewTitle": "Живое превью Potok",
       "previewContext": "Контекст: Свободный рендер",
-      "previewEmpty": "Интерфейс не скомпилирован. Вернитесь во вкладку \"Редактор\" и нажмите \"Запустить\".",
-      "pageTitle": "Интерактивная песочница"
+      "previewEmpty": "Выберите пример или напишите код, затем нажмите «Запустить».",
+      "pageTitle": "Интерактивная песочница",
+      "exampleLabel": "Готовый пример",
+      "examplePlaceholder": "Выберите и запустите",
+      "previewThemeLabel": "Тема Potok в превью",
+      "fullscreen": "На весь экран",
+      "exitFullscreen": "Выйти из полного экрана",
+      "fullscreenError": "Полный экран недоступен. Откройте песочницу в отдельной вкладке.",
+      "examples": {
+        "notifications": "Уведомления: четыре состояния",
+        "forms": "Форма и элементы управления",
+        "overlays": "Модальное окно и подсказка",
+        "episodes": "Выбор серии"
+      }
     },
     "toc": {
       "title": "На этой странице"
@@ -1615,7 +1650,11 @@
           "registerStreamSourceTitle": "streams.registerStreamSource",
           "registerStreamSourceDesc": "Регистрирует источник потоков с id, name, supportedTypes (movie | tv) и async-обработчиками: search(query), getEpisodes(stream, context), getPlaybackInfo(stream, context). Хост вызывает их при открытии страницы раздач.",
           "searchProviderTitle": "media.searchProvider",
-          "searchProviderDesc": "Билдер для регистрации провайдера поиска в библиотеке: media.searchProvider(id, name).icon(url).onSearch(callback). Коллбек получает запрос и возвращает результаты хосту."
+          "searchProviderDesc": "Билдер для регистрации провайдера поиска в библиотеке: media.searchProvider(id, name).icon(url).onSearch(callback). Коллбек получает запрос и возвращает результаты хосту.",
+          "episodeBindingTitle": "Явная привязка серий (canonical overrides)",
+          "episodeBindingDesc": "Когда пользователь через карандаш явно указывает, с какой серии начинается список, хост вызывает `saveEpisodeBinding(stream, context, override)` вашего плагина. `override.armTarget` — точная серия графа `{workId, entryId, episodeId}`; `mode: \"pin\"` фиксирует один файл, `mode: \"anchor\"` — файл и продолжение ряда (`scopeFileIds`). Хранение и контракт overrides — зона SearchEngine (`GET/POST /api/v1/torrents/overrides/{hash}`); gateway overrides не видит и не хранит. Плагин обязан применять привязку при каждом `getEpisodes` по свежему layout (`GET /api/arm/v1/works/{workId}/layout`): устаревший или чужой target пропускается — числа из него не фабрикуются.",
+          "fillerAnnotationTitle": "Аннотации филлеров",
+          "fillerAnnotationDesc": "Серии несут `filler` (`SDKArmEpisodeFiller`: `status` = `canon | filler | mixed | recap`, плюс `confidence` и `disputed`) — источник AniFillerPedia, приезжает в layout графа. Маркируйте их в UI (у встроенного селектора это `EpisodeAnnotationBadge`). Плеер хоста умеет пропускать филлеры: свитч «Пропускать филлеры» в плейлисте влияет на авто-переход и кнопки дальше/назад для любых плейлистов, собранных из ваших серий с этим полем; ручной выбор серии не фильтруется."
         }
       },
       "sandbox": {

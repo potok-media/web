@@ -3,7 +3,6 @@ import type {
   SDKArmEpisodeLayoutResponse,
   SDKArmProviderReference,
   SDKArmResolveResponse,
-  SDKArmWorkResponse,
 } from "../types";
 
 export class SDKArmError extends Error {
@@ -28,7 +27,8 @@ export interface SDKArmRequestOptions {
 }
 
 export interface SDKArmLayoutRequestOptions extends SDKArmRequestOptions {
-  ordering?: "default" | string;
+  /** Optional single-entry slice: the layout then carries only the group with this entryId. */
+  groupId?: string;
 }
 
 export interface SDKArmClient {
@@ -36,7 +36,6 @@ export interface SDKArmClient {
     reference: SDKArmProviderReference,
     options?: SDKArmRequestOptions,
   ): Promise<SDKArmResolveResponse>;
-  getWork(workId: string, options?: SDKArmRequestOptions): Promise<SDKArmWorkResponse>;
   getEpisodeLayout(
     workId: string,
     options?: SDKArmLayoutRequestOptions,
@@ -106,7 +105,7 @@ export function createArmSdkClient(
     resolveWork(reference, options) {
       const locale = options?.locale ?? defaults.getLocale?.();
       const path = [
-        "/api/arm/v1/resolve",
+        "/api/arm/v1/works/resolve",
         encodeURIComponent(reference.provider),
         encodeURIComponent(reference.entityKind),
         encodeURIComponent(reference.value),
@@ -114,19 +113,11 @@ export function createArmSdkClient(
       return get<SDKArmResolveResponse>(query(path, { locale }), options);
     },
 
-    getWork(workId, options) {
-      const locale = options?.locale ?? defaults.getLocale?.();
-      return get<SDKArmWorkResponse>(
-        query(`/api/arm/v1/works/${encodeURIComponent(workId)}`, { locale }),
-        options,
-      );
-    },
-
     getEpisodeLayout(workId, options) {
       const locale = options?.locale ?? defaults.getLocale?.();
       return get<SDKArmEpisodeLayoutResponse>(
         query(`/api/arm/v1/works/${encodeURIComponent(workId)}/layout`, {
-          ordering: options?.ordering ?? "default",
+          groupId: options?.groupId,
           locale,
         }),
         options,

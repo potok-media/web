@@ -15,10 +15,7 @@ describe("ARM episode history identity", () => {
       mediaType: "tv",
       arm: {
         workId: "work-1",
-        defaultOrderingId: "ordering-default",
         graphVersion: "graph-1",
-        resolutionState: "resolved",
-        coverageState: "partial",
       },
     };
     const episode: TvEpisode = {
@@ -27,9 +24,8 @@ describe("ARM episode history identity", () => {
       seasonNumber: 0,
       episodeNumber: 1,
       armEpisodeId: "episode-ova-1",
-      armOrderingId: "ordering-default",
-      armGroupId: "group-ova",
-      armOrdinal: "OVA 1",
+      armEntryId: "entry-ova",
+      armNumber: 1,
     };
 
     expect(toEpisodeHistoryIdentity(media, episode)).toEqual({
@@ -37,8 +33,6 @@ describe("ARM episode history identity", () => {
       mediaType: "episode",
       workId: "work-1",
       episodeId: "episode-ova-1",
-      orderingId: "ordering-default",
-      groupId: "group-ova",
     });
   });
 
@@ -49,7 +43,7 @@ describe("ARM episode history identity", () => {
       seasonNumber: 0,
       episodeNumber: 1,
       armEpisodeId: "episode-ova-1",
-      armGroupId: "group-ova",
+      armEntryId: "entry-ova",
     };
 
     expect(isEpisodeWatched(episode, {
@@ -69,10 +63,7 @@ describe("ARM episode history identity", () => {
       mediaType: "tv",
       arm: {
         workId: "work-1",
-        defaultOrderingId: "ordering-default",
         graphVersion: "graph-1",
-        resolutionState: "resolved",
-        coverageState: "partial",
       },
     };
     const episodes: TvEpisode[] = [
@@ -82,8 +73,7 @@ describe("ARM episode history identity", () => {
         seasonNumber: 1,
         episodeNumber: 1,
         armEpisodeId: "episode-cour-1",
-        armOrderingId: "ordering-default",
-        armGroupId: "group-cour-2",
+        armEntryId: "entry-cour-2",
         tmdbSeasonNumber: 3,
         tmdbEpisodeNumber: 7,
       },
@@ -93,8 +83,7 @@ describe("ARM episode history identity", () => {
         seasonNumber: 1,
         episodeNumber: 2,
         armEpisodeId: "episode-ova-1",
-        armOrderingId: "ordering-default",
-        armGroupId: "group-ova",
+        armEntryId: "entry-ova",
       },
     ];
 
@@ -102,18 +91,15 @@ describe("ARM episode history identity", () => {
       tmdbId: "777",
       mediaType: "episode",
       workId: "work-1",
-      orderingId: "ordering-default",
       changes: [
         {
           seasonNumber: 3,
           episodeNumber: 7,
           episodeId: "episode-cour-1",
-          groupId: "group-cour-2",
           isWatched: true,
         },
         {
           episodeId: "episode-ova-1",
-          groupId: "group-ova",
           isWatched: true,
         },
       ],
@@ -133,7 +119,7 @@ describe("ARM episode history identity", () => {
       seasonNumber: 1,
       episodeNumber: 1,
       armEpisodeId: "episode-ova-1",
-      armGroupId: "group-ova",
+      armEntryId: "entry-ova",
     };
 
     const watched = applyEpisodeWatchedState(media, [episode], true);

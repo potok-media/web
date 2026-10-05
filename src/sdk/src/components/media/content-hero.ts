@@ -3,28 +3,28 @@ import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 import type { SDKContentItem } from "../../types";
 
 /**
- * Hero (Generic promo banner)
- *
- * A wide promo banner from your own data model (SDKContentItem[]). A generalized version of HeroSpotlight without TMDB coupling: wideImage background, logo/title, metadata, badges and "Watch" / "Details" buttons.
- *
+ * Hero (Универсальный промо-баннер)
+ * 
+ * Широкий промо-баннер из вашей собственной модели данных (SDKContentItem[]). Обобщённая версия HeroSpotlight без привязки к TMDB: фон wideImage, логотип/заголовок, метаданные, бейджи и кнопки «Смотреть» / «Подробнее».
+ * 
  * @example
- * // Promo from your own data
+ * // Промо из своих данных
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   Hero()
  *     .items([{
  *       id: "feature-1",
- *       title: "My content",
- *       subtitle: "Description of the featured item, shown over the background.",
+ *       title: "Мой контент",
+ *       subtitle: "Описание featured-элемента, которое видно поверх фона.",
  *       wideImage: "https://image.tmdb.org/t/p/original/il8gr7YStcrui1EM2crk14G4HjL.jpg",
- *       meta: ["2024", "Drama", "2h 15m"],
+ *       meta: ["2024", "Драма", "2ч 15м"],
  *       badges: [{ text: "4K", color: "info" }]
  *     }])
- *     .playLabel("Watch")
- *     .detailsLabel("Details")
- *     .onPlay((item) => ui.showHUD("success", "Watching: " + item.title))
- *     .onDetails((item) => ui.showHUD("info", "Details: " + item.title))
+ *     .playLabel("Смотреть")
+ *     .detailsLabel("Подробнее")
+ *     .onPlay((item) => ui.showHUD("success", "Смотрим: " + item.title))
+ *     .onDetails((item) => ui.showHUD("info", "Подробнее: " + item.title))
  * );
  */
 export class HeroBuilder extends UIComponent {
@@ -40,9 +40,9 @@ export class HeroBuilder extends UIComponent {
   }
 
   /**
-   * Array of featured items. The first item is rendered.
+   * Массив featured-элементов. Отрисовывается первый элемент.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   items(v: SDKContentItem[]): this {
@@ -51,10 +51,10 @@ export class HeroBuilder extends UIComponent {
   }
 
   /**
-   * Text of the main button.
+   * Текст главной кнопки.
    *
-   * @param v Method value
-   * @default 'Watch'
+   * @param v Значение метода
+   * @default 'Смотреть'
    */
   playLabel(v: string): this {
     this._playLabel = v;
@@ -62,10 +62,10 @@ export class HeroBuilder extends UIComponent {
   }
 
   /**
-   * Text of the additional button.
+   * Текст дополнительной кнопки.
    *
-   * @param v Method value
-   * @default 'Details'
+   * @param v Значение метода
+   * @default 'Подробнее'
    */
   detailsLabel(v: string): this {
     this._detailsLabel = v;
@@ -73,9 +73,9 @@ export class HeroBuilder extends UIComponent {
   }
 
   /**
-   * Callback on a click on the main button. Passes the active item.
+   * Коллбек клика по главной кнопке. Передаёт активный элемент.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onPlay(cb: CallbackFunction): this {
     this._onPlay = cb;
@@ -83,9 +83,9 @@ export class HeroBuilder extends UIComponent {
   }
 
   /**
-   * Callback on a click on the "Details" button.
+   * Коллбек клика по кнопке «Подробнее».
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onDetails(cb: CallbackFunction): this {
     this._onDetails = cb;
@@ -113,29 +113,29 @@ export class HeroBuilder extends UIComponent {
 }
 
 /**
- * DetailHero (Detail-page hero)
- *
- * A large detail-page banner: background, logo/title, metadata, badges and customizable action buttons. A click on a button returns its id.
- *
+ * DetailHero (Hero детальной страницы)
+ * 
+ * Крупный баннер детальной страницы: фон, логотип/заголовок, метаданные, бейджи и настраиваемые кнопки действий. Клик по кнопке возвращает её id.
+ * 
  * @example
- * // Detail-page hero
+ * // Hero детальной страницы
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   DetailHero()
  *     .item({
  *       id: "1",
- *       title: "Dune: Part Two",
- *       subtitle: "Paul Atreides unites with Chani and the Fremen...",
+ *       title: "Дюна: Часть вторая",
+ *       subtitle: "Пол Атрейдес объединяется с Чани и фрименами...",
  *       wideImage: "https://image.tmdb.org/t/p/original/xu9zaAevzQ5nnrsXN6JcahLnG4i.jpg",
- *       meta: ["2024", "Sci-Fi", "2h 46m"],
+ *       meta: ["2024", "Фантастика", "2ч 46м"],
  *       badges: [{ text: "4K", color: "info" }]
  *     })
  *     .actions([
- *       { id: "play", label: "Watch", icon: "play" },
- *       { id: "trailer", label: "Trailer", icon: "film", variant: "ghost" }
+ *       { id: "play", label: "Смотреть", icon: "play" },
+ *       { id: "trailer", label: "Трейлер", icon: "film", variant: "ghost" }
  *     ])
- *     .onAction((actionId) => ui.showHUD("success", "Action: " + actionId))
+ *     .onAction((actionId) => ui.showHUD("success", "Действие: " + actionId))
  * );
  */
 export class DetailHeroBuilder extends UIComponent {
@@ -150,22 +150,22 @@ export class DetailHeroBuilder extends UIComponent {
   }
 
   /**
-   * Featured item: wideImage/logo/title/subtitle/meta/badges.
+   * Featured-элемент: wideImage/logo/title/subtitle/meta/badges.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   item(v: SDKContentItem): this { this._item = v; return this; }
   /**
-   * Action buttons. variant: 'ghost' — transparent.
+   * Кнопки действий. variant: 'ghost' — прозрачная.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   actions(v: { id: string; label: string; icon?: string; variant?: string }[]): this { this._actions = v; return this; }
   /**
-   * Callback on a click on a button. Passes the action id.
+   * Коллбек клика по кнопке. Передаёт id действия.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onAction(cb: CallbackFunction): this { this._onAction = cb; return this; }
 

@@ -2,27 +2,27 @@ import { UIComponent } from "../base";
 import type { SDKPlaybackInfo } from "../../types";
 
 /**
- * MediaPlayer (Video player)
- *
- * A built-in HTML5 video player with support for HLS (.m3u8), Dash (.mpd) and plain MP4 files. Provides full control over playback, subtitles and audio tracks.
- *
+ * MediaPlayer (Видеоплеер)
+ * 
+ * Встроенный HTML5-видеоплеер с поддержкой форматов HLS (.m3u8), Dash (.mpd) и обычных MP4-файлов. Предоставляет полноценное управление воспроизведением, субтитрами и звуковыми дорожками.
+ * 
  * @example
- * // Built-in player
+ * // Встроенный плеер
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   MediaPlayer()
  *     .playback({
  *       streamUrl: "http://example.com/video.m3u8",
  *       streamType: "m3u8",
- *       title: "Movie title",
+ *       title: "Название фильма",
  *       season: 1,
  *       episode: 3,
  *       torrentHash: "abc123def456",
  *       fileIndex: "0",
  *       audios: [
- *         { id: "ru", name: "Russian dub", url: "http://example.com/video_ru.m3u8" },
- *         { id: "en", name: "English original", url: "http://example.com/video_en.m3u8" }
+ *         { id: "ru", name: "Русский дубляж", url: "http://example.com/video_ru.m3u8" },
+ *         { id: "en", name: "Английский оригинал", url: "http://example.com/video_en.m3u8" }
  *       ],
  *       headers: { "User-Agent": "PotokPlayer" },
  *       providerId: "my-torrents",
@@ -31,11 +31,11 @@ import type { SDKPlaybackInfo } from "../../types";
  *         {
  *           id: "ru-vtt",
  *           src: "http://example.com/subs_ru.vtt",
- *           label: "Russian",
+ *           label: "Русские",
  *           language: "ru",
  *           isDefault: true,
  *           format: "vtt",
- *           name: "Russian",
+ *           name: "Русские",
  *           srclang: "ru",
  *           url: "http://example.com/subs_ru.vtt"
  *         }
@@ -73,9 +73,9 @@ export class MediaPlayerBuilder extends UIComponent {
   }
 
   /**
-   * Metadata of the played stream (SDKPlaybackInfo): streamUrl, streamType, title, season, episode, torrentHash, fileIndex, audios ({id, name, url}[]), headers, providerId, voice, subtitles, session, duration, introStart/End, outroStart/End, thumbnails, requiresBuffering.
+   * Метаданные воспроизводимого потока (SDKPlaybackInfo): streamUrl, streamType, title, season, episode, torrentHash, fileIndex, audios ({id, name, url}[]), headers, providerId, voice, subtitles, session, duration, introStart/End, outroStart/End, thumbnails, requiresBuffering.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   playback(v: SDKPlaybackInfo): this {
     this._playback = v;
@@ -83,9 +83,9 @@ export class MediaPlayerBuilder extends UIComponent {
   }
 
   /**
-   * Controls offline mode. When true, stops playback and shows a network error.
+   * Управляет оффлайн-режимом. При значении true останавливает проигрывание и выводит ошибку сети.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   isNetworkOffline(v: boolean): this {
@@ -102,17 +102,17 @@ export class MediaPlayerBuilder extends UIComponent {
 }
 
 /**
- * LoadingSpinner (Animated spinner)
- *
- * A circular animated loading indicator to signal a long wait for network responses, torrent parsing or UI rendering.
- *
+ * LoadingSpinner (Анимированный спиннер)
+ * 
+ * Круговой анимированный индикатор загрузки для индикации длительного ожидания ответов сети, парсинга торрентов или отрисовки UI.
+ * 
  * @example
- * // Loading spinner
+ * // Спиннер загрузки
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   LoadingSpinner()
- *     .message("Please wait...")
+ *     .message("Пожалуйста, подождите...")
  *     .fullscreen(true)
  *     .height(200)
  * );
@@ -126,9 +126,9 @@ export class LoadingSpinnerBuilder extends UIComponent {
   }
 
   /**
-   * Displays explanatory waiting text directly under the spinner.
+   * Отображает поясняющий текст ожидания непосредственно под спиннером.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   message(v: string): this {
     this._message = v;
@@ -136,9 +136,9 @@ export class LoadingSpinnerBuilder extends UIComponent {
   }
 
   /**
-   * When true, stretches the spinner overlay to the full screen over other elements, blocking the interface.
+   * При true растягивает оверлей спиннера на весь экран поверх остальных элементов, блокируя интерфейс.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   fullscreen(v: boolean): this {

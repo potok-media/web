@@ -2,15 +2,15 @@ import { UIComponent, type CompiledComponent } from "../base";
 import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 
 /**
- * SearchBar (Search bar)
- *
- * A specialized search field with a built-in magnifier icon and a quick clear button. Great for building content search systems.
- *
+ * SearchBar (Панель поиска)
+ * 
+ * Специализированная поисковая строка со встроенной иконкой лупы и кнопкой быстрой очистки поля ввода. Отлично подходит для создания систем поиска контента.
+ * 
  * @example
- * // Search field
+ * // Строка поиска
  * const { ui, createState } = PotokSDK;
  * const state = createState({ query: "" });
- *
+ * 
  * function draw() {
  *   ui.render(
  *     VStack()
@@ -18,7 +18,7 @@ import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
  *       .child(
  *         SearchBar()
  *           .value(state.query)
- *           .placeholder("Enter a title...")
+ *           .placeholder("Введите название...")
  *           .onChange((v) => state.query = v)
  *           .onClear(() => state.query = "")
  *       )
@@ -37,9 +37,9 @@ export class SearchBarBuilder extends UIComponent {
   }
 
   /**
-   * The current text in the search field.
+   * Текущий текст в поисковой строке.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default ''
    */
   value(v: string): this {
@@ -48,10 +48,10 @@ export class SearchBarBuilder extends UIComponent {
   }
 
   /**
-   * Input hint inside the search field.
+   * Подсказка ввода внутри поисковой строки.
    *
-   * @param v Method value
-   * @default 'Search...'
+   * @param v Значение метода
+   * @default 'Поиск...'
    */
   placeholder(v: string): this {
     this._placeholder = v;
@@ -59,9 +59,9 @@ export class SearchBarBuilder extends UIComponent {
   }
 
   /**
-   * Callback when the user changes the search query text.
+   * Коллбек при изменении текста поискового запроса пользователем.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onChange(cb: CallbackFunction): this {
     this._onChange = cb;
@@ -69,9 +69,9 @@ export class SearchBarBuilder extends UIComponent {
   }
 
   /**
-   * Callback on a click on the "Cross" icon to reset the search field.
+   * Коллбек при клике на иконку «Крестик» для сброса поисковой строки.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onClear(cb: CallbackFunction): this {
     this._onClear = cb;

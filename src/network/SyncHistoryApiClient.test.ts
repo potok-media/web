@@ -24,8 +24,6 @@ describe("sync history client", () => {
       mediaType: "episode",
       workId: "work-1",
       episodeId: "episode-ova-1",
-      orderingId: "ordering-default",
-      groupId: "group-ova",
       progressSeconds: 100,
       durationSeconds: 100,
       syncTrakt: true,
@@ -38,8 +36,6 @@ describe("sync history client", () => {
         mediaType: "episode",
         workId: "work-1",
         episodeId: "episode-ova-1",
-        orderingId: "ordering-default",
-        groupId: "group-ova",
         progressSeconds: 100,
         durationSeconds: 100,
         syncTrakt: true,
@@ -70,8 +66,6 @@ describe("sync history client", () => {
       mediaType: "episode",
       workId: "work-1",
       episodeId: "episode-ova-1",
-      orderingId: "ordering-default",
-      groupId: "group-ova",
       syncTrakt: true,
     });
 
@@ -82,14 +76,12 @@ describe("sync history client", () => {
         mediaType: "episode",
         workId: "work-1",
         episodeId: "episode-ova-1",
-        orderingId: "ordering-default",
-        groupId: "group-ova",
         syncTrakt: true,
       },
     }]);
   });
 
-  it("sends ordering once and EpisodeId/GroupId for every ARM bulk change", async () => {
+  it("sends the work and EpisodeId for every ARM bulk change", async () => {
     const requests: { path: string; body: unknown }[] = [];
     const client = createSyncHistoryApiClient({
       async post<T>(path: string, body: unknown): Promise<T> {
@@ -102,10 +94,8 @@ describe("sync history client", () => {
       tmdbId: "777",
       mediaType: "episode",
       workId: "work-1",
-      orderingId: "ordering-default",
       changes: [{
         episodeId: "episode-ova-1",
-        groupId: "group-ova",
         isWatched: true,
       }],
       syncTrakt: true,
@@ -117,10 +107,8 @@ describe("sync history client", () => {
         tmdbId: "777",
         mediaType: "episode",
         workId: "work-1",
-        orderingId: "ordering-default",
         changes: [{
           episodeId: "episode-ova-1",
-          groupId: "group-ova",
           isWatched: true,
         }],
         syncTrakt: true,

@@ -1,21 +1,21 @@
 import { UIComponent } from "../base";
 
 /**
- * Heading (Heading)
- *
- * A component for rendering large structured headings of varying levels (analogous to h1-h4 tags).
- *
+ * Heading (Заголовок)
+ * 
+ * Компонент для вывода крупных структурированных заголовков разного уровня (аналог тегов h1-h4).
+ * 
  * @example
- * // Headings
+ * // Заголовки
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   VStack()
  *     .spacing(12)
- *     .child(Heading("Main heading H1").level(1))
- *     .child(Heading("H2 subheading").level(2))
- *     .child(Heading("H3 section").level(3))
- *     .child(Heading("Small heading H4").level(4))
+ *     .child(Heading("Главный заголовок H1").level(1))
+ *     .child(Heading("Подзаголовок уровня H2").level(2))
+ *     .child(Heading("Раздел H3").level(3))
+ *     .child(Heading("Мелкий заголовок H4").level(4))
  * );
  */
 export class HeadingBuilder extends UIComponent {
@@ -29,9 +29,9 @@ export class HeadingBuilder extends UIComponent {
   }
 
   /**
-   * Defines the size and importance of the heading (1 — largest, 4 — smallest).
+   * Определяет размер и важность заголовка (1 — самый большой, 4 — самый маленький).
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 1
    */
   level(v: number): this {
@@ -48,22 +48,22 @@ export class HeadingBuilder extends UIComponent {
 }
 
 /**
- * Text (Plain text)
- *
- * The primary text element for rendering descriptions, captions, errors, or any other unstructured content.
- *
+ * Text (Обычный текст)
+ * 
+ * Основной текстовый элемент для вывода описаний, подписей, ошибок или любого другого неструктурированного контента.
+ * 
  * @example
- * // Text styling
+ * // Оформление текстов
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   VStack()
  *     .spacing(10)
- *     .child(Text("This is the standard primary text (primary).").variant("primary"))
- *     .child(Text("This is secondary description text (secondary).").variant("secondary").size("sm"))
- *     .child(Text("The operation completed successfully (success).").variant("success").bold(true))
- *     .child(Text("A muted hint (hint).").variant("hint"))
- *     .child(Text("A critical application error (error).").variant("error").size("lg").bold(true))
+ *     .child(Text("Это стандартный основной текст (primary).").variant("primary"))
+ *     .child(Text("Это второстепенный текст описания (secondary).").variant("secondary").size("sm"))
+ *     .child(Text("Успешная операция завершена (success).").variant("success").bold(true))
+ *     .child(Text("Приглушённая подсказка (hint).").variant("hint"))
+ *     .child(Text("Критическая ошибка приложения (error).").variant("error").size("lg").bold(true))
  * );
  */
 export class TextBuilder extends UIComponent {
@@ -81,9 +81,9 @@ export class TextBuilder extends UIComponent {
   }
 
   /**
-   * The color variant (theme) of the text. Normal, muted gray, green, yellow, or red respectively.
+   * Цветовой вариант текста (тема). Обычный, приглушенный серый, зеленый, желтый или красный соответственно.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'primary'
    */
   variant(v: string): this {
@@ -92,9 +92,9 @@ export class TextBuilder extends UIComponent {
   }
 
   /**
-   * Sets the font size of the text.
+   * Задает размер шрифта текста.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'md'
    */
   size(v: string): this {
@@ -103,9 +103,9 @@ export class TextBuilder extends UIComponent {
   }
 
   /**
-   * Makes the font weight bold when set to true.
+   * Делает начертание шрифта жирным при значении true.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   bold(v: boolean): this {
@@ -124,29 +124,29 @@ export class TextBuilder extends UIComponent {
 }
 
 /**
- * Markdown (Markup rendering)
- *
- * A component for rendering formatted text with support for lists, bold, tables, and hyperlinks. Safely parses Markdown markup, preventing XSS vulnerabilities.
- *
+ * Markdown (Рендеринг разметки)
+ * 
+ * Компонент для форматированного вывода текста с поддержкой списков, жирного шрифта, таблиц и гиперссылок. Безопасно парсит Markdown разметку, исключая XSS-уязвимости.
+ * 
  * @example
- * // Markdown rendering
+ * // Рендеринг Markdown
  * const { ui } = PotokSDK;
- *
- * const markdownContent = `# Plugin description
- * This plugin enables fast movie search across open databases.
- *
- * ## Features
- * * View posters in high quality
- * * Fast filtering by torrents
- * * Integration with the VLC player
+ * 
+ * const markdownContent = `# Описание плагина
+ * Этот плагин позволяет осуществлять быстрый поиск фильмов по открытым базам.
+ * 
+ * ## Возможности
+ * * Просмотр постеров в высоком качестве
+ * * Быстрая фильтрация по раздачам
+ * * Интеграция с VLC-плеером
  * `;
- *
+ * 
  * ui.render(
  *   Card()
- *     .title("Help")
+ *     .title("Справка")
  *     .child(
- *       // content() lets you replace the markup dynamically after the component is created
- *       Markdown("# Loading…").content(markdownContent)
+ *       // content() позволяет заменить разметку динамически уже после создания компонента
+ *       Markdown("# Загрузка…").content(markdownContent)
  *     )
  * );
  */
@@ -159,9 +159,9 @@ export class MarkdownBuilder extends UIComponent {
   }
 
   /**
-   * Sets or dynamically updates the Markdown text content. Lets you overwrite the text after the constructor call.
+   * Задает или динамически обновляет текстовое содержимое Markdown разметки. Позволяет перезаписать текст после вызова конструктора.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   content(v: string): this {
     this._content = v;
