@@ -95,3 +95,9 @@ public/sdk/
 .antigravitycli/
 .playwright-mcp/
 docs/
+!wiki/src/content/docs/
+!wiki/src/content/docs/**
+wiki/.astro/
+wiki/public/favicon.svg
+wiki/src/content/docs/components/
+wiki/src/content/docs/en/components/

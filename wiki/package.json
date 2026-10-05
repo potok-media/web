@@ -1,0 +1,23 @@
+{
+  "name": "potok-wiki",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "predev": "npm run gen",
+    "dev": "astro dev",
+    "prebuild": "npm run gen",
+    "build": "astro build",
+    "gen": "node scripts/gen-components.mjs",
+    "check": "astro check",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.42.5",
+    "astro": "^7.3.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "typescript": "^6.0.3"
+  }
+}

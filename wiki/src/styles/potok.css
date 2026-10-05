@@ -1,0 +1,42 @@
+/* Potok accent for Starlight — aligns the docs theme with the app's blue accent. */
+:root {
+  --sl-color-accent-low: hsl(200, 60%, 18%);
+  --sl-color-accent: hsl(200, 85%, 55%);
+  --sl-color-accent-high: hsl(200, 90%, 85%);
+  --sl-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --sl-content-width: 72ch;
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #eceef2;
+  --sl-color-gray-2: #c3c8d1;
+  --sl-color-gray-3: #8b8f98;
+  --sl-color-gray-4: #5c626c;
+  --sl-color-gray-5: #363b44;
+  --sl-color-gray-6: #16181d;
+  --sl-color-gray-7: #0b0d10;
+}
+
+:root[data-theme="light"] {
+  --sl-color-accent-low: #dbe7fd;
+  --sl-color-accent: #2f6fde;
+  --sl-color-accent-high: #12325e;
+  --sl-color-white: #0f172a;
+  --sl-color-gray-1: #1e293b;
+  --sl-color-gray-2: #334155;
+  --sl-color-gray-3: #64748b;
+  --sl-color-gray-4: #94a3b8;
+  --sl-color-gray-5: #e2e8f0;
+  --sl-color-gray-6: #f1f5f9;
+  --sl-color-gray-7: #f8fafc;
+  --sl-color-black: #ffffff;
+}
+
+/* Component index cards read better with a touch more width on method tables. */
+.sl-markdown-content table {
+  display: block;
+  overflow-x: auto;
+}
+
+.sl-markdown-content :is(th, td) { min-width: 8rem; }
+.sl-markdown-content :is(h1, h2, h3) { text-wrap: balance; }
+::selection { background: var(--sl-color-accent-low); color: var(--sl-color-accent-high); }
+starlight-theme-select select { width: 8em; }

@@ -980,10 +980,22 @@
       "logsTitle": "LOG CONSOLE",
       "clearLogs": "Clear",
       "logsEmpty": "Logs are empty. Run code and interact with the UI.",
-      "previewTitle": "Emulated Potok Screen",
+      "previewTitle": "Live Potok preview",
       "previewContext": "Context: Free render",
-      "previewEmpty": "UI not compiled. Switch to the Editor tab and press Run.",
-      "pageTitle": "Interactive sandbox"
+      "previewEmpty": "Choose an example or write code, then click Run.",
+      "pageTitle": "Interactive sandbox",
+      "exampleLabel": "Ready-made example",
+      "examplePlaceholder": "Choose and run",
+      "previewThemeLabel": "Potok preview theme",
+      "fullscreen": "Fullscreen",
+      "exitFullscreen": "Exit fullscreen",
+      "fullscreenError": "Fullscreen is unavailable. Open the sandbox in a separate tab.",
+      "examples": {
+        "notifications": "Notifications: four states",
+        "forms": "Form and controls",
+        "overlays": "Dialog and tooltip",
+        "episodes": "Episode picker"
+      }
     },
     "toc": {
       "title": "On this page"

@@ -6,6 +6,17 @@ import { getSandboxComponents } from "./sandboxComponents";
 import { logger } from "../utils/logger";
 import type { UIComponentSchema } from "@potok/sdk-types";
 import { useMonacoEditor } from "./useMonacoEditor";
+import { useHUD } from "../context/useHUD";
+import type { HUDType } from "../context/hudContextState";
+import type { EpisodeSelectorPopupProps, GenericEpisodeItem } from "../components/common/episodeSelector/types";
+import type { SDKStreamEpisode } from "@potok/sdk-types";
+import { mapSdkStreamEpisodes } from "../components/common/extension/hostMedia/hostMediaMappers";
+
+type SandboxEpisodeSelectorConfig = Partial<Omit<EpisodeSelectorPopupProps, "isOpen" | "episodes" | "onPlay" | "onApplyOverride">> & {
+  episodes?: SDKStreamEpisode[];
+  onPlay?: (payload: { episode: GenericEpisodeItem; audioId: string }) => void;
+  onApplyOverride?: (payload: { seasonNum: number | null; epNum: number }) => void;
+};
 
 export interface LogEntry {
   id: string;
@@ -14,16 +25,18 @@ export interface LogEntry {
   message: string;
 }
 
-export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
+export function useMonacoSandbox(activePage: string, theme: "light" | "dark", initialCode = INITIAL_SANDBOX_CODE, onAccentThemeChange?: (theme: string) => void) {
+  const hud = useHUD();
   const [sandboxTab, setSandboxTab] = useState<"editor" | "result">("editor");
   const [compiledLayout, setCompiledLayout] = useState<UIComponentSchema | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [sandboxCode, setSandboxCode] = useState<string>(INITIAL_SANDBOX_CODE);
+  const [sandboxCode, setSandboxCode] = useState<string>(initialCode);
+  const [episodeSelector, setEpisodeSelector] = useState<Omit<EpisodeSelectorPopupProps, "isOpen"> | null>(null);
 
   const mockStorageRef = useRef<Record<string, string>>({});
   const onSandboxEventRef = useRef<((callbackId: string, eventData: unknown) => void) | null>(null);
 
-  const editorEnabled = activePage === "sandbox" && sandboxTab === "editor";
+  const editorEnabled = activePage === "sandbox";
 
   const { loaded: editorLoaded, error: editorError, containerRef, getValue, setValue } = useMonacoEditor({
     enabled: editorEnabled,
@@ -55,6 +68,8 @@ export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
 
   const runSandboxCode = (code: string) => {
     try {
+      setCompiledLayout(null);
+      setEpisodeSelector(null);
       CallbackRegistry.startRenderScope("sandbox-root");
       CallbackRegistry.commitRenderScope("sandbox-root");
 
@@ -86,8 +101,27 @@ export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
                 : 0;
             addLog("RENDER", `RENDER_UI -> ${childCount} top-level nodes.`);
           },
-          showHUD: (type: string, message: string) => {
+          showHUD: (type: string, message: string, opts?: { durationMs?: number }) => {
             addLog("HUD", `[${type.toUpperCase()}] ${message}`);
+            const validType: HUDType = type === "success" || type === "error" || type === "warning" ? type : "info";
+            hud.show(validType, message, opts?.durationMs);
+          },
+          showEpisodeSelector: (config: SandboxEpisodeSelectorConfig) => {
+            addLog("EPISODES", `showEpisodeSelector: ${config.title ?? ""}`);
+            const invoke = (callback: () => void) => {
+              try { callback(); }
+              catch (err) { addLog("RUNTIME_ERROR", `Callback failed: ${err instanceof Error ? err.message : String(err)}`); }
+            };
+            setEpisodeSelector({
+              ...config,
+              title: config.title ?? "",
+              episodes: mapSdkStreamEpisodes(config.episodes),
+              // Match the callback payload sent by the real SDK host bridge.
+              onPlay: (episode, audioId) => invoke(() => config.onPlay?.({ episode, audioId })),
+              onApplyOverride: config.onApplyOverride ? (seasonNum, epNum) => invoke(() => config.onApplyOverride?.({ seasonNum, epNum })) : undefined,
+              onStartEditing: config.onStartEditing ? () => invoke(() => config.onStartEditing?.()) : undefined,
+              onClose: () => { setEpisodeSelector(null); invoke(() => config.onClose?.()); },
+            });
           },
           navigateTo: (to: string, state?: unknown) => {
             addLog("NAVIGATE", `NAVIGATE to "${to}" ${state ? `with state: ${JSON.stringify(state)}` : ""}`);
@@ -97,6 +131,7 @@ export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
           },
           setAccentTheme: (themeId: string) => {
             addLog("THEME", `setAccentTheme: "${themeId}"`);
+            onAccentThemeChange?.(themeId);
           },
           registerThemes: (themes: unknown[]) => {
             addLog("THEME", `registerThemes: ${themes.length} themes`);
@@ -196,19 +231,11 @@ export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
     }
   };
 
-  useEffect(() => {
-    if (editorLoaded && editorEnabled) {
-      runSandboxCode(sandboxCode);
-    }
-    // Re-run only when the editor loads/enables or the theme changes — NOT on every keystroke
-    // (sandboxCode) nor on each render (runSandboxCode is re-created per render).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editorLoaded, editorEnabled, theme]);
-
   const handleRun = () => {
     const val = getValue();
     setSandboxCode(val);
     runSandboxCode(val);
+    setSandboxTab("result");
   };
 
   const handleReset = () => {
@@ -221,7 +248,6 @@ export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
   const updateSandboxCode = (code: string) => {
     setSandboxCode(code);
     setValue(code);
-    runSandboxCode(code);
   };
 
   return {
@@ -230,11 +256,13 @@ export function useMonacoSandbox(activePage: string, theme: "light" | "dark") {
     editorLoaded,
     editorError,
     compiledLayout,
+    episodeSelector,
     logs,
     clearLogs: () => setLogs([]),
     containerRef,
     handleRun,
     handleReset,
     updateSandboxCode,
+    getCode: getValue,
   };
 }

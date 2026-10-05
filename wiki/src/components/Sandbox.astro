@@ -1,0 +1,50 @@
+---
+const { lang = 'ru' } = Astro.props;
+---
+<potok-sandbox data-lang={lang}>
+  <iframe title={lang === 'en' ? 'Potok SDK sandbox' : 'Песочница Potok SDK'} src={`/sandbox?embed=1&lang=${lang}`} loading="lazy" allowfullscreen></iframe>
+  <p><a href={`/sandbox?lang=${lang}`} target="_blank" rel="noopener">{lang === 'en' ? 'Open sandbox in a separate tab' : 'Открыть песочницу в отдельной вкладке'}</a></p>
+</potok-sandbox>
+<script>
+  class PotokSandbox extends HTMLElement {
+    connectedCallback() {
+      const iframe = this.querySelector('iframe')!;
+      const load = () => {
+        const params = new URLSearchParams({ embed: '1', lang: this.dataset.lang!, theme: document.documentElement.dataset.theme ?? 'dark' });
+        iframe.src = `/sandbox?${params}${location.hash}`;
+        this.querySelector('a')!.href = `/sandbox?lang=${this.dataset.lang}&theme=${params.get('theme')}${location.hash}`;
+      };
+      const syncTheme = () => {
+        const theme = document.documentElement.dataset.theme ?? 'dark';
+        iframe.contentWindow?.postMessage({ source: 'potok-docs', type: 'theme', theme }, location.origin);
+        this.querySelector('a')!.href = `/sandbox?lang=${this.dataset.lang}&theme=${theme}${location.hash}`;
+      };
+      const receive = (event: MessageEvent) => {
+        if (event.origin !== location.origin || event.source !== iframe.contentWindow || event.data?.source !== 'potok-sandbox') return;
+        if (event.data.type === 'ready') syncTheme();
+        if (event.data.type === 'resize' && typeof event.data.height === 'number' && Number.isFinite(event.data.height)) {
+          iframe.style.height = `${Math.max(768, Math.min(4096, Math.ceil(event.data.height) + 2))}px`;
+        }
+      };
+      iframe.addEventListener('load', syncTheme);
+      window.addEventListener('message', receive);
+      load();
+      const observer = new MutationObserver(syncTheme);
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      window.addEventListener('hashchange', load);
+      this.cleanup = () => {
+        observer.disconnect();
+        iframe.removeEventListener('load', syncTheme);
+        window.removeEventListener('message', receive);
+        window.removeEventListener('hashchange', load);
+      };
+    }
+    cleanup?: () => void;
+    disconnectedCallback() { this.cleanup?.(); }
+  }
+  customElements.define('potok-sandbox', PotokSandbox);
+</script>
+<style>
+  potok-sandbox { display: block; }
+  iframe { width: 100%; height: 48rem; border: 1px solid var(--sl-color-hairline); border-radius: 0.625rem; background: var(--sl-color-bg); }
+</style>

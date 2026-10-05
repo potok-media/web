@@ -80,7 +80,7 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
             <Button
               variant="primary"
               className="accessibility-wiki-btn"
-              onClick={() => window.open("/wiki", "_blank")}
+              onClick={() => window.open("/wiki/", "_blank", "noopener")}
             >
               <BookOpen size="1rem" />
               <span>{t("accessibility.openWiki")}</span>

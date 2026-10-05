@@ -4,9 +4,10 @@
 # ==============================================================================
 # Stage 1: Base image with dependencies
 # ==============================================================================
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 WORKDIR /app
 COPY package*.json ./
+COPY wiki/package*.json ./wiki/
 RUN npm ci
 COPY . .
 
@@ -33,21 +34,7 @@ FROM nginx:alpine AS release
 # Copy production bundle from the builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Write highly efficient, SPA-friendly custom Nginx configuration
-# (prevents 404 errors when reloading deep routed pages)
-RUN echo 'server { \
-    listen 80; \
-    server_name localhost; \
-    location / { \
-        root /usr/share/nginx/html; \
-        index index.html index.htm; \
-        try_files $uri $uri/ /index.html; \
-    } \
-    error_page 500 502 503 504 /50x.html; \
-    location = /50x.html { \
-        root /usr/share/nginx/html; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Generate an entrypoint script to dynamically inject environment variables at runtime
 RUN echo -e '#!/bin/sh \n\

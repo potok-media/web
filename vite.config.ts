@@ -5,6 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { resolve, join, normalize, extname, sep } from 'path'
 import { cpSync, existsSync, statSync, readFileSync } from 'fs'
 import { execSync } from 'child_process'
+import { wikiServer } from './scripts/wiki-server'
 
 
 function vitePotokSdkPlugin() {
@@ -47,6 +48,8 @@ function vitePotokSdkPlugin() {
       } catch (err) {
         console.error('[vite-plugin-potok-sdk] Failed to copy subtitles-octopus static assets:', err);
       }
+      // Keep the existing AMD editor version, but serve its workers from our own origin.
+      cpSync(resolve(__dirname, 'node_modules/monaco-editor/min/vs'), resolve(__dirname, 'public/assets/monaco/vs'), { recursive: true });
     },
     configureServer(server: ViteDevServer) {
       const sdkDir = resolve(__dirname, 'src/sdk');
@@ -220,6 +223,7 @@ export default defineConfig({
     vitePotokSdkPlugin(),
     clientLogToTerminal(),
     devPluginsServer(),
+    wikiServer(__dirname),
     ...(PWA_ENABLED ? [VitePWA({
       // No update prompts — TV/WebView containers should refresh silently.
       registerType: 'autoUpdate',
@@ -242,8 +246,10 @@ export default defineConfig({
       workbox: {
         // Precache the app shell. Chunks are large (media/hls/artplayer ~0.5–0.7 MB).
         globPatterns: ['**/*.{js,css,html,svg,woff,woff2}'],
+        globIgnores: ['wiki/**', 'assets/monaco/**'],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/wiki(?:\/|$)/],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
@@ -298,4 +304,3 @@ export default defineConfig({
     }
   }
 })
-

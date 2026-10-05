@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
 import { Overlay } from "./Overlay";
+import { Button } from "../ui";
 import { EpisodeSelectorHeader } from "./episodeSelector/EpisodeSelectorHeader";
 import { EpisodeOverridePicker } from "./episodeSelector/EpisodeOverridePicker";
 import { EpisodeSelectorBody } from "./episodeSelector/EpisodeSelectorBody";
@@ -13,6 +14,7 @@ export type { GenericEpisodeItem } from "./episodeSelector/types";
 
 export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
   isOpen,
+  accessibleModal = false,
   onClose,
   title,
   subtitle,
@@ -80,6 +82,8 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
 
   return (
     <Overlay
+      accessibleModal={accessibleModal}
+      ariaLabel={title}
       open={isOpen}
       onClose={onClose}
       styled={false}
@@ -103,8 +107,8 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
         <div className="parsing-hint-strip" title={t("selector.parsingHintBody")}>
           <AlertTriangle size="0.8125rem" />
           <span className="parsing-hint-text">{t("selector.parsingHintQuestion")}</span>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             className="parsing-hint-action"
             onClick={() => {
               if (sourceSections.length > 0) handleEditSection(sourceSections[0]);
@@ -112,7 +116,7 @@ export const EpisodeSelectorPopup: React.FC<EpisodeSelectorPopupProps> = ({
             }}
           >
             {t("selector.parsingHintAction")}
-          </button>
+          </Button>
         </div>
       )}
 

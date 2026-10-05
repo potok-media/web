@@ -60,6 +60,7 @@ export type FileOverrideMode = "anchor" | "pin";
 export type FileOverrideEntry = SDKFileOverrideEntry;
 
 export interface EpisodeSelectorPopupProps {
+  accessibleModal?: boolean;
   isOpen: boolean;
   onClose: () => void;
   title: string;

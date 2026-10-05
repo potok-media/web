@@ -1,0 +1,508 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-05T10:51:17.996138+00:00",
+  "title": "Design System: Potok Docs",
+  "extensions": {
+    "colorMeta": {
+      "accent-dark": {
+        "role": "primary",
+        "displayName": "Potok Blue / dark",
+        "canonical": "hsl(200, 85%, 55%)",
+        "tonalRamp": [
+          "oklch(15% 0.14236 236.72)",
+          "oklch(26% 0.14236 236.72)",
+          "oklch(37% 0.14236 236.72)",
+          "oklch(48% 0.14236 236.72)",
+          "oklch(60% 0.14236 236.72)",
+          "oklch(72% 0.14236 236.72)",
+          "oklch(84% 0.14236 236.72)",
+          "oklch(95% 0.14236 236.72)"
+        ]
+      },
+      "accent-low-dark": {
+        "role": "primary",
+        "displayName": "Accent Low Dark",
+        "canonical": "hsl(200, 60%, 18%)",
+        "tonalRamp": [
+          "oklch(15% 0.05269 233.65)",
+          "oklch(26% 0.05269 233.65)",
+          "oklch(37% 0.05269 233.65)",
+          "oklch(48% 0.05269 233.65)",
+          "oklch(60% 0.05269 233.65)",
+          "oklch(72% 0.05269 233.65)",
+          "oklch(84% 0.05269 233.65)",
+          "oklch(95% 0.05269 233.65)"
+        ]
+      },
+      "accent-high-dark": {
+        "role": "primary",
+        "displayName": "Accent High Dark",
+        "canonical": "hsl(200, 90%, 85%)",
+        "tonalRamp": [
+          "oklch(15% 0.05704 229.80)",
+          "oklch(26% 0.05704 229.80)",
+          "oklch(37% 0.05704 229.80)",
+          "oklch(48% 0.05704 229.80)",
+          "oklch(60% 0.05704 229.80)",
+          "oklch(72% 0.05704 229.80)",
+          "oklch(84% 0.05704 229.80)",
+          "oklch(95% 0.05704 229.80)"
+        ]
+      },
+      "accent-light": {
+        "role": "primary",
+        "displayName": "Potok Blue / light",
+        "canonical": "#2f6fde",
+        "tonalRamp": [
+          "oklch(15% 0.18208 260.61)",
+          "oklch(26% 0.18208 260.61)",
+          "oklch(37% 0.18208 260.61)",
+          "oklch(48% 0.18208 260.61)",
+          "oklch(60% 0.18208 260.61)",
+          "oklch(72% 0.18208 260.61)",
+          "oklch(84% 0.18208 260.61)",
+          "oklch(95% 0.18208 260.61)"
+        ]
+      },
+      "accent-low-light": {
+        "role": "primary",
+        "displayName": "Accent Low Light",
+        "canonical": "#dbe7fd",
+        "tonalRamp": [
+          "oklch(15% 0.03262 262.70)",
+          "oklch(26% 0.03262 262.70)",
+          "oklch(37% 0.03262 262.70)",
+          "oklch(48% 0.03262 262.70)",
+          "oklch(60% 0.03262 262.70)",
+          "oklch(72% 0.03262 262.70)",
+          "oklch(84% 0.03262 262.70)",
+          "oklch(95% 0.03262 262.70)"
+        ]
+      },
+      "accent-high-light": {
+        "role": "primary",
+        "displayName": "Accent High Light",
+        "canonical": "#12325e",
+        "tonalRamp": [
+          "oklch(15% 0.08695 257.24)",
+          "oklch(26% 0.08695 257.24)",
+          "oklch(37% 0.08695 257.24)",
+          "oklch(48% 0.08695 257.24)",
+          "oklch(60% 0.08695 257.24)",
+          "oklch(72% 0.08695 257.24)",
+          "oklch(84% 0.08695 257.24)",
+          "oklch(95% 0.08695 257.24)"
+        ]
+      },
+      "white-dark": {
+        "role": "neutral",
+        "displayName": "White Dark",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.00000 0.00)",
+          "oklch(26% 0.00000 0.00)",
+          "oklch(37% 0.00000 0.00)",
+          "oklch(48% 0.00000 0.00)",
+          "oklch(60% 0.00000 0.00)",
+          "oklch(72% 0.00000 0.00)",
+          "oklch(84% 0.00000 0.00)",
+          "oklch(95% 0.00000 0.00)"
+        ]
+      },
+      "gray-1-dark": {
+        "role": "neutral",
+        "displayName": "Gray 1 Dark",
+        "canonical": "#eceef2",
+        "tonalRamp": [
+          "oklch(15% 0.00578 264.53)",
+          "oklch(26% 0.00578 264.53)",
+          "oklch(37% 0.00578 264.53)",
+          "oklch(48% 0.00578 264.53)",
+          "oklch(60% 0.00578 264.53)",
+          "oklch(72% 0.00578 264.53)",
+          "oklch(84% 0.00578 264.53)",
+          "oklch(95% 0.00578 264.53)"
+        ]
+      },
+      "gray-2-dark": {
+        "role": "neutral",
+        "displayName": "Gray 2 Dark",
+        "canonical": "#c3c8d1",
+        "tonalRamp": [
+          "oklch(15% 0.01370 262.37)",
+          "oklch(26% 0.01370 262.37)",
+          "oklch(37% 0.01370 262.37)",
+          "oklch(48% 0.01370 262.37)",
+          "oklch(60% 0.01370 262.37)",
+          "oklch(72% 0.01370 262.37)",
+          "oklch(84% 0.01370 262.37)",
+          "oklch(95% 0.01370 262.37)"
+        ]
+      },
+      "gray-3-dark": {
+        "role": "neutral",
+        "displayName": "Gray 3 Dark",
+        "canonical": "#8b8f98",
+        "tonalRamp": [
+          "oklch(15% 0.01414 266.65)",
+          "oklch(26% 0.01414 266.65)",
+          "oklch(37% 0.01414 266.65)",
+          "oklch(48% 0.01414 266.65)",
+          "oklch(60% 0.01414 266.65)",
+          "oklch(72% 0.01414 266.65)",
+          "oklch(84% 0.01414 266.65)",
+          "oklch(95% 0.01414 266.65)"
+        ]
+      },
+      "gray-4-dark": {
+        "role": "neutral",
+        "displayName": "Gray 4 Dark",
+        "canonical": "#5c626c",
+        "tonalRamp": [
+          "oklch(15% 0.01763 260.71)",
+          "oklch(26% 0.01763 260.71)",
+          "oklch(37% 0.01763 260.71)",
+          "oklch(48% 0.01763 260.71)",
+          "oklch(60% 0.01763 260.71)",
+          "oklch(72% 0.01763 260.71)",
+          "oklch(84% 0.01763 260.71)",
+          "oklch(95% 0.01763 260.71)"
+        ]
+      },
+      "gray-5-dark": {
+        "role": "neutral",
+        "displayName": "Gray 5 Dark",
+        "canonical": "#363b44",
+        "tonalRamp": [
+          "oklch(15% 0.01709 262.27)",
+          "oklch(26% 0.01709 262.27)",
+          "oklch(37% 0.01709 262.27)",
+          "oklch(48% 0.01709 262.27)",
+          "oklch(60% 0.01709 262.27)",
+          "oklch(72% 0.01709 262.27)",
+          "oklch(84% 0.01709 262.27)",
+          "oklch(95% 0.01709 262.27)"
+        ]
+      },
+      "gray-6-dark": {
+        "role": "neutral",
+        "displayName": "Gray 6 Dark",
+        "canonical": "#16181d",
+        "tonalRamp": [
+          "oklch(15% 0.01038 268.19)",
+          "oklch(26% 0.01038 268.19)",
+          "oklch(37% 0.01038 268.19)",
+          "oklch(48% 0.01038 268.19)",
+          "oklch(60% 0.01038 268.19)",
+          "oklch(72% 0.01038 268.19)",
+          "oklch(84% 0.01038 268.19)",
+          "oklch(95% 0.01038 268.19)"
+        ]
+      },
+      "gray-7-dark": {
+        "role": "neutral",
+        "displayName": "Gray 7 Dark",
+        "canonical": "#0b0d10",
+        "tonalRamp": [
+          "oklch(15% 0.00719 258.37)",
+          "oklch(26% 0.00719 258.37)",
+          "oklch(37% 0.00719 258.37)",
+          "oklch(48% 0.00719 258.37)",
+          "oklch(60% 0.00719 258.37)",
+          "oklch(72% 0.00719 258.37)",
+          "oklch(84% 0.00719 258.37)",
+          "oklch(95% 0.00719 258.37)"
+        ]
+      },
+      "black-dark": {
+        "role": "neutral",
+        "displayName": "Black Dark",
+        "canonical": "hsl(224, 10%, 10%)",
+        "tonalRamp": [
+          "oklch(15% 0.00766 269.79)",
+          "oklch(26% 0.00766 269.79)",
+          "oklch(37% 0.00766 269.79)",
+          "oklch(48% 0.00766 269.79)",
+          "oklch(60% 0.00766 269.79)",
+          "oklch(72% 0.00766 269.79)",
+          "oklch(84% 0.00766 269.79)",
+          "oklch(95% 0.00766 269.79)"
+        ]
+      },
+      "white-light": {
+        "role": "neutral",
+        "displayName": "White Light",
+        "canonical": "#0f172a",
+        "tonalRamp": [
+          "oklch(15% 0.03982 265.75)",
+          "oklch(26% 0.03982 265.75)",
+          "oklch(37% 0.03982 265.75)",
+          "oklch(48% 0.03982 265.75)",
+          "oklch(60% 0.03982 265.75)",
+          "oklch(72% 0.03982 265.75)",
+          "oklch(84% 0.03982 265.75)",
+          "oklch(95% 0.03982 265.75)"
+        ]
+      },
+      "gray-1-light": {
+        "role": "neutral",
+        "displayName": "Gray 1 Light",
+        "canonical": "#1e293b",
+        "tonalRamp": [
+          "oklch(15% 0.03685 260.03)",
+          "oklch(26% 0.03685 260.03)",
+          "oklch(37% 0.03685 260.03)",
+          "oklch(48% 0.03685 260.03)",
+          "oklch(60% 0.03685 260.03)",
+          "oklch(72% 0.03685 260.03)",
+          "oklch(84% 0.03685 260.03)",
+          "oklch(95% 0.03685 260.03)"
+        ]
+      },
+      "gray-2-light": {
+        "role": "neutral",
+        "displayName": "Gray 2 Light",
+        "canonical": "#334155",
+        "tonalRamp": [
+          "oklch(15% 0.03916 257.29)",
+          "oklch(26% 0.03916 257.29)",
+          "oklch(37% 0.03916 257.29)",
+          "oklch(48% 0.03916 257.29)",
+          "oklch(60% 0.03916 257.29)",
+          "oklch(72% 0.03916 257.29)",
+          "oklch(84% 0.03916 257.29)",
+          "oklch(95% 0.03916 257.29)"
+        ]
+      },
+      "gray-3-light": {
+        "role": "neutral",
+        "displayName": "Gray 3 Light",
+        "canonical": "#64748b",
+        "tonalRamp": [
+          "oklch(15% 0.04072 257.42)",
+          "oklch(26% 0.04072 257.42)",
+          "oklch(37% 0.04072 257.42)",
+          "oklch(48% 0.04072 257.42)",
+          "oklch(60% 0.04072 257.42)",
+          "oklch(72% 0.04072 257.42)",
+          "oklch(84% 0.04072 257.42)",
+          "oklch(95% 0.04072 257.42)"
+        ]
+      },
+      "gray-4-light": {
+        "role": "neutral",
+        "displayName": "Gray 4 Light",
+        "canonical": "#94a3b8",
+        "tonalRamp": [
+          "oklch(15% 0.03511 256.79)",
+          "oklch(26% 0.03511 256.79)",
+          "oklch(37% 0.03511 256.79)",
+          "oklch(48% 0.03511 256.79)",
+          "oklch(60% 0.03511 256.79)",
+          "oklch(72% 0.03511 256.79)",
+          "oklch(84% 0.03511 256.79)",
+          "oklch(95% 0.03511 256.79)"
+        ]
+      },
+      "gray-5-light": {
+        "role": "neutral",
+        "displayName": "Gray 5 Light",
+        "canonical": "#e2e8f0",
+        "tonalRamp": [
+          "oklch(15% 0.01262 255.51)",
+          "oklch(26% 0.01262 255.51)",
+          "oklch(37% 0.01262 255.51)",
+          "oklch(48% 0.01262 255.51)",
+          "oklch(60% 0.01262 255.51)",
+          "oklch(72% 0.01262 255.51)",
+          "oklch(84% 0.01262 255.51)",
+          "oklch(95% 0.01262 255.51)"
+        ]
+      },
+      "gray-6-light": {
+        "role": "neutral",
+        "displayName": "Gray 6 Light",
+        "canonical": "#f1f5f9",
+        "tonalRamp": [
+          "oklch(15% 0.00685 247.90)",
+          "oklch(26% 0.00685 247.90)",
+          "oklch(37% 0.00685 247.90)",
+          "oklch(48% 0.00685 247.90)",
+          "oklch(60% 0.00685 247.90)",
+          "oklch(72% 0.00685 247.90)",
+          "oklch(84% 0.00685 247.90)",
+          "oklch(95% 0.00685 247.90)"
+        ]
+      },
+      "gray-7-light": {
+        "role": "neutral",
+        "displayName": "Gray 7 Light",
+        "canonical": "#f8fafc",
+        "tonalRamp": [
+          "oklch(15% 0.00341 247.86)",
+          "oklch(26% 0.00341 247.86)",
+          "oklch(37% 0.00341 247.86)",
+          "oklch(48% 0.00341 247.86)",
+          "oklch(60% 0.00341 247.86)",
+          "oklch(72% 0.00341 247.86)",
+          "oklch(84% 0.00341 247.86)",
+          "oklch(95% 0.00341 247.86)"
+        ]
+      },
+      "black-light": {
+        "role": "neutral",
+        "displayName": "Black Light",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.00000 0.00)",
+          "oklch(26% 0.00000 0.00)",
+          "oklch(37% 0.00000 0.00)",
+          "oklch(48% 0.00000 0.00)",
+          "oklch(60% 0.00000 0.00)",
+          "oklch(72% 0.00000 0.00)",
+          "oklch(84% 0.00000 0.00)",
+          "oklch(95% 0.00000 0.00)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "body": {
+        "displayName": "System body",
+        "purpose": "Documentation prose."
+      },
+      "navigation": {
+        "displayName": "Navigation",
+        "purpose": "Native wide-screen sidebar and header controls."
+      },
+      "code": {
+        "displayName": "System monospace",
+        "purpose": "Code examples and identifiers."
+      }
+    },
+    "shadows": [
+      {
+        "name": "sl-shadow-md-dark",
+        "value": "0px 8px 4px hsla(0, 0%, 0%, 0.08), 0px 5px 2px hsla(0, 0%, 0%, 0.08), 0px 3px 2px hsla(0, 0%, 0%, 0.12), 0px 1px 1px hsla(0, 0%, 0%, 0.15)",
+        "purpose": "Native pagination cards."
+      },
+      {
+        "name": "sl-shadow-lg-dark",
+        "value": "0px 25px 7px hsla(0, 0%, 0%, 0.03), 0px 16px 6px hsla(0, 0%, 0%, 0.1), 0px 9px 5px hsla(223, 13%, 10%, 0.33), 0px 4px 4px hsla(0, 0%, 0%, 0.75), 0px 4px 2px hsla(0, 0%, 0%, 0.25)",
+        "purpose": "Native search dialog."
+      },
+      {
+        "name": "sl-shadow-md-light",
+        "value": "0px 8px 4px hsla(0, 0%, 0%, 0.03), 0px 5px 2px hsla(0, 0%, 0%, 0.03), 0px 3px 2px hsla(0, 0%, 0%, 0.06), 0px 1px 1px hsla(0, 0%, 0%, 0.06)",
+        "purpose": "Native pagination cards."
+      },
+      {
+        "name": "sl-shadow-lg-light",
+        "value": "0px 25px 7px rgba(0, 0, 0, 0.01), 0px 16px 6px hsla(0, 0%, 0%, 0.03), 0px 9px 5px hsla(223, 13%, 10%, 0.08), 0px 4px 4px hsla(0, 0%, 0%, 0.16), 0px 4px 2px hsla(0, 0%, 0%, 0.04)",
+        "purpose": "Native search dialog."
+      }
+    ],
+    "motion": [
+      {
+        "name": "sidebar-caret",
+        "value": "transform 0.2s ease-in-out",
+        "purpose": "Native Starlight sidebar disclosure caret."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "starlight-md",
+        "value": "50rem"
+      },
+      {
+        "name": "starlight-heading-wide",
+        "value": "50em"
+      },
+      {
+        "name": "starlight-lg",
+        "value": "72rem"
+      },
+      {
+        "name": "sandbox-controls-wrap",
+        "value": "40rem"
+      }
+    ],
+    "previewRampNote": "Tonal ramps are derived display metadata for the panel. They do not define additional implementation colors."
+  },
+  "components": [
+    {
+      "name": "Search Trigger",
+      "kind": "button",
+      "refersTo": "search-trigger",
+      "description": "Native desktop Starlight header search control; the snippet previews its appearance, not the dialog behavior.",
+      "html": "<button class=\"ds-search-trigger\" type=\"button\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z\"/></svg><span>Поиск по документации</span><kbd>⌘ K</kbd></button>",
+      "css": ".ds-search-trigger { display: flex; align-items: center; gap: 0.5rem; height: 2.5rem; width: 100%; max-width: 22rem; border: 1px solid var(--sl-color-gray-5, #363b44); border-radius: 0.5rem; padding-inline: 0.75rem 0.5rem; background: var(--sl-color-black, hsl(224, 10%, 10%)); color: var(--sl-color-gray-2, #c3c8d1); font-family: var(--__sl-font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif); font-size: 0.875rem; cursor: pointer; } .ds-search-trigger:hover { border-color: var(--sl-color-gray-2, #c3c8d1); color: var(--sl-color-white, #ffffff); } .ds-search-trigger:focus-visible { outline: auto; } .ds-search-trigger kbd { margin-inline-start: auto; border-radius: 0.25rem; font-family: var(--__sl-font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif); font-size: 0.75rem; padding-inline: 0.375rem; background: var(--sl-color-gray-6, #16181d); }"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "description": "Actual Pagefind field geometry with Starlight typography and focus border; search behavior stays with Pagefind.",
+      "html": "<label class=\"ds-search-field-label\">Поиск<input class=\"ds-search-field\" type=\"search\" placeholder=\"Поиск по документации\" /></label>",
+      "css": ".ds-search-field-label { color: var(--sl-color-gray-2, #c3c8d1); font-family: var(--__sl-font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif); } .ds-search-field { display: block; width: 100%; height: calc(64px * var(--pagefind-ui-scale, 0.8)); padding: 0 calc(70px * var(--pagefind-ui-scale, 0.8)) 0 calc(54px * var(--pagefind-ui-scale, 0.8)); border: 1px solid var(--sl-color-gray-5, #363b44); border-radius: 8px; background: var(--sl-color-black, hsl(224, 10%, 10%)); color: var(--sl-color-white, #ffffff); font-family: var(--__sl-font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif); font-size: calc(21px * var(--pagefind-ui-scale, 0.8)); font-weight: 400; } .ds-search-field::placeholder { opacity: 0.2; } .ds-search-field:focus { border-color: var(--sl-color-accent, hsl(200, 85%, 55%)); } .ds-search-field:focus-visible { outline: auto; }"
+    },
+    {
+      "name": "Sidebar Links",
+      "kind": "nav",
+      "refersTo": "sidebar-link",
+      "description": "Native nested documentation links with a current-page state.",
+      "html": "<nav class=\"ds-sidebar\" aria-label=\"Документация\"><a class=\"ds-sidebar-link\" href=\"#\" aria-current=\"page\">О проекте Potok</a><a class=\"ds-sidebar-link\" href=\"#\">Установка и Docker Compose</a></nav>",
+      "css": ".ds-sidebar { border-inline-start: 1px solid var(--sl-color-hairline-light, #363b44); padding-inline-start: 0.5rem; } .ds-sidebar-link { display: block; border-radius: 0.25rem; padding: 0.3em 0.5rem; color: var(--sl-color-gray-2, #c3c8d1); text-decoration: none; font-family: var(--__sl-font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif); font-size: 0.875rem; line-height: 1.4; overflow-wrap: anywhere; } .ds-sidebar-link:hover, .ds-sidebar-link:focus { color: var(--sl-color-white, #ffffff); } .ds-sidebar-link:focus-visible { outline: auto; } .ds-sidebar-link[aria-current=\"page\"], .ds-sidebar-link[aria-current=\"page\"]:hover, .ds-sidebar-link[aria-current=\"page\"]:focus { color: var(--sl-color-text-invert, hsl(200, 60%, 18%)); background: var(--sl-color-text-accent, hsl(200, 90%, 85%)); font-weight: 600; }"
+    },
+    {
+      "name": "Pagination Card",
+      "kind": "card",
+      "refersTo": "pagination-link",
+      "description": "Native next-article card with inherited medium elevation.",
+      "html": "<a class=\"ds-pagination\" href=\"#\" rel=\"next\"><span>Следующая<br/><span class=\"ds-pagination-title\">Установка и Docker Compose</span></span><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M17.92 11.62a1.001 1.001 0 0 0-.21-.33l-5-5a1.003 1.003 0 1 0-1.42 1.42l3.3 3.29H7a1 1 0 0 0 0 2h7.59l-3.3 3.29a1.002 1.002 0 0 0 .325 1.639 1 1 0 0 0 1.095-.219l5-5a1 1 0 0 0 .21-.33 1 1 0 0 0 0-.76Z\"/></svg></a>",
+      "css": ".ds-pagination { display: flex; align-items: center; justify-content: end; gap: 0.5rem; width: 100%; border: 1px solid var(--sl-color-gray-5, #363b44); border-radius: 0.5rem; padding: 1rem; color: var(--sl-color-gray-2, #c3c8d1); font-family: var(--__sl-font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif); text-align: end; text-decoration: none; overflow-wrap: anywhere; box-shadow: var(--sl-shadow-md, 0px 8px 4px hsla(0,0%,0%,0.08), 0px 5px 2px hsla(0,0%,0%,0.08), 0px 3px 2px hsla(0,0%,0%,0.12), 0px 1px 1px hsla(0,0%,0%,0.15)); } .ds-pagination:hover { border-color: var(--sl-color-gray-2, #c3c8d1); } .ds-pagination:focus-visible { outline: auto; } .ds-pagination-title { color: var(--sl-color-white, #ffffff); font-size: 1.5rem; line-height: 1.2; } .ds-pagination svg { flex-shrink: 0; }"
+    },
+    {
+      "name": "Inline Code",
+      "kind": "custom",
+      "refersTo": "inline-code",
+      "description": "Compact code identifiers inside prose.",
+      "html": "<p class=\"ds-prose\">Код плагина: <code class=\"ds-inline-code\">PotokSDK.ui</code>.</p>",
+      "css": ".ds-prose { color: var(--sl-color-gray-2, #c3c8d1); font-family: var(--__sl-font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif); font-size: 1rem; line-height: 1.75; } .ds-inline-code { margin-block: -0.125rem; padding: 0.125rem 0.375rem; background: var(--sl-color-bg-inline-code, #363b44); font-family: var(--__sl-font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace); font-size: 0.8125rem; }"
+    },
+    {
+      "name": "Reference Table",
+      "kind": "custom",
+      "description": "Native Markdown row styling plus the local scroll and minimum-cell-width safeguard.",
+      "html": "<div class=\"ds-table-scroll\"><table class=\"ds-reference-table\"><thead><tr><th>Метод</th><th>Описание</th></tr></thead><tbody><tr><td><code>onClick</code></td><td>Обработчик нажатия</td></tr><tr><td><code>disabled</code></td><td>Недоступное состояние</td></tr></tbody></table></div>",
+      "css": ".ds-table-scroll { overflow-x: auto; } .ds-reference-table { display: block; border-spacing: 0; color: var(--sl-color-gray-2, #c3c8d1); font-family: var(--__sl-font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif); font-size: 1rem; line-height: 1.75; } .ds-reference-table th, .ds-reference-table td { min-width: 8rem; border-bottom: 1px solid var(--sl-color-gray-5, #363b44); padding: 0.5rem 1rem; vertical-align: baseline; text-align: start; } .ds-reference-table th { color: var(--sl-color-white, #ffffff); font-weight: 600; } .ds-reference-table th:first-child, .ds-reference-table td:first-child { padding-inline-start: 0; } .ds-reference-table th:last-child, .ds-reference-table td:last-child { padding-inline-end: 0; } .ds-reference-table code { font-family: var(--__sl-font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace); font-size: 0.8125rem; padding: 0.125rem 0.375rem; background: var(--sl-color-bg-inline-code, #363b44); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Readable SDK Reference",
+    "overview": "This system applies to the documentation subproject at `/wiki/`. It uses the native Starlight reading shell: persistent documentation hierarchy, an article column, page contents, local search, and theme and language controls. The visual emphasis is the article; the Potok blue accent identifies links and the current location.\n\nThe source of truth is `src/styles/potok.css` for local overrides and the installed Starlight styles for inherited behavior. Frontmatter captures the current reused values; it is a documentation snapshot, not a second stylesheet. Update it when those sources change. The parent media application and the embedded sandbox retain their own design system in `../src/styles/variables.css`, `../src/styles/ui.css`, and `../src/styles/sandbox.css`.",
+    "keyCharacteristics": [
+      "Calm neutral surfaces in light and dark themes.",
+      "System typography and a bounded reading column.",
+      "Native Starlight navigation, search, and article hierarchy.",
+      "App-owned operational controls inside the sandbox frame."
+    ],
+    "rules": [
+      {
+        "name": "The Semantic Theme Rule",
+        "body": "Use Starlight's text, background, accent, and hairline variables for components so both themes keep the correct role assignments.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "**Do** reuse native Starlight components and semantic theme variables.",
+      "**Do** preserve the 72ch article measure, wrapped examples, and locally scrollable reference tables.",
+      "**Do** retain visible keyboard focus and native mobile navigation.",
+      "**Do** keep sandbox controls and SDK previews consistent with the parent application's atomic components."
+    ],
+    "donts": [
+      "**Don't** replace the reading shell with a second custom navigation or card system.",
+      "**Don't** copy the docs tokens into the parent media application or replace sandbox tokens with Starlight tokens.",
+      "**Don't** introduce decorative assets, display fonts, or accent families absent from the implemented system.",
+      "**Don't** import React or Monaco into ordinary documentation pages."
+    ]
+  }
+}

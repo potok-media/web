@@ -1,9 +1,8 @@
 import type { MonacoGlobal, PotokMonacoWindow } from "./monacoTypes";
 
-export const MONACO_CDN_BASE =
-  "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs";
+export const MONACO_BASE = "/assets/monaco/vs";
 
-export const MONACO_LOADER_SRC = `${MONACO_CDN_BASE}/loader.js`;
+export const MONACO_LOADER_SRC = `${MONACO_BASE}/loader.js`;
 
 function getWindow(): PotokMonacoWindow {
   return window as unknown as PotokMonacoWindow;
@@ -23,7 +22,7 @@ export function loadMonacoEditor(
   }
 
   const existing = document.querySelector(
-    `script[src*="monaco-editor/0.45.0/min/vs/loader.js"]`,
+    `script[src="${MONACO_LOADER_SRC}"]`,
   ) as HTMLScriptElement | null;
 
   const handleLoad = () => {
@@ -32,7 +31,7 @@ export function loadMonacoEditor(
       onError(new Error("Monaco loader script loaded but require is unavailable."));
       return;
     }
-    req.config({ paths: { vs: MONACO_CDN_BASE } });
+    req.config({ paths: { vs: MONACO_BASE } });
     req(["vs/editor/editor.main"], onReady, onError);
   };
 

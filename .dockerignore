@@ -1,0 +1,10 @@
+# Keep host dependencies and build output out of the Linux build stages.
+**/node_modules
+**/dist
+**/.astro
+**/*.tsbuildinfo
+.git
+.playwright-mcp
+.serena
+public/assets
+public/sdk

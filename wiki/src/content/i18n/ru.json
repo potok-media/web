@@ -1,0 +1,11 @@
+{
+  "search.label": "Поиск по документации",
+  "pagefind.clear": "Очистить",
+  "pagefind.load_more": "Показать ещё",
+  "pagefind.search_label": "Поиск по документации",
+  "pagefind.filters_label": "Фильтры",
+  "pagefind.zero_results": "Нет результатов для [SEARCH_TERM]",
+  "pagefind.one_result": "1 результат для [SEARCH_TERM]",
+  "pagefind.many_results": "Результатов: [COUNT] — [SEARCH_TERM]",
+  "pagefind.searching": "Поиск: [SEARCH_TERM]"
+}

@@ -188,12 +188,13 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
       };
       return (
         <Overlay
+          accessibleModal
           open={!!componentProps.open}
           onClose={handleClose}
           variant={componentProps.variant || "modal"}
           title={componentProps.title}
           closeOnBackdrop={componentProps.closeOnBackdrop !== false}
-          className="potok-page-emu"
+          style={sdkStyleVars(baseStyle)}
         >
           {schema.children?.map((child, index) => renderChild(child, index))}
         </Overlay>
