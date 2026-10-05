@@ -8,24 +8,24 @@ import type { SDKContentItem } from "../../types";
 // ---------------------------------------------------------------------------
 
 /**
- * ContinueWatchingRow (Continue watching)
- *
- * A horizontal row of wide cards with a progress bar — the "Continue watching" section from your data model (SDKContentItem[], progress field 0..1).
- *
+ * ContinueWatchingRow (Продолжить просмотр)
+ * 
+ * Горизонтальный ряд широких карточек с полосой прогресса — раздел «Продолжить просмотр» из вашей модели данных (SDKContentItem[], поле progress 0..1).
+ * 
  * @example
- * // "Continue watching" row
+ * // Ряд «Продолжить просмотр»
  * const { ui } = PotokSDK;
- *
+ * 
  * const items = [
- *   { id: "1", title: "Dune: Part Two", subtitle: "2024", wideImage: "https://image.tmdb.org/t/p/w780/xu9zaAevzQ5nnrsXN6JcahLnG4i.jpg", progress: 0.6 },
- *   { id: "2", title: "Interstellar", subtitle: "2014", wideImage: "https://image.tmdb.org/t/p/w780/il8gr7YStcrui1EM2crk14G4HjL.jpg", progress: 0.25 }
+ *   { id: "1", title: "Дюна: Часть вторая", subtitle: "2024", wideImage: "https://image.tmdb.org/t/p/w780/xu9zaAevzQ5nnrsXN6JcahLnG4i.jpg", progress: 0.6 },
+ *   { id: "2", title: "Интерстеллар", subtitle: "2014", wideImage: "https://image.tmdb.org/t/p/w780/il8gr7YStcrui1EM2crk14G4HjL.jpg", progress: 0.25 }
  * ];
- *
+ * 
  * ui.render(
  *   ContinueWatchingRow()
- *     .title("Continue watching")
+ *     .title("Продолжить просмотр")
  *     .items(items)
- *     .onCardClick((item) => ui.showHUD("info", "Continuing: " + item.title))
+ *     .onCardClick((item) => ui.showHUD("info", "Продолжаем: " + item.title))
  * );
  */
 export class ContinueWatchingRowBuilder extends UIComponent {
@@ -39,22 +39,22 @@ export class ContinueWatchingRowBuilder extends UIComponent {
   }
 
   /**
-   * Row title.
+   * Заголовок ряда.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   title(v: string): this { this._title = v; return this; }
   /**
-   * Items with a progress field (0..1) for the progress bar.
+   * Элементы с полем progress (0..1) для полосы прогресса.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   items(v: SDKContentItem[]): this { this._items = v; return this; }
   /**
-   * Callback on a click on a card.
+   * Коллбек клика по карточке.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onCardClick(cb: CallbackFunction): this { this._onCardClick = cb; return this; }
 
@@ -72,23 +72,23 @@ export class ContinueWatchingRowBuilder extends UIComponent {
 }
 
 /**
- * TopTenRow (Top 10)
- *
- * A ranked row with a large position number next to each poster. The number comes from the rank field or from the item's position (up to 10).
- *
+ * TopTenRow (Топ-10)
+ * 
+ * Ранжированный ряд с крупным номером позиции у каждого постера. Номер берётся из поля rank или из позиции элемента (до 10).
+ * 
  * @example
- * // Ranked "Top 10" row
+ * // Ранжированный ряд «Топ-10»
  * const { ui } = PotokSDK;
- *
+ * 
  * const items = [
- *   { id: "1", title: "Movie 1", image: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg" },
- *   { id: "2", title: "Movie 2", image: "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg" },
- *   { id: "3", title: "Movie 3", image: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg" }
+ *   { id: "1", title: "Фильм 1", image: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg" },
+ *   { id: "2", title: "Фильм 2", image: "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg" },
+ *   { id: "3", title: "Фильм 3", image: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg" }
  * ];
- *
+ * 
  * ui.render(
  *   TopTenRow()
- *     .title("Top 10 today")
+ *     .title("Топ-10 сегодня")
  *     .items(items)
  *     .onCardClick((item) => ui.showHUD("info", item.title))
  * );
@@ -106,15 +106,15 @@ export class TopTenRowBuilder extends UIComponent {
   }
 
   /**
-   * Row title.
+   * Заголовок ряда.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   title(v: string): this { this._title = v; return this; }
   /**
-   * Up to 10 items; the number comes from the rank field or the position.
+   * До 10 элементов; номер — из поля rank или позиции.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   items(v: SDKContentItem[]): this { this._items = v; return this; }
@@ -125,9 +125,9 @@ export class TopTenRowBuilder extends UIComponent {
    */
   seeAllLabel(v: string): this { this._seeAllLabel = v; return this; }
   /**
-   * Callback on a click on a card.
+   * Коллбек клика по карточке.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onCardClick(cb: CallbackFunction): this { this._onCardClick = cb; return this; }
   /**
@@ -154,27 +154,27 @@ export class TopTenRowBuilder extends UIComponent {
 }
 
 /**
- * PosterGrid (Poster grid)
- *
- * A responsive grid of poster cards with an optional load-more button (infinite list) — for catalog/category pages from your data model.
- *
+ * PosterGrid (Сетка постеров)
+ * 
+ * Адаптивная сетка карточек-постеров с необязательной кнопкой догрузки (бесконечный список) — для страниц каталога/категории из вашей модели данных.
+ * 
  * @example
- * // Poster grid with load-more
+ * // Сетка постеров с догрузкой
  * const { ui } = PotokSDK;
- *
+ * 
  * const items = [
- *   { id: "1", title: "Dune", image: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg" },
- *   { id: "2", title: "Inception", image: "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg" },
- *   { id: "3", title: "Interstellar", image: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg" }
+ *   { id: "1", title: "Дюна", image: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg" },
+ *   { id: "2", title: "Начало", image: "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg" },
+ *   { id: "3", title: "Интерстеллар", image: "https://image.tmdb.org/t/p/w500/gEU2QthHGvGo1q7T2XzAwETYNsC.jpg" }
  * ];
- *
+ * 
  * ui.render(
  *   PosterGrid()
  *     .items(items)
  *     .minWidth("10rem")
- *     .loadMoreLabel("Show more")
+ *     .loadMoreLabel("Показать ещё")
  *     .onCardClick((item) => ui.showHUD("info", item.title))
- *     .onLoadMore(() => ui.showHUD("info", "Loading the next page..."))
+ *     .onLoadMore(() => ui.showHUD("info", "Загрузка следующей страницы..."))
  * );
  */
 export class PosterGridBuilder extends UIComponent {
@@ -190,35 +190,35 @@ export class PosterGridBuilder extends UIComponent {
   }
 
   /**
-   * Grid cards.
+   * Карточки сетки.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   items(v: SDKContentItem[]): this { this._items = v; return this; }
   /**
-   * Minimum column width.
+   * Минимальная ширина колонки.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default '10rem'
    */
   minWidth(v: string): this { this._minWidth = v; return this; }
   /**
-   * Text of the load-more button (appears only if onLoadMore is set).
+   * Текст кнопки догрузки (появляется только если задан onLoadMore).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   loadMoreLabel(v: string): this { this._loadMoreLabel = v; return this; }
   /**
-   * Callback on a click on a card.
+   * Коллбек клика по карточке.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onCardClick(cb: CallbackFunction): this { this._onCardClick = cb; return this; }
   /**
-   * Callback to load the next page.
+   * Коллбек догрузки следующей страницы.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onLoadMore(cb: CallbackFunction): this { this._onLoadMore = cb; return this; }
 

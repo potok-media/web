@@ -56,16 +56,19 @@ function toTvEpisode(
 export function toEpisodeGroupPresentations(
   layout: ArmEpisodeLayoutResponse,
 ): EpisodeGroupPresentation[] {
-  return layout.groups.map((group) => ({
-    id: group.id,
-    kind: group.kind,
-    title: "",
-    titleFallback: { kind: group.kind, number: finiteNumber(group.number) ?? null },
-    displayNumber: finiteNumber(group.number) ?? null,
-    tmdbShow: group.tmdbShow ?? null,
-    tmdbSeason: group.tmdbSeason ?? null,
-    episodes: group.episodes.map((episode) => toTvEpisode(episode, group)),
-  }));
+  // Owner's rule: a group with no episodes is never rendered, whatever its kind.
+  return layout.groups
+    .filter((group) => group.episodes.length > 0)
+    .map((group) => ({
+      id: group.id,
+      kind: group.kind,
+      title: "",
+      titleFallback: { kind: group.kind, number: finiteNumber(group.number) ?? null },
+      displayNumber: finiteNumber(group.number) ?? null,
+      tmdbShow: group.tmdbShow ?? null,
+      tmdbSeason: group.tmdbSeason ?? null,
+      episodes: group.episodes.map((episode) => toTvEpisode(episode, group)),
+    }));
 }
 
 /**

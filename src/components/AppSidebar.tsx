@@ -6,8 +6,11 @@ import { useAuth } from "../context/AppSettingsContext";
 import { useHUD } from "../context/useHUD";
 import SidebarStatus from "./SidebarStatus";
 import SidebarSearch from "./SidebarSearch";
+import { SearchDropdown } from "./search/SearchDropdown";
+import { rememberSearch } from "../utils/recentSearches";
 import { Slot } from "./common/extension/Slot";
 import "../styles/sidebar.css";
+import "../styles/search.css";
 import { IconButton } from "./ui";
 
 interface SidebarNavLinkProps {
@@ -125,15 +128,42 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
 
       <nav className="sidebar-nav">
         <div className="sidebar-section">
-          <SidebarSearch
-            isCollapsed={isCollapsed}
-            sidebarSearch={sidebarSearch}
-            onSearchChange={handleSidebarSearchChange}
-            onClear={handleClearSidebarSearch}
-            inputRef={inputRef}
-            onFocus={() => setIsSearchFocused(true)}
-            onBlur={() => setIsSearchFocused(false)}
-          />
+          <div className="sidebar-search-anchor">
+            <SidebarSearch
+              isCollapsed={isCollapsed}
+              sidebarSearch={sidebarSearch}
+              onSearchChange={handleSidebarSearchChange}
+              onClear={handleClearSidebarSearch}
+              inputRef={inputRef}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+            />
+            {!isCollapsed && isSearchFocused && (
+              <SearchDropdown
+                query={sidebarSearch}
+                onPickCard={item => {
+                  if (sidebarSearch.trim()) rememberSearch(sidebarSearch);
+                  setIsSearchFocused(false);
+                  inputRef.current?.blur();
+                  navigate(`/media/${item.mediaType}/${item.id}`);
+                }}
+                onShowAll={value => {
+                  rememberSearch(value);
+                  setIsSearchFocused(false);
+                  inputRef.current?.blur();
+                  navigate(`/search?q=${encodeURIComponent(value)}`);
+                }}
+                onPickRecent={value => {
+                  setSidebarSearch(value);
+                  navigate(`/search?q=${encodeURIComponent(value)}`);
+                }}
+                onClose={() => {
+                  setIsSearchFocused(false);
+                  inputRef.current?.blur();
+                }}
+              />
+            )}
+          </div>
 
           <SidebarNavLink to="/" className={({ isActive }) => getNavLinkClass(isActive)} end>
             <Home size="1.125rem" />

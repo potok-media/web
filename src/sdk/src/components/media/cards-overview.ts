@@ -3,33 +3,33 @@ import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 import type { SDKMediaCard, SDKSelectedEpisodeType } from "../../types";
 
 /**
- * MediaOverview (Media overview)
- *
- * A large interactive description panel for a movie or series. Displays the poster, original title, description, production year, country, rating, genres and the list of creators.
- *
+ * MediaOverview (Обзор медиаресурса)
+ * 
+ * Большая интерактивная панель описания фильма или сериала. Отображает постер, оригинальное название, описание, год производства, страну, рейтинг, жанры и список создателей.
+ * 
  * @example
- * // Series description. The component reads the SDKMediaCard shape: originalTitle, subtitle, genres (STRING),
- * // ageRating, numberOfSeasons, overview, imdbRating/kpRating. selectedEpisode switches the description to an episode.
+ * // Описание сериала. Компонент читает форму SDKMediaCard: originalTitle, subtitle, genres (СТРОКА),
+ * // ageRating, numberOfSeasons, overview, imdbRating/kpRating. selectedEpisode переключает описание на серию.
  * const { ui, createState } = PotokSDK;
- *
+ * 
  * const series = {
  *   id: 1399,
- *   title: "Game of Thrones",
+ *   title: "Игра престолов",
  *   originalTitle: "Game of Thrones",
- *   subtitle: "2011 · USA",
+ *   subtitle: "2011 · США",
  *   mediaType: "tv",
- *   overview: "Nine noble families fight for control over the mythical lands of Westeros...",
- *   genres: "Fantasy, Drama, Action",
+ *   overview: "Девять благородных семей ведут борьбу за контроль над мифическими землями Вестероса...",
+ *   genres: "Фэнтези, Драма, Боевик",
  *   ageRating: "18+",
  *   numberOfSeasons: 8,
  *   imdbRating: 9.2,
  *   kpRating: 9.0
  * };
- *
+ * 
  * const state = createState({
- *   selectedEpisode: { episode: { episodeNumber: 1, name: "Winter Is Coming" }, seasonNumber: 1 }
+ *   selectedEpisode: { episode: { episodeNumber: 1, name: "Зима близко" }, seasonNumber: 1 }
  * });
- *
+ * 
  * function draw() {
  *   ui.render(
  *     MediaOverview()
@@ -50,9 +50,9 @@ export class MediaOverviewBuilder extends UIComponent {
   }
 
   /**
-   * Detailed movie/series metadata (title, overview, posterUrl, rating, genres, year, country).
+   * Детальные метаданные фильма/сериала (title, overview, posterUrl, rating, genres, year, country).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   media(v: SDKMediaCard): this {
     this._media = v;
@@ -60,9 +60,9 @@ export class MediaOverviewBuilder extends UIComponent {
   }
 
   /**
-   * Object of the currently selected episode to show episode info instead of the description of the whole season (if it is a series).
+   * Объект текущей выбранной серии для отображения информации о серии вместо описания всего сезона (если это сериал).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   selectedEpisode(v: SDKSelectedEpisodeType | null): this {
     this._selectedEpisode = v;
@@ -70,9 +70,9 @@ export class MediaOverviewBuilder extends UIComponent {
   }
 
   /**
-   * Callback to reset the selected episode back to the details of the whole season (click on the "Back to description" button).
+   * Коллбек сброса выбранной серии обратно к деталям всего сезона (клик по кнопке «Вернуться к описанию»).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onResetEpisode(cb: CallbackFunction): this {
     this._onResetEpisode = cb;

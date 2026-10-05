@@ -1,15 +1,17 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Check, ChevronDown, Tv } from "lucide-react";
 import { FilmOff } from "../FilmOff";
-import { Button, Input, Pressable, Select } from "../../ui";
+import { Button, PopoverItem, Pressable } from "../../ui";
 import { EpisodeAnnotationBadge } from "../EpisodeAnnotationBadge";
-import { finalizeGroupTitle } from "../../seasonGroupLabels";
 import { ApiClient } from "../../../network/ApiClient";
+import { fetchTmdbSeasonMeta, type TmdbSeasonMeta } from "../../../features/arm/tmdbSeasonMeta";
 import { formatLocalizedDate } from "../../../utils/formatDate";
 import { getActiveLanguage, toIntlLocale } from "../../../utils/language";
 import type { SDKArmBindingTarget } from "../../../sdk/src/types";
 import type { EpisodeSelectorPopupProps, FileOverrideMode } from "./types";
-import { toArmOverrideGroups } from "./armOverrideModel";
+import { toArmOverrideGroups, type ArmOverrideGroup } from "./armOverrideModel";
+import { finalizeGroupTitle, isGenericSeasonTitle } from "../../seasonGroupLabels";
 import { resolveEpisodeStillUrl } from "./artwork";
 
 interface EpisodeOverridePickerProps {
@@ -31,23 +33,65 @@ function formatDate(dateStr?: string | null) {
     toIntlLocale(getActiveLanguage())) || dateStr;
 }
 
+/**
+ * Localized season overlays for every bridged group (labels for the dropdown) plus the active
+ * one (episode names/stills/dates). Progressive: groups first render with their
+ * structure-source title and swap to the TMDB-localized label as payloads land — the fetch
+ * helper dedups and caches per (show, season), failures stay cosmetic.
+ */
+function useSeasonOverlays(groups: ArmOverrideGroup[]): Map<string, TmdbSeasonMeta> {
+  const [overlays, setOverlays] = useState<Map<string, TmdbSeasonMeta>>(new Map());
+  const key = groups.map(group => `${group.id}:${group.tmdbShow ?? ""}:${group.tmdbSeason ?? ""}`).join("|");
+
+  useEffect(() => {
+    const wanted = groups.filter(group => group.tmdbShow != null && group.tmdbSeason != null);
+    if (wanted.length === 0) {
+      setOverlays(new Map());
+      return;
+    }
+    let cancelled = false;
+    for (const group of wanted) {
+      fetchTmdbSeasonMeta(group.tmdbShow!, group.tmdbSeason!).then(meta => {
+        if (cancelled || !meta) return;
+        setOverlays(previous => new Map(previous).set(group.id, meta));
+      });
+    }
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+
+  return overlays;
+}
+
 const ArmEpisodeOverridePicker: React.FC<Pick<EpisodeOverridePickerProps,
   "armLayout" | "onApplyEpisodeBinding" | "overrideMode"
 >> = ({ armLayout, onApplyEpisodeBinding, overrideMode }) => {
   const { t } = useTranslation("media");
   const [selectedGroupId, setSelectedGroupId] = useState<string>();
-  const [query, setQuery] = useState("");
-  const groups = useMemo(() => toArmOverrideGroups(armLayout)
-    .map((group) => ({
+  const [showGroupPopover, setShowGroupPopover] = useState(false);
+  const groups = useMemo(() => toArmOverrideGroups(armLayout), [armLayout]);
+  const overlays = useSeasonOverlays(groups);
+  const labelled = groups.map(group => {
+    const localizedTitle = overlays.get(group.id)?.seasonName || null;
+    // A generic localized season name ("Сезон 1") carries no information — and several graph
+    // entries may live in the same TMDB season (split cours), colliding on it. In that case
+    // the graph's own number + entry title disambiguates ("Сезон 2: MASHLE: Kami …").
+    const displayTitle = localizedTitle && !isGenericSeasonTitle(localizedTitle)
+      ? localizedTitle
+      : group.title || localizedTitle;
+    return {
       ...group,
-      label: group.kind === "season" && group.displayNumber == null && !group.title
-        ? t("selector.episodeGroup")
-        : finalizeGroupTitle({ ...group, episodes: [] }, t),
-    })), [armLayout, t]);
-  const activeGroup = groups.find((group) => group.id === selectedGroupId) ?? groups[0];
-  const search = query.trim().toLocaleLowerCase();
-  const episodes = activeGroup?.episodes.filter((episode) => !search ||
-    `${episode.ordinal} ${episode.title}`.toLocaleLowerCase().includes(search)) ?? [];
+      label: displayTitle
+        ? group.kind === "season" && group.displayNumber != null
+          ? t("seasons.seasonTitled", { number: group.displayNumber, title: displayTitle })
+          : displayTitle
+        : group.kind === "season" && group.displayNumber == null
+          ? t("selector.episodeGroup")
+          : finalizeGroupTitle({ ...group, episodes: [] }, t),
+    };
+  });
+  const activeGroup = labelled.find((group) => group.id === selectedGroupId) ?? labelled[0];
+  const activeMeta = activeGroup ? overlays.get(activeGroup.id) : undefined;
 
   if (!activeGroup) {
     return <div className="episode-picker-state" role="status">{t("override.armEmpty")}</div>;
@@ -57,53 +101,70 @@ const ArmEpisodeOverridePicker: React.FC<Pick<EpisodeOverridePickerProps,
     <div className="episode-picker-container">
       <h4 className="picker-header-title">{t(overrideMode === "pin" ? "override.pinPrompt" : "override.prompt")}</h4>
       <div className="episode-picker-controls">
-        <label className="episode-picker-field">
-          <span>{t("override.group")}</span>
-          <Select
-            value={activeGroup.id}
-            options={groups.map((group) => ({ value: group.id, label: group.label }))}
-            onChange={(id) => { setSelectedGroupId(id); setQuery(""); }}
-            block
-          />
-        </label>
-        <label className="episode-picker-field">
-          <span>{t("override.search")}</span>
-          <Input type="search" value={query} onChange={(event) => setQuery(event.target.value)} />
-        </label>
+        <div className="season-select-wrapper">
+          <Button
+            variant="glass"
+            className="season-select-trigger-btn"
+            onClick={() => setShowGroupPopover(open => !open)}
+            aria-expanded={showGroupPopover}
+          >
+            <span>{activeGroup.label}</span>
+            <ChevronDown size="0.875rem" />
+          </Button>
+          {showGroupPopover && (
+            <>
+              <div className="popover-overlay" onClick={() => setShowGroupPopover(false)} />
+              <div className="season-popover-menu">
+                {labelled.map((group) => (
+                  <PopoverItem
+                    key={group.id}
+                    active={activeGroup.id === group.id}
+                    className="season-popover-item"
+                    onClick={() => {
+                      setSelectedGroupId(group.id);
+                      setShowGroupPopover(false);
+                    }}
+                  >
+                    <Tv size="1rem" className="season-item-icon" />
+                    <span>{group.label}</span>
+                    {activeGroup.id === group.id && <Check size="1rem" className="season-active-check" />}
+                  </PopoverItem>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
       <div className="season-section">
         <h3 className="season-section-title">{activeGroup.label}</h3>
-        {episodes.length === 0 ? (
-          <div className="episode-picker-state" role="status">{t("override.noMatches")}</div>
-        ) : (
-          <div className="episode-grid">
-            {episodes.map((episode) => {
-              const title = episode.title || (episode.ordinal
-                ? t("episode.fallbackName", { number: episode.ordinal }) : t("selector.unresolvedEpisode"));
-              const still = resolveEpisodeStillUrl(episode.stillPath, ApiClient.baseURL);
-              return (
-                <Pressable
-                  key={`${episode.target.entryId}:${episode.target.episodeId}`}
-                  className="episode-picker-card episode-picker-card--canonical"
-                  onPress={() => onApplyEpisodeBinding?.(episode.target)}
-                  data-episode-id={episode.target.episodeId}
-                >
-                  <div className="episode-card-preview-wrap">
-                    {still ? <img src={still} alt="" className="episode-card-image" loading="lazy" /> : (
-                      <div className="episode-still-fallback-placeholder"><FilmOff size="1.75rem" /></div>
-                    )}
-                    {episode.ordinal && <span className="episode-card-badge">{episode.ordinal}</span>}
-                    <EpisodeAnnotationBadge filler={episode.filler} overlay />
-                  </div>
-                  <div className="episode-card-info">
-                    <span className="episode-card-title" title={title}>{title}</span>
-                    {episode.airDate && <span className="episode-card-date">{formatDate(episode.airDate)}</span>}
-                  </div>
-                </Pressable>
-              );
-            })}
-          </div>
-        )}
+        <div className="episode-grid">
+          {activeGroup.episodes.map((episode) => {
+            const meta = episode.tmdb?.episode != null ? activeMeta?.episodes.get(episode.tmdb.episode) : undefined;
+            const title = meta?.name || (episode.ordinal
+              ? t("episode.fallbackName", { number: episode.ordinal }) : t("selector.unresolvedEpisode"));
+            const still = resolveEpisodeStillUrl(meta?.stillPath ?? null, ApiClient.baseURL);
+            return (
+              <Pressable
+                key={`${episode.target.entryId}:${episode.target.episodeId}`}
+                className="episode-picker-card episode-picker-card--canonical"
+                onPress={() => onApplyEpisodeBinding?.(episode.target)}
+                data-episode-id={episode.target.episodeId}
+              >
+                <div className="episode-card-preview-wrap">
+                  {still ? <img src={still} alt="" className="episode-card-image" loading="lazy" /> : (
+                    <div className="episode-still-fallback-placeholder"><FilmOff size="1.75rem" /></div>
+                  )}
+                  {episode.ordinal && <span className="episode-card-badge">{episode.ordinal}</span>}
+                  <EpisodeAnnotationBadge filler={episode.filler} overlay />
+                </div>
+                <div className="episode-card-info">
+                  <span className="episode-card-title" title={title}>{title}</span>
+                  {meta?.airDate && <span className="episode-card-date">{formatDate(meta.airDate)}</span>}
+                </div>
+              </Pressable>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

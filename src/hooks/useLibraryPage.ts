@@ -83,7 +83,10 @@ export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: U
           if (!currentQuery.trim()) {
             cards = [];
           } else {
-            cards = await ApiClient.searchMedia(currentQuery);
+            // Version-skew tolerance: an older gateway answers a bare MediaCard[] (no envelope).
+            const response = await ApiClient.searchMedia(currentQuery);
+            const compat = Array.isArray(response) ? response : response?.results;
+            cards = Array.isArray(compat) ? compat : [];
           }
           startTransition(() => {
             setItems(cards);

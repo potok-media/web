@@ -3,21 +3,21 @@ import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 import type { SDKStreamUIItem } from "../../types";
 
 /**
- * StreamSkeletonList (Search placeholder)
- *
- * A helper component that displays a nice animated skeleton placeholder (shimmering rows) while waiting for torrent-tracker releases to be parsed.
- *
+ * StreamSkeletonList (Плейсхолдер поиска)
+ * 
+ * Вспомогательный компонент, отображающий красивую анимированную скелетную заглушку (мерцающие строки) во время ожидания парсинга раздач по торрент-трекерам.
+ * 
  * @example
- * // Skeleton loading
+ * // Скелетная загрузка
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   Card()
- *     .title("Searching releases...")
+ *     .title("Поиск на раздачах...")
  *     .child(
  *       VStack()
  *         .spacing(12)
- *         .child(Text("Looking for suitable releases...").variant("secondary"))
+ *         .child(Text("Ищем подходящие раздачи...").variant("secondary"))
  *         .child(StreamSkeletonList())
  *     )
  * );
@@ -33,18 +33,18 @@ export class StreamSkeletonListBuilder extends UIComponent {
 }
 
 /**
- * StreamRow (Release row)
- *
- * A row item in a torrent list. Displays the release title, file size, torrent-tracker name, video quality, and the seeders/peers count with color highlighting.
- *
+ * StreamRow (Строка раздачи)
+ * 
+ * Строковый элемент списка торрентов. Отображает название раздачи, размер файла, имя торрент-трекера, качество видео, а также число сидов/пиров с цветовой подсветкой.
+ * 
  * @example
- * // A single release
+ * // Отдельная раздача
  * const { ui } = PotokSDK;
- *
- * // SDKStreamUIItem shape: seeds/leeches are seeders/leechers, size is sizeLabel (string) or sizeBytes (number).
+ * 
+ * // Форма SDKStreamUIItem: сиды/личи — seeders/leechers, размер — sizeLabel (строка) или sizeBytes (число).
  * const streamData = {
  *   id: "rt-12345",
- *   title: "Interstellar (2014) BDRip [1080p]",
+ *   title: "Интерстеллар (2014) BDRip [1080p]",
  *   tracker: "Rutracker",
  *   sizeLabel: "14.5 GB",
  *   sizeBytes: 15569256448,
@@ -53,15 +53,15 @@ export class StreamSkeletonListBuilder extends UIComponent {
  *   publishDate: "2015-03-10",
  *   tags: [
  *     { kind: "quality", value: "1080p" },
- *     { kind: "voice", value: "Dub" }
+ *     { kind: "voice", value: "Дубляж" }
  *   ]
  * };
- *
+ * 
  * ui.render(
  *   StreamRow()
  *     .stream(streamData)
  *     .onClick((s) => {
- *       ui.showHUD("success", "Launching: " + s.title);
+ *       ui.showHUD("success", "Запуск: " + s.title);
  *     })
  * );
  */
@@ -74,9 +74,9 @@ export class StreamRowBuilder extends UIComponent {
   }
 
   /**
-   * Release metadata (SDKStreamUIItem shape): id, title, tracker, sizeLabel or sizeBytes, seeders, leechers, publishDate, tags.
+   * Метаданные раздачи (форма SDKStreamUIItem): id, title, tracker, sizeLabel или sizeBytes, seeders, leechers, publishDate, tags.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   stream(v: SDKStreamUIItem): this {
     this._stream = v;
@@ -84,9 +84,9 @@ export class StreamRowBuilder extends UIComponent {
   }
 
   /**
-   * Click handler on the release row to start playback.
+   * Обработчик клика по строительным раздачам для запуска воспроизведения.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onClick(cb: CallbackFunction): this {
     this._onClick = cb;

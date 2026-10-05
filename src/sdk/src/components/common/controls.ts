@@ -2,19 +2,19 @@ import { UIComponent, type CompiledComponent } from "../base";
 import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 
 /**
- * Range (Slider)
- *
- * A slider for selecting a numeric value in the range [min, max] with a step and an optional display of the current value.
- *
+ * Range (Ползунок)
+ * 
+ * Ползунок выбора числового значения в диапазоне [min, max] с шагом step и необязательным отображением текущего значения.
+ * 
  * @example
- * // Volume slider
+ * // Ползунок громкости
  * const { ui, createState } = PotokSDK;
  * const state = createState({ volume: 50 });
- *
+ * 
  * function draw() {
  *   ui.render(
  *     Range("volume")
- *       .label("Volume")
+ *       .label("Громкость")
  *       .min(0)
  *       .max(100)
  *       .step(1)
@@ -43,47 +43,47 @@ export class RangeBuilder extends UIComponent {
   }
 
   /**
-   * The current value.
+   * Текущее значение.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 0
    */
   value(v: number): this { this._value = v; return this; }
   /**
-   * The minimum value of the range.
+   * Минимальное значение диапазона.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   min(v: number): this { this._min = v; return this; }
   /**
-   * The maximum value of the range.
+   * Максимальное значение диапазона.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   max(v: number): this { this._max = v; return this; }
   /**
-   * The step of value change.
+   * Шаг изменения значения.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   step(v: number): this { this._step = v; return this; }
   /**
-   * The label above the slider.
+   * Подпись над ползунком.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   label(v: string): this { this._label = v; return this; }
   /**
-   * Show the current value to the right of the label.
+   * Показывать текущее значение справа от подписи.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   showValue(v: boolean): this { this._showValue = v; return this; }
   /**
-   * Change callback. Passes a number.
+   * Коллбек изменения. Передаёт число.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onChange(cb: CallbackFunction): this { this._onChange = cb; return this; }
 
@@ -109,22 +109,22 @@ export class RangeBuilder extends UIComponent {
 }
 
 /**
- * CodeEditor (Code editor)
- *
- * A built-in full-featured code editor based on Monaco. Supports syntax highlighting, autocompletion, line numbers, and code formatting.
- *
+ * CodeEditor (Редактор кода)
+ * 
+ * Встроенный полнофункциональный редактор кода на базе Monaco. Поддерживает подсветку синтаксиса, автодополнение, номера строк и форматирование кода.
+ * 
  * @example
- * // Monaco code editor
+ * // Редактор кода Monaco
  * const { ui, createState } = PotokSDK;
- * const state = createState({ code: "console.log('Hello, world!');" });
- *
+ * const state = createState({ code: "console.log('Привет, мир!');" });
+ * 
  * function draw() {
  *   ui.render(
  *     VStack()
  *       .spacing(12)
  *       .child(
  *         CodeEditor("js-editor")
- *           .label("Script editor")
+ *           .label("Редактор скриптов")
  *           .value(state.code)
  *           .readOnly(false)
  *           .onChange((v) => state.code = v)
@@ -148,9 +148,9 @@ export class CodeEditorBuilder extends UIComponent {
   }
 
   /**
-   * The heading/label above the editor container.
+   * Заголовок-подпись над контейнером редактора.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   label(v: string): this {
     this._label = v;
@@ -158,9 +158,9 @@ export class CodeEditorBuilder extends UIComponent {
   }
 
   /**
-   * The initial or current text in the editor.
+   * Исходный или текущий текст в редакторе.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default ''
    */
   value(v: string): this {
@@ -169,9 +169,9 @@ export class CodeEditorBuilder extends UIComponent {
   }
 
   /**
-   * The edit lock flag. When true, the editor switches to view mode.
+   * Флаг блокировки редактирования. При true редактор переходит в режим просмотра.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   readOnly(v: boolean): this {
@@ -180,9 +180,9 @@ export class CodeEditorBuilder extends UIComponent {
   }
 
   /**
-   * Fires on any change to the source code in the editor window.
+   * Срабатывает при любом изменении исходного кода в окне редактора.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onChange(cb: CallbackFunction): this {
     this._onChange = cb;

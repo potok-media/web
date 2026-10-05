@@ -3,20 +3,20 @@ import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 import type { SDKTvEpisode } from "../../types";
 
 /**
- * EpisodesSection (Episode catalog)
- *
- * A standalone series block. It requests episodes from the gateway API by id, splits them into season tabs and renders them as an episode grid.
- *
+ * EpisodesSection (Каталог серий)
+ * 
+ * Автономный блок сериала. Он запрашивает эпизоды из API шлюза по идентификатору, разделяет их на вкладки сезонов и отрисовывает в виде сетки эпизодов.
+ * 
  * @example
- * // Series episode grid
+ * // Сетка эпизодов сериала
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   EpisodesSection()
  *     .mediaId("1399")
  *     .numberOfSeasons(8)
  *     .onEpisodeClick(({ episode, seasonNumber }) => {
- *       ui.showHUD("success", "S" + seasonNumber + " · episode " + episode.episodeNumber);
+ *       ui.showHUD("success", "S" + seasonNumber + " · эпизод " + episode.episodeNumber);
  *     })
  * );
  */
@@ -30,9 +30,9 @@ export class EpisodesSectionBuilder extends UIComponent {
   }
 
   /**
-   * Unique identifier of the series in the media database.
+   * Уникальный идентификатор сериала в базе данных медиа.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   mediaId(v: number | string): this {
     this._mediaId = v;
@@ -40,9 +40,9 @@ export class EpisodesSectionBuilder extends UIComponent {
   }
 
   /**
-   * Total number of seasons of the series to render the switch tabs.
+   * Общее число сезонов сериала для отрисовки вкладок переключения.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   numberOfSeasons(v: number): this {
     this._numberOfSeasons = v;
@@ -50,9 +50,9 @@ export class EpisodesSectionBuilder extends UIComponent {
   }
 
   /**
-   * Callback on a click on a specific episode. Passes an object with the episode parameters.
+   * Коллбек при клике по конкретному эпизоду. Передает объект с параметрами серии.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onEpisodeClick(cb: CallbackFunction): this {
     this._onEpisodeClick = cb;
@@ -85,27 +85,27 @@ export class SeasonEpisodesBuilder extends EpisodesSectionBuilder {
 }
 
 /**
- * EpisodeCard (Episode card)
- *
- * A component that displays a single series episode. Renders the preview (still), the episode number, the title and the episode's text description.
- *
+ * EpisodeCard (Карточка серии)
+ * 
+ * Компонент отображения отдельной серии сериала. Выводит превью (кадр), номер эпизода, название и текстовое описание серии.
+ * 
  * @example
- * // Episode card
+ * // Карточка эпизода
  * const { ui } = PotokSDK;
- *
+ * 
  * const epData = {
  *   episodeNumber: 1,
  *   seasonNumber: 1,
- *   name: "Winter Is Coming",
- *   overview: "Lord Eddard Stark receives King Robert at his castle Winterfell...",
+ *   name: "Зима Близко",
+ *   overview: "Лорд Эддард Старк принимает короля Роберта в своем замке Винтерфелл...",
  *   stillPath: "https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg"
  * };
- *
+ * 
  * ui.render(
  *   EpisodeCard()
  *     .episode(epData)
  *     .onClick((ep) => {
- *       ui.showHUD("success", "Selected episode " + ep.episodeNumber);
+ *       ui.showHUD("success", "Выбрана серия " + ep.episodeNumber);
  *     })
  * );
  */
@@ -118,9 +118,9 @@ export class EpisodeCardBuilder extends UIComponent {
   }
 
   /**
-   * Object with the episode description (episodeNumber, seasonNumber, name, overview, stillPath).
+   * Объект с описанием серии (episodeNumber, seasonNumber, name, overview, stillPath).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   episode(v: SDKTvEpisode): this {
     this._episode = v;
@@ -128,9 +128,9 @@ export class EpisodeCardBuilder extends UIComponent {
   }
 
   /**
-   * Click handler for the episode card. Passes the selected episode object.
+   * Обработчик клика по карточке серии. Передает выбранный объект серии.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onClick(cb: CallbackFunction): this {
     this._onClick = cb;

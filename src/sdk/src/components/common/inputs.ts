@@ -2,33 +2,33 @@ import { UIComponent, type CompiledComponent } from "../base";
 import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 
 /**
- * Input (Input field)
- *
- * A text input field for filling in form data, server addresses, authorization keys, or filters.
- *
+ * Input (Поле ввода)
+ * 
+ * Текстовое поле ввода для заполнения данных форм, адресов серверов, ключей авторизации или фильтров.
+ * 
  * @example
- * // Form data input
+ * // Ввод данных формы
  * const { ui, createState } = PotokSDK;
- *
+ * 
  * const state = createState({ username: "", password: "" });
- *
+ * 
  * function draw() {
  *   ui.render(
  *     Card()
- *       .title("Authorization")
+ *       .title("Авторизация")
  *       .child(
  *         VStack()
  *           .spacing(12)
  *           .child(
  *             Input("login")
- *               .label("Username")
- *               .placeholder("Enter email")
+ *               .label("Имя пользователя")
+ *               .placeholder("Введите email")
  *               .value(state.username)
  *               .onChange((v) => state.username = v)
  *           )
  *           .child(
  *             Input("password")
- *               .label("Password")
+ *               .label("Пароль")
  *               .placeholder("••••••••")
  *               .inputType("password")
  *               .value(state.password)
@@ -56,9 +56,9 @@ export class InputBuilder extends UIComponent {
   }
 
   /**
-   * The title (label) displayed directly above the input field.
+   * Заголовок (ярлык), отображаемый непосредственно над полем ввода.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   label(v: string): this {
     this._label = v;
@@ -66,9 +66,9 @@ export class InputBuilder extends UIComponent {
   }
 
   /**
-   * The placeholder text displayed inside an empty input field.
+   * Текст подсказки, отображаемый внутри пустого поля ввода.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   placeholder(v: string): this {
     this._placeholder = v;
@@ -76,9 +76,9 @@ export class InputBuilder extends UIComponent {
   }
 
   /**
-   * Sets the type of input data. Changes the field behavior and masks input for 'password'.
+   * Задает тип вводимых данных. Изменяет поведение поля и маскирует ввод для 'password'.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'text'
    */
   inputType(v: string): this {
@@ -87,18 +87,18 @@ export class InputBuilder extends UIComponent {
   }
 
   /**
-   * A deprecated synonym for inputType.
+   * Устаревший (deprecated) синоним для inputType.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   type(v: string): this {
     return this.inputType(v);
   }
 
   /**
-   * The current text value of the field.
+   * Текущее текстовое значение поля.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default ''
    */
   value(v: string): this {
@@ -107,9 +107,9 @@ export class InputBuilder extends UIComponent {
   }
 
   /**
-   * A text input handler invoked on every change of the value.
+   * Обработчик ввода текста, вызываемый при каждом изменении значения.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onChange(cb: CallbackFunction): this {
     this._onChange = cb;
@@ -136,24 +136,24 @@ export class InputBuilder extends UIComponent {
 }
 
 /**
- * Toggle (Toggle)
- *
- * An interactive toggle (checkbox/switch) for enabling/disabling boolean configuration options.
- *
+ * Toggle (Переключатель)
+ * 
+ * Интерактивный переключатель (чекбокс/свитч) для активации/деактивации булевых параметров конфигурации.
+ * 
  * @example
- * // Settings toggle
+ * // Переключатель настроек
  * const { ui, createState } = PotokSDK;
  * const state = createState({ autoplay: false });
- *
+ * 
  * function draw() {
  *   ui.render(
  *     Toggle("autoplay-toggle")
- *       .label("Autoplay")
- *       .description("Play the next episode automatically")
+ *       .label("Автовоспроизведение")
+ *       .description("Воспроизводить следующую серию автоматически")
  *       .value(state.autoplay)
  *       .onChange((v) => {
  *         state.autoplay = v;
- *         ui.showHUD("info", "Autoplay: " + (v ? "ON" : "OFF"));
+ *         ui.showHUD("info", "Автовоспроизведение: " + (v ? "ВКЛ" : "ВЫКЛ"));
  *       })
  *   );
  * }
@@ -174,9 +174,9 @@ export class ToggleBuilder extends UIComponent {
   }
 
   /**
-   * The text label displayed to the right of the toggle.
+   * Текстовый ярлык, отображаемый справа от переключателя.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   label(v: string): this {
     this._label = v;
@@ -184,9 +184,9 @@ export class ToggleBuilder extends UIComponent {
   }
 
   /**
-   * An additional description (small font text) displayed below the toggle label.
+   * Дополнительное описание (текст мелким шрифтом), отображаемое под меткой переключателя.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   description(v: string): this {
     this._description = v;
@@ -194,9 +194,9 @@ export class ToggleBuilder extends UIComponent {
   }
 
   /**
-   * The current boolean state of the toggle (true / false).
+   * Текущее булево состояние переключателя (true / false).
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   value(v: boolean): this {
@@ -205,18 +205,18 @@ export class ToggleBuilder extends UIComponent {
   }
 
   /**
-   * A deprecated synonym for value.
+   * Устаревший (deprecated) синоним для value.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   checked(v: boolean): this {
     return this.value(v);
   }
 
   /**
-   * A click handler that returns the new boolean state of the switch.
+   * Обработчик клика, возвращающий новое булево состояние свитча.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onChange(cb: CallbackFunction): this {
     this._onChange = cb;

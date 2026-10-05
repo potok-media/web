@@ -55,6 +55,7 @@ const areMediaCardComponentsEqual = (
 export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
   ({ item, onClick, style, showContinueOverlay = false }) => {
     const [hasError, setHasError] = useState(false);
+    const [isPosterLoaded, setIsPosterLoaded] = useState(false);
     const [paintUncontained, setPaintUncontained] = useState(false);
     const cardRef = useRef<HTMLAnchorElement>(null);
     const isElevatedRef = useRef(false);
@@ -94,6 +95,8 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
     const { bannerQuality } = useSettings();
     const { t } = useTranslation("media");
     const posterSrc = resizeTmdbImage(item.posterSrc, posterSizeForQuality(bannerQuality));
+    // Blur-up underlay: the tiny w92 render of the same poster, swapped out when the real one lands.
+    const lqipSrc = posterSrc ? resizeTmdbImage(posterSrc, "w92") : undefined;
 
     const handleImageError = () => {
       setHasError(true);
@@ -138,6 +141,22 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
         style={style}
       >
         <div className="media-poster-wrap" onTransitionEnd={handlePosterTransitionEnd}>
+          {lqipSrc && !hasError && (
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                inset: 0,
+                backgroundImage: `url(${lqipSrc})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                filter: "blur(0.75rem)",
+                transform: "scale(1.1)",
+                opacity: isPosterLoaded ? 0 : 1,
+                transition: "opacity 300ms ease",
+              }}
+            />
+          )}
           {posterSrc && !hasError ? (
             <img
               src={posterSrc}
@@ -146,6 +165,7 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
               decoding="async"
               onLoad={(e) => {
                 e.currentTarget.classList.add("is-visible");
+                setIsPosterLoaded(true);
               }}
               onError={handleImageError}
               className="media-poster media-poster--fade-in"

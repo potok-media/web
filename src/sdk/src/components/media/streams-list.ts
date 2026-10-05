@@ -3,17 +3,17 @@ import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 import type { SDKRawStreamPayload } from "../../types";
 
 /**
- * StreamList (Stream list)
- *
- * A ready-made list of releases with an integrated filter bar for video quality and file size. Includes a loading indicator and an empty-list placeholder.
- *
+ * StreamList (Список потоков)
+ * 
+ * Готовый список раздач с интегрированной панелью фильтрации по качеству видео и весу файлов. Включает индикатор загрузки и заглушку пустого списка.
+ * 
  * @example
- * // Release list with filtering
+ * // Список раздач с фильтрацией
  * const { ui } = PotokSDK;
- *
+ * 
  * const streams = [
  *   {
- *     title: "Interstellar (2014) BDRip [1080p]",
+ *     title: "Интерстеллар (2014) BDRip [1080p]",
  *     size: "14.5 GB",
  *     seeds: 120,
  *     peers: 15,
@@ -21,22 +21,18 @@ import type { SDKRawStreamPayload } from "../../types";
  *     tracker: "Rutracker"
  *   }
  * ];
- *
- * const state = PotokSDK.createState({ streams: [], searching: true });
- *
- * function draw() {
- *   ui.render(
- *     StreamList()
- *       .streams(state.streams)
- *       .searching(state.searching)
- *       .showFilters(true)
- *       .emptyText("No streams found")
- *       .onSelectStream((stream) => {
- *         ui.showHUD("success", "Selected stream: " + stream.title);
- *       })
- *   );
- * }
- * state.$subscribe(draw); draw();
+ * 
+ * ui.render(
+ *   StreamList()
+ *     .streams(streams)
+ *     .loading(false)
+ *     .showFilters(true)
+ *     .emptyText("Потоки не найдены")
+ *     .nounPlurals(["раздача", "раздачи", "раздач"])
+ *     .onSelectStream((stream) => {
+ *       ui.showHUD("success", "Выбран стрим: " + stream.title);
+ *     })
+ * );
  */
 export class StreamListBuilder extends UIComponent {
   private _streams: unknown[];
@@ -56,9 +52,9 @@ export class StreamListBuilder extends UIComponent {
   }
 
   /**
-   * Array of releases to render. Each release must match the StreamRow parameters.
+   * Массив раздач для рендеринга. Каждая раздача должна соответствовать параметрам StreamRow.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   streams(v: SDKRawStreamPayload[]): this {
@@ -67,9 +63,9 @@ export class StreamListBuilder extends UIComponent {
   }
 
   /**
-   * When true, puts the list into a loading state and shows shimmering placeholders.
+   * При true переводит список в состояние загрузки и отображает мерцающие плейсхолдеры.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   loading(v: boolean): this {
@@ -90,9 +86,9 @@ export class StreamListBuilder extends UIComponent {
   }
 
   /**
-   * Controls the display of the quick filter bar for quality and trackers.
+   * Управляет отображением панели быстрой фильтрации по качеству и трекерам.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   showFilters(v: boolean): this {
@@ -101,10 +97,10 @@ export class StreamListBuilder extends UIComponent {
   }
 
   /**
-   * Message displayed on screen when there are no items.
+   * Сообщение, отображаемое на экране при отсутствии элементов.
    *
-   * @param v Method value
-   * @default 'No releases found'
+   * @param v Значение метода
+   * @default 'Раздачи не найдены'
    */
   emptyText(v: string): this {
     this._emptyText = v;
@@ -112,9 +108,9 @@ export class StreamListBuilder extends UIComponent {
   }
 
   /**
-   * Array of three plural forms for correctly rendering release counts (for example, ['release', 'releases', 'releases']).
+   * Массив из трех склонений для правильного вывода числительных раздач (например, ['раздача', 'раздачи', 'раздач']).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   nounPlurals(v: string[]): this {
     this._nounPlurals = v;
@@ -122,9 +118,9 @@ export class StreamListBuilder extends UIComponent {
   }
 
   /**
-   * Callback invoked when a stream is selected. Passes the selected stream object.
+   * Коллбек-функция, вызываемая при выборе потока. Передает выбранный объект стрима.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onSelectStream(cb: CallbackFunction): this {
     this._onSelectStream = cb;

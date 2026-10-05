@@ -2,36 +2,36 @@ import { UIComponent, LayoutComponent, type CompiledComponent } from "../base";
 import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 
 /**
- * Modal (Modal window)
- *
- * A portal window on top of the app: a dialog, sheet, or popover. Closes on ESC and a backdrop click. Controlled by the open state; the content can be any child components.
- *
+ * Modal (Модальное окно)
+ * 
+ * Портальное окно поверх приложения: диалог, шторка (sheet) или поповер. Закрывается по ESC и клику на фон. Управляется состоянием open; содержимое — любые дочерние компоненты.
+ * 
  * @example
- * // Confirmation dialog
+ * // Диалог подтверждения
  * const { ui, createState } = PotokSDK;
  * const state = createState({ open: false });
- *
+ * 
  * function draw() {
  *   ui.render(
  *     VStack()
  *       .spacing(12)
  *       .children([
- *         Button("Open window").onClick(() => state.open = true),
+ *         Button("Открыть окно").onClick(() => state.open = true),
  *         Modal()
  *           .open(state.open)
- *           .title("Confirmation")
+ *           .title("Подтверждение")
  *           .variant("modal")
  *           .closeOnBackdrop(true)
  *           .onClose(() => state.open = false)
- *           .child(Text("Are you sure you want to continue?").variant("secondary"))
+ *           .child(Text("Вы уверены, что хотите продолжить?").variant("secondary"))
  *           .child(
  *             HStack()
  *               .spacing(8)
  *               .children([
- *                 Button("Cancel").variant("secondary").onClick(() => state.open = false),
- *                 Button("Continue").variant("primary").onClick(() => {
+ *                 Button("Отмена").variant("secondary").onClick(() => state.open = false),
+ *                 Button("Продолжить").variant("primary").onClick(() => {
  *                   state.open = false;
- *                   ui.showHUD("success", "Done");
+ *                   ui.showHUD("success", "Готово");
  *                 })
  *               ])
  *           )
@@ -52,36 +52,36 @@ export class ModalBuilder extends LayoutComponent {
   }
 
   /**
-   * Controls the visibility of the window.
+   * Управляет видимостью окна.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   open(v: boolean): this { this._open = v; return this; }
   /**
-   * The title in the window header.
+   * Заголовок в шапке окна.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   title(v: string): this { this._title = v; return this; }
   /**
-   * The overlay type: a centered dialog, a bottom sheet, or a popover.
+   * Тип оверлея: центрированный диалог, нижняя шторка или поповер.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'modal'
    */
   variant(v: "modal" | "sheet" | "popover"): this { this._variant = v; return this; }
   /**
-   * Close the window on a click on the dimmed backdrop.
+   * Закрывать окно по клику на затемнённый фон.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default true
    */
   closeOnBackdrop(v: boolean): this { this._closeOnBackdrop = v; return this; }
   /**
-   * Close callback (ESC, backdrop click).
+   * Коллбек закрытия (ESC, клик на фон).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onClose(cb: CallbackFunction): this { this._onClose = cb; return this; }
 
@@ -99,22 +99,22 @@ export class ModalBuilder extends LayoutComponent {
 }
 
 /**
- * Collapsible (Collapsible section)
- *
- * A section with a clickable header and a collapsible body. Controlled by the open state; several sections in a row form an accordion.
- *
+ * Collapsible (Сворачиваемая секция)
+ * 
+ * Секция с кликабельным заголовком и скрываемым телом. Управляется состоянием open; несколько секций подряд образуют аккордеон.
+ * 
  * @example
- * // Expandable settings section
+ * // Раскрывающаяся секция настроек
  * const { ui, createState } = PotokSDK;
  * const state = createState({ open: true });
- *
+ * 
  * function draw() {
  *   ui.render(
- *     Collapsible("Additional options")
+ *     Collapsible("Дополнительные параметры")
  *       .open(state.open)
  *       .onToggle((open) => state.open = open)
- *       .child(Text("Hidden section content.").variant("secondary"))
- *       .child(Toggle("adv").label("Expert mode").value(false).onChange(() => {}))
+ *       .child(Text("Скрытое содержимое секции.").variant("secondary"))
+ *       .child(Toggle("adv").label("Экспертный режим").value(false).onChange(() => {}))
  *   );
  * }
  * state.$subscribe(draw); draw();
@@ -136,16 +136,16 @@ export class CollapsibleBuilder extends LayoutComponent {
    */
   title(v: string): this { this._title = v; return this; }
   /**
-   * Whether the section is expanded.
+   * Раскрыта ли секция.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   open(v: boolean): this { this._open = v; return this; }
   /**
-   * Toggle callback. Passes the new boolean state.
+   * Коллбек переключения. Передаёт новое булево состояние.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onToggle(cb: CallbackFunction): this { this._onToggle = cb; return this; }
 
@@ -163,18 +163,18 @@ export class CollapsibleBuilder extends LayoutComponent {
 }
 
 /**
- * Tooltip (Tooltip)
- *
- * Wraps a child element and shows a text tooltip on hover or focus.
- *
+ * Tooltip (Всплывающая подсказка)
+ * 
+ * Оборачивает дочерний элемент и показывает текстовую подсказку при наведении или фокусе.
+ * 
  * @example
- * // Tooltip on a button
+ * // Подсказка на кнопке
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
- *   Tooltip("Delete permanently")
+ *   Tooltip("Удалить навсегда")
  *     .placement("top")
- *     .child(Button("Delete").variant("danger"))
+ *     .child(Button("Удалить").variant("danger"))
  * );
  */
 export class TooltipBuilder extends UIComponent {
@@ -188,16 +188,16 @@ export class TooltipBuilder extends UIComponent {
   }
 
   /**
-   * The position of the tooltip relative to the element.
+   * Позиция подсказки относительно элемента.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'top'
    */
   placement(v: "top" | "bottom" | "left" | "right"): this { this._placement = v; return this; }
   /**
-   * The wrapped element the tooltip is attached to.
+   * Обёрнутый элемент, к которому привязана подсказка.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   child(elm: UIComponent): this { this._child = elm; return this; }
 

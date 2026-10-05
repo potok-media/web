@@ -3,14 +3,14 @@ import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 import type { SDKContentItem } from "../../types";
 
 /**
- * ContentCard (Generic card)
- *
- * A content card that is NOT tied to the TMDB shape. Draws the poster, badges, progress bar and title from your own data model (SDKContentItem: id, title, subtitle, image, wideImage, badges, meta, progress, rank).
- *
+ * ContentCard (Универсальная карточка)
+ * 
+ * Карточка контента, НЕ привязанная к форме TMDB. Рисует постер, бейджи, полосу прогресса и заголовок из вашей собственной модели данных (SDKContentItem: id, title, subtitle, image, wideImage, badges, meta, progress, rank).
+ * 
  * @example
- * // Card from your own data
+ * // Карточка из своих данных
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   ContentCard()
  *     .item({
@@ -24,7 +24,7 @@ import type { SDKContentItem } from "../../types";
  *       rank: 1
  *     })
  *     .orientation("portrait")
- *     .onClick((item) => ui.showHUD("info", "Opened: " + item.title))
+ *     .onClick((item) => ui.showHUD("info", "Открыто: " + item.title))
  * );
  */
 export class ContentCardBuilder extends UIComponent {
@@ -38,9 +38,9 @@ export class ContentCardBuilder extends UIComponent {
   }
 
   /**
-   * Content object: id, title, subtitle, image, wideImage, badges, meta, progress, rank, href.
+   * Объект контента: id, title, subtitle, image, wideImage, badges, meta, progress, rank, href.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   item(v: SDKContentItem): this {
     this._item = v;
@@ -48,9 +48,9 @@ export class ContentCardBuilder extends UIComponent {
   }
 
   /**
-   * Card orientation: vertical poster or wide still.
+   * Ориентация карточки: вертикальный постер или широкий кадр.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'portrait'
    */
   orientation(v: "portrait" | "landscape"): this {
@@ -59,9 +59,9 @@ export class ContentCardBuilder extends UIComponent {
   }
 
   /**
-   * Callback on a click on the card. Passes the content object.
+   * Коллбек клика по карточке. Передаёт объект контента.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onClick(cb: CallbackFunction): this {
     this._onClick = cb;
@@ -82,27 +82,27 @@ export class ContentCardBuilder extends UIComponent {
 }
 
 /**
- * ContentRow (Generic carousel)
- *
- * A horizontal row of ContentCard cards from your own data model (SDKContentItem[]). A generalized version of MediaRow without TMDB coupling: section title, "Show all" button and D-pad scrolling.
- *
+ * ContentRow (Универсальная карусель)
+ * 
+ * Горизонтальный ряд карточек ContentCard из вашей собственной модели данных (SDKContentItem[]). Обобщённая версия MediaRow без привязки к TMDB: заголовок секции, кнопка «Показать все» и D-pad-скролл.
+ * 
  * @example
- * // Category row from your own data
+ * // Ряд категории из своих данных
  * const { ui } = PotokSDK;
- *
+ * 
  * const items = [
- *   { id: "1", title: "Item 1", image: "https://image.tmdb.org/t/p/w500/9O1Iy9od7uEuw6Bs4POV62Zzg2H.jpg" },
- *   { id: "2", title: "Item 2", image: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg" }
+ *   { id: "1", title: "Элемент 1", image: "https://image.tmdb.org/t/p/w500/9O1Iy9od7uEuw6Bs4POV62Zzg2H.jpg" },
+ *   { id: "2", title: "Элемент 2", image: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg" }
  * ];
- *
+ * 
  * ui.render(
  *   ContentRow()
- *     .title("My selection")
+ *     .title("Моя подборка")
  *     .items(items)
  *     .orientation("portrait")
- *     .seeAllLabel("All")
- *     .onCardClick((item) => ui.showHUD("info", "Click: " + item.title))
- *     .onSeeAllClick(() => ui.showHUD("success", "Show all"))
+ *     .seeAllLabel("Все")
+ *     .onCardClick((item) => ui.showHUD("info", "Клик: " + item.title))
+ *     .onSeeAllClick(() => ui.showHUD("success", "Показать все"))
  * );
  */
 export class ContentRowBuilder extends UIComponent {
@@ -119,9 +119,9 @@ export class ContentRowBuilder extends UIComponent {
   }
 
   /**
-   * Row section title.
+   * Заголовок секции ряда.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   title(v: string): this {
     this._title = v;
@@ -129,9 +129,9 @@ export class ContentRowBuilder extends UIComponent {
   }
 
   /**
-   * Array of content for the row cards.
+   * Массив контента для карточек ряда.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   items(v: SDKContentItem[]): this {
@@ -140,9 +140,9 @@ export class ContentRowBuilder extends UIComponent {
   }
 
   /**
-   * Orientation of the row cards.
+   * Ориентация карточек ряда.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'portrait'
    */
   orientation(v: "portrait" | "landscape"): this {
@@ -151,9 +151,9 @@ export class ContentRowBuilder extends UIComponent {
   }
 
   /**
-   * Text of the "Show all" button (the button appears only if onSeeAllClick is set).
+   * Текст кнопки «Показать все» (кнопка появляется только если задан onSeeAllClick).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   seeAllLabel(v: string): this {
     this._seeAllLabel = v;
@@ -161,9 +161,9 @@ export class ContentRowBuilder extends UIComponent {
   }
 
   /**
-   * Callback on a click on any card in the row.
+   * Коллбек клика по любой карточке ряда.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onCardClick(cb: CallbackFunction): this {
     this._onCardClick = cb;
@@ -171,9 +171,9 @@ export class ContentRowBuilder extends UIComponent {
   }
 
   /**
-   * Callback on a click on the "Show all" button.
+   * Коллбек клика по кнопке «Показать все».
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onSeeAllClick(cb: CallbackFunction): this {
     this._onSeeAllClick = cb;

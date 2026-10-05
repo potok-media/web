@@ -2,30 +2,30 @@ import { UIComponent, type CompiledComponent } from "../base";
 import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 
 /**
- * StreamFilterBar (Sort bar)
- *
- * A ready-made control bar for sorting and filtering found releases. Lets you quickly switch video quality, choose a tracker and sort releases (by size, by seeders).
- *
+ * StreamFilterBar (Панель сортировки)
+ * 
+ * Готовая панель управления сортировкой и фильтрацией найденных раздач. Позволяет быстро переключать качество видео, выбирать трекер и сортировать раздачи (по весу, по сидерам).
+ * 
  * @example
- * // Filter bar
+ * // Панель фильтров
  * const { ui, createState } = PotokSDK;
  * const state = createState({ sort: "seeds" });
- *
+ * 
  * function draw() {
  *   ui.render(
  *     StreamFilterBar()
- *       .countLabel("Total found: 8 torrents")
+ *       .countLabel("Всего найдено: 8 торрентов")
  *       .qualityFilter("1080p")
  *       .activeTracker("Rutracker")
  *       .trackers(["Rutracker", "Kinozal"])
  *       .showSort(true)
  *       .sortOption(state.sort)
- *       .onRefresh(() => ui.showHUD("info", "Refreshing search"))
- *       .onQualityChange((q) => ui.showHUD("info", "Quality: " + q))
- *       .onTrackerChange((t) => ui.showHUD("info", "Tracker: " + t))
+ *       .onRefresh(() => ui.showHUD("info", "Обновление поиска"))
+ *       .onQualityChange((q) => ui.showHUD("info", "Качество: " + q))
+ *       .onTrackerChange((t) => ui.showHUD("info", "Трекер: " + t))
  *       .onSortChange((s) => {
  *         state.sort = s;
- *         ui.showHUD("success", "Sort: " + s);
+ *         ui.showHUD("success", "Сортировка: " + s);
  *       })
  *   );
  * }
@@ -49,9 +49,9 @@ export class StreamFilterBarBuilder extends UIComponent {
   }
 
   /**
-   * Text line with the number of found releases (shown on the left).
+   * Текстовая строка с количеством найденных раздач (выводится слева).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   countLabel(v: string): this {
     this._countLabel = v;
@@ -59,9 +59,9 @@ export class StreamFilterBarBuilder extends UIComponent {
   }
 
   /**
-   * Sets the currently selected quality for filtering (for example, '1080p').
+   * Устанавливает текущее выбранное качество для фильтрации (например, '1080p').
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   qualityFilter(v: string): this {
     this._qualityFilter = v;
@@ -69,9 +69,9 @@ export class StreamFilterBarBuilder extends UIComponent {
   }
 
   /**
-   * Sets the active selected tracker for filtering.
+   * Устанавливает активный выбранный трекер для фильтрации.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   activeTracker(v: string): this {
     this._activeTracker = v;
@@ -79,9 +79,9 @@ export class StreamFilterBarBuilder extends UIComponent {
   }
 
   /**
-   * Array of tracker names to display in the source filter.
+   * Массив названий трекеров для отображения в фильтре по источникам.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   trackers(v: string[]): this {
@@ -90,9 +90,9 @@ export class StreamFilterBarBuilder extends UIComponent {
   }
 
   /**
-   * Enables or disables the display of the sort dropdown on the right side of the bar.
+   * Включает или выключает отображение выпадающего списка сортировки в правой части панели.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default true
    */
   showSort(v: boolean): this {
@@ -101,9 +101,9 @@ export class StreamFilterBarBuilder extends UIComponent {
   }
 
   /**
-   * The current active sort option (for example, 'seeds' or 'size').
+   * Текущий активный вариант сортировки (например, 'seeds' или 'size').
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   sortOption(v: string): this {
     this._sortOption = v;
@@ -111,9 +111,9 @@ export class StreamFilterBarBuilder extends UIComponent {
   }
 
   /**
-   * Callback on clicking the "Refresh search" button.
+   * Коллбек при клике на кнопку «Обновить поиск».
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onRefresh(cb: CallbackFunction): this {
     this._onRefresh = cb;
@@ -121,9 +121,9 @@ export class StreamFilterBarBuilder extends UIComponent {
   }
 
   /**
-   * Callback when the selected video resolution changes.
+   * Коллбек смены выбранного разрешения видео.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onQualityChange(cb: CallbackFunction): this {
     this._onQualityChange = cb;
@@ -131,9 +131,9 @@ export class StreamFilterBarBuilder extends UIComponent {
   }
 
   /**
-   * Callback when the active tracker changes.
+   * Коллбек смены активного трекера.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onTrackerChange(cb: CallbackFunction): this {
     this._onTrackerChange = cb;
@@ -141,9 +141,9 @@ export class StreamFilterBarBuilder extends UIComponent {
   }
 
   /**
-   * Callback when the release sort order changes.
+   * Коллбек при изменении порядка сортировки раздач.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onSortChange(cb: CallbackFunction): this {
     this._onSortChange = cb;

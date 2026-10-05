@@ -674,6 +674,25 @@
       "playbackInfoEmpty": "Не удалось получить информацию о воспроизведении: пустой ответ от плагина",
       "fileSelection": "Выбор файла",
       "episodeSelection": "Выбор серии"
+    },
+    "search": {
+      "palettePlaceholder": "Фильмы, сериалы, аниме...",
+      "recentTitle": "Недавние запросы",
+      "trendingTitle": "Популярное сейчас",
+      "matchedOn": "Совпадение:",
+      "showAll": "Показать все ({{count}})",
+      "chips": {
+        "all": "Все"
+      },
+      "type": {
+        "anime": "Аниме",
+        "movie": "Фильмы",
+        "tv": "Сериалы"
+      },
+      "seasons_one": "{{count}} сезон",
+      "seasons_few": "{{count}} сезона",
+      "seasons_many": "{{count}} сезонов",
+      "seasons_other": "{{count}} сезона"
     }
   },
   "profile": {

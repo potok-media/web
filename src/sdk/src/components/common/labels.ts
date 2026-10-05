@@ -2,20 +2,20 @@ import { UIComponent, type CompiledComponent } from "../base";
 import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 
 /**
- * Badge (Badge)
- *
- * A compact rounded label with a colored background. Suitable for showing video quality, subscription statuses, "New" labels, and other tags.
- *
+ * Badge (Бейдж)
+ * 
+ * Компактная закругленная метка с цветным фоном. Подходит для вывода качества видео, статусов подписки, меток «Новинка» и других тегов.
+ * 
  * @example
- * // Badges
+ * // Бейджи
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   HStack()
  *     .spacing(8)
  *     .child(Badge("FullHD").color("info"))
- *     .child(Badge("New").color("success"))
- *     .child(Badge("Popular").color("warning"))
+ *     .child(Badge("Новое").color("success"))
+ *     .child(Badge("Популярное").color("warning"))
  *     .child(Badge("18+").color("error"))
  * );
  */
@@ -30,9 +30,9 @@ export class BadgeBuilder extends UIComponent {
   }
 
   /**
-   * The fill color scheme of the badge.
+   * Цветовая схема заливки бейджа.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'info'
    */
   color(v: string): this {
@@ -49,23 +49,23 @@ export class BadgeBuilder extends UIComponent {
 }
 
 /**
- * StatusRow (Status row)
- *
- * A component for displaying the state of external systems or connections with a colored indicator (dot) and a text value.
- *
+ * StatusRow (Строка статуса)
+ * 
+ * Компонент для отображения состояния внешних систем или соединений с цветным индикатором (точкой) и текстовым значением.
+ * 
  * @example
- * // Status rows
+ * // Строки статуса
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   Card()
- *     .title("System status")
+ *     .title("Состояние системы")
  *     .child(
  *       VStack()
  *         .spacing(8)
- *         .child(StatusRow("Primary server (BFF)").status("success").value("Active (18ms)"))
- *         .child(StatusRow("Local proxy server").status("warning").value("Timeout (450ms)"))
- *         .child(StatusRow("Backup mirror").status("offline").value("Unavailable"))
+ *         .child(StatusRow("Основной сервер (BFF)").status("success").value("Активен (18ms)"))
+ *         .child(StatusRow("Локальный прокси-сервер").status("warning").value("Таймаут (450ms)"))
+ *         .child(StatusRow("Резервное зеркало").status("offline").value("Недоступно"))
  *     )
  * );
  */
@@ -80,9 +80,9 @@ export class StatusRowBuilder extends UIComponent {
   }
 
   /**
-   * The status state (changes the dot color: green/yellow/gray respectively).
+   * Состояние статуса (меняет цвет точки: зеленый/желтый/серый соответственно).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   status(v: string): this {
     this._status = v;
@@ -90,9 +90,9 @@ export class StatusRowBuilder extends UIComponent {
   }
 
   /**
-   * The text value aligned to the right edge of the row (for example, '24 ms' or 'v1.2.0').
+   * Текстовое значение, выравниваемое по правому краю строки (например, '24 ms' или 'v1.2.0').
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   value(v: string): this {
     this._value = v;
@@ -109,19 +109,19 @@ export class StatusRowBuilder extends UIComponent {
 }
 
 /**
- * SectionHeader (Section header)
- *
- * A page section header with an optional subtitle and action button ("Show all").
- *
+ * SectionHeader (Заголовок секции)
+ * 
+ * Заголовок раздела страницы с необязательным подзаголовком и кнопкой действия («Показать все»).
+ * 
  * @example
- * // Section header
+ * // Заголовок раздела
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
- *   SectionHeader("Continue watching")
- *     .subtitle("12 movies and shows")
- *     .actionLabel("Show all")
- *     .onAction(() => ui.showHUD("info", "All section items"))
+ *   SectionHeader("Продолжить просмотр")
+ *     .subtitle("12 фильмов и сериалов")
+ *     .actionLabel("Показать все")
+ *     .onAction(() => ui.showHUD("info", "Все элементы раздела"))
  * );
  */
 export class SectionHeaderBuilder extends UIComponent {
@@ -136,21 +136,21 @@ export class SectionHeaderBuilder extends UIComponent {
   }
 
   /**
-   * The subtitle below the main heading.
+   * Подзаголовок под основным заголовком.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   subtitle(v: string): this { this._subtitle = v; return this; }
   /**
-   * The text of the action button on the right (the button appears only if onAction is set).
+   * Текст кнопки действия справа (кнопка появляется только если задан onAction).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   actionLabel(v: string): this { this._actionLabel = v; return this; }
   /**
-   * Callback for a click on the action button.
+   * Коллбек клика по кнопке действия.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onAction(cb: CallbackFunction): this { this._onAction = cb; return this; }
 
@@ -168,19 +168,19 @@ export class SectionHeaderBuilder extends UIComponent {
 }
 
 /**
- * Alert (Inline notification)
- *
- * A colored notification banner (info/success/warning/error) with an icon, title, and text.
- *
+ * Alert (Инлайн-уведомление)
+ * 
+ * Цветной баннер уведомления (info/success/warning/error) с иконкой, заголовком и текстом.
+ * 
  * @example
- * // Notifications
+ * // Уведомления
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   VStack()
  *     .spacing(10)
- *     .child(Alert("Connection established").variant("success").icon("check-circle"))
- *     .child(Alert("Check the server settings").variant("warning").title("Warning").icon("alert-triangle"))
+ *     .child(Alert("Соединение установлено").variant("success").icon("check-circle"))
+ *     .child(Alert("Проверьте настройки сервера").variant("warning").title("Внимание").icon("alert-triangle"))
  * );
  */
 export class AlertBuilder extends UIComponent {
@@ -195,22 +195,22 @@ export class AlertBuilder extends UIComponent {
   }
 
   /**
-   * The notification title.
+   * Заголовок уведомления.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   title(v: string): this { this._title = v; return this; }
   /**
-   * The color scheme of the notification.
+   * Цветовая схема уведомления.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'info'
    */
   variant(v: "info" | "success" | "warning" | "error"): this { this._variant = v; return this; }
   /**
-   * The Lucide icon name (by default chosen based on variant).
+   * Имя иконки Lucide (по умолчанию подбирается по variant).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   icon(v: string): this { this._icon = v; return this; }
 

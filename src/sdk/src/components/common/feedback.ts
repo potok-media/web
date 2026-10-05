@@ -2,18 +2,18 @@ import { UIComponent, type CompiledComponent } from "../base";
 import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 
 /**
- * ProgressBar (Progress bar)
- *
- * A horizontal progress indicator (0..1) with an optional label and percentage.
- *
+ * ProgressBar (Полоса прогресса)
+ * 
+ * Горизонтальный индикатор прогресса (0..1) с необязательной подписью и процентом.
+ * 
  * @example
- * // Progress bars
+ * // Полосы прогресса
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   VStack()
  *     .spacing(12)
- *     .child(ProgressBar().value(0.35).label("Loading").showValue(true))
+ *     .child(ProgressBar().value(0.35).label("Загрузка").showValue(true))
  *     .child(ProgressBar().value(0.8).variant("success"))
  * );
  */
@@ -29,29 +29,29 @@ export class ProgressBarBuilder extends UIComponent {
   }
 
   /**
-   * The progress value from 0 to 1.
+   * Значение прогресса от 0 до 1.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 0
    */
   value(v: number): this { this._value = v; return this; }
   /**
-   * The color of the progress bar.
+   * Цвет полосы прогресса.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'accent'
    */
   variant(v: "accent" | "success" | "warning" | "error"): this { this._variant = v; return this; }
   /**
-   * The label above the bar.
+   * Подпись над полосой.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   label(v: string): this { this._label = v; return this; }
   /**
-   * Show the percentage on the right.
+   * Показывать процент справа.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   showValue(v: boolean): this { this._showValue = v; return this; }
@@ -62,14 +62,14 @@ export class ProgressBarBuilder extends UIComponent {
 }
 
 /**
- * Skeleton (Loading placeholder)
- *
- * A generic shimmering placeholder of arbitrary size. Useful for custom loading states.
- *
+ * Skeleton (Плейсхолдер загрузки)
+ * 
+ * Обобщённый мерцающий плейсхолдер произвольного размера. Полезен для собственных состояний загрузки.
+ * 
  * @example
- * // Loading placeholders
+ * // Плейсхолдеры загрузки
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   VStack()
  *     .spacing(10)
@@ -87,15 +87,15 @@ export class SkeletonBuilder extends UIComponent {
   }
 
   /**
-   * Corner rounding: true or a CSS value.
+   * Скругление углов: true или CSS-значение.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   rounded(v: boolean | string): this { this._rounded = v; return this; }
   /**
-   * The number of repeated placeholder rows.
+   * Количество повторяющихся строк-плейсхолдеров.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 1
    */
   count(v: number): this { this._count = v; return this; }
@@ -106,21 +106,21 @@ export class SkeletonBuilder extends UIComponent {
 }
 
 /**
- * EmptyState (Empty state)
- *
- * A placeholder for empty lists and screens: an icon, title, description, and an optional action button.
- *
+ * EmptyState (Пустое состояние)
+ * 
+ * Заглушка для пустых списков и экранов: иконка, заголовок, описание и необязательная кнопка действия.
+ * 
  * @example
- * // Empty state
+ * // Пустое состояние
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   EmptyState()
  *     .icon("inbox")
- *     .title("Nothing here yet")
- *     .description("Add the first item to get started.")
- *     .actionLabel("Add")
- *     .onAction(() => ui.showHUD("info", "Creating..."))
+ *     .title("Пока ничего нет")
+ *     .description("Добавьте первый элемент, чтобы начать.")
+ *     .actionLabel("Добавить")
+ *     .onAction(() => ui.showHUD("info", "Создание..."))
  * );
  */
 export class EmptyStateBuilder extends UIComponent {
@@ -135,33 +135,33 @@ export class EmptyStateBuilder extends UIComponent {
   }
 
   /**
-   * The Lucide icon name in the center of the placeholder.
+   * Имя иконки Lucide по центру заглушки.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   icon(v: string): this { this._icon = v; return this; }
   /**
-   * The placeholder title.
+   * Заголовок заглушки.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   title(v: string): this { this._title = v; return this; }
   /**
-   * An explanatory description.
+   * Пояснительное описание.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   description(v: string): this { this._description = v; return this; }
   /**
-   * The action button text (the button appears only if set).
+   * Текст кнопки действия (кнопка появляется только если задан).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   actionLabel(v: string): this { this._actionLabel = v; return this; }
   /**
-   * Callback for a click on the action button.
+   * Коллбек клика по кнопке действия.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onAction(cb: CallbackFunction): this { this._onAction = cb; return this; }
 
@@ -179,20 +179,20 @@ export class EmptyStateBuilder extends UIComponent {
 }
 
 /**
- * FileInput (File picker)
- *
- * A file picker field with a type filter. onChange receives { names, count } — the names and count of selected files.
- *
+ * FileInput (Выбор файла)
+ * 
+ * Поле выбора файла с фильтром типов. onChange получает { names, count } — имена и количество выбранных файлов.
+ * 
  * @example
- * // Poster upload
+ * // Загрузка постера
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   FileInput("poster")
- *     .label("Upload poster")
+ *     .label("Загрузить постер")
  *     .accept("image/*")
  *     .multiple(false)
- *     .onChange((info) => ui.showHUD("info", "Files selected: " + info.count))
+ *     .onChange((info) => ui.showHUD("info", "Выбрано файлов: " + info.count))
  * );
  */
 export class FileInputBuilder extends UIComponent {
@@ -209,28 +209,28 @@ export class FileInputBuilder extends UIComponent {
   }
 
   /**
-   * The label above the field.
+   * Подпись над полем.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   label(v: string): this { this._label = v; return this; }
   /**
-   * The file type filter (for example, 'image/*').
+   * Фильтр типов файлов (например, 'image/*').
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   accept(v: string): this { this._accept = v; return this; }
   /**
-   * Allow selecting multiple files.
+   * Разрешить выбор нескольких файлов.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   multiple(v: boolean): this { this._multiple = v; return this; }
   /**
-   * Selection callback. Receives { names: string[], count }.
+   * Коллбек выбора. Получает { names: string[], count }.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onChange(cb: CallbackFunction): this { this._onChange = cb; return this; }
 

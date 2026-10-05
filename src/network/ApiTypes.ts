@@ -77,8 +77,25 @@ export interface MediaCard {
   kpId?: string;
   imdbId?: string;
   airDateTime?: string;
+  /** Potok identity of the catalog row; present on index-backed search results. */
+  potokId?: string;
+  /** Main-title highlight snippet (<mark> around matched tokens); index-backed search only. */
+  titleSnippet?: string;
+  /** Alternative-title highlight snippet when the query hit an alias, not the main title. */
+  matchedTitleSnippet?: string;
   /** Potok-owned identity; absent on older Gateways and explicit when ARM is unresolved. */
   arm?: ArmMediaSummary;
+}
+
+export interface MediaSearchFacet {
+  value: string;
+  count: number;
+}
+
+export interface MediaSearchResponse {
+  results: MediaCard[];
+  facets: MediaSearchFacet[];
+  found: number;
 }
 
 export interface WatchProgress {

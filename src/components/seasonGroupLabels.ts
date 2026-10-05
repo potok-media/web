@@ -14,6 +14,13 @@ export function orderGroupsByKind<T extends { kind?: string }>(groups: T[]): T[]
   return [...groups].sort((a, b) => kindRank(a.kind ?? "") - kindRank(b.kind ?? ""));
 }
 
+/** A TMDB season name that carries no information beyond the number ("Сезон 3" / "Season 3"). */
+const GENERIC_SEASON_TITLE = /^(сезон|season)\s*\d+$/i;
+
+export function isGenericSeasonTitle(title: string): boolean {
+  return GENERIC_SEASON_TITLE.test(title.trim());
+}
+
 /** Localized generic label for a group kind (cluster headers, fallback labels). No episode counts. */
 export function groupKindLabel(kind: string, t: TFunction<"media">): string {
   switch (kind) {
@@ -45,6 +52,10 @@ export function groupKindLabel(kind: string, t: TFunction<"media">): string {
 export function finalizeGroupTitle(group: EpisodeGroupPresentation, t: TFunction<"media">): string {
   const number = group.titleFallback?.number ?? group.displayNumber ?? null;
   if (group.title) {
+    // A generic season name ("Сезон 3") never doubles the prefix into "Сезон 3: Сезон 3".
+    if (isGenericSeasonTitle(group.title)) {
+      return group.title;
+    }
     if (group.kind === "season" && number !== null) {
       return t("seasons.seasonTitled", { number, title: group.title });
     }

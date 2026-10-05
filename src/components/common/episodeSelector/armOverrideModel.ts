@@ -1,4 +1,4 @@
-import type { ArmEpisodeFiller, ArmEpisodeLayoutResponse } from "../../../network/ArmTypes";
+import type { ArmEpisodeFiller, ArmEpisodeLayoutResponse, ArmTmdbCoordinate } from "../../../network/ArmTypes";
 import type { SDKArmBindingTarget, SDKEpisodeBindingOverride } from "../../../sdk/src/types";
 import type { EpisodeSourceSection, FileOverrideEntry, FileOverrideMode } from "./types";
 
@@ -9,6 +9,7 @@ export interface ArmOverrideEpisode {
   stillPath?: string | null;
   airDate?: string | null;
   filler?: ArmEpisodeFiller | null;
+  tmdb?: ArmTmdbCoordinate | null;
 }
 
 export interface ArmOverrideGroup {
@@ -16,14 +17,17 @@ export interface ArmOverrideGroup {
   kind: string;
   title: string;
   displayNumber?: number | null;
+  tmdbShow?: number | null;
+  tmdbSeason?: number | null;
   episodes: ArmOverrideEpisode[];
 }
 
 /**
  * Maps the v2 graph layout to picker groups. Groups arrive in the backend's kind-aware order
  * with episodes ordered by number; every canonical entry stays intact — equal display numbers
- * are not equal identities. The graph carries no display metadata: the picker renders
- * ordinals (and filler badges), titles/stills come from TMDB on the consumer side.
+ * are not equal identities. Group titles ride the layout (resolved from the structure source
+ * at read time); per-episode titles/stills overlay from TMDB by the `tmdb` coordinate on the
+ * consumer side.
  */
 export function toArmOverrideGroups(layout: ArmEpisodeLayoutResponse | null | undefined): ArmOverrideGroup[] {
   const workId = layout?.work?.id;
@@ -38,13 +42,16 @@ export function toArmOverrideGroups(layout: ArmEpisodeLayoutResponse | null | un
           ? String(episode.number) : "",
         title: "",
         filler: episode.filler,
+        tmdb: episode.tmdb ?? null,
       }));
     if (!episodes.length) return [];
     return [{
       id: group.id,
       kind: group.kind,
-      title: "",
+      title: group.title ?? "",
       displayNumber: typeof group.number === "number" && Number.isFinite(group.number) ? group.number : null,
+      tmdbShow: group.tmdbShow ?? null,
+      tmdbSeason: group.tmdbSeason ?? null,
       episodes,
     }];
   });

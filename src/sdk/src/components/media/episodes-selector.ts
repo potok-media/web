@@ -3,42 +3,42 @@ import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 import type { SDKStreamEpisode, SDKTvSeason } from "../../types";
 
 /**
- * EpisodeSelector (Modal episode selector)
- *
- * A built-in modal selector for detailed selection of episodes and seasons of a series, with scrolling and a background poster.
- *
+ * EpisodeSelector (Модальный выбор серий)
+ * 
+ * Встроенный модальный селектор для детального выбора серий и сезонов сериала с прокруткой и фоновым постером.
+ * 
  * @example
- * // Modal selector
+ * // Модальный селектор
  * const { ui, createState } = PotokSDK;
  * const state = createState({ open: false });
- *
+ * 
  * const mockEp = {
  *   id: "s01e01",
  *   season: 1,
  *   episode: 1,
  *   rawSeason: 1,
  *   rawEpisode: 1,
- *   title: "Winter Is Coming",
+ *   title: "Зима близко",
  *   fileName: "Show.S01E01.mkv",
  *   stillPath: "https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg",
  *   airDate: "2011-04-17",
  *   isWatched: false,
  *   sizeLabel: "1.2 GB",
  *   audios: [
- *     { id: "ru", name: "Russian dub", url: "http://example.com/s01e01_ru.m3u8" }
+ *     { id: "ru", name: "Русский дубляж", url: "http://example.com/s01e01_ru.m3u8" }
  *   ],
  *   url: "http://example.com/s01e01.m3u8"
  * };
- *
+ * 
  * function draw() {
  *   ui.render(
  *     VStack()
- *       .child(Button("Select episode").onClick(() => state.open = true))
+ *       .child(Button("Выбрать серию").onClick(() => state.open = true))
  *       .child(
  *         EpisodeSelector()
  *           .isOpen(state.open)
- *           .title("Game of Thrones")
- *           .subtitle("Choose an episode to watch")
+ *           .title("Игра Престолов")
+ *           .subtitle("Выберите серию для просмотра")
  *           .backdropSrc("https://image.tmdb.org/t/p/original/example.jpg")
  *           .seasonsLoading(false)
  *           .seasons([{
@@ -49,23 +49,23 @@ import type { SDKStreamEpisode, SDKTvSeason } from "../../types";
  *               id: 101,
  *               episodeNumber: 1,
  *               episode_number: 1,
- *               name: "Winter Is Coming",
+ *               name: "Зима близко",
  *               stillPath: "https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg",
  *               airDate: "2011-04-17",
- *               overview: "Episode description"
+ *               overview: "Описание серии"
  *             }]
  *           }])
  *           .episodes([mockEp])
  *           .onClose(() => state.open = false)
  *           .onPlay((ep, audioId) => {
  *             state.open = false;
- *             ui.showHUD("success", "Launching: " + ep.title + " (" + audioId + ")");
+ *             ui.showHUD("success", "Запускаем: " + ep.title + " (" + audioId + ")");
  *           })
  *           .onApplyOverride(({ sourceSeason, targetSeason, offset }) => {
  *             ui.showHUD("info", "Override: " + sourceSeason + " -> " + targetSeason + " (offset " + offset + ")");
  *           })
  *           .onStartEditing(() => {
- *             ui.showHUD("info", "Editing seasons");
+ *             ui.showHUD("info", "Редактирование сезонов");
  *           })
  *       )
  *   );
@@ -92,9 +92,9 @@ export class EpisodeSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Controls the visibility of the modal window.
+   * Управляет видимостью модального окна.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   isOpen(v: boolean): this {
@@ -103,9 +103,9 @@ export class EpisodeSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Main title of the modal window (series title).
+   * Главный заголовок модального окна (название сериала).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   title(v: string): this {
     this._title = v;
@@ -113,9 +113,9 @@ export class EpisodeSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Subtitle (description).
+   * Подзаголовок (описание).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   subtitle(v: string): this {
     this._subtitle = v;
@@ -123,9 +123,9 @@ export class EpisodeSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Array of episodes for the currently selected season.
+   * Массив серий выбранного в данный момент сезона.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   episodes(v: SDKStreamEpisode[]): this {
@@ -134,9 +134,9 @@ export class EpisodeSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Link to the background promo image.
+   * Ссылка на фоновое промо-изображение.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   backdropSrc(v: string): this {
     this._backdropSrc = v;
@@ -144,9 +144,9 @@ export class EpisodeSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Loading state of the episode lists (when true shows a loading spinner).
+   * Состояние загрузки списков серий (при true отображает спиннер загрузки).
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   seasonsLoading(v: boolean): this {
@@ -155,9 +155,9 @@ export class EpisodeSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Array of available seasons to display in the tabs.
+   * Массив доступных сезонов для отображения во вкладках.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   seasons(v: SDKTvSeason[]): this {
@@ -166,9 +166,9 @@ export class EpisodeSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Callback triggered when the modal window is closed.
+   * Коллбек, срабатывающий при закрытии модального окна.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onClose(cb: CallbackFunction): this {
     this._onClose = cb;
@@ -176,9 +176,9 @@ export class EpisodeSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Callback on a click to play an episode in the selector.
+   * Коллбек при клике на воспроизведение серии в селекторе.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onPlay(cb: CallbackFunction): this {
     this._onPlay = cb;
@@ -186,9 +186,9 @@ export class EpisodeSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Callback when the episode parameters are overridden.
+   * Коллбек при переопределении параметров серии.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onApplyOverride(cb: CallbackFunction): this {
     this._onApplyOverride = cb;
@@ -196,9 +196,9 @@ export class EpisodeSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Callback at the start of editing episodes.
+   * Коллбек в начале редактирования серий.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onStartEditing(cb: CallbackFunction): this {
     this._onStartEditing = cb;

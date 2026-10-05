@@ -94,7 +94,8 @@ describe("ARM episode override picker states", () => {
     expect(html).toContain("episode.fallbackName:1");
     expect(html).toContain('data-episode-id="ova-episode"');
     expect(html).toContain("episode.annotationFiller");
-    expect(html).toContain('type="search"');
+    // No search field: the card grid itself is the picker.
+    expect(html).not.toContain('type="search"');
   });
 
   it("keeps the legacy picker available for plugins without canonical binding", () => {

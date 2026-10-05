@@ -1,19 +1,19 @@
 import { UIComponent, LayoutComponent, type CompiledComponent } from "../base";
 
 /**
- * Card (Glass card)
- *
- * A card panel with borders, blur, and a frosted-glass effect (glassmorphism). Used to visually group logical blocks.
- *
+ * Card (Стеклянная карточка)
+ * 
+ * Панель-карточка с границами, размытием и эффектом матового стекла (glassmorphism). Используется для визуальной группировки логических блоков.
+ * 
  * @example
- * // Card
+ * // Карточка
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   Card()
- *     .title("Basic details")
- *     .subtitle("Additional information")
- *     .child(Text("This text is inside the card."))
+ *     .title("Основные сведения")
+ *     .subtitle("Дополнительная информация")
+ *     .child(Text("Внутри карточки находится этот текст."))
  * );
  */
 export class CardBuilder extends UIComponent {
@@ -26,9 +26,9 @@ export class CardBuilder extends UIComponent {
   }
 
   /**
-   * The card title displayed at the top of the card.
+   * Заголовок карточки, выводимый в её верхней части.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   title(v: string): this {
     this._title = v;
@@ -36,9 +36,9 @@ export class CardBuilder extends UIComponent {
   }
 
   /**
-   * The card subtitle displayed in a small muted font.
+   * Подзаголовок карточки, выводимый мелким приглушенным шрифтом.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   subtitle(v: string): this {
     this._subtitle = v;
@@ -46,9 +46,9 @@ export class CardBuilder extends UIComponent {
   }
 
   /**
-   * Nests a single child component inside the card body.
+   * Вкладывает один дочерний компонент внутрь тела карточки.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   child(elm: UIComponent): this {
     this._child = elm;
@@ -83,21 +83,21 @@ export class CardBuilder extends UIComponent {
 }
 
 /**
- * Carousel (Carousel)
- *
- * A horizontal carousel of arbitrary elements with scroll snapping. Unlike content rows, it accepts any components.
- *
+ * Carousel (Карусель)
+ * 
+ * Горизонтальная карусель произвольных элементов со скролл-снапом. В отличие от рядов контента, принимает любые компоненты.
+ * 
  * @example
- * // Card carousel
+ * // Карусель карточек
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   Carousel()
  *     .spacing(16)
  *     .children([
- *       Card().title("Slide 1").child(Text("First slide")),
- *       Card().title("Slide 2").child(Text("Second slide")),
- *       Card().title("Slide 3").child(Text("Third slide"))
+ *       Card().title("Слайд 1").child(Text("Первый слайд")),
+ *       Card().title("Слайд 2").child(Text("Второй слайд")),
+ *       Card().title("Слайд 3").child(Text("Третий слайд"))
  *     ])
  * );
  */
@@ -108,24 +108,24 @@ export class CarouselBuilder extends LayoutComponent {
 }
 
 /**
- * Scroller (Scroll container)
- *
- * A generic scrollable container (horizontal or vertical) for arbitrary elements.
- *
+ * Scroller (Скролл-контейнер)
+ * 
+ * Обобщённый контейнер с прокруткой (горизонтальной или вертикальной) для произвольных элементов.
+ * 
  * @example
- * // Horizontal tag strip
+ * // Горизонтальная лента тегов
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   Scroller()
  *     .orientation("horizontal")
  *     .spacing(12)
  *     .children([
- *       Badge("Tag 1"),
- *       Badge("Tag 2"),
- *       Badge("Tag 3"),
- *       Badge("Tag 4"),
- *       Badge("Tag 5")
+ *       Badge("Тег 1"),
+ *       Badge("Тег 2"),
+ *       Badge("Тег 3"),
+ *       Badge("Тег 4"),
+ *       Badge("Тег 5")
  *     ])
  * );
  */
@@ -137,9 +137,9 @@ export class ScrollerBuilder extends LayoutComponent {
   }
 
   /**
-   * Scroll direction.
+   * Направление прокрутки.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default 'vertical'
    */
   orientation(v: "horizontal" | "vertical"): this { this._orientation = v; return this; }
@@ -150,21 +150,21 @@ export class ScrollerBuilder extends LayoutComponent {
 }
 
 /**
- * Page (Page shell)
- *
- * A shell for a custom plugin page with a title and content area (built on PageFrame).
- *
+ * Page (Оболочка страницы)
+ * 
+ * Оболочка кастомной страницы плагина с заголовком и областью контента (на базе PageFrame).
+ * 
  * @example
- * // Page shell
+ * // Оболочка страницы
  * const { ui } = PotokSDK;
- *
+ * 
  * ui.render(
  *   Page()
- *     .title("My page")
+ *     .title("Моя страница")
  *     .spacing(16)
  *     .children([
- *       SectionHeader("Section"),
- *       Text("Full-width page content wrapped in the PageFrame shell.").variant("secondary")
+ *       SectionHeader("Раздел"),
+ *       Text("Контент страницы во всю ширину, обёрнутый в оболочку PageFrame.").variant("secondary")
  *     ])
  * );
  */
@@ -176,9 +176,9 @@ export class PageBuilder extends LayoutComponent {
   }
 
   /**
-   * The page title in the header.
+   * Заголовок страницы в шапке.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   title(v: string): this { this._title = v; return this; }
 
@@ -188,20 +188,20 @@ export class PageBuilder extends LayoutComponent {
 }
 
 /**
- * Field (Form field)
- *
- * A control wrapper with a label above and a hint below. Wraps any nested control (Input, Select, Range, etc.).
- *
+ * Field (Поле формы)
+ * 
+ * Обёртка контрола с подписью сверху и подсказкой снизу. Оборачивает любой вложенный контрол (Input, Select, Range и т.д.).
+ * 
  * @example
- * // Field with a label and a hint
+ * // Поле с подписью и подсказкой
  * const { ui, createState } = PotokSDK;
  * const state = createState({ url: "" });
- *
+ * 
  * function draw() {
  *   ui.render(
  *     Field()
- *       .label("Server address")
- *       .hint("For example, http://localhost:8080")
+ *       .label("Адрес сервера")
+ *       .hint("Например, http://localhost:8080")
  *       .child(
  *         Input("url")
  *           .placeholder("http://...")
@@ -221,15 +221,15 @@ export class FieldBuilder extends LayoutComponent {
   }
 
   /**
-   * The label above the control.
+   * Подпись над контролом.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   label(v: string): this { this._label = v; return this; }
   /**
-   * The hint below the control.
+   * Подсказка под контролом.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   hint(v: string): this { this._hint = v; return this; }
 

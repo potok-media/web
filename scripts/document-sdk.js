@@ -2240,7 +2240,17 @@ function injectJSDoc(filePath) {
   }
 }
 
-injectJSDoc(commonPath);
-injectJSDoc(mediaPath);
+// The sdk review split components/common.ts and components/media.ts into directories;
+// inject into every file that exists, whichever layout is present.
+const injectTargets = [commonPath, mediaPath].flatMap(stalePath => {
+  if (fs.existsSync(stalePath)) return [stalePath];
+  const directory = stalePath.replace(/\.ts$/, '');
+  return fs.existsSync(directory)
+    ? fs.readdirSync(directory)
+        .filter(entry => entry.endsWith('.ts'))
+        .map(entry => path.join(directory, entry))
+    : [];
+});
+for (const target of injectTargets) injectJSDoc(target);
 
 console.log('[document-sdk] Documentation injection completed successfully.');

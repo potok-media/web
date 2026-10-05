@@ -28,6 +28,24 @@ const tEn = translatorFor(enTranslations);
 const tRu = translatorFor(ruTranslations);
 
 describe("ARM episode layout presentation", () => {
+  it("never renders a group with no episodes, whatever its kind", () => {
+    const layout: ArmEpisodeLayoutResponse = {
+      work: { id: "work-1" },
+      graphVersion: "graph-7",
+      groups: [
+        { id: "empty-season", kind: "season", number: 1, episodes: [] },
+        { id: "empty-movie", kind: "movie", number: 1, episodes: [] },
+        {
+          id: "cour-2",
+          kind: "season",
+          number: 2,
+          episodes: [{ id: "episode-1", number: 1, filler: null, tmdb: null }],
+        },
+      ],
+    };
+
+    expect(toEpisodeGroupPresentations(layout).map((group) => group.id)).toEqual(["cour-2"]);
+  });
   it("keeps Potok entry and episode identities while exposing TMDB only as a projection", () => {
     const layout: ArmEpisodeLayoutResponse = {
       work: { id: "work-1" },

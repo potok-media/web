@@ -3,18 +3,18 @@ import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
 import type { SDKConnectionProfile } from "../../types";
 
 /**
- * ProfileSelector (Profile selector)
- *
- * A component for managing connection profiles (servers) to switch Potok Gateway addresses, with status ping, adding, removing and editing servers.
- *
+ * ProfileSelector (Селектор профилей)
+ * 
+ * Компонент управления профилями соединений (серверами) для переключения адресов шлюзов Potok Gateway с пингом статуса, добавлением, удалением и редактированием серверов.
+ * 
  * @example
- * // Server manager
+ * // Менеджер серверов
  * const { ui } = PotokSDK;
- *
+ * 
  * const profiles = [
  *   {
  *     id: "p1",
- *     name: "Local gateway",
+ *     name: "Локальный шлюз",
  *     gatewayURL: "http://localhost:5000",
  *     playerServerURL: "http://localhost:8080",
  *     searchEngineURL: "http://localhost:6000",
@@ -23,23 +23,23 @@ import type { SDKConnectionProfile } from "../../types";
  *     playerServerAuthPassword: ""
  *   }
  * ];
- *
+ * 
  * ui.render(
  *   ProfileSelector()
  *     .connectionProfiles(profiles)
  *     .activeProfileID("p1")
  *     .isSettingsLocked(false)
  *     .onSelectProfile((profileId) => {
- *       ui.showHUD("success", "Selected profile: " + profileId);
+ *       ui.showHUD("success", "Выбран профиль: " + profileId);
  *     })
  *     .onStartEdit((profile) => {
- *       ui.showHUD("info", "Editing: " + profile.name);
+ *       ui.showHUD("info", "Редактирование: " + profile.name);
  *     })
  *     .onDeleteProfile((profileId) => {
- *       ui.showHUD("warning", "Deleting profile: " + profileId);
+ *       ui.showHUD("warning", "Удаление профиля: " + profileId);
  *     })
  *     .onStartAdd(() => {
- *       ui.showHUD("info", "Adding profile");
+ *       ui.showHUD("info", "Добавление профиля");
  *     })
  * );
  */
@@ -58,9 +58,9 @@ export class ProfileSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Array of available servers/profiles (id, name, gatewayURL).
+   * Массив доступных серверов/профилей (id, name, gatewayURL).
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default []
    */
   connectionProfiles(v: SDKConnectionProfile[]): this {
@@ -69,9 +69,9 @@ export class ProfileSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Identifier of the currently selected/active connection profile.
+   * Идентификатор текущего выбранного/активного профиля подключения.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   activeProfileID(v: string | null): this {
     this._activeProfileID = v;
@@ -79,9 +79,9 @@ export class ProfileSelectorBuilder extends UIComponent {
   }
 
   /**
-   * When true, blocks the buttons for creating, editing and deleting profiles.
+   * При true блокирует кнопки создания, редактирования и удаления профилей.
    *
-   * @param v Method value
+   * @param v Значение метода
    * @default false
    */
   isSettingsLocked(v: boolean): this {
@@ -90,9 +90,9 @@ export class ProfileSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Callback on switching/clicking a profile. Passes the selected profile object.
+   * Коллбек при переключении/клике по профилю. Передает объект выбранного профиля.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onSelectProfile(cb: CallbackFunction): this {
     this._onSelectProfile = cb;
@@ -100,9 +100,9 @@ export class ProfileSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Callback on a click on the "Pencil" icon to change the profile's address or name.
+   * Коллбек при клике на иконку «Карандаш» для изменения адреса или имени профиля.
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onStartEdit(cb: CallbackFunction): this {
     this._onStartEdit = cb;
@@ -110,9 +110,9 @@ export class ProfileSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Callback on a click to delete a profile ("Trash").
+   * Коллбек при клике на удаление профиля («Корзина»).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onDeleteProfile(cb: CallbackFunction): this {
     this._onDeleteProfile = cb;
@@ -120,9 +120,9 @@ export class ProfileSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Callback on a click on the button to create a new connection ("Add server").
+   * Коллбек при клике по кнопке создания нового подключения («Добавить сервер»).
    *
-   * @param v Method value
+   * @param v Значение метода
    */
   onStartAdd(cb: CallbackFunction): this {
     this._onStartAdd = cb;

@@ -666,6 +666,23 @@
       "playbackInfoEmpty": "Failed to get playback info: empty response from the plugin",
       "fileSelection": "Select a file",
       "episodeSelection": "Select an episode"
+    },
+    "search": {
+      "palettePlaceholder": "Movies, series, anime...",
+      "recentTitle": "Recent searches",
+      "trendingTitle": "Trending now",
+      "matchedOn": "Matched:",
+      "showAll": "Show all ({{count}})",
+      "chips": {
+        "all": "All"
+      },
+      "type": {
+        "anime": "Anime",
+        "movie": "Movies",
+        "tv": "Series"
+      },
+      "seasons_one": "{{count}} season",
+      "seasons_other": "{{count}} seasons"
     }
   },
   "profile": {

@@ -55,6 +55,8 @@ export interface ArmLayoutGroup {
   malId?: number | null;
   tmdbShow?: number | null;
   tmdbSeason?: number | null;
+  /** Entry title resolved from the structure source (AniList cache) at read time. */
+  title?: string | null;
   episodes: ArmLayoutEpisode[];
 }
 
