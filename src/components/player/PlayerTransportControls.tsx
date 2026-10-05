@@ -31,8 +31,11 @@ interface PlayerTransportControlsProps {
   hasPlaylist?: boolean;
   hasPrev?: boolean;
   hasNext?: boolean;
+  prevIndex?: number;
+  nextIndex?: number;
+  prevLabel?: string;
+  nextLabel?: string;
   episodeDisabled?: boolean;
-  playlistIndex?: number;
   onSelectPlaylistItem?: (index: number) => void;
 }
 
@@ -53,8 +56,11 @@ export const PlayerTransportControls: React.FC<PlayerTransportControlsProps> = (
   hasPlaylist,
   hasPrev,
   hasNext,
+  prevIndex,
+  nextIndex,
+  prevLabel,
+  nextLabel,
   episodeDisabled,
-  playlistIndex,
   onSelectPlaylistItem,
 }) => {
   const { t } = useTranslation("player");
@@ -73,10 +79,10 @@ export const PlayerTransportControls: React.FC<PlayerTransportControlsProps> = (
           onMouseDown={stopControlEvent}
           onClick={(e) => {
             stopControlEvent(e);
-            onSelectPlaylistItem?.((playlistIndex ?? 0) - 1);
+            if (prevIndex !== undefined) onSelectPlaylistItem?.(prevIndex);
           }}
           disabled={!hasPrev || episodeDisabled}
-          title={t("controls.prevEpisode", { defaultValue: "Previous episode" })}
+          title={prevLabel ? `${t("controls.prevEpisode", { defaultValue: "Previous episode" })}: ${prevLabel}` : t("controls.prevEpisode", { defaultValue: "Previous episode" })}
           aria-label={t("controls.prevEpisode", { defaultValue: "Previous episode" })}
         >
           <SkipBack size="1.25rem" />
@@ -130,10 +136,10 @@ export const PlayerTransportControls: React.FC<PlayerTransportControlsProps> = (
           onMouseDown={stopControlEvent}
           onClick={(e) => {
             stopControlEvent(e);
-            onSelectPlaylistItem?.((playlistIndex ?? 0) + 1);
+            if (nextIndex !== undefined) onSelectPlaylistItem?.(nextIndex);
           }}
           disabled={!hasNext || episodeDisabled}
-          title={t("controls.nextEpisode", { defaultValue: "Next episode" })}
+          title={nextLabel ? `${t("controls.nextEpisode", { defaultValue: "Next episode" })}: ${nextLabel}` : t("controls.nextEpisode", { defaultValue: "Next episode" })}
           aria-label={t("controls.nextEpisode", { defaultValue: "Next episode" })}
         >
           <SkipForward size="1.25rem" />

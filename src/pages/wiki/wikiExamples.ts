@@ -536,6 +536,43 @@ streams.registerStreamSource({
 }
 
 /** MediaSearchProviderBuilder — icon + onSearch (register is a synonym of onSearch) */
+export function episodeBindingExample(): string {
+  return `const { streams } = PotokSDK;
+
+streams.registerStreamSource({
+  id: "my-torrents",
+  name: "My Torrent Source",
+  supportedTypes: ["tv"],
+  async search(query) {
+    return [/* raw releases for the query */];
+  },
+
+  // The user pinned "the list starts from THIS episode" in the override picker —
+  // the host hands the binding to the plugin. Persistence is the plugin's job.
+  async saveEpisodeBinding(stream, context, override) {
+    // override.armTarget = { workId, entryId, episodeId } — the exact graph episode
+    // override.mode = "pin" | "anchor" (anchor also carries scopeFileIds)
+    await myStore.set(stream.hash, override);
+  },
+
+  async getEpisodes(stream, context) {
+    const files = await myStore.files(stream);
+    const saved = await myStore.get(stream.hash);
+    return {
+      episodes: files.map((file) => ({
+        ...file,
+        // The canonical binding wins over any filename evidence; a stale or
+        // foreign target must be dropped, never fabricated into numbers.
+        targets: saved?.armTarget ? [saved.armTarget] : file.targets,
+        // Filler annotation from AniFillerPedia — the player's skip-fillers
+        // toggle and the colored playlist markers read exactly this field.
+        filler: myFillerLookup(file),
+      })),
+    };
+  },
+});`;
+}
+
 export function searchProviderExample(): string {
   return `const { media } = PotokSDK;
 

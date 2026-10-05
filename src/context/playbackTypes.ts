@@ -17,6 +17,7 @@ export interface PlaylistItem {
   season?: number;
   episode?: number;
   title?: string;
+  filler?: import("../network/ArmTypes").ArmEpisodeFiller | null;
   streamUrl: string;
   streamType?: "m3u8" | "mp4" | "hls" | "dash";
   audios?: { name: string; url: string }[];

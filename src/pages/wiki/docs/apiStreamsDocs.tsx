@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 import { CodeBlock } from "../../../components/wiki/CodeBlock";
-import { registerStreamSourceExample, searchProviderExample } from "../wikiExamples";
+import { episodeBindingExample, registerStreamSourceExample, searchProviderExample } from "../wikiExamples";
 import { WikiDocP } from "../wikiDocUtils";
 
 export function buildStreamsDoc(t: TFunction<"wiki">) {
@@ -18,6 +18,13 @@ export function buildStreamsDoc(t: TFunction<"wiki">) {
       <h2 className="doc-section-h2" id="searchProvider">{s.searchProviderTitle}</h2>
       <WikiDocP text={s.searchProviderDesc} />
       <CodeBlock language="javascript" code={searchProviderExample()} />
+
+      <h2 className="doc-section-h2" id="episodeBinding">{s.episodeBindingTitle}</h2>
+      <WikiDocP text={s.episodeBindingDesc} />
+      <CodeBlock language="javascript" code={episodeBindingExample()} />
+
+      <h2 className="doc-section-h2" id="fillers">{s.fillerAnnotationTitle}</h2>
+      <WikiDocP text={s.fillerAnnotationDesc} />
     </div>
   );
 }

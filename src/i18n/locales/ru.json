@@ -307,7 +307,9 @@
       "fullscreen": "Во весь экран",
       "watchTogetherTitle": "Смотреть вместе",
       "watchTogetherAria": "Начать совместный просмотр",
-      "chatTitle": "Чат"
+      "chatTitle": "Чат",
+      "skipFillers": "Пропускать филлеры",
+      "fillerTag": "Филлер"
     },
     "playback": {
       "accessRestricted": "Доступ к воспроизведению ограничен.",
@@ -1636,7 +1638,11 @@
           "registerStreamSourceTitle": "streams.registerStreamSource",
           "registerStreamSourceDesc": "Регистрирует источник потоков с id, name, supportedTypes (movie | tv) и async-обработчиками: search(query), getEpisodes(stream, context), getPlaybackInfo(stream, context). Хост вызывает их при открытии страницы раздач.",
           "searchProviderTitle": "media.searchProvider",
-          "searchProviderDesc": "Билдер для регистрации провайдера поиска в библиотеке: media.searchProvider(id, name).icon(url).onSearch(callback). Коллбек получает запрос и возвращает результаты хосту."
+          "searchProviderDesc": "Билдер для регистрации провайдера поиска в библиотеке: media.searchProvider(id, name).icon(url).onSearch(callback). Коллбек получает запрос и возвращает результаты хосту.",
+          "episodeBindingTitle": "Явная привязка серий (canonical overrides)",
+          "episodeBindingDesc": "Когда пользователь через карандаш явно указывает, с какой серии начинается список, хост вызывает `saveEpisodeBinding(stream, context, override)` вашего плагина. `override.armTarget` — точная серия графа `{workId, entryId, episodeId}`; `mode: \"pin\"` фиксирует один файл, `mode: \"anchor\"` — файл и продолжение ряда (`scopeFileIds`). Хранение и контракт overrides — зона SearchEngine (`GET/POST /api/v1/torrents/overrides/{hash}`); gateway overrides не видит и не хранит. Плагин обязан применять привязку при каждом `getEpisodes` по свежему layout (`GET /api/arm/v1/works/{workId}/layout`): устаревший или чужой target пропускается — числа из него не фабрикуются.",
+          "fillerAnnotationTitle": "Аннотации филлеров",
+          "fillerAnnotationDesc": "Серии несут `filler` (`SDKArmEpisodeFiller`: `status` = `canon | filler | mixed | recap`, плюс `confidence` и `disputed`) — источник AniFillerPedia, приезжает в layout графа. Маркируйте их в UI (у встроенного селектора это `EpisodeAnnotationBadge`). Плеер хоста умеет пропускать филлеры: свитч «Пропускать филлеры» в плейлисте влияет на авто-переход и кнопки дальше/назад для любых плейлистов, собранных из ваших серий с этим полем; ручной выбор серии не фильтруется."
         }
       },
       "sandbox": {

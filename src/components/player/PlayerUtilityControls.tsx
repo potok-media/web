@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 import { TrackSelectorDropdown } from "./TrackSelectorDropdown";
 import { CaptionsLoadingIcon } from "./SubtitleLoadingIcons";
-import { IconButton, cx } from "../ui";
+import { IconButton, Switch, cx } from "../ui";
+import { useSkipFillers } from "../../utils/skipFillers";
 import { usePlayback } from "../../context/PlaybackContext";
 import { useWatchTogether } from "../../context/watchTogetherState";
 import type { ActivePlayback } from "../../context/playbackTypes";
@@ -92,6 +93,7 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
   playback,
 }) => {
   const { t } = useTranslation("player");
+  const [skipFillers, setSkipFillers] = useSkipFillers();
   const navigate = useNavigate();
   const { stopVideo } = usePlayback();
   const { createRoom, role: coWatchRole, chatOpen, setChatOpen } = useWatchTogether();
@@ -184,6 +186,16 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
           isOpen={showPlaylistMenu || false}
           onToggle={onTogglePlaylistMenu || (() => {})}
           disabled={playlistDisabled}
+          headerExtra={
+            <label className="skip-fillers-toggle" onClick={(e) => e.stopPropagation()}>
+              <span>{t("controls.skipFillers")}</span>
+              <Switch
+                checked={skipFillers}
+                onCheckedChange={setSkipFillers}
+                aria-label={t("controls.skipFillers")}
+              />
+            </label>
+          }
         />
       )}
 

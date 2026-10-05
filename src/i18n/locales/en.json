@@ -307,7 +307,9 @@
       "fullscreen": "Fullscreen",
       "watchTogetherTitle": "Watch together",
       "watchTogetherAria": "Start watching together",
-      "chatTitle": "Chat"
+      "chatTitle": "Chat",
+      "skipFillers": "Skip fillers",
+      "fillerTag": "Filler"
     },
     "playback": {
       "accessRestricted": "Playback access is restricted.",
@@ -1626,7 +1628,11 @@
           "registerStreamSourceTitle": "streams.registerStreamSource",
           "registerStreamSourceDesc": "Registers a stream source with id, name, supportedTypes (movie | tv), and async handlers: search(query), getEpisodes(stream, context), getPlaybackInfo(stream, context). The host calls these when the user opens the streams page.",
           "searchProviderTitle": "media.searchProvider",
-          "searchProviderDesc": "Builder for registering a library search provider: media.searchProvider(id, name).icon(url).onSearch(callback). The callback receives the query and returns search results to the host."
+          "searchProviderDesc": "Builder for registering a library search provider: media.searchProvider(id, name).icon(url).onSearch(callback). The callback receives the query and returns search results to the host.",
+          "episodeBindingTitle": "Explicit episode binding (canonical overrides)",
+          "episodeBindingDesc": "When the user explicitly pins \"the list starts from THIS episode\" via the pencil, the host calls your plugin's `saveEpisodeBinding(stream, context, override)`. `override.armTarget` is the exact graph episode `{workId, entryId, episodeId}`; `mode: \"pin\"` fixes a single file, `mode: \"anchor\"` the file plus the run after it (`scopeFileIds`). Override storage and contract are the SearchEngine's domain (`GET/POST /api/v1/torrents/overrides/{hash}`) — the gateway never sees or stores overrides. Your plugin must apply the binding on every `getEpisodes` over a fresh layout (`GET /api/arm/v1/works/{workId}/layout`): a stale or foreign target is skipped, never fabricated into numbers.",
+          "fillerAnnotationTitle": "Filler annotations",
+          "fillerAnnotationDesc": "Episodes carry `filler` (`SDKArmEpisodeFiller`: `status` = `canon | filler | mixed | recap`, plus `confidence` and `disputed`) — sourced from AniFillerPedia and delivered inside the graph layout. Use it to mark fillers in your UI (the built-in selector renders `EpisodeAnnotationBadge`). The host player can skip fillers: the playlist's \"Skip fillers\" toggle drives auto-advance and the prev/next buttons for any playlist built from your episodes carrying this field; manual episode selection is never filtered."
         }
       },
       "sandbox": {

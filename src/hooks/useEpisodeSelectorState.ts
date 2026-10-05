@@ -135,6 +135,7 @@ export function useEpisodeSelectorState({
           title: ep.title || ep.fileName || (ep.episode !== undefined
             ? t("episode.fallbackName", { number: ep.episode })
             : t("selector.unresolvedEpisode")),
+          filler: ep.filler ?? null,
           streamUrl,
           streamType: (streamUrl.includes(".m3u8")
             ? "m3u8"

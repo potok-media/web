@@ -5,6 +5,8 @@ import { usePlayerSubtitlePipeline } from "../usePlayerSubtitlePipeline";
 import { useDebouncedSeek } from "../useDebouncedSeek";
 import { usePlayerKeyboardControls } from "../usePlayerKeyboardControls";
 import { usePlayerPlaylist } from "../usePlayerPlaylist";
+import { nextPlayableIndex } from "../../components/player/playlistNavigation";
+import { getSkipFillers } from "../../utils/skipFillers";
 import { usePlayerBufferingSpinner } from "../usePlayerBufferingSpinner";
 import { usePlayerResumeToast } from "../usePlayerResumeToast";
 import { usePlayerLoadingState } from "../usePlayerLoadingState";
@@ -107,12 +109,10 @@ export function useWebMediaPlayerInteraction({
   const playPlaylistItem = usePlayerPlaylist(playback, playVideo);
 
   const handleEnded = useCallback(() => {
-    if (
-      playback.playlist &&
-      playback.playlistIndex !== undefined &&
-      playback.playlistIndex + 1 < playback.playlist.length
-    ) {
-      playPlaylistItem(playback.playlistIndex + 1);
+    if (!playback.playlist || playback.playlistIndex === undefined) return;
+    const nextIndex = nextPlayableIndex(playback.playlist, playback.playlistIndex, 1, getSkipFillers());
+    if (nextIndex !== undefined) {
+      playPlaylistItem(nextIndex);
     }
   }, [playback.playlist, playback.playlistIndex, playPlaylistItem]);
 
