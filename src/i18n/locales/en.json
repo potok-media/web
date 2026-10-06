@@ -675,13 +675,16 @@
       "trendingTitle": "Trending now",
       "matchedOn": "Matched:",
       "showAll": "Show all ({{count}})",
+      "loadMore": "Show more",
+      "loadMoreError": "Couldn't load more results. Try again.",
       "chips": {
         "all": "All"
       },
       "type": {
         "anime": "Anime",
         "movie": "Movies",
-        "tv": "Series"
+        "tv": "Series",
+        "series": "Series"
       },
       "seasons_one": "{{count}} season",
       "seasons_other": "{{count}} seasons"

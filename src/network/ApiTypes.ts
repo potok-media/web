@@ -53,6 +53,10 @@ export interface MediaCard {
   title: string;
   originalTitle?: string;
   englishTitle?: string;
+  titlesByLocale?: Record<string, MediaTitle[]>;
+  metadataLocale?: string;
+  metadataSources?: { title?: string; poster?: string; backdrop?: string; banner?: string };
+  bannerSrc?: string;
   subtitle?: string;
   badgeText?: string;
   posterSrc?: string;
@@ -79,12 +83,21 @@ export interface MediaCard {
   airDateTime?: string;
   /** Potok identity of the catalog row; present on index-backed search results. */
   potokId?: string;
+  /** Selected ARM entry; search can return several entries belonging to the same work. */
+  entryId?: string;
   /** Main-title highlight snippet (<mark> around matched tokens); index-backed search only. */
   titleSnippet?: string;
   /** Alternative-title highlight snippet when the query hit an alias, not the main title. */
   matchedTitleSnippet?: string;
   /** Potok-owned identity; absent on older Gateways and explicit when ARM is unresolved. */
   arm?: ArmMediaSummary;
+}
+
+export interface MediaTitle {
+  value: string;
+  locale?: string;
+  source: string;
+  kind: string;
 }
 
 export interface MediaSearchFacet {
@@ -96,6 +109,8 @@ export interface MediaSearchResponse {
   results: MediaCard[];
   facets: MediaSearchFacet[];
   found: number;
+  page?: number;
+  hasMore?: boolean;
 }
 
 export interface WatchProgress {

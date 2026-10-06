@@ -1,3 +1,4 @@
+import { mediaCardKey } from "../../utils/mediaLink";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Clock, X } from "lucide-react";
@@ -115,7 +116,7 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
 
       {rows.map((item, index) => (
         <SearchResultRow
-          key={`${item.mediaType}:${item.id}`}
+          key={mediaCardKey(item)}
           item={item}
           active={index === activeIndex}
           onHover={() => setActiveIndex(index)}

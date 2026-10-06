@@ -7,42 +7,17 @@ import { ApiClient } from "../network/ApiClient";
 import { getRecentSearches, rememberSearch, removeRecentSearch } from "../utils/recentSearches";
 import { hydrateLocalizedTitles } from "../utils/localizedTitles";
 import type { MediaCard } from "../network/ApiTypes";
-import { MediaCardComponent } from "../components/MediaCardComponent";
 import { LoadingSpinner } from "../components/LoadingSpinner";
-import { Grid } from "../components/common/Grid";
+import { CardGrid, EmptyResults, PagedSearchResults } from "../components/search/SearchResults";
 import { Input } from "../components/ui";
 import "../styles/search.css";
 
 const SECTION_PREVIEW = 10;
 
-const EmptyResults: React.FC = () => {
-  const { t } = useTranslation("media");
-  return (
-    <div className="library-empty-view results-mode">
-      <SearchIcon size="3rem" className="library-empty-icon muted" />
-      <h2 className="library-empty-title">{t("library.nothingFound")}</h2>
-      <p className="library-empty-subtitle">{t("library.searchNoResultsSub")}</p>
-    </div>
-  );
-};
-
-const CardGrid: React.FC<{ items: MediaCard[] }> = ({ items }) => (
-  <Grid className="library-grid">
-    {items.map(item => (
-      <MediaCardComponent key={`${item.mediaType}:${item.id}`} item={item} />
-    ))}
-  </Grid>
-);
-
 /** One type-filtered grid (the active chip's full result set). Owns its own search hook. */
 const SearchTypeGrid: React.FC<{ query: string; type: string }> = ({ query, type }) => {
-  const { t } = useTranslation("media");
-  const { results, loading } = useMediaSearch(query, type);
-  if (loading && results.length === 0) {
-    return <LoadingSpinner height="40vh" message={t("library.searching")} />;
-  }
-  if (results.length === 0) return <EmptyResults />;
-  return <CardGrid items={results} />;
+  const search = useMediaSearch(query, type);
+  return <PagedSearchResults search={search} />;
 };
 
 /** One per-type section of the unfiltered view. Owns its own type-filtered search hook. */
@@ -215,7 +190,7 @@ export const SearchPage: React.FC = () => {
     // Facet-less answers come from the live-TMDB fallback (index unavailable/warming):
     // no trustworthy type split exists there, so the flat grid is the honest rendering.
     if (unfiltered.facets.length === 0) {
-      return <CardGrid items={unfiltered.results} />;
+      return <PagedSearchResults search={unfiltered} />;
     }
     return unfiltered.facets.map(facet => (
       <SearchTypeSection

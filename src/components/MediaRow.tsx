@@ -1,3 +1,4 @@
+import { mediaCardKey } from "../utils/mediaLink";
 import React, { useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -73,7 +74,7 @@ export const MediaRow: React.FC<MediaRowProps> = React.memo(
           >
             {displayItems.map((item) => (
               <MediaCardComponent
-                key={`${item.mediaType || "movie"}-${item.id}`}
+                key={mediaCardKey(item)}
                 item={item}
                 onClick={onCardClick}
               />

@@ -12,7 +12,9 @@ export function hydrateLocalizedTitles(
   patch: (potokId: string, title: string) => void,
 ): void {
   for (const card of cards) {
-    if (!card.potokId || !(card.id > 0)) continue;
+    // A show-level title would overwrite every season/OVA of the same work. Entry documents
+    // already carry their own source titles, so retain those until entry localization exists.
+    if (card.titlesByLocale || card.entryId || !card.potokId || !(card.id > 0)) continue;
     void ApiClient.fetchMediaDetails(card.mediaType, card.id)
       .then(details => {
         if (details?.title && details.title !== card.title) patch(card.potokId!, details.title);

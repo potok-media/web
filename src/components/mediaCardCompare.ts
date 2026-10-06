@@ -24,6 +24,8 @@ export function areMediaCardsEqual(a: MediaCard, b: MediaCard): boolean {
   if (!a || !b) return false;
   return (
     a.id === b.id &&
+    a.potokId === b.potokId &&
+    a.entryId === b.entryId &&
     a.title === b.title &&
     a.subtitle === b.subtitle &&
     a.mediaType === b.mediaType &&

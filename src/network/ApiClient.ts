@@ -148,12 +148,12 @@ export class ApiClient {
     return handleApiResponse<HomeResponse>(res, "Failed to fetch home feed");
   }
 
-  public static async searchMedia(query: string, type?: string, signal?: AbortSignal): Promise<MediaSearchResponse> {
+  public static async searchMedia(query: string, type?: string, signal?: AbortSignal, page = 1): Promise<MediaSearchResponse> {
     if (!this.isWorker) {
-      return DataWorkerBridge.request<MediaSearchResponse>("searchMedia", [query, type]);
+      return DataWorkerBridge.request<MediaSearchResponse>("searchMedia", [query, type, undefined, page]);
     }
     const typeParam = type ? `&type=${encodeURIComponent(type)}` : "";
-    const res = await fetch(`${this.baseURL}/api/media/search?query=${encodeURIComponent(query)}&language=${encodeURIComponent(this.language)}${typeParam}`, {
+    const res = await fetch(`${this.baseURL}/api/media/search?query=${encodeURIComponent(query)}&language=${encodeURIComponent(this.language)}${typeParam}&page=${page}`, {
       headers: this.headers,
       signal,
     });
