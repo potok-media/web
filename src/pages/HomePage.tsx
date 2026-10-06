@@ -40,7 +40,7 @@ export const HomePage: React.FC = () => {
 
   const handleHeroPlay = useCallback((heroItem: HeroItem) => {
     if (!heroItem) return;
-    navigate(`${mediaCardLink(heroItem.card)}?play=true`);
+    navigate(mediaCardLink(heroItem.card, { play: true }));
   }, [navigate]);
 
   const handleHeroDetails = useCallback((heroItem: HeroItem) => {

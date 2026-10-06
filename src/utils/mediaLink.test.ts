@@ -23,6 +23,14 @@ describe("mediaCardLink", () => {
       .toBe("/media/p/work?g=season-2");
   });
 
+  it("preserves both the selected entry and autoplay in one query string", () => {
+    const url = new URL(mediaCardLink({ id: 30984, potokId: "work", entryId: "season-2" }, { play: true }), "https://potok.test");
+    expect(url.searchParams.get("g")).toBe("season-2");
+    expect(url.searchParams.get("play")).toBe("true");
+    expect(mediaCardLink({ id: 603, mediaType: "movie" }, { play: true }))
+      .toBe("/media/movie/603?play=true");
+  });
+
   it("gives seasons sharing a work and TMDB id different list identities", () => {
     const card = { id: 30984, mediaType: "tv", potokId: "work" };
     expect(mediaCardKey({ ...card, entryId: "season-1" }))

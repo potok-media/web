@@ -20,13 +20,14 @@ import { sdkClass, sdkStyleVars, toPascalCase } from "./componentRendererUtils";
 /** Adapts a plugin's generic SDKContentItem to the app's native MediaCard shape, so generic content
  *  components render through the SAME cards/rows/hero the whole app uses (Potok owns the styling). */
 const adaptContentItem = (item: SDKContentItem): ApiMediaCard => {
-  const it = item as SDKContentItem & { mediaType?: "movie" | "tv"; rating?: number; potokId?: string };
+  const it = item as SDKContentItem & { mediaType?: "movie" | "tv"; rating?: number; potokId?: string; entryId?: string };
   return {
     id: (typeof item.id === "number" ? item.id : Number(item.id)) || 0,
     title: item.title,
     subtitle: item.progressLabel || item.subtitle,
     mediaType: it.mediaType === "movie" ? "movie" : "tv",
     potokId: it.potokId,
+    entryId: it.entryId,
     posterSrc: item.image,
     backdropSrc: item.wideImage,
     logoSrc: item.logo,
@@ -349,7 +350,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
             onPlay={(h) =>
               events?.onPlay
                 ? fire(events.onPlay, h.card)
-                : navigate(`${mediaCardLink(h.card)}?play=true`)
+                : navigate(mediaCardLink(h.card, { play: true }))
             }
             onDetails={(h) =>
               events?.onDetails
