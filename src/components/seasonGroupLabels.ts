@@ -4,7 +4,7 @@ import type { EpisodeGroupPresentation } from "../features/arm/episodeLayoutMode
 // Canonical ARM v2 group taxonomy in the backend's sort order; unknown kinds sort last.
 const GROUP_KIND_ORDER = ["season", "sides", "movie", "ova", "specials", "credits", "trailers", "parodies"];
 
-function kindRank(kind: string): number {
+export function kindRank(kind: string): number {
   const index = GROUP_KIND_ORDER.indexOf(kind);
   return index < 0 ? GROUP_KIND_ORDER.length : index;
 }

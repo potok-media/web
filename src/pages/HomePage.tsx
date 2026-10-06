@@ -9,6 +9,7 @@ import MediaRow from "../components/MediaRow";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { Slot } from "../components/common/extension/Slot";
 import type { HeroItem, MediaCard } from "../network/ApiTypes";
+import { mediaCardLink } from "../utils/mediaLink";
 
 import { Button } from "../components/ui";
 
@@ -30,7 +31,7 @@ export const HomePage: React.FC = () => {
   const { feed, loading, refetch } = useHomeFeed((msg) => showHUD("error", msg));
 
   const handleCardClick = useCallback((item: MediaCard) => {
-    navigate(`/media/${item.mediaType}/${item.id}`);
+    navigate(mediaCardLink(item));
   }, [navigate]);
 
   const handleSeeAllClick = useCallback((rowId: string) => {
@@ -39,12 +40,12 @@ export const HomePage: React.FC = () => {
 
   const handleHeroPlay = useCallback((heroItem: HeroItem) => {
     if (!heroItem) return;
-    navigate(`/media/${heroItem.card.mediaType}/${heroItem.card.id}?play=true`);
+    navigate(`${mediaCardLink(heroItem.card)}?play=true`);
   }, [navigate]);
 
   const handleHeroDetails = useCallback((heroItem: HeroItem) => {
     if (!heroItem) return;
-    navigate(`/media/${heroItem.card.mediaType}/${heroItem.card.id}`);
+    navigate(mediaCardLink(heroItem.card));
   }, [navigate]);
 
   if (loading) return <LoadingSpinner />;

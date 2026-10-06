@@ -6,6 +6,7 @@ import type { HeroItem } from "../network/ApiTypes";
 import { useHeroSlideshow } from "../hooks/useHeroSlideshow";
 import { useHeroWatchlist } from "../hooks/useHeroWatchlist";
 import { Button, Chip, cx } from "./ui";
+import { mediaCardLink } from "../utils/mediaLink";
 import { areHeroSpotlightsEqual } from "./heroSpotlightCompare";
 
 interface HeroSpotlightProps {
@@ -88,7 +89,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
 
                 <div className="hero-buttons">
                   <Link
-                    to={`/media/${card.mediaType}/${card.id}`}
+                    to={mediaCardLink(card)}
                     className={cx("ui-btn", "ui-btn--accent")}
                     onClick={(e) => {
                       if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {

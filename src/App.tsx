@@ -19,6 +19,7 @@ const ProfilePage = React.lazy(() => import("./pages/ProfilePage").then(m => ({ 
 const SettingsPage = React.lazy(() => import("./pages/SettingsPage").then(m => ({ default: m.SettingsPage })));
 const ExtensionPage = React.lazy(() => import("./pages/ExtensionPage").then(m => ({ default: m.ExtensionPage })));
 const MediaDetailsPage = React.lazy(() => import("./pages/MediaDetailsPage").then(m => ({ default: m.MediaDetailsPage })));
+const MediaArmDetailsPage = React.lazy(() => import("./pages/MediaArmDetailsPage").then(m => ({ default: m.MediaArmDetailsPage })));
 const MediaStreamsPage = React.lazy(() => import("./pages/MediaStreamsPage").then(m => ({ default: m.MediaStreamsPage })));
 const SandboxPage = React.lazy(() => import("./pages/SandboxPage").then(m => ({ default: m.SandboxPage })));
 const ActorPage = React.lazy(() => import("./pages/ActorPage").then(m => ({ default: m.ActorPage })));
@@ -46,6 +47,7 @@ export const App: React.FC = () => {
                         <Route path="profile" element={<ProfilePage />} />
                         <Route path="settings" element={<SettingsPage />} />
                         <Route path="extensions/:tab" element={<ExtensionPage />} />
+                        <Route path="media/p/:potokId" element={<MediaArmDetailsPage />} />
                         <Route path="media/:mediaType/:id" element={<MediaDetailsPage />} />
                         <Route path="media/:mediaType/:id/watch/:tab?" element={<MediaStreamsPage />} />
                         <Route path="library/:collectionType" element={<LibraryPage />} />

@@ -9,6 +9,7 @@ import { formatActorLifeDates } from "../utils/actorLifeDates";
 import { resolveActorDepartmentLabel } from "../utils/actorDepartment";
 import { resolveProfileImageUrl } from "../utils/actorFilmography";
 import { toIntlLocale } from "../utils/language";
+import { mediaCardLink } from "../utils/mediaLink";
 import "../styles/actor.css";
 
 import type { ActorState } from "./actor/actorTypes";
@@ -35,7 +36,7 @@ export const ActorPage: React.FC = () => {
   const handleBack = useCallback(() => navigate(-1), [navigate]);
 
   const handleCardClick = useCallback(
-    (item: MediaCard) => navigate(`/media/${item.mediaType}/${item.id}`),
+    (item: MediaCard) => navigate(mediaCardLink(item)),
     [navigate],
   );
 

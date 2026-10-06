@@ -8,6 +8,7 @@ import { ApiClient } from "../../network/ApiClient";
 import { getRecentSearches, rememberSearch, removeRecentSearch } from "../../utils/recentSearches";
 import { hydrateLocalizedTitles } from "../../utils/localizedTitles";
 import type { MediaCard } from "../../network/ApiTypes";
+import { mediaCardLink } from "../../utils/mediaLink";
 import { SearchResultRow } from "./SearchResultRow";
 
 /**
@@ -79,7 +80,7 @@ export const CommandPalette: React.FC = () => {
   const openCard = (item: MediaCard) => {
     if (trimmed) rememberSearch(trimmed);
     close();
-    navigate(`/media/${item.mediaType}/${item.id}`);
+    navigate(mediaCardLink(item));
   };
   const showAll = () => {
     if (!trimmed) return;

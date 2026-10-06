@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Clock, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { MediaCard } from "../../network/ApiTypes";
+import { mediaCardLink } from "../../utils/mediaLink";
 import { FilmOff } from "../../components/common/FilmOff";
 
 interface CalendarListItemProps {
@@ -19,7 +20,7 @@ export const CalendarListItem: React.FC<CalendarListItemProps> = ({
 
   return (
     <Link
-      to={`/media/tv/${item.id}`}
+      to={mediaCardLink(item)}
       className="calendar-row"
       aria-label={`${item.title}. ${item.nextEpisodeSeason && item.nextEpisodeNumber ? t("calendar.seasonEpisode", { season: item.nextEpisodeSeason, episode: item.nextEpisodeNumber }) : t("calendar.newEpisode")}. ${t("calendar.releaseDateAria", { time: formatReleaseTime(item.airDateTime) })}`}
     >
