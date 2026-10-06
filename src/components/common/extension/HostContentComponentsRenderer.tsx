@@ -9,6 +9,7 @@ import type {
 import type { MediaCard as ApiMediaCard, HeroItem } from "../../../network/ApiTypes";
 import { Chip, IconButton, Pressable, RangeInput, FileInput, PopoverItem } from "../../ui";
 import { ExtensionRegistry } from "../../../utils/extensions/ExtensionRegistry";
+import { mediaCardLink } from "../../../utils/mediaLink";
 import ScrollView from "../ScrollView";
 import { Grid } from "../Grid";
 import MediaCardComponent from "../../MediaCardComponent";
@@ -19,12 +20,13 @@ import { sdkClass, sdkStyleVars, toPascalCase } from "./componentRendererUtils";
 /** Adapts a plugin's generic SDKContentItem to the app's native MediaCard shape, so generic content
  *  components render through the SAME cards/rows/hero the whole app uses (Potok owns the styling). */
 const adaptContentItem = (item: SDKContentItem): ApiMediaCard => {
-  const it = item as SDKContentItem & { mediaType?: "movie" | "tv"; rating?: number };
+  const it = item as SDKContentItem & { mediaType?: "movie" | "tv"; rating?: number; potokId?: string };
   return {
     id: (typeof item.id === "number" ? item.id : Number(item.id)) || 0,
     title: item.title,
     subtitle: item.progressLabel || item.subtitle,
     mediaType: it.mediaType === "movie" ? "movie" : "tv",
+    potokId: it.potokId,
     posterSrc: item.image,
     backdropSrc: item.wideImage,
     logoSrc: item.logo,
@@ -297,7 +299,7 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
   // Native card click: fire the plugin callback if it set one, else navigate to the details page.
   const cardClick = (card: ApiMediaCard) => {
     if (events?.onCardClick) fire(events.onCardClick, card);
-    else navigate(`/media/${card.mediaType}/${card.id}`);
+    else navigate(mediaCardLink(card));
   };
 
   switch (schema.type) {
@@ -347,12 +349,12 @@ export const HostContentComponentsRenderer: React.FC<HostContentComponentsRender
             onPlay={(h) =>
               events?.onPlay
                 ? fire(events.onPlay, h.card)
-                : navigate(`/media/${h.card.mediaType}/${h.card.id}?play=true`)
+                : navigate(`${mediaCardLink(h.card)}?play=true`)
             }
             onDetails={(h) =>
               events?.onDetails
                 ? fire(events.onDetails, h.card)
-                : navigate(`/media/${h.card.mediaType}/${h.card.id}`)
+                : navigate(mediaCardLink(h.card))
             }
           />
         </div>

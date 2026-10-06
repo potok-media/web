@@ -8,6 +8,7 @@ import { ApiClient } from "../../network/ApiClient";
 import { getRecentSearches, rememberSearch, removeRecentSearch } from "../../utils/recentSearches";
 import { hydrateLocalizedTitles } from "../../utils/localizedTitles";
 import type { MediaCard } from "../../network/ApiTypes";
+import { mediaCardKey, mediaCardLink } from "../../utils/mediaLink";
 import { SearchResultRow } from "./SearchResultRow";
 
 /**
@@ -27,7 +28,7 @@ export const CommandPalette: React.FC = () => {
   const trendingRequested = useRef(false);
 
   const trimmed = query.trim();
-  const { results, loading } = useMediaSearch(trimmed);
+  const { results, found, loading } = useMediaSearch(trimmed);
   const rows = useMemo(() => results.slice(0, 8), [results]);
 
   useEffect(() => {
@@ -79,7 +80,7 @@ export const CommandPalette: React.FC = () => {
   const openCard = (item: MediaCard) => {
     if (trimmed) rememberSearch(trimmed);
     close();
-    navigate(`/media/${item.mediaType}/${item.id}`);
+    navigate(mediaCardLink(item));
   };
   const showAll = () => {
     if (!trimmed) return;
@@ -163,7 +164,7 @@ export const CommandPalette: React.FC = () => {
               </div>
               {trending.slice(0, 6).map(item => (
                 <SearchResultRow
-                  key={`${item.mediaType}:${item.id}`}
+                  key={mediaCardKey(item)}
                   item={item}
                   active={false}
                   onHover={() => setActiveIndex(-1)}
@@ -181,7 +182,7 @@ export const CommandPalette: React.FC = () => {
           )}
           {rows.map((item, index) => (
             <SearchResultRow
-              key={`${item.mediaType}:${item.id}`}
+              key={mediaCardKey(item)}
               item={item}
               active={index === activeIndex}
               onHover={() => setActiveIndex(index)}
@@ -193,7 +194,7 @@ export const CommandPalette: React.FC = () => {
 
         {trimmed && rows.length > 0 && (
           <div className="command-palette-footer" onClick={showAll}>
-            {t("search.showAll", { count: Math.max(rows.length, 0) })}
+            {t("search.showAll", { count: found })}
             <kbd className="command-palette-kbd">Enter</kbd>
           </div>
         )}

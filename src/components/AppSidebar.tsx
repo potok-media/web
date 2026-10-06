@@ -9,6 +9,7 @@ import SidebarSearch from "./SidebarSearch";
 import { SearchDropdown } from "./search/SearchDropdown";
 import { rememberSearch } from "../utils/recentSearches";
 import { Slot } from "./common/extension/Slot";
+import { mediaCardLink } from "../utils/mediaLink";
 import "../styles/sidebar.css";
 import "../styles/search.css";
 import { IconButton } from "./ui";
@@ -145,7 +146,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
                   if (sidebarSearch.trim()) rememberSearch(sidebarSearch);
                   setIsSearchFocused(false);
                   inputRef.current?.blur();
-                  navigate(`/media/${item.mediaType}/${item.id}`);
+                  navigate(mediaCardLink(item));
                 }}
                 onShowAll={value => {
                   rememberSearch(value);

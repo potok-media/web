@@ -6,6 +6,7 @@ import { FilmOff } from "./common/FilmOff";
 import { useSettings } from "../context/AppSettingsContext";
 import { resizeTmdbImage, posterSizeForQuality } from "../utils/mediaUtils";
 import type { MediaCard } from "../network/ApiClient";
+import { mediaCardLink } from "../utils/mediaLink";
 import { areMediaCardsEqual } from "./mediaCardCompare";
 
 interface MediaCardComponentProps {
@@ -131,7 +132,7 @@ export const MediaCardComponent: React.FC<MediaCardComponentProps> = React.memo(
     return (
       <RouterLink
         ref={cardRef}
-        to={`/media/${item.mediaType}/${item.id}`}
+        to={mediaCardLink(item)}
         className={`media-card is-visible${paintUncontained ? " is-paint-uncontained" : ""}`}
         onClick={handleCardClick}
         onMouseEnter={handleElevateStart}

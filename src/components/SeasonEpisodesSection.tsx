@@ -27,6 +27,8 @@ interface SeasonEpisodesSectionProps {
   arm?: ArmMediaSummary;
   /** ARM season layout is TV-only; movies keep the legacy path untouched. */
   armEnabled?: boolean;
+  /** Canonical deep link (?g= on /media/p): the entry the page opens on. */
+  initialGroupId?: string;
   onEpisodeClick: (episode: TvEpisode, seasonNumber: number) => void;
   selectedEpisode?: { episode: TvEpisode; seasonNumber: number } | null;
   watchedEpisodes?: { season: number; number: number }[];
@@ -46,6 +48,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   numberOfSeasons,
   arm,
   armEnabled = true,
+  initialGroupId,
   onEpisodeClick,
   selectedEpisode,
   watchedEpisodes = [],
@@ -86,12 +89,26 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   const loading = armLayout.status === "loading" || (!usesArmLayout && legacySeason.loading);
   const hasMoreThanCarousel = episodes.length > CAROUSEL_LIMIT;
 
+  const lastAppliedGroupLink = useRef<string | undefined>(undefined);
   useEffect(() => {
     if (!usesArmLayout || armGroups.length === 0) return;
+    // The canonical deep link wins on arrival and on change; between navigations the user's
+    // own tab clicks stay untouched.
+    const linked = initialGroupId && armGroups.some((group) => group.id === initialGroupId)
+      ? initialGroupId
+      : undefined;
+    if (linked) {
+      if (lastAppliedGroupLink.current !== linked) {
+        lastAppliedGroupLink.current = linked;
+        if (activeGroupId !== linked) setActiveGroupId(linked);
+      }
+      return;
+    }
+    lastAppliedGroupLink.current = undefined;
     if (!activeGroupId || !armGroups.some((group) => group.id === activeGroupId)) {
       setActiveGroupId(armGroups[0].id);
     }
-  }, [activeGroupId, armGroups, usesArmLayout]);
+  }, [activeGroupId, armGroups, usesArmLayout, initialGroupId]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
