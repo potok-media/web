@@ -29,7 +29,7 @@ interface SeasonEpisodesSectionProps {
   armEnabled?: boolean;
   /** Canonical deep link (?g= on /media/p): the entry the page opens on. */
   initialGroupId?: string;
-  onEpisodeClick: (episode: TvEpisode, seasonNumber: number) => void;
+  onEpisodeClick: (episode: TvEpisode, seasonNumber: number, groupTitle?: string) => void;
   selectedEpisode?: { episode: TvEpisode; seasonNumber: number } | null;
   watchedEpisodes?: { season: number; number: number }[];
   watchedEpisodeIds?: string[];
@@ -70,10 +70,8 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   // Preload the legacy season while ARM resolves so an older/uncovered Gateway falls back without a
   // second network waterfall. Once an ARM layout wins, the legacy request is disabled and cached.
   const legacySeason = useSeasonEpisodes(mediaId, activeSeason, !usesArmLayout);
-  // Untitled groups arrive with an empty title and a fallback descriptor — finalize the
-  // localized per-kind label ("Season {number}", "Specials", …) here so the mapper stays
-  // i18n-free. Kind-priority ordering keeps seasons ahead of specials/movies/ova, so the
-  // default selection stays the first season even when specials sort first by position.
+  // Localize source-owned season/part descriptors and generic fallbacks here. Source titles
+  // retain named arcs; kind ordering keeps the main releases ahead of specials/movies/ova.
   const armGroups = useMemo(
     () => orderGroupsByKind(armLayout.groups).map((group) => ({
       ...group,
@@ -176,8 +174,8 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   }, [watchedEpisodeIds, watchedEpisodes]);
 
   const handleEpisodeClick = useCallback((episode: TvEpisode) => {
-    onEpisodeClick(episode, episode.seasonNumber ?? activeSeason);
-  }, [onEpisodeClick, activeSeason]);
+    onEpisodeClick(episode, episode.seasonNumber ?? activeSeason, usesArmLayout ? activeGroup?.title : undefined);
+  }, [onEpisodeClick, activeSeason, usesArmLayout, activeGroup?.title]);
 
   const handleEpisodeContextMenu = useCallback((episode: TvEpisode, clientX: number, clientY: number) => {
     setContextMenu({ episode, x: clientX, y: clientY });

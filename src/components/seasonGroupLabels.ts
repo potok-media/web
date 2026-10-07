@@ -46,15 +46,28 @@ export function groupKindLabel(kind: string, t: TFunction<"media">): string {
 }
 
 /**
- * Finalizes a group label: number + title when both exist ("Сезон 3: Entertainment District Arc"),
- * the bare title when only a title exists, otherwise a localized generic label per kind.
+ * Source-owned titles/season/part labels win; provider-only layouts use the generic fallback.
  */
 export function finalizeGroupTitle(group: EpisodeGroupPresentation, t: TFunction<"media">): string {
+  const label = group.sourceLabel;
+  if (label?.kind === "title") return label.title;
+  if (label?.kind === "season") {
+    return label.part == null
+      ? t("seasons.season", { number: label.number })
+      : t("seasons.seasonPart", { number: label.number, part: label.part });
+  }
+  if (label?.kind === "part") {
+    const part = t("seasons.part", { number: label.number });
+    return label.title ? t("seasons.titledPart", { title: label.title, part }) : part;
+  }
   const number = group.titleFallback?.number ?? group.displayNumber ?? null;
   if (group.title) {
-    // A generic season name ("Сезон 3") never doubles the prefix into "Сезон 3: Сезон 3".
+    // Several Potok groups can share one TMDB season. Its generic name must not replace
+    // the graph's display number or double the label into "Сезон 3: Сезон 1".
     if (isGenericSeasonTitle(group.title)) {
-      return group.title;
+      return group.kind === "season" && number !== null
+        ? t("seasons.season", { number })
+        : group.title;
     }
     if (group.kind === "season" && number !== null) {
       return t("seasons.seasonTitled", { number, title: group.title });

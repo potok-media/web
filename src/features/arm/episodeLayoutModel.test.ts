@@ -11,16 +11,18 @@ import { finalizeGroupTitle, orderGroupsByKind } from "../../components/seasonGr
 import enTranslations from "../../i18n/locales/en.json";
 import ruTranslations from "../../i18n/locales/ru.json";
 
-/** Minimal `t` over the bundled locale JSON — enough for the plain-string `media.seasons` keys. */
+/** Minimal `t` over the bundled locale JSON, including the season label's interpolation. */
 function translatorFor(translations: typeof enTranslations): TFunction<"media"> {
-  return ((key: string) => {
+  return ((key: string, options: Record<string, unknown> = {}) => {
     const value = key
       .split(".")
       .reduce<unknown>(
         (node, part) => (node as Record<string, unknown> | undefined)?.[part],
         translations.media,
       );
-    return typeof value === "string" ? value : key;
+    return typeof value === "string"
+      ? value.replace(/\{\{(\w+)\}\}/g, (_, name: string) => String(options[name] ?? ""))
+      : key;
   }) as TFunction<"media">;
 }
 
@@ -173,6 +175,28 @@ describe("ARM episode layout presentation", () => {
 describe("ARM episode TMDB overlay", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it.each([
+    { name: "Сезон 1", translate: tRu, labels: ["Сезон 1", "Сезон 2"], show: 65942 },
+    { name: "Season 1", translate: tEn, labels: ["Season 1", "Season 2"], show: 65943 },
+  ])("keeps distinct ARM labels when groups share TMDB $name", async ({ name, translate, labels, show }) => {
+    vi.spyOn(ApiClient, "fetchTvSeason").mockResolvedValue({
+      id: 1, name, seasonNumber: 1,
+      episodes: [{ id: 900, name: "Episode", episodeNumber: 1, seasonNumber: 1 }],
+    });
+    const groups = toEpisodeGroupPresentations({
+      work: { id: "rezero" }, graphVersion: "rezero-regression",
+      groups: [1, 2].map(number => ({
+        id: `part-${number}`, kind: "season", number, tmdbShow: show, tmdbSeason: 1,
+        episodes: [{ id: `episode-${number}`, number: 1, tmdb: { show, season: 1, episode: 1 } }],
+      })),
+    });
+    const overlaid = await overlayTmdbEpisodeMeta(groups);
+    expect(overlaid.map(group => finalizeGroupTitle(group, translate))).toEqual(labels);
+    expect(overlaid.map(group => group.episodes[0].tmdbSeasonNumber)).toEqual([1, 1]);
+    expect(overlaid.map(group => group.episodes[0].seasonNumber)).toEqual([1, 2]);
+    expect(ApiClient.fetchTvSeason).toHaveBeenCalledTimes(1);
   });
 
   it("overlays group titles and episode display fields by the bridge coordinates", async () => {

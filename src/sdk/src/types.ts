@@ -49,7 +49,9 @@ export interface SDKArmEpisodeGroup {
   id: string;
   kind: "season" | "sides" | "movie" | "ova" | "specials" | string;
   number: number;
-  anilistId?: number | null;
+  aniListId?: number | null;
+  /** Entry title supplied by the structure source; independent of the TMDB season name. */
+  title?: string | null;
   malId?: number | null;
   tmdbShow?: number | null;
   tmdbSeason?: number | null;

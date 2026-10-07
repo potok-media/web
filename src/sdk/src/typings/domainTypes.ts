@@ -57,7 +57,7 @@ export const domainTypesDts = `
     kind: 'season' | 'sides' | 'movie' | 'ova' | 'specials' | string;
     number: number;
     title?: string | null;
-    anilistId?: number | null;
+    aniListId?: number | null;
     malId?: number | null;
     episodes: SDKArmEpisode[];
   }

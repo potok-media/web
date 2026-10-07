@@ -17,11 +17,13 @@ import { getArmLayoutCached, getArmResolveCached } from "../features/arm/armLayo
 import { resolveLegacyRedirect } from "../features/arm/armGroupSelection";
 import { ApiClient } from "../network/ApiClient";
 import type { TvEpisode } from "../network/ApiTypes";
+import type { ArmGroupSummary } from "../features/arm/armGroupDisplay";
 
 
 interface SelectedEpisodeState {
   episode: TvEpisode;
   seasonNumber: number;
+  groupTitle?: string;
 }
 
 interface MediaDetailsPageProps {
@@ -32,6 +34,8 @@ interface MediaDetailsPageProps {
    */
   resolvedMediaType?: string;
   resolvedMediaId?: number;
+  /** Source-aware count from the canonical layout; split parts are not extra seasons. */
+  resolvedGroupSummary?: ArmGroupSummary;
   /** The ARM entry (layout group) the page opens on — the canonical deep link. */
   initialGroupId?: string;
 }
@@ -39,6 +43,7 @@ interface MediaDetailsPageProps {
 export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
   resolvedMediaType,
   resolvedMediaId,
+  resolvedGroupSummary,
   initialGroupId,
 }) => {
   const params = useParams<{ mediaType: string; id: string }>();
@@ -157,6 +162,7 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
     <div className={`details-layout ${layoutModifier}`}>
       <MediaDetailsHeroSection
         media={media}
+        groupSummary={resolvedGroupSummary}
         mediaId={mediaId}
         tmdbId={tmdbId}
         mediaType={mediaType}
@@ -181,8 +187,8 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
               armEnabled={media.mediaType === "tv"}
               initialGroupId={initialGroupId}
               selectedEpisode={selectedEpisode}
-              onEpisodeClick={(ep, seasonNum) => {
-                setSelectedEpisode({ episode: ep, seasonNumber: seasonNum });
+              onEpisodeClick={(ep, seasonNum, groupTitle) => {
+                setSelectedEpisode({ episode: ep, seasonNumber: seasonNum, groupTitle });
               }}
               watchedEpisodes={media.progress?.watchedEpisodes || []}
               watchedEpisodeIds={media.progress?.watchedEpisodeIds || []}

@@ -4949,7 +4949,13 @@ button.popover-item.season-popover-item.active {
   flex-shrink: 0;
 }
 
-button.popover-item.season-popover-item > span,
+button.popover-item.season-popover-item > span {
+  flex: 1;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 button.popover-item.watch-popover-item > span {
   min-width: 0;
   overflow: hidden;

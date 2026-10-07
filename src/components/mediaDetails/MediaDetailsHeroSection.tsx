@@ -5,14 +5,17 @@ import { IconButton } from "../ui";
 import { Slot } from "../common/extension/Slot";
 import { MediaOverviewSection } from "../MediaOverviewSection";
 import type { MediaCard, TvEpisode } from "../../network/ApiTypes";
+import type { ArmGroupSummary } from "../../features/arm/armGroupDisplay";
 
 interface SelectedEpisodeState {
   episode: TvEpisode;
   seasonNumber: number;
+  groupTitle?: string;
 }
 
 interface MediaDetailsHeroSectionProps {
   media: MediaCard;
+  groupSummary?: ArmGroupSummary;
   mediaId: number;
   tmdbId: number;
   mediaType?: string;
@@ -28,6 +31,7 @@ interface MediaDetailsHeroSectionProps {
 
 export const MediaDetailsHeroSection: React.FC<MediaDetailsHeroSectionProps> = ({
   media,
+  groupSummary,
   mediaId,
   tmdbId,
   mediaType,
@@ -120,6 +124,7 @@ export const MediaDetailsHeroSection: React.FC<MediaDetailsHeroSectionProps> = (
 
             <MediaOverviewSection
               media={media}
+              groupSummary={groupSummary}
               selectedEpisode={selectedEpisode}
               setSelectedEpisode={setSelectedEpisode}
             />

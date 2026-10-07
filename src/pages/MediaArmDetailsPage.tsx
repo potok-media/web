@@ -5,12 +5,13 @@ import { LoadingSpinner } from "../components/LoadingSpinner";
 import { MediaDetailsErrorView } from "../components/mediaDetails/MediaDetailsErrorView";
 import { getArmLayoutCached } from "../features/arm/armLayoutCache";
 import { resolveCanonicalTarget, type ArmCanonicalTarget } from "../features/arm/armGroupSelection";
+import { summarizeArmGroups, type ArmGroupSummary } from "../features/arm/armGroupDisplay";
 import { ApiClient } from "../network/ApiClient";
 import MediaDetailsPage from "./MediaDetailsPage";
 
 type CanonicalState =
   | { status: "loading" }
-  | { status: "ready"; target: ArmCanonicalTarget }
+  | { status: "ready"; target: ArmCanonicalTarget; groupSummary: ArmGroupSummary }
   | { status: "missing" };
 
 /**
@@ -41,7 +42,8 @@ export const MediaArmDetailsPage: React.FC = () => {
           }), reloadKey > 0);
         if (controller.signal.aborted) return;
         const target = resolveCanonicalTarget(layout, entryId);
-        setState(target ? { status: "ready", target } : { status: "missing" });
+        const groupSummary = summarizeArmGroups(layout.groups);
+        setState(target ? { status: "ready", target, groupSummary } : { status: "missing" });
       } catch {
         if (!controller.signal.aborted) setState({ status: "missing" });
       }
@@ -63,6 +65,7 @@ export const MediaArmDetailsPage: React.FC = () => {
       key={`${potokId}:${state.target.entryId}`}
       resolvedMediaType={state.target.mediaType}
       resolvedMediaId={state.target.tmdbId}
+      resolvedGroupSummary={state.target.mediaType === "tv" ? state.groupSummary : undefined}
       initialGroupId={state.target.entryId}
     />
   );

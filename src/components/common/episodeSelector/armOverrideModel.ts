@@ -1,4 +1,5 @@
 import type { ArmEpisodeFiller, ArmEpisodeLayoutResponse, ArmTmdbCoordinate } from "../../../network/ArmTypes";
+import { resolveArmGroupLabels, type ArmGroupLabel } from "../../../features/arm/armGroupDisplay";
 import type { SDKArmBindingTarget, SDKEpisodeBindingOverride } from "../../../sdk/src/types";
 import type { EpisodeSourceSection, FileOverrideEntry, FileOverrideMode } from "./types";
 
@@ -16,6 +17,7 @@ export interface ArmOverrideGroup {
   id: string;
   kind: string;
   title: string;
+  sourceLabel?: ArmGroupLabel;
   displayNumber?: number | null;
   tmdbShow?: number | null;
   tmdbSeason?: number | null;
@@ -32,6 +34,7 @@ export interface ArmOverrideGroup {
 export function toArmOverrideGroups(layout: ArmEpisodeLayoutResponse | null | undefined): ArmOverrideGroup[] {
   const workId = layout?.work?.id;
   if (!workId) return [];
+  const labels = resolveArmGroupLabels(layout.groups);
   return layout.groups.flatMap((group) => {
     if (!group.id) return [];
     const episodes = group.episodes
@@ -49,6 +52,7 @@ export function toArmOverrideGroups(layout: ArmEpisodeLayoutResponse | null | un
       id: group.id,
       kind: group.kind,
       title: group.title ?? "",
+      sourceLabel: labels.get(group.id),
       displayNumber: typeof group.number === "number" && Number.isFinite(group.number) ? group.number : null,
       tmdbShow: group.tmdbShow ?? null,
       tmdbSeason: group.tmdbSeason ?? null,

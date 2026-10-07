@@ -10,6 +10,7 @@ import type { SDKArmEpisodeLayoutResponse } from "../../../sdk/src/types";
 vi.mock("../../../network/ApiClient", () => ({ ApiClient: { baseURL: "https://gateway.example" } }));
 vi.mock("react-i18next", () => ({ useTranslation: () => ({
   t: (key: string, options?: { number?: number }) => options?.number !== undefined ? `${key}:${options.number}` : key,
+  i18n: { language: "ru" },
 }) }));
 const layout: SDKArmEpisodeLayoutResponse = {
   work: { id: "work" },
@@ -25,6 +26,16 @@ const legacySeasons = [{ seasonNumber: 1, episodes: [{ episodeNumber: 1, name: "
 const base = { seasons: legacySeasons, seasonsLoading: false, onApplyOverride: vi.fn() };
 
 describe("ARM episode override picker states", () => {
+  it("renders the source's season number for a split part instead of the graph ordinal", () => {
+    const html = renderToStaticMarkup(createElement(EpisodeOverridePicker, {
+      ...base, canonicalBindingEnabled: true, armLayout: { ...layout, groups: [{
+        id: "part-2", kind: "season", number: 3, title: "Example 2nd Season Part 2",
+        episodes: [{ id: "episode", number: 1 }],
+      }] },
+    }));
+    expect(html).toContain("seasons.seasonPart:2");
+    expect(html).not.toContain("seasons.season:3");
+  });
   it("renders ARM ordinal and TMDB artwork while preserving provider coordinates", () => {
     const episodeItem = Object.freeze({
       id: "file", title: "TMDB special title", entryId: "specials", groupKind: "specials",

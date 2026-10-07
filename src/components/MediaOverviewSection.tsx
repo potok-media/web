@@ -2,21 +2,25 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Star } from "lucide-react";
 import type { TvEpisode, MediaCard } from "../network/ApiTypes";
+import type { ArmGroupSummary } from "../features/arm/armGroupDisplay";
+import { Button } from "./ui";
 
 interface SelectedEpisode {
   episode: TvEpisode;
   seasonNumber: number;
+  groupTitle?: string;
 }
-import { Button } from "./ui";
 
 interface MediaOverviewSectionProps {
   media: MediaCard;
+  groupSummary?: ArmGroupSummary;
   selectedEpisode: SelectedEpisode | null;
   setSelectedEpisode: (val: SelectedEpisode | null) => void;
 }
 
 export const MediaOverviewSection: React.FC<MediaOverviewSectionProps> = ({
   media,
+  groupSummary,
   selectedEpisode,
   setSelectedEpisode,
 }) => {
@@ -28,7 +32,7 @@ export const MediaOverviewSection: React.FC<MediaOverviewSectionProps> = ({
         {media.originalTitle && <p className="details-subtitles">{media.originalTitle}</p>}
 
         <h2 className="details-episode-title">
-          S{selectedEpisode.seasonNumber} • E{selectedEpisode.episode.episodeNumber} — {selectedEpisode.episode.name || t("episode.fallbackName", { number: selectedEpisode.episode.episodeNumber })}
+          {selectedEpisode.groupTitle ?? `S${selectedEpisode.seasonNumber}`} • E{selectedEpisode.episode.episodeNumber} — {selectedEpisode.episode.name || t("episode.fallbackName", { number: selectedEpisode.episode.episodeNumber })}
         </h2>
 
         <div className="hero-metadata details-hero-metadata">
@@ -65,7 +69,9 @@ export const MediaOverviewSection: React.FC<MediaOverviewSectionProps> = ({
         {media.subtitle && <span className="details-metadata-subtitle">{media.subtitle}</span>}
         {media.genres && <span>• {media.genres}</span>}
         {media.ageRating && <span>• {media.ageRating}</span>}
-        {media.numberOfSeasons && <span>• {t("overview.seasonsCount", { count: media.numberOfSeasons })}</span>}
+        {groupSummary ? (
+          groupSummary.count > 0 ? <span>• {t(groupSummary.kind === "seasons" ? "overview.seasonsCount" : "overview.partsCount", { count: groupSummary.count })}</span> : null
+        ) : media.numberOfSeasons ? <span>• {t("overview.seasonsCount", { count: media.numberOfSeasons })}</span> : null}
       </div>
 
       {media.overview && (

@@ -436,7 +436,13 @@
     },
     "overview": {
       "seasonsCount_one": "Сезонов: {{count}}",
-      "seasonsCount_other": "Сезонов: {{count}}"
+      "seasonsCount_few": "Сезонов: {{count}}",
+      "seasonsCount_many": "Сезонов: {{count}}",
+      "seasonsCount_other": "Сезонов: {{count}}",
+      "partsCount_one": "Частей: {{count}}",
+      "partsCount_few": "Частей: {{count}}",
+      "partsCount_many": "Частей: {{count}}",
+      "partsCount_other": "Частей: {{count}}"
     },
     "row": {
       "seeAllTitle": "Показать все в категории {{title}}",
@@ -607,6 +613,9 @@
       "season": "Сезон {{number}}",
       "seasonsHeader": "Сезоны",
       "seasonTitled": "Сезон {{number}}: {{title}}",
+      "seasonPart": "Сезон {{number}}, часть {{part}}",
+      "part": "Часть {{number}}",
+      "titledPart": "{{title}} — {{part}}",
       "sides": "Сайды",
       "specials": "Спешлы",
       "movie": "Фильм",

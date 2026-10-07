@@ -428,7 +428,9 @@
     },
     "overview": {
       "seasonsCount_one": "{{count}} season",
-      "seasonsCount_other": "{{count}} seasons"
+      "seasonsCount_other": "{{count}} seasons",
+      "partsCount_one": "{{count}} part",
+      "partsCount_other": "{{count}} parts"
     },
     "row": {
       "seeAllTitle": "Show all in {{title}}",
@@ -599,6 +601,9 @@
       "season": "Season {{number}}",
       "seasonsHeader": "Seasons",
       "seasonTitled": "Season {{number}}: {{title}}",
+      "seasonPart": "Season {{number}}, part {{part}}",
+      "part": "Part {{number}}",
+      "titledPart": "{{title}} — {{part}}",
       "sides": "Side stories",
       "specials": "Specials",
       "movie": "Movie",

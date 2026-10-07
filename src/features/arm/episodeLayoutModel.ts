@@ -5,6 +5,7 @@ import type {
   ArmLayoutGroup,
 } from "../../network/ArmTypes";
 import { fetchTmdbSeasonMeta } from "./tmdbSeasonMeta";
+import { resolveArmGroupLabels, type ArmGroupLabel } from "./armGroupDisplay";
 
 export interface EpisodeGroupTitleFallback {
   /** Canonical backend taxonomy: season | sides | movie | ova | specials. */
@@ -16,6 +17,8 @@ export interface EpisodeGroupPresentation {
   id: string;
   kind: string;
   title: string;
+  /** Source-owned label; cosmetic TMDB overlays must never replace it. */
+  sourceLabel?: ArmGroupLabel;
   /** Set when the title must be finalized by the component (localized per group kind). */
   titleFallback?: EpisodeGroupTitleFallback;
   displayNumber?: number | null;
@@ -30,8 +33,7 @@ function finiteNumber(value: number | null | undefined): number | undefined {
 }
 
 /**
- * Structure-only mapping (ARM carries no display metadata since the identity-only narrowing):
- * every episode starts nameless and still-less; overlayTmdbEpisodeMeta fills display fields
+ * Every episode starts nameless and still-less; overlayTmdbEpisodeMeta fills display fields
  * from TMDB by the bridge coordinates. Collapsing runs AFTER the overlay so the
  * displayability filter sees real metadata.
  */
@@ -57,12 +59,14 @@ export function toEpisodeGroupPresentations(
   layout: ArmEpisodeLayoutResponse,
 ): EpisodeGroupPresentation[] {
   // Owner's rule: a group with no episodes is never rendered, whatever its kind.
+  const labels = resolveArmGroupLabels(layout.groups);
   return layout.groups
     .filter((group) => group.episodes.length > 0)
     .map((group) => ({
       id: group.id,
       kind: group.kind,
-      title: "",
+      title: group.title?.trim() ?? "",
+      sourceLabel: labels.get(group.id),
       titleFallback: { kind: group.kind, number: finiteNumber(group.number) ?? null },
       displayNumber: finiteNumber(group.number) ?? null,
       tmdbShow: group.tmdbShow ?? null,
@@ -72,9 +76,8 @@ export function toEpisodeGroupPresentations(
 }
 
 /**
- * Fills group titles (localized TMDB season names) and episode display fields (name,
- * overview, still, air date) from TMDB by each group's bridge coordinate. Unbridged groups
- * and failed fetches stay bare — cosmetic degradation, never a broken layout.
+ * Fills episode display fields from TMDB by each group's bridge coordinate. Provider season
+ * names are only used when no source-owned label exists; failures keep the source labels.
  */
 export async function overlayTmdbEpisodeMeta(
   groups: EpisodeGroupPresentation[],
@@ -85,7 +88,7 @@ export async function overlayTmdbEpisodeMeta(
     if (!meta) return group;
     return {
       ...group,
-      title: meta.seasonName,
+      title: group.sourceLabel ? group.title : meta.seasonName,
       episodes: group.episodes.map((episode) => {
         const overlay = episode.tmdbEpisodeNumber != null
           ? meta.episodes.get(episode.tmdbEpisodeNumber)

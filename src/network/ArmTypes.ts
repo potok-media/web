@@ -51,7 +51,7 @@ export interface ArmLayoutGroup {
   id: ArmEntryId;
   kind: "season" | "sides" | "movie" | "ova" | "specials" | string;
   number: number;
-  anilistId?: number | null;
+  aniListId?: number | null;
   malId?: number | null;
   tmdbShow?: number | null;
   tmdbSeason?: number | null;

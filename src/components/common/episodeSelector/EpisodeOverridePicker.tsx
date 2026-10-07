@@ -11,7 +11,7 @@ import { getActiveLanguage, toIntlLocale } from "../../../utils/language";
 import type { SDKArmBindingTarget } from "../../../sdk/src/types";
 import type { EpisodeSelectorPopupProps, FileOverrideMode } from "./types";
 import { toArmOverrideGroups, type ArmOverrideGroup } from "./armOverrideModel";
-import { finalizeGroupTitle, isGenericSeasonTitle } from "../../seasonGroupLabels";
+import { finalizeGroupTitle } from "../../seasonGroupLabels";
 import { resolveEpisodeStillUrl } from "./artwork";
 
 interface EpisodeOverridePickerProps {
@@ -35,18 +35,18 @@ function formatDate(dateStr?: string | null) {
 
 /**
  * Localized season overlays for every bridged group (labels for the dropdown) plus the active
- * one (episode names/stills/dates). Progressive: groups first render with their
- * structure-source title and swap to the TMDB-localized label as payloads land — the fetch
- * helper dedups and caches per (show, season), failures stay cosmetic.
+ * one (episode names/stills/dates). Source-owned group labels stay stable as the localized
+ * episode metadata arrives; the fetch helper dedups per (show, season).
  */
 function useSeasonOverlays(groups: ArmOverrideGroup[]): Map<string, TmdbSeasonMeta> {
+  const { i18n } = useTranslation();
   const [overlays, setOverlays] = useState<Map<string, TmdbSeasonMeta>>(new Map());
   const key = groups.map(group => `${group.id}:${group.tmdbShow ?? ""}:${group.tmdbSeason ?? ""}`).join("|");
 
   useEffect(() => {
+    setOverlays(new Map());
     const wanted = groups.filter(group => group.tmdbShow != null && group.tmdbSeason != null);
     if (wanted.length === 0) {
-      setOverlays(new Map());
       return;
     }
     let cancelled = false;
@@ -58,7 +58,7 @@ function useSeasonOverlays(groups: ArmOverrideGroup[]): Map<string, TmdbSeasonMe
     }
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, i18n.language]);
 
   return overlays;
 }
@@ -73,21 +73,13 @@ const ArmEpisodeOverridePicker: React.FC<Pick<EpisodeOverridePickerProps,
   const overlays = useSeasonOverlays(groups);
   const labelled = groups.map(group => {
     const localizedTitle = overlays.get(group.id)?.seasonName || null;
-    // A generic localized season name ("Сезон 1") carries no information — and several graph
-    // entries may live in the same TMDB season (split cours), colliding on it. In that case
-    // the graph's own number + entry title disambiguates ("Сезон 2: MASHLE: Kami …").
-    const displayTitle = localizedTitle && !isGenericSeasonTitle(localizedTitle)
-      ? localizedTitle
-      : group.title || localizedTitle;
     return {
       ...group,
-      label: displayTitle
-        ? group.kind === "season" && group.displayNumber != null
-          ? t("seasons.seasonTitled", { number: group.displayNumber, title: displayTitle })
-          : displayTitle
-        : group.kind === "season" && group.displayNumber == null
-          ? t("selector.episodeGroup")
-          : finalizeGroupTitle({ ...group, episodes: [] }, t),
+      label: finalizeGroupTitle({
+        ...group,
+        title: group.sourceLabel ? group.title : localizedTitle ?? group.title,
+        episodes: [],
+      }, t),
     };
   });
   const activeGroup = labelled.find((group) => group.id === selectedGroupId) ?? labelled[0];
