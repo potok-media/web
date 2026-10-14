@@ -26,6 +26,8 @@ interface UseArmEpisodeLayoutOptions {
   summary?: ArmMediaSummary | null;
   /** Movies never enter the ARM season flow. */
   enabled?: boolean;
+  /** ARM entry id to scope the episode load to a single group (season/movie/ova). */
+  groupId?: string;
 }
 
 // Identity hydration on the backend is asynchronous; one delayed re-resolve picks up the real
@@ -55,6 +57,7 @@ export function useArmEpisodeLayout({
   tmdbId,
   summary,
   enabled = true,
+  groupId,
 }: UseArmEpisodeLayoutOptions): ArmEpisodeLayoutState {
   const { i18n } = useTranslation();
   const [state, setState] = useState<ArmEpisodeLayoutState>(initialState);
@@ -114,8 +117,8 @@ export function useArmEpisodeLayout({
         const [entriesRes, episodesRes] = await Promise.all([
           getArmEntriesCached(workId, undefined, locale, (ifNoneMatch: string | undefined) =>
             ApiClient.getArmEntries(workId, { locale, signal, ifNoneMatch }), revalidating),
-          getArmEpisodesCached(workId, undefined, locale, (ifNoneMatch: string | undefined) =>
-            ApiClient.getArmEpisodes(workId, { locale, signal, ifNoneMatch }), revalidating),
+          getArmEpisodesCached(workId, groupId, locale, (ifNoneMatch: string | undefined) =>
+            ApiClient.getArmEpisodes(workId, { locale, groupId, signal, ifNoneMatch }), revalidating),
         ]);
         if (signal.aborted) return;
 
@@ -148,7 +151,7 @@ export function useArmEpisodeLayout({
     };
     // Depend on summary scalars only — the object identity changes per render once the gateway
     // ships the `arm` field, and depending on it aborts the in-flight load on every render.
-  }, [enabled, i18n.language, summaryWorkId, summaryGraphVersion, summaryPresent, summaryReadable, tmdbId]);
+  }, [enabled, groupId, i18n.language, summaryWorkId, summaryGraphVersion, summaryPresent, summaryReadable, tmdbId]);
 
   return state;
 }

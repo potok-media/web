@@ -38,8 +38,8 @@ export const MediaArmDetailsPage: React.FC = () => {
         const [entriesRes, episodesRes] = await Promise.all([
           getArmEntriesCached(potokId, undefined, i18n.language, (ifNoneMatch) =>
             ApiClient.getArmEntries(potokId, { locale: i18n.language, signal: controller.signal, ifNoneMatch }), reloadKey > 0),
-          getArmEpisodesCached(potokId, undefined, i18n.language, (ifNoneMatch) =>
-            ApiClient.getArmEpisodes(potokId, { locale: i18n.language, signal: controller.signal, ifNoneMatch }), reloadKey > 0),
+          getArmEpisodesCached(potokId, entryId ?? undefined, i18n.language, (ifNoneMatch) =>
+            ApiClient.getArmEpisodes(potokId, { locale: i18n.language, groupId: entryId ?? undefined, signal: controller.signal, ifNoneMatch }), reloadKey > 0),
         ]);
         if (controller.signal.aborted) return;
         const layout = reconstructLayout(entriesRes.entries, episodesRes.episodes, potokId);

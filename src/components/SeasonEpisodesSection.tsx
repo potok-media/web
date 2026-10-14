@@ -65,7 +65,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   const [showWatchPopover, setShowWatchPopover] = useState(false);
   const [showAllEpisodesPopup, setShowAllEpisodesPopup] = useState(false);
 
-  const armLayout = useArmEpisodeLayout({ tmdbId: mediaId, summary: arm, enabled: armEnabled });
+  const armLayout = useArmEpisodeLayout({ tmdbId: mediaId, summary: arm, enabled: armEnabled, groupId: initialGroupId });
   const usesArmLayout = armLayout.status === "arm";
   // Preload the legacy season while ARM resolves so an older/uncovered Gateway falls back without a
   // second network waterfall. Once an ARM layout wins, the legacy request is disabled and cached.
