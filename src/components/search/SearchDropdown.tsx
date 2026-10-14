@@ -5,6 +5,7 @@ import { Clock, X } from "lucide-react";
 import { useMediaSearch } from "../../hooks/useMediaSearch";
 import { getRecentSearches, removeRecentSearch } from "../../utils/recentSearches";
 import type { MediaCard } from "../../network/ApiTypes";
+import { Button } from "../ui";
 import { SearchResultRow } from "./SearchResultRow";
 
 interface SearchDropdownProps {
@@ -20,7 +21,7 @@ const MAX_ROWS = 8;
 /**
  * The search-as-you-type panel under the sidebar input: debounced rich results with match
  * highlights, recent searches when the input is empty, and full keyboard control
- * (ArrowUp/Down cycles, Enter opens the active row or the full page, Escape closes).
+ * (ArrowUp/Down cycles, Enter opens the active row, Escape closes).
  */
 export const SearchDropdown: React.FC<SearchDropdownProps> = ({
   query,
@@ -52,23 +53,20 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
         return;
       }
       if (rows.length === 0) {
-        if (event.key === "Enter" && trimmed) {
-          event.preventDefault();
-          onShowAll(trimmed);
-        }
         return;
       }
       if (event.key === "ArrowDown") {
         event.preventDefault();
-        setActiveIndex(index => (index + 1) % (rows.length + 1));
+        setActiveIndex(index => (index + 1) % rows.length);
       } else if (event.key === "ArrowUp") {
         event.preventDefault();
-        setActiveIndex(index => (index <= 0 ? rows.length : index - 1));
+        setActiveIndex(index => (index <= 0 ? rows.length - 1 : index - 1));
       } else if (event.key === "Enter") {
+        if (event.target instanceof HTMLElement && event.target.closest(".search-dropdown-show-all")) {
+          return;
+        }
         event.preventDefault();
-        if (activeIndex >= rows.length || activeIndex < 0) {
-          onShowAll(trimmed);
-        } else {
+        if (activeIndex >= 0 && activeIndex < rows.length) {
           onPickCard(rows[activeIndex]);
         }
       }
@@ -125,13 +123,16 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
       ))}
 
       {trimmed && rows.length > 0 && (
-        <div
-          className={`search-dropdown-show-all${activeIndex >= rows.length ? " is-active" : ""}`}
+        <Button
+          type="button"
+          variant="ghost"
+          fullWidth
+          className="search-dropdown-show-all"
           onClick={() => onShowAll(trimmed)}
-          onMouseEnter={() => setActiveIndex(rows.length)}
+          onMouseEnter={() => setActiveIndex(-1)}
         >
           {t("search.showAll", { count: found })}
-        </div>
+        </Button>
       )}
     </div>
   );

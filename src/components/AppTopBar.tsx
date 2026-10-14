@@ -6,6 +6,7 @@ import { useAuth } from "../context/AppSettingsContext";
 import { mediaCardLink } from "../utils/mediaLink";
 import { rememberSearch } from "../utils/recentSearches";
 import { AppMenuPopover } from "./AppMenuPopover";
+import { getTopbarSearchDestination } from "./appTopBarSearchBehavior";
 import { TOPBAR_NAVIGATION_ITEMS } from "./appNavigation";
 import { SearchDropdown } from "./search/SearchDropdown";
 import { IconButton, Input, cx } from "./ui";
@@ -18,7 +19,6 @@ export const AppTopBar: React.FC = React.memo(() => {
   const location = useLocation();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
-  const navigateDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
@@ -31,45 +31,23 @@ export const AppTopBar: React.FC = React.memo(() => {
     setSearchValue(location.pathname === "/search" ? queryParam : "");
   }, [location.pathname, queryParam]);
 
-  useEffect(() => {
-    return () => {
-      if (navigateDebounceTimer.current) clearTimeout(navigateDebounceTimer.current);
-    };
-  }, []);
-
   const closeSearch = useCallback(() => {
     setIsSearchFocused(false);
     inputRef.current?.blur();
   }, []);
 
-  const navigateToSearch = useCallback((value: string, replace = false) => {
-    const trimmed = value.trim();
-    navigate(trimmed ? `/search?q=${encodeURIComponent(trimmed)}` : "/search", { replace });
-  }, [navigate]);
-
   const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    setSearchValue(value);
+    setSearchValue(event.target.value);
+  }, []);
 
-    if (navigateDebounceTimer.current) clearTimeout(navigateDebounceTimer.current);
-    navigateDebounceTimer.current = setTimeout(() => {
-      navigateToSearch(value, location.pathname === "/search");
-    }, 300);
-  }, [location.pathname, navigateToSearch]);
-
-  const handleSearchSubmit = useCallback((event: React.FormEvent) => {
+  const handleSearchSubmit = useCallback((event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (navigateDebounceTimer.current) clearTimeout(navigateDebounceTimer.current);
-    if (searchValue.trim()) rememberSearch(searchValue);
-    navigateToSearch(searchValue, location.pathname === "/search");
-  }, [location.pathname, navigateToSearch, searchValue]);
+  }, []);
 
   const handleClearSearch = useCallback(() => {
-    if (navigateDebounceTimer.current) clearTimeout(navigateDebounceTimer.current);
     setSearchValue("");
-    navigateToSearch("", location.pathname === "/search");
     inputRef.current?.focus();
-  }, [location.pathname, navigateToSearch]);
+  }, []);
 
   const handlePickCard = useCallback((item: Parameters<typeof mediaCardLink>[0]) => {
     if (searchValue.trim()) rememberSearch(searchValue);
@@ -78,16 +56,18 @@ export const AppTopBar: React.FC = React.memo(() => {
   }, [closeSearch, navigate, searchValue]);
 
   const handleShowAll = useCallback((value: string) => {
-    const trimmed = value.trim();
-    if (trimmed) rememberSearch(trimmed);
+    const destination = getTopbarSearchDestination("show-all", value);
+    if (!destination) return;
+
+    rememberSearch(value.trim());
     closeSearch();
-    navigateToSearch(trimmed);
-  }, [closeSearch, navigateToSearch]);
+    navigate(destination);
+  }, [closeSearch, navigate]);
 
   const handlePickRecent = useCallback((value: string) => {
     setSearchValue(value);
-    navigateToSearch(value, location.pathname === "/search");
-  }, [location.pathname, navigateToSearch]);
+    inputRef.current?.focus();
+  }, []);
 
   return (
     <header className="app-topbar">
@@ -122,7 +102,8 @@ export const AppTopBar: React.FC = React.memo(() => {
               <Search size="1rem" className="app-topbar-search__icon" aria-hidden="true" />
               <Input
                 ref={inputRef}
-                type="search"
+                type="text"
+                inputMode="search"
                 value={searchValue}
                 placeholder={t("searchPlaceholder")}
                 aria-label={t("search")}

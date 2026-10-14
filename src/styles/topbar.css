@@ -62,7 +62,7 @@
   font-size: 0.8125rem;
   font-weight: var(--font-weight-body-bold);
   text-decoration: none;
-  transition: color 160ms ease, background-color 160ms ease;
+  transition: color 160ms ease;
 }
 
 .app-topbar__nav-link::after {
@@ -81,7 +81,6 @@
 
 .app-topbar__nav-link:hover {
   color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.035);
 }
 
 .app-topbar__nav-link.is-active {

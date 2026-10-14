@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Search as SearchIcon, Clock, X, ChevronRight } from "lucide-react";
+import { Clock, X, ChevronRight } from "lucide-react";
 import { useMediaSearch } from "../hooks/useMediaSearch";
 import { ApiClient } from "../network/ApiClient";
 import { getRecentSearches, rememberSearch, removeRecentSearch } from "../utils/recentSearches";
@@ -9,7 +9,6 @@ import { hydrateLocalizedTitles } from "../utils/localizedTitles";
 import type { MediaCard } from "../network/ApiTypes";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { CardGrid, EmptyResults, PagedSearchResults } from "../components/search/SearchResults";
-import { Input } from "../components/ui";
 import "../styles/search.css";
 
 const SECTION_PREVIEW = 10;
@@ -58,19 +57,12 @@ export const SearchPage: React.FC = () => {
   const navigate = useNavigate();
   const initialQuery = new URLSearchParams(location.search).get("q") || "";
 
-  const [input, setInput] = useState(initialQuery);
   const [activeType, setActiveType] = useState<string | null>(null);
   const [recents, setRecents] = useState<string[]>(() => getRecentSearches());
   const [trending, setTrending] = useState<MediaCard[] | null>(null);
-  const navigateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const query = initialQuery; // the URL is the source of truth; input only proposes
+  const query = initialQuery;
   const unfiltered = useMediaSearch(query);
-
-  // The URL drives the query state (back/forward navigation and the sidebar both write it).
-  useEffect(() => {
-    setInput(initialQuery);
-  }, [initialQuery]);
 
   // The active chip may outlive its type in a new query's facet set — drop it then.
   useEffect(() => {
@@ -104,12 +96,6 @@ export const SearchPage: React.FC = () => {
       setRecents(getRecentSearches());
     }
     navigate(trimmed ? `/search?q=${encodeURIComponent(trimmed)}` : "/search", { replace: true });
-  };
-
-  const handleInputChange = (value: string) => {
-    setInput(value);
-    if (navigateTimer.current) clearTimeout(navigateTimer.current);
-    navigateTimer.current = setTimeout(() => pushQuery(value), 300);
   };
 
   const renderEmptyState = () => (
@@ -202,27 +188,11 @@ export const SearchPage: React.FC = () => {
     ));
   };
 
+  const chips = renderChips();
+
   return (
-    <div className="library-page-container search-page">
-      <header className="search-page-header">
-        <div className="search-page-input-wrap">
-          <SearchIcon size="1rem" className="search-page-input-icon" />
-          <Input
-            type="text"
-            value={input}
-            placeholder={t("library.searchPlaceholder")}
-            onChange={event => handleInputChange(event.target.value)}
-            onKeyDown={event => {
-              if (event.key === "Enter") {
-                if (navigateTimer.current) clearTimeout(navigateTimer.current);
-                pushQuery(input, true);
-              }
-            }}
-            className="search-page-input"
-          />
-        </div>
-        {renderChips()}
-      </header>
+    <div className="library-page-container library-page-container--collection search-page">
+      {chips ? <header className="search-page-header">{chips}</header> : null}
       <main className="library-content-area">{query ? renderResults() : renderEmptyState()}</main>
     </div>
   );
