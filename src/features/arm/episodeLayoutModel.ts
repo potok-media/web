@@ -41,9 +41,12 @@ function toTvEpisode(
   episode: ArmLayoutEpisode,
   group: ArmLayoutGroup,
 ): TvEpisode {
+  // Use the first localized title as the episode name when TMDB overlay is not yet available.
+  // overlayTmdbEpisodeMeta will replace it with the TMDB name when the bridge coordinate exists.
+  const name = episode.localizedTitles?.[0]?.value ?? "";
   return {
     id: episode.id,
-    name: "",
+    name,
     episodeNumber: finiteNumber(episode.number) ?? 0,
     seasonNumber: finiteNumber(group.number) ?? 0,
     armEpisodeId: episode.id,

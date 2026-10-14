@@ -1336,6 +1336,8 @@ export interface RawStreamPayload {
 
 export interface StreamSearchQuery {
   title: string;
+  /** Catalog titles and aliases already available to the host. */
+  searchAliases?: string[];
   originalTitle?: string;
   englishTitle?: string;
   year?: number;

@@ -30,6 +30,10 @@ export function useMediaStreams({
 }: UseMediaStreamsParams) {
   const details = useMediaStreamsDetails({ mediaType, mediaId, initialMedia });
 
+  const searchAliases = useMemo(() => [...new Set(
+    Object.values(details.currentMedia?.titlesByLocale || {}).flat().map((title) => title.value),
+  )], [details.currentMedia?.titlesByLocale]);
+
   const search = useMediaStreamsSourceSearch({
     mediaType,
     mediaId,
@@ -37,6 +41,8 @@ export function useMediaStreams({
     mediaOriginalTitle: details.currentMedia?.originalTitle,
     mediaEnglishTitle: details.currentMedia?.englishTitle,
     mediaImdbId: details.currentMedia?.imdbId,
+    mediaSearchAliases: searchAliases,
+    mediaYear: details.currentMedia?.year,
     workId: workId || details.currentMedia?.arm?.workId || undefined,
     entryId,
     episodeId,

@@ -3,9 +3,15 @@ import type {
   ArmEntryId,
   ArmEpisodeLayoutResponse,
   ArmEpisodeSegmentsResponse,
+  ArmEntriesResponse,
+  ArmEpisodesResponse,
+  ArmExternalIdsResponse,
   ArmGraphVersion,
+  ArmGraphVersionResponse,
+  ArmLocalizedTitlesResponse,
   ArmProviderReference,
   ArmResolveResponse,
+  ArmWorkCardResponse,
   ArmWorkId,
 } from "./ArmTypes";
 
@@ -71,6 +77,20 @@ export interface ArmClient {
     episodeId: ArmEpisodeId,
     options: ArmSegmentsRequestOptions,
   ): Promise<ArmHttpResponse<ArmEpisodeSegmentsResponse>>;
+
+  // ── New endpoint methods ──────────────────────────────────────────
+  getGraphVersion(options?: ArmRequestOptions): Promise<ArmHttpResponse<ArmGraphVersionResponse>>;
+  getWorkCard(workId: ArmWorkId, options?: ArmRequestOptions): Promise<ArmHttpResponse<ArmWorkCardResponse>>;
+  getLocalizedTitles(workId: ArmWorkId, options?: ArmRequestOptions): Promise<ArmHttpResponse<ArmLocalizedTitlesResponse>>;
+  getExternalIds(workId: ArmWorkId, options?: ArmRequestOptions): Promise<ArmHttpResponse<ArmExternalIdsResponse>>;
+  getEntries(
+    workId: ArmWorkId,
+    options?: ArmRequestOptions & { kind?: string },
+  ): Promise<ArmHttpResponse<ArmEntriesResponse>>;
+  getEpisodes(
+    workId: ArmWorkId,
+    options?: ArmRequestOptions & { groupId?: ArmEntryId },
+  ): Promise<ArmHttpResponse<ArmEpisodesResponse>>;
 }
 
 function appendQuery(path: string, query: Record<string, string | undefined>): string {
@@ -120,6 +140,53 @@ export function createArmApiClient(transport: ArmHttpTransport): ArmClient {
         appendQuery(`/api/arm/v1/episodes/${segment(episodeId)}/segments`, {
           durationMs: String(options.durationMs),
         }),
+        requestOptions(options),
+      );
+    },
+
+    // ── New endpoint implementations ──────────────────────────────────
+
+    getGraphVersion(options) {
+      return transport.get<ArmGraphVersionResponse>("/api/arm/v1/version", requestOptions(options));
+    },
+
+    getWorkCard(workId, options) {
+      return transport.get<ArmWorkCardResponse>(
+        `/api/arm/v1/works/${segment(workId)}`,
+        requestOptions(options),
+      );
+    },
+
+    getLocalizedTitles(workId, options) {
+      return transport.get<ArmLocalizedTitlesResponse>(
+        `/api/arm/v1/works/${segment(workId)}/localized-titles`,
+        requestOptions(options),
+      );
+    },
+
+    getExternalIds(workId, options) {
+      return transport.get<ArmExternalIdsResponse>(
+        `/api/arm/v1/works/${segment(workId)}/external-ids/simple`,
+        requestOptions(options),
+      );
+    },
+
+    getEntries(workId, options) {
+      const query: Record<string, string> = {};
+      if (options?.locale) query.locale = options.locale;
+      if (options?.kind) query.kind = options.kind;
+      return transport.get<ArmEntriesResponse>(
+        appendQuery(`/api/arm/v1/works/${segment(workId)}/entries`, query),
+        requestOptions(options),
+      );
+    },
+
+    getEpisodes(workId, options) {
+      const query: Record<string, string> = {};
+      if (options?.locale) query.locale = options.locale;
+      if (options?.groupId) query.groupId = options.groupId;
+      return transport.get<ArmEpisodesResponse>(
+        appendQuery(`/api/arm/v1/works/${segment(workId)}/episodes`, query),
         requestOptions(options),
       );
     },

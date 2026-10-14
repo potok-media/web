@@ -6,7 +6,10 @@ import {
   type ArmHttpTransport,
   type ArmTransportGetOptions,
 } from "./ArmApiClient";
-import type { ArmEpisodeLayoutResponse, ArmResolveResponse } from "./ArmTypes";
+import type {
+  ArmEpisodeLayoutResponse,
+  ArmResolveResponse,
+} from "./ArmTypes";
 
 const resolved: ArmResolveResponse = {
   workId: "01900000-0000-7000-8000-000000000001",
@@ -139,6 +142,239 @@ describe("ARM client", () => {
     const client = createArmApiClient(transport);
 
     await expect(client.getEpisodeLayout("01900000-0000-7000-8000-000000000001")).rejects.toMatchObject({
+      name: "ArmApiError",
+      status: 503,
+    });
+  });
+
+  // ── New endpoint tests ──────────────────────────────────────────────────
+
+  it("fetches the graph version", async () => {
+    const seen: string[] = [];
+    const transport: ArmHttpTransport = {
+      async get<T>(path: string): Promise<ArmHttpResponse<T>> {
+        seen.push(path);
+        return {
+          status: 200,
+          etag: null,
+          graphVersion: null,
+          body: { builtAt: "2026-10-12T00:00:00Z" } as T,
+        };
+      },
+    };
+
+    const client = createArmApiClient(transport);
+    const result = await client.getGraphVersion();
+
+    expect(seen).toEqual(["/api/arm/v1/version"]);
+    expect(result.body?.builtAt).toBe("2026-10-12T00:00:00Z");
+  });
+
+  it("fetches a work card", async () => {
+    const seen: string[] = [];
+    const transport: ArmHttpTransport = {
+      async get<T>(path: string): Promise<ArmHttpResponse<T>> {
+        seen.push(path);
+        return {
+          status: 200,
+          etag: null,
+          graphVersion: null,
+          body: {
+            workId: "01900000-0000-7000-8000-000000000001",
+            type: "tv",
+            year: 2024,
+            originalTitle: "Test Anime",
+            originalLanguage: "ja",
+            originCountry: "JP",
+            adult: false,
+            seasonsCount: 3,
+            episodesCount: 48,
+            entryCount: 5,
+            episodeCount: 48,
+          } as T,
+        };
+      },
+    };
+
+    const client = createArmApiClient(transport);
+    const result = await client.getWorkCard("01900000-0000-7000-8000-000000000001");
+
+    expect(seen).toEqual(["/api/arm/v1/works/01900000-0000-7000-8000-000000000001"]);
+    expect(result.body?.workId).toBe("01900000-0000-7000-8000-000000000001");
+    expect(result.body?.type).toBe("tv");
+  });
+
+  it("fetches localized titles", async () => {
+    const seen: string[] = [];
+    const transport: ArmHttpTransport = {
+      async get<T>(path: string): Promise<ArmHttpResponse<T>> {
+        seen.push(path);
+        return {
+          status: 200,
+          etag: null,
+          graphVersion: null,
+          body: {
+            titles: [
+              { locale: "ja", value: "Test" },
+              { locale: "en", value: "Test (EN)" },
+              { locale: "ru", value: "Test (RU)" },
+            ],
+          } as T,
+        };
+      },
+    };
+
+    const client = createArmApiClient(transport);
+    const result = await client.getLocalizedTitles("01900000-0000-7000-8000-000000000001");
+
+    expect(seen).toEqual(["/api/arm/v1/works/01900000-0000-7000-8000-000000000001/localized-titles"]);
+    expect(result.body?.titles.length).toBe(3);
+  });
+
+  it("fetches external IDs as a flat list", async () => {
+    const seen: string[] = [];
+    const transport: ArmHttpTransport = {
+      async get<T>(path: string): Promise<ArmHttpResponse<T>> {
+        seen.push(path);
+        return {
+          status: 200,
+          etag: null,
+          graphVersion: null,
+          body: {
+            externalIds: [
+              { provider: "tmdb", entityKind: "tv", value: "65930" },
+              { provider: "anilist", entityKind: "anime", value: "21459" },
+            ],
+          } as T,
+        };
+      },
+    };
+
+    const client = createArmApiClient(transport);
+    const result = await client.getExternalIds("01900000-0000-7000-8000-000000000001");
+
+    expect(seen).toEqual(["/api/arm/v1/works/01900000-0000-7000-8000-000000000001/external-ids/simple"]);
+    expect(result.body?.externalIds.length).toBe(2);
+  });
+
+  it("fetches paginated entries with kind filter", async () => {
+    const seen: string[] = [];
+    const transport: ArmHttpTransport = {
+      async get<T>(path: string): Promise<ArmHttpResponse<T>> {
+        seen.push(path);
+        return {
+          status: 200,
+          etag: null,
+          graphVersion: null,
+          body: {
+            entries: [
+              {
+                entryId: "e1",
+                kind: "season",
+                number: 1,
+                sortPosition: 0,
+                structureSource: "anilist",
+                externalIds: [],
+                localizedTitles: [],
+                tmdb: { showId: 65930, season: 1 },
+                displayMetadata: null,
+              },
+            ],
+          } as T,
+        };
+      },
+    };
+
+    const client = createArmApiClient(transport);
+    const result = await client.getEntries("01900000-0000-7000-8000-000000000001", { kind: "season" });
+
+    expect(seen).toEqual([
+      "/api/arm/v1/works/01900000-0000-7000-8000-000000000001/entries?kind=season",
+    ]);
+    expect(result.body?.entries.length).toBe(1);
+  });
+
+  it("fetches paginated episodes with groupId", async () => {
+    const seen: string[] = [];
+    const transport: ArmHttpTransport = {
+      async get<T>(path: string): Promise<ArmHttpResponse<T>> {
+        seen.push(path);
+        return {
+          status: 200,
+          etag: null,
+          graphVersion: null,
+          body: {
+            episodes: [
+              {
+                episodeId: "ep1",
+                groupId: "e1",
+                number: 1,
+                tmdb: { showId: 65930, season: 1, episode: 1 },
+                localizedTitles: [{ locale: "en", value: "Episode 1" }],
+                overview: null,
+                stillPath: null,
+                airDate: "2024-01-01",
+                filler: null,
+              },
+            ],
+          } as T,
+        };
+      },
+    };
+
+    const client = createArmApiClient(transport);
+    const result = await client.getEpisodes("01900000-0000-7000-8000-000000000001", {
+      groupId: "e1",
+    });
+
+    expect(seen).toEqual([
+      "/api/arm/v1/works/01900000-0000-7000-8000-000000000001/episodes?groupId=e1",
+    ]);
+    expect(result.body?.episodes.length).toBe(1);
+  });
+
+  it("forwards ifNoneMatch to new endpoints", async () => {
+    const seenValidators: (string | undefined)[] = [];
+    const transport: ArmHttpTransport = {
+      async get<T>(_path: string, options?: { signal?: AbortSignal; ifNoneMatch?: string }): Promise<ArmHttpResponse<T>> {
+        seenValidators.push(options?.ifNoneMatch);
+        return { status: 200, etag: null, graphVersion: null, body: {} as T };
+      },
+    };
+
+    const client = createArmApiClient(transport);
+
+    await client.getWorkCard("01900000-0000-7000-8000-000000000001", {
+      ifNoneMatch: "\"arm-work-card\"",
+    });
+    await client.getEntries("01900000-0000-7000-8000-000000000001", {
+      ifNoneMatch: "\"arm-entries\"",
+    });
+    await client.getEpisodes("01900000-0000-7000-8000-000000000001", {
+      ifNoneMatch: "\"arm-episodes\"",
+    });
+
+    expect(seenValidators).toEqual([
+      "\"arm-work-card\"",
+      "\"arm-entries\"",
+      "\"arm-episodes\"",
+    ]);
+  });
+
+  it("throws ArmApiError on non-2xx responses for new endpoints", async () => {
+    const transport: ArmHttpTransport = {
+      async get(): Promise<never> {
+        throw new ArmApiError("ARM unavailable", 503);
+      },
+    };
+
+    const client = createArmApiClient(transport);
+
+    await expect(client.getWorkCard("01900000-0000-7000-8000-000000000001")).rejects.toMatchObject({
+      name: "ArmApiError",
+      status: 503,
+    });
+    await expect(client.getEntries("01900000-0000-7000-8000-000000000001")).rejects.toMatchObject({
       name: "ArmApiError",
       status: 503,
     });

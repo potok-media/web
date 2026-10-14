@@ -73,6 +73,140 @@ export const domainTypesDts = `
     graphVersion: string | null;
   }
 
+  /** GET /api/arm/v1/version — the graph build stamp. */
+  interface SDKArmGraphVersionResponse {
+    builtAt: string;
+  }
+
+  /** GET /api/arm/v1/works/{id} — enriched work card from media table. */
+  interface SDKArmWorkCardResponse {
+    workId: string;
+    type: string;
+    year: number | null;
+    originalTitle: string | null;
+    originalLanguage: string | null;
+    originCountry: string | null;
+    adult: boolean;
+    seasonsCount: number;
+    episodesCount: number;
+    entryCount: number | null;
+    episodeCount: number | null;
+  }
+
+  /** One localized title from a source (media table titles array). */
+  interface SDKArmLocalizedTitle {
+    locale: string;
+    value: string;
+  }
+
+  /** GET /api/arm/v1/works/{id}/localized-titles — all stored titles. */
+  interface SDKArmLocalizedTitlesResponse {
+    titles: SDKArmLocalizedTitle[];
+  }
+
+  /** One external id (provider/entityKind/value). */
+  interface SDKArmExternalId {
+    provider: string;
+    entityKind: string;
+    value: string;
+  }
+
+  /** GET /api/arm/v1/works/{id}/external-ids/simple — all work-level provider keys. */
+  interface SDKArmExternalIdsResponse {
+    externalIds: SDKArmExternalId[];
+  }
+
+  /** One AniList cover image variant. */
+  interface SDKArmCoverImage {
+    large: string | null;
+    medium: string | null;
+  }
+
+  /** One AniList studio. */
+  interface SDKArmStudio {
+    name: string | null;
+    url: string | null;
+  }
+
+  /** Full AniList display metadata for an entry. */
+  interface SDKArmEntryDisplayMetadata {
+    cover: SDKArmCoverImage | null;
+    genres: string[];
+    tags: string[];
+    score: number | null;
+    studios: SDKArmStudio[];
+    description: string | null;
+    synonyms: string[];
+    format: string | null;
+    status: string | null;
+    episodeCount: number | null;
+    durationMinutes: number | null;
+    season: string | null;
+    seasonYear: number | null;
+    startDate: string | null;
+    endDate: string | null;
+    source: string | null;
+    isAdult: boolean | null;
+    popularity: number | null;
+    siteUrl: string | null;
+  }
+
+  /** Entry-level TMDB bridge coordinate. */
+  interface SDKArmEntryTmdbCoordinate {
+    showId: number;
+    season: number;
+  }
+
+  /** One localized release title from release_titles table. */
+  interface SDKArmLocalizedReleaseTitle {
+    language: string;
+    value: string;
+    source: string;
+  }
+
+  /** One entry (season/side/movie/OVA/specials) with full display metadata. */
+  interface SDKArmEntryDetail {
+    entryId: string;
+    kind: string;
+    number: number;
+    sortPosition: number;
+    structureSource: string;
+    externalIds: SDKArmExternalId[];
+    localizedTitles: SDKArmLocalizedReleaseTitle[];
+    tmdb: SDKArmEntryTmdbCoordinate | null;
+    displayMetadata: SDKArmEntryDisplayMetadata | null;
+  }
+
+  /** GET /api/arm/v1/works/{id}/entries — full entry list (no pagination). */
+  interface SDKArmEntriesResponse {
+    entries: SDKArmEntryDetail[];
+  }
+
+  /** Episode-level TMDB coordinate (show/season/episode). */
+  interface SDKArmEpisodeTmdbCoordinate {
+    showId: number;
+    season: number;
+    episode: number;
+  }
+
+  /** One episode with full display metadata. */
+  interface SDKArmEpisodeDetail {
+    episodeId: string;
+    groupId: string;
+    number: number;
+    tmdb: SDKArmEpisodeTmdbCoordinate | null;
+    localizedTitles: SDKArmLocalizedTitle[];
+    overview: string | null;
+    stillPath: string | null;
+    airDate: string | null;
+    filler: SDKArmEpisodeFiller | null;
+  }
+
+  /** GET /api/arm/v1/works/{id}/episodes — full episode list (no pagination). */
+  interface SDKArmEpisodesResponse {
+    episodes: SDKArmEpisodeDetail[];
+  }
+
   interface SDKArmRequestOptions {
     locale?: string;
     timeoutMs?: number;
@@ -270,7 +404,7 @@ export const domainTypesDts = `
     id: string;
     name: string;
     supportedTypes: ('movie' | 'tv')[];
-    search(query: { title: string; originalTitle?: string; englishTitle?: string; year?: number; imdbId?: string; tmdbId?: number; workId?: string; entryId?: string; episodeId?: string; type: 'movie' | 'tv'; season?: number; episode?: number; forceSearch?: boolean }, onProgress?: (streams: SDKRawStreamPayload[]) => void): Promise<SDKRawStreamPayload[]>;
+    search(query: { title: string; searchAliases?: string[]; originalTitle?: string; englishTitle?: string; year?: number; imdbId?: string; tmdbId?: number; workId?: string; entryId?: string; episodeId?: string; type: 'movie' | 'tv'; season?: number; episode?: number; forceSearch?: boolean }, onProgress?: (streams: SDKRawStreamPayload[]) => void): Promise<SDKRawStreamPayload[]>;
     getEpisodes?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number; workId?: string; entryId?: string; episodeId?: string; season?: number; episode?: number }): Promise<{ episodes: SDKStreamEpisode[]; tmdbSeasonsCount?: number; parsingSuspect?: boolean; seasonMap?: Record<string, { season: number; offset: number }>; fileMap?: Record<string, SDKFileOverrideEntry>; arm?: { state: string; workId?: string | null; graphVersion?: string | null } | null }>;
     // Optional per-FILE overrides. Implement BOTH to opt into the host's per-file anchor/pin editing UI.
     // mode: 'anchor' (renumber the run from this file) | 'pin' (fix just this file, e.g. a special).

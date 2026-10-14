@@ -1,6 +1,6 @@
 import type { Connect, Plugin } from 'vite';
 import { execFileSync } from 'node:child_process';
-import { readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, resolve, sep } from 'node:path';
 
 const mime: Record<string, string> = {
@@ -36,15 +36,32 @@ function serveWiki(root: string): Connect.NextHandleFunction {
   };
 }
 
+/** Build the wiki. Returns true if successful, false if wiki/dist is already up to date and SKIP_WIKI_BUILD is set. */
+function tryBuildWiki(wiki: string): boolean {
+  if (process.env.SKIP_WIKI_BUILD === '1' && existsSync(resolve(wiki, 'dist', 'index.html'))) {
+    return true;
+  }
+  try {
+    execFileSync(process.execPath, [resolve(wiki, 'node_modules/astro/astro.js'), 'build'], { cwd: wiki, stdio: 'inherit' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Serve the built docs in development too, including their real Pagefind search index. */
 export function wikiServer(webRoot: string): Plugin {
   const wiki = resolve(webRoot, 'wiki');
-  const build = () => execFileSync(process.execPath, [resolve(wiki, 'node_modules/astro/astro.js'), 'build'], { cwd: wiki, stdio: 'inherit' });
   return {
     name: 'potok-wiki',
     configureServer(server) {
-      execFileSync(process.execPath, [resolve(wiki, 'scripts/gen-components.mjs')], { stdio: 'inherit' });
-      build();
+      try {
+        execFileSync(process.execPath, [resolve(wiki, 'scripts/gen-components.mjs')], { stdio: 'inherit' });
+      } catch { /* gen-components is optional */ }
+
+      if (!tryBuildWiki(wiki)) {
+        server.config.logger.warn('Wiki build failed, serving pre-built wiki/dist if available');
+      }
       server.middlewares.use(serveWiki(resolve(wiki, 'dist')));
       let timer: ReturnType<typeof setTimeout> | undefined;
       const scheduleBuild = (path: string) => {
@@ -55,7 +72,9 @@ export function wikiServer(webRoot: string): Plugin {
         timer = setTimeout(() => {
           try {
             execFileSync(process.execPath, [resolve(wiki, 'scripts/gen-components.mjs')], { stdio: 'inherit' });
-            build();
+            if (!tryBuildWiki(wiki)) {
+              server.config.logger.error(`Wiki rebuild failed.`);
+            }
             server.ws.send({ type: 'full-reload', path: '/wiki/*' });
           } catch (error) { server.config.logger.error(`Wiki rebuild failed: ${String(error)}`); }
         }, 200);

@@ -1,0 +1,14 @@
+# Local development profile — builds potok-web from source instead of pulling
+# from ghcr.io. Run with:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.local.yaml build
+#   docker compose -f docker-compose.yml -f docker-compose.local.yaml up -d
+#
+# The .local.yaml overrides only the services that differ from the canonical
+# docker-compose.yml; everything else is inherited.
+services:
+  # 💻 Potok web client (Frontend) — local build (Vite dev server)
+  potok-web:
+    build:
+      context: .
+      dockerfile: Dockerfile

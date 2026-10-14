@@ -13,7 +13,8 @@ import { MediaCastSection } from "../components/MediaCastSection";
 import { EpisodeMultiPickerModal } from "../components/EpisodeMultiPickerModal";
 import { MediaDetailsErrorView } from "../components/mediaDetails/MediaDetailsErrorView";
 import { MediaDetailsHeroSection } from "../components/mediaDetails/MediaDetailsHeroSection";
-import { getArmLayoutCached, getArmResolveCached } from "../features/arm/armLayoutCache";
+import { getArmEntriesCached, getArmEpisodesCached, getArmResolveCached } from "../features/arm/armLayoutCache";
+import { reconstructLayout } from "../features/arm/layoutReconstruction";
 import { resolveLegacyRedirect } from "../features/arm/armGroupSelection";
 import { ApiClient } from "../network/ApiClient";
 import type { TvEpisode } from "../network/ApiTypes";
@@ -75,13 +76,15 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
             ifNoneMatch,
           }), false);
         if (!resolved.workId || controller.signal.aborted) return;
-        const layout = await getArmLayoutCached(resolved.workId, i18n.language, (ifNoneMatch) =>
-          ApiClient.fetchArmEpisodeLayout(resolved.workId!, {
-            locale: i18n.language,
-            signal: controller.signal,
-            ifNoneMatch,
-          }), false);
+        const workId = resolved.workId;
+        const [entriesRes, episodesRes] = await Promise.all([
+          getArmEntriesCached(workId, undefined, i18n.language, (ifNoneMatch) =>
+            ApiClient.getArmEntries(workId, { locale: i18n.language, signal: controller.signal, ifNoneMatch }), false),
+          getArmEpisodesCached(workId, undefined, i18n.language, (ifNoneMatch) =>
+            ApiClient.getArmEpisodes(workId, { locale: i18n.language, signal: controller.signal, ifNoneMatch }), false),
+        ]);
         if (controller.signal.aborted) return;
+        const layout = reconstructLayout(entriesRes.entries, episodesRes.episodes, workId);
         const target = resolveLegacyRedirect(layout, mediaId);
         if (!target) return;
         const next = new URLSearchParams(searchParams);

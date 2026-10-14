@@ -3,9 +3,10 @@ import { useTranslation } from "react-i18next";
 import { useParams, useSearchParams } from "react-router-dom";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { MediaDetailsErrorView } from "../components/mediaDetails/MediaDetailsErrorView";
-import { getArmLayoutCached } from "../features/arm/armLayoutCache";
+import { reconstructLayout } from "../features/arm/layoutReconstruction";
 import { resolveCanonicalTarget, type ArmCanonicalTarget } from "../features/arm/armGroupSelection";
 import { summarizeArmGroups, type ArmGroupSummary } from "../features/arm/armGroupDisplay";
+import { getArmEntriesCached, getArmEpisodesCached } from "../features/arm/armLayoutCache";
 import { ApiClient } from "../network/ApiClient";
 import MediaDetailsPage from "./MediaDetailsPage";
 
@@ -34,13 +35,14 @@ export const MediaArmDetailsPage: React.FC = () => {
     setState({ status: "loading" });
     void (async () => {
       try {
-        const layout = await getArmLayoutCached(potokId, i18n.language, (ifNoneMatch) =>
-          ApiClient.fetchArmEpisodeLayout(potokId, {
-            locale: i18n.language,
-            signal: controller.signal,
-            ifNoneMatch,
-          }), reloadKey > 0);
+        const [entriesRes, episodesRes] = await Promise.all([
+          getArmEntriesCached(potokId, undefined, i18n.language, (ifNoneMatch) =>
+            ApiClient.getArmEntries(potokId, { locale: i18n.language, signal: controller.signal, ifNoneMatch }), reloadKey > 0),
+          getArmEpisodesCached(potokId, undefined, i18n.language, (ifNoneMatch) =>
+            ApiClient.getArmEpisodes(potokId, { locale: i18n.language, signal: controller.signal, ifNoneMatch }), reloadKey > 0),
+        ]);
         if (controller.signal.aborted) return;
+        const layout = reconstructLayout(entriesRes.entries, episodesRes.episodes, potokId);
         const target = resolveCanonicalTarget(layout, entryId);
         const groupSummary = summarizeArmGroups(layout.groups);
         setState(target ? { status: "ready", target, groupSummary } : { status: "missing" });

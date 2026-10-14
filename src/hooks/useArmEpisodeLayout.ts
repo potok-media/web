@@ -11,7 +11,8 @@ import {
   toEpisodeGroupPresentations,
   type EpisodeGroupPresentation,
 } from "../features/arm/episodeLayoutModel";
-import { getArmLayoutCached, getArmResolveCached } from "../features/arm/armLayoutCache";
+import { reconstructLayout } from "../features/arm/layoutReconstruction";
+import { getArmEntriesCached, getArmEpisodesCached, getArmResolveCached } from "../features/arm/armLayoutCache";
 
 type ArmEpisodeLayoutStatus = "loading" | "arm" | "providerFallback";
 
@@ -107,13 +108,22 @@ export function useArmEpisodeLayout({
           }
         }
 
-        const layout = await getArmLayoutCached(workId, locale, (ifNoneMatch) =>
-          ApiClient.fetchArmEpisodeLayout(workId, { locale, signal, ifNoneMatch }), revalidating);
+        // New endpoints: fetch entries + episodes in parallel, reconstruct the legacy layout shape.
+        // The new episodes endpoint already carries overview / stillPath / airDate, so the old
+        // TMDB overlay step is no longer needed — display metadata comes from the graph directly.
+        const [entriesRes, episodesRes] = await Promise.all([
+          getArmEntriesCached(workId, undefined, locale, (ifNoneMatch: string | undefined) =>
+            ApiClient.getArmEntries(workId, { locale, signal, ifNoneMatch }), revalidating),
+          getArmEpisodesCached(workId, undefined, locale, (ifNoneMatch: string | undefined) =>
+            ApiClient.getArmEpisodes(workId, { locale, signal, ifNoneMatch }), revalidating),
+        ]);
         if (signal.aborted) return;
 
+        const layout = reconstructLayout(entriesRes.entries, episodesRes.episodes, workId);
+
         // Structure first (never blocks the UI), then the TMDB display overlay by the bridge
-        // coordinates; the collapse runs after the overlay so its displayability filter sees
-        // real metadata.
+        // coordinates (kept for backwards compatibility — with the new endpoint this is a no-op
+        // because overview/stillPath are already present, but the call is harmless).
         const bare = collapseKindGroupPresentations(toEpisodeGroupPresentations(layout));
         if (bare.length === 0) {
           setState(providerFallbackState);

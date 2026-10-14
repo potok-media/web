@@ -25,6 +25,7 @@ import type {
 } from "./ApiTypes";
 import type {
   ArmEpisodeId,
+  ArmEntryId,
   ArmEpisodeLayoutResponse,
   ArmEpisodeSegmentsResponse,
   ArmProviderReference,
@@ -261,6 +262,62 @@ export class ApiClient {
     options: ArmSegmentsRequestOptions,
   ): Promise<ArmHttpResponse<ArmEpisodeSegmentsResponse>> {
     return this.armClient().getEpisodeSegments(episodeId, options);
+  }
+
+  public static getArmGraphVersion(
+    options?: ArmRequestOptions,
+  ): Promise<ArmHttpResponse<import("./ArmTypes").ArmGraphVersionResponse>> {
+    return this.armClient().getGraphVersion(options);
+  }
+
+  public static getArmWorkCard(
+    workId: ArmWorkId,
+    options?: ArmRequestOptions,
+  ): Promise<ArmHttpResponse<import("./ArmTypes").ArmWorkCardResponse>> {
+    return this.armClient().getWorkCard(workId, {
+      ...options,
+      locale: options?.locale ?? this.language,
+    });
+  }
+
+  public static getArmLocalizedTitles(
+    workId: ArmWorkId,
+    options?: ArmRequestOptions,
+  ): Promise<ArmHttpResponse<import("./ArmTypes").ArmLocalizedTitlesResponse>> {
+    return this.armClient().getLocalizedTitles(workId, {
+      ...options,
+      locale: options?.locale ?? this.language,
+    });
+  }
+
+  public static getArmExternalIds(
+    workId: ArmWorkId,
+    options?: ArmRequestOptions,
+  ): Promise<ArmHttpResponse<import("./ArmTypes").ArmExternalIdsResponse>> {
+    return this.armClient().getExternalIds(workId, {
+      ...options,
+      locale: options?.locale ?? this.language,
+    });
+  }
+
+  public static getArmEntries(
+    workId: ArmWorkId,
+    options?: ArmRequestOptions & { kind?: string },
+  ): Promise<ArmHttpResponse<import("./ArmTypes").ArmEntriesResponse>> {
+    return this.armClient().getEntries(workId, {
+      ...options,
+      locale: options?.locale ?? this.language,
+    });
+  }
+
+  public static getArmEpisodes(
+    workId: ArmWorkId,
+    options?: ArmRequestOptions & { groupId?: ArmEntryId },
+  ): Promise<ArmHttpResponse<import("./ArmTypes").ArmEpisodesResponse>> {
+    return this.armClient().getEpisodes(workId, {
+      ...options,
+      locale: options?.locale ?? this.language,
+    });
   }
 
   public static async fetchPersonDetails(personId: number): Promise<PersonDetails> {

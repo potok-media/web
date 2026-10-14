@@ -1,6 +1,8 @@
 import type { ArmHttpResponse } from "../../network/ArmApiClient";
 import type {
   ArmEpisodeLayoutResponse,
+  ArmEntriesResponse,
+  ArmEpisodesResponse,
   ArmGraphVersion,
   ArmProviderReference,
   ArmResolveResponse,
@@ -107,4 +109,43 @@ export function getArmLayoutCached(
 export function clearArmLayoutCaches(): void {
   resolveCache.clear();
   layoutCache.clear();
+}
+
+// ── New caches (entries / episodes) ─────────────────────────────────
+
+const entriesCache = new Map<string, ArmCacheEntry<ArmEntriesResponse>>();
+const episodesCache = new Map<string, ArmCacheEntry<ArmEpisodesResponse>>();
+
+export function armEntriesCacheKey(workId: ArmWorkId, kind: string | undefined, locale: string): string {
+  return `${workId}|entries|${kind ?? "all"}|${locale}`;
+}
+
+export function armEpisodesCacheKey(workId: ArmWorkId, groupId: string | undefined, locale: string): string {
+  return `${workId}|episodes|${groupId ?? "all"}|${locale}`;
+}
+
+export function getArmEntriesCached(
+  workId: ArmWorkId,
+  kind: string | undefined,
+  locale: string,
+  fetcher: ArmFetcher<ArmEntriesResponse>,
+  forceRevalidate = false,
+): Promise<ArmEntriesResponse> {
+  return getOrRevalidate(entriesCache, armEntriesCacheKey(workId, kind, locale), fetcher, forceRevalidate);
+}
+
+export function getArmEpisodesCached(
+  workId: ArmWorkId,
+  groupId: string | undefined,
+  locale: string,
+  fetcher: ArmFetcher<ArmEpisodesResponse>,
+  forceRevalidate = false,
+): Promise<ArmEpisodesResponse> {
+  return getOrRevalidate(episodesCache, armEpisodesCacheKey(workId, groupId, locale), fetcher, forceRevalidate);
+}
+
+/** Test support: drop entries and episodes caches. */
+export function clearEntriesAndEpisodesCaches(): void {
+  entriesCache.clear();
+  episodesCache.clear();
 }

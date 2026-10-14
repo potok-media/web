@@ -53,6 +53,7 @@ export interface MediaCard {
   title: string;
   originalTitle?: string;
   englishTitle?: string;
+  year?: number;
   titlesByLocale?: Record<string, MediaTitle[]>;
   metadataLocale?: string;
   metadataSources?: { title?: string; poster?: string; backdrop?: string; banner?: string };

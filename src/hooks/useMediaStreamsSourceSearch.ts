@@ -11,6 +11,8 @@ interface UseMediaStreamsSourceSearchParams {
   mediaOriginalTitle?: string;
   mediaEnglishTitle?: string;
   mediaImdbId?: string;
+  mediaSearchAliases?: string[];
+  mediaYear?: number;
   workId?: string;
   entryId?: string;
   episodeId?: string;
@@ -28,6 +30,8 @@ export function useMediaStreamsSourceSearch({
   mediaOriginalTitle,
   mediaEnglishTitle,
   mediaImdbId,
+  mediaSearchAliases,
+  mediaYear,
   workId,
   entryId,
   episodeId,
@@ -80,7 +84,7 @@ export function useMediaStreamsSourceSearch({
   const shouldForceNextSearchRef = useRef(false);
   const searchKey = JSON.stringify([
     activeTab, mediaType, mediaId, workId, entryId, episodeId, season, episode,
-    mediaTitle, mediaOriginalTitle, mediaEnglishTitle, mediaImdbId,
+    mediaTitle, mediaOriginalTitle, mediaEnglishTitle, mediaImdbId, mediaSearchAliases, mediaYear,
   ]);
 
   useEffect(() => {
@@ -126,6 +130,8 @@ export function useMediaStreamsSourceSearch({
           originalTitle: mediaOriginalTitle,
           englishTitle: mediaEnglishTitle,
           imdbId: mediaImdbId,
+          searchAliases: mediaSearchAliases,
+          year: mediaYear,
           tmdbId: mediaId,
           workId,
           entryId,
@@ -166,6 +172,8 @@ export function useMediaStreamsSourceSearch({
     mediaOriginalTitle,
     mediaEnglishTitle,
     mediaImdbId,
+    mediaSearchAliases,
+    mediaYear,
     workId,
     entryId,
     episodeId,
