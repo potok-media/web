@@ -3560,7 +3560,158 @@ button.popover-item.popover-menu-item:hover {
 }
 
 .home-page-container {
-  padding: var(--space-l);
+  --home-content-max-width: 125rem;
+  --home-hero-artwork-inline-size: 66%;
+  --home-hero-artwork-center: 67%;
+  --home-hero-edge-fade: clamp(1.25rem, 2vw, 3rem);
+  --home-hero-copy-max-width: 34rem;
+  --home-content-gutter: 1rem;
+  --home-shell-inline-size: min(
+    calc(100% - var(--home-content-gutter) - var(--home-content-gutter)),
+    var(--home-content-max-width)
+  );
+  padding: 0;
+}
+
+.home-page-container .immersive-hero-container {
+  width: 100%;
+  margin-inline: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.home-page-container .immersive-hero-container--contained {
+  width: var(--home-shell-inline-size);
+  height: clamp(24rem, 54svh, 38rem);
+  min-height: 24rem;
+  max-height: 38rem;
+  margin-inline: auto;
+  isolation: isolate;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black var(--home-hero-edge-fade),
+    black calc(100% - var(--home-hero-edge-fade)),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black var(--home-hero-edge-fade),
+    black calc(100% - var(--home-hero-edge-fade)),
+    transparent 100%
+  );
+}
+
+.immersive-hero-container--contained .immersive-hero-backdrop--ambient {
+  inset: -2rem;
+  width: calc(100% + 4rem);
+  height: calc(100% + 4rem);
+  object-fit: cover;
+  object-position: center top;
+  filter: blur(2rem) saturate(0.8) brightness(0.62);
+  transform: scale(1.04);
+  mask-image: none;
+  -webkit-mask-image: none;
+  opacity: 0;
+  z-index: 0;
+}
+
+.hero-banner .immersive-hero-backdrop--ambient.is-current {
+  opacity: 0.72;
+}
+
+.immersive-hero-container--contained .immersive-hero-backdrop--artwork {
+  left: auto;
+  right: 0;
+  width: var(--home-hero-artwork-inline-size);
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transform: none;
+  mask-image: linear-gradient(to right, transparent 0%, black 14%, black 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 14%, black 100%);
+  z-index: 1;
+}
+
+.immersive-hero-container--contained .immersive-hero-overlay {
+  background:
+    linear-gradient(to right, rgba(15, 15, 18, 0.94) 0%, rgba(15, 15, 18, 0.78) 28%, rgba(15, 15, 18, 0.24) 54%, transparent 76%),
+    linear-gradient(to top, rgba(15, 15, 18, 0.7) 0%, transparent 34%);
+  z-index: 2;
+}
+
+.immersive-hero-container--contained .immersive-hero-content {
+  width: 100%;
+  margin-inline: 0;
+  z-index: 3;
+}
+
+.immersive-hero-container--contained .hero-content {
+  top: 50%;
+  bottom: auto;
+  left: clamp(1.5rem, 3vw, 4rem);
+  width: min(var(--home-hero-copy-max-width), 32%);
+  margin-bottom: 0;
+  transform: translateY(-50%);
+}
+
+.immersive-hero-container--contained .hero-dots {
+  left: var(--home-hero-artwork-center);
+}
+
+.home-content-region {
+  box-sizing: border-box;
+  width: var(--home-shell-inline-size);
+  margin-inline: auto;
+  padding: var(--space-xl) 0 0;
+}
+
+@media (min-width: 48rem) {
+  .home-page-container {
+    --home-content-gutter: 1.5rem;
+  }
+}
+
+@media (min-width: 80rem) {
+  .home-page-container {
+    --home-content-gutter: 2rem;
+  }
+}
+
+@media (max-width: 64rem) {
+  .immersive-hero-container--contained .immersive-hero-backdrop--ambient {
+    filter: blur(1.25rem) saturate(0.85) brightness(0.6);
+  }
+
+  .immersive-hero-container--contained .immersive-hero-backdrop--artwork {
+    left: 0;
+    right: 0;
+    width: 100%;
+    mask-image: linear-gradient(to bottom, black 0%, black 42%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, black 42%, transparent 100%);
+  }
+
+  .immersive-hero-container--contained .immersive-hero-overlay {
+    background: linear-gradient(
+      to top,
+      rgba(15, 15, 18, 0.96) 0%,
+      rgba(15, 15, 18, 0.72) 42%,
+      transparent 82%
+    );
+  }
+
+  .immersive-hero-container--contained .hero-content {
+    top: auto;
+    bottom: calc(var(--space-l) + var(--space-m));
+    left: var(--space-l);
+    width: calc(100% - var(--space-l) - var(--space-l));
+    transform: none;
+  }
+
+  .immersive-hero-container--contained .hero-dots {
+    left: 50%;
+  }
 }
 
 .season-episodes-section {

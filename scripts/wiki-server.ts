@@ -42,7 +42,8 @@ function tryBuildWiki(wiki: string): boolean {
     return true;
   }
   try {
-    execFileSync(process.execPath, [resolve(wiki, 'node_modules/astro/astro.js'), 'build'], { cwd: wiki, stdio: 'inherit' });
+    const astroCli = resolve(wiki, 'node_modules', '.bin', process.platform === 'win32' ? 'astro.cmd' : 'astro');
+    execFileSync(astroCli, ['build'], { cwd: wiki, stdio: 'inherit' });
     return true;
   } catch {
     return false;
@@ -52,6 +53,10 @@ function tryBuildWiki(wiki: string): boolean {
 /** Serve the built docs in development too, including their real Pagefind search index. */
 export function wikiServer(webRoot: string): Plugin {
   const wiki = resolve(webRoot, 'wiki');
+  const generatedComponentRoots = [
+    resolve(wiki, 'src/content/docs/components'),
+    resolve(wiki, 'src/content/docs/en/components'),
+  ];
   return {
     name: 'potok-wiki',
     configureServer(server) {
@@ -66,8 +71,9 @@ export function wikiServer(webRoot: string): Plugin {
       let timer: ReturnType<typeof setTimeout> | undefined;
       const scheduleBuild = (path: string) => {
         if (!path.startsWith(resolve(wiki, 'src')) && path !== resolve(wiki, 'astro.config.mjs') && path !== resolve(wiki, 'component-groups.mjs') && path !== resolve(wiki, 'scripts/gen-components.mjs') && path !== resolve(webRoot, 'src/pages/wiki/docs-metadata.json') && !/src\/i18n\/locales\/(?:ru|en)\.json$/.test(path)) return;
-        // Generated files are rebuilt as part of this operation, never watched recursively.
-        if (/\/components\/.*\.md$/.test(path)) return;
+        // Generated component references are rebuilt as part of this operation.
+        // Ignore both their files and directory events so the generator cannot trigger itself.
+        if (generatedComponentRoots.some((root) => path === root || path.startsWith(root + sep))) return;
         clearTimeout(timer);
         timer = setTimeout(() => {
           try {

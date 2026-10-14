@@ -14,13 +14,15 @@ interface HeroSpotlightProps {
   onPlay?: (item: HeroItem) => void;
   onDetails: (item: HeroItem) => void;
   autoFocus?: boolean;
+  containedBackdrop?: boolean;
 }
 
 const heroPropsEqual = (prev: HeroSpotlightProps, next: HeroSpotlightProps) =>
+  prev.containedBackdrop === next.containedBackdrop &&
   areHeroSpotlightsEqual(prev.items, next.items);
 
 export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) => {
-  const { items: heroItems, onDetails } = props;
+  const { items: heroItems, onDetails, containedBackdrop = false } = props;
   const { t } = useTranslation("media");
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -38,7 +40,12 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
   if (!activeItem) return null;
 
   return (
-    <div className="immersive-hero-container" ref={containerRef}>
+    <div
+      className={containedBackdrop
+        ? "immersive-hero-container immersive-hero-container--contained"
+        : "immersive-hero-container"}
+      ref={containerRef}
+    >
       <section className="hero-banner">
         {heroItems.map((item, index) => {
           if (!item.card?.backdropSrc) return null;
@@ -47,14 +54,24 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = React.memo((props) =>
           if (!isCurrent && !isPrev) return null;
 
           return (
-            <img
-              key={item.card.id || index}
-              src={item.card.backdropSrc}
-              className={`immersive-hero-backdrop ${isCurrent ? "is-current" : ""}`}
-              decoding="async"
-              onLoad={() => markImageLoaded(index)}
-              alt=""
-            />
+            <React.Fragment key={item.card.id || index}>
+              {containedBackdrop && (
+                <img
+                  src={item.card.backdropSrc}
+                  className={`immersive-hero-backdrop immersive-hero-backdrop--ambient ${isCurrent ? "is-current" : ""}`}
+                  decoding="async"
+                  aria-hidden="true"
+                  alt=""
+                />
+              )}
+              <img
+                src={item.card.backdropSrc}
+                className={`immersive-hero-backdrop${containedBackdrop ? " immersive-hero-backdrop--artwork" : ""} ${isCurrent ? "is-current" : ""}`}
+                decoding="async"
+                onLoad={() => markImageLoaded(index)}
+                alt=""
+              />
+            </React.Fragment>
           );
         })}
         <div className="immersive-hero-overlay" />

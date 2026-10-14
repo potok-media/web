@@ -61,29 +61,32 @@ export const HomePage: React.FC = () => {
           items={feed.hero}
           onPlay={handleHeroPlay}
           onDetails={handleHeroDetails}
+          containedBackdrop
         />
       )}
 
-      {/* Plugin-contributed rows shown ABOVE the native feed rows. */}
-      <Slot name="home-rows-top" />
+      <div className="home-content-region">
+        {/* Plugin-contributed rows shown ABOVE the native feed rows. */}
+        <Slot name="home-rows-top" />
 
-      {feed.rows.map((row, index) => {
-        const titleKey = DYNAMIC_CATEGORY_TITLES[row.id];
-        const rowTitle = titleKey ? t(titleKey) : row.title;
-        return (
-          <MediaRow
-            key={row.id || index}
-            id={row.id}
-            title={rowTitle}
-            items={row.items}
-            onCardClick={handleCardClick}
-            onSeeAllClick={handleSeeAllClick}
-          />
-        );
-      })}
+        {feed.rows.map((row, index) => {
+          const titleKey = DYNAMIC_CATEGORY_TITLES[row.id];
+          const rowTitle = titleKey ? t(titleKey) : row.title;
+          return (
+            <MediaRow
+              key={row.id || index}
+              id={row.id}
+              title={rowTitle}
+              items={row.items}
+              onCardClick={handleCardClick}
+              onSeeAllClick={handleSeeAllClick}
+            />
+          );
+        })}
 
-      {/* Plugin-contributed rows shown BELOW the native feed rows. */}
-      <Slot name="home-rows-bottom" />
+        {/* Plugin-contributed rows shown BELOW the native feed rows. */}
+        <Slot name="home-rows-bottom" />
+      </div>
     </div>
   );
 };

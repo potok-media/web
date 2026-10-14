@@ -3,7 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../context/AppSettingsContext";
 import { useInspector } from "../context/useInspector";
-import { AppSidebar } from "./AppSidebar";
+// import { AppSidebar } from "./AppSidebar";
 import { MobileBottomNavigation } from "./MobileBottomNavigation";
 import { PluginSandbox } from "./common/PluginSandbox";
 import { AppLayoutPlayerOverlay } from "./appLayout/AppLayoutPlayerOverlay";
@@ -39,6 +39,7 @@ export const AppLayout: React.FC = () => {
     handleSaveAndConnect,
   } = useAppLayoutOfflineForm();
 
+  /*
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(() => {
     const saved = localStorage.getItem("isSidebarCollapsed");
     return saved === null ? false : saved === "true";
@@ -51,9 +52,11 @@ export const AppLayout: React.FC = () => {
       return next;
     });
   };
+  */
 
   return (
-    <div className={`app-container ${isSidebarCollapsed ? "sidebar-collapsed" : ""} ${isMobile ? "mobile-layout" : ""}`}>
+    <div className={cx("app-container", isMobile && "mobile-layout")}>
+      {/* Desktop sidebar is temporarily disabled during the centered layout experiment.
       {!isMobile && (
         <AppSidebar
           isCollapsed={isSidebarCollapsed}
@@ -62,6 +65,7 @@ export const AppLayout: React.FC = () => {
           search={location.search}
         />
       )}
+      */}
       <main
         ref={mainContentRef}
         onScroll={handleScroll}
