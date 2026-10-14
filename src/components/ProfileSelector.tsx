@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Plus, Trash2, Settings as SettingsIcon, CheckCircle2, Circle } from "lucide-react";
 import type { ConnectionProfile } from "../network/ApiTypes";
 import { Button, IconButton } from "./ui";
+import { SettingsCard } from "./settings/SettingsCard";
 
 interface ProfileSelectorProps {
   connectionProfiles: ConnectionProfile[];
@@ -38,12 +39,22 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = React.memo(({
   };
 
   return (
-    <section className="settings-section">
-      <h2 className="settings-section-title">
-        <SettingsIcon size="1.25rem" />
-        <span>{t("profileSelector.title")}</span>
-      </h2>
-
+    <SettingsCard
+      title={t("profileSelector.title")}
+      icon={<SettingsIcon size="1.125rem" />}
+      bodyClassName="settings-card__body--flush"
+      footer={!isSettingsLocked && (
+        <Button
+          variant="primary"
+          className="settings-add-profile-btn"
+          onClick={onStartAdd}
+          disabled={connectionProfiles.length >= 5}
+        >
+          <Plus size="1rem" />
+          <span>{t("profileSelector.addProfile")}</span>
+        </Button>
+      )}
+    >
       <div className="profiles-list">
         {connectionProfiles.map((p) => (
           <div
@@ -80,18 +91,7 @@ export const ProfileSelector: React.FC<ProfileSelectorProps> = React.memo(({
         ))}
       </div>
 
-      {!isSettingsLocked && (
-        <Button
-          variant="primary"
-          className="settings-add-profile-btn"
-          onClick={onStartAdd}
-          disabled={connectionProfiles.length >= 5}
-        >
-          <Plus size="1rem" />
-          <span>{t("profileSelector.addProfile")}</span>
-        </Button>
-      )}
-    </section>
+    </SettingsCard>
   );
 });
 

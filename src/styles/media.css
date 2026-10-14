@@ -4693,11 +4693,7 @@ button.popover-item.popover-menu-item:hover {
   display: none;
 }
 
-.settings-mobile-tabs-bar {
-  display: none;
-}
-
-/* Library and Settings Page Horizontal Scroll tabs styles on mobile/tablet */
+/* Library Page Horizontal Scroll tabs styles on mobile/tablet */
 @media (max-width: 768px) {
   /* Library Category Selector Tabs */
   .library-mobile-tabs-container {
@@ -4753,71 +4749,9 @@ button.popover-item.popover-menu-item:hover {
     border-color: var(--accent);
     box-shadow: 0 4px 12px rgba(125, 211, 252, 0.25);
   }
-
-  /* Settings Section Selector Tabs */
-  .settings-mobile-tabs-bar {
-    display: block;
-    width: auto;
-    overflow: hidden;
-    padding: 0.25rem 0;
-    margin: 0 calc(-1 * var(--space-m)) var(--space-l) calc(-1 * var(--space-m));
-    position: relative;
-  }
-
-  .settings-mobile-tabs-bar::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 2rem;
-    background: linear-gradient(to left, var(--bg-window) 0%, transparent 100%);
-    pointer-events: none;
-  }
-
-  .settings-mobile-tabs-scroll {
-    display: flex;
-    gap: 0.5rem;
-    overflow-x: auto;
-    padding: 0 var(--space-m);
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .settings-mobile-tabs-scroll::-webkit-scrollbar {
-    display: none;
-  }
-
-  .settings-tab-chip {
-    flex-shrink: 0;
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-m);
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    color: var(--text-secondary);
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition-interactive);
-  }
-
-  .settings-tab-chip.active {
-    background: var(--accent-dim);
-    color: var(--text-primary);
-    border-color: var(--accent);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
 }
 
 @media (max-width: 768px) {
-  .settings-mobile-tabs-bar {
-    margin: 0 calc(-1 * var(--space-s)) var(--space-l) calc(-1 * var(--space-s));
-  }
-
-  .settings-mobile-tabs-scroll {
-    padding: 0 var(--space-s);
-  }
-
   .calendar-container {
     padding: var(--space-m) !important;
     width: 100% !important;

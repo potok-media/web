@@ -119,7 +119,10 @@ export const ExtensionsManager: React.FC = () => {
     <div className="ext-manager potok-safeguard">
       <header className="ext-header">
         <div className="ext-header-titles">
-          <h2 className="ext-title">{t("title")}</h2>
+          <h2 className="ext-title">
+            <Puzzle size="1.125rem" />
+            <span>{t("title")}</span>
+          </h2>
           <span className="ext-subtitle">{t("subtitle", { total, enabledCount })}</span>
         </div>
         <Button variant="primary" className="ext-install-btn" onClick={() => setIsInstallOpen(true)}>

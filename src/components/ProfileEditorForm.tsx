@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Save, Play, Info } from "lucide-react";
 import { Button, Field, Input } from "./ui";
+import { SettingsCard } from "./settings/SettingsCard";
 
 interface ProfileEditorFormProps {
   isAdding: boolean;
@@ -28,13 +29,30 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
 }) => {
   const { t } = useTranslation("settings");
   return (
-    <div className="settings-pane">
-      <section className="settings-section">
-        <h2 className="settings-section-title">
-          <Play size="1.25rem" />
-          <span>{isAdding ? t("profileEditor.newProfile") : t("profileEditor.connectionParams")}</span>
-        </h2>
-
+    <form onSubmit={onSave} className="settings-card-form">
+      <SettingsCard
+        title={isAdding ? t("profileEditor.newProfile") : t("profileEditor.connectionParams")}
+        icon={<Play size="1.125rem" />}
+        footer={!isSettingsLocked && (
+          <div className="ui-form-actions">
+            {isAdding && (
+              <Button
+                type="button"
+                variant="secondary"
+                className="settings-form-btn-cancel"
+                onClick={onCancel}
+                disabled={saving}
+              >
+                {t("profileEditor.cancel")}
+              </Button>
+            )}
+            <Button type="submit" variant="primary" className="btn-gap-s" disabled={saving}>
+              <Save size="1rem" />
+              <span>{saving ? t("profileEditor.checking") : isAdding ? t("profileEditor.createProfile") : t("profileEditor.saveChanges")}</span>
+            </Button>
+          </div>
+        )}
+      >
         {isSettingsLocked && (
           <div className="settings-lock-banner">
             <Info size="1rem" />
@@ -42,7 +60,7 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
           </div>
         )}
 
-        <form onSubmit={onSave} className="ui-form-stack">
+        <div className="ui-form-stack">
           <Field label={t("profileEditor.nameLabel")} className="settings-form-group">
             <Input
               type="text"
@@ -65,28 +83,9 @@ export const ProfileEditorForm: React.FC<ProfileEditorFormProps> = React.memo(({
             />
           </Field>
 
-          {!isSettingsLocked && (
-            <div className="ui-form-actions">
-              <Button type="submit" variant="primary" className="btn-gap-s" disabled={saving}>
-                <Save size="1rem" />
-                <span>{saving ? t("profileEditor.checking") : isAdding ? t("profileEditor.createProfile") : t("profileEditor.saveChanges")}</span>
-              </Button>
-              {isAdding && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="settings-form-btn-cancel"
-                  onClick={onCancel}
-                  disabled={saving}
-                >
-                  {t("profileEditor.cancel")}
-                </Button>
-              )}
-            </div>
-          )}
-        </form>
-      </section>
-    </div>
+        </div>
+      </SettingsCard>
+    </form>
   );
 });
 

@@ -7,6 +7,7 @@ import { useDeclarativeSettings } from "../../hooks/useDeclarativeSettings";
 import { Button } from "../ui";
 import { buildDeclarativeLayoutRows } from "./declarativeSettingsTypes";
 import { DeclarativeSettingsField } from "./DeclarativeSettingsField";
+import { SettingsCard } from "./SettingsCard";
 
 interface DeclarativeSettingsProps {
   ext: RegisteredExtension;
@@ -33,13 +34,9 @@ export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.mem
   if (Object.keys(config).length === 0) {
     return (
       <div className="settings-pane">
-        <section className="settings-section">
-          <h2 className="settings-section-title">
-            <Sliders size={20} />
-            <span>{t(ext.manifest.name || ext.id)}</span>
-          </h2>
+        <SettingsCard title={t(ext.manifest.name || ext.id)} icon={<Sliders size={18} />}>
           <p className="settings-label">{t("declarative.noSettings")}</p>
-        </section>
+        </SettingsCard>
       </div>
     );
   }
@@ -54,13 +51,17 @@ export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.mem
 
   return (
     <div className="settings-pane">
-      <section className="settings-section">
-        <h2 className="settings-section-title">
-          <Sliders size={20} />
-          <span>{t(ext.manifest.name || ext.id)}</span>
-        </h2>
-
-        <form onSubmit={handleSubmit} className="ui-form-stack">
+      <form onSubmit={handleSubmit} className="settings-card-form">
+        <SettingsCard
+          title={t(ext.manifest.name || ext.id)}
+          icon={<Sliders size={18} />}
+          footer={(
+            <Button type="submit" variant="primary" className="btn-gap-s">
+              <Save size={16} />
+              <span>{t("declarative.saveButton")}</span>
+            </Button>
+          )}
+        >
           <div className="declarative-form-fields ui-form-stack">
             {layoutRows.map((row) => {
               if (row.type === "single") {
@@ -116,14 +117,8 @@ export const DeclarativeSettings: React.FC<DeclarativeSettingsProps> = React.mem
             })}
           </div>
 
-          <div className="ui-form-actions">
-            <Button type="submit" variant="primary" className="btn-gap-s">
-              <Save size={16} />
-              <span>{t("declarative.saveButton")}</span>
-            </Button>
-          </div>
-        </form>
-      </section>
+        </SettingsCard>
+      </form>
     </div>
   );
 });

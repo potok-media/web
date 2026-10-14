@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Eye, BookOpen } from "lucide-react";
 import "../../styles/extensions.css";
 import { Button, Field, Select, Switch } from "../ui";
+import { SettingsCard } from "./SettingsCard";
 
 const FONT_SCALE_VALUES = [0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5] as const;
 
@@ -36,12 +37,11 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
 
   return (
     <div className="settings-pane">
-      <section className="settings-section">
-        <h2 className="settings-section-title">
-          <Eye size="1.25rem" />
-          <span>{t("accessibility.title")}</span>
-        </h2>
-
+      <SettingsCard
+        title={t("accessibility.title")}
+        icon={<Eye size="1.125rem" />}
+        bodyClassName="settings-card__body--preferences"
+      >
         <Field
           label={t("accessibility.uiScale")}
           hint={t("accessibility.uiScaleDesc")}
@@ -87,7 +87,7 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = React
             </Button>
           </div>
         )}
-      </section>
+      </SettingsCard>
     </div>
   );
 });

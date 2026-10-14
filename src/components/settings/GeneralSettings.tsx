@@ -6,6 +6,7 @@ import { Field, Pressable, Select } from "../ui";
 import type { SelectOption } from "../ui";
 import { Slot } from "../common/extension/Slot";
 import { AVAILABLE_LANGUAGES, getLanguageCoverage } from "../../i18n";
+import { SettingsCard } from "./SettingsCard";
 
 const CROWDIN_URL = "https://crowdin.com/project/potok";
 
@@ -111,12 +112,11 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
 
   return (
     <div className="settings-pane">
-      <section className="settings-section">
-        <h2 className="settings-section-title">
-          <Sliders size={20} />
-          <span>{t("appearance.title")}</span>
-        </h2>
-
+      <SettingsCard
+        title={t("appearance.title")}
+        icon={<Sliders size={18} />}
+        bodyClassName="settings-card__body--preferences"
+      >
         {hasAccentContribution ? (
           <Slot name="settings-color-accent" props={{ accentTheme }} />
         ) : (
@@ -182,7 +182,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = React.memo(({
         >
           <Select value={language} options={languageOptions} onChange={setLanguage} />
         </Field>
-      </section>
+      </SettingsCard>
     </div>
   );
 });

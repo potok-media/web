@@ -541,24 +541,6 @@ button.popover-item {
   color: var(--text-primary);
 }
 
-/* Settings mobile tab chips */
-.ui-chip.settings-tab-chip {
-  flex-shrink: 0;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-m);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-}
-
-.ui-chip.settings-tab-chip.ui-chip--active {
-  background: var(--accent-dim);
-  color: var(--text-primary);
-  border-color: var(--accent);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
 /* Library mobile category chips */
 .ui-chip.library-mobile-tab-chip {
   flex-shrink: 0;
@@ -607,9 +589,6 @@ button.popover-item {
 .settings-nav-item.ui-btn.active {
   background-color: var(--accent-dim);
   color: var(--text-primary);
-  border-left: 0.1875rem solid var(--accent);
-  padding-left: 0.6875rem;
-  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
 }
 
 .settings-nav-item.ui-btn.active svg {

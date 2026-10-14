@@ -41,7 +41,6 @@ ${G} {
 .sidebar-nav-item${G},
 .settings-nav-item${G},
 .ext-manager${G} { display: flex !important; }
-.settings-tab-chip${G} { display: inline-flex !important; }
 `.trim();
 
 function elementId(pluginId: string, id: string): string {

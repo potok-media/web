@@ -1,19 +1,16 @@
 import React from "react";
-import type { RegisteredExtension } from "@potok/sdk-types";
-import type { SlotContribution } from "@potok/sdk-types";
-
-type SettingsSlotEntry = { contribution: SlotContribution; pluginId: string };
+import type { RegisteredExtension, SlotContribution } from "@potok/sdk-types";
 import { Slot } from "../common/extension/Slot";
 import GeneralSettings from "./GeneralSettings";
 import ProfilesSettings from "./ProfilesSettings";
 import ExtensionsManager from "../ExtensionsManager";
-import ConsoleManager from "./ConsoleManager";
 import DeclarativeSettings from "./DeclarativeSettings";
 import AccessibilitySettings from "./AccessibilitySettings";
 import AccountSettings from "./AccountSettings";
 
+type SettingsSlotEntry = { contribution: SlotContribution; pluginId: string };
+
 interface SettingsContentPanelProps {
-  activeTab: string;
   accentTheme: string;
   setAccentTheme: (theme: string) => void;
   defaultPlayer: string | null;
@@ -33,7 +30,6 @@ interface SettingsContentPanelProps {
 }
 
 export const SettingsContentPanel: React.FC<SettingsContentPanelProps> = ({
-  activeTab,
   accentTheme,
   setAccentTheme,
   defaultPlayer,
@@ -52,7 +48,7 @@ export const SettingsContentPanel: React.FC<SettingsContentPanelProps> = ({
   configExtensions,
 }) => (
   <>
-    {activeTab === "general" && (
+    <section id="settings-section-general" data-settings-section="general" className="settings-content-section">
       <GeneralSettings
         accentTheme={accentTheme}
         setAccentTheme={setAccentTheme}
@@ -63,8 +59,17 @@ export const SettingsContentPanel: React.FC<SettingsContentPanelProps> = ({
         language={language}
         setLanguage={setLanguage}
       />
-    )}
-    {activeTab === "accessibility" && (
+    </section>
+
+    <section id="settings-section-account" data-settings-section="account" className="settings-content-section">
+      <AccountSettings />
+    </section>
+
+    <section id="settings-section-profiles" data-settings-section="profiles" className="settings-content-section">
+      <ProfilesSettings />
+    </section>
+
+    <section id="settings-section-accessibility" data-settings-section="accessibility" className="settings-content-section">
       <AccessibilitySettings
         uiFontScale={uiFontScale}
         setUiFontScale={setUiFontScale}
@@ -73,20 +78,34 @@ export const SettingsContentPanel: React.FC<SettingsContentPanelProps> = ({
         disableHttpProxy={disableHttpProxy}
         setDisableHttpProxy={setDisableHttpProxy}
       />
-    )}
-    {activeTab === "account" && <AccountSettings />}
-    {activeTab === "profiles" && <ProfilesSettings />}
-    {activeTab === "extensions" && <ExtensionsManager />}
-    {activeTab === "console" && <ConsoleManager />}
-    {slotContributions.some((c) => c.contribution.id === activeTab) && (
-      <div className="settings-pane settings-plugin-pane">
-        <Slot name="settings-tabs" contributionId={activeTab} />
-      </div>
-    )}
+    </section>
+
+    <section id="settings-section-extensions" data-settings-section="extensions" className="settings-content-section potok-safeguard">
+      <ExtensionsManager />
+    </section>
+
+    {slotContributions.map((entry) => (
+      <section
+        key={entry.contribution.id}
+        id={`settings-section-${entry.contribution.id}`}
+        data-settings-section={entry.contribution.id}
+        className="settings-content-section settings-content-section--slot"
+      >
+        <div className="settings-pane settings-plugin-pane">
+          <Slot name="settings-tabs" contributionId={entry.contribution.id} />
+        </div>
+      </section>
+    ))}
+
     {configExtensions.map((ext) => (
-      activeTab === `config-${ext.id}` && (
-        <DeclarativeSettings key={ext.id} ext={ext} />
-      )
+      <section
+        key={ext.id}
+        id={`settings-section-config-${ext.id}`}
+        data-settings-section={`config-${ext.id}`}
+        className="settings-content-section settings-content-section--plugin"
+      >
+        <DeclarativeSettings ext={ext} />
+      </section>
     ))}
   </>
 );
