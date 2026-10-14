@@ -173,7 +173,7 @@ export const LibraryPage: React.FC = () => {
   };
 
   return (
-    <div className="library-page-container">
+    <div className="library-page-container library-page-container--collection">
       <LibraryPageHeader
         isSearchPage={isSearchPage}
         category={category}

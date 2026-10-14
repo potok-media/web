@@ -5,6 +5,7 @@ import { useSettings } from "../context/AppSettingsContext";
 import { useInspector } from "../context/useInspector";
 // import { AppSidebar } from "./AppSidebar";
 import { MobileBottomNavigation } from "./MobileBottomNavigation";
+import { AppTopBar } from "./AppTopBar";
 import { PluginSandbox } from "./common/PluginSandbox";
 import { AppLayoutPlayerOverlay } from "./appLayout/AppLayoutPlayerOverlay";
 import { useIsMobile } from "../hooks/useIsMobile";
@@ -72,6 +73,7 @@ export const AppLayout: React.FC = () => {
         className="main-content"
         aria-hidden={connectionState !== "connected"}
       >
+        {!isMobile && <AppTopBar />}
         <Outlet />
       </main>
 

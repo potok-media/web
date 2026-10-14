@@ -46,8 +46,9 @@
   --radius-full: 9999px;
   
   --sidebar-width: 16.25rem;
-  --topbar-height: 3.25rem;
+  --topbar-height: 3.625rem;
   --mobile-bottom-nav-height: 3.75rem;
+  --wide-shell-max-width: 125rem;
   
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   
