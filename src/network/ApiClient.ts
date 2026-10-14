@@ -154,7 +154,7 @@ export class ApiClient {
       return DataWorkerBridge.request<MediaSearchResponse>("searchMedia", [query, type, undefined, page]);
     }
     const typeParam = type ? `&type=${encodeURIComponent(type)}` : "";
-    const res = await fetch(`${this.baseURL}/api/media/search?query=${encodeURIComponent(query)}&language=${encodeURIComponent(this.language)}${typeParam}&page=${page}`, {
+    const res = await fetch(`${this.baseURL}/api/search?q=${encodeURIComponent(query)}&language=${encodeURIComponent(this.language)}${typeParam}&page=${page}`, {
       headers: this.headers,
       signal,
     });
