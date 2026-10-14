@@ -1,15 +1,15 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { ShieldAlert, ArrowLeft } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 import { StreamList } from "../components/common/StreamList";
-import { StreamSidebar } from "../components/StreamSidebar";
+import { StreamMediaHero, StreamMediaHeroSkeleton } from "../components/StreamMediaHero";
 import { EpisodeSelectorPopup } from "../components/common/EpisodeSelectorPopup";
 import { useMediaStreams } from "../hooks/useMediaStreams";
 import { usePlayback } from "../context/PlaybackContext";
 import type { MediaCard } from "../network/ApiTypes";
 
-import { Button, IconButton } from "../components/ui";
+import { Button } from "../components/ui";
 
 export const MediaStreamsPage: React.FC = () => {
   const { t } = useTranslation("streams");
@@ -72,35 +72,27 @@ export const MediaStreamsPage: React.FC = () => {
     activeTab: tab,
   });
 
-  const renderSidebar = () => {
+  const renderMediaHero = () => {
     if (currentMedia) {
-      return <StreamSidebar media={currentMedia} season={season} episode={episode} onBack={() => navigate(-1)} />;
+      return <StreamMediaHero media={currentMedia} onBack={() => navigate(-1)} />;
     }
-    return (
-      <aside className="streams-page-sidebar skeleton-loading">
-        <IconButton className="streams-sidebar-back-btn" onClick={() => navigate(-1)} aria-label={t("actions.back")}><ArrowLeft size="1.125rem" /></IconButton>
-        <div className="streams-sidebar-poster skeleton skeleton--tall" />
-      </aside>
-    );
+    return <StreamMediaHeroSkeleton onBack={() => navigate(-1)} />;
   };
 
   const renderContent = () => (
     <section className="streams-page-content">
-      <div className="streams-scroll-area">
-        <StreamList
-          streams={streams}
-          loading={loading}
-          showFilters={true}
-          emptyText={error || undefined}
-          onSelectStream={handleSelectStream}
-          onRefresh={handleRefresh}
-          onBack={() => navigate(-1)}
-          isSearching={loading}
-          searchStartedAt={searchStartedAt}
-          searchTimeoutMs={searchTimeoutMs}
-          lastSelected={lastSelected}
-        />
-      </div>
+      <StreamList
+        streams={streams}
+        loading={loading}
+        showFilters={true}
+        emptyText={error || undefined}
+        onSelectStream={handleSelectStream}
+        onRefresh={handleRefresh}
+        isSearching={loading}
+        searchStartedAt={searchStartedAt}
+        searchTimeoutMs={searchTimeoutMs}
+        lastSelected={lastSelected}
+      />
     </section>
   );
 
@@ -156,8 +148,10 @@ export const MediaStreamsPage: React.FC = () => {
         className="streams-page-backdrop"
         style={{ "--backdrop-image": `url(${currentMedia?.backdropSrc || ""})` } as React.CSSProperties}
       />
-      {renderSidebar()}
-      {renderContent()}
+      <div className="streams-page-shell">
+        {renderMediaHero()}
+        {renderContent()}
+      </div>
       {renderPopup()}
       {actionLoading && (
         <div className="saving-overlay saving-overlay--fixed">

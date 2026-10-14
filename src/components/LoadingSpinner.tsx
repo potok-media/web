@@ -33,7 +33,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
         {showBackButton && (
           <IconButton
-            className="streams-sidebar-back-btn spinner-back-btn-pos"
+            className="loading-back-btn spinner-back-btn-pos"
             onClick={() => navigate(-1)}
             title={t("back")}
             aria-label={t("back")}
