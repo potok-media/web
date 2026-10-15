@@ -1,8 +1,6 @@
 import { useCallback } from "react";
-import { ApiClient } from "../../network/ApiClient";
 import { SyncApiClient } from "../../network/SyncApiClient";
-import { Storage } from "../../utils/StorageService";
-import { buildTraktPayload, checkIsWatched } from "./mediaDetailsUtils";
+import { checkIsWatched } from "./mediaDetailsUtils";
 import type { UseMediaDetailsActionsParams } from "./mediaDetailsTypes";
 
 type SocialActionsParams = Pick<
@@ -36,18 +34,10 @@ export function useMediaDetailsSocialActions({
     try {
       const nextState = !inWatchlist;
       setInWatchlist(nextState);
-      const strategy = Storage.get<string>("syncStrategy", "none");
-      if (strategy === "server") {
-        if (nextState) {
-          await SyncApiClient.addSyncWatchlist(media.id.toString(), media.mediaType);
-        } else {
-          await SyncApiClient.removeSyncWatchlist(media.id.toString(), media.mediaType);
-        }
+      if (nextState) {
+        await SyncApiClient.addSyncWatchlist(media.id.toString(), media.mediaType);
       } else {
-        await ApiClient.syncTraktAction(
-          nextState ? "watchlist" : "watchlist/remove",
-          buildTraktPayload(media),
-        );
+        await SyncApiClient.removeSyncWatchlist(media.id.toString(), media.mediaType);
       }
       showHUDRef.current("success", nextState ? t("watchlist.added") : t("watchlist.removed"));
       await refetch(true);
@@ -62,18 +52,10 @@ export function useMediaDetailsSocialActions({
     try {
       const nextState = !isFavorite;
       setIsFavorite(nextState);
-      const strategy = Storage.get<string>("syncStrategy", "none");
-      if (strategy === "server") {
-        if (nextState) {
-          await SyncApiClient.addSyncFavorite(media.id.toString(), media.mediaType);
-        } else {
-          await SyncApiClient.removeSyncFavorite(media.id.toString(), media.mediaType);
-        }
+      if (nextState) {
+        await SyncApiClient.addSyncFavorite(media.id.toString(), media.mediaType);
       } else {
-        await ApiClient.syncTraktAction(
-          nextState ? "favorites" : "favorites/remove",
-          buildTraktPayload(media),
-        );
+        await SyncApiClient.removeSyncFavorite(media.id.toString(), media.mediaType);
       }
       showHUDRef.current(
         "success",
@@ -91,29 +73,21 @@ export function useMediaDetailsSocialActions({
     try {
       const nextState = !isWatched;
       setIsWatched(nextState);
-      const strategy = Storage.get<string>("syncStrategy", "none");
-      if (strategy === "server") {
-        if (nextState) {
-          await SyncApiClient.saveSyncProgress(
-            media.id.toString(),
-            media.mediaType,
-            undefined,
-            undefined,
-            100,
-            100,
-          );
-        } else {
-          await SyncApiClient.removeSyncProgress(
-            media.id.toString(),
-            media.mediaType,
-            undefined,
-            undefined,
-          );
-        }
+      if (nextState) {
+        await SyncApiClient.saveSyncProgress(
+          media.id.toString(),
+          media.mediaType,
+          undefined,
+          undefined,
+          100,
+          100,
+        );
       } else {
-        await ApiClient.syncTraktAction(
-          nextState ? "history" : "history/remove",
-          buildTraktPayload(media),
+        await SyncApiClient.removeSyncProgress(
+          media.id.toString(),
+          media.mediaType,
+          undefined,
+          undefined,
         );
       }
       showHUDRef.current(

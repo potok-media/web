@@ -191,10 +191,9 @@ export function usePlaybackTracker({
     if (forceRemote || timeSinceLastSync >= 10 || isCompleted) {
       lastSavedTimeRef.current = actualTime;
 
-      const strategy = Storage.get<string>("syncStrategy", "none");
       // Remote history is keyed by TMDB id — a plugin-opened stream legitimately has id 0, so skip the remote
       // sync for it (local resume still works). Only sync when there's a real TMDB id.
-      if (canSync && (strategy === "server" || strategy === "trakt")) {
+      if (canSync) {
         const progressSeconds = Math.floor(actualTime);
         const durationSeconds = Math.floor(durationVal);
         const save = workId && episodeId
@@ -202,7 +201,6 @@ export function usePlaybackTracker({
               { id, mediaType, season, episode, workId, episodeId },
               progressSeconds,
               durationSeconds,
-              strategy === "trakt",
             ))
           : SyncApiClient.saveSyncProgress(
               id.toString(),
@@ -287,16 +285,13 @@ export function usePlaybackTracker({
       broadcastProgress(duration, duration, true);
 
       // Удаляем с бэкенда/Trakt прогресс (переходит в статус полностью просмотрено)
-      const strategy = Storage.get<string>("syncStrategy", "none");
-      // Plugin streams have TMDB id 0 (a valid value) — don't push them to remote history.
-      if (canSync && (strategy === "server" || strategy === "trakt")) {
+      if (canSync) {
         const completed = Math.floor(duration);
         const save = workId && episodeId
           ? SyncApiClient.saveHistoryProgress(toPlaybackProgressRequest(
               { id, mediaType, season, episode, workId, episodeId },
               completed,
               completed,
-              strategy === "trakt",
             ))
           : SyncApiClient.saveSyncProgress(
               id.toString(),

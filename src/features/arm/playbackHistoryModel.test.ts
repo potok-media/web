@@ -8,14 +8,13 @@ describe("playback history identity", () => {
       mediaType: "tv",
       workId: "work-1",
       episodeId: "episode-ova-1",
-    }, 95, 100, true)).toEqual({
+    }, 95, 100)).toEqual({
       tmdbId: "777",
       mediaType: "episode",
       workId: "work-1",
       episodeId: "episode-ova-1",
       progressSeconds: 95,
       durationSeconds: 100,
-      syncTrakt: true,
     });
   });
 });

@@ -4,7 +4,6 @@ import { MemorySafeCache } from "./MemorySafeCache";
 import { SyncApiClient } from "./SyncApiClient";
 import { ensureAbsoluteURL, handleApiResponse } from "./apiClientHelpers";
 import { createArmApiClient, type ArmHttpResponse, type ArmLayoutRequestOptions, type ArmRequestOptions, type ArmSegmentsRequestOptions, type ArmTransportGetOptions } from "./ArmApiClient";
-import { ApiError } from "./ApiTypes";
 import { webSocketClient } from "./WebSocketClient";
 import type { ExtensionManifest } from "@potok/sdk-types";
 import type {
@@ -17,7 +16,6 @@ import type {
   HeroItem,
   HomeResponse,
   TvSeason,
-  TraktSyncRequest,
   ClientMetadata,
   ClientTrack,
   StreamUIItem,
@@ -42,7 +40,6 @@ export type {
   HeroItem,
   HomeResponse,
   TvSeason,
-  TraktSyncRequest,
   ClientMetadata,
   ClientTrack,
   StreamUIItem,
@@ -328,21 +325,6 @@ export class ApiClient {
       headers: this.headers,
     });
     return handleApiResponse<PersonDetails>(res, "Failed to fetch person details");
-  }
-
-  public static async syncTraktAction(path: string, request: TraktSyncRequest): Promise<void> {
-    if (!this.isWorker) {
-      return DataWorkerBridge.request<void>("syncTraktAction", [path, request]);
-    }
-    const res = await fetch(`${this.baseURL}/api/trakt/sync/${path}`, {
-      method: "POST",
-      headers: this.headers,
-      body: JSON.stringify(request),
-    });
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new ApiError(`Trakt sync action failed: ${path} (Status ${res.status})`, res.status, errorText);
-    }
   }
 
   public static async fetchMediaRow(rowId: string, page = 1): Promise<MediaCard[]> {

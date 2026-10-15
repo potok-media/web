@@ -45,12 +45,9 @@ export interface HistoryIdentity {
 export interface SaveProgressRequest extends HistoryIdentity {
   progressSeconds: number;
   durationSeconds: number;
-  syncTrakt?: boolean;
 }
 
-export interface RemoveProgressRequest extends HistoryIdentity {
-  syncTrakt?: boolean;
-}
+export interface RemoveProgressRequest extends HistoryIdentity {}
 
 export interface BulkProgressChange {
   seasonNumber?: number;
@@ -64,7 +61,6 @@ export interface SaveBulkProgressRequest {
   mediaType: string;
   workId?: ArmWorkId;
   changes: BulkProgressChange[];
-  syncTrakt?: boolean;
 }
 
 export interface SyncHistoryHttpTransport {

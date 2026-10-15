@@ -26,7 +26,6 @@ describe("sync history client", () => {
       episodeId: "episode-ova-1",
       progressSeconds: 100,
       durationSeconds: 100,
-      syncTrakt: true,
     });
 
     expect(requests).toEqual([{
@@ -38,7 +37,6 @@ describe("sync history client", () => {
         episodeId: "episode-ova-1",
         progressSeconds: 100,
         durationSeconds: 100,
-        syncTrakt: true,
       },
     }]);
     expect(result).toEqual({
@@ -66,7 +64,6 @@ describe("sync history client", () => {
       mediaType: "episode",
       workId: "work-1",
       episodeId: "episode-ova-1",
-      syncTrakt: true,
     });
 
     expect(requests).toEqual([{
@@ -76,7 +73,6 @@ describe("sync history client", () => {
         mediaType: "episode",
         workId: "work-1",
         episodeId: "episode-ova-1",
-        syncTrakt: true,
       },
     }]);
   });
@@ -98,7 +94,6 @@ describe("sync history client", () => {
         episodeId: "episode-ova-1",
         isWatched: true,
       }],
-      syncTrakt: true,
     });
 
     expect(requests).toEqual([{
@@ -111,7 +106,6 @@ describe("sync history client", () => {
           episodeId: "episode-ova-1",
           isWatched: true,
         }],
-        syncTrakt: true,
       },
     }]);
   });

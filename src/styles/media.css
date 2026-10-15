@@ -1045,8 +1045,8 @@
   object-fit: cover;
   object-position: center 20%;
   z-index: 0;
-  mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
+  mask-image: radial-gradient(75% 80% at 50% 60%, black 55%, transparent 100%);
+  -webkit-mask-image: radial-gradient(75% 80% at 50% 60%, black 55%, transparent 100%);
 }
 
 /* Hero carousel backdrops cross-fade between slides (opacity-only = GPU cheap). */

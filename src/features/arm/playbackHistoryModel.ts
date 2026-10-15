@@ -17,7 +17,6 @@ export function toPlaybackProgressRequest(
   playback: PlaybackHistorySource,
   progressSeconds: number,
   durationSeconds: number,
-  syncTrakt: boolean,
 ): SaveProgressRequest {
   const tmdbId = Number.isFinite(playback.id) && playback.id > 0
     ? String(playback.id)
@@ -33,7 +32,6 @@ export function toPlaybackProgressRequest(
       ...(playback.episode !== undefined ? { episodeNumber: playback.episode } : {}),
       progressSeconds,
       durationSeconds,
-      syncTrakt,
     };
   }
 
@@ -44,6 +42,5 @@ export function toPlaybackProgressRequest(
     ...(playback.episode !== undefined ? { episodeNumber: playback.episode } : {}),
     progressSeconds,
     durationSeconds,
-    syncTrakt,
   };
 }

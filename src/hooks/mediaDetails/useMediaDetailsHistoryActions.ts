@@ -1,7 +1,5 @@
 import { useCallback } from "react";
-import { ApiClient } from "../../network/ApiClient";
 import { SyncApiClient } from "../../network/SyncApiClient";
-import { Storage } from "../../utils/StorageService";
 import type { TvEpisode } from "../../network/ApiTypes";
 import {
   applyEpisodeWatchedState,
@@ -26,34 +24,17 @@ export function useMediaDetailsHistoryActions({
     async (episode: TvEpisode, nextState: boolean) => {
       if (!media) return;
       try {
-        const strategy = Storage.get<string>("syncStrategy", "none");
         const identity = toEpisodeHistoryIdentity(media, episode);
-        if (strategy === "server" || identity.workId) {
-          if (nextState) {
-            await SyncApiClient.saveHistoryProgress({
-              ...identity,
-              progressSeconds: 100,
-              durationSeconds: 100,
-              syncTrakt: strategy === "trakt",
-            });
-          } else {
-            await SyncApiClient.removeHistoryProgress({
-              ...identity,
-              syncTrakt: strategy === "trakt",
-            });
-          }
+        if (nextState) {
+          await SyncApiClient.saveHistoryProgress({
+            ...identity,
+            progressSeconds: 100,
+            durationSeconds: 100,
+          });
         } else {
-          const payload = {
-            movies: [],
-            shows: [
-              {
-                ids: { tmdb: media.id },
-                seasons: [{ number: episode.seasonNumber, episodes: [{ number: episode.episodeNumber }] }],
-              },
-            ],
-            episodes: [],
-          };
-          await ApiClient.syncTraktAction(nextState ? "history" : "history/remove", payload);
+          await SyncApiClient.removeHistoryProgress({
+            ...identity,
+          });
         }
         if (identity.episodeId) {
           setMedia(applyEpisodeWatchedState(media, [episode], nextState));
@@ -81,32 +62,10 @@ export function useMediaDetailsHistoryActions({
     ) => {
       if (!media) return;
       try {
-        const strategy = Storage.get<string>("syncStrategy", "none");
         const request = toBulkEpisodeHistoryRequest(media, episodesList, nextState);
-        if (strategy === "server" || request.workId) {
-          await SyncApiClient.saveHistoryBulkProgress({
-            ...request,
-            syncTrakt: strategy === "trakt",
-          });
-        } else {
-          const legacySeasonNumber = seasonNumber ?? episodesList[0]?.seasonNumber ?? 1;
-          const payload = {
-            movies: [],
-            shows: [
-              {
-                ids: { tmdb: media.id },
-                seasons: [
-                  {
-                    number: legacySeasonNumber,
-                    episodes: episodesList.map((ep) => ({ number: ep.episodeNumber })),
-                  },
-                ],
-              },
-            ],
-            episodes: [],
-          };
-          await ApiClient.syncTraktAction(nextState ? "history" : "history/remove", payload);
-        }
+        await SyncApiClient.saveHistoryBulkProgress({
+          ...request,
+        });
         if (request.workId) {
           setMedia(applyEpisodeWatchedState(media, episodesList, nextState));
         }
