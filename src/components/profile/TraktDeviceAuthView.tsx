@@ -10,16 +10,18 @@ interface TraktDeviceAuthViewProps {
   };
   onCancel: () => void;
   onCopyCode: () => void;
+  presentation?: "card" | "modal";
 }
 
 export const TraktDeviceAuthView: React.FC<TraktDeviceAuthViewProps> = ({
   deviceCode,
   onCancel,
   onCopyCode,
+  presentation = "card",
 }) => {
   const { t } = useTranslation("profile");
   return (
-    <div className="strategy-card-wrapper device-auth">
+    <div className={`strategy-card-wrapper device-auth device-auth--${presentation}`}>
       <div className="device-auth-avatar-container">
         <div className="device-auth-avatar-glow" />
         <div className="device-auth-avatar-badge">

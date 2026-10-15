@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Eye, EyeOff, KeyRound, Save, Send, Link2Off } from "lucide-react";
+import { Eye, EyeOff, KeyRound, Save } from "lucide-react";
 import { useAuth } from "../../context/AppSettingsContext";
 import { useHUD } from "../../context/useHUD";
 import { AuthApiClient } from "../../network/AuthApiClient";
 import { Button, Field, IconButton, Input } from "../ui";
-import { TelegramStartAuthButton } from "../profile/TelegramStartAuthButton";
+import { ConnectedAccountsSettings } from "./ConnectedAccountsSettings";
 import { SettingsCard } from "./SettingsCard";
 
 const MIN_PASSWORD_LENGTH = 6;
@@ -44,7 +44,7 @@ const PasswordInputControl: React.FC<PasswordInputControlProps> = ({
 const AccountSettings: React.FC = () => {
   const { t } = useTranslation("settings");
   const { show: showHUD } = useHUD();
-  const { potokUser, telegramAuthEnabled, updateUser } = useAuth();
+  const { potokUser, updateUser } = useAuth();
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -113,16 +113,6 @@ const AccountSettings: React.FC = () => {
       showHUD("error", err instanceof Error ? err.message : t("account.fillAllFields"));
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleUnlinkTelegram = async () => {
-    try {
-      const updated = await AuthApiClient.unlinkTelegram();
-      updateUser(updated);
-      showHUD("info", t("account.telegramUnlinked"));
-    } catch (err: unknown) {
-      showHUD("error", err instanceof Error ? err.message : t("account.fillAllFields"));
     }
   };
 
@@ -238,34 +228,7 @@ const AccountSettings: React.FC = () => {
         </SettingsCard>
       </form>
 
-      {telegramAuthEnabled && (
-        <SettingsCard
-          title={t("account.telegramTitle")}
-          icon={<Send size="1.125rem" />}
-          footer={potokUser.telegramLinked ? (
-            <Button type="button" variant="secondary" className="btn-gap-s" onClick={handleUnlinkTelegram}>
-              <Link2Off size="1rem" />
-              <span>{t("account.telegramUnlink")}</span>
-            </Button>
-          ) : (
-            <TelegramStartAuthButton
-                label={t("account.telegramLinkButton")}
-                onComplete={(result) => {
-                  updateUser(result.user);
-                  showHUD("success", t("account.telegramLinkedSuccess"));
-                }}
-            />
-          )}
-        >
-          <p className="settings-card__lead">
-            {potokUser.telegramLinked
-              ? potokUser.telegramUsername
-                ? t("account.telegramLinkedAs", { username: potokUser.telegramUsername })
-                : t("account.telegramLinked")
-              : t("account.telegramLinkDesc")}
-          </p>
-        </SettingsCard>
-      )}
+      <ConnectedAccountsSettings />
     </div>
   );
 };

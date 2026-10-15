@@ -107,7 +107,20 @@
       "telegramUnlink": "Unlink Telegram",
       "telegramUnlinked": "Telegram unlinked",
       "telegramLinkedSuccess": "Telegram linked successfully",
-      "telegramLinkButton": "Link via Telegram"
+      "telegramLinkButton": "Link via Telegram",
+      "connectedAccountsTitle": "Connected accounts",
+      "link": "Connect",
+      "unlink": "Disconnect",
+      "linking": "Connecting...",
+      "close": "Close",
+      "retry": "Try again",
+      "actionFailed": "The action could not be completed",
+      "traktLinkedAs": "Connected as @{{username}}",
+      "traktLinked": "Trakt.tv account connected",
+      "traktLinkDesc": "Not connected · Trakt.tv history and lists are not synchronized",
+      "traktModalTitle": "Connect Trakt.tv",
+      "traktPreparing": "Getting an authorization code...",
+      "traktCodeUnavailable": "Could not get a Trakt.tv authorization code"
     },
     "profiles": {
       "errorEmptyGateway": "Enter a gateway address",

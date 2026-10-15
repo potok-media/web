@@ -107,7 +107,20 @@
       "telegramUnlink": "Отвязать Telegram",
       "telegramUnlinked": "Telegram отвязан",
       "telegramLinkedSuccess": "Telegram успешно привязан",
-      "telegramLinkButton": "Привязать через Telegram"
+      "telegramLinkButton": "Привязать через Telegram",
+      "connectedAccountsTitle": "Связанные аккаунты",
+      "link": "Привязать",
+      "unlink": "Отвязать",
+      "linking": "Подключение...",
+      "close": "Закрыть",
+      "retry": "Повторить",
+      "actionFailed": "Не удалось выполнить действие",
+      "traktLinkedAs": "Привязан как @{{username}}",
+      "traktLinked": "Аккаунт Trakt.tv привязан",
+      "traktLinkDesc": "Не привязан · история и списки Trakt.tv не синхронизируются",
+      "traktModalTitle": "Привязать Trakt.tv",
+      "traktPreparing": "Получаем код авторизации...",
+      "traktCodeUnavailable": "Не удалось получить код авторизации Trakt.tv"
     },
     "profiles": {
       "errorEmptyGateway": "Введите адрес шлюза",
