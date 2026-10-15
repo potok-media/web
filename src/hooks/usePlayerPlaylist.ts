@@ -7,12 +7,12 @@ interface PlaylistResolveBridge {
 }
 
 export function usePlayerPlaylist(
-  playback: ActivePlayback,
+  playback: ActivePlayback | null,
   playVideo: (next: ActivePlayback) => void,
 ) {
   return useCallback(
     async (index: number) => {
-      if (!playback.playlist || index < 0 || index >= playback.playlist.length) return;
+      if (!playback?.playlist || index < 0 || index >= playback.playlist.length) return;
       const item = playback.playlist[index];
       const itemTitle = item.season !== undefined && item.episode !== undefined
         ? `${item.title || ""} - S${item.season}E${item.episode}`

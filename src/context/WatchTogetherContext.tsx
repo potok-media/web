@@ -117,8 +117,8 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
     paused: true,
     started: false,
   });
-  // Host: streamUrl of the descriptor last broadcast via start-watch. Guards hostAnnounceEpisode so the initial
-  // episode (already broadcast by startWatch) isn't re-announced when the host player mounts.
+  // Host: streamUrl associated with the room's current episode. Guards hostAnnounceEpisode so mounting the
+  // already-playing host player does not announce the initial episode as a playlist change.
   const lastBroadcastUrlRef = useRef<string | null>(null);
   // Guest: fires if the host neither replies (state-sync) nor the server rejects (no-host) — treat as dead room.
   const joinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -197,7 +197,14 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
       if (!trimmed || !key) return;
       setChatMessages((prev) => [
         ...prev,
-        { id: chatIdRef.current++, senderId: clientId, name: myNameRef.current, text: trimmed, mine: true },
+        {
+          id: chatIdRef.current++,
+          senderId: clientId,
+          name: myNameRef.current,
+          text: trimmed,
+          mine: true,
+          createdAt: Date.now(),
+        },
       ]);
       clientRef.current?.broadcast(key, {
         type: "chat",
@@ -336,7 +343,14 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
         case "chat":
           setChatMessages((prev) => [
             ...prev,
-            { id: chatIdRef.current++, senderId: msg.senderId, name: msg.name || "", text: msg.text, mine: false },
+            {
+              id: chatIdRef.current++,
+              senderId: msg.senderId,
+              name: msg.name || "",
+              text: msg.text,
+              mine: false,
+              createdAt: Date.now(),
+            },
           ]);
           break;
         case "control":
@@ -474,12 +488,14 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
       tokenRef.current = buildShareToken(key, gatewayUrl);
       roleRef.current = "host";
       descriptorRef.current = descriptor;
+      sessionActiveRef.current = true;
+      lastBroadcastUrlRef.current = descriptor.streamUrl;
 
       setRoomId(key);
       setRole("host");
       setPendingDescriptor(descriptor);
       setParticipants([{ id: clientId, role: "host", name: myNameRef.current }]);
-      setSessionActive(false);
+      setSessionActive(true);
       setHostEnded(false);
 
       const client = ensureClient();
@@ -551,14 +567,13 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
     armStartGate(); // wait for every present guest's ready-handshake before releasing playback
     broadcastStart();
     setSessionActive(true);
-    playVideo({ ...descriptor, startAtZero: true, coWatch: true }); // host also begins at 00:00
     checkStartGate(); // open immediately if there are no guests to wait for
-  }, [armStartGate, broadcastStart, playVideo, checkStartGate]);
+  }, [armStartGate, broadcastStart, checkStartGate]);
 
   // Host: the playlist episode changed (host used the menu, or a permitted guest requested it via control). The
   // host's player has already switched to the new descriptor; re-broadcast it and re-run the ready-handshake so
-  // every guest switches to the same episode and everyone restarts in sync. Guarded so the initial episode
-  // (already broadcast by startWatch) isn't re-announced when the host player first mounts.
+  // every guest switches to the same episode and everyone restarts in sync. Guarded so the room's initial
+  // episode isn't re-announced when the host player first mounts.
   const hostAnnounceEpisode = useCallback(
     (descriptor: ActivePlayback) => {
       if (roleRef.current !== "host" || !sessionActiveRef.current || !roomKeyRef.current) return;

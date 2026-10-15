@@ -57,6 +57,8 @@ export interface EpisodeSourceSection {
 
 export type FileOverrideMode = "anchor" | "pin";
 
+export type EpisodeSelectorPresentation = "selector" | "playlist";
+
 export type FileOverrideEntry = SDKFileOverrideEntry;
 
 export interface EpisodeSelectorPopupProps {

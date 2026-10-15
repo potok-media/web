@@ -3,7 +3,12 @@ import { useTranslation } from "react-i18next";
 import { Pencil, RotateCcw } from "lucide-react";
 import { EpisodeSelectorRow } from "./EpisodeSelectorRow";
 import { IconButton } from "../../ui";
-import type { EpisodeSourceSection, FileOverrideEntry, FileOverrideMode } from "./types";
+import type {
+  EpisodeSelectorPresentation,
+  EpisodeSourceSection,
+  FileOverrideEntry,
+  FileOverrideMode,
+} from "./types";
 import { SENTINEL_KEY } from "./utils";
 import { sectionBindingAnchorIds } from "./armOverrideModel";
 import { groupKindLabel } from "../../seasonGroupLabels";
@@ -24,6 +29,9 @@ interface EpisodeSelectorBodyProps {
   onEditFile?: (fileId: string, mode: FileOverrideMode) => void;
   onResetFileOverride?: (fileId: string) => void;
   canonicalBindingEnabled?: boolean;
+  presentation?: EpisodeSelectorPresentation;
+  repairMode?: boolean;
+  activeEpisodeId?: string;
 }
 
 export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
@@ -41,8 +49,13 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
   onEditFile,
   onResetFileOverride,
   canonicalBindingEnabled = false,
+  presentation = "selector",
+  repairMode = false,
+  activeEpisodeId,
 }) => {
   const { t } = useTranslation("media");
+  const showTechnicalControls = presentation !== "playlist" || repairMode;
+  const mappingEnabled = fileOverrideEnabled || canonicalBindingEnabled;
 
   return (
     <div className="files-list-container episode-files-list">
@@ -67,7 +80,7 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
                           ? t("selector.season", { number: section.displayedSeason })
                           : t("selector.episodeGroup"))}
                     </h3>
-                    {mapEntry && (
+                    {showTechnicalControls && mapEntry && (
                       <span className="season-map-badge">
                         {srcRaw !== undefined && srcRaw !== section.displayedSeason
                           ? `S${srcRaw}→ `
@@ -76,14 +89,16 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
                         {mapEntry.offset}
                       </span>
                     )}
-                    <IconButton
-                      className="season-edit-pencil"
-                      onClick={() => onEditSection(section)}
-                      aria-label={t(canonicalBindingEnabled ? "selector.editMapping" : "selector.editSeasonMapping")}
-                    >
-                      <Pencil size="0.9375rem" />
-                    </IconButton>
-                    {canonicalBindingEnabled && onResetFileOverride && bindingAnchorIds.map((anchorId) => (
+                    {showTechnicalControls && (
+                      <IconButton
+                        className="season-edit-pencil"
+                        onClick={() => onEditSection(section)}
+                        aria-label={t(canonicalBindingEnabled ? "selector.editMapping" : "selector.editSeasonMapping")}
+                      >
+                        <Pencil size="0.9375rem" />
+                      </IconButton>
+                    )}
+                    {showTechnicalControls && canonicalBindingEnabled && onResetFileOverride && bindingAnchorIds.map((anchorId) => (
                       <IconButton
                         key={anchorId}
                         className="season-edit-pencil"
@@ -93,7 +108,7 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
                         <RotateCcw size="0.9375rem" />
                       </IconButton>
                     ))}
-                    {mapEntry && onResetOverride && (
+                    {showTechnicalControls && mapEntry && onResetOverride && (
                       <IconButton
                         className="season-edit-pencil"
                         onClick={() => onResetOverride(srcRaw ?? null)}
@@ -112,10 +127,13 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
                     backdropSrc={backdropSrc}
                     posterSrc={posterSrc}
                     onPlay={onPlay}
-                    fileOverrideEnabled={fileOverrideEnabled}
+                    fileOverrideEnabled={mappingEnabled}
                     fileOverride={fileMap[ep.id]}
-                    onEditFile={onEditFile}
+                    onEditFile={mappingEnabled ? onEditFile : undefined}
                     onResetFileOverride={onResetFileOverride}
+                    presentation={presentation}
+                    repairMode={repairMode}
+                    isActive={activeEpisodeId === ep.id}
                   />
                 ))}
               </div>

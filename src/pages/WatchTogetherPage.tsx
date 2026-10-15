@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { PlayCircle, Loader2, LogOut, LogIn } from "lucide-react";
 import { useWatchTogether } from "../context/watchTogetherState";
+import { usePlayback } from "../context/PlaybackContext";
 import { useHUD } from "../context/useHUD";
 import { Button } from "../components/ui";
 import { ShareLinkPanel } from "../components/watchTogether/ShareLinkPanel";
@@ -10,6 +11,7 @@ import { ParticipantList } from "../components/watchTogether/ParticipantList";
 import { GuestPermissionsPanel } from "../components/watchTogether/GuestPermissionsPanel";
 import { NicknameField } from "../components/watchTogether/NicknameField";
 import { SessionInfoBanner } from "../components/watchTogether/SessionInfoBanner";
+import { WatchTogetherWorkspace } from "../components/watchTogether/WatchTogetherWorkspace";
 import "../styles/watch-together.css";
 
 export const WatchTogetherPage: React.FC = () => {
@@ -18,6 +20,7 @@ export const WatchTogetherPage: React.FC = () => {
   const [params] = useSearchParams();
   const { show: showHUD } = useHUD();
   const wt = useWatchTogether();
+  const { activePlayback } = usePlayback();
   const { role, participants, sessionActive, connectionState, hostEnded, clientId, sessionInfo, roomUnavailable } = wt;
 
   const token = params.get("room");
@@ -83,6 +86,15 @@ export const WatchTogetherPage: React.FC = () => {
           <Button variant="ghost" size="sm" onClick={() => navigate("/")}>{t("goHome")}</Button>
         </div>
       </main>
+    );
+  }
+
+  if (role && sessionActive && activePlayback) {
+    return (
+      <WatchTogetherWorkspace
+        playback={activePlayback}
+        backdropSrc={activePlayback.backdropSrc || activePlayback.stillSrc || activePlayback.posterSrc}
+      />
     );
   }
 

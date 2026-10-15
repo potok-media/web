@@ -171,6 +171,11 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
         return;
       }
 
+      setEpisodeSelectorData(null);
+      setClickedStream(stream);
+      sessionStorage.removeItem("potok_popup_stream");
+      sessionStorage.removeItem("potok_popup_data");
+
       ExtensionRegistry.sendSandboxRequest<EpisodesResponse>(activeSource.pluginId, "STREAM_SOURCE_GET_EPISODES", { stream, context })
         .then(async (res) => {
           if (generation !== selectionGeneration.current) return;
@@ -203,7 +208,12 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
           }
           persistSelectorData(stream, res);
         })
-        .catch((error) => { if (generation === selectionGeneration.current) onError(error); })
+        .catch((error) => {
+          if (generation !== selectionGeneration.current) return;
+          setEpisodeSelectorData(null);
+          setClickedStream(null);
+          onError(error);
+        })
         .finally(() => { if (generation === selectionGeneration.current) setActionLoading(false); });
     },
     [activeSource, mediaType, context, playFromInfo, onError, persistSelectorData, enrichPlayback, i18n],

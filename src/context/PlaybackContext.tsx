@@ -12,6 +12,8 @@ export type { ActivePlayback, PlaybackMeta, PlaylistItem } from "./playbackTypes
 
 export interface PlaybackContextType {
   activePlayback: ActivePlayback | null;
+  playerPortalTarget: HTMLElement | null;
+  registerPlayerPortalTarget: (target: HTMLElement | null) => void;
   // Enrichable metadata (subtitles/duration) lives here, NOT on activePlayback — so enrichPlayback never
   // mints a new descriptor and never tears the player down mid-playback. Consumers read it separately.
   playbackMeta: PlaybackMeta;
@@ -31,6 +33,7 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const { show: showHUD } = useHUD();
   const [activePlayback, setActivePlayback] = useState<ActivePlayback | null>(null);
   const [playbackMeta, setPlaybackMeta] = useState<PlaybackMeta>({});
+  const [playerPortalTarget, setPlayerPortalTarget] = useState<HTMLElement | null>(null);
   const instanceCounter = useRef(0);
   // Latest descriptor, read by enrichPlayback's match guard (which writes only playbackMeta and so has no
   // access to `prev` descriptor via a functional update). Synced every render; enrich is async, so current.
@@ -99,8 +102,13 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 
   const stopVideo = useCallback(() => {
+    sessionStorage.removeItem("potok_last_playback");
     setActivePlayback(null);
     setPlaybackMeta({});
+  }, []);
+
+  const registerPlayerPortalTarget = useCallback((target: HTMLElement | null) => {
+    setPlayerPortalTarget(target);
   }, []);
 
   useEffect(() => {
@@ -111,8 +119,24 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [potokToken]);
 
   const value = useMemo(
-    () => ({ activePlayback, playbackMeta, playVideo, enrichPlayback, stopVideo }),
-    [activePlayback, playbackMeta, playVideo, enrichPlayback, stopVideo],
+    () => ({
+      activePlayback,
+      playbackMeta,
+      playerPortalTarget,
+      registerPlayerPortalTarget,
+      playVideo,
+      enrichPlayback,
+      stopVideo,
+    }),
+    [
+      activePlayback,
+      playbackMeta,
+      playerPortalTarget,
+      registerPlayerPortalTarget,
+      playVideo,
+      enrichPlayback,
+      stopVideo,
+    ],
   );
 
   return <PlaybackContext.Provider value={value}>{children}</PlaybackContext.Provider>;

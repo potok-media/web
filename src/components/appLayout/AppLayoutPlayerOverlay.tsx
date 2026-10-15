@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { useTranslation } from "react-i18next";
 import type { ActivePlayback } from "../../context/playbackTypes";
+import { usePlayback } from "../../context/PlaybackContext";
 import type { ConnectionState } from "../../context/AppSettingsContext";
 import type { ConnectionProfile } from "../../network/ApiTypes";
 import { WebMediaPlayer } from "../WebMediaPlayer";
@@ -32,6 +33,7 @@ export const AppLayoutPlayerOverlay: React.FC<AppLayoutPlayerOverlayProps> = ({
   checkConnection,
 }) => {
   const { t } = useTranslation("common");
+  const { playerPortalTarget } = usePlayback();
 
   return (
     <>
@@ -57,6 +59,7 @@ export const AppLayoutPlayerOverlay: React.FC<AppLayoutPlayerOverlayProps> = ({
             playback={activePlayback}
             onClose={onClosePlayer}
             isNetworkOffline={connectionState === "offline"}
+            portalTarget={playerPortalTarget}
           />
         </ErrorBoundary>
       )}

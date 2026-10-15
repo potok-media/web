@@ -1,15 +1,20 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { ShieldAlert } from "lucide-react";
+import { ArrowLeft, ListVideo, ShieldAlert } from "lucide-react";
 import { StreamList } from "../components/common/StreamList";
-import { StreamMediaHero, StreamMediaHeroSkeleton } from "../components/StreamMediaHero";
-import { EpisodeSelectorPopup } from "../components/common/EpisodeSelectorPopup";
+import { StreamSidebar } from "../components/StreamSidebar";
+import { TorrentFilesPanel } from "../components/TorrentFilesPanel";
+import { WatchTogetherRail } from "../components/watchTogether/WatchTogetherRail";
+import { WatchTogetherWorkspace } from "../components/watchTogether/WatchTogetherWorkspace";
 import { useMediaStreams } from "../hooks/useMediaStreams";
 import { usePlayback } from "../context/PlaybackContext";
+import { useWatchTogether } from "../context/watchTogetherState";
+import { usePlayerPlaylist } from "../hooks/usePlayerPlaylist";
+import type { GenericEpisodeItem } from "../components/common/episodeSelector/types";
 import type { MediaCard } from "../network/ApiTypes";
 
-import { Button } from "../components/ui";
+import { Button, IconButton } from "../components/ui";
 
 export const MediaStreamsPage: React.FC = () => {
   const { t } = useTranslation("streams");
@@ -17,7 +22,10 @@ export const MediaStreamsPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { activePlayback } = usePlayback();
+  const { activePlayback, playVideo, registerPlayerPortalTarget } = usePlayback();
+  const watchTogether = useWatchTogether();
+  const playPlaylistItem = usePlayerPlaylist(activePlayback, playVideo);
+  const mediaStageRef = useRef<HTMLDivElement>(null);
 
   const mediaId = Number(id);
   const state = location.state as {
@@ -71,66 +79,155 @@ export const MediaStreamsPage: React.FC = () => {
     initialMedia,
     activeTab: tab,
   });
+  const showTorrentFiles = Boolean(clickedStream);
+  const showCoWatchRail = Boolean(watchTogether.role);
+  const showRightRail = showTorrentFiles || showCoWatchRail;
+  const inlinePlaybackActive = Boolean(activePlayback);
+  const activeEpisodeId = activePlayback?.playlist?.[activePlayback.playlistIndex ?? -1]?.id;
+  const workspaceMode = showRightRail || inlinePlaybackActive;
+  const stageMode = inlinePlaybackActive ? "player" : "preview";
 
-  const renderMediaHero = () => {
-    if (currentMedia) {
-      return <StreamMediaHero media={currentMedia} onBack={() => navigate(-1)} />;
+  const handleQueuePlay = (episodeItem: GenericEpisodeItem) => {
+    if (watchTogether.role && watchTogether.sessionActive && activePlayback?.playlist) {
+      const playlistIndex = activePlayback.playlist.findIndex((item) =>
+        item.id && episodeItem.id
+          ? String(item.id) === String(episodeItem.id)
+          : item.season === episodeItem.season && item.episode === episodeItem.episode,
+      );
+      if (playlistIndex >= 0) {
+        if (watchTogether.role === "guest") {
+          if (watchTogether.myPermissions.canControl) {
+            watchTogether.sendControl("episode", undefined, playlistIndex);
+          }
+        } else {
+          void playPlaylistItem(playlistIndex);
+        }
+        return;
+      }
     }
-    return <StreamMediaHeroSkeleton onBack={() => navigate(-1)} />;
+    handlePlayEpisode(episodeItem);
   };
+
+  useEffect(() => {
+    if (!inlinePlaybackActive) return;
+
+    const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    mediaStageRef.current?.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: "start",
+    });
+  }, [activePlayback?.instanceId, inlinePlaybackActive]);
+
+  const renderSidebar = () => {
+    if (currentMedia) {
+      return <StreamSidebar media={currentMedia} onBack={() => navigate(-1)} />;
+    }
+    return (
+      <aside className="streams-page-sidebar skeleton-loading">
+        <IconButton
+          className="streams-sidebar-back-btn"
+          onClick={() => navigate(-1)}
+          aria-label={t("actions.back")}
+        >
+          <ArrowLeft size="1.125rem" />
+        </IconButton>
+        <div className="streams-sidebar-poster skeleton skeleton--tall" />
+      </aside>
+    );
+  };
+
+  const renderTorrentList = (withResponsiveBack = false) => (
+    <StreamList
+      streams={streams}
+      loading={loading}
+      showFilters={true}
+      emptyText={error || undefined}
+      onSelectStream={handleSelectStream}
+      onRefresh={handleRefresh}
+      onBack={withResponsiveBack ? () => navigate(-1) : undefined}
+      isSearching={loading}
+      searchStartedAt={searchStartedAt}
+      searchTimeoutMs={searchTimeoutMs}
+      lastSelected={lastSelected}
+    />
+  );
+
+  const renderPlayerPreview = () => (
+    <div className="streams-player-preview">
+      <div
+        className="streams-player-preview__artwork"
+        style={{ backgroundImage: `url(${currentMedia?.backdropSrc || ""})` }}
+      />
+      <div className="streams-player-preview__veil" />
+      <div className="streams-player-preview__content">
+        <ListVideo size="2rem" />
+        <strong>{t("media:streams.episodeSelection")}</strong>
+        {episodeSelectorData?.parsingSuspect ? (
+          <span>{t("media:selector.parsingHintBody")}</span>
+        ) : null}
+      </div>
+    </div>
+  );
 
   const renderContent = () => (
     <section className="streams-page-content">
-      <StreamList
-        streams={streams}
-        loading={loading}
-        showFilters={true}
-        emptyText={error || undefined}
-        onSelectStream={handleSelectStream}
-        onRefresh={handleRefresh}
-        isSearching={loading}
-        searchStartedAt={searchStartedAt}
-        searchTimeoutMs={searchTimeoutMs}
-        lastSelected={lastSelected}
-      />
+      <div className="torrents-panel" hidden={showRightRail}>
+        {renderTorrentList()}
+      </div>
+
+      {showTorrentFiles && (
+        <TorrentFilesPanel
+          loading={!episodeSelectorData}
+          loadingLabel={t("loading.fetchingInfo")}
+          backLabel={t("actions.back")}
+          busy={actionLoading && Boolean(episodeSelectorData)}
+          onClose={handleClosePopup}
+          title={episodeSelectorData?.title || clickedStream?.title || ""}
+          episodes={episodeSelectorData?.episodes || []}
+          onPlay={handleQueuePlay}
+          onStartEditing={handleStartEditing}
+          onApplyOverride={handleApplyOverride}
+          onResetOverride={handleResetOverride}
+          fileOverrideEnabled={fileOverrideEnabled}
+          fileMap={episodeSelectorData?.fileMap || {}}
+          onApplyFileOverride={handleApplyFileOverride}
+          onResetFileOverride={handleResetFileOverride}
+          onApplyEpisodeBinding={handleApplyEpisodeBinding}
+          armLayout={armLayout}
+          armLayoutLoading={armLayoutLoading}
+          armLayoutError={armLayoutError}
+          onRetryArmLayout={handleStartEditing}
+          seasonMap={episodeSelectorData?.seasonMap || {}}
+          seasons={seasons}
+          seasonsLoading={seasonsLoading}
+          isSaving={isSaving}
+          tmdbSeasonsCount={episodeSelectorData?.tmdbSeasonsCount}
+          parsingSuspect={episodeSelectorData?.parsingSuspect}
+          backdropSrc={currentMedia?.backdropSrc}
+          posterSrc={currentMedia?.posterSrc}
+          mediaType={mediaType}
+          activeEpisodeId={activeEpisodeId}
+        />
+      )}
+
+      {!showTorrentFiles && showCoWatchRail && (
+        <section className="torrent-files-panel torrent-files-panel--co-watch">
+          <WatchTogetherRail
+            queueCount={activePlayback ? 1 : 0}
+            queue={(
+              <div className="wt-queue-current">
+                <ListVideo size="1.5rem" />
+                <div>
+                  <span>{t("watchTogether:queue")}</span>
+                  <strong>{activePlayback?.title || currentMedia?.title || ""}</strong>
+                </div>
+              </div>
+            )}
+          />
+        </section>
+      )}
     </section>
   );
-
-  const renderPopup = () => {
-    if (!episodeSelectorData || !clickedStream) return null;
-    return (
-      <EpisodeSelectorPopup
-        // Hidden while the global player overlay is open (the popup is a body portal and would otherwise
-        // paint over the z-index-free player); it reappears when the player closes.
-        isOpen={!!episodeSelectorData && !activePlayback}
-        onClose={handleClosePopup}
-        title={episodeSelectorData.title}
-        episodes={episodeSelectorData.episodes}
-        onPlay={handlePlayEpisode}
-        onStartEditing={handleStartEditing}
-        onApplyOverride={handleApplyOverride}
-        onResetOverride={handleResetOverride}
-        fileOverrideEnabled={fileOverrideEnabled}
-        fileMap={episodeSelectorData.fileMap}
-        onApplyFileOverride={handleApplyFileOverride}
-        onResetFileOverride={handleResetFileOverride}
-        onApplyEpisodeBinding={handleApplyEpisodeBinding}
-        armLayout={armLayout}
-        armLayoutLoading={armLayoutLoading}
-        armLayoutError={armLayoutError}
-        onRetryArmLayout={handleStartEditing}
-        seasonMap={episodeSelectorData.seasonMap}
-        seasons={seasons}
-        seasonsLoading={seasonsLoading}
-        isSaving={isSaving}
-        tmdbSeasonsCount={episodeSelectorData.tmdbSeasonsCount}
-        parsingSuspect={episodeSelectorData.parsingSuspect}
-        backdropSrc={currentMedia?.backdropSrc}
-        posterSrc={currentMedia?.posterSrc}
-        mediaType={mediaType}
-      />
-    );
-  };
 
   if (!loadingMediaDetails && !currentMedia) {
     return (
@@ -142,30 +239,50 @@ export const MediaStreamsPage: React.FC = () => {
     );
   }
 
+  if (activePlayback && showCoWatchRail && watchTogether.sessionActive) {
+    return (
+      <WatchTogetherWorkspace
+        playback={activePlayback}
+        backdropSrc={currentMedia?.backdropSrc || activePlayback.backdropSrc}
+        mediaStageRef={mediaStageRef}
+      >
+        {renderContent()}
+      </WatchTogetherWorkspace>
+    );
+  }
+
   return (
-    <div className="streams-page-layout">
+    <div className={`streams-page-layout ${workspaceMode ? "" : "streams-page-layout--browser"}`}>
       <div
         className="streams-page-backdrop"
         style={{ "--backdrop-image": `url(${currentMedia?.backdropSrc || ""})` } as React.CSSProperties}
       />
-      <div className="streams-page-shell">
-        {renderMediaHero()}
-        {renderContent()}
-      </div>
-      {renderPopup()}
-      {actionLoading && (
-        <div className="saving-overlay saving-overlay--fixed">
-          <div className="saving-content">
-            <div className="premium-spinner">
-              <div className="spinner-outer" />
-              <div className="spinner-inner" />
+      <div
+        className={`streams-page-shell ${workspaceMode ? "streams-page-shell--workspace" : "streams-page-shell--browser"} ${showRightRail ? "streams-page-shell--split" : ""}`}
+      >
+        {workspaceMode ? (
+          <div className={`streams-inline-workspace ${showRightRail ? "streams-inline-workspace--split" : ""}`}>
+            <div
+              ref={mediaStageRef}
+              className={`streams-media-stage streams-media-stage--${stageMode}`}
+            >
+              <div ref={registerPlayerPortalTarget} className="streams-media-stage__surface">
+                {stageMode === "preview" ? renderPlayerPreview() : null}
+              </div>
             </div>
-            <span className="saving-overlay-message">
-              {t("loading.fetchingInfo")}
-            </span>
+            {renderContent()}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="streams-browser-layout">
+            {renderSidebar()}
+            <section className="streams-page-content streams-page-content--browser">
+              <div className="streams-scroll-area">
+                {renderTorrentList(true)}
+              </div>
+            </section>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

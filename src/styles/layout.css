@@ -14,6 +14,7 @@
   height: 100dvh;
   overflow-y: auto;
   overflow-x: hidden;
+  scrollbar-gutter: stable;
   scroll-behavior: smooth;
   overscroll-behavior-y: contain;
   position: relative;

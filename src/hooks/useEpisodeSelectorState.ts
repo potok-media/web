@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { PlaylistItem } from "../context/playbackTypes";
 import type { EpisodeSourceSection, FileOverrideMode, GenericEpisodeItem } from "../components/common/episodeSelector/types";
-import { buildEpisodeSourceSections, resolvedSeasonNumbers } from "../components/common/episodeSelector/utils";
+import { buildEpisodeSourceSections } from "../components/common/episodeSelector/utils";
 import { buildEpisodeBindingOverride } from "../components/common/episodeSelector/armOverrideModel";
 import type { SDKArmBindingTarget, SDKEpisodeBindingOverride } from "../sdk/src/types";
+import { buildEpisodePlaylist } from "../utils/episodePlaylist";
 
 interface PlaylistOverrideBridge {
   potok_playlist_override?: PlaylistItem[];
@@ -30,7 +31,6 @@ export function useEpisodeSelectorState({
   onApplyEpisodeBinding,
 }: UseEpisodeSelectorStateParams) {
   const { t } = useTranslation("media");
-  const [selectedSeason, setSelectedSeason] = useState(1);
   const [isEditing, setIsEditing] = useState(false);
   const [editingSource, setEditingSource] = useState<{
     sourceSeason: number | null;
@@ -40,11 +40,6 @@ export function useEpisodeSelectorState({
   // When set, the target picker applies a per-FILE override (anchor/pin) instead of a per-season one.
   const [editingFile, setEditingFile] = useState<{ id: string; mode: FileOverrideMode } | null>(null);
 
-  const uniqueSeasons = useMemo(
-    () => resolvedSeasonNumbers(episodes),
-    [episodes],
-  );
-
   const sourceSections = useMemo<EpisodeSourceSection[]>(
     () => buildEpisodeSourceSections(episodes),
     [episodes],
@@ -52,11 +47,27 @@ export function useEpisodeSelectorState({
 
   const firstEpId = useMemo(() => sourceSections[0]?.episodes[0]?.id, [sourceSections]);
 
+  const playlist = useMemo(
+    () => buildEpisodePlaylist(episodes, {
+      fallbackEpisodeTitle: (episode) => t("episode.fallbackName", { number: episode }),
+      unresolvedTitle: t("selector.unresolvedEpisode"),
+      mainStreamTitle: t("selector.mainStream"),
+    }),
+    [episodes, t],
+  );
+
   useEffect(() => {
-    if (uniqueSeasons.length > 0 && !uniqueSeasons.includes(selectedSeason)) {
-      setSelectedSeason(uniqueSeasons[0]);
-    }
-  }, [uniqueSeasons, selectedSeason]);
+    if (!isOpen || playlist.length === 0) return;
+
+    const bridge = window as PlaylistOverrideBridge;
+    bridge.potok_playlist_override = playlist;
+
+    return () => {
+      if (bridge.potok_playlist_override === playlist) {
+        bridge.potok_playlist_override = undefined;
+      }
+    };
+  }, [isOpen, playlist]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -106,7 +117,6 @@ export function useEpisodeSelectorState({
           targetEp - rawFirstEp,
         );
       }
-      setSelectedSeason(targetSeason);
       setEditingSource(null);
       setEditingFile(null);
       setIsEditing(false);
@@ -114,54 +124,12 @@ export function useEpisodeSelectorState({
     [editingSource, editingFile, onApplyOverride, onApplyFileOverride],
   );
 
-  const handleOpenAsPlaylist = useCallback(() => {
-    if (!episodes.length) return;
-
-    const getStreamUrl = (ep: GenericEpisodeItem) =>
-      ep.url || ep.audios?.[0]?.url || "";
-
-    const mappedPlaylist: PlaylistItem[] = episodes
-      .map((ep) => {
-        const streamUrl = getStreamUrl(ep);
-        return {
-          id: ep.id,
-          workId: ep.workId,
-          episodeId: ep.episodeId,
-          entryId: ep.entryId,
-          episodeIds: ep.episodeIds,
-          targets: ep.targets,
-          season: ep.season,
-          episode: ep.episode,
-          title: ep.title || ep.fileName || (ep.episode !== undefined
-            ? t("episode.fallbackName", { number: ep.episode })
-            : t("selector.unresolvedEpisode")),
-          filler: ep.filler ?? null,
-          streamUrl,
-          streamType: (streamUrl.includes(".m3u8")
-            ? "m3u8"
-            : streamUrl.includes(".mpd")
-              ? "dash"
-              : "mp4") as PlaylistItem["streamType"],
-          audios: ep.audios?.map((a) => ({ name: a.name, url: a.url || "" })),
-          voice: ep.audios?.[0]?.name || t("selector.mainStream"),
-        };
-      })
-      .filter((item) => !!item.streamUrl);
-
-    if (!mappedPlaylist.length) return;
-
-    (window as PlaylistOverrideBridge).potok_playlist_override = mappedPlaylist;
-
-    const uncompleted =
-      episodes.find((e) => e.season === selectedSeason && !e.isWatched) ||
-      episodes.find((e) => !e.isWatched) ||
-      episodes.find((e) => e.season === selectedSeason) ||
-      episodes[0];
-
-    if (uncompleted) {
-      onPlay(uncompleted, "default");
+  const handlePlayAsPlaylist = useCallback((episode: GenericEpisodeItem) => {
+    if (playlist.length > 0) {
+      (window as PlaylistOverrideBridge).potok_playlist_override = playlist;
     }
-  }, [episodes, onPlay, selectedSeason, t]);
+    onPlay(episode, "default");
+  }, [onPlay, playlist]);
 
   const handleApplyEpisodeBinding = useCallback((target: SDKArmBindingTarget) => {
     if (!onApplyEpisodeBinding) return;
@@ -193,6 +161,6 @@ export function useEpisodeSelectorState({
     handleCancelEditing,
     handleApplyOverrideInternal,
     handleApplyEpisodeBinding,
-    handleOpenAsPlaylist,
+    handlePlayAsPlaylist,
   };
 }

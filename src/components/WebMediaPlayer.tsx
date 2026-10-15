@@ -29,27 +29,37 @@ interface WebMediaPlayerProps {
   playback: ActivePlayback;
   onClose?: () => void;
   isNetworkOffline?: boolean;
+  portalTarget?: HTMLElement | null;
 }
 
 export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = (props) => {
-  const { role: coWatchRole, myPermissions, sendControl, leave: coWatchLeave, chatOpen } = useWatchTogether();
+  const { portalTarget, ...playerProps } = props;
+  const isInline = Boolean(portalTarget);
+  const {
+    role: coWatchRole,
+    sessionActive: coWatchSessionActive,
+    myPermissions,
+    sendControl,
+    leave: coWatchLeave,
+    chatOpen,
+  } = useWatchTogether();
   const navigate = useNavigate();
-  const propsOnClose = props.onClose;
+  const propsOnClose = playerProps.onClose;
 
-  // Closing the player during a co-watch ends the session: the host closes the room for everyone and returns
-  // to the page it started from; a guest just leaves and goes home.
+  // Closing an inline player keeps the current media page in place. Legacy full-screen co-watch still returns
+  // to the route it started from because it has no surrounding workspace to reveal.
   const handlePlayerClose = useCallback(() => {
     if (coWatchRole === "host") {
       coWatchLeave();
-      navigate(-1);
+      if (!isInline) navigate(-1);
     } else if (coWatchRole === "guest") {
       coWatchLeave();
       navigate("/");
     }
     propsOnClose?.();
-  }, [coWatchRole, coWatchLeave, navigate, propsOnClose]);
+  }, [coWatchRole, coWatchLeave, isInline, navigate, propsOnClose]);
 
-  const vm = useWebMediaPlayer({ ...props, onClose: handlePlayerClose });
+  const vm = useWebMediaPlayer({ ...playerProps, onClose: handlePlayerClose });
   useWatchTogetherSync(vm);
 
   // A co-watch guest doesn't drive its own video — its controls request the host (if permitted) and the video
@@ -81,7 +91,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = (props) => {
   return createPortal(
     <div
       ref={vm.overlayRef}
-      className={`web-player-overlay ${!vm.controlsVisible ? "controls-hidden" : ""} ${chatOpen ? "web-player-overlay--chat-open" : ""}`}
+      className={`web-player-overlay ${isInline ? "web-player-overlay--inline" : ""} ${!vm.controlsVisible ? "controls-hidden" : ""} ${chatOpen && !isInline ? "web-player-overlay--chat-open" : ""}`}
       onMouseMove={vm.handleUserActivity}
       onClick={(e) => {
         vm.handleUserActivity();
@@ -185,6 +195,9 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = (props) => {
           vm.menus.setShowPlaylistMenu(false);
         }}
         onSelectPlaylistItem={onSelectPlaylistItem}
+        showPlaylistSelector={!isInline || vm.isFullscreen}
+        coWatchInRail={isInline}
+        hideTopBar={isInline && coWatchSessionActive}
         showPlaylistMenu={vm.menus.showPlaylistMenu}
         onTogglePlaylistMenu={() => {
           vm.menus.setShowPlaylistMenu(!vm.menus.showPlaylistMenu);
@@ -211,8 +224,8 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = (props) => {
         onClose={vm.handleClose}
         isNetworkOffline={vm.isNetworkOffline}
       />
-      <PlayerCoWatchChat />
+      {!isInline && <PlayerCoWatchChat />}
     </div>,
-    document.body,
+    portalTarget ?? document.body,
   );
 };

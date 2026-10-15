@@ -3,11 +3,11 @@ import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   CheckCircle2,
-  ListVideo,
   MoreHorizontal,
   Pencil,
 } from "lucide-react";
 import { Button, IconButton, PopoverItem } from "../../ui";
+import type { EpisodeSelectorPresentation } from "./types";
 
 interface EpisodeSelectorHeaderProps {
   isEditing: boolean;
@@ -20,7 +20,10 @@ interface EpisodeSelectorHeaderProps {
   totalCount: number;
   percentage: number;
   onStartEditing?: () => void;
-  onOpenAsPlaylist?: () => void;
+  navigationAction?: "back" | "close";
+  presentation?: EpisodeSelectorPresentation;
+  repairMode?: boolean;
+  onStopRepairing?: () => void;
 }
 
 export const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React.memo(({
@@ -34,10 +37,21 @@ export const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React
   totalCount,
   percentage,
   onStartEditing,
-  onOpenAsPlaylist,
+  navigationAction = "close",
+  presentation = "selector",
+  repairMode = false,
+  onStopRepairing,
 }) => {
   const { t } = useTranslation("media");
-  const handleBackOrClose = isEditing ? onBackToFiles : onClose;
+  const isPlaylistPresentation = presentation === "playlist";
+  const handleBackOrClose = isEditing
+    ? onBackToFiles
+    : repairMode && onStopRepairing
+      ? onStopRepairing
+      : onClose;
+  const navigationLabel = isEditing || repairMode || navigationAction === "back"
+    ? t("selector.back")
+    : t("selector.close");
   const [showPopover, setShowPopover] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -51,29 +65,36 @@ export const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const hasOptions =
-    !isEditing && mediaType === "tv" && totalCount > 0 && (onOpenAsPlaylist || onStartEditing);
+  const hasOptions = !isEditing && !repairMode && mediaType === "tv" && totalCount > 0 && Boolean(onStartEditing);
+  const headerTitle = isPlaylistPresentation
+    ? repairMode || isEditing
+      ? t("selector.editMapping")
+      : t("streams.episodeSelection")
+    : title;
+  const progressLabel = t("selector.progress", {
+    completed: completedCount,
+    total: totalCount,
+    percentage: Math.round(percentage),
+  });
 
   return (
     <div className="modal-header">
       <div className="modal-title-row">
-        <IconButton className="modal-close-btn" onClick={handleBackOrClose} aria-label={isEditing ? t("selector.back") : t("selector.close")}>
+        <IconButton className="modal-close-btn" onClick={handleBackOrClose} aria-label={navigationLabel}>
           <ArrowLeft size="1.25rem" />
         </IconButton>
         <div className="modal-title-text-group">
-          <h3 className="modal-title modal-title-custom-size" title={title}>{title}</h3>
-          {subtitle && <span className="modal-subtitle modal-subtitle-text" title={subtitle}>{subtitle}</span>}
+          <h3 className="modal-title modal-title-custom-size" title={isPlaylistPresentation ? headerTitle : title}>
+            {headerTitle}
+          </h3>
+          {!isPlaylistPresentation && subtitle && (
+            <span className="modal-subtitle modal-subtitle-text" title={subtitle}>{subtitle}</span>
+          )}
 
           {mediaType === "tv" && totalCount > 0 && (
-            <div className="tv-progress-container">
+            <div className="tv-progress-container" title={progressLabel}>
               <CheckCircle2 size="0.75rem" fill="var(--accent)" stroke="var(--bg-surface)" />
-              <span>
-                {t("selector.progress", {
-                  completed: completedCount,
-                  total: totalCount,
-                  percentage: Math.round(percentage),
-                })}
-              </span>
+              <span>{isPlaylistPresentation ? `${completedCount} / ${totalCount}` : progressLabel}</span>
             </div>
           )}
 
@@ -89,30 +110,28 @@ export const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React
       <div className="modal-header-actions-row">
         {hasOptions && (
           <div className="popover-wrapper popover-wrapper-relative" ref={popoverRef}>
-            <Button
-              variant="ghost"
-              className="edit-btn popover-trigger-btn"
-              onClick={() => setShowPopover(!showPopover)}
-            >
-              <MoreHorizontal size="1rem" />
-              <span>{t("selector.more")}</span>
-            </Button>
+            {isPlaylistPresentation ? (
+              <IconButton
+                className="edit-btn popover-trigger-btn episode-selector-more-btn"
+                onClick={() => setShowPopover(!showPopover)}
+                aria-label={t("selector.more")}
+                title={t("selector.more")}
+              >
+                <MoreHorizontal size="1rem" />
+              </IconButton>
+            ) : (
+              <Button
+                variant="ghost"
+                className="edit-btn popover-trigger-btn"
+                onClick={() => setShowPopover(!showPopover)}
+              >
+                <MoreHorizontal size="1rem" />
+                <span>{t("selector.more")}</span>
+              </Button>
+            )}
 
             {showPopover && (
               <div className="popover-dropdown-menu popover-dropdown-menu-positioned">
-                {onOpenAsPlaylist && (
-                  <PopoverItem
-                    className="popover-menu-item"
-                    onClick={() => {
-                      onOpenAsPlaylist();
-                      setShowPopover(false);
-                    }}
-                  >
-                    <ListVideo size="1rem" className="popover-menu-item-icon-accent" />
-                    <span>{t("selector.openAsPlaylist")}</span>
-                  </PopoverItem>
-                )}
-
                 {onStartEditing && (
                   <PopoverItem
                     className="popover-menu-item"
@@ -131,7 +150,7 @@ export const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React
         )}
 
         <Button variant="ghost" className="close-btn" onClick={handleBackOrClose}>
-          {isEditing ? t("selector.back") : t("selector.close")}
+          {navigationLabel}
         </Button>
       </div>
     </div>

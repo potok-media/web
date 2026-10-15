@@ -69,6 +69,63 @@ describe("ARM episode override picker states", () => {
     expect(html).toContain("selector.season:2");
     expect(html).not.toContain("selector.season:7");
   });
+
+  it("renders the inline playlist as one clean clickable row", () => {
+    const html = renderToStaticMarkup(createElement(EpisodeSelectorRow, {
+      mediaType: "tv",
+      presentation: "playlist",
+      onPlay: vi.fn(),
+      onEditFile: vi.fn(),
+      onResetFileOverride: vi.fn(),
+      fileOverrideEnabled: true,
+      fileOverride: { season: 1, episode: 2, mode: "pin" },
+      episodeItem: {
+        id: "file",
+        title: "Episode title",
+        fileName: "release.file.02.mkv",
+        sizeLabel: "350 MB",
+        url: "https://example.test/episode.m3u8",
+        audios: [],
+      },
+    }));
+
+    expect(html).toContain("file-card-row--playlist");
+    expect(html).not.toContain("file-card-play-btn");
+    expect(html).not.toContain("file-card-filename");
+    expect(html).not.toContain("file-card-size");
+    expect(html).not.toContain("file-card-ext-badge");
+    expect(html).not.toContain("file-card-override-actions");
+  });
+
+  it("reveals technical mapping details only in inline repair mode", () => {
+    const html = renderToStaticMarkup(createElement(EpisodeSelectorRow, {
+      mediaType: "tv",
+      presentation: "playlist",
+      repairMode: true,
+      isActive: true,
+      onPlay: vi.fn(),
+      onEditFile: vi.fn(),
+      onResetFileOverride: vi.fn(),
+      fileOverrideEnabled: true,
+      fileOverride: { season: 1, episode: 2, mode: "pin" },
+      episodeItem: {
+        id: "file",
+        title: "Episode title",
+        fileName: "release.file.02.mkv",
+        sizeLabel: "350 MB",
+        url: "https://example.test/episode.m3u8",
+        audios: [],
+      },
+    }));
+
+    expect(html).toContain("file-card-row--repair");
+    expect(html).toContain('aria-current="true"');
+    expect(html).toContain("file-card-filename");
+    expect(html).toContain("file-card-size");
+    expect(html).toContain("file-card-ext-badge");
+    expect(html).toContain("file-card-override-actions");
+    expect(html).not.toContain("file-card-play-btn");
+  });
   it("shows canonical loading without exposing the legacy list", () => {
     const html = renderToStaticMarkup(createElement(EpisodeOverridePicker, {
       ...base, canonicalBindingEnabled: true, armLayoutLoading: true,

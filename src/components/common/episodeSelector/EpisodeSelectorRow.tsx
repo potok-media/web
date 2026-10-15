@@ -4,7 +4,12 @@ import { Play, Check, CheckCircle2, Anchor, Pin, RotateCcw } from "lucide-react"
 import { IconButton } from "../../ui";
 import { formatLocalizedDate } from "../../../utils/formatDate";
 import { getActiveLanguage, toIntlLocale } from "../../../utils/language";
-import type { FileOverrideEntry, FileOverrideMode, GenericEpisodeItem } from "./types";
+import type {
+  EpisodeSelectorPresentation,
+  FileOverrideEntry,
+  FileOverrideMode,
+  GenericEpisodeItem,
+} from "./types";
 import { getStreamType, isArmEpisode } from "./utils";
 import { EpisodeAnnotationBadge } from "../EpisodeAnnotationBadge";
 import { groupKindLabel } from "../../seasonGroupLabels";
@@ -21,6 +26,9 @@ interface EpisodeSelectorRowProps {
   fileOverride?: FileOverrideEntry;
   onEditFile?: (fileId: string, mode: FileOverrideMode) => void;
   onResetFileOverride?: (fileId: string) => void;
+  presentation?: EpisodeSelectorPresentation;
+  repairMode?: boolean;
+  isActive?: boolean;
 }
 
 export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
@@ -33,6 +41,9 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
   fileOverride,
   onEditFile,
   onResetFileOverride,
+  presentation = "selector",
+  repairMode = false,
+  isActive = false,
 }) => {
   const { t } = useTranslation("media");
 
@@ -84,17 +95,29 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
 
   const sizeLabel = episodeItem.sizeLabel || getAudiosLabel(episodeItem.audios);
   const streamType = getStreamType(episodeItem);
+  const isInlinePlaylist = presentation === "playlist";
+  const showTechnicalDetails = !isInlinePlaylist || repairMode;
+  const canActivate = !repairMode || Boolean(onEditFile);
+
+  const handlePrimaryAction = () => {
+    if (repairMode) {
+      onEditFile?.(episodeItem.id, "anchor");
+      return;
+    }
+    onPlay(episodeItem);
+  };
 
   return (
     <div
-      className="file-card-row"
-      onClick={() => onPlay(episodeItem)}
-      tabIndex={0}
-      role="button"
+      className={`file-card-row ${isInlinePlaylist ? "file-card-row--playlist" : ""} ${repairMode ? "file-card-row--repair" : ""} ${isActive ? "is-active" : ""}`}
+      onClick={canActivate ? handlePrimaryAction : undefined}
+      tabIndex={canActivate ? 0 : undefined}
+      role={canActivate ? "button" : undefined}
+      aria-current={isActive ? "true" : undefined}
       onKeyDown={(e) => {
-        if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
+        if (canActivate && e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
           e.preventDefault();
-          onPlay(episodeItem);
+          handlePrimaryAction();
         }
       }}
     >
@@ -120,7 +143,7 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
         {displaySubtitle && displaySubtitle !== displayTitle && (
           <span className="file-card-subtitle">{displaySubtitle}</span>
         )}
-        {episodeItem.fileName && episodeItem.fileName !== displayTitle && (
+        {showTechnicalDetails && episodeItem.fileName && episodeItem.fileName !== displayTitle && (
           <span className="file-card-filename" title={episodeItem.fileName}>
             {episodeItem.fileName}
           </span>
@@ -129,17 +152,17 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
 
       <div className="file-card-details-panel">
         <EpisodeAnnotationBadge filler={episodeItem.filler} />
-        {episodeItem.isWatched && (
+        {showTechnicalDetails && episodeItem.isWatched && (
           <div className="file-card-watched-badge">
             <Check size="0.75rem" strokeWidth={3} />
             <span>{t("selector.watched")}</span>
           </div>
         )}
-        {sizeLabel && <span className="file-card-size">{sizeLabel}</span>}
-        {streamType && (
+        {showTechnicalDetails && sizeLabel && <span className="file-card-size">{sizeLabel}</span>}
+        {showTechnicalDetails && streamType && (
           <span className="file-card-ext-badge">{streamType.toLowerCase()}</span>
         )}
-        {fileOverrideEnabled && fileOverride && (
+        {showTechnicalDetails && fileOverrideEnabled && fileOverride && (
           <span
             className={`file-card-override-badge file-card-override-badge--${fileOverride.mode === "pin" ? "pin" : "anchor"}`}
             title={fileOverride.mode === "pin" ? t("fileOverride.pinnedTo") : t("fileOverride.anchoredFrom")}
@@ -155,7 +178,7 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
         )}
       </div>
 
-      {fileOverrideEnabled && (onEditFile || onResetFileOverride) && (
+      {showTechnicalDetails && fileOverrideEnabled && (onEditFile || onResetFileOverride) && (
         <div className="file-card-override-actions" onClick={stop}>
           {onEditFile && (
             <>
@@ -190,16 +213,18 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
         </div>
       )}
 
-      <IconButton
-        className="file-card-play-btn"
-        onClick={(e) => {
-          e.stopPropagation();
-          onPlay(episodeItem);
-        }}
-        aria-label={t("selector.play")}
-      >
-        <Play size="1rem" fill="currentColor" className="file-card-play-icon-fix" />
-      </IconButton>
+      {!isInlinePlaylist && (
+        <IconButton
+          className="file-card-play-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            onPlay(episodeItem);
+          }}
+          aria-label={t("selector.play")}
+        >
+          <Play size="1rem" fill="currentColor" className="file-card-play-icon-fix" />
+        </IconButton>
+      )}
     </div>
   );
 });

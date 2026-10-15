@@ -53,6 +53,8 @@ interface PlayerUtilityControlsProps {
   playlistItems: TrackItem[];
   playlistIndex?: number;
   onSelectPlaylistItem?: (index: number) => void;
+  showPlaylistSelector?: boolean;
+  coWatchInRail?: boolean;
   playlistDisabled?: boolean;
   showPlaylistMenu?: boolean;
   onTogglePlaylistMenu?: () => void;
@@ -86,6 +88,8 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
   playlistItems,
   playlistIndex,
   onSelectPlaylistItem,
+  showPlaylistSelector = true,
+  coWatchInRail = false,
   playlistDisabled,
   showPlaylistMenu,
   onTogglePlaylistMenu,
@@ -96,7 +100,13 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
   const [skipFillers, setSkipFillers] = useSkipFillers();
   const navigate = useNavigate();
   const { stopVideo } = usePlayback();
-  const { createRoom, role: coWatchRole, chatOpen, setChatOpen } = useWatchTogether();
+  const {
+    createRoom,
+    role: coWatchRole,
+    sessionActive: coWatchSessionActive,
+    chatOpen,
+    setChatOpen,
+  } = useWatchTogether();
 
   const handleStartWatchTogether = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -104,6 +114,10 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
     // pass playback as a prop and never populate the global context, so activePlayback would be null there.
     if (!playback) return;
     createRoom(playback);
+    if (coWatchInRail) {
+      if (isFullscreen) onToggleFullscreen();
+      return;
+    }
     stopVideo(); // closes the global player (no-op for a plugin player, which unmounts on navigation)
     navigate("/watch-together");
   };
@@ -136,7 +150,7 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
         </IconButton>
       )}
 
-      {coWatchRole && (
+      {coWatchRole && coWatchSessionActive && (
         <IconButton
           className={cx("control-icon-btn", chatOpen && "active-accent")}
           onMouseDown={(e) => e.stopPropagation()}
@@ -176,7 +190,7 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
         disabled={!anySubReady}
       />
 
-      {playlistItems.length > 0 && (
+      {showPlaylistSelector && playlistItems.length > 0 && (
         <TrackSelectorDropdown
           icon={<ListVideo size="1.125rem" />}
           title={t("controls.playlistEpisodes")}

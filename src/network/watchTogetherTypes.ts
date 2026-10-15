@@ -55,6 +55,7 @@ export interface ChatMessage {
   name: string;
   text: string;
   mine: boolean;
+  createdAt: number;
 }
 
 // Guest → host: a control request (reverse control). The host validates against the guest permissions and, if

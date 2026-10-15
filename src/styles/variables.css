@@ -86,6 +86,7 @@
   --glass-blur: blur(20px);
   --blur-glass: blur(20px);
   --glass-bg: RGBA(15, 15, 20, 0.65);
+  --border-color: RGBA(255, 255, 255, 0.1);
   --glass-border: 1px solid RGBA(255, 255, 255, 0.08);
   --shadow-l: 0 12px 40px RGBA(0, 0, 0, 0.5);
   --shadow-m: 0 8px 24px RGBA(0, 0, 0, 0.35);
@@ -117,6 +118,7 @@ html[data-theme="nordicFrost"] {
   --accent-semi: rgba(173, 216, 230, 0.4);
   --text-accent: rgb(20, 20, 22);
   --glass-bg: rgba(24, 30, 40, 0.8);
+  --border-color: rgba(173, 216, 230, 0.16);
   --glass-border: 1px solid rgba(173, 216, 230, 0.15);
 }
 
@@ -133,6 +135,7 @@ html[data-theme="sageMuted"] {
   --accent-semi: rgba(180, 200, 180, 0.4);
   --text-accent: rgb(20, 20, 22);
   --glass-bg: rgba(23, 27, 24, 0.8);
+  --border-color: rgba(180, 200, 180, 0.16);
   --glass-border: 1px solid rgba(180, 200, 180, 0.15);
 }
 
@@ -149,6 +152,7 @@ html[data-theme="graphite"] {
   --accent-semi: rgba(255, 255, 255, 0.4);
   --text-accent: rgb(20, 20, 22);
   --glass-bg: rgba(24, 24, 26, 0.8);
+  --border-color: rgba(255, 255, 255, 0.12);
   --glass-border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -165,6 +169,7 @@ html[data-theme="amberGold"] {
   --accent-semi: rgba(229, 160, 13, 0.4);
   --text-accent: rgb(255, 255, 255);
   --glass-bg: rgba(28, 22, 16, 0.8);
+  --border-color: rgba(229, 160, 13, 0.16);
   --glass-border: 1px solid rgba(229, 160, 13, 0.15);
 }
 
@@ -181,6 +186,7 @@ html[data-theme="system"] {
   --accent-semi: rgba(0, 122, 255, 0.4);
   --text-accent: rgb(255, 255, 255);
   --glass-bg: rgba(22, 22, 26, 0.8);
+  --border-color: rgba(0, 122, 255, 0.17);
   --glass-border: 1px solid rgba(0, 122, 255, 0.15);
 }
 

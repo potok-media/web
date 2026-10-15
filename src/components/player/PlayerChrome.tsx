@@ -50,6 +50,9 @@ interface PlayerChromeProps {
   showQualityMenu: boolean;
   onToggleQualityMenu: () => void;
   onSelectPlaylistItem: (index: number) => void;
+  showPlaylistSelector?: boolean;
+  coWatchInRail?: boolean;
+  hideTopBar?: boolean;
   showPlaylistMenu: boolean;
   onTogglePlaylistMenu: () => void;
   onUserActivity?: () => void;
@@ -98,19 +101,24 @@ export const PlayerChrome: React.FC<PlayerChromeProps> = ({
   showQualityMenu,
   onToggleQualityMenu,
   onSelectPlaylistItem,
+  showPlaylistSelector = true,
+  coWatchInRail = false,
+  hideTopBar = false,
   showPlaylistMenu,
   onTogglePlaylistMenu,
   onUserActivity,
 }) => (
   <>
-    <PlayerTopBar
-      title={playback.title}
-      mediaType={playback.mediaType}
-      season={playback.season}
-      episode={playback.episode}
-      onClose={onClose}
-      visible={controlsVisible}
-    />
+    {!hideTopBar && (
+      <PlayerTopBar
+        title={playback.title}
+        mediaType={playback.mediaType}
+        season={playback.season}
+        episode={playback.episode}
+        onClose={onClose}
+        visible={controlsVisible}
+      />
+    )}
     <SkipIntroButton
       videoRef={videoRef}
       seekOffset={seekOffset}
@@ -180,6 +188,8 @@ export const PlayerChrome: React.FC<PlayerChromeProps> = ({
       playlist={playback.playlist}
       playlistIndex={playback.playlistIndex}
       onSelectPlaylistItem={onSelectPlaylistItem}
+      showPlaylistSelector={showPlaylistSelector}
+      coWatchInRail={coWatchInRail}
       showPlaylistMenu={showPlaylistMenu}
       onTogglePlaylistMenu={onTogglePlaylistMenu}
       seekOffset={seekOffset}

@@ -56,6 +56,8 @@ interface PlayerControlsProps {
   playlist?: PlaylistItem[];
   playlistIndex?: number;
   onSelectPlaylistItem?: (index: number) => void;
+  showPlaylistSelector?: boolean;
+  coWatchInRail?: boolean;
   showPlaylistMenu?: boolean;
   onTogglePlaylistMenu?: () => void;
   seekOffset?: number;
@@ -105,6 +107,8 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
   playlist,
   playlistIndex,
   onSelectPlaylistItem,
+  showPlaylistSelector = true,
+  coWatchInRail = false,
   showPlaylistMenu,
   onTogglePlaylistMenu,
   seekOffset = 0,
@@ -220,6 +224,8 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             playlistItems={playlistItems}
             playlistIndex={playlistIndex}
             onSelectPlaylistItem={onSelectPlaylistItem}
+            showPlaylistSelector={showPlaylistSelector}
+            coWatchInRail={coWatchInRail}
             playlistDisabled={episodeDisabled}
             showPlaylistMenu={showPlaylistMenu}
             onTogglePlaylistMenu={onTogglePlaylistMenu}
