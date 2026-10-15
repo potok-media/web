@@ -277,6 +277,8 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
       }, {
         resolveWork: (reference, options) => ApiClient.resolveArmWork(reference, options),
         getEpisodeLayout: (workId, options) => ApiClient.fetchArmEpisodeLayout(workId, options),
+        getEntries: (workId, options) => ApiClient.getArmEntries(workId, options),
+        getEpisodes: (workId, options) => ApiClient.getArmEpisodes(workId, options),
       }, i18n.language, controller.signal)
         .then((layout) => { if (!controller.signal.aborted) setArmLayout(layout); })
         .catch(() => { if (!controller.signal.aborted) setArmLayoutError(true); })

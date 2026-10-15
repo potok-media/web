@@ -13,6 +13,7 @@ import { MediaCastSection } from "../components/MediaCastSection";
 import { EpisodeMultiPickerModal } from "../components/EpisodeMultiPickerModal";
 import { MediaDetailsErrorView } from "../components/mediaDetails/MediaDetailsErrorView";
 import { MediaDetailsHeroSection } from "../components/mediaDetails/MediaDetailsHeroSection";
+import { MediaDetailsInfoSection, MediaRelatedSection } from "../components/mediaDetails/MediaDetailsRail";
 import { getArmEntriesCached, getArmEpisodesCached, getArmResolveCached } from "../features/arm/armLayoutCache";
 import { reconstructLayout } from "../features/arm/layoutReconstruction";
 import { resolveLegacyRedirect } from "../features/arm/armGroupSelection";
@@ -84,7 +85,7 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
             ApiClient.getArmEpisodes(workId, { locale: i18n.language, signal: controller.signal, ifNoneMatch }), false),
         ]);
         if (controller.signal.aborted) return;
-        const layout = reconstructLayout(entriesRes.entries, episodesRes.episodes, workId);
+        const layout = reconstructLayout(entriesRes.entries, episodesRes.episodes, workId, i18n.language);
         const target = resolveLegacyRedirect(layout, mediaId);
         if (!target) return;
         const next = new URLSearchParams(searchParams);
@@ -160,6 +161,15 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
   if (error || !media) return <MediaDetailsErrorView error={error || t("details.loadError")} onRetry={refetch} />;
 
   const cast = media.cast || [];
+  const hasEpisodeLibrary = media.mediaType === "tv" && ((media.numberOfSeasons ?? 0) > 0 || Boolean(media.arm?.workId));
+  const detailsSlotProps = {
+    mediaId,
+    tmdbId,
+    mediaType,
+    title: media.title,
+    originalTitle: media.originalTitle,
+    media,
+  };
 
   return (
     <div className={`details-layout ${layoutModifier}`}>
@@ -179,56 +189,56 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
         toggleFavorite={toggleFavorite}
       />
 
-      <div className="details-bottom-sections">
-        {media.mediaType === "tv" && ((media.numberOfSeasons ?? 0) > 0 || media.arm?.workId) && (
-          <div className="details-fullwidth-section">
-            <SeasonEpisodesSection
+      <div className={`details-content-grid ${hasEpisodeLibrary ? "details-content-grid--series" : "details-content-grid--movie"}`}>
+        <main className="details-primary-column">
+          {hasEpisodeLibrary && (
+            <div className="details-panel details-episodes-panel">
+              <SeasonEpisodesSection
+                mediaId={media.id}
+                mediaTitle={media.title}
+                numberOfSeasons={media.numberOfSeasons ?? 0}
+                arm={media.arm}
+                armEnabled
+                initialGroupId={initialGroupId}
+                selectedEpisode={selectedEpisode}
+                onEpisodeClick={(ep, seasonNum, groupTitle) => {
+                  setSelectedEpisode({ episode: ep, seasonNumber: seasonNum, groupTitle });
+                }}
+                watchedEpisodes={media.progress?.watchedEpisodes || []}
+                watchedEpisodeIds={media.progress?.watchedEpisodeIds || []}
+                toggleEpisodeWatched={toggleEpisodeWatched}
+                toggleSeasonWatched={toggleSeasonWatched}
+                onOpenMultiPicker={() => setIsMultiPickerOpen(true)}
+              />
+            </div>
+          )}
+
+          {!hasEpisodeLibrary && cast.length > 0 && (
+            <MediaCastSection cast={cast} variant="wide" />
+          )}
+
+          <Slot name="details-bottom" props={detailsSlotProps} className="details-extension-slot" />
+
+          {isMultiPickerOpen && hasEpisodeLibrary && (
+            <EpisodeMultiPickerModal
+              isOpen={isMultiPickerOpen}
+              onClose={() => setIsMultiPickerOpen(false)}
               mediaId={media.id}
               mediaTitle={media.title}
               numberOfSeasons={media.numberOfSeasons ?? 0}
-              arm={media.arm}
-              armEnabled={media.mediaType === "tv"}
-              initialGroupId={initialGroupId}
-              selectedEpisode={selectedEpisode}
-              onEpisodeClick={(ep, seasonNum, groupTitle) => {
-                setSelectedEpisode({ episode: ep, seasonNumber: seasonNum, groupTitle });
-              }}
-              watchedEpisodes={media.progress?.watchedEpisodes || []}
-              watchedEpisodeIds={media.progress?.watchedEpisodeIds || []}
-              toggleEpisodeWatched={toggleEpisodeWatched}
-              toggleSeasonWatched={toggleSeasonWatched}
-              onOpenMultiPicker={() => setIsMultiPickerOpen(true)}
+              initialSelected={media.progress?.watchedEpisodes || []}
+              onSave={saveEpisodeSelection}
             />
+          )}
+        </main>
 
-            {isMultiPickerOpen && (
-              <EpisodeMultiPickerModal
-                isOpen={isMultiPickerOpen}
-                onClose={() => setIsMultiPickerOpen(false)}
-                mediaId={media.id}
-                mediaTitle={media.title}
-                numberOfSeasons={media.numberOfSeasons!}
-                initialSelected={media.progress?.watchedEpisodes || []}
-                onSave={saveEpisodeSelection}
-              />
-            )}
-          </div>
-        )}
-
-        <Slot
-          name="details-bottom"
-          props={{
-            mediaId,
-            tmdbId,
-            mediaType,
-            title: media.title,
-            originalTitle: media.originalTitle,
-            media,
-          }}
-        />
-
-        {cast.length > 0 && (
-          <MediaCastSection cast={cast} />
-        )}
+        <aside className="details-side-column">
+          <MediaDetailsInfoSection media={media} />
+          {hasEpisodeLibrary && cast.length > 0 && (
+            <MediaCastSection cast={cast} variant="compact" />
+          )}
+          <MediaRelatedSection />
+        </aside>
       </div>
     </div>
   );

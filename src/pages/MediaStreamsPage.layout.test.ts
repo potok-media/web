@@ -182,6 +182,20 @@ describe("MediaStreamsPage layout", () => {
     expect(styles).toContain("padding-block: var(--space-m) var(--space-xxl);");
   });
 
+  it("shows the selected torrent title at the bottom center of the player", () => {
+    const page = readFileSync(new URL("./MediaStreamsPage.tsx", import.meta.url), "utf8");
+    const styles = readFileSync(new URL("../styles/media.css", import.meta.url), "utf8");
+
+    expect(page).toContain('className="streams-media-stage__release-title"');
+    expect(page).toContain('stageMode === "preview" && clickedStream?.title');
+    expect(page).toContain("{clickedStream.title}");
+    expect(styles).toContain(".streams-media-stage__release-title");
+    expect(styles).toContain("left: 50%;");
+    expect(styles).toContain("transform: translateX(-50%);");
+    expect(styles).toContain("text-align: center;");
+    expect(styles).toContain("color: var(--text-tertiary);");
+  });
+
   it("prepares the whole release as a playlist without a separate menu action", () => {
     const content = readFileSync(
       new URL("../components/common/EpisodeSelectorContent.tsx", import.meta.url),

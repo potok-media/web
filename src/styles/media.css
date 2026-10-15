@@ -837,9 +837,21 @@
 
 
 .details-layout {
+  --details-content-gutter: 1rem;
   position: relative;
+  box-sizing: border-box;
+  width: min(
+    calc(100% - var(--details-content-gutter) - var(--details-content-gutter)),
+    var(--wide-shell-max-width)
+  );
+  margin-inline: auto;
+  padding: 0 0 var(--space-xxl);
+}
+
+.details-layout > .immersive-hero-container {
   width: 100%;
-  padding: var(--space-l);
+  margin-inline: 0;
+  margin-top: 0;
 }
 
 .details-bottom-sections {
@@ -853,6 +865,152 @@
 
 .details-fullwidth-section {
   width: 100%;
+}
+
+.details-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(22rem, 22vw, 26rem);
+  gap: var(--space-l);
+  align-items: start;
+  margin-top: var(--space-xl);
+  position: relative;
+  z-index: 2;
+}
+
+.details-primary-column,
+.details-side-column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--space-l);
+}
+
+.details-panel,
+.details-side-card {
+  box-sizing: border-box;
+  border: var(--glass-border);
+  background: var(--bg-surface);
+  background: color-mix(in srgb, var(--bg-surface) 82%, transparent);
+  box-shadow: var(--shadow-s);
+  backdrop-filter: blur(1rem);
+  -webkit-backdrop-filter: blur(1rem);
+}
+
+.details-panel {
+  border-radius: var(--radius-l);
+  padding: var(--space-l);
+}
+
+.details-side-card {
+  border-radius: var(--radius-l);
+  padding: var(--space-m);
+}
+
+.details-side-card-title,
+.details-section-title {
+  margin: 0;
+  color: var(--text-primary);
+  font: var(--font-title3);
+}
+
+.details-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin: var(--space-m) 0 0;
+}
+
+.details-info-row {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 0.8fr) minmax(0, 1.2fr);
+  gap: var(--space-s);
+  align-items: baseline;
+  font: var(--font-metadata);
+}
+
+.details-info-row dt {
+  color: var(--text-tertiary);
+}
+
+.details-info-row dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.details-info-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: var(--space-m);
+}
+
+.details-info-genres span {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-full);
+  border: var(--glass-border);
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--text-secondary);
+  font: var(--font-caption);
+}
+
+.details-related-empty {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  margin-top: var(--space-m);
+  padding: var(--space-m);
+  border-radius: var(--radius-m);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text-tertiary);
+  font: var(--font-caption);
+}
+
+.details-extension-slot {
+  min-width: 0;
+}
+
+@media (min-width: 48rem) {
+  .details-layout {
+    --details-content-gutter: 1.5rem;
+  }
+}
+
+@media (min-width: 80rem) {
+  .details-layout {
+    --details-content-gutter: 2rem;
+  }
+}
+
+@media (max-width: 80rem) {
+  .details-content-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .details-side-column {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .details-side-column .cast-section {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 48rem) {
+  .details-content-grid {
+    margin-top: var(--space-m);
+  }
+
+  .details-panel,
+  .details-side-card {
+    padding: var(--space-m);
+  }
+
+  .details-side-column {
+    display: flex;
+  }
 }
 
 /* ==========================================================================
@@ -1230,25 +1388,32 @@
 }
 
 .cast-section {
-  margin-top: var(--space-xl);
-  margin-bottom: var(--space-m);
-}
-
-.cast-scroll-viewport {
-  flex: 1;
   min-width: 0;
 }
 
-.cast-scroll-container {
-  display: flex;
-  flex-direction: row;
+.cast-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(5.75rem, 1fr));
   gap: var(--space-m);
-  padding: var(--space-xs) 0;
+  margin-top: var(--space-m);
 }
 
-.cast-scroll-container .cast-member-card {
-  flex: 0 0 7.5rem;
-  width: 7.5rem;
+.cast-section--compact .cast-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-s);
+}
+
+.cast-section--compact .cast-photo-wrap {
+  width: 4rem;
+  height: 4rem;
+}
+
+.cast-section--compact .cast-name {
+  font-size: 0.78rem;
+}
+
+.cast-section--compact .cast-role {
+  font-size: 0.7rem;
 }
 
 .cast-member-card {
@@ -2317,6 +2482,26 @@
   aspect-ratio: 16 / 9;
   background: #000;
   box-shadow: var(--shadow-l);
+}
+
+.streams-media-stage__release-title {
+  position: absolute;
+  z-index: 1;
+  bottom: var(--space-s);
+  left: 50%;
+  width: min(56rem, calc(100% - var(--space-xl) - var(--space-xl)));
+  overflow: hidden;
+  display: -webkit-box;
+  color: var(--text-tertiary);
+  font: var(--font-caption);
+  line-height: 1.35;
+  text-align: center;
+  text-shadow: 0 0.0625rem 0.25rem #000, 0 0 1rem #000;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  transform: translateX(-50%);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .streams-player-preview {
@@ -4559,7 +4744,7 @@ button.popover-item.popover-menu-item:hover {
 }
 
 .season-episodes-section {
-  margin-top: 0.75rem;
+  min-width: 0;
 }
 
 .season-episodes-title {
@@ -4567,7 +4752,111 @@ button.popover-item.popover-menu-item:hover {
   color: var(--text-primary);
   font-size: 1.125rem;
   padding-left: 0;
-  margin: 0 0 var(--space-m) 0;
+  margin: 0;
+}
+
+.season-episodes-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-m);
+  margin-bottom: var(--space-m);
+}
+
+.episode-sort-wrapper {
+  position: relative;
+  z-index: 12;
+}
+
+.ui-btn.episode-sort-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.ui-btn.episode-sort-trigger:hover:not(:disabled),
+.ui-btn.episode-sort-trigger[aria-expanded="true"] {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.episode-sort-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  min-width: 14.5rem;
+  padding: 0.375rem;
+  border: var(--glass-border);
+  border-radius: var(--radius-m);
+  background: var(--bg-surface);
+  background: color-mix(in srgb, var(--bg-surface) 94%, transparent);
+  box-shadow: var(--shadow-m);
+  backdrop-filter: blur(1rem);
+  -webkit-backdrop-filter: blur(1rem);
+}
+
+.episode-sort-item-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.episodes-page-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.episodes-page-grid .episode-card {
+  flex: initial;
+  width: 100%;
+  min-width: 0;
+}
+
+.episode-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-xs);
+  margin-top: var(--space-l);
+}
+
+.episode-pagination-label {
+  margin-right: var(--space-xs);
+  color: var(--text-tertiary);
+  font: var(--font-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-icon-btn.episode-pagination-button {
+  width: 2.375rem;
+  height: 2.375rem;
+  border-radius: var(--radius-m);
+  border: var(--glass-border);
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--text-primary);
+}
+
+.ui-icon-btn.episode-pagination-button:hover:not(:disabled) {
+  border-color: var(--accent-semi);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.ui-icon-btn.episode-pagination-button:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .season-episodes-loading {
@@ -4580,6 +4869,28 @@ button.popover-item.popover-menu-item:hover {
   color: var(--text-secondary);
   font: var(--font-body);
   padding: var(--space-m) 0;
+}
+
+@media (max-width: 40rem) {
+  .season-episodes-heading-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .episode-sort-wrapper,
+  .ui-btn.episode-sort-trigger {
+    width: 100%;
+  }
+
+  .ui-btn.episode-sort-trigger {
+    justify-content: center;
+  }
+
+  .episode-sort-menu {
+    left: 0;
+    right: 0;
+    min-width: 0;
+  }
 }
 
 /* LoadingSpinner Styles */

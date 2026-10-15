@@ -30,6 +30,68 @@ describe("canonical correction layout", () => {
     expect(client.getEpisodeLayout).toHaveBeenCalledWith("work", { locale: "ru", signal });
   });
 
+  it("selects the correction group title for the active locale", async () => {
+    const client = {
+      ...makeClient(),
+      getEntries: vi.fn(async () => ({
+        status: 200,
+        etag: null,
+        graphVersion: "graph-1",
+        body: {
+          entries: [{
+            entryId: "entry-season-1",
+            kind: "season",
+            number: 1,
+            sortPosition: 1,
+            structureSource: "test",
+            externalIds: [],
+            localizedTitles: [
+              { language: "ja-Latn", value: "Kimetsu no Yaiba", source: "test" },
+              { language: "ru", value: "Клинок, рассекающий демонов", source: "test" },
+            ],
+            tmdb: null,
+            displayMetadata: null,
+          }],
+        },
+      })),
+      getEpisodes: vi.fn(async () => ({
+        status: 200,
+        etag: null,
+        graphVersion: "graph-1",
+        body: {
+          episodes: [{
+            episodeId: "episode-1",
+            groupId: "entry-season-1",
+            number: 1,
+            tmdb: null,
+            localizedTitles: [],
+            overview: null,
+            stillPath: null,
+            airDate: null,
+            filler: null,
+          }],
+        },
+      })),
+    };
+    client.getEpisodeLayout.mockResolvedValueOnce({
+      status: 200,
+      etag: null,
+      graphVersion: "graph-1",
+      body: { ...layout, groups: [{ ...layout.groups[0], title: "Kimetsu no Yaiba" }] },
+    });
+
+    const result = await loadArmBindingLayout(
+      { tmdbId: 123, type: "tv", workId: "work" },
+      client,
+      "ru-RU",
+      new AbortController().signal,
+    );
+
+    expect(result.groups[0]?.title).toBe("Клинок, рассекающий демонов");
+    expect(client.getEntries).toHaveBeenCalledWith("work", expect.objectContaining({ locale: "ru-RU" }));
+    expect(client.getEpisodes).toHaveBeenCalledWith("work", expect.objectContaining({ locale: "ru-RU" }));
+  });
+
   it("resolves a legacy entry point to a real work before loading its layout", async () => {
     const client = makeClient();
     const signal = new AbortController().signal;

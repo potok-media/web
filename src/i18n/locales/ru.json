@@ -534,6 +534,18 @@
         "historySaveError": "Ошибка при сохранении истории просмотра"
       }
     },
+    "detailsPage": {
+      "about": "О произведении",
+      "originalTitle": "Оригинальное название",
+      "type": "Тип",
+      "year": "Год выхода",
+      "seasons": "Сезоны",
+      "ageRating": "Возрастной рейтинг",
+      "ratings": "Рейтинги",
+      "genres": "Жанры",
+      "related": "Похожие произведения",
+      "relatedEmpty": "Рекомендации для этого произведения пока не найдены."
+    },
     "library": {
       "category": "Категория",
       "nothingFound": "Ничего не найдено",
@@ -639,7 +651,16 @@
       "unmarkWatched": "Убрать отметку просмотрено",
       "markWatched": "Отметить просмотренным",
       "loadError": "Не удалось загрузить эпизоды сезона",
-      "allEpisodes": "Все"
+      "allEpisodes": "Все",
+      "sort": {
+        "numberAsc": "По порядку",
+        "releaseDesc": "Сначала новые",
+        "unwatchedFirst": "Сначала непросмотренные"
+      },
+      "paginationLabel": "Страницы эпизодов",
+      "pageOf": "{{current}} из {{total}}",
+      "previousPage": "Предыдущая страница",
+      "nextPage": "Следующая страница"
     },
     "categories": {
       "upNext": {

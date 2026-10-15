@@ -268,6 +268,11 @@ export const MediaStreamsPage: React.FC = () => {
             >
               <div ref={registerPlayerPortalTarget} className="streams-media-stage__surface">
                 {stageMode === "preview" ? renderPlayerPreview() : null}
+              {stageMode === "preview" && clickedStream?.title ? (
+                  <div className="streams-media-stage__release-title" title={clickedStream.title}>
+                    {clickedStream.title}
+                  </div>
+                ) : null}
               </div>
             </div>
             {renderContent()}

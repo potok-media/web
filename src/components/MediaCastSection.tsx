@@ -1,7 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { ScrollView } from "./common/ScrollView";
 
 interface CastMember {
   id?: number;
@@ -17,9 +16,10 @@ interface CastMember {
 
 interface MediaCastSectionProps {
   cast: CastMember[];
+  variant?: "wide" | "compact";
 }
 
-export const MediaCastSection: React.FC<MediaCastSectionProps> = React.memo(({ cast }) => {
+export const MediaCastSection: React.FC<MediaCastSectionProps> = React.memo(({ cast, variant = "wide" }) => {
   const { t } = useTranslation("media");
 
   if (!cast || cast.length === 0) return null;
@@ -51,18 +51,14 @@ export const MediaCastSection: React.FC<MediaCastSectionProps> = React.memo(({ c
   };
 
   return (
-    <div className="details-fullwidth-section cast-section">
+    <section className={`cast-section cast-section--${variant} ${variant === "compact" ? "details-side-card" : "details-panel"}`}>
       <h2 className="carousel-title details-section-title">{t("cast.title")}</h2>
-      <ScrollView
-        orientation="horizontal"
-        className="cast-scroll-viewport"
-        trackClassName="cast-scroll-container"
-      >
+      <div className="cast-grid">
         {cast.slice(0, 10).map((c, i) => (
           <React.Fragment key={i}>{renderCard(c)}</React.Fragment>
         ))}
-      </ScrollView>
-    </div>
+      </div>
+    </section>
   );
 });
 

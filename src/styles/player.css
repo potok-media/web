@@ -285,6 +285,7 @@
 /* Floating Bottom Controller Pill */
 .player-controller-container {
   position: absolute;
+  z-index: 2;
   bottom: 0;
   left: 0;
   right: 0;

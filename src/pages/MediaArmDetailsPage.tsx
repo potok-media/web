@@ -42,7 +42,7 @@ export const MediaArmDetailsPage: React.FC = () => {
             ApiClient.getArmEpisodes(potokId, { locale: i18n.language, groupId: entryId ?? undefined, signal: controller.signal, ifNoneMatch }), reloadKey > 0),
         ]);
         if (controller.signal.aborted) return;
-        const layout = reconstructLayout(entriesRes.entries, episodesRes.episodes, potokId);
+        const layout = reconstructLayout(entriesRes.entries, episodesRes.episodes, potokId, i18n.language);
         const target = resolveCanonicalTarget(layout, entryId);
         const groupSummary = summarizeArmGroups(layout.groups);
         setState(target ? { status: "ready", target, groupSummary } : { status: "missing" });

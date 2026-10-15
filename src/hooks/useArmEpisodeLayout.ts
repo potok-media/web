@@ -122,7 +122,7 @@ export function useArmEpisodeLayout({
         ]);
         if (signal.aborted) return;
 
-        const layout = reconstructLayout(entriesRes.entries, episodesRes.episodes, workId);
+        const layout = reconstructLayout(entriesRes.entries, episodesRes.episodes, workId, locale);
 
         // Structure first (never blocks the UI), then the TMDB display overlay by the bridge
         // coordinates (kept for backwards compatibility — with the new endpoint this is a no-op

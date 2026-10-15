@@ -6,6 +6,31 @@ import type {
   ArmLayoutGroup,
 } from "../../network/ArmTypes";
 
+function normalizeLocale(locale: string): string {
+  return locale.trim().replaceAll("_", "-").toLowerCase();
+}
+
+function selectLocalizedEntryTitle(
+  titles: ArmEntryDetail["localizedTitles"],
+  locale: string,
+): string | null {
+  const requestedLocale = normalizeLocale(locale);
+  if (!requestedLocale) return titles[0]?.value ?? null;
+
+  const requestedLanguage = requestedLocale.split("-")[0];
+  const exactMatch = titles.find(
+    (title) => normalizeLocale(title.language) === requestedLocale,
+  );
+  const baseLanguageMatch = titles.find(
+    (title) => normalizeLocale(title.language) === requestedLanguage,
+  );
+  const compatibleLanguageMatch = titles.find(
+    (title) => normalizeLocale(title.language).split("-")[0] === requestedLanguage,
+  );
+
+  return (exactMatch ?? baseLanguageMatch ?? compatibleLanguageMatch ?? titles[0])?.value ?? null;
+}
+
 /**
  * Reconstructs the legacy `ArmEpisodeLayoutResponse` shape from the new
  * flat `entries` + `episodes` responses.
@@ -19,6 +44,7 @@ export function reconstructLayout(
   entries: ArmEntryDetail[],
   episodes: ArmEpisodeDetail[],
   workId: string,
+  locale: string,
 ): ArmEpisodeLayoutResponse {
   // Build episode map: groupId -> episode list sorted by position
   const episodeMap = new Map<string, ArmLayoutEpisode[]>();
@@ -40,7 +66,7 @@ export function reconstructLayout(
         malId: null,
         tmdbShow: entry.tmdb?.showId ?? null,
         tmdbSeason: entry.tmdb?.season ?? null,
-        title: entry.localizedTitles[0]?.value ?? null,
+        title: selectLocalizedEntryTitle(entry.localizedTitles, locale),
         episodes: epList,
       };
     })

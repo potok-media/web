@@ -65,7 +65,7 @@ describe("reconstructLayout", () => {
       },
     ];
 
-    const layout = reconstructLayout(entries, episodes, "work-1");
+    const layout = reconstructLayout(entries, episodes, "work-1", "en");
 
     expect(layout.work.id).toBe("work-1");
     expect(layout.groups.length).toBe(2);
@@ -85,6 +85,30 @@ describe("reconstructLayout", () => {
     expect(layout.groups[1].kind).toBe("specials");
     expect(layout.groups[1].episodes.length).toBe(1);
     expect(layout.groups[1].episodes[0].id).toBe("ep3");
+  });
+
+  it("selects an entry title matching the active locale instead of the first title", () => {
+    const entries = [
+      {
+        entryId: "e1",
+        kind: "season",
+        number: 1,
+        sortPosition: 0,
+        structureSource: "anilist",
+        externalIds: [],
+        localizedTitles: [
+          { language: "ja-Latn", value: "Kimetsu no Yaiba: Yuukaku-hen", source: "anilist" },
+          { language: "en", value: "Demon Slayer: Entertainment District Arc", source: "anilist" },
+          { language: "ru", value: "Клинок, рассекающий демонов: Квартал красных фонарей", source: "shikimori" },
+        ],
+        tmdb: null,
+        displayMetadata: null,
+      },
+    ] satisfies ArmEntryDetail[];
+
+    const layout = reconstructLayout(entries, [], "work-1", "ru-RU");
+
+    expect(layout.groups[0].title).toBe("Клинок, рассекающий демонов: Квартал красных фонарей");
   });
 
   it("sorts groups by kind then number", () => {
@@ -111,7 +135,7 @@ describe("reconstructLayout", () => {
       },
     ];
 
-    const layout = reconstructLayout(entries, [], "work-1");
+    const layout = reconstructLayout(entries, [], "work-1", "en");
 
     // Expected order: season 1, season 2 (kind rank 0), movie (rank 2), specials (rank 4)
     expect(layout.groups.map((g) => `${g.kind}:${g.number}`)).toEqual([
@@ -123,7 +147,7 @@ describe("reconstructLayout", () => {
   });
 
   it("handles empty inputs", () => {
-    const layout = reconstructLayout([], [], "work-1");
+    const layout = reconstructLayout([], [], "work-1", "en");
     expect(layout.work.id).toBe("work-1");
     expect(layout.groups).toEqual([]);
   });
@@ -150,7 +174,7 @@ describe("reconstructLayout", () => {
       },
     ];
 
-    const layout = reconstructLayout(entries, episodes, "work-1");
+    const layout = reconstructLayout(entries, episodes, "work-1", "en");
     expect(layout.groups[0].episodes.length).toBe(1); // only ep1 for e1
   });
 
@@ -173,7 +197,7 @@ describe("reconstructLayout", () => {
       },
     ];
 
-    const layout = reconstructLayout(entries, episodes, "w1");
+    const layout = reconstructLayout(entries, episodes, "w1", "en");
     expect(layout.groups[0].episodes[0].tmdb?.show).toBe(12345);
     expect(layout.groups[0].episodes[0].tmdb?.season).toBe(2);
     expect(layout.groups[0].episodes[0].tmdb?.episode).toBe(5);
@@ -188,7 +212,7 @@ describe("reconstructLayout", () => {
       },
     ];
 
-    const layout = reconstructLayout(entries, [], "w1");
+    const layout = reconstructLayout(entries, [], "w1", "en");
     expect(layout.groups[0].title).toBe(null);
   });
 });

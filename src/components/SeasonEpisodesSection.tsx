@@ -5,20 +5,29 @@ import type { TvEpisode } from "../network/ApiTypes";
 import type { ArmMediaSummary } from "../network/ArmTypes";
 import { useArmEpisodeLayout } from "../hooks/useArmEpisodeLayout";
 import { EpisodeCard } from "./EpisodeCard";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { ScrollView } from "./common/ScrollView";
+import {
+  ArrowDownWideNarrow,
+  CalendarDays,
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  EyeOff,
+  ListOrdered,
+} from "lucide-react";
 import { Grid } from "./common/Grid";
-import { IconButton } from "./ui";
+import { Button, IconButton, PopoverItem } from "./ui";
 import { SeasonEpisodesToolbar } from "./SeasonEpisodesToolbar";
 import { EpisodeContextMenu } from "./EpisodeContextMenu";
-import { EpisodesListPopup } from "./EpisodesListPopup";
-import { LayoutList } from "lucide-react";
 import { isEpisodeWatched as episodeIsWatched } from "../features/arm/episodeHistoryModel";
 import { finalizeGroupTitle, orderGroupsByKind } from "./seasonGroupLabels";
-
-// Cap the carousel so long seasons don't render hundreds of cards or force endless scrolling.
-// When a season has more episodes, the last slot becomes an "All" card that opens the full list popup.
-const CAROUSEL_LIMIT = 15;
+import {
+  clampEpisodePage,
+  getEpisodeGridColumnCount,
+  getEpisodePageSize,
+  rankEpisodes,
+  type EpisodeSortOption,
+} from "../features/mediaDetails/episodePagination";
 
 interface SeasonEpisodesSectionProps {
   mediaId: number;
@@ -56,14 +65,16 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
   toggleEpisodeWatched,
   toggleSeasonWatched,
   onOpenMultiPicker,
-  mediaTitle,
 }) => {
   const { t } = useTranslation("media");
   const [activeSeason, setActiveSeason] = useState(1);
   const [activeGroupId, setActiveGroupId] = useState<string>();
   const [showSeasonPopover, setShowSeasonPopover] = useState(false);
   const [showWatchPopover, setShowWatchPopover] = useState(false);
-  const [showAllEpisodesPopup, setShowAllEpisodesPopup] = useState(false);
+  const [showSortPopover, setShowSortPopover] = useState(false);
+  const [sortOption, setSortOption] = useState<EpisodeSortOption>("numberAsc");
+  const [columnCount, setColumnCount] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
 
   const armLayout = useArmEpisodeLayout({ tmdbId: mediaId, summary: arm, enabled: armEnabled });
   const usesArmLayout = armLayout.status === "arm";
@@ -85,7 +96,6 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
     [activeGroup, legacySeason.episodes, usesArmLayout],
   );
   const loading = armLayout.status === "loading" || (!usesArmLayout && legacySeason.loading);
-  const hasMoreThanCarousel = episodes.length > CAROUSEL_LIMIT;
 
   const lastAppliedGroupLink = useRef<string | undefined>(undefined);
   useEffect(() => {
@@ -108,9 +118,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
     }
   }, [activeGroupId, armGroups, usesArmLayout, initialGroupId]);
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const [contextMenu, setContextMenu] = useState<{
     episode: TvEpisode;
@@ -118,45 +126,30 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
     y: number;
   } | null>(null);
 
-  const checkScrollLimits = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 5);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 5);
-  }, []);
-
   useEffect(() => {
-    const el = scrollRef.current;
+    const el = gridRef.current;
     if (!el) return;
 
-    const timer = setTimeout(checkScrollLimits, 80);
-    const observer = new ResizeObserver(() => checkScrollLimits());
-    observer.observe(el);
-
-    return () => {
-      clearTimeout(timer);
-      observer.disconnect();
+    const updateColumnCount = () => {
+      const nextColumnCount = getEpisodeGridColumnCount(el.clientWidth);
+      setColumnCount((current) => current === nextColumnCount ? current : nextColumnCount);
     };
-  }, [episodes, checkScrollLimits]);
+    updateColumnCount();
 
-  const handleScroll = (direction: "left" | "right") => {
-    const el = scrollRef.current;
-    if (!el) return;
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", updateColumnCount);
+      return () => window.removeEventListener("resize", updateColumnCount);
+    }
 
-    const cardEl = el.querySelector(".episode-card");
-    const scrollAmount = cardEl ? cardEl.clientWidth * 3 : el.clientWidth * 0.8;
-
-    el.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
-    });
-  };
+    const observer = new ResizeObserver(updateColumnCount);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [episodes.length, loading]);
 
   useEffect(() => {
-    setShowAllEpisodesPopup(false);
-    const el = scrollRef.current;
-    if (el) el.scrollLeft = 0;
-  }, [activeGroupId, activeSeason]);
+    setCurrentPage(0);
+    setShowSortPopover(false);
+  }, [activeGroupId, activeSeason, sortOption]);
 
   const isSeasonFullyWatched = useMemo(() => {
     if (episodes.length === 0) return false;
@@ -172,6 +165,19 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
       legacyCoordinates: watchedEpisodes,
     });
   }, [watchedEpisodeIds, watchedEpisodes]);
+
+  const rankedEpisodes = useMemo(
+    () => rankEpisodes(episodes, sortOption, isEpisodeWatched),
+    [episodes, isEpisodeWatched, sortOption],
+  );
+  const pageSize = getEpisodePageSize(columnCount);
+  const totalPages = Math.max(1, Math.ceil(rankedEpisodes.length / pageSize));
+  const safeCurrentPage = clampEpisodePage(currentPage, rankedEpisodes.length, pageSize);
+  const visibleEpisodes = rankedEpisodes.slice(safeCurrentPage * pageSize, (safeCurrentPage + 1) * pageSize);
+
+  useEffect(() => {
+    if (currentPage !== safeCurrentPage) setCurrentPage(safeCurrentPage);
+  }, [currentPage, safeCurrentPage]);
 
   const handleEpisodeClick = useCallback((episode: TvEpisode) => {
     onEpisodeClick(episode, episode.seasonNumber ?? activeSeason, usesArmLayout ? activeGroup?.title : undefined);
@@ -197,7 +203,50 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
 
   return (
     <section className="season-episodes-section">
-      <h2 className="season-episodes-title">{t("seasons.episodeSelection")}</h2>
+      <div className="season-episodes-heading-row">
+        <h2 className="season-episodes-title">{t("seasons.episodeSelection")}</h2>
+        <div className="episode-sort-wrapper">
+          <Button
+            variant="glass"
+            className="episode-sort-trigger"
+            onClick={() => setShowSortPopover((current) => !current)}
+            aria-expanded={showSortPopover}
+            aria-haspopup="menu"
+          >
+            <ArrowDownWideNarrow size="0.9375rem" />
+            <span>{t(`seasons.sort.${sortOption}`)}</span>
+            <ChevronDown size="0.875rem" />
+          </Button>
+
+          {showSortPopover && (
+            <>
+              <div className="popover-overlay" onClick={() => setShowSortPopover(false)} />
+              <div className="episode-sort-menu" role="menu">
+                {([
+                  ["numberAsc", ListOrdered],
+                  ["releaseDesc", CalendarDays],
+                  ["unwatchedFirst", EyeOff],
+                ] as const).map(([option, SortIcon]) => (
+                  <PopoverItem
+                    key={option}
+                    active={sortOption === option}
+                    onClick={() => {
+                      setSortOption(option);
+                      setShowSortPopover(false);
+                    }}
+                  >
+                    <div className="episode-sort-item-content">
+                      <SortIcon size="0.9375rem" />
+                      <span>{t(`seasons.sort.${option}`)}</span>
+                    </div>
+                    {sortOption === option && <Check size="0.9375rem" />}
+                  </PopoverItem>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
 
       <SeasonEpisodesToolbar
         activeSeason={activeSeason}
@@ -214,8 +263,6 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
         setShowWatchPopover={setShowWatchPopover}
         toggleSeasonWatched={handleToggleDisplayedGroup}
         onOpenMultiPicker={armLayout.status === "arm" ? undefined : onOpenMultiPicker}
-        showAllEpisodes={!loading && hasMoreThanCarousel}
-        onOpenAllEpisodes={() => setShowAllEpisodesPopup(true)}
       />
 
       {loading ? (
@@ -224,7 +271,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
           gap="1rem"
           className="season-episodes-skeleton-grid"
         >
-          {Array.from({ length: 4 }).map((_, idx) => (
+          {Array.from({ length: Math.min(10, pageSize) }).map((_, idx) => (
             <div
               key={idx}
               className="episode-card-skeleton"
@@ -232,25 +279,9 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
           ))}
         </Grid>
       ) : episodes.length > 0 ? (
-        <div className="episodes-carousel-wrapper">
-          {canScrollLeft && (
-            <IconButton
-              className="carousel-nav-btn left"
-              onClick={() => handleScroll("left")}
-              aria-label={t("seasons.scrollBack")}
-            >
-              <ChevronLeft size="1.25rem" />
-            </IconButton>
-          )}
-
-          <ScrollView
-            orientation="horizontal"
-            className="episodes-scroll-viewport"
-            trackClassName="episodes-scroll-container"
-            viewportRef={scrollRef}
-            onScroll={checkScrollLimits}
-          >
-            {episodes.slice(0, CAROUSEL_LIMIT).map((ep) => {
+        <>
+          <div ref={gridRef} className="episodes-page-grid">
+            {visibleEpisodes.map((ep) => {
               const watched = isEpisodeWatched(ep);
               return (
                 <EpisodeCard
@@ -263,38 +294,32 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
                 />
               );
             })}
-            {hasMoreThanCarousel && (
-              <div
-                className="episode-card episode-card-all"
-                role="button"
-                tabIndex={0}
-                onClick={() => setShowAllEpisodesPopup(true)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setShowAllEpisodesPopup(true);
-                  }
-                }}
-              >
-                <div className="episode-still-wrap episode-card-all-tile">
-                  <LayoutList size="1.75rem" />
-                  <span className="episode-card-all-label">{t("seasons.allEpisodes")}</span>
-                  <span className="episode-card-all-count">{episodes.length}</span>
-                </div>
-              </div>
-            )}
-          </ScrollView>
+          </div>
 
-          {canScrollRight && (
-            <IconButton
-              className="carousel-nav-btn right"
-              onClick={() => handleScroll("right")}
-              aria-label={t("seasons.scrollForward")}
-            >
-              <ChevronRight size="1.25rem" />
-            </IconButton>
+          {totalPages > 1 && (
+            <nav className="episode-pagination" aria-label={t("seasons.paginationLabel")}>
+              <span className="episode-pagination-label">
+                {t("seasons.pageOf", { current: safeCurrentPage + 1, total: totalPages })}
+              </span>
+              <IconButton
+                className="episode-pagination-button"
+                disabled={safeCurrentPage === 0}
+                onClick={() => setCurrentPage((page) => Math.max(0, page - 1))}
+                aria-label={t("seasons.previousPage")}
+              >
+                <ChevronLeft size="1.125rem" />
+              </IconButton>
+              <IconButton
+                className="episode-pagination-button"
+                disabled={safeCurrentPage >= totalPages - 1}
+                onClick={() => setCurrentPage((page) => Math.min(totalPages - 1, page + 1))}
+                aria-label={t("seasons.nextPage")}
+              >
+                <ChevronRight size="1.125rem" />
+              </IconButton>
+            </nav>
           )}
-        </div>
+        </>
       ) : (
         <div className="season-episodes-empty">{t("seasons.noEpisodes")}</div>
       )}
@@ -313,17 +338,6 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
         />
       )}
 
-      {showAllEpisodesPopup && (
-        <EpisodesListPopup
-          isOpen={showAllEpisodesPopup}
-          onClose={() => setShowAllEpisodesPopup(false)}
-          title={mediaTitle || t("seasons.episodeSelection")}
-          seasonNumber={activeGroup?.displayNumber ?? activeSeason}
-          groupTitle={usesArmLayout ? activeGroup?.title : undefined}
-          episodes={episodes}
-          isEpisodeWatched={isEpisodeWatched}
-        />
-      )}
     </section>
   );
 };

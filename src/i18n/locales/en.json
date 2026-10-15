@@ -522,6 +522,18 @@
         "historySaveError": "Failed to save watch history"
       }
     },
+    "detailsPage": {
+      "about": "About",
+      "originalTitle": "Original title",
+      "type": "Type",
+      "year": "Release year",
+      "seasons": "Seasons",
+      "ageRating": "Age rating",
+      "ratings": "Ratings",
+      "genres": "Genres",
+      "related": "Similar titles",
+      "relatedEmpty": "No recommendations are available for this title yet."
+    },
     "library": {
       "category": "Category",
       "nothingFound": "Nothing found",
@@ -627,7 +639,16 @@
       "unmarkWatched": "Remove watched mark",
       "markWatched": "Mark as watched",
       "loadError": "Failed to load the season's episodes",
-      "allEpisodes": "All"
+      "allEpisodes": "All",
+      "sort": {
+        "numberAsc": "In order",
+        "releaseDesc": "Newest first",
+        "unwatchedFirst": "Unwatched first"
+      },
+      "paginationLabel": "Episode pages",
+      "pageOf": "{{current}} of {{total}}",
+      "previousPage": "Previous page",
+      "nextPage": "Next page"
     },
     "categories": {
       "upNext": {
