@@ -16,6 +16,8 @@ export interface EpisodeSelectorContentProps
   presentation?: EpisodeSelectorPresentation;
   activeEpisodeId?: string;
   hideHeader?: boolean;
+  playbackBlocked?: boolean;
+  playbackBlockReason?: string;
 }
 
 export const EpisodeSelectorContent: React.FC<EpisodeSelectorContentProps> = ({
@@ -50,6 +52,8 @@ export const EpisodeSelectorContent: React.FC<EpisodeSelectorContentProps> = ({
   presentation = "selector",
   activeEpisodeId,
   hideHeader = false,
+  playbackBlocked = false,
+  playbackBlockReason,
 }) => {
   const { t } = useTranslation("media");
   const canonicalBindingEnabled = Boolean(onApplyEpisodeBinding);
@@ -83,6 +87,7 @@ export const EpisodeSelectorContent: React.FC<EpisodeSelectorContentProps> = ({
     () => hasEpisodeParsingWarning({ episodes, mediaType, parserVerdict: parsingSuspect }),
     [episodes, mediaType, parsingSuspect],
   );
+  const mappingBlocked = playbackBlocked || parsingFailed;
 
   useEffect(() => {
     if (!isOpen) setRepairMode(false);
@@ -133,8 +138,8 @@ export const EpisodeSelectorContent: React.FC<EpisodeSelectorContentProps> = ({
         </div>
       )}
 
-      {parsingFailed && !isEditing && !repairMode && (
-        <div className="parsing-hint-strip" title={t("selector.parsingHintBody")}>
+      {mappingBlocked && !isEditing && !repairMode && (
+        <div className="parsing-hint-strip" title={playbackBlockReason || t("selector.parsingHintBody")}>
           <AlertTriangle size="0.8125rem" />
           <span className="parsing-hint-text">{t("selector.parsingHintQuestion")}</span>
           <Button
@@ -185,6 +190,7 @@ export const EpisodeSelectorContent: React.FC<EpisodeSelectorContentProps> = ({
             presentation={presentation}
             repairMode={repairMode}
             activeEpisodeId={activeEpisodeId}
+            playbackBlocked={mappingBlocked}
           />
         )}
 

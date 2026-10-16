@@ -66,7 +66,10 @@ export const MediaStreamsPage: React.FC = () => {
     lastSelected,
     fileOverrideEnabled,
     isSaving,
-    actionLoading,
+    releasePlaybackPhase,
+    releasePlaybackMode,
+    releasePlaybackError,
+    playbackBlocked,
   } = useMediaStreams({
     mediaType,
     mediaId,
@@ -78,13 +81,12 @@ export const MediaStreamsPage: React.FC = () => {
     initialMedia,
     activeTab: tab,
   });
-  const showTorrentFiles = Boolean(clickedStream);
+  const showTorrentFiles = releasePlaybackMode === "files" && releasePlaybackPhase !== "browsing";
   const showCoWatchRail = Boolean(watchTogether.role);
-  // File discovery has its own screen. Do not mount a player surface until the file list is known.
-  const showRightRail = (showTorrentFiles && Boolean(episodeSelectorData)) || showCoWatchRail;
-  const inlinePlaybackActive = Boolean(activePlayback && (activePlayback.presentation !== "fullscreen" || showCoWatchRail));
+  const showRightRail = showTorrentFiles || showCoWatchRail;
+  const inlinePlaybackActive = Boolean(activePlayback);
   const activeEpisodeId = activePlayback?.playlist?.[activePlayback.playlistIndex ?? -1]?.id;
-  const workspaceMode = showRightRail;
+  const workspaceMode = releasePlaybackPhase !== "browsing" || inlinePlaybackActive || showCoWatchRail;
   const stageMode = inlinePlaybackActive ? "player" : "preview";
 
   const handleQueuePlay = (episodeItem: GenericEpisodeItem) => {
@@ -161,9 +163,15 @@ export const MediaStreamsPage: React.FC = () => {
       <div className="streams-player-preview__veil" />
       <div className="streams-player-preview__content">
         <ListVideo size="2rem" />
-        <strong>{t("media:streams.episodeSelection")}</strong>
-        {episodeSelectorData?.parsingSuspect ? (
+        <strong>{releasePlaybackMode === "direct" && clickedStream?.title
+          ? clickedStream.title
+          : t("media:streams.episodeSelection")}</strong>
+        {releasePlaybackError ? (
+          <span>{releasePlaybackError}</span>
+        ) : episodeSelectorData?.parsingSuspect ? (
           <span>{t("media:selector.parsingHintBody")}</span>
+        ) : releasePlaybackPhase === "preparing" ? (
+          <span>{t("loading.fetchingInfo")}</span>
         ) : null}
       </div>
     </div>
@@ -171,10 +179,11 @@ export const MediaStreamsPage: React.FC = () => {
 
   const renderTorrentFiles = () => (
     <TorrentFilesPanel
-      loading={!episodeSelectorData}
+      loading={releasePlaybackPhase === "inspecting"}
       loadingLabel={t("loading.fetchingInfo")}
       backLabel={t("actions.back")}
-      busy={actionLoading && Boolean(episodeSelectorData)}
+      busy={releasePlaybackPhase === "preparing" && Boolean(episodeSelectorData)}
+      error={!episodeSelectorData ? releasePlaybackError : null}
       onClose={handleClosePopup}
       title={episodeSelectorData?.title || clickedStream?.title || ""}
       episodes={episodeSelectorData?.episodes || []}
@@ -201,6 +210,8 @@ export const MediaStreamsPage: React.FC = () => {
       posterSrc={currentMedia?.posterSrc}
       mediaType={mediaType}
       activeEpisodeId={activeEpisodeId}
+      playbackBlocked={playbackBlocked}
+      playbackBlockReason={playbackBlocked ? t("media:selector.parsingHintBody") : undefined}
     />
   );
 
@@ -266,7 +277,7 @@ export const MediaStreamsPage: React.FC = () => {
                 ) : null}
               </div>
             </div>
-            {renderContent()}
+            {showRightRail ? renderContent() : null}
           </div>
         ) : (
           <div className="streams-browser-layout">

@@ -3621,6 +3621,16 @@
   border-color: var(--accent-semi);
 }
 
+.file-card-row.is-blocked {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.file-card-row.is-blocked:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
 .file-card-banner {
   position: relative;
   width: 15rem;

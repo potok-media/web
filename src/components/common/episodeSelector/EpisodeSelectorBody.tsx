@@ -32,6 +32,7 @@ interface EpisodeSelectorBodyProps {
   presentation?: EpisodeSelectorPresentation;
   repairMode?: boolean;
   activeEpisodeId?: string;
+  playbackBlocked?: boolean;
 }
 
 export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
@@ -52,6 +53,7 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
   presentation = "selector",
   repairMode = false,
   activeEpisodeId,
+  playbackBlocked = false,
 }) => {
   const { t } = useTranslation("media");
   const showTechnicalControls = presentation !== "playlist" || repairMode;
@@ -134,6 +136,7 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
                     presentation={presentation}
                     repairMode={repairMode}
                     isActive={activeEpisodeId === ep.id}
+                    playbackBlocked={playbackBlocked}
                   />
                 ))}
               </div>

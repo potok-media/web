@@ -29,6 +29,7 @@ interface EpisodeSelectorRowProps {
   presentation?: EpisodeSelectorPresentation;
   repairMode?: boolean;
   isActive?: boolean;
+  playbackBlocked?: boolean;
 }
 
 export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
@@ -44,6 +45,7 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
   presentation = "selector",
   repairMode = false,
   isActive = false,
+  playbackBlocked = false,
 }) => {
   const { t } = useTranslation("media");
 
@@ -97,7 +99,7 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
   const streamType = getStreamType(episodeItem);
   const isInlinePlaylist = presentation === "playlist";
   const showTechnicalDetails = !isInlinePlaylist || repairMode;
-  const canActivate = !repairMode || Boolean(onEditFile);
+  const canActivate = repairMode ? Boolean(onEditFile) : !playbackBlocked;
 
   const handlePrimaryAction = () => {
     if (repairMode) {
@@ -109,11 +111,12 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
 
   return (
     <div
-      className={`file-card-row ${isInlinePlaylist ? "file-card-row--playlist" : ""} ${repairMode ? "file-card-row--repair" : ""} ${isActive ? "is-active" : ""}`}
+      className={`file-card-row ${isInlinePlaylist ? "file-card-row--playlist" : ""} ${repairMode ? "file-card-row--repair" : ""} ${isActive ? "is-active" : ""} ${playbackBlocked && !repairMode ? "is-blocked" : ""}`}
       onClick={canActivate ? handlePrimaryAction : undefined}
       tabIndex={canActivate ? 0 : undefined}
       role={canActivate ? "button" : undefined}
       aria-current={isActive ? "true" : undefined}
+      aria-disabled={playbackBlocked && !repairMode ? "true" : undefined}
       onKeyDown={(e) => {
         if (canActivate && e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
           e.preventDefault();
@@ -221,6 +224,7 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
             onPlay(episodeItem);
           }}
           aria-label={t("selector.play")}
+          disabled={playbackBlocked}
         >
           <Play size="1rem" fill="currentColor" className="file-card-play-icon-fix" />
         </IconButton>

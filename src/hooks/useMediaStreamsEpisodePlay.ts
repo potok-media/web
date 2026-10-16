@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { usePlayback } from "../context/PlaybackContext";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
@@ -8,10 +8,9 @@ import type { ActivePlayback } from "../context/playbackTypes";
 import type { PlaybackInfo, RawStreamPayload, StreamEpisode, SDKReleaseBindingTarget } from "@potok/sdk-types";
 import { ApiClient } from "../network/ApiClient";
 import type { ArmEpisodeLayoutResponse } from "../network/ArmTypes";
-import { buildPlaybackFromInfo, mapStreamEpisode } from "../utils/mediaStreamsPlayback";
+import { buildPlaybackFromInfo } from "../utils/mediaStreamsPlayback";
 import {
   buildEpisodeSelectorData,
-  type EpisodeSelectorData,
   type EpisodesResponse,
   type StreamContext,
   type StreamSource,
@@ -20,6 +19,12 @@ import { deferPlaybackMetadata } from "./mediaStreams/mediaStreamsMetadata";
 import { setupPlaylistBridge } from "./mediaStreams/mediaStreamsPlaylistBridge";
 import { useMediaStreamsOverrideHandlers } from "./mediaStreams/useMediaStreamsOverrideHandlers";
 import { loadArmBindingLayout } from "./mediaStreams/armBindingLayout";
+import {
+  initialReleasePlaybackState,
+  releasePlaybackModeFor,
+  releasePlaybackReducer,
+  validateReleasePlayback,
+} from "./mediaStreams/releasePlaybackFlow";
 
 interface UseMediaStreamsEpisodePlayParams {
   mediaType?: string;
@@ -34,30 +39,29 @@ interface UseMediaStreamsEpisodePlayParams {
 export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayParams) {
   const { mediaType, mediaId, currentMedia, activeSource, context, mapEpisodesWithWatched, onError } = params;
   const { i18n } = useTranslation();
-  const { playVideo, enrichPlayback } = usePlayback();
+  const { activePlayback, playVideo, enrichPlayback, stopVideo } = usePlayback();
 
-  const [clickedStream, setClickedStream] = useState<RawStreamPayload | null>(null);
-  const [episodeSelectorData, setEpisodeSelectorData] = useState<EpisodeSelectorData | null>(null);
+  const [flow, dispatchFlow] = useReducer(releasePlaybackReducer, initialReleasePlaybackState);
+  const clickedStream = flow.release;
+  const episodeSelectorData = flow.selectorData;
   const [seasons, setSeasons] = useState<Record<string, unknown>[]>([]);
   const [seasonsLoading, setSeasonsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
   const [armLayout, setArmLayout] = useState<ArmEpisodeLayoutResponse | null>(null);
   const [armLayoutLoading, setArmLayoutLoading] = useState(false);
   const [armLayoutError, setArmLayoutError] = useState(false);
   const editRequest = useRef<AbortController | null>(null);
   const selectionGeneration = useRef(0);
+  const previousActivePlayback = useRef(activePlayback);
 
   useEffect(() => {
     selectionGeneration.current++;
     editRequest.current?.abort();
-    setClickedStream(null);
-    setEpisodeSelectorData(null);
+    dispatchFlow({ type: "reset" });
     setSeasons([]);
     setArmLayout(null);
     setArmLayoutLoading(false);
     setArmLayoutError(false);
-    setActionLoading(false);
     return () => {
       // This is a request-generation counter, intentionally invalidated at cleanup time.
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -65,6 +69,13 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
       editRequest.current?.abort();
     };
   }, [mediaId, mediaType, activeSource?.pluginId, context.workId, context.entryId, context.episodeId]);
+
+  useEffect(() => {
+    if (previousActivePlayback.current && !activePlayback) {
+      dispatchFlow({ type: "player-closed" });
+    }
+    previousActivePlayback.current = activePlayback;
+  }, [activePlayback]);
 
   const selectorLabels = useMemo(
     () => ({
@@ -88,15 +99,14 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
   const handleClosePopup = useCallback(() => {
     selectionGeneration.current++;
     editRequest.current?.abort();
-    setEpisodeSelectorData(null);
-    setClickedStream(null);
+    if (activePlayback && flow.phase === "playing") stopVideo();
+    dispatchFlow({ type: "reset" });
     setArmLayout(null);
     setArmLayoutLoading(false);
     setArmLayoutError(false);
-    setActionLoading(false);
     sessionStorage.removeItem("potok_popup_stream");
     sessionStorage.removeItem("potok_popup_data");
-  }, []);
+  }, [activePlayback, flow.phase, stopVideo]);
 
   const persistSelectorData = useCallback(
     (stream: RawStreamPayload, res: EpisodesResponse) => {
@@ -115,15 +125,18 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
       );
       sessionStorage.setItem("potok_popup_stream", JSON.stringify(stream));
       sessionStorage.setItem("potok_popup_data", JSON.stringify(data));
-      setClickedStream(stream);
-      setEpisodeSelectorData(data);
+      const validation = validateReleasePlayback({
+        mediaType,
+        selectorData: data,
+        canonicalBindingEnabled: Boolean(activeSource?.capabilities?.episodeBinding),
+      });
+      dispatchFlow({ type: "inspection-completed", selectorData: data, validation });
     },
-    [mediaType, currentMedia, mapEpisodesWithWatched, selectorLabels],
+    [mediaType, currentMedia, mapEpisodesWithWatched, selectorLabels, activeSource?.capabilities?.episodeBinding],
   );
 
   const playFromInfo = useCallback(
     (info: PlaybackInfo, extras: {
-      presentation?: ActivePlayback["presentation"];
       season?: number;
       episode?: number;
       workId?: string | null;
@@ -140,7 +153,6 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
       playVideo(
         buildPlaybackFromInfo(info, {
           mediaType: mediaType as "movie" | "tv",
-          presentation: "fullscreen",
           id: mediaId,
           providerId: activeSource?.pluginId,
           ...playbackLabels,
@@ -155,77 +167,57 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
     (stream: RawStreamPayload) => {
       if (!activeSource) return;
       const generation = ++selectionGeneration.current;
+      const playbackMode = releasePlaybackModeFor(mediaType, stream);
+      const directPlayback = playbackMode === "direct";
       editRequest.current?.abort();
       setArmLayout(null);
       setArmLayoutError(false);
       setArmLayoutLoading(false);
-      setActionLoading(true);
+      dispatchFlow({
+        type: "release-selected",
+        release: stream,
+        mode: playbackMode,
+      });
 
-      if (mediaType === "movie" && stream.kind !== "torrent") {
+      if (directPlayback) {
+        dispatchFlow({ type: "playback-requested" });
         ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(activeSource.pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", { stream, context })
           .then((info) => {
             if (generation !== selectionGeneration.current) return;
             if (!info) throw new Error(i18n.t("media:streams.playbackInfoEmpty"));
             playFromInfo(info, { sourceStream: stream });
+            dispatchFlow({ type: "playback-started" });
           })
-          .catch((error) => { if (generation === selectionGeneration.current) onError(error); })
-          .finally(() => { if (generation === selectionGeneration.current) setActionLoading(false); });
+          .catch((error) => {
+            if (generation !== selectionGeneration.current) return;
+            dispatchFlow({ type: "request-failed", error: error instanceof Error ? error.message : String(error) });
+            onError(error);
+          });
         return;
       }
 
-      setEpisodeSelectorData(null);
-      setClickedStream(stream);
       sessionStorage.removeItem("potok_popup_stream");
       sessionStorage.removeItem("potok_popup_data");
 
       ExtensionRegistry.sendSandboxRequest<EpisodesResponse>(activeSource.pluginId, "STREAM_SOURCE_GET_EPISODES", { stream, context })
-        .then(async (res) => {
+        .then((res) => {
           if (generation !== selectionGeneration.current) return;
-          const eps = res.episodes || [];
-          // Canonical TV files remain editable even when a release contains only one file.
-          if (eps.length === 1 && !(mediaType === "tv" && activeSource.capabilities?.episodeBinding)) {
-            const singleEp = mapStreamEpisode(eps[0]);
-            const info = await ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(
-              activeSource.pluginId,
-              "STREAM_SOURCE_GET_PLAYBACK_INFO",
-              { stream, episode: singleEp, context },
-            );
-            if (generation !== selectionGeneration.current) return;
-            if (!info) throw new Error(i18n.t("media:streams.playbackInfoEmpty"));
-            playFromInfo(info, {
-              season: mediaType === "tv" ? singleEp.season : undefined,
-              episode: mediaType === "tv" ? singleEp.episode : undefined,
-              workId: singleEp.workId,
-              episodeId: singleEp.episodeId,
-              entryId: singleEp.entryId,
-              episodeIds: singleEp.episodeIds,
-              targets: singleEp.targets,
-              progressId: singleEp.progressId,
-              sourceStream: stream,
-              stillSrc: singleEp.stillPath,
-            });
-            deferPlaybackMetadata(activeSource.pluginId, stream, singleEp, info, context, enrichPlayback);
-            setClickedStream(null);
-            return;
-          }
           persistSelectorData(stream, res);
         })
         .catch((error) => {
           if (generation !== selectionGeneration.current) return;
-          setEpisodeSelectorData(null);
-          setClickedStream(null);
+          dispatchFlow({ type: "request-failed", error: error instanceof Error ? error.message : String(error) });
           onError(error);
-        })
-        .finally(() => { if (generation === selectionGeneration.current) setActionLoading(false); });
+        });
     },
-    [activeSource, mediaType, context, playFromInfo, onError, persistSelectorData, enrichPlayback, i18n],
+    [activeSource, mediaType, context, playFromInfo, onError, persistSelectorData, i18n],
   );
 
   const handlePlayEpisode = useCallback(
     (ep: GenericEpisodeItem) => {
-      if (!activeSource || !clickedStream) return;
+      if (!activeSource || !clickedStream || flow.validation.blocked) return;
       const generation = selectionGeneration.current;
-      setActionLoading(true);
+      dispatchFlow({ type: "playback-requested", episodeId: ep.id });
 
       ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(
         activeSource.pluginId,
@@ -243,7 +235,6 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
           });
           if (!info) throw new Error(i18n.t("media:streams.playbackInfoEmpty"));
           playFromInfo(info, {
-            presentation: mediaType === "movie" || episodeSelectorData?.episodes.length === 1 ? "fullscreen" : "inline",
             season: mediaType === "tv" ? ep.season : undefined,
             episode: mediaType === "tv" ? ep.episode : undefined,
             workId: ep.workId,
@@ -258,11 +249,15 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
             stillSrc: ep.stillPath,
           });
           deferPlaybackMetadata(activeSource.pluginId, clickedStream, ep, info, context, enrichPlayback);
+          dispatchFlow({ type: "playback-started" });
         })
-        .catch((error) => { if (generation === selectionGeneration.current) onError(error); })
-        .finally(() => { if (generation === selectionGeneration.current) setActionLoading(false); });
+        .catch((error) => {
+          if (generation !== selectionGeneration.current) return;
+          dispatchFlow({ type: "request-failed", error: error instanceof Error ? error.message : String(error) });
+          onError(error);
+        });
     },
-    [activeSource, clickedStream, context, playFromInfo, onError, mediaType, enrichPlayback, i18n, episodeSelectorData],
+    [activeSource, clickedStream, context, playFromInfo, onError, mediaType, enrichPlayback, i18n, flow.validation.blocked],
   );
 
   const handleStartEditing = useCallback(() => {
@@ -317,9 +312,14 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
         res.arm,
       );
       sessionStorage.setItem("potok_popup_data", JSON.stringify(data));
-      setEpisodeSelectorData(data);
+      const validation = validateReleasePlayback({
+        mediaType,
+        selectorData: data,
+        canonicalBindingEnabled: Boolean(activeSource?.capabilities?.episodeBinding),
+      });
+      dispatchFlow({ type: "inspection-completed", selectorData: data, validation });
     },
-    [clickedStream, currentMedia, mediaType, mapEpisodesWithWatched, selectorLabels],
+    [clickedStream, currentMedia, mediaType, mapEpisodesWithWatched, selectorLabels, activeSource?.capabilities?.episodeBinding],
   );
 
   const { handleApplyOverride, handleResetOverride, handleApplyFileOverride, handleResetFileOverride, handleApplyEpisodeBinding } =
@@ -334,16 +334,17 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
 
   return {
     clickedStream,
-    setClickedStream,
     episodeSelectorData,
-    setEpisodeSelectorData,
+    releasePlaybackPhase: flow.phase,
+    releasePlaybackMode: flow.mode,
+    releasePlaybackError: flow.error,
+    playbackBlocked: flow.validation.blocked,
     seasons,
     seasonsLoading,
     armLayout,
     armLayoutLoading,
     armLayoutError,
     isSaving,
-    actionLoading,
     handleClosePopup,
     handleSelectStream,
     handlePlayEpisode,

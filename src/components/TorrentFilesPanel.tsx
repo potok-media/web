@@ -12,6 +12,7 @@ interface TorrentFilesPanelProps
   loadingLabel: string;
   backLabel: string;
   busy?: boolean;
+  error?: string | null;
 }
 
 const TorrentFilesSkeleton: React.FC<{
@@ -49,12 +50,25 @@ export const TorrentFilesPanel: React.FC<TorrentFilesPanelProps> = ({
   loadingLabel,
   backLabel,
   busy = false,
+  error,
   isSaving = false,
   ...selectorProps
 }) => {
   const { role: coWatchRole } = useWatchTogether();
 
-  const queue = loading ? (
+  const queue = error ? (
+    <div className="torrent-files-loading" role="alert">
+      <div className="torrent-files-loading__header">
+        <IconButton className="modal-close-btn" onClick={selectorProps.onClose} aria-label={backLabel}>
+          <ArrowLeft size="1.25rem" />
+        </IconButton>
+        <div className="torrent-files-loading__heading">
+          <h2>{selectorProps.title}</h2>
+          <span>{error}</span>
+        </div>
+      </div>
+    </div>
+  ) : loading ? (
     <TorrentFilesSkeleton
       title={selectorProps.title}
       loadingLabel={loadingLabel}
