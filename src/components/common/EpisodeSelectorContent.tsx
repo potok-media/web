@@ -8,6 +8,7 @@ import { EpisodeSelectorBody } from "./episodeSelector/EpisodeSelectorBody";
 import { useEpisodeSelectorState } from "../../hooks/useEpisodeSelectorState";
 import type { EpisodeSelectorPopupProps, EpisodeSelectorPresentation } from "./episodeSelector/types";
 import { hasEpisodeParsingWarning } from "./episodeSelector/utils";
+import { moveItemById, orderItemsByIds } from "../../utils/queueOrder";
 
 export interface EpisodeSelectorContentProps
   extends Omit<EpisodeSelectorPopupProps, "accessibleModal"> {
@@ -18,6 +19,8 @@ export interface EpisodeSelectorContentProps
   hideHeader?: boolean;
   playbackBlocked?: boolean;
   playbackBlockReason?: string;
+  canReorder?: boolean;
+  onReorderEpisodes?: (episodes: EpisodeSelectorPopupProps["episodes"]) => void;
 }
 
 export const EpisodeSelectorContent: React.FC<EpisodeSelectorContentProps> = ({
@@ -54,10 +57,20 @@ export const EpisodeSelectorContent: React.FC<EpisodeSelectorContentProps> = ({
   hideHeader = false,
   playbackBlocked = false,
   playbackBlockReason,
+  canReorder = false,
+  onReorderEpisodes,
 }) => {
   const { t } = useTranslation("media");
   const canonicalBindingEnabled = Boolean(onApplyEpisodeBinding);
   const [repairMode, setRepairMode] = useState(false);
+  const [orderedEpisodes, setOrderedEpisodes] = useState(episodes);
+
+  useEffect(() => {
+    setOrderedEpisodes((current) => orderItemsByIds(
+      episodes,
+      current.map((episode) => episode.id),
+    ));
+  }, [episodes]);
 
   const {
     isEditing,
@@ -75,7 +88,7 @@ export const EpisodeSelectorContent: React.FC<EpisodeSelectorContentProps> = ({
     handlePlayAsPlaylist,
   } = useEpisodeSelectorState({
     isOpen,
-    episodes,
+    episodes: orderedEpisodes,
     onPlay,
     onStartEditing,
     onApplyOverride,
@@ -84,8 +97,8 @@ export const EpisodeSelectorContent: React.FC<EpisodeSelectorContentProps> = ({
   });
 
   const parsingFailed = useMemo(
-    () => hasEpisodeParsingWarning({ episodes, mediaType, parserVerdict: parsingSuspect }),
-    [episodes, mediaType, parsingSuspect],
+    () => hasEpisodeParsingWarning({ episodes: orderedEpisodes, mediaType, parserVerdict: parsingSuspect }),
+    [orderedEpisodes, mediaType, parsingSuspect],
   );
   const mappingBlocked = playbackBlocked || parsingFailed;
 
@@ -105,6 +118,13 @@ export const EpisodeSelectorContent: React.FC<EpisodeSelectorContentProps> = ({
   const startEditingAction = presentation === "playlist" && onStartEditing
     ? handleStartRepairing
     : onStartEditing;
+
+  const handleReorderEpisode = (sourceId: string, targetId: string) => {
+    if (!canReorder || repairMode || isEditing) return;
+    const next = moveItemById(orderedEpisodes, sourceId, targetId);
+    setOrderedEpisodes(next);
+    onReorderEpisodes?.(next);
+  };
 
   return (
     <div
@@ -175,6 +195,7 @@ export const EpisodeSelectorContent: React.FC<EpisodeSelectorContentProps> = ({
             mediaType={mediaType}
             totalCount={totalCount}
             sourceSections={sourceSections}
+            playlistEpisodes={orderedEpisodes}
             seasonMap={seasonMap}
             firstEpId={firstEpId}
             backdropSrc={backdropSrc}
@@ -191,6 +212,8 @@ export const EpisodeSelectorContent: React.FC<EpisodeSelectorContentProps> = ({
             repairMode={repairMode}
             activeEpisodeId={activeEpisodeId}
             playbackBlocked={mappingBlocked}
+            canReorder={canReorder && !repairMode}
+            onReorderEpisode={handleReorderEpisode}
           />
         )}
 

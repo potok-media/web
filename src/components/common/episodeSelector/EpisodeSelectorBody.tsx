@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pencil, RotateCcw } from "lucide-react";
 import { EpisodeSelectorRow } from "./EpisodeSelectorRow";
@@ -17,6 +17,7 @@ interface EpisodeSelectorBodyProps {
   mediaType: string;
   totalCount: number;
   sourceSections: EpisodeSourceSection[];
+  playlistEpisodes?: EpisodeSourceSection["episodes"];
   seasonMap: Record<string, { season: number; offset: number }>;
   firstEpId?: string;
   backdropSrc?: string;
@@ -33,12 +34,15 @@ interface EpisodeSelectorBodyProps {
   repairMode?: boolean;
   activeEpisodeId?: string;
   playbackBlocked?: boolean;
+  canReorder?: boolean;
+  onReorderEpisode?: (sourceId: string, targetId: string) => void;
 }
 
 export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
   mediaType,
   totalCount,
   sourceSections,
+  playlistEpisodes = [],
   seasonMap,
   backdropSrc,
   posterSrc,
@@ -54,15 +58,61 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
   repairMode = false,
   activeEpisodeId,
   playbackBlocked = false,
+  canReorder = false,
+  onReorderEpisode,
 }) => {
   const { t } = useTranslation("media");
+  const [draggedEpisodeId, setDraggedEpisodeId] = useState<string | null>(null);
+  const [dropTargetId, setDropTargetId] = useState<string | null>(null);
   const showTechnicalControls = presentation !== "playlist" || repairMode;
   const mappingEnabled = fileOverrideEnabled || canonicalBindingEnabled;
+
+  const renderEpisode = (ep: EpisodeSourceSection["episodes"][number]) => (
+    <EpisodeSelectorRow
+      key={ep.id}
+      episodeItem={ep}
+      mediaType={mediaType}
+      backdropSrc={backdropSrc}
+      posterSrc={posterSrc}
+      onPlay={onPlay}
+      fileOverrideEnabled={mappingEnabled}
+      fileOverride={fileMap[ep.id]}
+      onEditFile={mappingEnabled ? onEditFile : undefined}
+      onResetFileOverride={onResetFileOverride}
+      presentation={presentation}
+      repairMode={repairMode}
+      isActive={activeEpisodeId === ep.id}
+      playbackBlocked={playbackBlocked}
+      canReorder={canReorder}
+      isDragging={draggedEpisodeId === ep.id}
+      isDropTarget={dropTargetId === ep.id && draggedEpisodeId !== ep.id}
+      onDragStart={() => setDraggedEpisodeId(ep.id)}
+      onDragOver={() => setDropTargetId(ep.id)}
+      onDrop={() => {
+        if (draggedEpisodeId && draggedEpisodeId !== ep.id) {
+          onReorderEpisode?.(draggedEpisodeId, ep.id);
+        }
+        setDraggedEpisodeId(null);
+        setDropTargetId(null);
+      }}
+      onDragEnd={() => {
+        setDraggedEpisodeId(null);
+        setDropTargetId(null);
+      }}
+      onMoveByKeyboard={(direction) => {
+        const index = playlistEpisodes.findIndex((episode) => episode.id === ep.id);
+        const target = playlistEpisodes[index + direction];
+        if (target) onReorderEpisode?.(ep.id, target.id);
+      }}
+    />
+  );
 
   return (
     <div className="files-list-container episode-files-list">
       <div className="episode-popup-rows-list episode-popup-rows-scroll">
-        {totalCount > 0 ? (
+        {totalCount > 0 && presentation === "playlist" && !repairMode ? (
+          <div className="episode-playlist-flat">{playlistEpisodes.map(renderEpisode)}</div>
+        ) : totalCount > 0 ? (
           sourceSections.map((section) => {
             const srcRaw = section.rawSeason;
             const mapEntry = seasonMap[srcRaw === undefined ? SENTINEL_KEY : String(srcRaw)];
@@ -121,24 +171,7 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
                     )}
                   </div>
                 )}
-                {section.episodes.map((ep) => (
-                  <EpisodeSelectorRow
-                    key={ep.id}
-                    episodeItem={ep}
-                    mediaType={mediaType}
-                    backdropSrc={backdropSrc}
-                    posterSrc={posterSrc}
-                    onPlay={onPlay}
-                    fileOverrideEnabled={mappingEnabled}
-                    fileOverride={fileMap[ep.id]}
-                    onEditFile={mappingEnabled ? onEditFile : undefined}
-                    onResetFileOverride={onResetFileOverride}
-                    presentation={presentation}
-                    repairMode={repairMode}
-                    isActive={activeEpisodeId === ep.id}
-                    playbackBlocked={playbackBlocked}
-                  />
-                ))}
+                {section.episodes.map(renderEpisode)}
               </div>
             );
           })

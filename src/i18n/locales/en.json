@@ -480,6 +480,9 @@
       "resetSeasonMapping": "Reset to auto",
       "back": "Back",
       "close": "Close",
+      "backToQueue": "Back to queue",
+      "closePlayback": "Close playback",
+      "reorderEpisode": "Reorder episode",
       "mainStream": "Main stream",
       "noEpisodes": "No episodes available.",
       "savingOffset": "Saving offset..."

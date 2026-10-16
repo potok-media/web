@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { ActivePlayback } from "./playbackTypes";
+import type { ActivePlayback, PlaylistItem } from "./playbackTypes";
 import type {
   ChatMessage,
   GuestPermissions,
@@ -40,6 +40,7 @@ export interface WatchTogetherContextType {
   joinAsGuest: (token: string) => void;
   startWatch: () => void;
   hostAnnounceEpisode: (descriptor: ActivePlayback) => void; // host: re-broadcast + re-arm gate on episode change
+  hostUpdateQueue: (playlist: PlaylistItem[], playlistIndex: number) => void;
   hostAwaitResync: () => void; // host: re-arm the ready-gate after a seek (hold until guests re-buffer)
   leave: () => void;
   onSyncMessage: (cb: (m: WTSyncWatch) => void) => () => void;
@@ -87,6 +88,7 @@ const NOOP_CONTEXT: WatchTogetherContextType = {
   joinAsGuest: () => {},
   startWatch: () => {},
   hostAnnounceEpisode: () => {},
+  hostUpdateQueue: () => {},
   hostAwaitResync: () => {},
   leave: () => {},
   onSyncMessage: () => () => {},

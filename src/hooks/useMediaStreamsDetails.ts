@@ -96,12 +96,20 @@ export function useMediaStreamsDetails({
         const sNum = mapped.season;
         const epNum = mapped.episode;
         let isWatched = false;
+        let progressSeconds: number | undefined;
+        let durationSeconds: number | undefined;
+        const captureProgress = (progress?: { progressSeconds: number; durationSeconds: number } | null) => {
+          if (!progress || progress.durationSeconds <= 0) return;
+          progressSeconds = Math.max(0, progress.progressSeconds);
+          durationSeconds = progress.durationSeconds;
+        };
 
         if (mapped.episodeId) {
           isWatched = currentMedia?.progress?.watchedEpisodeIds?.includes(mapped.episodeId) === true;
           if (!isWatched) {
             const entry = remoteHistory.find((item) => item.episodeId === mapped.episodeId);
             if (entry) {
+              captureProgress(entry);
               isWatched = entry.progressSeconds >= entry.durationSeconds
                 || (entry.durationSeconds > 0
                   && entry.progressSeconds / entry.durationSeconds >= 0.9);
@@ -110,6 +118,7 @@ export function useMediaStreamsDetails({
           if (!isWatched) {
             const { progressKey } = playbackStorageKeys({ ...mapped, id: mediaId, mediaType: "tv" });
             const local = Storage.get<PlaybackProgress | null>(progressKey, null);
+            captureProgress(local);
             isWatched = local?.isCompleted === true || !!(local && local.durationSeconds > 0
               && local.progressSeconds / local.durationSeconds >= 0.9);
           }
@@ -129,6 +138,7 @@ export function useMediaStreamsDetails({
             streamUrl: mapped.url,
           });
           const local = Storage.get<PlaybackProgress | null>(progressKey, null);
+          captureProgress(local);
           isWatched = local?.isCompleted === true || !!(local && local.durationSeconds > 0
             && local.progressSeconds / local.durationSeconds >= 0.9);
         }
@@ -152,6 +162,7 @@ export function useMediaStreamsDetails({
                 Number(h.episodeNumber) === Number(epNum),
             );
             if (entry) {
+              captureProgress(entry);
               isWatched =
                 entry.progressSeconds >= entry.durationSeconds ||
                 (entry.durationSeconds > 0 &&
@@ -162,6 +173,7 @@ export function useMediaStreamsDetails({
           if (!isWatched) {
             const progressKey = `potok_progress:${mediaId}:${sNum}:${epNum}`;
             const localProgress = Storage.get<PlaybackProgress | null>(progressKey, null);
+            captureProgress(localProgress);
             isWatched = localProgress?.isCompleted === true;
             if (!isWatched && localProgress && localProgress.durationSeconds > 0) {
               isWatched =
@@ -170,7 +182,7 @@ export function useMediaStreamsDetails({
           }
         }
 
-        return { ...mapped, isWatched };
+        return { ...mapped, isWatched, progressSeconds, durationSeconds };
       }),
     [mediaId, remoteHistory, currentMedia],
   );

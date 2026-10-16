@@ -5,9 +5,11 @@ import {
   CheckCircle2,
   MoreHorizontal,
   Pencil,
+  X,
 } from "lucide-react";
 import { Button, IconButton, PopoverItem } from "../../ui";
 import type { EpisodeSelectorPresentation } from "./types";
+import { getEpisodeSelectorNavigationModel } from "./navigationModel";
 
 interface EpisodeSelectorHeaderProps {
   isEditing: boolean;
@@ -44,14 +46,18 @@ export const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React
 }) => {
   const { t } = useTranslation("media");
   const isPlaylistPresentation = presentation === "playlist";
-  const handleBackOrClose = isEditing
-    ? onBackToFiles
-    : repairMode && onStopRepairing
-      ? onStopRepairing
+  const { isNestedView, showBackNavigation, showCloseNavigation } = getEpisodeSelectorNavigationModel({
+    presentation,
+    isEditing,
+    repairMode,
+  });
+  const handleNestedBack = repairMode && onStopRepairing
+    ? onStopRepairing
+    : isEditing
+      ? onBackToFiles
       : onClose;
-  const navigationLabel = isEditing || repairMode || navigationAction === "back"
-    ? t("selector.back")
-    : t("selector.close");
+  const backLabel = isNestedView ? t("selector.backToQueue") : t("selector.back");
+  const closeLabel = t("selector.closePlayback");
   const [showPopover, setShowPopover] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -80,9 +86,16 @@ export const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React
   return (
     <div className="modal-header">
       <div className="modal-title-row">
-        <IconButton className="modal-close-btn" onClick={handleBackOrClose} aria-label={navigationLabel}>
-          <ArrowLeft size="1.25rem" />
-        </IconButton>
+        {showBackNavigation && (
+          <IconButton
+            className="modal-close-btn"
+            onClick={isNestedView ? handleNestedBack : onClose}
+            aria-label={backLabel}
+            title={backLabel}
+          >
+            <ArrowLeft size="1.25rem" />
+          </IconButton>
+        )}
         <div className="modal-title-text-group">
           <h3 className="modal-title modal-title-custom-size" title={isPlaylistPresentation ? headerTitle : title}>
             {headerTitle}
@@ -149,9 +162,15 @@ export const EpisodeSelectorHeader: React.FC<EpisodeSelectorHeaderProps> = React
           </div>
         )}
 
-        <Button variant="ghost" className="close-btn" onClick={handleBackOrClose}>
-          {navigationLabel}
-        </Button>
+        {showCloseNavigation ? (
+          <IconButton className="modal-close-btn episode-selector-close-btn" onClick={onClose} aria-label={closeLabel} title={closeLabel}>
+            <X size="1.25rem" />
+          </IconButton>
+        ) : !isPlaylistPresentation ? (
+          <Button variant="ghost" className="close-btn" onClick={isNestedView ? handleNestedBack : onClose}>
+            {isNestedView || navigationAction === "back" ? t("selector.back") : t("selector.close")}
+          </Button>
+        ) : null}
       </div>
     </div>
   );

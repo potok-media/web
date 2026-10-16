@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Play, Check, CheckCircle2, Anchor, Pin, RotateCcw } from "lucide-react";
+import { Play, Check, CheckCircle2, Anchor, GripVertical, Pin, RotateCcw } from "lucide-react";
 import { IconButton } from "../../ui";
 import { formatLocalizedDate } from "../../../utils/formatDate";
 import { getActiveLanguage, toIntlLocale } from "../../../utils/language";
@@ -30,7 +30,21 @@ interface EpisodeSelectorRowProps {
   repairMode?: boolean;
   isActive?: boolean;
   playbackBlocked?: boolean;
+  canReorder?: boolean;
+  isDragging?: boolean;
+  isDropTarget?: boolean;
+  onDragStart?: () => void;
+  onDragOver?: () => void;
+  onDrop?: () => void;
+  onDragEnd?: () => void;
+  onMoveByKeyboard?: (direction: -1 | 1) => void;
 }
+
+const formatPlaybackTime = (seconds: number) => {
+  const safe = Math.max(0, Math.floor(seconds));
+  const minutes = Math.floor(safe / 60);
+  return `${minutes}:${String(safe % 60).padStart(2, "0")}`;
+};
 
 export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(({
   episodeItem,
@@ -46,6 +60,14 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
   repairMode = false,
   isActive = false,
   playbackBlocked = false,
+  canReorder = false,
+  isDragging = false,
+  isDropTarget = false,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  onMoveByKeyboard,
 }) => {
   const { t } = useTranslation("media");
 
@@ -100,6 +122,14 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
   const isInlinePlaylist = presentation === "playlist";
   const showTechnicalDetails = !isInlinePlaylist || repairMode;
   const canActivate = repairMode ? Boolean(onEditFile) : !playbackBlocked;
+  const durationSeconds = episodeItem.durationSeconds ?? 0;
+  const progressSeconds = episodeItem.progressSeconds ?? (episodeItem.isWatched && durationSeconds > 0 ? durationSeconds : 0);
+  const progressPercentage = durationSeconds > 0
+    ? Math.min(100, Math.max(0, (progressSeconds / durationSeconds) * 100))
+    : episodeItem.isWatched ? 100 : 0;
+  const progressLabel = durationSeconds > 0
+    ? `${formatPlaybackTime(progressSeconds)} / ${formatPlaybackTime(durationSeconds)}`
+    : episodeItem.isWatched ? t("selector.watched") : "";
 
   const handlePrimaryAction = () => {
     if (repairMode) {
@@ -111,7 +141,7 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
 
   return (
     <div
-      className={`file-card-row ${isInlinePlaylist ? "file-card-row--playlist" : ""} ${repairMode ? "file-card-row--repair" : ""} ${isActive ? "is-active" : ""} ${playbackBlocked && !repairMode ? "is-blocked" : ""}`}
+      className={`file-card-row ${isInlinePlaylist ? "file-card-row--playlist" : ""} ${repairMode ? "file-card-row--repair" : ""} ${isActive ? "is-active" : ""} ${isDragging ? "is-dragging" : ""} ${isDropTarget ? "is-drop-target" : ""} ${playbackBlocked && !repairMode ? "is-blocked" : ""}`}
       onClick={canActivate ? handlePrimaryAction : undefined}
       tabIndex={canActivate ? 0 : undefined}
       role={canActivate ? "button" : undefined}
@@ -123,6 +153,14 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
           handlePrimaryAction();
         }
       }}
+      onDragOver={canReorder ? (event) => {
+        event.preventDefault();
+        onDragOver?.();
+      } : undefined}
+      onDrop={canReorder ? (event) => {
+        event.preventDefault();
+        onDrop?.();
+      } : undefined}
     >
       <div className="file-card-banner">
         {imageUrl ? (
@@ -143,13 +181,21 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
 
       <div className="file-card-info-panel">
         <h4 className="file-card-title">{displayTitle}</h4>
-        {displaySubtitle && displaySubtitle !== displayTitle && (
+        {displaySubtitle && displaySubtitle !== displayTitle && (!isInlinePlaylist || repairMode || !progressLabel) && (
           <span className="file-card-subtitle">{displaySubtitle}</span>
         )}
         {showTechnicalDetails && episodeItem.fileName && episodeItem.fileName !== displayTitle && (
           <span className="file-card-filename" title={episodeItem.fileName}>
             {episodeItem.fileName}
           </span>
+        )}
+        {isInlinePlaylist && progressLabel && (
+          <div className="file-card-progress" aria-label={progressLabel} title={progressLabel}>
+            <span className="file-card-progress__label">{progressLabel}</span>
+            <span className="file-card-progress__track" aria-hidden="true">
+              <span className="file-card-progress__value" style={{ width: `${progressPercentage}%` }} />
+            </span>
+          </div>
         )}
       </div>
 
@@ -214,6 +260,34 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
             </IconButton>
           )}
         </div>
+      )}
+
+      {isInlinePlaylist && canReorder && !repairMode && (
+        <IconButton
+          className="file-card-drag-handle"
+          draggable
+          onClick={stop}
+          onDragStart={(event) => {
+            event.stopPropagation();
+            event.dataTransfer.effectAllowed = "move";
+            event.dataTransfer.setData("text/plain", episodeItem.id);
+            onDragStart?.();
+          }}
+          onDragEnd={(event) => {
+            event.stopPropagation();
+            onDragEnd?.();
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+            event.preventDefault();
+            event.stopPropagation();
+            onMoveByKeyboard?.(event.key === "ArrowUp" ? -1 : 1);
+          }}
+          aria-label={t("selector.reorderEpisode")}
+          title={t("selector.reorderEpisode")}
+        >
+          <GripVertical size="1.25rem" />
+        </IconButton>
       )}
 
       {!isInlinePlaylist && (

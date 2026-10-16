@@ -26,7 +26,7 @@ import type {
 } from "../network/watchTogetherTypes";
 import type { WTSessionState } from "../network/watchTogetherTypes";
 import { NO_PERMISSIONS } from "../network/watchTogetherTypes";
-import type { ActivePlayback } from "./playbackTypes";
+import type { ActivePlayback, PlaylistItem } from "./playbackTypes";
 import { WatchTogetherContext, type WatchTogetherContextType } from "./watchTogetherState";
 
 const START_HANDSHAKE_TIMEOUT_MS = 12000; // fallback: start even if a guest never reports ready
@@ -55,7 +55,7 @@ function getClientId(): string {
 }
 
 export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { playVideo, stopVideo } = usePlayback();
+  const { playVideo, replacePlaylist, stopVideo } = usePlayback();
   const { potokUser } = useAuth();
   const navigate = useNavigate();
   const clientId = useMemo(() => getClientId(), []);
@@ -371,6 +371,18 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
             });
           }
           break;
+        case "queue-update":
+          if (roleRef.current === "guest") {
+            const current = descriptorRef.current;
+            if (current) {
+              const descriptor = { ...current, playlist: msg.playlist, playlistIndex: msg.playlistIndex };
+              descriptorRef.current = descriptor;
+              setPendingDescriptor(descriptor);
+              setRoomInfo(descriptorToSessionInfo(descriptor));
+            }
+            replacePlaylist(msg.playlist, msg.playlistIndex);
+          }
+          break;
         case "start-watch":
           descriptorRef.current = msg.descriptor;
           sessionActiveRef.current = true;
@@ -451,7 +463,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
           break;
       }
     },
-    [clientId, playVideo, upsertParticipant, sendStateSync, checkStartGate, stopVideo, navigate, resetLocalState],
+    [clientId, playVideo, replacePlaylist, upsertParticipant, sendStateSync, checkStartGate, stopVideo, navigate, resetLocalState],
   );
 
   const ensureClient = useCallback((): WatchTogetherClient => {
@@ -587,6 +599,26 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
       checkStartGate();
     },
     [armStartGate, broadcastStart, broadcastRoomInfo, checkStartGate],
+  );
+
+  const hostUpdateQueue = useCallback(
+    (playlist: PlaylistItem[], playlistIndex: number) => {
+      const key = roomKeyRef.current;
+      const current = descriptorRef.current;
+      if (roleRef.current !== "host" || !key || !current) return;
+
+      const descriptor = { ...current, playlist, playlistIndex };
+      descriptorRef.current = descriptor;
+      setPendingDescriptor(descriptor);
+      clientRef.current?.broadcast(key, {
+        type: "queue-update",
+        senderId: clientId,
+        role: "host",
+        playlist,
+        playlistIndex,
+      });
+    },
+    [clientId],
   );
 
   // Host: someone seeked (the host, or a permitted guest whose seek the host applied). Re-arm the ready-gate so
@@ -836,6 +868,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
       joinAsGuest,
       startWatch,
       hostAnnounceEpisode,
+      hostUpdateQueue,
       hostAwaitResync,
       leave,
       onSyncMessage,
@@ -881,6 +914,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
       joinAsGuest,
       startWatch,
       hostAnnounceEpisode,
+      hostUpdateQueue,
       hostAwaitResync,
       leave,
       onSyncMessage,

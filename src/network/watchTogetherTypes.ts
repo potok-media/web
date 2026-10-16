@@ -1,4 +1,4 @@
-import type { ActivePlayback } from "../context/playbackTypes";
+import type { ActivePlayback, PlaylistItem } from "../context/playbackTypes";
 
 // Wire protocol for the co-watch hub (/api/watch-together). Every message is a discriminated union member
 // serialized to JSON and fanned out to the room via OthersInGroup (the sender never receives its own echo).
@@ -153,6 +153,14 @@ export interface WTRoomInfo extends WTBase, WTSessionInfo {
   type: "room-info";
 }
 
+// Host → room: queue order changed without changing the currently playing item. Guests replace only the
+// playlist atom, so the player instance and playhead remain intact.
+export interface WTQueueUpdate extends WTBase {
+  type: "queue-update";
+  playlist: PlaylistItem[];
+  playlistIndex: number;
+}
+
 // Live playback state carried in a state-sync when a session is already running.
 export interface WTSessionState {
   descriptor: ActivePlayback; // what to play
@@ -202,6 +210,7 @@ export type WTMessage =
   | WTChat
   | WTNotice
   | WTRoomInfo
+  | WTQueueUpdate
   | WTStateSync
   | WTPing
   | WTPong

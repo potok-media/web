@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import { EpisodeSelectorContent } from "./common/EpisodeSelectorContent";
 import type { EpisodeSelectorContentProps } from "./common/EpisodeSelectorContent";
 import { IconButton } from "./ui";
@@ -13,6 +13,7 @@ interface TorrentFilesPanelProps
   backLabel: string;
   busy?: boolean;
   error?: string | null;
+  navigationAction?: "back" | "close";
 }
 
 const TorrentFilesSkeleton: React.FC<{
@@ -20,11 +21,12 @@ const TorrentFilesSkeleton: React.FC<{
   loadingLabel: string;
   backLabel: string;
   onBack: () => void;
-}> = ({ title, loadingLabel, backLabel, onBack }) => (
+  navigationAction: "back" | "close";
+}> = ({ title, loadingLabel, backLabel, onBack, navigationAction }) => (
   <div className="torrent-files-loading" role="status" aria-live="polite">
     <div className="torrent-files-loading__header">
       <IconButton className="modal-close-btn" onClick={onBack} aria-label={backLabel}>
-        <ArrowLeft size="1.25rem" />
+        {navigationAction === "close" ? <X size="1.25rem" /> : <ArrowLeft size="1.25rem" />}
       </IconButton>
       <div className="torrent-files-loading__heading">
         <h2>{title}</h2>
@@ -52,6 +54,7 @@ export const TorrentFilesPanel: React.FC<TorrentFilesPanelProps> = ({
   busy = false,
   error,
   isSaving = false,
+  navigationAction = "back",
   ...selectorProps
 }) => {
   const { role: coWatchRole } = useWatchTogether();
@@ -60,7 +63,7 @@ export const TorrentFilesPanel: React.FC<TorrentFilesPanelProps> = ({
     <div className="torrent-files-loading" role="alert">
       <div className="torrent-files-loading__header">
         <IconButton className="modal-close-btn" onClick={selectorProps.onClose} aria-label={backLabel}>
-          <ArrowLeft size="1.25rem" />
+          {navigationAction === "close" ? <X size="1.25rem" /> : <ArrowLeft size="1.25rem" />}
         </IconButton>
         <div className="torrent-files-loading__heading">
           <h2>{selectorProps.title}</h2>
@@ -74,6 +77,7 @@ export const TorrentFilesPanel: React.FC<TorrentFilesPanelProps> = ({
       loadingLabel={loadingLabel}
       backLabel={backLabel}
       onBack={selectorProps.onClose}
+      navigationAction={navigationAction}
     />
   ) : (
     <EpisodeSelectorContent
@@ -81,7 +85,7 @@ export const TorrentFilesPanel: React.FC<TorrentFilesPanelProps> = ({
       isOpen={true}
       isSaving={isSaving || busy}
       busyLabel={busy ? loadingLabel : undefined}
-      navigationAction="back"
+      navigationAction={navigationAction}
       presentation="playlist"
       hideHeader={Boolean(coWatchRole)}
     />

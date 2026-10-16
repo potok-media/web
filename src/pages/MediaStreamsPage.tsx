@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ListVideo, ShieldAlert } from "lucide-react";
@@ -12,6 +12,7 @@ import { useWatchTogether } from "../context/watchTogetherState";
 import { usePlayerPlaylist } from "../hooks/usePlayerPlaylist";
 import type { GenericEpisodeItem } from "../components/common/episodeSelector/types";
 import type { MediaCard } from "../network/ApiTypes";
+import { orderItemsByIds, reorderPlaylistKeepingCurrent } from "../utils/queueOrder";
 
 import { Button, IconButton } from "../components/ui";
 
@@ -21,7 +22,7 @@ export const MediaStreamsPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { activePlayback, playVideo, registerPlayerPortalTarget } = usePlayback();
+  const { activePlayback, playVideo, replacePlaylist, registerPlayerPortalTarget } = usePlayback();
   const watchTogether = useWatchTogether();
   const playPlaylistItem = usePlayerPlaylist(activePlayback, playVideo);
   const mediaStageRef = useRef<HTMLDivElement>(null);
@@ -86,6 +87,11 @@ export const MediaStreamsPage: React.FC = () => {
   const showRightRail = showTorrentFiles || showCoWatchRail;
   const inlinePlaybackActive = Boolean(activePlayback);
   const activeEpisodeId = activePlayback?.playlist?.[activePlayback.playlistIndex ?? -1]?.id;
+  const displayedEpisodes = useMemo(() => {
+    const episodes = episodeSelectorData?.episodes || [];
+    const playlistIds = activePlayback?.playlist?.flatMap((item) => item.id ? [String(item.id)] : []) || [];
+    return playlistIds.length > 0 ? orderItemsByIds(episodes, playlistIds) : episodes;
+  }, [activePlayback?.playlist, episodeSelectorData?.episodes]);
   const workspaceMode = releasePlaybackPhase !== "browsing" || inlinePlaybackActive || showCoWatchRail;
   const stageMode = inlinePlaybackActive ? "player" : "preview";
 
@@ -108,6 +114,19 @@ export const MediaStreamsPage: React.FC = () => {
       }
     }
     handlePlayEpisode(episodeItem);
+  };
+
+  const handleReorderEpisodes = (episodes: GenericEpisodeItem[]) => {
+    if (!activePlayback?.playlist) return;
+    const reordered = reorderPlaylistKeepingCurrent(
+      activePlayback.playlist,
+      episodes.map((item) => item.id),
+      activePlayback.playlistIndex ?? 0,
+    );
+    replacePlaylist(reordered.playlist, reordered.playlistIndex);
+    if (watchTogether.role === "host" && watchTogether.sessionActive) {
+      watchTogether.hostUpdateQueue(reordered.playlist, reordered.playlistIndex);
+    }
   };
 
   useEffect(() => {
@@ -181,12 +200,13 @@ export const MediaStreamsPage: React.FC = () => {
     <TorrentFilesPanel
       loading={releasePlaybackPhase === "inspecting"}
       loadingLabel={t("loading.fetchingInfo")}
-      backLabel={t("actions.back")}
+      backLabel={inlinePlaybackActive ? t("media:selector.closePlayback") : t("actions.back")}
+      navigationAction={inlinePlaybackActive ? "close" : "back"}
       busy={releasePlaybackPhase === "preparing" && Boolean(episodeSelectorData)}
       error={!episodeSelectorData ? releasePlaybackError : null}
       onClose={handleClosePopup}
       title={episodeSelectorData?.title || clickedStream?.title || ""}
-      episodes={episodeSelectorData?.episodes || []}
+      episodes={displayedEpisodes}
       onPlay={handleQueuePlay}
       onStartEditing={handleStartEditing}
       onApplyOverride={handleApplyOverride}
@@ -212,6 +232,8 @@ export const MediaStreamsPage: React.FC = () => {
       activeEpisodeId={activeEpisodeId}
       playbackBlocked={playbackBlocked}
       playbackBlockReason={playbackBlocked ? t("media:selector.parsingHintBody") : undefined}
+      canReorder={watchTogether.role !== "guest"}
+      onReorderEpisodes={handleReorderEpisodes}
     />
   );
 

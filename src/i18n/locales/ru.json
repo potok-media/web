@@ -492,6 +492,9 @@
       "resetSeasonMapping": "Сбросить в авто",
       "back": "Назад",
       "close": "Закрыть",
+      "backToQueue": "Вернуться к очереди",
+      "closePlayback": "Закрыть просмотр",
+      "reorderEpisode": "Изменить порядок серии",
       "mainStream": "Основной поток",
       "noEpisodes": "Нет доступных серий.",
       "savingOffset": "Сохранение смещения..."

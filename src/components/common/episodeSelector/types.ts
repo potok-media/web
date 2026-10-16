@@ -37,6 +37,8 @@ export interface GenericEpisodeItem {
   stillPath?: string;
   airDate?: string;
   isWatched?: boolean;
+  progressSeconds?: number;
+  durationSeconds?: number;
   sizeLabel?: string;
   progressId?: string;
   audios: Array<{ id: string; name: string; url?: string }>;

@@ -6,7 +6,7 @@ import { PlatformManager } from "../utils/PlatformManager";
 import { cleanStreamUrlForExternalPlayer } from "../utils/playbackUrl";
 import { useSettings } from "./SettingsContext";
 import { useAuth } from "./AuthContext";
-import type { ActivePlayback, PlaybackMeta } from "./playbackTypes";
+import type { ActivePlayback, PlaybackMeta, PlaylistItem } from "./playbackTypes";
 
 export type { ActivePlayback, PlaybackMeta, PlaylistItem } from "./playbackTypes";
 
@@ -18,6 +18,7 @@ export interface PlaybackContextType {
   // mints a new descriptor and never tears the player down mid-playback. Consumers read it separately.
   playbackMeta: PlaybackMeta;
   playVideo: (playback: ActivePlayback) => void;
+  replacePlaylist: (playlist: PlaylistItem[], playlistIndex: number) => void;
   enrichPlayback: (
     patch: Partial<ActivePlayback>,
     match?: { streamHash?: string; fileIndex?: string },
@@ -101,6 +102,13 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     [],
   );
 
+  const replacePlaylist = useCallback((playlist: PlaylistItem[], playlistIndex: number) => {
+    setActivePlayback((current) => {
+      if (!current) return current;
+      return { ...current, playlist, playlistIndex };
+    });
+  }, []);
+
   const stopVideo = useCallback(() => {
     sessionStorage.removeItem("potok_last_playback");
     setActivePlayback(null);
@@ -125,6 +133,7 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       playerPortalTarget,
       registerPlayerPortalTarget,
       playVideo,
+      replacePlaylist,
       enrichPlayback,
       stopVideo,
     }),
@@ -134,6 +143,7 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       playerPortalTarget,
       registerPlayerPortalTarget,
       playVideo,
+      replacePlaylist,
       enrichPlayback,
       stopVideo,
     ],
