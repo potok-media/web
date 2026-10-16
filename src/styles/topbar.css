@@ -303,9 +303,16 @@
   }
 }
 
-.app-topbar__brand {
+.app-topbar__leading {
   grid-column: 1;
   justify-self: start;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+}
+
+.app-topbar__brand {
   color: var(--text-primary);
   font-size: 1.05rem;
   font-weight: 800;
@@ -371,7 +378,7 @@
 .app-topbar__actions {
   grid-column: 3;
   display: grid;
-  grid-template-columns: 2.25rem minmax(7.5rem, 1fr) 2.25rem;
+  grid-template-columns: minmax(7.5rem, 1fr) 2.25rem;
   align-items: center;
   justify-self: end;
   gap: var(--space-xs);
@@ -406,7 +413,8 @@
 .app-topbar-menu__popover {
   position: absolute;
   top: calc(100% + 0.625rem);
-  right: 0;
+  right: auto;
+  left: 0;
   z-index: 10;
   width: min(20rem, calc(100vw - 2rem));
   height: auto;
@@ -424,7 +432,7 @@
   -webkit-backdrop-filter: blur(1.5rem) saturate(1.12);
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
   scrollbar-width: thin;
-  transform-origin: top right;
+  transform-origin: top left;
   animation: app-topbar-menu-enter 140ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 

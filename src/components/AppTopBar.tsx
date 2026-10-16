@@ -84,9 +84,12 @@ export const AppTopBar: React.FC = React.memo(() => {
           <WatchTogetherTopBarRoom playback={activePlayback} />
         ) : (
           <>
-            <NavLink to="/" className="app-topbar__brand" aria-label={t("home")}>
-              Potok
-            </NavLink>
+            <div className="app-topbar__leading">
+              <AppMenuPopover />
+              <NavLink to="/" className="app-topbar__brand" aria-label={t("home")}>
+                Potok
+              </NavLink>
+            </div>
 
             {potokToken ? (
               <nav className="app-topbar__nav">
@@ -107,8 +110,6 @@ export const AppTopBar: React.FC = React.memo(() => {
             ) : null}
 
             <div className="app-topbar__actions">
-              <AppMenuPopover />
-
               <form className="app-topbar-search" role="search" onSubmit={handleSearchSubmit}>
             <div className="app-topbar-search__wrap">
               <Search size="1rem" className="app-topbar-search__icon" aria-hidden="true" />
