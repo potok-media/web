@@ -368,6 +368,167 @@
   }
 }
 
+/* Connected account rows share the card's inset and align actions at the end. */
+.connected-accounts-card > .settings-card__body {
+  gap: 0;
+}
+
+.connected-account-row {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-m);
+  min-width: 0;
+  padding: var(--space-m) var(--space-l);
+}
+
+.connected-account-row + .connected-account-row {
+  border-top: var(--glass-border);
+}
+
+.connected-account-row__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-m);
+  background-color: var(--bg-surface-high);
+  color: var(--text-secondary);
+}
+
+.connected-account-row__icon--telegram {
+  background-color: var(--accent-dim);
+  color: var(--accent);
+}
+
+.connected-account-row__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xxs);
+  min-width: 0;
+}
+
+.connected-account-row__title {
+  margin: 0;
+  color: var(--text-primary);
+  font: var(--font-body-bold);
+}
+
+.connected-account-row__status {
+  margin: 0;
+  color: var(--text-secondary);
+  font: var(--font-caption);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.connected-account-row__action {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+  max-width: 20rem;
+}
+
+.connected-account-row__action .ui-btn {
+  min-height: 2.75rem;
+  max-width: 100%;
+  white-space: normal;
+}
+
+.connected-account-row__action .ui-btn svg {
+  flex-shrink: 0;
+}
+
+.connected-account-row__action .telegram-start-auth {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.connected-account-row__action .telegram-start-auth-actions {
+  justify-content: flex-start;
+}
+
+.connected-accounts-modal__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  min-width: 0;
+}
+
+.connected-accounts-modal__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-m);
+  min-height: 10rem;
+  color: var(--text-secondary);
+  font: var(--font-body);
+  text-align: center;
+}
+
+.connected-accounts-modal .device-auth--modal {
+  gap: var(--space-l);
+  max-width: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.connected-accounts-modal .device-auth-avatar-container,
+.connected-accounts-modal .device-auth-title {
+  display: none;
+}
+
+.connected-accounts-modal .device-auth-steps-box {
+  padding: var(--space-m);
+}
+
+.connected-accounts-modal .device-auth-step-content {
+  min-width: 0;
+}
+
+.connected-accounts-modal .device-auth-link {
+  max-width: 100%;
+  padding: var(--space-xs) var(--space-s);
+  overflow-wrap: anywhere;
+}
+
+.connected-accounts-modal .device-auth-code-text {
+  min-width: 0;
+  padding: var(--space-xs) var(--space-m);
+  font-size: 1.5rem;
+  letter-spacing: 0.125rem;
+  overflow-wrap: anywhere;
+}
+
+.connected-accounts-modal .device-auth-copy-btn {
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .connected-account-row {
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    gap: var(--space-s) var(--space-m);
+    padding: var(--space-m);
+  }
+
+  .connected-account-row__action {
+    grid-column: 2;
+    justify-content: flex-start;
+    max-width: 100%;
+  }
+
+  .connected-accounts-modal .device-auth-code-row {
+    flex-wrap: wrap;
+    gap: var(--space-s);
+  }
+}
+
+
 /* Profiles Layout Components */
 .settings-profiles-layout {
   display: grid;

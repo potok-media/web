@@ -18,6 +18,7 @@ import { TelegramStartAuthButton } from "../profile/TelegramStartAuthButton";
 import { TraktDeviceAuthView } from "../profile/TraktDeviceAuthView";
 import { Button, IconButton } from "../ui";
 import { SettingsCard } from "./SettingsCard";
+import "../../styles/profile.css";
 
 export const ConnectedAccountsSettings: React.FC = () => {
   const { t } = useTranslation("settings");
