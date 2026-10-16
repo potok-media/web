@@ -6,7 +6,6 @@ import { StreamList } from "../components/common/StreamList";
 import { StreamSidebar } from "../components/StreamSidebar";
 import { TorrentFilesPanel } from "../components/TorrentFilesPanel";
 import { WatchTogetherRail } from "../components/watchTogether/WatchTogetherRail";
-import { WatchTogetherWorkspace } from "../components/watchTogether/WatchTogetherWorkspace";
 import { useMediaStreams } from "../hooks/useMediaStreams";
 import { usePlayback } from "../context/PlaybackContext";
 import { useWatchTogether } from "../context/watchTogetherState";
@@ -81,10 +80,11 @@ export const MediaStreamsPage: React.FC = () => {
   });
   const showTorrentFiles = Boolean(clickedStream);
   const showCoWatchRail = Boolean(watchTogether.role);
-  const showRightRail = showTorrentFiles || showCoWatchRail;
-  const inlinePlaybackActive = Boolean(activePlayback);
+  // File discovery has its own screen. Do not mount a player surface until the file list is known.
+  const showRightRail = (showTorrentFiles && Boolean(episodeSelectorData)) || showCoWatchRail;
+  const inlinePlaybackActive = Boolean(activePlayback && (activePlayback.presentation !== "fullscreen" || showCoWatchRail));
   const activeEpisodeId = activePlayback?.playlist?.[activePlayback.playlistIndex ?? -1]?.id;
-  const workspaceMode = showRightRail || inlinePlaybackActive;
+  const workspaceMode = showRightRail;
   const stageMode = inlinePlaybackActive ? "player" : "preview";
 
   const handleQueuePlay = (episodeItem: GenericEpisodeItem) => {
@@ -169,46 +169,48 @@ export const MediaStreamsPage: React.FC = () => {
     </div>
   );
 
+  const renderTorrentFiles = () => (
+    <TorrentFilesPanel
+      loading={!episodeSelectorData}
+      loadingLabel={t("loading.fetchingInfo")}
+      backLabel={t("actions.back")}
+      busy={actionLoading && Boolean(episodeSelectorData)}
+      onClose={handleClosePopup}
+      title={episodeSelectorData?.title || clickedStream?.title || ""}
+      episodes={episodeSelectorData?.episodes || []}
+      onPlay={handleQueuePlay}
+      onStartEditing={handleStartEditing}
+      onApplyOverride={handleApplyOverride}
+      onResetOverride={handleResetOverride}
+      fileOverrideEnabled={fileOverrideEnabled}
+      fileMap={episodeSelectorData?.fileMap || {}}
+      onApplyFileOverride={handleApplyFileOverride}
+      onResetFileOverride={handleResetFileOverride}
+      onApplyEpisodeBinding={handleApplyEpisodeBinding}
+      armLayout={armLayout}
+      armLayoutLoading={armLayoutLoading}
+      armLayoutError={armLayoutError}
+      onRetryArmLayout={handleStartEditing}
+      seasonMap={episodeSelectorData?.seasonMap || {}}
+      seasons={seasons}
+      seasonsLoading={seasonsLoading}
+      isSaving={isSaving}
+      tmdbSeasonsCount={episodeSelectorData?.tmdbSeasonsCount}
+      parsingSuspect={episodeSelectorData?.parsingSuspect}
+      backdropSrc={currentMedia?.backdropSrc}
+      posterSrc={currentMedia?.posterSrc}
+      mediaType={mediaType}
+      activeEpisodeId={activeEpisodeId}
+    />
+  );
+
   const renderContent = () => (
     <section className="streams-page-content">
       <div className="torrents-panel" hidden={showRightRail}>
         {renderTorrentList()}
       </div>
 
-      {showTorrentFiles && (
-        <TorrentFilesPanel
-          loading={!episodeSelectorData}
-          loadingLabel={t("loading.fetchingInfo")}
-          backLabel={t("actions.back")}
-          busy={actionLoading && Boolean(episodeSelectorData)}
-          onClose={handleClosePopup}
-          title={episodeSelectorData?.title || clickedStream?.title || ""}
-          episodes={episodeSelectorData?.episodes || []}
-          onPlay={handleQueuePlay}
-          onStartEditing={handleStartEditing}
-          onApplyOverride={handleApplyOverride}
-          onResetOverride={handleResetOverride}
-          fileOverrideEnabled={fileOverrideEnabled}
-          fileMap={episodeSelectorData?.fileMap || {}}
-          onApplyFileOverride={handleApplyFileOverride}
-          onResetFileOverride={handleResetFileOverride}
-          onApplyEpisodeBinding={handleApplyEpisodeBinding}
-          armLayout={armLayout}
-          armLayoutLoading={armLayoutLoading}
-          armLayoutError={armLayoutError}
-          onRetryArmLayout={handleStartEditing}
-          seasonMap={episodeSelectorData?.seasonMap || {}}
-          seasons={seasons}
-          seasonsLoading={seasonsLoading}
-          isSaving={isSaving}
-          tmdbSeasonsCount={episodeSelectorData?.tmdbSeasonsCount}
-          parsingSuspect={episodeSelectorData?.parsingSuspect}
-          backdropSrc={currentMedia?.backdropSrc}
-          posterSrc={currentMedia?.posterSrc}
-          mediaType={mediaType}
-          activeEpisodeId={activeEpisodeId}
-        />
-      )}
+      {showTorrentFiles && renderTorrentFiles()}
 
       {!showTorrentFiles && showCoWatchRail && (
         <section className="torrent-files-panel torrent-files-panel--co-watch">
@@ -239,18 +241,7 @@ export const MediaStreamsPage: React.FC = () => {
     );
   }
 
-  if (activePlayback && showCoWatchRail && watchTogether.sessionActive) {
-    return (
-      <WatchTogetherWorkspace
-        playback={activePlayback}
-        backdropSrc={currentMedia?.backdropSrc || activePlayback.backdropSrc}
-        mediaStageRef={mediaStageRef}
-      >
-        {renderContent()}
-      </WatchTogetherWorkspace>
-    );
-  }
-
+  // Keep the stage and its portal target mounted when a solo player becomes a room host.
   return (
     <div className={`streams-page-layout ${workspaceMode ? "" : "streams-page-layout--browser"}`}>
       <div
@@ -282,7 +273,7 @@ export const MediaStreamsPage: React.FC = () => {
             {renderSidebar()}
             <section className="streams-page-content streams-page-content--browser">
               <div className="streams-scroll-area">
-                {renderTorrentList(true)}
+                {showTorrentFiles ? renderTorrentFiles() : renderTorrentList(true)}
               </div>
             </section>
           </div>

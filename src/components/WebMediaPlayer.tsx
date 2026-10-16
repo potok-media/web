@@ -8,7 +8,6 @@ import { useWatchTogether } from "../context/watchTogetherState";
 import { PlayerCoWatchNotices } from "./player/PlayerCoWatchNotices";
 import { PlayerCoWatchPauseOverlay } from "./player/PlayerCoWatchPauseOverlay";
 import { PlayerCoWatchWaitOverlay } from "./player/PlayerCoWatchWaitOverlay";
-import { PlayerCoWatchChat } from "./player/PlayerCoWatchChat";
 import { PlayerOverlayStack } from "./player/PlayerOverlayStack";
 import { PlayerVideoSurface } from "./player/PlayerVideoSurface";
 import { PlayerChrome } from "./player/PlayerChrome";
@@ -22,7 +21,6 @@ const PLAYER_CHROME_SELECTOR = [
   ".player-loading-overlay",
   ".player-error-overlay",
   ".selector-dropdown-menu",
-  ".wt-chat",
 ].join(", ");
 
 interface WebMediaPlayerProps {
@@ -41,7 +39,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = (props) => {
     myPermissions,
     sendControl,
     leave: coWatchLeave,
-    chatOpen,
   } = useWatchTogether();
   const navigate = useNavigate();
   const propsOnClose = playerProps.onClose;
@@ -91,7 +88,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = (props) => {
   return createPortal(
     <div
       ref={vm.overlayRef}
-      className={`web-player-overlay ${isInline ? "web-player-overlay--inline" : ""} ${!vm.controlsVisible ? "controls-hidden" : ""} ${chatOpen && !isInline ? "web-player-overlay--chat-open" : ""}`}
+      className={`web-player-overlay ${isInline ? "web-player-overlay--inline" : ""} ${!vm.controlsVisible ? "controls-hidden" : ""}`}
       onMouseMove={vm.handleUserActivity}
       onClick={(e) => {
         vm.handleUserActivity();
@@ -224,7 +221,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = (props) => {
         onClose={vm.handleClose}
         isNetworkOffline={vm.isNetworkOffline}
       />
-      {!isInline && <PlayerCoWatchChat />}
     </div>,
     portalTarget ?? document.body,
   );

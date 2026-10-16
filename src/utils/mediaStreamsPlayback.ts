@@ -40,6 +40,7 @@ export const buildPlaybackFromInfo = (
   info: PlaybackInfo,
   base: {
     mediaType: "movie" | "tv";
+    presentation?: ActivePlayback["presentation"];
     id: number;
     title?: string;
     originalTitle?: string;
@@ -62,6 +63,7 @@ export const buildPlaybackFromInfo = (
     stillSrc?: string;
   },
 ): ActivePlayback => ({
+  presentation: base.presentation,
   streamUrl: info.streamUrl,
   title: info.title || base.title || "",
   originalTitle: base.originalTitle,

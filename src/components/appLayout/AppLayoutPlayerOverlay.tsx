@@ -33,7 +33,11 @@ export const AppLayoutPlayerOverlay: React.FC<AppLayoutPlayerOverlayProps> = ({
   checkConnection,
 }) => {
   const { t } = useTranslation("common");
-  const { playerPortalTarget } = usePlayback();
+  const { playerPortalTarget: workspaceTarget } = usePlayback();
+  // Pick the destination on the first player render, before page refs settle.
+  const playerPortalTarget = activePlayback?.presentation === "fullscreen" && !activePlayback.coWatch
+    ? null
+    : workspaceTarget;
 
   return (
     <>

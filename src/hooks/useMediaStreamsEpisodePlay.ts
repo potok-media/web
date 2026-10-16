@@ -123,6 +123,7 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
 
   const playFromInfo = useCallback(
     (info: PlaybackInfo, extras: {
+      presentation?: ActivePlayback["presentation"];
       season?: number;
       episode?: number;
       workId?: string | null;
@@ -139,6 +140,7 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
       playVideo(
         buildPlaybackFromInfo(info, {
           mediaType: mediaType as "movie" | "tv",
+          presentation: "fullscreen",
           id: mediaId,
           providerId: activeSource?.pluginId,
           ...playbackLabels,
@@ -241,6 +243,7 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
           });
           if (!info) throw new Error(i18n.t("media:streams.playbackInfoEmpty"));
           playFromInfo(info, {
+            presentation: mediaType === "movie" || episodeSelectorData?.episodes.length === 1 ? "fullscreen" : "inline",
             season: mediaType === "tv" ? ep.season : undefined,
             episode: mediaType === "tv" ? ep.episode : undefined,
             workId: ep.workId,
@@ -259,7 +262,7 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
         .catch((error) => { if (generation === selectionGeneration.current) onError(error); })
         .finally(() => { if (generation === selectionGeneration.current) setActionLoading(false); });
     },
-    [activeSource, clickedStream, context, playFromInfo, onError, mediaType, enrichPlayback, i18n],
+    [activeSource, clickedStream, context, playFromInfo, onError, mediaType, enrichPlayback, i18n, episodeSelectorData],
   );
 
   const handleStartEditing = useCallback(() => {

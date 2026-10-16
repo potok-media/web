@@ -256,50 +256,6 @@
   }
 }
 
-/* Co-watch chat sidebar (fixed to the viewport's right; the player overlay shrinks to its left). */
-.wt-chat {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: var(--wt-chat-width, 22rem);
-  display: flex;
-  flex-direction: column;
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur-glass);
-  border-left: 1px solid var(--glass-border);
-  animation: wt-chat-in 0.2s ease-out;
-}
-
-.wt-chat__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-s) var(--space-m);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.wt-chat__heading {
-  font: var(--font-title3);
-  color: var(--text-primary);
-}
-
-/* Chat / Info tab switch in the sidebar header (buttons are design-system Chips). */
-.wt-chat__tabs {
-  display: flex;
-  gap: var(--space-2xs);
-}
-
-/* Info tab body — scrolls independently, reuses the lobby's session/share/participant sections. */
-.wt-chat__info {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-m);
-  padding: var(--space-m);
-}
-
 .wt-chat__list {
   flex: 1;
   overflow-y: auto;
@@ -890,11 +846,6 @@
   .wt-rail {
     min-height: 32rem;
   }
-}
-
-@keyframes wt-chat-in {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
 }
 
 /* Transient co-watch notices, rendered inside the player overlay (last DOM child → on top, no z-index). */

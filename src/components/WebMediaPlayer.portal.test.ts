@@ -25,8 +25,9 @@ describe("WebMediaPlayer portal ownership", () => {
     expect(player).toContain("web-player-overlay--inline");
     expect(player).toContain("showPlaylistSelector={!isInline || vm.isFullscreen}");
     expect(player).toContain("coWatchInRail={isInline}");
-    expect(player).toContain("!isInline && <PlayerCoWatchChat />");
+    expect(player).not.toContain("PlayerCoWatchChat");
+    expect(player).not.toContain("web-player-overlay--chat-open");
     expect(utilityControls).toContain("showPlaylistSelector && playlistItems.length > 0");
-    expect(utilityControls).toContain("if (coWatchInRail) {");
+    expect(utilityControls).toContain("if (coWatchInRail && isFullscreen)");
   });
 });

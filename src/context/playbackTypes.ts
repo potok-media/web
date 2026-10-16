@@ -36,6 +36,8 @@ export interface PlaybackMeta {
 }
 
 export interface ActivePlayback {
+  /** Chosen after file discovery; a single video must not inherit a page portal. */
+  presentation?: "fullscreen" | "inline";
   streamUrl: string;
   title: string;
   originalTitle?: string;

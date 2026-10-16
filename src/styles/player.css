@@ -1591,12 +1591,3 @@ video::cue {
   opacity: 0.45;
   pointer-events: none;
 }
-
-/* Co-watch chat sidebar: the fullscreen player overlay shrinks to the left of the chat panel. */
-.web-player-overlay {
-  --wt-chat-width: 22rem;
-  transition: right 0.2s ease;
-}
-.web-player-overlay--chat-open {
-  right: var(--wt-chat-width);
-}

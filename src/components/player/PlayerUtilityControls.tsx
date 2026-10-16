@@ -1,6 +1,5 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import {
   Maximize,
   Minimize,
@@ -16,7 +15,6 @@ import { TrackSelectorDropdown } from "./TrackSelectorDropdown";
 import { CaptionsLoadingIcon } from "./SubtitleLoadingIcons";
 import { IconButton, Switch, cx } from "../ui";
 import { useSkipFillers } from "../../utils/skipFillers";
-import { usePlayback } from "../../context/PlaybackContext";
 import { useWatchTogether } from "../../context/watchTogetherState";
 import type { ActivePlayback } from "../../context/playbackTypes";
 
@@ -98,8 +96,6 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
 }) => {
   const { t } = useTranslation("player");
   const [skipFillers, setSkipFillers] = useSkipFillers();
-  const navigate = useNavigate();
-  const { stopVideo } = usePlayback();
   const {
     createRoom,
     role: coWatchRole,
@@ -114,12 +110,8 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
     // pass playback as a prop and never populate the global context, so activePlayback would be null there.
     if (!playback) return;
     createRoom(playback);
-    if (coWatchInRail) {
-      if (isFullscreen) onToggleFullscreen();
-      return;
-    }
-    stopVideo(); // closes the global player (no-op for a plugin player, which unmounts on navigation)
-    navigate("/watch-together");
+    // The room adopts the running player; stopping it or navigating would discard its media pipeline.
+    if (coWatchInRail && isFullscreen) onToggleFullscreen();
   };
 
   return (

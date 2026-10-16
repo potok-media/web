@@ -54,7 +54,7 @@ describe("MediaStreamsPage layout", () => {
       "utf8",
     );
 
-    expect(page).toContain("<WatchTogetherWorkspace");
+    expect(page).toContain("<WatchTogetherRail");
     expect(guestPage).toContain("<WatchTogetherWorkspace");
     expect(guestPage).toContain("sessionActive && activePlayback");
     expect(workspace).toContain("registerPlayerPortalTarget");
