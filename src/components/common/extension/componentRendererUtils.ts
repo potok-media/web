@@ -10,6 +10,7 @@ export const HOST_MEDIA_TYPES = new Set([
   "MediaCast",
   "MediaOverview",
   "MediaRow",
+  "PlaybackWorkspace",
   "MediaPlayer",
   "EpisodeSelector",
   "EpisodeSelectorPopup",

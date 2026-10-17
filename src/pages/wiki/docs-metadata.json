@@ -477,6 +477,26 @@
       }
     }
   },
+  "PlaybackWorkspace": {
+    "title": "PlaybackWorkspace (Единый экран воспроизведения)",
+    "description": "Host-owned экран с inline-плеером слева и панелью плагина справа. Использует тот же layout и portal target, что торрентный плеер и совместный просмотр.",
+    "example": "// Плеер слева, очередь серий справа\nui.render(\n  PlaybackWorkspace()\n    .backdropSrc(\"https://example.test/backdrop.jpg\")\n    .child(\n      EpisodeSelector()\n        .isOpen(true)\n        .presentation(\"panel\")\n        .episodes(episodes)\n        .onPlay((episode) => openEpisode(episode))\n    )\n);",
+    "methods": {
+      "backdropSrc": {
+        "argument": "string",
+        "description": "Фоновое изображение общего экрана воспроизведения."
+      },
+      "stageMode": {
+        "argument": "\"player\" | \"preview\"",
+        "description": "Состояние левой сцены до или во время воспроизведения.",
+        "default": "\"player\""
+      },
+      "child": {
+        "argument": "UIComponent",
+        "description": "Содержимое правой панели, обычно EpisodeSelector в режиме panel."
+      }
+    }
+  },
   "MediaPlayer": {
     "title": "MediaPlayer (Видеоплеер)",
     "description": "Встроенный HTML5-видеоплеер с поддержкой форматов HLS (.m3u8), Dash (.mpd) и обычных MP4-файлов. Предоставляет полноценное управление воспроизведением, субтитрами и звуковыми дорожками.",
@@ -605,18 +625,32 @@
     }
   },
   "EpisodeSelector": {
-    "title": "EpisodeSelector (Модальный выбор серий)",
-    "description": "Встроенный модальный селектор для детального выбора серий и сезонов сериала с прокруткой и фоновым постером.",
-    "example": "// Модальный селектор\nconst { ui, createState } = PotokSDK;\nconst state = createState({ open: false });\n\nconst mockEp = {\n  id: \"s01e01\",\n  season: 1,\n  episode: 1,\n  rawSeason: 1,\n  rawEpisode: 1,\n  title: \"Зима близко\",\n  fileName: \"Show.S01E01.mkv\",\n  stillPath: \"https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg\",\n  airDate: \"2011-04-17\",\n  isWatched: false,\n  sizeLabel: \"1.2 GB\",\n  audios: [\n    { id: \"ru\", name: \"Русский дубляж\", url: \"http://example.com/s01e01_ru.m3u8\" }\n  ],\n  url: \"http://example.com/s01e01.m3u8\"\n};\n\nfunction draw() {\n  ui.render(\n    VStack()\n      .child(Button(\"Выбрать серию\").onClick(() => state.open = true))\n      .child(\n        EpisodeSelector()\n          .isOpen(state.open)\n          .title(\"Игра Престолов\")\n          .subtitle(\"Выберите серию для просмотра\")\n          .backdropSrc(\"https://image.tmdb.org/t/p/original/example.jpg\")\n          .seasonsLoading(false)\n          .seasons([{\n            id: 1,\n            seasonNumber: 1,\n            season_number: 1,\n            episodes: [{\n              id: 101,\n              episodeNumber: 1,\n              episode_number: 1,\n              name: \"Зима близко\",\n              stillPath: \"https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg\",\n              airDate: \"2011-04-17\",\n              overview: \"Описание серии\"\n            }]\n          }])\n          .episodes([mockEp])\n          .onClose(() => state.open = false)\n          .onPlay((ep, audioId) => {\n            state.open = false;\n            ui.showHUD(\"success\", \"Запускаем: \" + ep.title + \" (\" + audioId + \")\");\n          })\n          .onApplyOverride(({ sourceSeason, targetSeason, offset }) => {\n            ui.showHUD(\"info\", \"Override: \" + sourceSeason + \" -> \" + targetSeason + \" (offset \" + offset + \")\");\n          })\n          .onStartEditing(() => {\n            ui.showHUD(\"info\", \"Редактирование сезонов\");\n          })\n      )\n  );\n}\nstate.$subscribe(draw); draw();",
+    "title": "EpisodeSelector (Выбор серий)",
+    "description": "Селектор серий и сезонов: модальное окно по умолчанию или встроенная панель очереди Potok в режиме panel.",
+    "example": "// Модальный селектор\nconst { ui, createState } = PotokSDK;\nconst state = createState({ open: false });\n\nconst mockEp = {\n  id: \"s01e01\",\n  season: 1,\n  episode: 1,\n  rawSeason: 1,\n  rawEpisode: 1,\n  title: \"Зима близко\",\n  fileName: \"Show.S01E01.mkv\",\n  stillPath: \"https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg\",\n  airDate: \"2011-04-17\",\n  isWatched: false,\n  sizeLabel: \"1.2 GB\",\n  audios: [\n    { id: \"ru\", name: \"Русский дубляж\", url: \"http://example.com/s01e01_ru.m3u8\" }\n  ],\n  url: \"http://example.com/s01e01.m3u8\"\n};\n\nfunction draw() {\n  ui.render(\n    VStack()\n      .child(Button(\"Выбрать серию\").onClick(() => state.open = true))\n      .child(\n        EpisodeSelector()\n          .isOpen(state.open)\n          .title(\"Игра Престолов\")\n          .subtitle(\"Выберите серию для просмотра\")\n          .backdropSrc(\"https://image.tmdb.org/t/p/original/example.jpg\")\n          .seasonsLoading(false)\n          .seasons([{\n            id: 1,\n            seasonNumber: 1,\n            season_number: 1,\n            episodes: [{\n              id: 101,\n              episodeNumber: 1,\n              episode_number: 1,\n              name: \"Зима близко\",\n              stillPath: \"https://image.tmdb.org/t/p/w500/j5M3P1xMWh1Sohc29N3L9B6c4W0.jpg\",\n              airDate: \"2011-04-17\",\n              overview: \"Описание серии\"\n            }]\n          }])\n          .episodes([mockEp])\n          .onClose(() => state.open = false)\n          .onPlay((ep, audioId) => {\n            state.open = false;\n            ui.showHUD(\"success\", \"Запускаем: \" + ep.title + \" (\" + audioId + \")\");\n          })\n          .onApplyOverride(({ sourceSeason, targetSeason, offset }) => {\n            ui.showHUD(\"info\", \"Override: \" + sourceSeason + \" -> \" + targetSeason + \" (offset \" + offset + \")\");\n          })\n          .onStartEditing(() => {\n            ui.showHUD(\"info\", \"Редактирование сезонов\");\n          })\n      )\n  );\n}\nstate.$subscribe(draw); draw();\n// Та же очередь, встроенная в layout плагина без модального overlay\nui.render(\n  EpisodeSelector()\n    .isOpen(true)\n    .presentation(\"panel\")\n    .activeEpisodeId(\"s01e01\")\n    .canReorder(true)\n    .episodes([mockEp])\n    .onReorder((nextQueue) => {\n      console.log(\"Новый порядок:\", nextQueue);\n    })\n);",
     "methods": {
       "isOpen": {
         "argument": "boolean",
-        "description": "Управляет видимостью модального окна.",
+        "description": "Управляет видимостью селектора.",
+        "default": "false"
+      },
+      "presentation": {
+        "argument": "\"modal\" | \"panel\"",
+        "description": "Выбирает модальное окно или встроенную панель очереди Potok.",
+        "default": "\"modal\""
+      },
+      "activeEpisodeId": {
+        "argument": "string",
+        "description": "ID текущей воспроизводимой серии, которую панель должна подсветить."
+      },
+      "canReorder": {
+        "argument": "boolean",
+        "description": "Разрешает перестановку серий drag-and-drop в режиме panel.",
         "default": "false"
       },
       "title": {
         "argument": "string",
-        "description": "Главный заголовок модального окна (название сериала)."
+        "description": "Главный заголовок селектора (название сериала)."
       },
       "subtitle": {
         "argument": "string",
@@ -656,6 +690,10 @@
       "onStartEditing": {
         "argument": "CallbackFunction",
         "description": "Коллбек в начале редактирования серий."
+      },
+      "onReorder": {
+        "argument": "(episodes: SDKStreamEpisode[]) => void",
+        "description": "Коллбек с полным новым порядком серий после drag-and-drop."
       }
     }
   },

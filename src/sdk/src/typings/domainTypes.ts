@@ -362,6 +362,9 @@ export const domainTypesDts = `
     disabled?: boolean;
   }
 
+  /** EpisodeSelector rendering mode. */
+  type SDKEpisodeSelectorPresentation = 'modal' | 'panel';
+
   /** Config passed to ui.showEpisodeSelector to open the episode picker dialog. */
   interface SDKEpisodeSelectorConfig {
     isOpen?: boolean;

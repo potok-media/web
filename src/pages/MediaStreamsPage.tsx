@@ -5,7 +5,7 @@ import { ArrowLeft, ListVideo, ShieldAlert } from "lucide-react";
 import { StreamList } from "../components/common/StreamList";
 import { StreamSidebar } from "../components/StreamSidebar";
 import { TorrentFilesPanel } from "../components/TorrentFilesPanel";
-import { WatchTogetherRail } from "../components/watchTogether/WatchTogetherRail";
+import { PlaybackWorkspace } from "../components/playback/PlaybackWorkspace";
 import { useMediaStreams } from "../hooks/useMediaStreams";
 import { usePlayback } from "../context/PlaybackContext";
 import { useWatchTogether } from "../context/watchTogetherState";
@@ -22,7 +22,7 @@ export const MediaStreamsPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { activePlayback, playVideo, replacePlaylist, registerPlayerPortalTarget } = usePlayback();
+  const { activePlayback, playVideo, replacePlaylist } = usePlayback();
   const watchTogether = useWatchTogether();
   const playPlaylistItem = usePlayerPlaylist(activePlayback, playVideo);
   const mediaStageRef = useRef<HTMLDivElement>(null);
@@ -83,7 +83,9 @@ export const MediaStreamsPage: React.FC = () => {
     activeTab: tab,
   });
   const showTorrentFiles = releasePlaybackMode === "files" && releasePlaybackPhase !== "browsing";
-  const showCoWatchRail = Boolean(watchTogether.role);
+  const showCoWatchRail = Boolean(
+    activePlayback && watchTogether.role && watchTogether.sessionActive,
+  );
   const showRightRail = showTorrentFiles || showCoWatchRail;
   const inlinePlaybackActive = Boolean(activePlayback);
   const activeEpisodeId = activePlayback?.playlist?.[activePlayback.playlistIndex ?? -1]?.id;
@@ -92,6 +94,9 @@ export const MediaStreamsPage: React.FC = () => {
     const playlistIds = activePlayback?.playlist?.flatMap((item) => item.id ? [String(item.id)] : []) || [];
     return playlistIds.length > 0 ? orderItemsByIds(episodes, playlistIds) : episodes;
   }, [activePlayback?.playlist, episodeSelectorData?.episodes]);
+  const coWatchQueueCount = showTorrentFiles
+    ? displayedEpisodes.length
+    : activePlayback?.playlist?.length || (activePlayback ? 1 : 0);
   const workspaceMode = releasePlaybackPhase !== "browsing" || inlinePlaybackActive || showCoWatchRail;
   const stageMode = inlinePlaybackActive ? "player" : "preview";
 
@@ -230,11 +235,22 @@ export const MediaStreamsPage: React.FC = () => {
       posterSrc={currentMedia?.posterSrc}
       mediaType={mediaType}
       activeEpisodeId={activeEpisodeId}
+      hideHeader={showCoWatchRail}
       playbackBlocked={playbackBlocked}
       playbackBlockReason={playbackBlocked ? t("media:selector.parsingHintBody") : undefined}
       canReorder={watchTogether.role !== "guest"}
       onReorderEpisodes={handleReorderEpisodes}
     />
+  );
+
+  const renderCoWatchQueue = () => showTorrentFiles ? renderTorrentFiles() : (
+    <div className="wt-queue-current">
+      <ListVideo size="1.5rem" />
+      <div>
+        <span>{t("watchTogether:queue")}</span>
+        <strong>{activePlayback?.title || currentMedia?.title || ""}</strong>
+      </div>
+    </div>
   );
 
   const renderContent = () => (
@@ -244,23 +260,6 @@ export const MediaStreamsPage: React.FC = () => {
       </div>
 
       {showTorrentFiles && renderTorrentFiles()}
-
-      {!showTorrentFiles && showCoWatchRail && (
-        <section className="torrent-files-panel torrent-files-panel--co-watch">
-          <WatchTogetherRail
-            queueCount={activePlayback ? 1 : 0}
-            queue={(
-              <div className="wt-queue-current">
-                <ListVideo size="1.5rem" />
-                <div>
-                  <span>{t("watchTogether:queue")}</span>
-                  <strong>{activePlayback?.title || currentMedia?.title || ""}</strong>
-                </div>
-              </div>
-            )}
-          />
-        </section>
-      )}
     </section>
   );
 
@@ -275,42 +274,46 @@ export const MediaStreamsPage: React.FC = () => {
   }
 
   // Keep the stage and its portal target mounted when a solo player becomes a room host.
+  if (workspaceMode) {
+    const stageContent = stageMode === "preview" ? (
+      <>
+        {renderPlayerPreview()}
+        {clickedStream?.title ? (
+          <div className="streams-media-stage__release-title" title={clickedStream.title}>
+            {clickedStream.title}
+          </div>
+        ) : null}
+      </>
+    ) : null;
+
+    return (
+      <PlaybackWorkspace
+        backdropSrc={currentMedia?.backdropSrc}
+        stageMode={stageMode}
+        stageContent={stageContent}
+        mediaStageRef={mediaStageRef}
+        rail={showRightRail ? renderContent() : undefined}
+        coWatchQueue={showCoWatchRail ? renderCoWatchQueue() : undefined}
+        coWatchQueueCount={coWatchQueueCount}
+      />
+    );
+  }
+
   return (
-    <div className={`streams-page-layout ${workspaceMode ? "" : "streams-page-layout--browser"}`}>
+    <div className="streams-page-layout streams-page-layout--browser">
       <div
         className="streams-page-backdrop"
         style={{ "--backdrop-image": `url(${currentMedia?.backdropSrc || ""})` } as React.CSSProperties}
       />
-      <div
-        className={`streams-page-shell ${workspaceMode ? "streams-page-shell--workspace" : "streams-page-shell--browser"} ${showRightRail ? "streams-page-shell--split" : ""}`}
-      >
-        {workspaceMode ? (
-          <div className={`streams-inline-workspace ${showRightRail ? "streams-inline-workspace--split" : ""}`}>
-            <div
-              ref={mediaStageRef}
-              className={`streams-media-stage streams-media-stage--${stageMode}`}
-            >
-              <div ref={registerPlayerPortalTarget} className="streams-media-stage__surface">
-                {stageMode === "preview" ? renderPlayerPreview() : null}
-              {stageMode === "preview" && clickedStream?.title ? (
-                  <div className="streams-media-stage__release-title" title={clickedStream.title}>
-                    {clickedStream.title}
-                  </div>
-                ) : null}
-              </div>
+      <div className="streams-page-shell streams-page-shell--browser">
+        <div className="streams-browser-layout">
+          {renderSidebar()}
+          <section className="streams-page-content streams-page-content--browser">
+            <div className="streams-scroll-area">
+              {showTorrentFiles ? renderTorrentFiles() : renderTorrentList(true)}
             </div>
-            {showRightRail ? renderContent() : null}
-          </div>
-        ) : (
-          <div className="streams-browser-layout">
-            {renderSidebar()}
-            <section className="streams-page-content streams-page-content--browser">
-              <div className="streams-scroll-area">
-                {showTorrentFiles ? renderTorrentFiles() : renderTorrentList(true)}
-              </div>
-            </section>
-          </div>
-        )}
+          </section>
+        </div>
       </div>
     </div>
   );

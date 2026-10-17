@@ -1,11 +1,11 @@
 import { UIComponent, type CompiledComponent } from "../base";
 import { CallbackRegistry, type CallbackFunction } from "../../core/registry";
-import type { SDKStreamEpisode, SDKTvSeason } from "../../types";
+import type { SDKEpisodeSelectorPresentation, SDKStreamEpisode, SDKTvSeason } from "../../types";
 
 /**
- * EpisodeSelector (Модальный выбор серий)
+ * EpisodeSelector (Выбор серий)
  * 
- * Встроенный модальный селектор для детального выбора серий и сезонов сериала с прокруткой и фоновым постером.
+ * Селектор серий и сезонов: модальное окно по умолчанию или встроенная панель очереди Potok в режиме panel.
  * 
  * @example
  * // Модальный селектор
@@ -71,6 +71,18 @@ import type { SDKStreamEpisode, SDKTvSeason } from "../../types";
  *   );
  * }
  * state.$subscribe(draw); draw();
+ * // Та же очередь, встроенная в layout плагина без модального overlay
+ * ui.render(
+ *   EpisodeSelector()
+ *     .isOpen(true)
+ *     .presentation("panel")
+ *     .activeEpisodeId("s01e01")
+ *     .canReorder(true)
+ *     .episodes([mockEp])
+ *     .onReorder((nextQueue) => {
+ *       console.log("Новый порядок:", nextQueue);
+ *     })
+ * );
  */
 export class EpisodeSelectorBuilder extends UIComponent {
   private _isOpen?: boolean;
@@ -84,15 +96,21 @@ export class EpisodeSelectorBuilder extends UIComponent {
   private _onPlay?: CallbackFunction;
   private _onApplyOverride?: CallbackFunction;
   private _onStartEditing?: CallbackFunction;
+  private _presentation: SDKEpisodeSelectorPresentation;
+  private _activeEpisodeId?: string;
+  private _canReorder: boolean;
+  private _onReorder?: (episodes: SDKStreamEpisode[]) => void;
 
   constructor(type: string = "EpisodeSelector") {
     super(type);
     this._episodes = [];
     this._seasons = [];
+    this._presentation = "modal";
+    this._canReorder = false;
   }
 
   /**
-   * Управляет видимостью модального окна.
+   * Управляет видимостью селектора.
    *
    * @param v Значение метода
    * @default false
@@ -103,7 +121,39 @@ export class EpisodeSelectorBuilder extends UIComponent {
   }
 
   /**
-   * Главный заголовок модального окна (название сериала).
+   * Выбирает модальное окно или встроенную панель очереди Potok.
+   *
+   * @param v Значение метода
+   * @default "modal"
+   */
+  presentation(v: SDKEpisodeSelectorPresentation): this {
+    this._presentation = v;
+    return this;
+  }
+
+  /**
+   * ID текущей воспроизводимой серии, которую панель должна подсветить.
+   *
+   * @param v Значение метода
+   */
+  activeEpisodeId(v: string): this {
+    this._activeEpisodeId = v;
+    return this;
+  }
+
+  /**
+   * Разрешает перестановку серий drag-and-drop в режиме panel.
+   *
+   * @param v Значение метода
+   * @default false
+   */
+  canReorder(v: boolean): this {
+    this._canReorder = v;
+    return this;
+  }
+
+  /**
+   * Главный заголовок селектора (название сериала).
    *
    * @param v Значение метода
    */
@@ -205,6 +255,16 @@ export class EpisodeSelectorBuilder extends UIComponent {
     return this;
   }
 
+  /**
+   * Коллбек с полным новым порядком серий после drag-and-drop.
+   *
+   * @param v Значение метода
+   */
+  onReorder(cb: (episodes: SDKStreamEpisode[]) => void): this {
+    this._onReorder = cb;
+    return this;
+  }
+
   protected override getProps(): Record<string, unknown> {
     return {
       isOpen: this._isOpen,
@@ -213,7 +273,10 @@ export class EpisodeSelectorBuilder extends UIComponent {
       episodes: this._episodes,
       backdropSrc: this._backdropSrc,
       seasonsLoading: this._seasonsLoading,
-      seasons: this._seasons
+      seasons: this._seasons,
+      presentation: this._presentation,
+      activeEpisodeId: this._activeEpisodeId,
+      canReorder: this._canReorder,
     };
   }
 
@@ -230,6 +293,15 @@ export class EpisodeSelectorBuilder extends UIComponent {
     }
     if (this._onStartEditing) {
       json.events = { ...json.events, onStartEditing: CallbackRegistry.register(this._onStartEditing, `${path}/onStartEditing`) };
+    }
+    if (this._onReorder) {
+      json.events = {
+        ...json.events,
+        onReorder: CallbackRegistry.register(
+          (episodes) => this._onReorder?.(episodes as SDKStreamEpisode[]),
+          `${path}/onReorder`,
+        ),
+      };
     }
     return json;
   }

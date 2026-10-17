@@ -2272,12 +2272,26 @@
         }
       },
       "EpisodeSelector": {
-        "title": "EpisodeSelector (Modal)",
-        "description": "Modal season and episode picker.",
+        "title": "EpisodeSelector (Episode picker)",
+        "description": "Season and episode picker rendered as a modal or an inline Potok queue panel.",
         "methods": {
           "isOpen": {
             "argument": "boolean",
-            "description": "Modal visibility.",
+            "description": "Selector visibility.",
+            "default": "false"
+          },
+          "presentation": {
+            "argument": "\"modal\" | \"panel\"",
+            "description": "Renders the selector as a modal or an inline Potok queue panel.",
+            "default": "\"modal\""
+          },
+          "activeEpisodeId": {
+            "argument": "string",
+            "description": "ID of the currently playing episode highlighted by the panel."
+          },
+          "canReorder": {
+            "argument": "boolean",
+            "description": "Enables drag-and-drop episode reordering.",
             "default": "false"
           },
           "title": {
@@ -2322,6 +2336,10 @@
           "onStartEditing": {
             "argument": "CallbackFunction",
             "description": "Start editing handler."
+          },
+          "onReorder": {
+            "argument": "(episodes: SDKStreamEpisode[]) => void",
+            "description": "Receives the complete new episode order after drag-and-drop."
           }
         }
       },

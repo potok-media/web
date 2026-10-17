@@ -11,6 +11,10 @@ describe("WebMediaPlayer portal ownership", () => {
       new URL("./appLayout/AppLayoutPlayerOverlay.tsx", import.meta.url),
       "utf8",
     );
+    const workspace = readFileSync(
+      new URL("./playback/PlaybackWorkspace.tsx", import.meta.url),
+      "utf8",
+    );
     const player = readFileSync(new URL("./WebMediaPlayer.tsx", import.meta.url), "utf8");
     const utilityControls = readFileSync(
       new URL("./player/PlayerUtilityControls.tsx", import.meta.url),
@@ -19,6 +23,7 @@ describe("WebMediaPlayer portal ownership", () => {
 
     expect(context).toContain("playerPortalTarget");
     expect(context).toContain("registerPlayerPortalTarget");
+    expect(workspace).toContain('ref={registerPlayerPortalTarget}');
     expect(overlay).toContain("portalTarget={playerPortalTarget}");
     expect(overlay).not.toContain("activePlayback.coWatch ? null : playerPortalTarget");
     expect(player).toContain("portalTarget ?? document.body");

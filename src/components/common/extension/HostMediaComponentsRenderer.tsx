@@ -7,6 +7,7 @@ import {
   HostMediaCardCase,
   HostMediaCastCase,
   HostMediaOverviewCase,
+  HostPlaybackWorkspaceCase,
   HostMediaPlayerCase,
   HostMediaRowCase,
   HostSeasonEpisodesCase,
@@ -16,12 +17,14 @@ interface HostMediaComponentsRendererProps {
   schema: UIComponentSchema;
   pluginId: string;
   baseStyle: React.CSSProperties;
+  renderChild: (child: UIComponentSchema, index: number) => React.ReactNode;
 }
 
 export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererProps> = ({
   schema,
   pluginId,
   baseStyle,
+  renderChild,
 }) => {
   switch (schema.type) {
     case "MediaCard":
@@ -37,6 +40,15 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
       return <HostMediaOverviewCase schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
     case "MediaRow":
       return <HostMediaRowCase schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
+    case "PlaybackWorkspace":
+      return (
+        <HostPlaybackWorkspaceCase
+          schema={schema}
+          pluginId={pluginId}
+          baseStyle={baseStyle}
+          renderChild={renderChild}
+        />
+      );
     case "MediaPlayer":
       return <HostMediaPlayerCase schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
     case "EpisodeSelector":

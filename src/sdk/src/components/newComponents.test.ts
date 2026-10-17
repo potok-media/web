@@ -28,6 +28,8 @@ import {
   PosterGridBuilder,
   DetailHeroBuilder,
   StreamListBuilder,
+  EpisodeSelectorBuilder,
+  PlaybackWorkspaceBuilder,
 } from "./media";
 import {
   RangeBuilder,
@@ -39,6 +41,7 @@ import {
   ScrollerBuilder,
   PageBuilder,
 } from "./common";
+import { CallbackRegistry } from "../core/registry";
 
 const noop = () => {};
 
@@ -370,5 +373,51 @@ describe("StreamList live search", () => {
     expect(json.type).toBe("StreamList");
     expect(json.props.searching).toBe(true);
     expect(json.props.streams).toEqual([{ title: "First hit" }]);
+  });
+});
+
+describe("EpisodeSelector panel presentation", () => {
+  it("compiles the inline panel state and reorder event", () => {
+    let reorderedEpisodeIds: string[] = [];
+    const json = new EpisodeSelectorBuilder()
+      .isOpen(true)
+      .presentation("panel")
+      .activeEpisodeId("episode-2")
+      .canReorder(true)
+      .episodes([
+        { id: "episode-1", title: "Episode 1", url: "https://example.test/1.m3u8" },
+        { id: "episode-2", title: "Episode 2", url: "https://example.test/2.m3u8" },
+      ])
+      .onReorder((episodes) => {
+        reorderedEpisodeIds = episodes.map((episode) => episode.id);
+      })
+      .compile("root");
+
+    expect(json.type).toBe("EpisodeSelector");
+    expect(json.props.presentation).toBe("panel");
+    expect(json.props.activeEpisodeId).toBe("episode-2");
+    expect(json.props.canReorder).toBe(true);
+    expect(json.events?.onReorder).toBeTruthy();
+
+    CallbackRegistry.trigger(json.events!.onReorder!, [
+      { id: "episode-2", title: "Episode 2", url: "https://example.test/2.m3u8" },
+      { id: "episode-1", title: "Episode 1", url: "https://example.test/1.m3u8" },
+    ]);
+    expect(reorderedEpisodeIds).toEqual(["episode-2", "episode-1"]);
+  });
+});
+
+describe("PlaybackWorkspace", () => {
+  it("compiles a host-owned player stage with the right rail as its child", () => {
+    const json = new PlaybackWorkspaceBuilder()
+      .backdropSrc("https://example.test/backdrop.jpg")
+      .child(new EpisodeSelectorBuilder().isOpen(true).presentation("panel"))
+      .compile("root");
+
+    expect(json.type).toBe("PlaybackWorkspace");
+    expect(json.props.backdropSrc).toBe("https://example.test/backdrop.jpg");
+    expect(json.props.stageMode).toBe("player");
+    expect(json.children).toHaveLength(1);
+    expect(json.children?.[0].type).toBe("EpisodeSelector");
   });
 });

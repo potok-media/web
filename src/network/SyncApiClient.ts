@@ -111,7 +111,7 @@ export class SyncApiClient {
   }
 
   public static async fetchSyncFavorites(): Promise<UserListEntry[]> {
-    const res = await fetch(`${ApiClient.baseURL}/api/sync/favorites`, {
+    const res = await fetch(`${ApiClient.baseURL}/api/library/favorites`, {
       headers: ApiClient.headers,
     });
     if (!res.ok) throw new Error(`Failed to fetch sync favorites (Status ${res.status})`);
@@ -119,7 +119,7 @@ export class SyncApiClient {
   }
 
   public static async addSyncFavorite(tmdbId: string, mediaType: string): Promise<void> {
-    const res = await fetch(`${ApiClient.baseURL}/api/sync/favorites/add`, {
+    const res = await fetch(`${ApiClient.baseURL}/api/library/favorites`, {
       method: "POST",
       headers: ApiClient.headers,
       body: JSON.stringify({ tmdbId, mediaType }),
@@ -128,8 +128,8 @@ export class SyncApiClient {
   }
 
   public static async removeSyncFavorite(tmdbId: string, mediaType: string): Promise<void> {
-    const res = await fetch(`${ApiClient.baseURL}/api/sync/favorites/remove`, {
-      method: "POST",
+    const res = await fetch(`${ApiClient.baseURL}/api/library/favorites`, {
+      method: "DELETE",
       headers: ApiClient.headers,
       body: JSON.stringify({ tmdbId, mediaType }),
     });
@@ -137,7 +137,7 @@ export class SyncApiClient {
   }
 
   public static async fetchSyncWatchlist(): Promise<UserListEntry[]> {
-    const res = await fetch(`${ApiClient.baseURL}/api/sync/watchlist`, {
+    const res = await fetch(`${ApiClient.baseURL}/api/library/watchlist`, {
       headers: ApiClient.headers,
     });
     if (!res.ok) throw new Error(`Failed to fetch sync watchlist (Status ${res.status})`);
@@ -145,7 +145,7 @@ export class SyncApiClient {
   }
 
   public static async addSyncWatchlist(tmdbId: string, mediaType: string): Promise<void> {
-    const res = await fetch(`${ApiClient.baseURL}/api/sync/watchlist/add`, {
+    const res = await fetch(`${ApiClient.baseURL}/api/library/watchlist`, {
       method: "POST",
       headers: ApiClient.headers,
       body: JSON.stringify({ tmdbId, mediaType }),
@@ -154,8 +154,8 @@ export class SyncApiClient {
   }
 
   public static async removeSyncWatchlist(tmdbId: string, mediaType: string): Promise<void> {
-    const res = await fetch(`${ApiClient.baseURL}/api/sync/watchlist/remove`, {
-      method: "POST",
+    const res = await fetch(`${ApiClient.baseURL}/api/library/watchlist`, {
+      method: "DELETE",
       headers: ApiClient.headers,
       body: JSON.stringify({ tmdbId, mediaType }),
     });

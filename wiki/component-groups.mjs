@@ -5,5 +5,5 @@ export const componentGroups = [
   { label: 'Текст и информация', en: 'Text and information', names: ['Heading', 'Text', 'Badge', 'StatusRow', 'Markdown', 'Icon', 'Alert', 'EmptyState', 'ProgressBar', 'Skeleton', 'Rating', 'TagList'] },
   { label: 'Формы и ввод', en: 'Forms and input', names: ['Button', 'Input', 'Toggle', 'Select', 'CodeEditor', 'Chip', 'IconButton', 'Range', 'Dropdown', 'FileInput', 'Field'] },
   { label: 'Медиа', en: 'Media', names: ['ContentCard', 'ContentRow', 'Hero', 'Image', 'Avatar', 'ContinueWatchingRow', 'TopTenRow', 'PosterGrid', 'DetailHero', 'MediaCard', 'MediaRow', 'HeroSpotlight', 'LoadingSpinner', 'EpisodesSection', 'EpisodeCard', 'EpisodeSelector'] },
-  { label: 'Плееры и потоки', en: 'Players and streams', names: ['MediaCast', 'MediaOverview', 'StreamRow', 'StreamList', 'StreamSkeletonList', 'MediaPlayer', 'ProfileSelector', 'SearchBar', 'StreamFilterBar'] },
+  { label: 'Плееры и потоки', en: 'Players and streams', names: ['MediaCast', 'MediaOverview', 'StreamRow', 'StreamList', 'StreamSkeletonList', 'PlaybackWorkspace', 'MediaPlayer', 'ProfileSelector', 'SearchBar', 'StreamFilterBar'] },
 ];

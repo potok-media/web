@@ -37,9 +37,8 @@ describe("MediaStreamsPage layout", () => {
 
     expect(popup).toContain("<EpisodeSelectorContent");
     expect(filesPanel).toContain("<EpisodeSelectorContent");
-    expect(filesPanel).toContain("torrent-files-panel--co-watch");
     expect(filesPanel).toContain('presentation="playlist"');
-    expect(filesPanel).toContain("<WatchTogetherRail queue={queue}");
+    expect(filesPanel).not.toContain("<WatchTogetherRail");
   });
 
   it("keeps co-watch playback inline and turns the right side into Chat, Queue, or Participants", () => {
@@ -49,19 +48,26 @@ describe("MediaStreamsPage layout", () => {
       new URL("../components/watchTogether/WatchTogetherWorkspace.tsx", import.meta.url),
       "utf8",
     );
+    const playbackWorkspace = readFileSync(
+      new URL("../components/playback/PlaybackWorkspace.tsx", import.meta.url),
+      "utf8",
+    );
     const rail = readFileSync(
       new URL("../components/watchTogether/WatchTogetherRail.tsx", import.meta.url),
       "utf8",
     );
 
-    expect(page).toContain("<WatchTogetherRail");
+    expect(page).toContain("coWatchQueue={showCoWatchRail ? renderCoWatchQueue() : undefined}");
     expect(guestPage).toContain("<WatchTogetherWorkspace");
     expect(guestPage).toContain("sessionActive && activePlayback");
-    expect(workspace).toContain("registerPlayerPortalTarget");
-    expect(workspace).toContain("streams-page-shell--split");
-    expect(workspace).toContain("streams-inline-workspace--split");
-    expect(workspace).toContain("streams-media-stage--player");
-    expect(workspace).toContain("<WatchTogetherRail");
+    expect(workspace).toContain("<PlaybackWorkspace");
+    expect(playbackWorkspace).toContain("registerPlayerPortalTarget");
+    expect(playbackWorkspace).toContain("streams-page-shell--split");
+    expect(playbackWorkspace).toContain("streams-inline-workspace--split");
+    expect(playbackWorkspace).toContain("streams-media-stage--${stageMode}");
+    expect(playbackWorkspace).toContain("<WatchTogetherRail");
+    expect(playbackWorkspace).toContain("watchTogether.sessionActive");
+    expect(workspace).toContain("coWatchQueueCount={playback.playlist?.length || 1}");
     expect(page).toContain("handleQueuePlay");
     expect(rail).toContain('t("queue")');
     expect(rail).toContain('t("participantsTab")');
@@ -165,13 +171,18 @@ describe("MediaStreamsPage layout", () => {
 
   it("turns the hero slot into a split player and playlist workspace", () => {
     const page = readFileSync(new URL("./MediaStreamsPage.tsx", import.meta.url), "utf8");
+    const workspace = readFileSync(
+      new URL("../components/playback/PlaybackWorkspace.tsx", import.meta.url),
+      "utf8",
+    );
     const styles = readFileSync(new URL("../styles/media.css", import.meta.url), "utf8");
 
-    expect(page).toContain("registerPlayerPortalTarget");
-    expect(page).toContain('className="streams-media-stage__surface"');
-    expect(page).toContain("streams-page-shell--workspace");
-    expect(page).toContain("streams-page-shell--split");
-    expect(page).toContain("streams-inline-workspace--split");
+    expect(page).toContain("<PlaybackWorkspace");
+    expect(workspace).toContain("registerPlayerPortalTarget");
+    expect(workspace).toContain('className="streams-media-stage__surface"');
+    expect(workspace).toContain("streams-page-shell--workspace");
+    expect(workspace).toContain("streams-page-shell--split");
+    expect(workspace).toContain("streams-inline-workspace--split");
     expect(page).toContain('inlinePlaybackActive ? "player" : "preview"');
     expect(styles).toContain(".streams-media-stage--player");
     expect(styles).toContain(".streams-inline-workspace--split");
@@ -187,7 +198,8 @@ describe("MediaStreamsPage layout", () => {
     const styles = readFileSync(new URL("../styles/media.css", import.meta.url), "utf8");
 
     expect(page).toContain('className="streams-media-stage__release-title"');
-    expect(page).toContain('stageMode === "preview" && clickedStream?.title');
+    expect(page).toContain('const stageContent = stageMode === "preview"');
+    expect(page).toContain("clickedStream?.title ? (");
     expect(page).toContain("{clickedStream.title}");
     expect(styles).toContain(".streams-media-stage__release-title");
     expect(styles).toContain("left: 50%;");

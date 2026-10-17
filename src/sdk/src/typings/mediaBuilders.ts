@@ -21,6 +21,16 @@ export const mediaBuildersDts = `
     playback(v: SDKPlaybackInfo): this;
   }
 
+  /** Shared inline player stage with a host-sized right rail. */
+  interface PlaybackWorkspaceBuilder extends UIComponent {
+    /** Background image used by the shared playback shell. */
+    backdropSrc(v: string): this;
+    /** Visual state of the left stage. Defaults to player. */
+    stageMode(v: "player" | "preview"): this;
+    /** Sets the right-rail content. */
+    child(v: UIComponent): this;
+  }
+
   /** Season and episode picker grid (EpisodesSection). */
   interface EpisodesSectionBuilder extends UIComponent {
     /** TMDB ID of the movie/show. */
@@ -31,10 +41,16 @@ export const mediaBuildersDts = `
     onEpisodeClick(cb: (ep: SDKTvEpisode) => void): this;
   }
 
-  /** Modal episode picker dialog (EpisodeSelector). */
+  /** Episode picker that can render as a modal or as the inline Potok queue panel. */
   interface EpisodeSelectorBuilder extends UIComponent {
     /** Open state of the dialog. */
     isOpen(v: boolean): this;
+    /** Presentation mode. Defaults to modal. */
+    presentation(v: SDKEpisodeSelectorPresentation): this;
+    /** ID of the episode currently playing. */
+    activeEpisodeId(v: string): this;
+    /** Enables drag-and-drop queue reordering in panel mode. */
+    canReorder(v: boolean): this;
     /** Media title. */
     title(v: string): this;
     /** Subtitle (original title / year). */
@@ -51,6 +67,8 @@ export const mediaBuildersDts = `
     onClose(cb: () => void): this;
     /** Callback fired when playback of an episode starts. */
     onPlay(cb: (payload: SDKStreamEpisode) => void): this;
+    /** Callback fired with the complete new episode order after drag-and-drop. */
+    onReorder(cb: (episodes: SDKStreamEpisode[]) => void): this;
   }
 
   /** Stream list row (StreamRow). */

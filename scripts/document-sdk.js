@@ -907,6 +907,37 @@ ui.render(
       }
     }
   },
+  PlaybackWorkspace: {
+    title: "PlaybackWorkspace (Единый экран воспроизведения)",
+    description: "Host-owned экран с inline-плеером слева и панелью плагина справа. Использует тот же layout и portal target, что торрентный плеер и совместный просмотр.",
+    example: `// Плеер слева, очередь серий справа
+ui.render(
+  PlaybackWorkspace()
+    .backdropSrc("https://example.test/backdrop.jpg")
+    .child(
+      EpisodeSelector()
+        .isOpen(true)
+        .presentation("panel")
+        .episodes(episodes)
+        .onPlay((episode) => openEpisode(episode))
+    )
+);`,
+    methods: {
+      backdropSrc: {
+        argument: "string",
+        description: "Фоновое изображение общего экрана воспроизведения."
+      },
+      stageMode: {
+        argument: '"player" | "preview"',
+        description: "Состояние левой сцены до или во время воспроизведения.",
+        default: '"player"'
+      },
+      child: {
+        argument: "UIComponent",
+        description: "Содержимое правой панели, обычно EpisodeSelector в режиме panel."
+      }
+    }
+  },
   MediaPlayer: {
     title: "MediaPlayer (Видеоплеер)",
     description: "Встроенный HTML5-видеоплеер с поддержкой форматов HLS (.m3u8), Dash (.mpd) и обычных MP4-файлов. Предоставляет полноценное управление воспроизведением, субтитрами и звуковыми дорожками.",
@@ -1162,8 +1193,8 @@ state.$subscribe(draw); draw();`,
     }
   },
   EpisodeSelector: {
-    title: "EpisodeSelector (Модальный выбор серий)",
-    description: "Встроенный модальный селектор для детального выбора серий и сезонов сериала с прокруткой и фоновым постером.",
+    title: "EpisodeSelector (Выбор серий)",
+    description: "Селектор серий и сезонов: модальное окно по умолчанию или встроенная панель очереди Potok в режиме panel.",
     example: `// Модальный селектор
 const { ui, createState } = PotokSDK;
 const state = createState({ open: false });
@@ -1226,16 +1257,42 @@ function draw() {
       )
   );
 }
-state.$subscribe(draw); draw();`,
+state.$subscribe(draw); draw();
+// Та же очередь, встроенная в layout плагина без модального overlay
+ui.render(
+  EpisodeSelector()
+    .isOpen(true)
+    .presentation("panel")
+    .activeEpisodeId("s01e01")
+    .canReorder(true)
+    .episodes([mockEp])
+    .onReorder((nextQueue) => {
+      console.log("Новый порядок:", nextQueue);
+    })
+);`,
     methods: {
       isOpen: {
         argument: "boolean",
-        description: "Управляет видимостью модального окна.",
+        description: "Управляет видимостью селектора.",
+        default: "false"
+      },
+      presentation: {
+        argument: '"modal" | "panel"',
+        description: "Выбирает модальное окно или встроенную панель очереди Potok.",
+        default: '"modal"'
+      },
+      activeEpisodeId: {
+        argument: "string",
+        description: "ID текущей воспроизводимой серии, которую панель должна подсветить."
+      },
+      canReorder: {
+        argument: "boolean",
+        description: "Разрешает перестановку серий drag-and-drop в режиме panel.",
         default: "false"
       },
       title: {
         argument: "string",
-        description: "Главный заголовок модального окна (название сериала)."
+        description: "Главный заголовок селектора (название сериала)."
       },
       subtitle: {
         argument: "string",
@@ -1275,6 +1332,10 @@ state.$subscribe(draw); draw();`,
       onStartEditing: {
         argument: "CallbackFunction",
         description: "Коллбек в начале редактирования серий."
+      },
+      onReorder: {
+        argument: "(episodes: SDKStreamEpisode[]) => void",
+        description: "Коллбек с полным новым порядком серий после drag-and-drop."
       }
     }
   },
@@ -2218,11 +2279,13 @@ function injectJSDoc(filePath) {
     }
 
     // 4. Construct class JSDoc
+    // Keep legacy output byte-stable while emitting new component docs without trailing whitespace.
+    const classDocBlankLine = name === "PlaybackWorkspace" ? " *" : " * ";
     const classDoc = `/**
  * ${meta.title}
- * 
+${classDocBlankLine}
  * ${meta.description}
- * 
+${classDocBlankLine}
  * @example
  * ${meta.example.split('\n').join('\n * ')}
  */

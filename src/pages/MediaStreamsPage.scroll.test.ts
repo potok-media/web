@@ -20,7 +20,8 @@ describe("MediaStreamsPage scrolling", () => {
       ".streams-page-content--browser .streams-results-list.scroll-view--vertical",
     );
 
-    expect(page).toContain('workspaceMode ? "" : "streams-page-layout--browser"');
+    expect(page).toContain('className="streams-page-layout streams-page-layout--browser"');
+    expect(page).toContain("if (workspaceMode)");
     expect(pageLayout).toContain("height: calc(100dvh - var(--topbar-height));");
     expect(pageLayout).toContain("overflow: hidden;");
     expect(pageShell).toContain("height: 100%;");

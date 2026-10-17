@@ -9,12 +9,15 @@ import type {
   MediaCardSchema,
   MediaCastSchema,
   MediaOverviewSchema,
+  PlaybackWorkspaceSchema,
   MediaPlayerSchema,
   MediaRowSchema,
   SDKMediaCard,
   SDKTvEpisode,
+  UIComponentSchema,
 } from "@potok/sdk-types";
 import type { HeroItem, MediaCard as ApiMediaCard, TvEpisode } from "../../../../network/ApiTypes";
+import { useWatchTogether } from "../../../../context/watchTogetherState";
 import { ExtensionRegistry } from "../../../../utils/extensions/ExtensionRegistry";
 import MediaCardComponent from "../../../MediaCardComponent";
 import HeroSpotlight from "../../../HeroSpotlight";
@@ -23,7 +26,9 @@ import MediaCastSection from "../../../MediaCastSection";
 import { MediaOverviewSection } from "../../../MediaOverviewSection";
 import MediaRow from "../../../MediaRow";
 import { WebMediaPlayer } from "../../../WebMediaPlayer";
+import { PlaybackWorkspace } from "../../../playback/PlaybackWorkspace";
 import EpisodeSelectorPopup, { type GenericEpisodeItem } from "../../EpisodeSelectorPopup";
+import { EpisodeSelectorContent } from "../../EpisodeSelectorContent";
 import { EpisodeCard } from "../../../EpisodeCard";
 import type { HostMediaRendererProps } from "./types";
 import { sdkClass, sdkStyleVars } from "../componentRendererUtils";
@@ -173,13 +178,43 @@ export const HostMediaPlayerCase: React.FC<HostMediaRendererProps<MediaPlayerSch
   );
 };
 
+interface HostPlaybackWorkspaceCaseProps extends HostMediaRendererProps<PlaybackWorkspaceSchema> {
+  renderChild: (child: UIComponentSchema, index: number) => React.ReactNode;
+}
+
+export const HostPlaybackWorkspaceCase: React.FC<HostPlaybackWorkspaceCaseProps> = ({
+  schema,
+  baseStyle,
+  renderChild,
+}) => {
+  const rail = schema.children?.[0];
+  const coWatchQueueCount = rail?.type === "EpisodeSelector" || rail?.type === "EpisodeSelectorPopup"
+    ? rail.props.episodes?.length || 0
+    : 0;
+
+  return (
+    <PlaybackWorkspace
+      id={schema.id}
+      className={sdkClass(schema, "sdk-playback-workspace")}
+      style={sdkStyleVars(baseStyle)}
+      backdropSrc={schema.props.backdropSrc}
+      stageMode={schema.props.stageMode || "player"}
+      rail={rail ? renderChild(rail, 0) : undefined}
+      coWatchQueueCount={coWatchQueueCount}
+    />
+  );
+};
+
 export const HostEpisodeSelectorCase: React.FC<
   HostMediaRendererProps<EpisodeSelectorSchema | EpisodeSelectorPopupSchema>
 > = ({
   schema,
   pluginId,
+  baseStyle,
 }) => {
   const { id, props, events } = schema;
+  const watchTogether = useWatchTogether();
+  const hidePanelHeader = Boolean(watchTogether.role && watchTogether.sessionActive);
 
   const handleClose = () => {
     if (events?.onClose) ExtensionRegistry.triggerUIEvent(pluginId, events.onClose, {});
@@ -189,6 +224,61 @@ export const HostEpisodeSelectorCase: React.FC<
     if (events?.onPlay) ExtensionRegistry.triggerUIEvent(pluginId, events.onPlay, { episode, audioId });
   };
 
+  const handleApplyOverride = events?.onApplyOverride
+    ? (sourceSeason: number | null, targetSeason: number, offset: number) => {
+        ExtensionRegistry.triggerUIEvent(pluginId, events.onApplyOverride!, {
+          sourceSeason,
+          targetSeason,
+          offset,
+        });
+      }
+    : undefined;
+
+  const handleStartEditing = events?.onStartEditing
+    ? () => ExtensionRegistry.triggerUIEvent(pluginId, events.onStartEditing!, {})
+    : undefined;
+
+  const handleReorderEpisodes = events?.onReorder
+    ? (episodes: GenericEpisodeItem[]) => {
+        ExtensionRegistry.triggerUIEvent(pluginId, events.onReorder!, episodes);
+      }
+    : undefined;
+
+  const episodes = mapSdkStreamEpisodes(props.episodes);
+
+  if (props.presentation === "panel") {
+    if (!props.isOpen) return null;
+
+    return (
+      <div
+        id={id}
+        className={sdkClass(schema, "sdk-episode-selector-panel", "streams-inline-workspace--split")}
+        style={sdkStyleVars(baseStyle)}
+      >
+        <section className="torrent-files-panel" aria-label={props.title || undefined}>
+          <EpisodeSelectorContent
+            isOpen
+            onClose={handleClose}
+            title={props.title || ""}
+            subtitle={props.subtitle}
+            episodes={episodes}
+            onPlay={handlePlay}
+            onApplyOverride={handleApplyOverride}
+            onStartEditing={handleStartEditing}
+            backdropSrc={props.backdropSrc}
+            seasonsLoading={props.seasonsLoading}
+            seasons={props.seasons}
+            presentation="playlist"
+            hideHeader={hidePanelHeader}
+            activeEpisodeId={props.activeEpisodeId}
+            canReorder={!!props.canReorder}
+            onReorderEpisodes={handleReorderEpisodes}
+          />
+        </section>
+      </div>
+    );
+  }
+
   return (
     <EpisodeSelectorPopup
       key={id}
@@ -196,24 +286,10 @@ export const HostEpisodeSelectorCase: React.FC<
       onClose={handleClose}
       title={props.title || ""}
       subtitle={props.subtitle}
-      episodes={mapSdkStreamEpisodes(props.episodes)}
+      episodes={episodes}
       onPlay={handlePlay}
-      onApplyOverride={
-        events?.onApplyOverride
-          ? (sourceSeason, targetSeason, offset) => {
-              ExtensionRegistry.triggerUIEvent(pluginId, events.onApplyOverride!, {
-                sourceSeason,
-                targetSeason,
-                offset,
-              });
-            }
-          : undefined
-      }
-      onStartEditing={
-        events?.onStartEditing
-          ? () => ExtensionRegistry.triggerUIEvent(pluginId, events.onStartEditing!, {})
-          : undefined
-      }
+      onApplyOverride={handleApplyOverride}
+      onStartEditing={handleStartEditing}
       backdropSrc={props.backdropSrc}
       seasonsLoading={props.seasonsLoading}
       seasons={props.seasons}

@@ -2286,12 +2286,26 @@
         }
       },
       "EpisodeSelector": {
-        "title": "EpisodeSelector (Модальный выбор серий)",
-        "description": "Модальное окно выбора сезонов и серий.",
+        "title": "EpisodeSelector (Выбор серий)",
+        "description": "Выбор сезонов и серий в модальном окне или встроенной панели очереди Potok.",
         "methods": {
           "isOpen": {
             "argument": "boolean",
-            "description": "Видимость модального окна.",
+            "description": "Видимость селектора.",
+            "default": "false"
+          },
+          "presentation": {
+            "argument": "\"modal\" | \"panel\"",
+            "description": "Модальное окно или встроенная панель очереди Potok.",
+            "default": "\"modal\""
+          },
+          "activeEpisodeId": {
+            "argument": "string",
+            "description": "ID текущей серии для подсветки в панели."
+          },
+          "canReorder": {
+            "argument": "boolean",
+            "description": "Разрешает перестановку серий перетаскиванием.",
             "default": "false"
           },
           "title": {
@@ -2336,6 +2350,10 @@
           "onStartEditing": {
             "argument": "CallbackFunction",
             "description": "Обработчик начала редактирования."
+          },
+          "onReorder": {
+            "argument": "(episodes: SDKStreamEpisode[]) => void",
+            "description": "Получает полный новый порядок серий после перетаскивания."
           }
         }
       },

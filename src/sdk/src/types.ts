@@ -676,6 +676,16 @@ export interface MediaRowSchema extends BaseSchema {
   };
 }
 
+export type SDKPlaybackWorkspaceStageMode = "player" | "preview";
+
+export interface PlaybackWorkspaceSchema extends BaseSchema {
+  type: "PlaybackWorkspace";
+  props: SDKBaseComponentProps & {
+    backdropSrc?: string;
+    stageMode?: SDKPlaybackWorkspaceStageMode;
+  };
+}
+
 export interface MediaPlayerSchema extends BaseSchema {
   type: "MediaPlayer";
   props: SDKBaseComponentProps & {
@@ -683,6 +693,9 @@ export interface MediaPlayerSchema extends BaseSchema {
     isNetworkOffline?: boolean;
   };
 }
+
+/** Controls whether EpisodeSelector opens as a dialog or renders as the inline Potok queue panel. */
+export type SDKEpisodeSelectorPresentation = "modal" | "panel";
 
 export interface EpisodeSelectorSchema extends BaseSchema {
   type: "EpisodeSelector";
@@ -694,12 +707,16 @@ export interface EpisodeSelectorSchema extends BaseSchema {
     backdropSrc?: string;
     seasonsLoading?: boolean;
     seasons?: SDKTvSeason[];
+    presentation?: SDKEpisodeSelectorPresentation;
+    activeEpisodeId?: string;
+    canReorder?: boolean;
   };
   events?: BaseSchema["events"] & {
     onClose?: string;
     onPlay?: string;
     onApplyOverride?: string;
     onStartEditing?: string;
+    onReorder?: string;
   };
 }
 
@@ -713,12 +730,16 @@ export interface EpisodeSelectorPopupSchema extends BaseSchema {
     backdropSrc?: string;
     seasonsLoading?: boolean;
     seasons?: SDKTvSeason[];
+    presentation?: SDKEpisodeSelectorPresentation;
+    activeEpisodeId?: string;
+    canReorder?: boolean;
   };
   events?: BaseSchema["events"] & {
     onClose?: string;
     onPlay?: string;
     onApplyOverride?: string;
     onStartEditing?: string;
+    onReorder?: string;
   };
 }
 
@@ -1208,6 +1229,7 @@ export type UIComponentSchema =
   | MediaCastSchema
   | MediaOverviewSchema
   | MediaRowSchema
+  | PlaybackWorkspaceSchema
   | MediaPlayerSchema
   | EpisodeSelectorSchema
   | EpisodeSelectorPopupSchema

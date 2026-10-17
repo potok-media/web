@@ -53,7 +53,14 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
   if (props.visible === false) return null;
 
   if (HOST_MEDIA_TYPES.has(normalizedType)) {
-    return <HostMediaComponentsRenderer schema={normalizedSchema} pluginId={pluginId} baseStyle={baseStyle} />;
+    return (
+      <HostMediaComponentsRenderer
+        schema={normalizedSchema}
+        pluginId={pluginId}
+        baseStyle={baseStyle}
+        renderChild={renderChild}
+      />
+    );
   }
 
   if (HOST_COMMON_TYPES.has(normalizedType)) {
@@ -194,6 +201,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ schema, pl
           variant={componentProps.variant || "modal"}
           title={componentProps.title}
           closeOnBackdrop={componentProps.closeOnBackdrop !== false}
+          className={sdkClass(schema, "sdk-modal")}
           style={sdkStyleVars(baseStyle)}
         >
           {schema.children?.map((child, index) => renderChild(child, index))}

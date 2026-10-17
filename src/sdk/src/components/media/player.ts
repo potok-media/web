@@ -1,5 +1,62 @@
-import { UIComponent } from "../base";
+import { LayoutComponent, UIComponent } from "../base";
 import type { SDKPlaybackInfo } from "../../types";
+
+/**
+ * PlaybackWorkspace (Единый экран воспроизведения)
+ *
+ * Host-owned экран с inline-плеером слева и панелью плагина справа. Использует тот же layout и portal target, что торрентный плеер и совместный просмотр.
+ *
+ * @example
+ * // Плеер слева, очередь серий справа
+ * ui.render(
+ *   PlaybackWorkspace()
+ *     .backdropSrc("https://example.test/backdrop.jpg")
+ *     .child(
+ *       EpisodeSelector()
+ *         .isOpen(true)
+ *         .presentation("panel")
+ *         .episodes(episodes)
+ *         .onPlay((episode) => openEpisode(episode))
+ *     )
+ * );
+ */
+export class PlaybackWorkspaceBuilder extends LayoutComponent {
+  private _backdropSrc?: string;
+  private _stageMode: "player" | "preview" = "player";
+
+  constructor() {
+    super("PlaybackWorkspace");
+  }
+
+  /**
+   * Фоновое изображение общего экрана воспроизведения.
+   *
+   * @param v Значение метода
+   */
+  backdropSrc(v: string): this {
+    this._backdropSrc = v;
+    return this;
+  }
+
+  /**
+   * Состояние левой сцены до или во время воспроизведения.
+   *
+   * @param v Значение метода
+   * @default "player"
+   */
+  stageMode(v: "player" | "preview"): this {
+    this._stageMode = v;
+    return this;
+  }
+
+  protected override getProps(): Record<string, unknown> {
+    return {
+      ...super.getProps(),
+      backdropSrc: this._backdropSrc,
+      stageMode: this._stageMode,
+    };
+  }
+}
 
 /**
  * MediaPlayer (Видеоплеер)

@@ -3,8 +3,6 @@ import { ArrowLeft, X } from "lucide-react";
 import { EpisodeSelectorContent } from "./common/EpisodeSelectorContent";
 import type { EpisodeSelectorContentProps } from "./common/EpisodeSelectorContent";
 import { IconButton } from "./ui";
-import { useWatchTogether } from "../context/watchTogetherState";
-import { WatchTogetherRail } from "./watchTogether/WatchTogetherRail";
 
 interface TorrentFilesPanelProps
   extends Omit<EpisodeSelectorContentProps, "isOpen" | "navigationAction"> {
@@ -57,8 +55,6 @@ export const TorrentFilesPanel: React.FC<TorrentFilesPanelProps> = ({
   navigationAction = "back",
   ...selectorProps
 }) => {
-  const { role: coWatchRole } = useWatchTogether();
-
   const queue = error ? (
     <div className="torrent-files-loading" role="alert">
       <div className="torrent-files-loading__header">
@@ -87,18 +83,12 @@ export const TorrentFilesPanel: React.FC<TorrentFilesPanelProps> = ({
       busyLabel={busy ? loadingLabel : undefined}
       navigationAction={navigationAction}
       presentation="playlist"
-      hideHeader={Boolean(coWatchRole)}
     />
   );
 
   return (
-    <section
-      className={`torrent-files-panel ${coWatchRole ? "torrent-files-panel--co-watch" : ""}`}
-      aria-busy={loading || busy}
-    >
-      {coWatchRole ? (
-        <WatchTogetherRail queue={queue} queueCount={selectorProps.episodes.length} />
-      ) : queue}
+    <section className="torrent-files-panel" aria-busy={loading || busy}>
+      {queue}
     </section>
   );
 };

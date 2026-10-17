@@ -18,6 +18,7 @@ export const globalsDts = `
   declare const CodeEditor: (name: string) => CodeEditorBuilder;
   declare const StreamSkeletonList: () => StreamSkeletonListBuilder;
   declare const StreamFilterBar: () => StreamFilterBarBuilder;
+  declare const PlaybackWorkspace: () => PlaybackWorkspaceBuilder;
   declare const MediaPlayer: () => MediaPlayerBuilder;
   declare const EpisodesSection: () => EpisodesSectionBuilder;
   declare const EpisodeSelector: () => EpisodeSelectorBuilder;

@@ -41,4 +41,10 @@ describe("SDK_TYPINGS strong typing", () => {
     expect(SDK_TYPINGS).toContain("episodeIds?: string[]");
     expect(SDK_TYPINGS).toContain("targets?: SDKReleaseBindingTarget[]");
   });
+
+  it("exposes the shared playback workspace to plugins", () => {
+    expect(SDK_TYPINGS).toContain("interface PlaybackWorkspaceBuilder");
+    expect(SDK_TYPINGS).toContain("PlaybackWorkspace(): PlaybackWorkspaceBuilder");
+    expect(SDK_TYPINGS).toContain("declare const PlaybackWorkspace: () => PlaybackWorkspaceBuilder");
+  });
 });
