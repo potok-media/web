@@ -1,4 +1,5 @@
 import { canSyncPlaybackIdentity, playbackStorageKeys } from "../utils/playbackIdentity";
+import { applyContinueProgress } from "../utils/continueWatching";
 import { useEffect, useRef, useCallback } from "react";
 import { Storage } from "../utils/StorageService";
 import { SyncApiClient } from "../network/SyncApiClient";
@@ -107,7 +108,7 @@ export function usePlaybackTracker({
   // prove that this manually stable event bridge is safe to rewrite.
   // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const broadcastProgress = useCallback((actualTime: number, durationVal: number, isCompleted: boolean) => {
-    ExtensionRegistry.broadcast("PLAYBACK_PROGRESS", {
+    const payload = {
       id,
       mediaType,
       season,
@@ -128,7 +129,10 @@ export function usePlaybackTracker({
       progressSeconds: Math.floor(Math.max(0, actualTime)),
       durationSeconds: Math.floor(Math.max(0, durationVal)),
       isCompleted,
-    });
+    };
+    // Host-owned continue-watching ledger first — plugin sandboxes still receive the same broadcast below.
+    applyContinueProgress(payload);
+    ExtensionRegistry.broadcast("PLAYBACK_PROGRESS", payload);
   }, [
     id,
     mediaType,

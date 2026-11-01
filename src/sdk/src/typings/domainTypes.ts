@@ -383,6 +383,17 @@ export const domainTypesDts = `
     onStartEditing?: (payload: unknown) => void;
   }
 
+  /** Config passed to ui.presentEpisodes — the host renders its own episode panel from this data. */
+  interface SDKEpisodePanelConfig {
+    title?: string;
+    subtitle?: string;
+    episodes?: SDKStreamEpisode[];
+    canReorder?: boolean;
+    onPlay?: (payload: SDKStreamEpisode) => void;
+    onClose?: () => void;
+    onReorder?: (episodes: SDKStreamEpisode[]) => void;
+  }
+
   /** A dynamic accent theme a plugin can register. */
   interface SDKAccentTheme {
     id: string;

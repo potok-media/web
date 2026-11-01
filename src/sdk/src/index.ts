@@ -171,6 +171,17 @@ export const media = {
   searchProvider: (id: string, name: string) => new MediaSearchProviderBuilder(id, name)
 };
 
+/** Config for ui.presentEpisodes — episode data plus callbacks. Pass null to dismiss the panel. */
+interface EpisodePanelConfig {
+  onPlay?: CallbackFunction;
+  onClose?: () => void;
+  onReorder?: CallbackFunction;
+  title?: unknown;
+  subtitle?: unknown;
+  episodes?: unknown;
+  canReorder?: unknown;
+}
+
 /** Config for ui.showEpisodeSelector — callbacks plus opaque host payload fields. */
 interface EpisodeSelectorConfig {
   onPlay?: CallbackFunction;
@@ -214,6 +225,7 @@ interface SourceConfig {
 
 export const ui = {
   _activeEpisodeSelectorScope: null as CallbackScope | null,
+  _activeEpisodePanelScope: null as CallbackScope | null,
   block: (name: string) => new BlockMutationBuilder(name),
   components: {
     VStack: () => new VStackBuilder(),
@@ -361,6 +373,51 @@ export const ui = {
         onStartEditingCallbackId,
         onApplyOverrideCallbackId,
         onCloseCallbackId
+      }
+    }, getHostOrigin());
+  },
+  /**
+   * Hands episodes to the host as data. The host renders its own episode panel in the right rail of the
+   * current extension page workspace and highlights the active episode from the playback playlist —
+   * the plugin never draws the panel itself. Play/reorder/close interactions are routed back into the
+   * registered callbacks. Pass null to dismiss the panel. Rides the SHOW_EPISODE_SELECTOR channel with
+   * presentation 'panel'; the modal picker (showEpisodeSelector) is a separate, unaffected path.
+   */
+  presentEpisodes(cfg: EpisodePanelConfig | null) {
+    const hadScope = Boolean(ui._activeEpisodePanelScope);
+    if (ui._activeEpisodePanelScope) {
+      ui._activeEpisodePanelScope.dispose();
+      ui._activeEpisodePanelScope = null;
+    }
+    if (!cfg) {
+      if (hadScope) {
+        window.parent.postMessage({
+          source: 'potok-plugin-sdk',
+          action: 'SHOW_EPISODE_SELECTOR',
+          payload: { presentation: 'panel' }
+        }, getHostOrigin());
+      }
+      return;
+    }
+    const scope = new CallbackScope();
+    ui._activeEpisodePanelScope = scope;
+
+    const onPlayCallbackId = cfg.onPlay ? scope.register(cfg.onPlay) : undefined;
+    const onCloseCallbackId = cfg.onClose ? scope.register(cfg.onClose) : undefined;
+    const onReorderCallbackId = cfg.onReorder ? scope.register(cfg.onReorder) : undefined;
+
+    window.parent.postMessage({
+      source: 'potok-plugin-sdk',
+      action: 'SHOW_EPISODE_SELECTOR',
+      payload: {
+        presentation: 'panel',
+        title: cfg.title,
+        subtitle: cfg.subtitle,
+        episodes: cfg.episodes,
+        canReorder: cfg.canReorder,
+        onPlayCallbackId,
+        onCloseCallbackId,
+        onReorderCallbackId
       }
     }, getHostOrigin());
   },

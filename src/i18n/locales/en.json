@@ -509,7 +509,8 @@
       "pinnedTo": "File pinned"
     },
     "home": {
-      "loadError": "Failed to load the library"
+      "loadError": "Failed to load the library",
+      "continueWatching": "Continue watching"
     },
     "details": {
       "notFound": "Media not found",

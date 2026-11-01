@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import type {
   EpisodeCardSchema,
   EpisodeSelectorSchema,
@@ -17,8 +17,9 @@ import type {
   UIComponentSchema,
 } from "@potok/sdk-types";
 import type { HeroItem, MediaCard as ApiMediaCard, TvEpisode } from "../../../../network/ApiTypes";
+import { usePlayback } from "../../../../context/PlaybackContext";
 import { useWatchTogether } from "../../../../context/watchTogetherState";
-import { ExtensionRegistry } from "../../../../utils/extensions/ExtensionRegistry";
+import { ExtensionRegistry, type PresentedEpisodesPanel } from "../../../../utils/extensions/ExtensionRegistry";
 import MediaCardComponent from "../../../MediaCardComponent";
 import HeroSpotlight from "../../../HeroSpotlight";
 import { SeasonEpisodesSection } from "../../../SeasonEpisodesSection";
@@ -40,6 +41,7 @@ import {
   mapSdkTvEpisode,
   normalizeHeroItems,
 } from "./hostMediaMappers";
+import { resolvePresentedEpisodePanelView } from "./presentedEpisodePanelView";
 
 export const HostMediaCardCase: React.FC<HostMediaRendererProps<MediaCardSchema>> = ({
   schema,
@@ -182,6 +184,43 @@ interface HostPlaybackWorkspaceCaseProps extends HostMediaRendererProps<Playback
   renderChild: (child: UIComponentSchema, index: number) => React.ReactNode;
 }
 
+// Episode panel the host renders from data handed over via ui.presentEpisodes. The plugin no longer
+// draws its own panel, so the rail composes the platform EpisodeSelectorContent and takes the active
+// episode highlight from the playback playlist — no plugin-side sync events involved.
+const PresentedEpisodesRail: React.FC<{
+  panel: PresentedEpisodesPanel;
+  baseStyle: React.CSSProperties;
+}> = ({ panel, baseStyle }) => {
+  const { activePlayback } = usePlayback();
+  const watchTogether = useWatchTogether();
+  const hidePanelHeader = Boolean(watchTogether.role && watchTogether.sessionActive);
+  const view = resolvePresentedEpisodePanelView(panel, activePlayback);
+
+  return (
+    <div className="sdk-episode-selector-panel streams-inline-workspace--split" style={sdkStyleVars(baseStyle)}>
+      <section className="torrent-files-panel" aria-label={panel.title || undefined}>
+        <EpisodeSelectorContent
+          isOpen
+          onClose={() => panel.onClose?.()}
+          title={panel.title || ""}
+          subtitle={panel.subtitle}
+          episodes={view.episodes}
+          onPlay={(episode, audioId) => panel.onPlay?.(episode, audioId)}
+          presentation="playlist"
+          hideHeader={hidePanelHeader}
+          activeEpisodeId={view.activeEpisodeId}
+          canReorder={!!panel.canReorder}
+          onReorderEpisodes={
+            panel.onReorderEpisodes
+              ? (episodes) => panel.onReorderEpisodes?.(episodes)
+              : undefined
+          }
+        />
+      </section>
+    </div>
+  );
+};
+
 const PreviewOverlayContent: React.FC<{
   centerTitle: string;
   bottomSubtitle?: string;
@@ -217,13 +256,31 @@ const PreviewOverlayContent: React.FC<{
 
 export const HostPlaybackWorkspaceCase: React.FC<HostPlaybackWorkspaceCaseProps> = ({
   schema,
+  pluginId,
   baseStyle,
   renderChild,
 }) => {
-  const rail = schema.children?.[0];
-  const coWatchQueueCount = rail?.type === "EpisodeSelector" || rail?.type === "EpisodeSelectorPopup"
-    ? rail.props.episodes?.length || 0
-    : 0;
+  // Episodes a plugin handed over as data (ui.presentEpisodes). Subscribe to registry updates so the
+  // rail appears/disappears without waiting for the plugin's next slot render.
+  const [episodePanel, setEpisodePanel] = useState(() => ExtensionRegistry.getPresentedEpisodes(pluginId));
+  useEffect(() => {
+    const syncPanel = () => setEpisodePanel(ExtensionRegistry.getPresentedEpisodes(pluginId));
+    syncPanel();
+    ExtensionRegistry.addListener(syncPanel);
+    return () => ExtensionRegistry.removeListener(syncPanel);
+  }, [pluginId]);
+
+  const schemaRail = schema.children?.[0];
+  // A schema-authored rail (legacy EpisodeSelector child or any other component) wins over presented
+  // data — the panel only fills the rail when the plugin left it empty.
+  const presentedRail = !schemaRail && episodePanel
+    ? <PresentedEpisodesRail panel={episodePanel} baseStyle={baseStyle} />
+    : undefined;
+  const coWatchQueueCount = schemaRail
+    ? (schemaRail.type === "EpisodeSelector" || schemaRail.type === "EpisodeSelectorPopup"
+        ? schemaRail.props.episodes?.length || 0
+        : 0)
+    : episodePanel?.episodes.length || 0;
 
   const isPreview = schema.props.stageMode === "preview";
   const previewOverlay = isPreview && schema.props.previewOverlay
@@ -242,7 +299,7 @@ export const HostPlaybackWorkspaceCase: React.FC<HostPlaybackWorkspaceCaseProps>
       backdropSrc={schema.props.backdropSrc}
       stageMode={schema.props.stageMode || "player"}
       stageContent={previewOverlay}
-      rail={rail ? renderChild(rail, 0) : undefined}
+      rail={schemaRail ? renderChild(schemaRail, 0) : presentedRail}
       coWatchQueueCount={coWatchQueueCount}
     />
   );

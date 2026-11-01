@@ -6,6 +6,7 @@ import { useHomeFeed } from "../hooks/useHomeFeed";
 import { DYNAMIC_CATEGORY_TITLES } from "./LibraryConfig";
 import HeroSpotlight from "../components/HeroSpotlight";
 import MediaRow from "../components/MediaRow";
+import ContinueWatchingRow from "../components/ContinueWatchingRow";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { Slot } from "../components/common/extension/Slot";
 import type { HeroItem, MediaCard } from "../network/ApiTypes";
@@ -66,6 +67,9 @@ export const HomePage: React.FC = () => {
       )}
 
       <div className="home-content-region">
+        {/* Native cross-source continue-watching row — renders nothing while the ledger is empty. */}
+        <ContinueWatchingRow />
+
         {/* Plugin-contributed rows shown ABOVE the native feed rows. */}
         <Slot name="home-rows-top" />
 

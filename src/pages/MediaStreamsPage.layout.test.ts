@@ -216,7 +216,7 @@ describe("MediaStreamsPage layout", () => {
     );
 
     expect(content).toContain("handlePlayAsPlaylist");
-    expect(selectorState).toContain("potok_playlist_override = playlist");
+    expect(selectorState).toContain("setPlaylistOverride(playlist)");
     expect(header).not.toContain("onOpenAsPlaylist");
     expect(header).not.toContain("openAsPlaylist");
   });

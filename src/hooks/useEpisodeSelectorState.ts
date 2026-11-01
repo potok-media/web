@@ -1,15 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { PlaylistItem } from "../context/playbackTypes";
 import type { EpisodeSourceSection, FileOverrideMode, GenericEpisodeItem } from "../components/common/episodeSelector/types";
 import { buildEpisodeSourceSections } from "../components/common/episodeSelector/utils";
 import { buildEpisodeBindingOverride } from "../components/common/episodeSelector/armOverrideModel";
 import type { SDKArmBindingTarget, SDKEpisodeBindingOverride } from "../sdk/src/types";
 import { buildEpisodePlaylist } from "../utils/episodePlaylist";
-
-interface PlaylistOverrideBridge {
-  potok_playlist_override?: PlaylistItem[];
-}
+import { clearPlaylistOverride, setPlaylistOverride } from "../utils/playlistResolver";
 
 interface UseEpisodeSelectorStateParams {
   isOpen: boolean;
@@ -59,13 +55,10 @@ export function useEpisodeSelectorState({
   useEffect(() => {
     if (!isOpen || playlist.length === 0) return;
 
-    const bridge = window as PlaylistOverrideBridge;
-    bridge.potok_playlist_override = playlist;
+    setPlaylistOverride(playlist);
 
     return () => {
-      if (bridge.potok_playlist_override === playlist) {
-        bridge.potok_playlist_override = undefined;
-      }
+      clearPlaylistOverride(playlist);
     };
   }, [isOpen, playlist]);
 
@@ -126,7 +119,7 @@ export function useEpisodeSelectorState({
 
   const handlePlayAsPlaylist = useCallback((episode: GenericEpisodeItem) => {
     if (playlist.length > 0) {
-      (window as PlaylistOverrideBridge).potok_playlist_override = playlist;
+      setPlaylistOverride(playlist);
     }
     onPlay(episode, "default");
   }, [onPlay, playlist]);

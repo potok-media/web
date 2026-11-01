@@ -9,6 +9,7 @@ import type {
   StreamSearchQuery,
   ElementMutation
 } from "@potok/sdk-types";
+import type { GenericEpisodeItem } from "../../components/common/episodeSelector/types";
 import { BlockMutationsManager } from "./mutationsHelper";
 import { SettlementManager } from "./settlementHelper";
 import { LegacyLookupSearchManager } from "./legacyLookupHelper";
@@ -19,6 +20,20 @@ import type { BlockContextPayload, PotokSandboxWindow } from "./extensionHostTyp
 import { TORRENT_SEARCH_HTTP_TIMEOUT_MS } from "./pluginHttpTimeout";
 
 type RegistryListener = () => void;
+
+/**
+ * Episode panel data a plugin handed to the host via ui.presentEpisodes. The host renders its own
+ * episode panel from this — plugins supply data and callbacks, never panel UI.
+ */
+export interface PresentedEpisodesPanel {
+  title?: string;
+  subtitle?: string;
+  episodes: GenericEpisodeItem[];
+  canReorder?: boolean;
+  onPlay?: (episode: GenericEpisodeItem, audioId: string) => void;
+  onClose?: () => void;
+  onReorderEpisodes?: (episodes: GenericEpisodeItem[]) => void;
+}
 
 type SandboxPromiseRecord = {
   resolve: (value: unknown) => void;
@@ -39,6 +54,9 @@ class ExtensionRegistryManager {
 
   // In-flight active promises
   private activePromises = new Map<string, SandboxPromiseRecord>();
+
+  // Episode panels handed over via ui.presentEpisodes, keyed by the plugin iframe's content window
+  private presentedEpisodePanels = new Map<MessageEventSource, PresentedEpisodesPanel>();
 
   // Sub-managers
   private settlementManager = new SettlementManager(() => this.notify());
@@ -74,7 +92,30 @@ class ExtensionRegistryManager {
   }
 
   registerSandbox(pluginId: string, iframe: HTMLIFrameElement) {
+    const previousWindow = this.sandboxIframes.get(pluginId)?.contentWindow;
+    if (previousWindow && previousWindow !== iframe.contentWindow) {
+      // The iframe was reloaded — a panel presented by the old document can never be updated or dismissed.
+      if (this.presentedEpisodePanels.delete(previousWindow)) this.notify();
+    }
     this.sandboxIframes.set(pluginId, iframe);
+  }
+
+  /** Episode panel data a plugin handed to the host (ui.presentEpisodes). Keyed by the plugin's window. */
+  registerPresentedEpisodes(source: MessageEventSource, panel: PresentedEpisodesPanel) {
+    this.presentedEpisodePanels.set(source, panel);
+    this.notify();
+  }
+
+  clearPresentedEpisodes(source: MessageEventSource) {
+    if (this.presentedEpisodePanels.delete(source)) {
+      this.notify();
+    }
+  }
+
+  getPresentedEpisodes(pluginId: string): PresentedEpisodesPanel | undefined {
+    const contentWindow = this.sandboxIframes.get(pluginId)?.contentWindow;
+    if (!contentWindow) return undefined;
+    return this.presentedEpisodePanels.get(contentWindow);
   }
 
   /** Fan a generic host event out to every plugin iframe. Host does not interpret the payload. */
@@ -106,6 +147,10 @@ class ExtensionRegistryManager {
   }
 
   unregisterSandbox(pluginId: string) {
+    const removedWindow = this.sandboxIframes.get(pluginId)?.contentWindow;
+    if (removedWindow) {
+      this.presentedEpisodePanels.delete(removedWindow);
+    }
     this.sandboxIframes.delete(pluginId);
     this.plugins.delete(pluginId);
     

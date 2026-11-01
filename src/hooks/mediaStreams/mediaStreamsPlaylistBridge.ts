@@ -3,7 +3,12 @@ import { logger } from "../../utils/logger";
 import type { PlaybackInfo, PlaybackMetadata, RawStreamPayload } from "@potok/sdk-types";
 import type { ActivePlayback, PlaylistItem } from "../../context/playbackTypes";
 import type { GenericEpisodeItem } from "../../components/common/episodeSelector/types";
-import type { PlaylistResolveBridge, StreamContext, StreamSource } from "./mediaStreamsTypes";
+import {
+  clearPendingPlaylistResolver,
+  consumePlaylistOverride,
+  registerPendingPlaylistResolver,
+} from "../../utils/playlistResolver";
+import type { StreamContext, StreamSource } from "./mediaStreamsTypes";
 
 interface PlaylistBridgeParams {
   ep: GenericEpisodeItem;
@@ -28,8 +33,7 @@ export function setupPlaylistBridge({
   playlist: ActivePlayback["playlist"] | undefined;
   playlistIndex: number | undefined;
 } {
-  const bridge = window as PlaylistResolveBridge;
-  const playlist = bridge.potok_playlist_override;
+  const playlist = consumePlaylistOverride() ?? undefined;
   let playlistIndex: number | undefined;
 
   if (playlist) {
@@ -39,13 +43,11 @@ export function setupPlaylistBridge({
         : item.season === ep.season && item.episode === ep.episode,
     );
     if (playlistIndex === -1 || playlistIndex === undefined) playlistIndex = 0;
-    bridge.potok_playlist_override = undefined;
 
     const src = activeSource;
     const stream = clickedStream;
     const ctx = context;
-    bridge.__potok_playlist_resolve_owner = bridgeOwner;
-    bridge.potok_playlist_resolve = async (item: PlaylistItem) => {
+    registerPendingPlaylistResolver(bridgeOwner, async (item: PlaylistItem) => {
       const nextEp = {
         id: item.id,
         workId: item.workId,
@@ -86,14 +88,11 @@ export function setupPlaylistBridge({
       }
 
       return nextInfo;
-    };
+    });
   } else {
-    // Only clear a resolver this bridge installed — never clobber one attached
+    // Only clear a resolver this bridge installed — never clobber one parked
     // by the plugin sandbox for a plugin-driven playback.
-    if (bridge.__potok_playlist_resolve_owner === bridgeOwner) {
-      bridge.potok_playlist_resolve = undefined;
-      bridge.__potok_playlist_resolve_owner = undefined;
-    }
+    clearPendingPlaylistResolver(bridgeOwner);
   }
 
   return { playlist, playlistIndex };

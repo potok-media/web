@@ -142,8 +142,9 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [potokToken]);
 
   // Playlist navigation that bypasses plugin code (player "next"/prev/auto-advance, host panel clicks)
-  // still moves the active episode. Plugins with their own episode panel (online-balancers) track the
-  // selection in plugin state, so broadcast the change — each plugin decides whether it applies.
+  // still moves the active episode. Plugins that keep a panel in sync with playback track these
+  // broadcasts; the host-rendered episode panel (ui.presentEpisodes) doesn't need them — it reads
+  // activePlayback.playlist/playlistIndex directly.
   useEffect(() => {
     if (!activePlayback?.playlist?.length || activePlayback.playlistIndex === undefined) return;
     const item = activePlayback.playlist[activePlayback.playlistIndex];

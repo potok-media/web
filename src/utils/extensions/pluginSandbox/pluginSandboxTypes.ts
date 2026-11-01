@@ -1,7 +1,7 @@
 import type { NavigateFunction } from "react-router-dom";
 import type { RegisteredExtension } from "@potok/sdk-types";
 import type { HUDType } from "../../../context/hudContextState";
-import type { ActivePlayback, PlaylistItem } from "../../../context/playbackTypes";
+import type { ActivePlayback } from "../../../context/playbackTypes";
 import type { ConnectionProfile } from "../../../network/ApiTypes";
 
 export interface PotokCustomTheme {
@@ -11,10 +11,6 @@ export interface PotokCustomTheme {
 
 export interface PluginSandboxWindowBridge {
   __potok_custom_themes?: Map<string, PotokCustomTheme>;
-  potok_playlist_override?: PlaylistItem[] | null;
-  potok_playlist_resolve?: (item: PlaylistItem) => Promise<unknown>;
-  /** Identifies which flow installed potok_playlist_resolve so others don't clobber it. */
-  __potok_playlist_resolve_owner?: string;
 }
 
 export interface PluginSandboxMessage {

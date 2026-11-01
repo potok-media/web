@@ -70,6 +70,12 @@ export const hostApiDts = `
       stopVideo(): void;
       /** Opens the series episode picker dialog. */
       showEpisodeSelector(cfg: SDKEpisodeSelectorConfig): void;
+      /**
+       * Hands episodes to the host as data: the host renders its own episode panel in the right rail
+       * of the current extension page workspace, highlighting the active episode from the playback
+       * playlist. Pass null to dismiss the panel.
+       */
+      presentEpisodes(cfg: SDKEpisodePanelConfig | null): void;
       /** Subscribe to updates of the current block context. */
       onBlockContextUpdate(cb: (ctx: unknown) => void): () => void;
       /** Sets the accent theme. */

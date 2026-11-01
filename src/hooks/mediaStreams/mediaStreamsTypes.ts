@@ -1,8 +1,6 @@
 import type { GenericEpisodeItem } from "../../components/common/episodeSelector/types";
 import type { MediaCard } from "../../network/ApiTypes";
 import type { StreamEpisode, SDKFileOverrideEntry } from "@potok/sdk-types";
-import type { ActivePlayback, PlaylistItem } from "../../context/playbackTypes";
-import type { PlaybackInfo } from "@potok/sdk-types";
 
 export type StreamSource = {
   id: string;
@@ -50,13 +48,6 @@ export interface EpisodesResponse {
     workId?: string | null;
     graphVersion?: string | null;
   } | null;
-}
-
-export interface PlaylistResolveBridge {
-  potok_playlist_override?: ActivePlayback["playlist"];
-  potok_playlist_resolve?: (item: PlaylistItem) => Promise<PlaybackInfo>;
-  /** Identifies which flow installed potok_playlist_resolve so others don't clobber it. */
-  __potok_playlist_resolve_owner?: string;
 }
 
 export interface MediaStreamsPlaybackContext {
