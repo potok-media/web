@@ -108,6 +108,7 @@ declare global {
     PotokRegisteredSources?: Map<string, SourceLookupFn>;
     PotokSDKInitialized?: boolean;
     PotokSettingsChangedListener?: (key: string, value: unknown, settings: Record<string, unknown>) => void;
+    PotokPlaybackEventListeners?: Record<string, Array<(event: Record<string, unknown>) => void>>;
   }
 }
 
@@ -455,6 +456,36 @@ export function initPotokSDK(): void {
     win.PotokSettingsChangedListener = cb;
   };
 
+  // Host-side player events the plugin cannot observe otherwise: playlist navigation, playback
+  // open/close, fatal errors. The host broadcasts them; each subscription returns an unsubscribe.
+  type PlaybackEventName = "playlistItem" | "started" | "stopped" | "error";
+  type PlaybackEventListeners = Record<PlaybackEventName, Array<(event: Record<string, unknown>) => void>>;
+  if (!win.PotokPlaybackEventListeners) {
+    win.PotokPlaybackEventListeners = {
+      playlistItem: [],
+      started: [],
+      stopped: [],
+      error: [],
+    } as PlaybackEventListeners;
+  }
+  const onPlaybackEvent = (name: PlaybackEventName, cb: (event: Record<string, unknown>) => void) => {
+    const listeners = win.PotokPlaybackEventListeners as PlaybackEventListeners;
+    listeners[name].push(cb);
+    return () => {
+      listeners[name] = listeners[name].filter((listener) => listener !== cb);
+    };
+  };
+  win.PotokSDK.playback = {
+    /** Fires when the host player switches to another playlist item (next/prev/auto-advance/host panel). */
+    onPlaylistItemChange: (cb: (event: Record<string, unknown>) => void) => onPlaybackEvent("playlistItem", cb),
+    /** Fires when the host player opens a playback (any source — plugin, host panel, restore). */
+    onPlaybackStarted: (cb: (event: Record<string, unknown>) => void) => onPlaybackEvent("started", cb),
+    /** Fires when the host player closes (close button, back, fatal flow, session reset). */
+    onPlaybackStopped: (cb: (event: Record<string, unknown>) => void) => onPlaybackEvent("stopped", cb),
+    /** Fires when the current stream fails fatally in the player (CORS, dead link, decode). */
+    onPlaybackError: (cb: (event: Record<string, unknown>) => void) => onPlaybackEvent("error", cb),
+  };
+
   win.PotokSDK.updateSettingsForm = (updates: Record<string, unknown>) => {
     window.parent.postMessage({
       source: 'potok-plugin-sdk',
@@ -542,6 +573,38 @@ export function initPotokSDK(): void {
           console.error("[SDK] Error in onSettingsChanged listener:", e);
         }
       }
+    } else if (msg.action === 'PLAYLIST_ITEM_CHANGED') {
+      ((win.PotokPlaybackEventListeners?.playlistItem) || []).forEach((cb) => {
+        try {
+          cb(msg.payload);
+        } catch (e) {
+          console.error("[SDK] Error in onPlaylistItemChange listener:", e);
+        }
+      });
+    } else if (msg.action === 'PLAYBACK_STARTED') {
+      ((win.PotokPlaybackEventListeners?.started) || []).forEach((cb) => {
+        try {
+          cb(msg.payload);
+        } catch (e) {
+          console.error("[SDK] Error in onPlaybackStarted listener:", e);
+        }
+      });
+    } else if (msg.action === 'PLAYBACK_STOPPED') {
+      ((win.PotokPlaybackEventListeners?.stopped) || []).forEach((cb) => {
+        try {
+          cb(msg.payload);
+        } catch (e) {
+          console.error("[SDK] Error in onPlaybackStopped listener:", e);
+        }
+      });
+    } else if (msg.action === 'PLAYBACK_ERROR') {
+      ((win.PotokPlaybackEventListeners?.error) || []).forEach((cb) => {
+        try {
+          cb(msg.payload);
+        } catch (e) {
+          console.error("[SDK] Error in onPlaybackError listener:", e);
+        }
+      });
     }
   });
 }

@@ -106,7 +106,16 @@ export function useWebMediaPlayerInteraction({
     streamResetRef.current.resetMenus();
   }, [playback.streamUrl, setIsClosed, setIsPlaying, setDuration, setSeekPreview, setIsBuffering, setPlayerError]);
 
-  const playPlaylistItem = usePlayerPlaylist(playback, playVideo);
+  const playPlaylistItemRaw = usePlayerPlaylist(playback, playVideo);
+  const playPlaylistItem = useCallback(
+    (index: number) => {
+      playPlaylistItemRaw(index).catch((error) => {
+        // Already logged inside the hook — surface the failure in the player UI.
+        setPlayerError(error instanceof Error ? error.message : String(error));
+      });
+    },
+    [playPlaylistItemRaw, setPlayerError],
+  );
 
   const handleEnded = useCallback(() => {
     if (!playback.playlist || playback.playlistIndex === undefined) return;

@@ -37,6 +37,25 @@ export const hostApiDts = `
     };
     /** Creates reactive state (State) for the plugin. */
     createState<T extends object>(state: T): T;
+    /**
+     * Playback (host player) events. Host-driven navigation — the player's next/prev button,
+     * auto-advance and host panel clicks — never runs plugin code, so plugins learn about the
+     * active episode change only through these events.
+     */
+    playback: {
+      /**
+       * Fires when the host player switches to another playlist item (next/prev/auto-advance/host panel).
+       * Receives { episodeId, season, episode, playlistIndex, title } of the new active item.
+       * Returns an unsubscribe function.
+       */
+      onPlaylistItemChange(cb: (event: { episodeId: string | null; season: number | null; episode: number | null; playlistIndex: number; title: string | null }) => void): () => void;
+      /** Fires when the host player opens a playback. Receives { title, mediaType, season, episode, providerId }. */
+      onPlaybackStarted(cb: (event: { title: string | null; mediaType: string | null; season: number | null; episode: number | null; providerId: string | null }) => void): () => void;
+      /** Fires when the host player closes (close button, back button, session reset). Receives the last playback descriptor summary. */
+      onPlaybackStopped(cb: (event: { title: string | null; mediaType: string | null; providerId: string | null }) => void): () => void;
+      /** Fires when the current stream fails fatally in the player. Receives { title, season, episode, providerId, message, streamUrl }. */
+      onPlaybackError(cb: (event: { title: string | null; season: number | null; episode: number | null; providerId: string | null; message: string; streamUrl: string }) => void): () => void;
+    };
     /** Methods for managing UI layers and components. */
     ui: {
       /** Shows a transient HUD notification (toast) on the host side. */

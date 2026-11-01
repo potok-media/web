@@ -55,6 +55,8 @@ export interface EpisodesResponse {
 export interface PlaylistResolveBridge {
   potok_playlist_override?: ActivePlayback["playlist"];
   potok_playlist_resolve?: (item: PlaylistItem) => Promise<PlaybackInfo>;
+  /** Identifies which flow installed potok_playlist_resolve so others don't clobber it. */
+  __potok_playlist_resolve_owner?: string;
 }
 
 export interface MediaStreamsPlaybackContext {

@@ -13,6 +13,7 @@ import { usePlayerPlaylist } from "../hooks/usePlayerPlaylist";
 import type { GenericEpisodeItem } from "../components/common/episodeSelector/types";
 import type { MediaCard } from "../network/ApiTypes";
 import { orderItemsByIds, reorderPlaylistKeepingCurrent } from "../utils/queueOrder";
+import { logger } from "../utils/logger";
 
 import { Button, IconButton } from "../components/ui";
 
@@ -101,22 +102,32 @@ export const MediaStreamsPage: React.FC = () => {
   const stageMode = inlinePlaybackActive ? "player" : "preview";
 
   const handleQueuePlay = (episodeItem: GenericEpisodeItem) => {
-    if (watchTogether.role && watchTogether.sessionActive && activePlayback?.playlist) {
-      const playlistIndex = activePlayback.playlist.findIndex((item) =>
-        item.id && episodeItem.id
-          ? String(item.id) === String(episodeItem.id)
-          : item.season === episodeItem.season && item.episode === episodeItem.episode,
-      );
-      if (playlistIndex >= 0) {
+    const playlistIndex = activePlayback?.playlist
+      ? activePlayback.playlist.findIndex((item) =>
+          item.id && episodeItem.id
+            ? String(item.id) === String(episodeItem.id)
+            : item.season === episodeItem.season && item.episode === episodeItem.episode,
+        )
+      : -1;
+    if (playlistIndex >= 0) {
+      if (watchTogether.role && watchTogether.sessionActive) {
         if (watchTogether.role === "guest") {
           if (watchTogether.myPermissions.canControl) {
             watchTogether.sendControl("episode", undefined, playlistIndex);
           }
         } else {
-          void playPlaylistItem(playlistIndex);
+          void playPlaylistItem(playlistIndex).catch((error) => {
+            logger.error("[MediaStreamsPage] playlist item playback failed:", error);
+          });
         }
         return;
       }
+      // Solo: the panel and the player's "Дальше" button share one mechanism —
+      // both resolve the next item through the same playlist resolver.
+      void playPlaylistItem(playlistIndex).catch((error) => {
+        logger.error("[MediaStreamsPage] playlist item playback failed:", error);
+      });
+      return;
     }
     handlePlayEpisode(episodeItem);
   };

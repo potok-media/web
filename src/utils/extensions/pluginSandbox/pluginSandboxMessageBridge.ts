@@ -79,6 +79,8 @@ function attachPlaylistResolver(
     tmdbId: playback.id,
     title: playback.originalTitle || playback.title,
   };
+  const resolverOwner = "plugin-sandbox";
+  bridge.__potok_playlist_resolve_owner = resolverOwner;
   bridge.potok_playlist_resolve = (item: PlaylistItem) => {
     logger.log("[attachPlaylistResolver.potok_playlist_resolve] CALLED with item", JSON.parse(JSON.stringify(item)));
     const episodes = playlist.map((ep) => ({
@@ -87,6 +89,7 @@ function attachPlaylistResolver(
       episode: ep.episode,
       title: ep.title,
       streamUrl: ep.streamUrl,
+      headers: ep.headers,
       voice: ep.voice,
       workId: ep.workId,
       episodeId: ep.episodeId,

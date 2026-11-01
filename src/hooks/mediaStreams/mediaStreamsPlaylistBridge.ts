@@ -14,6 +14,9 @@ interface PlaylistBridgeParams {
   episodes?: { id: string; season?: number; episode?: number; title?: string; voice?: string; url?: string }[];
 }
 
+/** Marks resolvers installed by this bridge so the else-branch only clears its own. */
+const bridgeOwner = "media-streams";
+
 export function setupPlaylistBridge({
   ep,
   activeSource,
@@ -41,6 +44,7 @@ export function setupPlaylistBridge({
     const src = activeSource;
     const stream = clickedStream;
     const ctx = context;
+    bridge.__potok_playlist_resolve_owner = bridgeOwner;
     bridge.potok_playlist_resolve = async (item: PlaylistItem) => {
       const nextEp = {
         id: item.id,
@@ -84,7 +88,12 @@ export function setupPlaylistBridge({
       return nextInfo;
     };
   } else {
-    bridge.potok_playlist_resolve = undefined;
+    // Only clear a resolver this bridge installed — never clobber one attached
+    // by the plugin sandbox for a plugin-driven playback.
+    if (bridge.__potok_playlist_resolve_owner === bridgeOwner) {
+      bridge.potok_playlist_resolve = undefined;
+      bridge.__potok_playlist_resolve_owner = undefined;
+    }
   }
 
   return { playlist, playlistIndex };

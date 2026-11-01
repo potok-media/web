@@ -6,6 +6,7 @@ import { PlatformManager } from "../utils/PlatformManager";
 import { cleanStreamUrlForExternalPlayer } from "../utils/playbackUrl";
 import { useSettings } from "./SettingsContext";
 import { useAuth } from "./AuthContext";
+import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import type { ActivePlayback, PlaybackMeta, PlaylistItem } from "./playbackTypes";
 import {
   switchPlaybackSourceState,
@@ -139,6 +140,48 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }, 0);
     return () => clearTimeout(timer);
   }, [potokToken]);
+
+  // Playlist navigation that bypasses plugin code (player "next"/prev/auto-advance, host panel clicks)
+  // still moves the active episode. Plugins with their own episode panel (online-balancers) track the
+  // selection in plugin state, so broadcast the change — each plugin decides whether it applies.
+  useEffect(() => {
+    if (!activePlayback?.playlist?.length || activePlayback.playlistIndex === undefined) return;
+    const item = activePlayback.playlist[activePlayback.playlistIndex];
+    if (!item) return;
+    ExtensionRegistry.broadcast("PLAYLIST_ITEM_CHANGED", {
+      episodeId: item.id ?? null,
+      season: item.season ?? null,
+      episode: item.episode ?? null,
+      playlistIndex: activePlayback.playlistIndex,
+      title: item.title ?? null,
+    });
+  }, [activePlayback]);
+
+  // Playback lifecycle events for plugin UIs: opened / closed. Plugins never see these transitions
+  // otherwise — plugin-initiated playVideo goes through the sandbox bridge, but host-side closes
+  // (close button, back button, fatal errors, session reset) never reach plugin code.
+  const hadPlaybackRef = useRef(false);
+  const lastPlaybackRef = useRef<ActivePlayback | null>(null);
+  useEffect(() => {
+    const hasPlayback = Boolean(activePlayback);
+    if (hasPlayback && !hadPlaybackRef.current) {
+      ExtensionRegistry.broadcast("PLAYBACK_STARTED", {
+        title: activePlayback?.title ?? null,
+        mediaType: activePlayback?.mediaType ?? null,
+        season: activePlayback?.season ?? null,
+        episode: activePlayback?.episode ?? null,
+        providerId: activePlayback?.providerId ?? null,
+      });
+    } else if (!hasPlayback && hadPlaybackRef.current) {
+      ExtensionRegistry.broadcast("PLAYBACK_STOPPED", {
+        title: lastPlaybackRef.current?.title ?? null,
+        mediaType: lastPlaybackRef.current?.mediaType ?? null,
+        providerId: lastPlaybackRef.current?.providerId ?? null,
+      });
+    }
+    hadPlaybackRef.current = hasPlayback;
+    if (activePlayback) lastPlaybackRef.current = activePlayback;
+  }, [activePlayback]);
 
   const value = useMemo(
     () => ({

@@ -95,7 +95,7 @@ export function useHlsPlayer({
     };
 
     if (isHls && Hls.isSupported()) {
-      const hls = new Hls(createHlsPlayerConfig(startPos));
+      const hls = new Hls(createHlsPlayerConfig(startPos, pipelinePlayback.headers));
       hlsRef.current = hls;
 
       bindHlsEventHandlers(hls, video, sessionId, sessionRefs, {

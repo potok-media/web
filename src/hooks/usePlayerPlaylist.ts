@@ -1,6 +1,8 @@
 import { useCallback } from "react";
 import type { PlaybackInfo } from "@potok/sdk-types";
 import type { ActivePlayback, PlaylistItem } from "../context/AppSettingsContext";
+import { logger } from "../utils/logger";
+import { isPlayableUrl } from "../utils/playableUrl";
 
 interface PlaylistResolveBridge {
   potok_playlist_resolve?: (item: PlaylistItem) => Promise<PlaybackInfo>;
@@ -22,7 +24,7 @@ export function usePlayerPlaylist(
       if (typeof resolve === "function") {
         try {
           const info = await resolve(item);
-          if (info) {
+          if (info && isPlayableUrl(info.streamUrl)) {
             const st = info.streamType;
             const nextPlayback: ActivePlayback = {
               ...playback,
@@ -57,9 +59,22 @@ export function usePlayerPlaylist(
             playVideo(nextPlayback);
             return;
           }
-        } catch {
-          /* fall through to the stale pre-built item */
+          logger.error(
+            "[usePlayerPlaylist] resolver returned no playable streamUrl for item",
+            item.id,
+            info?.streamUrl,
+          );
+        } catch (error) {
+          logger.error("[usePlayerPlaylist] playlist resolve failed:", error);
         }
+      }
+
+      // Pre-built fallback is only safe when it holds a directly loadable URL.
+      // Plugin pseudo-URLs (online-balancers://…) are identifiers, not streams.
+      if (!isPlayableUrl(item.streamUrl)) {
+        throw new Error(
+          `Cannot start "${itemTitle}": the playlist item has no playable stream URL`,
+        );
       }
 
       const fallbackPlayback: ActivePlayback = {
@@ -77,6 +92,7 @@ export function usePlayerPlaylist(
         targets: item.targets,
         title: itemTitle,
         audios: item?.audios,
+        headers: item.headers ?? playback.headers,
         // The pre-built item has no segment metadata. Do not inherit the previous episode's cut.
         duration: undefined,
         introStart: undefined,

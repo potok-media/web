@@ -1,10 +1,11 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import type { ActivePlayback } from "../context/playbackTypes";
 import { useWebMediaPlayer } from "../hooks/useWebMediaPlayer";
 import { useWatchTogetherSync } from "../hooks/player/useWatchTogetherSync";
 import { useWatchTogether } from "../context/watchTogetherState";
+import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import { PlayerCoWatchNotices } from "./player/PlayerCoWatchNotices";
 import { PlayerCoWatchPauseOverlay } from "./player/PlayerCoWatchPauseOverlay";
 import { PlayerCoWatchWaitOverlay } from "./player/PlayerCoWatchWaitOverlay";
@@ -58,6 +59,21 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = (props) => {
 
   const vm = useWebMediaPlayer({ ...playerProps, onClose: handlePlayerClose });
   useWatchTogetherSync(vm);
+
+  // Fatal playback errors never reach plugin code (the failing "next" episode may have been resolved
+  // by the host, not the plugin) — broadcast so plugin UIs can react, e.g. drop the stale highlight.
+  useEffect(() => {
+    if (!vm.playerError) return;
+    ExtensionRegistry.broadcast("PLAYBACK_ERROR", {
+      title: props.playback.title,
+      mediaType: props.playback.mediaType,
+      season: props.playback.season ?? null,
+      episode: props.playback.episode ?? null,
+      providerId: props.playback.providerId ?? null,
+      message: vm.playerError,
+      streamUrl: props.playback.streamUrl,
+    });
+  }, [vm.playerError, props.playback]);
 
   // A co-watch guest doesn't drive its own video — its controls request the host (if permitted) and the video
   // then follows via sync. Without permission the pause/seek controls are disabled.
