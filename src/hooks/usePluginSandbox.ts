@@ -65,6 +65,16 @@ export function usePluginSandbox() {
           navigate,
           setAccentTheme,
           triggerPhysicalRemoval: lifecycle.triggerPhysicalRemoval,
+          copyText: async (text: string) => {
+            try {
+              await navigator.clipboard.writeText(text);
+            } catch (err) {
+              logger.error('[PluginSandbox] copyText failed:', err);
+            }
+          },
+          openUrl: (url: string) => {
+            window.open(url, '_blank', 'noopener,noreferrer');
+          },
         },
         pluginId,
         msg,

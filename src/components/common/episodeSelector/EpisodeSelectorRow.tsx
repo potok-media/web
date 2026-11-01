@@ -181,6 +181,12 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
 
       <div className="file-card-info-panel">
         <h4 className="file-card-title">{displayTitle}</h4>
+        {(() => {
+          const status = episodeItem.playbackStatus;
+          if (!status) return null;
+          const label = status === "playing" ? t("selector.playing") : t("selector.next");
+          return <span className="file-card-subtitle">{label}</span>;
+        })()}
         {displaySubtitle && displaySubtitle !== displayTitle && (!isInlinePlaylist || repairMode || !progressLabel) && (
           <span className="file-card-subtitle">{displaySubtitle}</span>
         )}

@@ -182,6 +182,39 @@ interface HostPlaybackWorkspaceCaseProps extends HostMediaRendererProps<Playback
   renderChild: (child: UIComponentSchema, index: number) => React.ReactNode;
 }
 
+const PreviewOverlayContent: React.FC<{
+  centerTitle: string;
+  bottomSubtitle?: string;
+  backdropSrc?: string;
+}> = ({ centerTitle, bottomSubtitle, backdropSrc }) => (
+  <div className="streams-player-preview">
+    <div
+      className="streams-player-preview__artwork"
+      style={{ backgroundImage: backdropSrc ? `url(${backdropSrc})` : undefined }}
+    />
+    <div className="streams-player-preview__veil" />
+    <div className="streams-player-preview__content">
+      <svg
+        className="streams-player-preview__content-icon"
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect x="2" y="3" width="20" height="14" rx="2" />
+        <polyline points="8 21 16 21" />
+        <line x1="12" y1="17" x2="12" y2="21" />
+      </svg>
+      <strong>{centerTitle}</strong>
+      {bottomSubtitle && <span>{bottomSubtitle}</span>}
+    </div>
+  </div>
+);
+
 export const HostPlaybackWorkspaceCase: React.FC<HostPlaybackWorkspaceCaseProps> = ({
   schema,
   baseStyle,
@@ -192,6 +225,15 @@ export const HostPlaybackWorkspaceCase: React.FC<HostPlaybackWorkspaceCaseProps>
     ? rail.props.episodes?.length || 0
     : 0;
 
+  const isPreview = schema.props.stageMode === "preview";
+  const previewOverlay = isPreview && schema.props.previewOverlay
+    ? <PreviewOverlayContent
+        centerTitle={schema.props.previewOverlay.centerTitle}
+        bottomSubtitle={schema.props.previewOverlay.bottomSubtitle}
+        backdropSrc={schema.props.previewOverlay.backdropSrc}
+      />
+    : undefined;
+
   return (
     <PlaybackWorkspace
       id={schema.id}
@@ -199,6 +241,7 @@ export const HostPlaybackWorkspaceCase: React.FC<HostPlaybackWorkspaceCaseProps>
       style={sdkStyleVars(baseStyle)}
       backdropSrc={schema.props.backdropSrc}
       stageMode={schema.props.stageMode || "player"}
+      stageContent={previewOverlay}
       rail={rail ? renderChild(rail, 0) : undefined}
       coWatchQueueCount={coWatchQueueCount}
     />

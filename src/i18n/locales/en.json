@@ -485,7 +485,9 @@
       "reorderEpisode": "Reorder episode",
       "mainStream": "Main stream",
       "noEpisodes": "No episodes available.",
-      "savingOffset": "Saving offset..."
+      "savingOffset": "Saving offset...",
+      "playing": "Playing",
+      "next": "Next"
     },
     "override": {
       "pinPrompt": "Which episode does this file contain?",

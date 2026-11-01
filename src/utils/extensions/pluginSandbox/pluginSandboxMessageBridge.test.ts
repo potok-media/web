@@ -19,6 +19,8 @@ function context(providerId: string | null): PluginSandboxMessageContext {
     navigate: vi.fn(),
     setAccentTheme: vi.fn(),
     triggerPhysicalRemoval: vi.fn(),
+    copyText: vi.fn(),
+    openUrl: vi.fn(),
   };
 }
 

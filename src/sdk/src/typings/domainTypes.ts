@@ -333,6 +333,9 @@ export const domainTypesDts = `
     seeds?: number;
     peers?: number;
     provider?: string;
+    providerId?: string;
+    id?: string;
+    sourceId?: string;
     hash?: string;
     voice?: string;
     kind?: 'hls' | 'mp4' | string;

@@ -65,15 +65,37 @@ function attachPlaylistResolver(
   const pluginId = typeof playback.providerId === "string" && playback.providerId
     ? playback.providerId
     : fallbackPluginId;
-  if (!Array.isArray(playlist) || playlist.length === 0 || !sourceStream || !pluginId) return;
-
+  logger.log("[attachPlaylistResolver] START playback=", JSON.parse(JSON.stringify(playback)));
+  logger.log("[attachPlaylistResolver] playlist=", playlist);
+  logger.log("[attachPlaylistResolver] sourceStream=", sourceStream);
+  logger.log("[attachPlaylistResolver] pluginId=", pluginId);
+  if (!Array.isArray(playlist) || playlist.length === 0 || !sourceStream || !pluginId) {
+    logger.log("[attachPlaylistResolver] SKIPPED — playlist missing/empty or sourceStream missing or pluginId missing");
+    return;
+  }
+  logger.log("[attachPlaylistResolver] ATTACHING potok_playlist_resolve");
   const context = {
     type: playback.mediaType,
     tmdbId: playback.id,
     title: playback.originalTitle || playback.title,
   };
-  bridge.potok_playlist_resolve = (item: PlaylistItem) =>
-    ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", {
+  bridge.potok_playlist_resolve = (item: PlaylistItem) => {
+    logger.log("[attachPlaylistResolver.potok_playlist_resolve] CALLED with item", JSON.parse(JSON.stringify(item)));
+    const episodes = playlist.map((ep) => ({
+      id: ep.id,
+      season: ep.season,
+      episode: ep.episode,
+      title: ep.title,
+      streamUrl: ep.streamUrl,
+      voice: ep.voice,
+      workId: ep.workId,
+      episodeId: ep.episodeId,
+      entryId: ep.entryId,
+      episodeIds: ep.episodeIds,
+      targets: ep.targets,
+      providerId: ep.providerId,
+    }));
+    const result = ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", {
       stream: sourceStream,
       episode: {
         id: item.id,
@@ -81,9 +103,14 @@ function attachPlaylistResolver(
         episode: item.episode,
         title: item.title,
         url: item.streamUrl,
+        providerId: item.providerId,
       },
+      episodes,
       context,
     });
+    logger.log("[attachPlaylistResolver.potok_playlist_resolve] sendSandboxRequest sent", { pluginId, stream: sourceStream, episode: { id: item.id, season: item.season, episode: item.episode }, episodesCount: episodes.length });
+    return result;
+  };
 }
 
 export async function handlePluginSandboxMessage(
@@ -167,14 +194,40 @@ export async function handlePluginSandboxMessage(
         ctx.setAccentTheme(payload.themeId);
       }
       break;
+    case "COPY_TEXT":
+      if (permissions.includes("clipboard")) {
+        ctx.copyText(String(payload.text));
+      }
+      break;
+    case "OPEN_URL":
+      if (permissions.includes("external-url")) {
+        ctx.openUrl(String(payload.url));
+      }
+      break;
     case "PLAY_VIDEO": {
+      logger.log("[PluginSandbox.PLAY_VIDEO] RECEIVED from plugin", pluginId, "raw payload=", JSON.parse(JSON.stringify(payload)));
       const playbackPayload = { ...payload } as ActivePlayback & Record<string, unknown>;
       if (TORRENT_HASH_KEY in playbackPayload && playbackPayload[TORRENT_HASH_KEY]) {
         playbackPayload.streamHash = String(playbackPayload[TORRENT_HASH_KEY]);
         delete playbackPayload[TORRENT_HASH_KEY];
       }
+      logger.log("[PluginSandbox.PLAY_VIDEO] processed payload (streamUrl, playlist, sourceStream)", {
+        streamUrl: playbackPayload.streamUrl,
+        streamType: playbackPayload.streamType,
+        title: playbackPayload.title,
+        season: playbackPayload.season,
+        episode: playbackPayload.episode,
+        playlistLength: playbackPayload.playlist?.length,
+        playlistIndex: playbackPayload.playlistIndex,
+        hasSourceStream: !!playbackPayload.sourceStream,
+        sourceStream: playbackPayload.sourceStream,
+        providerId: playbackPayload.providerId,
+        onlineProviderId: playbackPayload.onlineProviderId,
+        audios: playbackPayload.audios,
+      });
       const bridge = window as Window & PluginSandboxWindowBridge;
       if (bridge.potok_playlist_override) {
+        logger.log("[PluginSandbox.PLAY_VIDEO] Applying potok_playlist_override");
         playbackPayload.playlist = bridge.potok_playlist_override;
         const playlist = playbackPayload.playlist as PlaylistItem[];
         const currentIndex = playlist.findIndex(
@@ -186,6 +239,7 @@ export async function handlePluginSandboxMessage(
         bridge.potok_playlist_override = null;
       }
       attachPlaylistResolver(bridge, playbackPayload, pluginId);
+      logger.log("[PluginSandbox.PLAY_VIDEO] calling ctx.playVideo with", { streamUrl: playbackPayload.streamUrl, playlistLength: playbackPayload.playlist?.length, playlistIndex: playbackPayload.playlistIndex });
       ctx.playVideo(playbackPayload);
       break;
     }

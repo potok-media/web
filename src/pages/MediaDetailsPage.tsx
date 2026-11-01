@@ -20,6 +20,7 @@ import { resolveLegacyRedirect } from "../features/arm/armGroupSelection";
 import { ApiClient } from "../network/ApiClient";
 import type { TvEpisode } from "../network/ApiTypes";
 import type { ArmGroupSummary } from "../features/arm/armGroupDisplay";
+import type { ArmMediaSummary } from "../network/ArmTypes";
 
 
 interface SelectedEpisodeState {
@@ -40,6 +41,8 @@ interface MediaDetailsPageProps {
   resolvedGroupSummary?: ArmGroupSummary;
   /** The ARM entry (layout group) the page opens on — the canonical deep link. */
   initialGroupId?: string;
+  /** Resolved ARM summary with workId from the canonical page — avoids a duplicate ARM fetch. */
+  armSummary?: ArmMediaSummary | null;
 }
 
 export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
@@ -47,6 +50,7 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
   resolvedMediaId,
   resolvedGroupSummary,
   initialGroupId,
+  armSummary,
 }) => {
   const params = useParams<{ mediaType: string; id: string }>();
   const [searchParams] = useSearchParams();
@@ -179,6 +183,7 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
         mediaId={mediaId}
         tmdbId={tmdbId}
         mediaType={mediaType}
+        armSummary={armSummary}
         selectedEpisode={selectedEpisode}
         setSelectedEpisode={setSelectedEpisode}
         isWatched={isWatched}
@@ -197,7 +202,7 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
                 mediaId={media.id}
                 mediaTitle={media.title}
                 numberOfSeasons={media.numberOfSeasons ?? 0}
-                arm={media.arm}
+                arm={armSummary ?? media.arm}
                 armEnabled
                 initialGroupId={initialGroupId}
                 selectedEpisode={selectedEpisode}

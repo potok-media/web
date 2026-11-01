@@ -11,6 +11,7 @@ interface PlaylistBridgeParams {
   clickedStream: RawStreamPayload;
   context: StreamContext;
   enrichPlayback: (patch: Partial<ActivePlayback>, keys: { streamHash?: string; fileIndex?: string }) => void;
+  episodes?: { id: string; season?: number; episode?: number; title?: string; voice?: string; url?: string }[];
 }
 
 export function setupPlaylistBridge({
@@ -19,6 +20,7 @@ export function setupPlaylistBridge({
   clickedStream,
   context,
   enrichPlayback,
+  episodes,
 }: PlaylistBridgeParams): {
   playlist: ActivePlayback["playlist"] | undefined;
   playlistIndex: number | undefined;
@@ -51,12 +53,13 @@ export function setupPlaylistBridge({
         episode: item.episode,
         title: item.title,
         url: item.streamUrl,
+        providerId: item.providerId,
         audios: [],
       };
       const nextInfo = await ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(
         src.pluginId,
         "STREAM_SOURCE_GET_PLAYBACK_INFO",
-        { stream, episode: nextEp, context: ctx },
+        { stream, episode: nextEp, context: ctx, episodes },
       );
 
       if (nextInfo) {

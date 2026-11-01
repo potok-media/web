@@ -232,6 +232,7 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
             clickedStream,
             context,
             enrichPlayback,
+            episodes: episodeSelectorData?.episodes,
           });
           if (!info) throw new Error(i18n.t("media:streams.playbackInfoEmpty"));
           playFromInfo(info, {
@@ -257,7 +258,7 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
           onError(error);
         });
     },
-    [activeSource, clickedStream, context, playFromInfo, onError, mediaType, enrichPlayback, i18n, flow.validation.blocked],
+    [activeSource, clickedStream, context, playFromInfo, onError, mediaType, enrichPlayback, i18n, flow.validation.blocked, episodeSelectorData],
   );
 
   const handleStartEditing = useCallback(() => {

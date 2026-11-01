@@ -67,8 +67,12 @@ export const hostApiDts = `
        * Requires the "custom-css" manifest permission — calls are ignored without it. The settings entry and
        * the extensions manager are protected and cannot be hidden, so the plugin can always be uninstalled.
        */
-      injectHostCss(id: string, css: string): void;
-      /** The set of UI component builders. */
+       injectHostCss(id: string, css: string): void;
+       /** Copies text to the system clipboard (requires the "clipboard" permission). */
+       copyText(text: string): void;
+       /** Opens a URL in a new browser tab (requires the "external-url" permission). */
+       openUrl(url: string): void;
+       /** The set of UI component builders. */
       components: {
         VStack(): VStackBuilder;
         HStack(): HStackBuilder;

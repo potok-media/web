@@ -215,11 +215,11 @@ export function initDeclarativeStreamListeners(): void {
         }, hostOrigin);
       }
     } else if (msg.action === 'STREAM_SOURCE_GET_PLAYBACK_INFO') {
-      const { requestId, stream, episode, context, sourceId } = msg.payload;
+      const { requestId, sourceId } = msg.payload;
       const source = (sourceId && registeredStreamSources.get(sourceId)) || Array.from(registeredStreamSources.values())[0];
       if (source && source.getPlaybackInfo) {
         try {
-          const data = await source.getPlaybackInfo(stream, episode, context);
+          const data = await source.getPlaybackInfo(msg.payload);
           window.parent.postMessage({
             source: 'potok-plugin-sdk',
             action: 'STREAM_SOURCE_GET_PLAYBACK_INFO_RESPONSE',

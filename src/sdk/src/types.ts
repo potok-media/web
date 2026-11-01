@@ -319,6 +319,7 @@ export interface SDKStreamEpisode {
   url: string;
   audios?: { id: string; name: string; url: string }[];
   headers?: Record<string, string>;
+  playbackStatus?: 'playing' | 'next' | 'upcoming';
 }
 
 export interface SDKSubtitleInfo {
@@ -716,11 +717,18 @@ export interface MediaRowSchema extends BaseSchema {
 
 export type SDKPlaybackWorkspaceStageMode = "player" | "preview";
 
+export interface SDKPlaybackWorkspacePreviewOverlay {
+  centerTitle: string;
+  bottomSubtitle?: string;
+  backdropSrc?: string;
+}
+
 export interface PlaybackWorkspaceSchema extends BaseSchema {
   type: "PlaybackWorkspace";
   props: SDKBaseComponentProps & {
     backdropSrc?: string;
     stageMode?: SDKPlaybackWorkspaceStageMode;
+    previewOverlay?: SDKPlaybackWorkspacePreviewOverlay;
   };
 }
 
@@ -1388,6 +1396,9 @@ export interface RawStreamPayload {
   seeds?: number;
   peers?: number;
   provider?: string;
+  providerId?: string;
+  id?: string;
+  sourceId?: string;
   hash?: string;
   voice?: string;
   kind?: 'hls' | 'mp4' | string;
@@ -1522,7 +1533,7 @@ export interface DeclarativeStreamSource {
   saveFileOverride?(stream: RawStreamPayload, context: LookupQuery, fileId: string, season: number, episode: number, mode: 'anchor' | 'pin'): Promise<void>;
   clearFileOverride?(stream: RawStreamPayload, context: LookupQuery, fileId: string): Promise<void>;
   saveEpisodeBinding?(stream: RawStreamPayload, context: LookupQuery, override: SDKEpisodeBindingOverride): Promise<void>;
-  getPlaybackInfo(stream: RawStreamPayload, episode?: StreamEpisode, context?: LookupQuery): Promise<PlaybackInfo>;
+  getPlaybackInfo(payload: { stream: RawStreamPayload; episode?: StreamEpisode; context?: LookupQuery; episodes?: StreamEpisode[] }): Promise<PlaybackInfo>;
   /** Deferred enrichment (subtitles + duration) fetched AFTER getPlaybackInfo so a slow probe never blocks
    *  player-open. Optional: if absent, the descriptor from getPlaybackInfo is treated as complete. */
   getPlaybackMetadata?(stream: RawStreamPayload, episode?: StreamEpisode, context?: LookupQuery): Promise<PlaybackMetadata>;

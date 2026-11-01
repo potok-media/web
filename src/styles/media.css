@@ -2471,7 +2471,12 @@
   transition: opacity 220ms ease;
 }
 
-.streams-media-stage--preview .streams-media-stage__surface,
+.streams-media-stage--preview .streams-media-stage__surface {
+  aspect-ratio: 16 / 9;
+  background: transparent;
+  box-shadow: none;
+}
+
 .streams-media-stage--player .streams-media-stage__surface {
   aspect-ratio: 16 / 9;
   background: #000;
@@ -2553,6 +2558,17 @@
   max-width: 42ch;
   font: var(--font-body);
   line-height: 1.5;
+}
+
+.sdk-playback-workspace-preview-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.sdk-playback-workspace-preview-overlay > * {
+  pointer-events: auto;
 }
 
 .streams-media-hero {

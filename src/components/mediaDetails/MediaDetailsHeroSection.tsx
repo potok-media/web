@@ -6,6 +6,7 @@ import { Slot } from "../common/extension/Slot";
 import { MediaOverviewSection } from "../MediaOverviewSection";
 import type { MediaCard, TvEpisode } from "../../network/ApiTypes";
 import type { ArmGroupSummary } from "../../features/arm/armGroupDisplay";
+import type { ArmMediaSummary } from "../../network/ArmTypes";
 
 interface SelectedEpisodeState {
   episode: TvEpisode;
@@ -19,6 +20,7 @@ interface MediaDetailsHeroSectionProps {
   mediaId: number;
   tmdbId: number;
   mediaType?: string;
+  armSummary?: ArmMediaSummary | null;
   selectedEpisode: SelectedEpisodeState | null;
   setSelectedEpisode: (value: SelectedEpisodeState | null) => void;
   isWatched: boolean;
@@ -35,6 +37,7 @@ export const MediaDetailsHeroSection: React.FC<MediaDetailsHeroSectionProps> = (
   mediaId,
   tmdbId,
   mediaType,
+  armSummary,
   selectedEpisode,
   setSelectedEpisode,
   isWatched,
@@ -79,7 +82,8 @@ export const MediaDetailsHeroSection: React.FC<MediaDetailsHeroSectionProps> = (
                     title: media.title,
                     originalTitle: media.originalTitle,
                     media,
-                    workId: media.arm?.workId,
+                    backdropSrc: media.backdropSrc,
+                    workId: armSummary?.workId ?? media.arm?.workId,
                     entryId: selectedEpisode?.episode.armEntryId,
                     episodeId: selectedEpisode?.episode.armEpisodeId,
                     season: selectedEpisode?.episode.armEpisodeId

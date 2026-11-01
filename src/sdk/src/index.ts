@@ -315,6 +315,7 @@ export const ui = {
     window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'SHOW_HUD', payload }, getHostOrigin());
   },
   playVideo(playback: unknown) {
+    console.log('[SDK] playVideo CALLED — sending PLAY_VIDEO postMessage', JSON.parse(JSON.stringify(playback)));
     window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'PLAY_VIDEO', payload: playback }, getHostOrigin());
   },
   stopVideo() {
@@ -386,6 +387,12 @@ export const ui = {
    */
   injectHostCss(id: string, css: string) {
     window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'INJECT_HOST_CSS', payload: { id, css } }, getHostOrigin());
+  },
+  copyText(text: string) {
+    window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'COPY_TEXT', payload: { text } }, getHostOrigin());
+  },
+  openUrl(url: string) {
+    window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'OPEN_URL', payload: { url } }, getHostOrigin());
   }
 };
 

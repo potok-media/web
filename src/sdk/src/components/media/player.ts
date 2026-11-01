@@ -23,6 +23,7 @@ import type { SDKPlaybackInfo } from "../../types";
 export class PlaybackWorkspaceBuilder extends LayoutComponent {
   private _backdropSrc?: string;
   private _stageMode: "player" | "preview" = "player";
+  private _previewOverlay?: { centerTitle: string; bottomSubtitle?: string; backdropSrc?: string };
 
   constructor() {
     super("PlaybackWorkspace");
@@ -49,11 +50,25 @@ export class PlaybackWorkspaceBuilder extends LayoutComponent {
     return this;
   }
 
+  /**
+   * Оверлей предпросмотра для stageMode "preview":
+   * centerTitle — центральный текст (например "Выберите серию"),
+   * bottomSubtitle — нижний текст (например название сериала),
+   * backdropSrc — фоновое изображение сцены (backdrop, не poster).
+   *
+   * @param v Объект с centerTitle и опциональными bottomSubtitle / backdropSrc
+   */
+  previewOverlay(v: { centerTitle: string; bottomSubtitle?: string; backdropSrc?: string }): this {
+    this._previewOverlay = v;
+    return this;
+  }
+
   protected override getProps(): Record<string, unknown> {
     return {
       ...super.getProps(),
       backdropSrc: this._backdropSrc,
       stageMode: this._stageMode,
+      previewOverlay: this._previewOverlay,
     };
   }
 }

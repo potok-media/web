@@ -104,6 +104,7 @@ export function mapSdkStreamEpisodes(episodes: SDKStreamEpisode[] | undefined): 
     stillPath: ep.stillPath,
     airDate: ep.airDate,
     progressId: ep.progressId,
+    playbackStatus: ep.playbackStatus,
     audios: ep.audios || [],
     url: ep.url,
   }));

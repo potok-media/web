@@ -24,7 +24,7 @@ export function usePlayerPlaylist(
           const info = await resolve(item);
           if (info) {
             const st = info.streamType;
-            playVideo({
+            const nextPlayback: ActivePlayback = {
               ...playback,
               streamUrl: info.streamUrl,
               streamType:
@@ -53,7 +53,8 @@ export function usePlayerPlaylist(
               voice: item.voice || playback.voice,
               playlistIndex: index,
               startAt: undefined,
-            });
+            };
+            playVideo(nextPlayback);
             return;
           }
         } catch {
@@ -61,7 +62,7 @@ export function usePlayerPlaylist(
         }
       }
 
-      playVideo({
+      const fallbackPlayback: ActivePlayback = {
         ...playback,
         streamUrl: item.streamUrl,
         streamType: item.streamType,
@@ -85,7 +86,8 @@ export function usePlayerPlaylist(
         voice: item.voice || playback.voice,
         playlistIndex: index,
         startAt: undefined,
-      });
+      };
+      playVideo(fallbackPlayback);
     },
     [playback, playVideo],
   );

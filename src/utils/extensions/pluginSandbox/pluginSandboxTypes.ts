@@ -30,6 +30,8 @@ export interface PluginSandboxMessageContext {
   stopVideo: () => void;
   navigate: NavigateFunction;
   setAccentTheme: (theme: string) => void;
+  copyText: (text: string) => void;
+  openUrl: (url: string) => void;
   triggerPhysicalRemoval: (pluginId: string) => void;
 }
 
