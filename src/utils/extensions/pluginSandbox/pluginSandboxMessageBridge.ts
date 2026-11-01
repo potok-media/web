@@ -189,6 +189,11 @@ export async function handlePluginSandboxMessage(
       ctx.playVideo(playbackPayload);
       break;
     }
+    case "STOP_VIDEO":
+      if (ctx.activePlayback?.providerId === pluginId) {
+        ctx.stopVideo();
+      }
+      break;
     case "NAVIGATE":
       if (payload.to) {
         ctx.navigate(String(payload.to), { state: payload.state });

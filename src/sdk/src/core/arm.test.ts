@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { createArmSdkClient, SDKArmError, type SDKArmTransport } from "./arm";
-import type { SDKArmEpisodeLayoutResponse, SDKArmResolveResponse } from "../types";
+import type {
+  SDKArmEntriesResponse,
+  SDKArmEpisodeLayoutResponse,
+  SDKArmResolveResponse,
+} from "../types";
 
 const resolveResponse: SDKArmResolveResponse = {
   workId: "work-1",
@@ -11,6 +15,20 @@ const layoutResponse: SDKArmEpisodeLayoutResponse = {
   work: { id: "work-1" },
   graphVersion: "graph-1",
   groups: [],
+};
+
+const entriesResponse: SDKArmEntriesResponse = {
+  entries: [{
+    entryId: "entry-1",
+    kind: "season",
+    number: 1,
+    sortPosition: 0,
+    structureSource: "anilist",
+    externalIds: [],
+    localizedTitles: [{ language: "ru", value: "Мастера Меча Онлайн", source: "anilist" }],
+    tmdb: { showId: 45782, season: 1 },
+    displayMetadata: null,
+  }],
 };
 
 describe("PotokSDK.arm", () => {
@@ -50,6 +68,21 @@ describe("PotokSDK.arm", () => {
       "/api/arm/v1/works/work-1/layout",
       "/api/arm/v1/works/work-1/layout?groupId=entry-1",
     ]);
+  });
+
+  it("requests the complete ARM entry catalog in the requested locale", async () => {
+    const paths: string[] = [];
+    const transport: SDKArmTransport = {
+      async get(path) {
+        paths.push(path);
+        return { status: 200, data: entriesResponse };
+      },
+    };
+
+    const result = await createArmSdkClient(transport).getEntries("work-1", { locale: "ru" });
+
+    expect(paths).toEqual(["/api/arm/v1/works/work-1/entries?locale=ru"]);
+    expect(result.entries[0]?.entryId).toBe("entry-1");
   });
 
   it("reports HTTP failures as typed SDK errors", async () => {

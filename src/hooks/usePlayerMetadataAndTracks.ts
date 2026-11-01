@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { i18n } from "../i18n";
 import { type ActivePlayback, type PlaybackMeta } from "../context/AppSettingsContext";
+import { resolveExternalAudioIndex } from "../utils/audioTrackOwnership";
 import {
   mergeAndDeduplicateSubtitles,
   useSubtitleWindowFetch,
@@ -134,21 +135,7 @@ export function usePlayerMetadataAndTracks(
       const tracks = audios.map((a, idx) => ({ id: idx, name: a.name }));
       setAudioTracks(tracks);
 
-      let activeIdx = 0;
-      try {
-        const audioParam = new URL(initialStreamUrl).searchParams.get("audio");
-        if (audioParam !== null) {
-          const parsed = parseInt(audioParam, 10);
-          if (!isNaN(parsed) && parsed >= 0 && parsed < audios.length) activeIdx = parsed;
-        }
-      } catch {
-        const match = initialStreamUrl.match(/[?&]audio=(\d+)/i);
-        if (match) {
-          const parsed = parseInt(match[1], 10);
-          if (parsed >= 0 && parsed < audios.length) activeIdx = parsed;
-        }
-      }
-      setCurrentAudioTrack(activeIdx);
+      setCurrentAudioTrack(resolveExternalAudioIndex(audios, initialStreamUrl));
     }
   }, [audios, initialStreamUrl]);
 

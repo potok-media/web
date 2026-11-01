@@ -44,6 +44,9 @@ coverage/
 *.lcov
 .nyc_output/
 .playwright/
+/test-results/
+/playwright-report/
+/blob-report/
 /cypress/videos/
 /cypress/screenshots/
 

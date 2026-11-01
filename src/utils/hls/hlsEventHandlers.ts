@@ -13,6 +13,8 @@ interface HlsHandlerCallbacks {
   setPlayerError: (error: string | null) => void;
   // Returns the track index to auto-select from a remembered playlist preference, or -1 to keep the default.
   getPreferredAudioTrackId?: (rawTracks: { name?: string; lang?: string }[]) => number;
+  /** False when the selector is owned by external provider/voice variants. */
+  manageHlsAudioTracks?: boolean;
 }
 
 export function bindHlsEventHandlers(
@@ -28,6 +30,7 @@ export function bindHlsEventHandlers(
 
   hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_e, data: { audioTracks?: { name?: string; lang?: string }[] }) => {
     if (!isActiveSession()) return;
+    if (callbacks.manageHlsAudioTracks === false) return;
     const rawTracks = data.audioTracks || [];
     const tracks = rawTracks.map((t, i) => ({
       id: i,
@@ -47,6 +50,7 @@ export function bindHlsEventHandlers(
 
   hls.on(Hls.Events.AUDIO_TRACK_SWITCHED, (_e, data: { id: number }) => {
     if (!isActiveSession()) return;
+    if (callbacks.manageHlsAudioTracks === false) return;
     callbacks.setCurrentAudioTrack(data.id);
   });
 

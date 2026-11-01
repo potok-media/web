@@ -12,6 +12,7 @@ import { usePlayerVolumePrefs } from "./usePlayerVolumePrefs";
 import { useStreamRefresh } from "./useStreamRefresh";
 import { usePlayback } from "../../context/PlaybackContext";
 import type { AudioPreference } from "../../utils/hls/audioPreference";
+import { resolvePlaybackDuration } from "../../utils/playerTimeline";
 import type { UseWebMediaPlayerBindingsParams } from "./webMediaPlayerBindingTypes";
 
 export function useWebMediaPlayerCore({
@@ -56,8 +57,8 @@ export function useWebMediaPlayerCore({
     metadata.isMetadataLoading,
   );
 
-  const timecodeDuration = metadata.metadataDuration > 0 ? metadata.metadataDuration : duration;
-  const displayDuration = timecodeDuration || 100;
+  const timecodeDuration = resolvePlaybackDuration(metadata.metadataDuration, duration);
+  const displayDuration = timecodeDuration;
 
   const audioName = metadata.audioTracks.find((t) => t.id === metadata.currentAudioTrack)?.name
     || playback.voice;

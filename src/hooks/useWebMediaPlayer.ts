@@ -43,6 +43,7 @@ export function useWebMediaPlayer({ playback, onClose, isNetworkOffline = false 
     videoRef,
     playback,
     playerError,
+    setPlayerError,
     showStats,
     setShowStats,
     isPlaying,

@@ -37,7 +37,9 @@ describe("SDK_TYPINGS strong typing", () => {
   it("exposes the typed Potok ARM surface", () => {
     expect(SDK_TYPINGS).toContain("arm: {");
     expect(SDK_TYPINGS).toContain("resolveWork(reference: SDKArmProviderReference");
+    expect(SDK_TYPINGS).toContain("getEntries(workId: string");
     expect(SDK_TYPINGS).toContain("getEpisodeLayout(workId: string");
+    expect(SDK_TYPINGS).toContain("stopVideo(): void");
     expect(SDK_TYPINGS).toContain("episodeIds?: string[]");
     expect(SDK_TYPINGS).toContain("targets?: SDKReleaseBindingTarget[]");
   });

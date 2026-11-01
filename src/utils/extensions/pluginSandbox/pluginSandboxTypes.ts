@@ -27,6 +27,7 @@ export interface PluginSandboxMessageContext {
   activePlayback: ActivePlayback | null;
   showHUD: (type: HUDType, message: string, durationMs?: number) => void;
   playVideo: (playback: ActivePlayback) => void;
+  stopVideo: () => void;
   navigate: NavigateFunction;
   setAccentTheme: (theme: string) => void;
   triggerPhysicalRemoval: (pluginId: string) => void;

@@ -103,6 +103,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = (props) => {
         subtitleBlobUrls={vm.subtitles.subtitleBlobUrls}
         srcResetCounter={vm.hls.srcResetCounter}
         currentSubtitleTrack={vm.metadata.currentSubtitleTrack}
+        autoPlay={!vm.playback.coWatch}
         onTogglePlay={vm.togglePlay}
         onToggleFullscreen={vm.toggleFullscreen}
         onPlayState={vm.setIsPlaying}

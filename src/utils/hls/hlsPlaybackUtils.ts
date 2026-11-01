@@ -22,6 +22,17 @@ export function isHlsPlayback(playback: ActivePlayback, streamUrl: string): bool
   );
 }
 
+export function inferStreamTypeFromUrl(
+  streamUrl: string,
+  fallback?: ActivePlayback["streamType"],
+): ActivePlayback["streamType"] {
+  const extension = getFileExtension(streamUrl);
+  if (extension === "m3u8") return "m3u8";
+  if (extension === "mp4") return "mp4";
+  if (extension === "mpd") return "dash";
+  return fallback;
+}
+
 export function getUnsupportedNativeFormatError(streamUrl: string): string | null {
   const ext = getFileExtension(streamUrl);
   if (ext && !NATIVE_EXTENSIONS.includes(ext)) {

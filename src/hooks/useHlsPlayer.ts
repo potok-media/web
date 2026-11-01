@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Hls from "hls.js";
 import { logger } from "../utils/logger";
+import { i18n } from "../i18n";
+import { startMediaPlayback } from "../utils/mediaPlayback";
 import { createHlsPlayerConfig } from "../utils/hls/hlsConfig";
 import { bindHlsEventHandlers } from "../utils/hls/hlsEventHandlers";
 import { matchAudioTrack } from "../utils/hls/audioPreference";
@@ -12,6 +14,7 @@ import {
   teardownVideoAndHls,
 } from "../utils/hls/hlsPlaybackUtils";
 import type { HlsPlayerParams } from "../utils/hls/hlsPlayerTypes";
+import { getPlaybackPipelineKey } from "../utils/playbackTransitions";
 
 export type { HlsPlayerParams } from "../utils/hls/hlsPlayerTypes";
 
@@ -33,6 +36,9 @@ export function useHlsPlayer({
 
   const syncNativeTextTracksRef = useRef(syncNativeTextTracks);
   syncNativeTextTracksRef.current = syncNativeTextTracks;
+  const playbackRef = useRef(playback);
+  playbackRef.current = playback;
+  const pipelineKey = getPlaybackPipelineKey(playback);
 
   const [rawLevels, setRawLevels] = useState<{ id: number; height?: number }[]>([]);
   const [hlsActiveLevel, setHlsActiveLevel] = useState(-1);
@@ -49,6 +55,7 @@ export function useHlsPlayer({
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+    const pipelinePlayback = playbackRef.current;
 
     cleanupActiveResources();
     const sessionId = playerSessionRef.current;
@@ -57,8 +64,8 @@ export function useHlsPlayer({
     setIsMetadataLoading(true);
     setSrcResetCounter((p) => p + 1);
 
-    const audioUrl = playback.streamUrl;
-    const isHls = isHlsPlayback(playback, audioUrl);
+    const audioUrl = pipelinePlayback.streamUrl;
+    const isHls = isHlsPlayback(pipelinePlayback, audioUrl);
 
     if (!isHls && !isSmartTVUserAgent()) {
       const formatError = getUnsupportedNativeFormatError(audioUrl);
@@ -69,10 +76,23 @@ export function useHlsPlayer({
       }
     }
 
-    const startPos = getPlaybackResumePosition(playback);
+    const startPos = getPlaybackResumePosition(pipelinePlayback);
     setSeekOffset(0);
 
     const sessionRefs = { hlsRef, playerSessionRef, syncNativeTextTracksRef };
+
+    const startPlayback = (source: "hls" | "native") => {
+      void startMediaPlayback(video).then((result) => {
+        if (result.started || playerSessionRef.current !== sessionId) return;
+        logger.error(`[useHlsPlayer] ${source} playback start failed:`, result.error, {
+          readyState: video.readyState,
+          networkState: video.networkState,
+          mediaError: video.error?.code ?? null,
+        });
+        setPlayerError(i18n.t("player:playback.loadFailed"));
+        setIsMetadataLoading(false);
+      });
+    };
 
     if (isHls && Hls.isSupported()) {
       const hls = new Hls(createHlsPlayerConfig(startPos));
@@ -90,12 +110,19 @@ export function useHlsPlayer({
           const pref = preferredAudioRef.current;
           return pref ? matchAudioTrack(rawTracks, pref) : -1;
         },
+        manageHlsAudioTracks: !pipelinePlayback.audios?.length,
       });
+
+      const startHlsPlayback = () => startPlayback("hls");
+      // A co-watch guest starts only after the host releases the ready gate. Solo HLS playback still needs an
+      // explicit play request: relying on the autoPlay attribute alone leaves policy failures invisible.
+      if (!pipelinePlayback.coWatch) hls.on(Hls.Events.MANIFEST_PARSED, startHlsPlayback);
 
       hls.loadSource(audioUrl);
       hls.attachMedia(video);
 
       return () => {
+        hls.off(Hls.Events.MANIFEST_PARSED, startHlsPlayback);
         hls.destroy();
         hlsRef.current = null;
         cleanupActiveResources();
@@ -115,17 +142,16 @@ export function useHlsPlayer({
     };
 
     video.addEventListener("loadedmetadata", handleLoadedMetadata);
-    video.play().catch(() => {
-      video.muted = true;
-      video.play().catch((err) => logger.error("[useHlsPlayer] Autoplay failed:", err));
-    });
+    // Co-watch starts only from the host's sync release. Starting native media here would bypass the same
+    // ready gate that HLS guests obey and let the guest run while the host is still holding everyone paused.
+    if (!pipelinePlayback.coWatch) startPlayback("native");
 
     return () => {
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
       cleanupActiveResources();
     };
   }, [
-    playback,
+    pipelineKey,
     cleanupActiveResources,
     setPlayerError,
     setIsMetadataLoading,

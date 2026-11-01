@@ -74,7 +74,7 @@ export const EpisodeSelectorRow: React.FC<EpisodeSelectorRowProps> = React.memo(
   const stop = (e: React.MouseEvent) => e.stopPropagation();
   const canonical = isArmEpisode(episodeItem);
   const displayOrdinal = canonical
-    ? episodeItem.displayOrdinal?.trim()
+    ? episodeItem.displayOrdinal == null ? undefined : String(episodeItem.displayOrdinal).trim()
     : episodeItem.episode !== undefined && episodeItem.episode > 0 ? String(episodeItem.episode) : undefined;
   const displayTitle =
     episodeItem.title || episodeItem.fileName || (displayOrdinal

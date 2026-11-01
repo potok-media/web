@@ -317,6 +317,9 @@ export const ui = {
   playVideo(playback: unknown) {
     window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'PLAY_VIDEO', payload: playback }, getHostOrigin());
   },
+  stopVideo() {
+    window.parent.postMessage({ source: 'potok-plugin-sdk', action: 'STOP_VIDEO', payload: {} }, getHostOrigin());
+  },
   showEpisodeSelector(cfg: EpisodeSelectorConfig) {
     if (ui._activeEpisodeSelectorScope) {
       ui._activeEpisodeSelectorScope.dispose();

@@ -1,5 +1,6 @@
 import { HttpClient, type HttpResponse } from "./http";
 import type {
+  SDKArmEntriesResponse,
   SDKArmEpisodeLayoutResponse,
   SDKArmProviderReference,
   SDKArmResolveResponse,
@@ -36,6 +37,10 @@ export interface SDKArmClient {
     reference: SDKArmProviderReference,
     options?: SDKArmRequestOptions,
   ): Promise<SDKArmResolveResponse>;
+  getEntries(
+    workId: string,
+    options?: SDKArmRequestOptions,
+  ): Promise<SDKArmEntriesResponse>;
   getEpisodeLayout(
     workId: string,
     options?: SDKArmLayoutRequestOptions,
@@ -111,6 +116,14 @@ export function createArmSdkClient(
         encodeURIComponent(reference.value),
       ].join("/");
       return get<SDKArmResolveResponse>(query(path, { locale }), options);
+    },
+
+    getEntries(workId, options) {
+      const locale = options?.locale ?? defaults.getLocale?.();
+      return get<SDKArmEntriesResponse>(
+        query(`/api/arm/v1/works/${encodeURIComponent(workId)}/entries`, { locale }),
+        options,
+      );
     },
 
     getEpisodeLayout(workId, options) {

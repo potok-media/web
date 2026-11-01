@@ -97,28 +97,21 @@ describe("MediaStreamsPage layout", () => {
     expect(roomHeader).not.toContain("inviteFriends");
   });
 
-  it("closes the persisted player when leaving a co-watch room", () => {
+  it("closes a host room without destroying the persisted player", () => {
     const roomHeader = readFileSync(
       new URL("../components/watchTogether/WatchTogetherTopBarRoom.tsx", import.meta.url),
-      "utf8",
-    );
-    const playbackContext = readFileSync(
-      new URL("../context/PlaybackContext.tsx", import.meta.url),
       "utf8",
     );
     const leaveHandler = roomHeader.match(
       /const handleLeaveRoom = \(navigateBack: boolean\) => \{([\s\S]*?)\n {2}\};/,
     )?.[1] ?? "";
-    const stopVideoBody = playbackContext.match(
-      /const stopVideo = useCallback\(\(\) => \{([\s\S]*?)\n {2}\}, \[\]\);/,
-    )?.[1] ?? "";
 
-    expect(leaveHandler).toContain("wt.leave()");
-    expect(leaveHandler).toContain("stopVideo()");
-    expect(leaveHandler).toContain("if (navigateBack) navigate(-1)");
+    expect(leaveHandler).toContain("leaveCoWatchSession({");
+    expect(leaveHandler).toContain("role: wt.role");
+    expect(leaveHandler).toContain("leaveRoom: wt.leave");
+    expect(leaveHandler).toContain("navigateBack: () => navigate(-1)");
     expect(roomHeader).toContain("onClick={() => handleLeaveRoom(true)}");
     expect(roomHeader).toContain("onClick={() => handleLeaveRoom(false)}");
-    expect(stopVideoBody).toContain('sessionStorage.removeItem("potok_last_playback")');
   });
 
   it("activates a room without replaying the current stream and keeps co-watch chrome compact", () => {

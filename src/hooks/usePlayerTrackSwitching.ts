@@ -1,4 +1,5 @@
 import { playbackStorageKeys } from "../utils/playbackIdentity";
+import { inferStreamTypeFromUrl } from "../utils/hls/hlsPlaybackUtils";
 import { useMemo, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import type Hls from "hls.js";
@@ -15,7 +16,12 @@ interface UsePlayerTrackSwitchingParams {
   setCurrentAudioTrack: (id: number) => void;
   setCurrentQualityLevel: (id: number) => void;
   preferredAudioRef: RefObject<AudioPreference | null>;
-  playVideo: (next: ActivePlayback) => void;
+  switchPlaybackSource: (patch: {
+    streamUrl: string;
+    streamType?: ActivePlayback["streamType"];
+    voice?: string;
+    startAt: number;
+  }) => void;
   setShowAudioMenu: (open: boolean) => void;
   setShowQualityMenu: (open: boolean) => void;
 }
@@ -30,7 +36,7 @@ export function usePlayerTrackSwitching({
   setCurrentAudioTrack,
   setCurrentQualityLevel,
   preferredAudioRef,
-  playVideo,
+  switchPlaybackSource,
   setShowAudioMenu,
   setShowQualityMenu,
 }: UsePlayerTrackSwitchingParams) {
@@ -38,6 +44,27 @@ export function usePlayerTrackSwitching({
 
   const switchAudio = (id: number) => {
     setShowAudioMenu(false);
+    const externalAudio = playback.audios?.[id];
+    if (externalAudio) {
+      const video = videoRef.current;
+      const time = video
+        ? seekOffset > 0
+          ? seekOffset + video.currentTime
+          : video.currentTime
+        : 0;
+      const { resumeKey } = playbackStorageKeys(playback);
+      localStorage.setItem(resumeKey, time.toString());
+      preferredAudioRef.current = { name: externalAudio.name };
+      setCurrentAudioTrack(id);
+      switchPlaybackSource({
+        streamUrl: externalAudio.url,
+        streamType: inferStreamTypeFromUrl(externalAudio.url, playback.streamType),
+        voice: externalAudio.name,
+        startAt: time,
+      });
+      return;
+    }
+
     const isHls = playback.streamType === "m3u8" || playback.streamType === "hls";
     if (isHls && hlsRef.current) {
       hlsRef.current.audioTrack = id;
@@ -50,18 +77,7 @@ export function usePlayerTrackSwitching({
       return;
     }
 
-    const video = videoRef.current;
-    const time = video
-      ? seekOffset > 0
-        ? seekOffset + video.currentTime
-        : video.currentTime
-      : 0;
-    const { resumeKey } = playbackStorageKeys(playback);
-    localStorage.setItem(resumeKey, time.toString());
     setCurrentAudioTrack(id);
-    const newUrl =
-      playback.audios && playback.audios[id] ? playback.audios[id].url : playback.streamUrl;
-    playVideo({ ...playback, streamUrl: newUrl });
   };
 
   const switchQuality = (id: number) => {

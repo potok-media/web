@@ -16,6 +16,7 @@ export function usePluginSandbox() {
     connectionProfiles,
     activeProfileID,
     playVideo,
+    stopVideo,
     activePlayback,
     setAccentTheme,
     language,
@@ -60,6 +61,7 @@ export function usePluginSandbox() {
           activePlayback,
           showHUD,
           playVideo,
+          stopVideo,
           navigate,
           setAccentTheme,
           triggerPhysicalRemoval: lifecycle.triggerPhysicalRemoval,
@@ -80,6 +82,7 @@ export function usePluginSandbox() {
     lifecycle.triggerPhysicalRemoval,
     activePlayback,
     playVideo,
+    stopVideo,
     navigate,
     setAccentTheme,
   ]);

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, type RefObject } from "react";
+import { clampPlaybackTime } from "../utils/playerTimeline";
 
 const SEEK_DEBOUNCE_MS = 300;
 
@@ -18,21 +19,19 @@ export function useDebouncedSeek({
   const pendingSeekRef = useRef<number | null>(null);
   const seekTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(
-    () => () => {
-      if (seekTimerRef.current) clearTimeout(seekTimerRef.current);
-    },
-    [],
-  );
-
   const commitSeek = useCallback(() => {
     seekTimerRef.current = null;
     const target = pendingSeekRef.current;
-    pendingSeekRef.current = null;
     const video = videoRef.current;
     if (target == null || !video) return;
 
+    // Assigning currentTime before MediaSource has metadata updates the DOM value, but hls.js still starts
+    // loading fragment 0. The player then waits forever at an unbuffered position (the guest black-screen bug).
+    // Keep the logical seek pending and re-apply it once the real media timeline exists.
+    if (video.readyState === HTMLMediaElement.HAVE_NOTHING) return;
+
     const relativeTarget = target - seekOffsetRef.current;
+    pendingSeekRef.current = null;
     if (Math.abs(video.currentTime - relativeTarget) > 0.25) {
       video.currentTime = relativeTarget;
     } else {
@@ -40,12 +39,22 @@ export function useDebouncedSeek({
     }
   }, [seekOffsetRef, setSeekPreview, videoRef]);
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const retryPendingSeek = () => commitSeek();
+    video.addEventListener("loadedmetadata", retryPendingSeek);
+    video.addEventListener("durationchange", retryPendingSeek);
+    return () => {
+      if (seekTimerRef.current) clearTimeout(seekTimerRef.current);
+      video.removeEventListener("loadedmetadata", retryPendingSeek);
+      video.removeEventListener("durationchange", retryPendingSeek);
+    };
+  }, [commitSeek, videoRef]);
+
   const scheduleSeek = useCallback(
     (rawTarget: number) => {
-      const clamped = Math.max(
-        0,
-        Math.min(rawTarget, displayDuration > 0 ? displayDuration : rawTarget),
-      );
+      const clamped = clampPlaybackTime(rawTarget, displayDuration);
       pendingSeekRef.current = clamped;
       setSeekPreview(clamped);
       if (seekTimerRef.current) clearTimeout(seekTimerRef.current);

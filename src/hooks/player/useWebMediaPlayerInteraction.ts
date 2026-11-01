@@ -35,7 +35,7 @@ export function useWebMediaPlayerInteraction({
   setIsClosed,
   core,
 }: UseWebMediaPlayerInteractionParams) {
-  const { playVideo } = usePlayback();
+  const { playVideo, switchPlaybackSource } = usePlayback();
   const {
     metadata,
     connected,
@@ -134,7 +134,7 @@ export function useWebMediaPlayerInteraction({
     setCurrentAudioTrack: metadata.setCurrentAudioTrack,
     setCurrentQualityLevel: hls.setCurrentQualityLevel,
     preferredAudioRef: core.preferredAudioRef,
-    playVideo,
+    switchPlaybackSource,
     setShowAudioMenu: menus.setShowAudioMenu,
     setShowQualityMenu: menus.setShowQualityMenu,
   });

@@ -7,6 +7,10 @@ import { cleanStreamUrlForExternalPlayer } from "../utils/playbackUrl";
 import { useSettings } from "./SettingsContext";
 import { useAuth } from "./AuthContext";
 import type { ActivePlayback, PlaybackMeta, PlaylistItem } from "./playbackTypes";
+import {
+  switchPlaybackSourceState,
+  type PlaybackSourcePatch,
+} from "../utils/playbackTransitions";
 
 export type { ActivePlayback, PlaybackMeta, PlaylistItem } from "./playbackTypes";
 
@@ -18,6 +22,7 @@ export interface PlaybackContextType {
   // mints a new descriptor and never tears the player down mid-playback. Consumers read it separately.
   playbackMeta: PlaybackMeta;
   playVideo: (playback: ActivePlayback) => void;
+  switchPlaybackSource: (patch: PlaybackSourcePatch) => void;
   replacePlaylist: (playlist: PlaylistItem[], playlistIndex: number) => void;
   enrichPlayback: (
     patch: Partial<ActivePlayback>,
@@ -40,6 +45,8 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // access to `prev` descriptor via a functional update). Synced every render; enrich is async, so current.
   const activePlaybackRef = useRef<ActivePlayback | null>(null);
   activePlaybackRef.current = activePlayback;
+  const playbackMetaRef = useRef<PlaybackMeta>({});
+  playbackMetaRef.current = playbackMeta;
 
   const playVideo = useCallback(
     (playback: ActivePlayback) => {
@@ -109,6 +116,13 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
   }, []);
 
+  const switchPlaybackSource = useCallback((patch: PlaybackSourcePatch) => {
+    setActivePlayback((current) => switchPlaybackSourceState(
+      { activePlayback: current, playbackMeta: playbackMetaRef.current },
+      patch,
+    ).activePlayback);
+  }, []);
+
   const stopVideo = useCallback(() => {
     sessionStorage.removeItem("potok_last_playback");
     setActivePlayback(null);
@@ -133,6 +147,7 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       playerPortalTarget,
       registerPlayerPortalTarget,
       playVideo,
+      switchPlaybackSource,
       replacePlaylist,
       enrichPlayback,
       stopVideo,
@@ -143,6 +158,7 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       playerPortalTarget,
       registerPlayerPortalTarget,
       playVideo,
+      switchPlaybackSource,
       replacePlaylist,
       enrichPlayback,
       stopVideo,

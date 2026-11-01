@@ -6,6 +6,7 @@ import { usePlayback } from "../../context/PlaybackContext";
 import type { ActivePlayback } from "../../context/playbackTypes";
 import { useHUD } from "../../context/useHUD";
 import { useWatchTogether } from "../../context/watchTogetherState";
+import { leaveCoWatchSession } from "../../utils/coWatchExit";
 import { Button, IconButton, Switch } from "../ui";
 
 interface WatchTogetherTopBarRoomProps {
@@ -43,9 +44,13 @@ export const WatchTogetherTopBarRoom: React.FC<WatchTogetherTopBarRoomProps> = (
   };
 
   const handleLeaveRoom = (navigateBack: boolean) => {
-    wt.leave();
-    stopVideo();
-    if (navigateBack) navigate(-1);
+    leaveCoWatchSession({
+      role: wt.role,
+      shouldNavigateBack: navigateBack,
+      leaveRoom: wt.leave,
+      stopVideo,
+      navigateBack: () => navigate(-1),
+    });
   };
 
   return (

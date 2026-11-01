@@ -7,6 +7,7 @@ interface PlayerVideoSurfaceProps {
   subtitleBlobUrls: RefObject<Record<string, string>>;
   srcResetCounter: number;
   currentSubtitleTrack: number;
+  autoPlay: boolean;
   onTogglePlay: () => void;
   onToggleFullscreen: () => void;
   onPlayState: (playing: boolean) => void;
@@ -28,6 +29,7 @@ export const PlayerVideoSurface: React.FC<PlayerVideoSurfaceProps> = ({
   subtitleBlobUrls,
   srcResetCounter,
   currentSubtitleTrack,
+  autoPlay,
   onTogglePlay,
   onToggleFullscreen,
   onPlayState,
@@ -64,7 +66,9 @@ export const PlayerVideoSurface: React.FC<PlayerVideoSurfaceProps> = ({
       }}
       onError={onError}
       onEnded={onEnded}
-      autoPlay
+      autoPlay={autoPlay}
+      playsInline
+      preload="auto"
     >
       {injectedSubtitles.map((track, index) => {
         const isAss = track.codec === "ass" || track.codec === "ssa";

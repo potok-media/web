@@ -48,6 +48,23 @@ describe("ARM episode override picker states", () => {
     expect(episodeItem.episode).toBe(7);
   });
 
+  it("renders a numeric ordinal from an untyped external plugin without crashing", () => {
+    const html = renderToStaticMarkup(createElement(EpisodeSelectorRow, {
+      mediaType: "tv",
+      onPlay: vi.fn(),
+      episodeItem: {
+        id: "external-file",
+        entryId: "season-1",
+        groupKind: "season",
+        groupDisplayNumber: 1,
+        displayOrdinal: 1 as unknown as string,
+        audios: [],
+      },
+    }));
+
+    expect(html).toContain('class="file-card-bg-number">1');
+  });
+
   it("does not use TMDB numbers as fallback ARM titles or ordinals", () => {
     const html = renderToStaticMarkup(createElement(EpisodeSelectorRow, {
       mediaType: "tv", onPlay: vi.fn(), episodeItem: {

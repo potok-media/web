@@ -12,6 +12,7 @@ export const hostApiDts = `
     /** Potok-owned media identity and episode topology. Uses the host Gateway and auth automatically. */
     arm: {
       resolveWork(reference: SDKArmProviderReference, options?: SDKArmRequestOptions): Promise<SDKArmResolveResponse>;
+      getEntries(workId: string, options?: SDKArmRequestOptions): Promise<SDKArmEntriesResponse>;
       getEpisodeLayout(workId: string, options?: SDKArmLayoutRequestOptions): Promise<SDKArmEpisodeLayoutResponse>;
     };
     /** Localization (i18n). A plugin can read host strings and register its own dictionaries. */
@@ -46,6 +47,8 @@ export const hostApiDts = `
       render(layout: UIComponent, slotId?: string): void;
       /** Sends a video to be played in the built-in Potok player. */
       playVideo(playback: SDKPlaybackInfo): void;
+      /** Stops playback owned by this plugin and closes the built-in player workspace. */
+      stopVideo(): void;
       /** Opens the series episode picker dialog. */
       showEpisodeSelector(cfg: SDKEpisodeSelectorConfig): void;
       /** Subscribe to updates of the current block context. */

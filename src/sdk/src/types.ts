@@ -33,6 +33,40 @@ export interface SDKArmResolveResponse {
   graphVersion?: string | null;
 }
 
+export interface SDKArmEntryExternalId {
+  provider?: string;
+  namespace?: string;
+  value?: string | number;
+  [key: string]: unknown;
+}
+
+export interface SDKArmLocalizedReleaseTitle {
+  language: string;
+  value: string;
+  source?: string;
+}
+
+export interface SDKArmEntryTmdbCoordinate {
+  showId: number;
+  season: number;
+}
+
+export interface SDKArmEntryDetail {
+  entryId: string;
+  kind: string;
+  number: number;
+  sortPosition: number;
+  structureSource: string;
+  externalIds: SDKArmEntryExternalId[];
+  localizedTitles: SDKArmLocalizedReleaseTitle[];
+  tmdb: SDKArmEntryTmdbCoordinate | null;
+  displayMetadata: Record<string, unknown> | null;
+}
+
+export interface SDKArmEntriesResponse {
+  entries: SDKArmEntryDetail[];
+}
+
 /**
  * Identity and structure only — no display metadata. Overlay titles/stills from TMDB by the
  * `tmdb` coordinate (the host exposes a cached season fetch for this).
@@ -336,6 +370,10 @@ export interface SDKPlaybackInfo {
   title: string;
   season?: number;
   episode?: number;
+  /** Canonical ARM identity used by the host for episode tracking. */
+  workId?: string | null;
+  entryId?: string | null;
+  episodeId?: string | null;
   torrentHash?: string;
   fileIndex?: string;
   /** Opaque plugin-owned progress identity — the host uses it verbatim as the local progress/resume key. */

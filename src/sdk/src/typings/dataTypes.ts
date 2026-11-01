@@ -36,6 +36,10 @@ export const dataTypesDts = `
     title: string;
     season?: number;
     episode?: number;
+    /** Canonical ARM identity used by the host for episode tracking. */
+    workId?: string | null;
+    entryId?: string | null;
+    episodeId?: string | null;
     torrentHash?: string;
     fileIndex?: string;
     audios?: { id: string; name: string; url: string }[];

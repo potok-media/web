@@ -1,8 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useWatchTogether } from "../../context/watchTogetherState";
 import { useClockSync } from "./useClockSync";
 import type { useWebMediaPlayer } from "../useWebMediaPlayer";
 import type { WTSyncWatch } from "../../network/watchTogetherTypes";
+import { i18n } from "../../i18n";
+import { logger } from "../../utils/logger";
+import { startMediaPlayback } from "../../utils/mediaPlayback";
 
 type PlayerVM = ReturnType<typeof useWebMediaPlayer>;
 
@@ -49,6 +52,18 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
     useWatchTogether();
   const vmRef = useRef(vm);
   vmRef.current = vm;
+
+  const startSynchronizedPlayback = useCallback(async (video: HTMLVideoElement, context: string) => {
+    const result = await startMediaPlayback(video);
+    if (result.started) return true;
+    logger.error(`[watch-together] ${context} playback start failed:`, result.error, {
+      readyState: video.readyState,
+      networkState: video.networkState,
+      mediaError: video.error?.code ?? null,
+    });
+    vmRef.current.setPlayerError(i18n.t("player:playback.loadFailed"));
+    return false;
+  }, []);
 
   // Guest: keep a running estimate of the host↔guest clock offset so we can extrapolate out the WAN delay, and
   // publish the measured RTT to the room for the Info panel's ping display.
@@ -121,13 +136,13 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
 
     // Gate open — start as soon as the host's own buffer can play.
     if (v.readyState >= READY_STATE_CAN_PLAY) {
-      v.play().catch(() => {});
+      void startSynchronizedPlayback(v, "host gate");
       return;
     }
-    const onReady = () => v.play().catch(() => {});
+    const onReady = () => void startSynchronizedPlayback(v, "host gate");
     v.addEventListener("canplay", onReady, { once: true });
     return () => v.removeEventListener("canplay", onReady);
-  }, [role, sessionActive, startGateOpen]);
+  }, [role, sessionActive, startGateOpen, startSynchronizedPlayback]);
 
   // Host: emit a "seek" toast on real seeks. (Pause/resume is shown to guests as a dedicated overlay driven
   // by the sync-watch paused flag, so it doesn't need a transient toast.)
@@ -165,9 +180,12 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
       if (!v) return;
       if (c.action === "seek" && typeof c.time === "number") { seekActorIdRef.current = c.senderId; vmRef.current.handleSeek(c.time); } // attribute to the guest
       else if (c.action === "pause") { pauseActorIdRef.current = c.senderId; v.pause(); } // attribute to the guest
-      else if (c.action === "play") { pauseActorIdRef.current = clientId; v.play().catch(() => {}); }
+      else if (c.action === "play") {
+        pauseActorIdRef.current = clientId;
+        void startSynchronizedPlayback(v, "host control");
+      }
     });
-  }, [role, sessionActive, onControl, clientId]);
+  }, [role, sessionActive, onControl, clientId, startSynchronizedPlayback]);
 
   // Host: whenever the active episode changes (host used the playlist menu, or a permitted guest requested it),
   // the player remounts on the new descriptor — re-broadcast start-watch + re-run the ready-handshake so every
@@ -183,6 +201,10 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
   useEffect(() => {
     if (role !== "guest") return;
     const v = vmRef.current.videoRef.current;
+    let queuedPlayVideo: HTMLVideoElement | null = null;
+    let queuedPlayHandler: (() => void) | null = null;
+    let playAttemptInFlight = false;
+    let failedPlayRound = -1;
 
     const seekTo = (time: number) => {
       vmRef.current.handleSeek(time);
@@ -191,13 +213,45 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
 
     // Force the guest to start playing immediately. Autoplay-with-sound may be blocked (no user gesture yet);
     // fall back to muted playback so it never stays stuck on pause — the guest can unmute from the controls.
+    const clearQueuedPlay = () => {
+      if (queuedPlayVideo && queuedPlayHandler) {
+        queuedPlayVideo.removeEventListener("canplay", queuedPlayHandler);
+      }
+      queuedPlayVideo = null;
+      queuedPlayHandler = null;
+    };
+
+    const startGuestPlayback = (vid: HTMLVideoElement) => {
+      const host = lastHostRef.current;
+      if (!host || host.paused || !vid.paused || playAttemptInFlight) return;
+      const round = host.round ?? 0;
+      if (failedPlayRound === round) return;
+
+      clearQueuedPlay();
+      playAttemptInFlight = true;
+      void startSynchronizedPlayback(vid, "guest").then((started) => {
+        if (started) return;
+        failedPlayRound = round;
+      }).finally(() => {
+        playAttemptInFlight = false;
+      });
+    };
+
     const forcePlay = () => {
       const vid = vmRef.current.videoRef.current;
       if (!vid || !vid.paused) return;
-      vid.play().catch(() => {
-        vid.muted = true;
-        vid.play().catch(() => {});
-      });
+      if (vid.readyState >= READY_STATE_CAN_PLAY) {
+        startGuestPlayback(vid);
+        return;
+      }
+
+      // HLS can receive the host's unpaused sync before MediaSource has appended enough data. Queue one start
+      // attempt for canplay instead of issuing a play() that some browsers reject while the source is unready.
+      if (queuedPlayVideo === vid) return;
+      clearQueuedPlay();
+      queuedPlayVideo = vid;
+      queuedPlayHandler = () => startGuestPlayback(vid);
+      vid.addEventListener("canplay", queuedPlayHandler, { once: true });
     };
 
     // Report ready for the host's current round once we've buffered at the synced position — the handshake that
@@ -266,10 +320,11 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
     return () => {
       const vid = vmRef.current.videoRef.current;
       if (vid) vid.playbackRate = 1; // never leave a nudged rate behind
+      clearQueuedPlay();
       v?.removeEventListener("play", onGuestPlay);
       v?.removeEventListener("canplay", trySendReady);
       v?.removeEventListener("seeked", trySendReady);
       unsub();
     };
-  }, [role, onSyncMessage, sendGuestReady, clockOffsetRef]);
+  }, [role, onSyncMessage, sendGuestReady, clockOffsetRef, startSynchronizedPlayback]);
 }
