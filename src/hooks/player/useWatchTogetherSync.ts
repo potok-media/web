@@ -17,6 +17,7 @@ const MAX_RATE_DELTA = 0.1; // cap the speed nudge at ±10% so it stays impercep
 const RATE_GAIN = 0.5; // rate delta per second of error
 const MAX_EXTRAP_SEC = 2.0; // clamp the forward extrapolation so a stale/glitched timestamp can't fling us
 const SEEK_SUPPRESS_MS = 1500;
+const PLAY_RETRY_THROTTLE_MS = 2000; // min gap between guest autoplay retries (sync ticks arrive ~1/s)
 const NOTICE_PRIME_MS = 2000; // ignore startup seek events for this long after session start
 const READY_STATE_CAN_PLAY = 3; // HTMLMediaElement.HAVE_FUTURE_DATA — first bytes buffered, can start
 
@@ -194,136 +195,169 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
     if (role === "host" && sessionActive) hostAnnounceEpisode(vmRef.current.playback);
   }, [role, sessionActive, vm.playback.streamUrl, hostAnnounceEpisode]);
 
-  // Guest: follow the host (timeline + pause only; tracks stay independent).
+  // Guest: follow the host. Rewritten as an explicit state machine (see the module notes above): one
+  // decision pass — pause / start / align — driven by every sync-watch AND a 1 s self-tick, with a log
+  // line for every state transition. No latches that can silently park the guest on a black screen.
   const suppressUntilRef = useRef(0);
-  const lastHostRef = useRef<WTSyncWatch | null>(null);
   const readiedRoundRef = useRef(-1); // highest coordinated round we've reported ready for
   useEffect(() => {
     if (role !== "guest") return;
-    const v = vmRef.current.videoRef.current;
-    let queuedPlayVideo: HTMLVideoElement | null = null;
-    let queuedPlayHandler: (() => void) | null = null;
-    let playAttemptInFlight = false;
-    let failedPlayRound = -1;
+    const initialVideo = vmRef.current.videoRef.current;
+    const log = (...args: unknown[]) => logger.log("[WT-GUEST]", ...args);
+
+    let lastHost: WTSyncWatch | null = null;
+    let started = false;
+    let playInFlight = false;
+    let lastPlayAttemptAt = 0;
+    let queuedVideo: HTMLVideoElement | null = null;
+    let queuedHandler: (() => void) | null = null;
 
     const seekTo = (time: number) => {
       vmRef.current.handleSeek(time);
       suppressUntilRef.current = Date.now() + SEEK_SUPPRESS_MS;
+      log("seek →", Number(time.toFixed(2)));
     };
 
-    // Force the guest to start playing immediately. Autoplay-with-sound may be blocked (no user gesture yet);
-    // fall back to muted playback so it never stays stuck on pause — the guest can unmute from the controls.
-    const clearQueuedPlay = () => {
-      if (queuedPlayVideo && queuedPlayHandler) {
-        queuedPlayVideo.removeEventListener("canplay", queuedPlayHandler);
-      }
-      queuedPlayVideo = null;
-      queuedPlayHandler = null;
-    };
-
-    const startGuestPlayback = (vid: HTMLVideoElement) => {
-      const host = lastHostRef.current;
-      if (!host || host.paused || !vid.paused || playAttemptInFlight) return;
-      const round = host.round ?? 0;
-      if (failedPlayRound === round) return;
-
-      clearQueuedPlay();
-      playAttemptInFlight = true;
-      void startSynchronizedPlayback(vid, "guest").then((started) => {
-        if (started) return;
-        failedPlayRound = round;
-      }).finally(() => {
-        playAttemptInFlight = false;
-      });
-    };
-
-    const forcePlay = () => {
-      const vid = vmRef.current.videoRef.current;
-      if (!vid || !vid.paused) return;
-      if (vid.readyState >= READY_STATE_CAN_PLAY) {
-        startGuestPlayback(vid);
-        return;
-      }
-
-      // HLS can receive the host's unpaused sync before MediaSource has appended enough data. Queue one start
-      // attempt for canplay instead of issuing a play() that some browsers reject while the source is unready.
-      if (queuedPlayVideo === vid) return;
-      clearQueuedPlay();
-      queuedPlayVideo = vid;
-      queuedPlayHandler = () => startGuestPlayback(vid);
-      vid.addEventListener("canplay", queuedPlayHandler, { once: true });
-    };
-
-    // Report ready for the host's current round once we've buffered at the synced position — the handshake that
-    // releases start / a seek / an episode. Deduped per round. We keep buffering (and stay paused) until the
-    // host actually releases (its sync flips to paused=false); only then do we play.
-    const trySendReady = () => {
-      const vid = vmRef.current.videoRef.current;
-      const h = lastHostRef.current;
-      if (!vid || !h) return;
-      const round = h.round ?? 0;
-      if (round <= readiedRoundRef.current) return; // already readied this round
-      if (vid.readyState < READY_STATE_CAN_PLAY) return; // not buffered yet — wait for canplay/seeked
-      readiedRoundRef.current = round;
-      sendGuestReady(round);
-      if (!h.paused) forcePlay(); // host isn't holding (e.g. a late joiner) → start now
-    };
-
-    // Temporarily speed up / slow down to converge on the host without a visible jump. Guarded so we don't churn
-    // the property every tick.
     const setRate = (rate: number) => {
       const vid = vmRef.current.videoRef.current;
       if (vid && Math.abs(vid.playbackRate - rate) > 0.001) vid.playbackRate = rate;
     };
 
-    // Snap to the host's latest (extrapolated) position whenever the guest actually starts playing.
-    const onGuestPlay = () => {
-      const h = lastHostRef.current;
-      if (!h) return;
-      const target = hostTargetTime(h, clockOffsetRef.current);
-      if (Math.abs(logicalTime() - target) >= HARD_SEEK_SEC) seekTo(target);
+    const clearQueued = () => {
+      if (queuedVideo && queuedHandler) queuedVideo.removeEventListener("canplay", queuedHandler);
+      queuedVideo = null;
+      queuedHandler = null;
     };
-    v?.addEventListener("play", onGuestPlay);
-    v?.addEventListener("canplay", trySendReady);
-    v?.addEventListener("seeked", trySendReady);
 
-    const unsub = onSyncMessage((msg) => {
+    // Autoplay-with-sound may be blocked (no user gesture); startMediaPlayback falls back to muted.
+    // A failure is retried on a throttle — never latched: any later user interaction restores activation
+    // and the next retry starts playback.
+    const attemptPlay = (vid: HTMLVideoElement) => {
+      if (playInFlight) return;
+      const now = Date.now();
+      if (lastPlayAttemptAt !== 0 && now - lastPlayAttemptAt < PLAY_RETRY_THROTTLE_MS) return;
+      lastPlayAttemptAt = now;
+      playInFlight = true;
+      void startSynchronizedPlayback(vid, "guest").then((ok) => {
+        if (ok) {
+          started = true;
+          log("playback started");
+        } else {
+          log("play() blocked by autoplay policy — retrying on the next tick");
+        }
+      }).finally(() => {
+        playInFlight = false;
+      });
+    };
+
+    // Ready-handshake: report ready for the current round once buffered at the synced position.
+    const trySendReady = () => {
       const vid = vmRef.current.videoRef.current;
-      if (!vid) return;
-      lastHostRef.current = msg;
-      const round = msg.round ?? 0;
-      const target = hostTargetTime(msg, clockOffsetRef.current); // WAN-compensated host position
-      const err = target - logicalTime(); // +: guest is behind the host
+      const host = lastHost;
+      if (!vid || !host) return;
+      const round = host.round ?? 0;
+      if (round <= readiedRoundRef.current) return;
+      if (vid.readyState < READY_STATE_CAN_PLAY) return;
+      readiedRoundRef.current = round;
+      log("ready for round", round);
+      sendGuestReady(round);
+    };
 
-      if (round > readiedRoundRef.current) {
-        // New coordinated round (start / episode / seek): align to the host's position — even while paused, since
-        // the host holds paused until we're ready — reset any nudge, then report ready once buffered.
+    // The whole follower in one pass. Returns silently when there's nothing to do; logs every transition.
+    const follow = () => {
+      const vid = vmRef.current.videoRef.current;
+      const host = lastHost;
+      if (!vid) return;
+      if (!host) {
+        // No sync yet (shouldn't outlive the ready-handshake for long) — say so once in a while is
+        // unnecessary noise; silent is fine, the self-tick retries anyway.
+        return;
+      }
+
+      if (host.paused) {
+        started = false;
+        if (!vid.paused) {
+          setRate(1);
+          vid.pause();
+          log("paused by host");
+        }
+        return;
+      }
+
+      // Host is playing.
+      if (vid.paused) {
+        if (vid.readyState >= READY_STATE_CAN_PLAY) {
+          attemptPlay(vid);
+        } else if (queuedVideo !== vid) {
+          // Not enough data to play yet — queue one attempt for canplay instead of a play() the
+          // browser would reject on an unready source.
+          clearQueued();
+          queuedVideo = vid;
+          queuedHandler = () => attemptPlay(vid);
+          vid.addEventListener("canplay", queuedHandler, { once: true });
+        }
+      } else if (!started) {
+        started = true;
+        log("playback running");
+      }
+
+      if (vid.paused || Date.now() < suppressUntilRef.current) return; // settling — no drift chasing
+
+      const target = hostTargetTime(host, clockOffsetRef.current);
+      const err = target - logicalTime(); // +: guest is behind the host
+      if (Math.abs(err) >= HARD_SEEK_SEC) {
         setRate(1);
-        if (Math.abs(err) >= ALIGN_SEC) seekTo(target);
-        trySendReady();
-      } else if (vid.paused || Date.now() < suppressUntilRef.current) {
-        // Paused (never chase a paused guest — the "keeps rewinding" bug) or settling after a seek: run at 1.0x.
-        setRate(1);
-      } else if (Math.abs(err) >= HARD_SEEK_SEC) {
-        setRate(1);
-        seekTo(target); // too far off to nudge smoothly — jump
+        seekTo(target);
       } else if (Math.abs(err) >= NUDGE_DEADBAND_SEC) {
         setRate(1 + clamp(err * RATE_GAIN, -MAX_RATE_DELTA, MAX_RATE_DELTA)); // ease toward the host
       } else {
         setRate(1); // in sync
       }
+    };
 
-      if (msg.paused && !vid.paused) { setRate(1); vid.pause(); }
-      else if (!msg.paused && vid.paused) forcePlay();
+    // Snap to the host's position whenever the guest actually starts playing (e.g. after a blocked-then-retried start).
+    const onGuestPlay = () => {
+      const host = lastHost;
+      if (!host) return;
+      const target = hostTargetTime(host, clockOffsetRef.current);
+      if (Math.abs(logicalTime() - target) >= HARD_SEEK_SEC) seekTo(target);
+    };
+
+    initialVideo?.addEventListener("play", onGuestPlay);
+    initialVideo?.addEventListener("canplay", trySendReady);
+    initialVideo?.addEventListener("seeked", trySendReady);
+
+    const unsub = onSyncMessage((msg) => {
+      const vid = vmRef.current.videoRef.current;
+      lastHost = msg;
+      if (!vid) {
+        log("sync received but the <video> ref is null — player not mounted?");
+        return;
+      }
+      const round = msg.round ?? 0;
+      if (round > readiedRoundRef.current) {
+        // New coordinated round (start / episode / seek): align to the host's position — even while
+        // paused, since the host holds paused until everyone is ready — then report ready once buffered.
+        setRate(1);
+        const target = hostTargetTime(msg, clockOffsetRef.current);
+        if (Math.abs(target - logicalTime()) >= ALIGN_SEC) seekTo(target);
+        trySendReady();
+      }
+      follow();
     });
 
+    // Self-tick: the follower must not depend solely on the host's 1 Hz sync cadence — a lost message or
+    // a play() that became possible late (user gesture) self-heals on the next tick.
+    const tick = setInterval(follow, 1000);
+
     return () => {
+      clearInterval(tick);
       const vid = vmRef.current.videoRef.current;
       if (vid) vid.playbackRate = 1; // never leave a nudged rate behind
-      clearQueuedPlay();
-      v?.removeEventListener("play", onGuestPlay);
-      v?.removeEventListener("canplay", trySendReady);
-      v?.removeEventListener("seeked", trySendReady);
+      clearQueued();
+      initialVideo?.removeEventListener("play", onGuestPlay);
+      initialVideo?.removeEventListener("canplay", trySendReady);
+      initialVideo?.removeEventListener("seeked", trySendReady);
       unsub();
     };
   }, [role, onSyncMessage, sendGuestReady, clockOffsetRef, startSynchronizedPlayback]);

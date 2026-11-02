@@ -16,6 +16,9 @@ export class WatchTogetherClient {
   private member: { participantId: string; role: WTRole } | null = null; // for re-join on reconnect
   private messageHandlers = new Set<(msg: WTMessage) => void>();
   private stateHandlers = new Set<(state: WTConnectionState) => void>();
+  // Set when WE close the connection on purpose (disconnect()/leave). Distinguishes an intentional close
+  // from server/network/page-teardown closes when diagnosing "host disappeared" reports.
+  private intentionalStop = false;
 
   onMessage(handler: (msg: WTMessage) => void): () => void {
     this.messageHandlers.add(handler);
@@ -54,15 +57,33 @@ export class WatchTogetherClient {
       .build();
 
     this.connection.on("WatchTogetherMessage", (json: string) => this.dispatch(json));
-    this.connection.onreconnecting(() => this.emitState("reconnecting"));
-    this.connection.onreconnected(async () => {
+    this.connection.onreconnecting((error) => {
+      logger.warn("[WT] connection lost, reconnecting:", error?.message ?? "no error detail");
+      this.emitState("reconnecting");
+    });
+    this.connection.onreconnected(async (connectionId) => {
+      logger.log("[WT] reconnected as", connectionId);
       this.emitState("connected");
       // Group membership is per-connection and is lost on reconnect — rejoin the active room.
       if (this.activeRoomId && this.member) {
         await this.invokeJoin(this.activeRoomId, this.member.participantId, this.member.role);
       }
     });
-    this.connection.onclose(() => this.emitState("idle"));
+    this.connection.onclose((error) => {
+      // The single most useful line when a co-watch room "dies by itself": was this close ours
+      // (leave/navigation) or external (server/network/browser teardown)?
+      if (this.intentionalStop) {
+        logger.log("[WT] connection closed (intentional)");
+      } else {
+        logger.error(
+          "[WT] connection closed EXTERNALLY — not initiated by the client. Error:",
+          error?.message ?? "none",
+          "State-before-close and pagehide breadcrumbs may follow.",
+        );
+      }
+      this.intentionalStop = false;
+      this.emitState("idle");
+    });
 
     try {
       await this.connection.start();
@@ -110,6 +131,7 @@ export class WatchTogetherClient {
     this.member = null;
     const conn = this.connection;
     this.connection = null;
+    this.intentionalStop = true;
     if (conn) {
       try {
         await conn.stop();

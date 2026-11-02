@@ -47,6 +47,18 @@ export function attachHlsDiagnostics(hls: Hls, video: HTMLVideoElement): void {
     });
   });
 
+  // Byte count is THE discriminator for "network looks fine but demux is empty": a 200 with a tiny or
+  // zero-length body (expired CDN token, balancer stub, range mishap) demuxes to nothing, while a real
+  // TS fragment weighs hundreds of KB.
+  hls.on(Hls.Events.FRAG_LOADED, (_e, data) => {
+    logger.warn("[HLS-DIAG] FRAG_LOADED", {
+      type: data.frag.type,
+      sn: data.frag.sn,
+      bytes: data.frag.stats?.loaded ?? data.frag.stats?.total ?? null,
+      url: data.frag.url,
+    });
+  });
+
   hls.on(Hls.Events.FRAG_BUFFERED, (_e, data: FragBufferedData) => {
     logger.warn("[HLS-DIAG] FRAG_BUFFERED", {
       type: data.frag.type,
@@ -63,6 +75,15 @@ export function attachHlsDiagnostics(hls: Hls, video: HTMLVideoElement): void {
       audio: formatTimeRanges(data.timeRanges?.audio),
       video: formatTimeRanges(data.timeRanges?.video),
       curr: Number(video.currentTime.toFixed(2)),
+      // Element-level truth: buffers may fill while the element paints nothing. readyState/error tell
+      // "can it render", videoWidth "is there a decoded frame", client size + isConnected "is it on
+      // screen at all", paused "did playback ever start".
+      readyState: video.readyState,
+      error: video.error?.code ?? null,
+      videoWidth: video.videoWidth,
+      box: `${video.clientWidth}x${video.clientHeight}`,
+      connected: video.isConnected,
+      paused: video.paused,
     });
   });
 }

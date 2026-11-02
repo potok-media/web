@@ -44,6 +44,19 @@ function descriptorToSessionInfo(d: ActivePlayback): WTSessionInfo {
   };
 }
 
+// Co-watch broadcasts (start-watch / state-sync / queue-update) must stay small: the gateway caps the
+// incoming message size and a fat payload faults the sender's ENTIRE connection (the "host disappeared"
+// bug — a TV-series playlist with per-episode streamUrls/headers blows past a 32 KB cap). Guests never
+// resolve playlist items themselves — episode switches are re-broadcast by the host — so items cross the
+// wire as lobby metadata only (id/season/episode/title), never with streamUrl/audios/headers.
+function slimPlaylistForBroadcast(playlist: PlaylistItem[] | undefined): PlaylistItem[] | undefined {
+  return playlist?.map((p) => ({ id: p.id, season: p.season, episode: p.episode, title: p.title }) as PlaylistItem);
+}
+
+export function slimDescriptorForBroadcast(d: ActivePlayback): ActivePlayback {
+  return { ...d, playlist: slimPlaylistForBroadcast(d.playlist) };
+}
+
 function getClientId(): string {
   if (typeof window === "undefined") return "";
   let id = sessionStorage.getItem("potok_client_id");
@@ -228,7 +241,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
       role: "host",
       time: 0,
       streamUrl: descriptor.streamUrl,
-      descriptor: { ...descriptor, startAtZero: true, coWatch: true }, // co-watch always begins at 00:00
+      descriptor: slimDescriptorForBroadcast({ ...descriptor, startAtZero: true, coWatch: true }), // co-watch always begins at 00:00
     });
   }, [clientId]);
 
@@ -257,7 +270,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
       const session: WTSessionState | null =
         sessionActiveRef.current && descriptor
           ? {
-              descriptor: { ...descriptor, startAtZero: true, coWatch: true },
+              descriptor: slimDescriptorForBroadcast({ ...descriptor, startAtZero: true, coWatch: true }),
               round: roundRef.current,
               time: snap.time,
               paused: snap.paused,
@@ -570,6 +583,21 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const dismissRoomUnavailable = useCallback(() => setRoomUnavailable(false), []);
 
+  // Diagnostic: if the page is torn down (navigation/reload/tab close) while a co-watch connection is
+  // live, the connection dies with it and the server announces host-ended to the room. Log it so a
+  // "the room died by itself" report can tell a page teardown apart from a transport failure.
+  useEffect(() => {
+    const onPageHide = (e: PageTransitionEvent) => {
+      if (clientRef.current) {
+        logger.error(
+          `[WT] pagehide fired (persisted=${e.persisted}) — the page is being torn down; a live co-watch connection dies with it.`,
+        );
+      }
+    };
+    window.addEventListener("pagehide", onPageHide);
+    return () => window.removeEventListener("pagehide", onPageHide);
+  }, []);
+
   const startWatch = useCallback(() => {
     const descriptor = descriptorRef.current;
     if (roleRef.current !== "host" || !roomKeyRef.current || !descriptor) return;
@@ -614,7 +642,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
         type: "queue-update",
         senderId: clientId,
         role: "host",
-        playlist,
+        playlist: slimPlaylistForBroadcast(playlist) ?? [],
         playlistIndex,
       });
     },
