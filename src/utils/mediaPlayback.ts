@@ -4,6 +4,12 @@ export interface MediaPlaybackResult {
   error?: unknown;
 }
 
+/** play() rejected because something paused the element mid-request — expected when a co-watch
+ *  start-gate hold races the autoplay on episode switch. NOT a playback failure. */
+export function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "AbortError";
+}
+
 /**
  * Start an HTML media element without assuming that autoplay with sound is allowed.
  * The caller owns error presentation; this function only guarantees that the final

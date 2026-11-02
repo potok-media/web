@@ -13,9 +13,10 @@ export function useWindowedSubtitleFeeder(
   octopusRef: RefObject<SubtitlesOctopusInstance | null>,
   seekOffsetRef: RefObject<number>,
   cueOriginalTimes: RefObject<WeakMap<TextTrackCue, { s: number; e: number }>>,
+  videoNode?: HTMLVideoElement | null,
 ) {
   useEffect(() => {
-    const video = videoRef.current;
+    const video = videoNode !== undefined ? videoNode : videoRef.current;
     if (!video) return;
     const trackIndex = currentSubtitleTrack;
     const sel = trackIndex !== -1 ? injectedSubtitles[trackIndex] : null;
@@ -152,6 +153,7 @@ export function useWindowedSubtitleFeeder(
     octopusRef,
     seekOffsetRef,
     videoRef,
+    videoNode,
     cueOriginalTimes,
     subtitleGen,
   ]);

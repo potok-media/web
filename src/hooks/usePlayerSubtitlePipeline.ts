@@ -17,6 +17,8 @@ export type { InjectedSubtitleTrack } from "./subtitles/subtitleTypes";
 
 interface UsePlayerSubtitlePipelineParams {
   videoRef: RefObject<HTMLVideoElement | null>;
+  /** Live <video> node as state — threaded to the feeder so a portal-swap node recreation re-attaches. */
+  videoNode?: HTMLVideoElement | null;
   seekOffsetRef: RefObject<number>;
   seekOffset: number;
   seekPreview: number | null;
@@ -35,6 +37,7 @@ interface UsePlayerSubtitlePipelineParams {
 export function usePlayerSubtitlePipeline(params: UsePlayerSubtitlePipelineParams) {
   const {
     videoRef,
+    videoNode,
     seekOffsetRef,
     seekOffset,
     seekPreview,
@@ -57,7 +60,7 @@ export function usePlayerSubtitlePipeline(params: UsePlayerSubtitlePipelineParam
     subtitleFetchPromises,
   );
 
-  useSubtitleSeekVisibility(seekPreview, videoRef, seekOffsetRef, octopusRef);
+  useSubtitleSeekVisibility(seekPreview, videoRef, seekOffsetRef, octopusRef, videoNode);
 
   const cueOriginalTimes = useSubtitleCueOffset(
     videoRef,
@@ -65,6 +68,7 @@ export function usePlayerSubtitlePipeline(params: UsePlayerSubtitlePipelineParam
     currentSubtitleTrack,
     injectedSubtitles,
     srcResetCounter,
+    videoNode,
   );
 
   useWindowedSubtitleFeeder(
@@ -77,6 +81,7 @@ export function usePlayerSubtitlePipeline(params: UsePlayerSubtitlePipelineParam
     octopusRef,
     seekOffsetRef,
     cueOriginalTimes,
+    videoNode,
   );
 
   const switchSubtitle = useCallback(

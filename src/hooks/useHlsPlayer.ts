@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import Hls from "hls.js";
 import { logger } from "../utils/logger";
 import { i18n } from "../i18n";
-import { startMediaPlayback } from "../utils/mediaPlayback";
+import { startMediaPlayback, isAbortError } from "../utils/mediaPlayback";
 import { createHlsPlayerConfig } from "../utils/hls/hlsConfig";
 import { bindHlsEventHandlers } from "../utils/hls/hlsEventHandlers";
 import { matchAudioTrack } from "../utils/hls/audioPreference";
@@ -20,6 +20,7 @@ export type { HlsPlayerParams } from "../utils/hls/hlsPlayerTypes";
 
 export function useHlsPlayer({
   videoRef,
+  videoNode,
   playback,
   setCurrentAudioTrack,
   setAudioTracks,
@@ -53,7 +54,7 @@ export function useHlsPlayer({
   }, [videoRef, bumpSession]);
 
   useEffect(() => {
-    const video = videoRef.current;
+    const video = videoNode !== undefined ? videoNode : videoRef.current;
     if (!video) return;
     const pipelinePlayback = playbackRef.current;
 
@@ -84,6 +85,12 @@ export function useHlsPlayer({
     const startPlayback = (source: "hls" | "native") => {
       void startMediaPlayback(video).then((result) => {
         if (result.started || playerSessionRef.current !== sessionId) return;
+        if (isAbortError(result.error)) {
+          // The co-watch start gate paused the element mid-play() on episode switch — the gate effect
+          // re-starts playback when it opens. Surfacing this as an error would flash a false overlay.
+          logger.log(`[useHlsPlayer] ${source} play() aborted by pause (co-watch gate hold) — ignoring`);
+          return;
+        }
         logger.error(`[useHlsPlayer] ${source} playback start failed:`, result.error, {
           readyState: video.readyState,
           networkState: video.networkState,
@@ -152,6 +159,7 @@ export function useHlsPlayer({
     };
   }, [
     pipelineKey,
+    videoNode,
     cleanupActiveResources,
     setPlayerError,
     setIsMetadataLoading,

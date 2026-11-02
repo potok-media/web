@@ -5,7 +5,7 @@ import type { useWebMediaPlayer } from "../useWebMediaPlayer";
 import type { WTSyncWatch } from "../../network/watchTogetherTypes";
 import { i18n } from "../../i18n";
 import { logger } from "../../utils/logger";
-import { startMediaPlayback } from "../../utils/mediaPlayback";
+import { startMediaPlayback, isAbortError } from "../../utils/mediaPlayback";
 
 type PlayerVM = ReturnType<typeof useWebMediaPlayer>;
 
@@ -53,10 +53,21 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
     useWatchTogether();
   const vmRef = useRef(vm);
   vmRef.current = vm;
+  // The <video> node can be REPLACED after mount (a portal container swap recreates it) — effects that
+  // attach listeners must key on the node itself, not the stable videoRef object.
+  const videoNode = vm.videoNode;
 
-  const startSynchronizedPlayback = useCallback(async (video: HTMLVideoElement, context: string) => {
+  // Returns true when playback started, "aborted" when play() was interrupted by a pause (co-watch
+  // gate hold on episode switch — the gate effect re-starts us), false on a real failure.
+  const startSynchronizedPlayback = useCallback(async (video: HTMLVideoElement, context: string): Promise<boolean | "aborted"> => {
     const result = await startMediaPlayback(video);
     if (result.started) return true;
+    if (isAbortError(result.error)) {
+      // play() interrupted by a pause (co-watch gate hold on episode switch) — the gate effect
+      // re-starts playback when it opens; this is not a failure.
+      logger.log(`[watch-together] ${context} play() aborted by pause — ignoring`);
+      return "aborted";
+    }
     logger.error(`[watch-together] ${context} playback start failed:`, result.error, {
       readyState: video.readyState,
       networkState: video.networkState,
@@ -102,7 +113,7 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
   // guests within a single network hop instead of waiting up to a full 1 Hz tick (the ~500 ms desync).
   useEffect(() => {
     if (role !== "host" || !sessionActive || !startGateOpen) return;
-    const v = vmRef.current.videoRef.current;
+    const v = videoNode;
     if (!v) return;
     const emitNow = () =>
       emitSync({
@@ -118,14 +129,14 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
       v.removeEventListener("play", onPlay);
       v.removeEventListener("pause", emitNow);
     };
-  }, [role, sessionActive, startGateOpen, emitSync, clientId]);
+  }, [role, sessionActive, startGateOpen, videoNode, emitSync, clientId]);
 
   // Host: hold playback until the start gate opens (every guest has reported ready via the handshake, or a
   // timeout), THEN start once our own buffer is ready — so everyone begins together. While holding, the video
   // buffers and the 1 Hz sync reports paused=true, so guests stay paused too.
   useEffect(() => {
     if (role !== "host" || !sessionActive) return;
-    const v = vmRef.current.videoRef.current;
+    const v = videoNode;
     if (!v) return;
 
     if (!startGateOpen) {
@@ -143,14 +154,14 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
     const onReady = () => void startSynchronizedPlayback(v, "host gate");
     v.addEventListener("canplay", onReady, { once: true });
     return () => v.removeEventListener("canplay", onReady);
-  }, [role, sessionActive, startGateOpen, startSynchronizedPlayback]);
+  }, [role, sessionActive, startGateOpen, videoNode, startSynchronizedPlayback]);
 
   // Host: emit a "seek" toast on real seeks. (Pause/resume is shown to guests as a dedicated overlay driven
   // by the sync-watch paused flag, so it doesn't need a transient toast.)
   const primedRef = useRef(false);
   useEffect(() => {
     if (role !== "host" || !sessionActive) return;
-    const v = vmRef.current.videoRef.current;
+    const v = videoNode;
     if (!v) return;
 
     primedRef.current = false;
@@ -168,7 +179,7 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
       clearTimeout(primeTimer);
       v.removeEventListener("seeked", onSeeked);
     };
-  }, [role, sessionActive, emitNotice, hostAwaitResync, clientId]);
+  }, [role, sessionActive, videoNode, emitNotice, hostAwaitResync, clientId]);
 
   // Host: apply validated control requests from guests. Applying to the host's own video makes the resulting
   // sync-watch propagate to everyone (host stays the single source of truth).
@@ -202,7 +213,7 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
   const readiedRoundRef = useRef(-1); // highest coordinated round we've reported ready for
   useEffect(() => {
     if (role !== "guest") return;
-    const initialVideo = vmRef.current.videoRef.current;
+    const initialVideo = videoNode;
     const log = (...args: unknown[]) => logger.log("[WT-GUEST]", ...args);
 
     let lastHost: WTSyncWatch | null = null;
@@ -211,11 +222,50 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
     let lastPlayAttemptAt = 0;
     let queuedVideo: HTMLVideoElement | null = null;
     let queuedHandler: (() => void) | null = null;
+    let lastProbeAt = 0;
+    let lastStuckLogAt = 0;
+
+    // Element truth snapshot: one line that discriminates every black-screen cause — a seek that
+    // didn't stick (currentTime vs target), a clamped timeline (duration/seekable end below the
+    // host's position), a detached/hidden element (isConnected/box), or a never-started playback.
+    const probe = (hostTime: number | null, force = false) => {
+      const now = Date.now();
+      if (!force && now - lastProbeAt < 2000) return;
+      lastProbeAt = now;
+      const vid = vmRef.current.videoRef.current;
+      if (!vid) { log("probe: no <video>"); return; }
+      const seekableEnd = vid.seekable.length ? vid.seekable.end(vid.seekable.length - 1) : null;
+      log("probe", {
+        want: hostTime != null ? Number(hostTime.toFixed(2)) : null,
+        cur: Number(vid.currentTime.toFixed(2)),
+        paused: vid.paused,
+        rs: vid.readyState,
+        dur: Number.isFinite(vid.duration) ? Number(vid.duration.toFixed(1)) : vid.duration,
+        seekEnd: seekableEnd != null ? Number(seekableEnd.toFixed(1)) : null,
+        rate: vid.playbackRate,
+        conn: vid.isConnected,
+        box: `${vid.clientWidth}x${vid.clientHeight}`,
+        vw: vid.videoWidth,
+      });
+    };
 
     const seekTo = (time: number) => {
       vmRef.current.handleSeek(time);
       suppressUntilRef.current = Date.now() + SEEK_SUPPRESS_MS;
       log("seek →", Number(time.toFixed(2)));
+      // Verify the seek actually landed ~400 ms after the debounced commit. If it didn't, the next
+      // probe line (with dur/seekEnd) shows why: clamped timeline, detached element, or paused playback.
+      const issuedAt = Date.now();
+      setTimeout(() => {
+        if (Date.now() - lastStuckLogAt < 2000) return;
+        const vid = vmRef.current.videoRef.current;
+        if (!vid) return;
+        if (Math.abs(vmRef.current.seekOffset + vid.currentTime - time) > 1) {
+          lastStuckLogAt = Date.now();
+          log(`seek to ${Number(time.toFixed(2))} did not stick after ${Date.now() - issuedAt} ms`);
+          probe(time, true);
+        }
+      }, 400);
     };
 
     const setRate = (rate: number) => {
@@ -238,10 +288,12 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
       if (lastPlayAttemptAt !== 0 && now - lastPlayAttemptAt < PLAY_RETRY_THROTTLE_MS) return;
       lastPlayAttemptAt = now;
       playInFlight = true;
-      void startSynchronizedPlayback(vid, "guest").then((ok) => {
-        if (ok) {
+      void startSynchronizedPlayback(vid, "guest").then((result) => {
+        if (result === true) {
           started = true;
           log("playback started");
+        } else if (result === "aborted") {
+          // Gate hold paused us mid-play() — the host's gate will start everyone when it opens.
         } else {
           log("play() blocked by autoplay policy — retrying on the next tick");
         }
@@ -284,6 +336,11 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
         return;
       }
 
+      // Pipeline dead (fatal HLS error) — pause/play/seek churn only hammers the CDN with requests
+      // the broken pipeline can't consume. Sit still until the error is cleared (recovery/refresh
+      // re-inits the pipeline, which re-fires the round-align seek anyway).
+      if (vmRef.current.playerError) return;
+
       // Host is playing.
       if (vid.paused) {
         if (vid.readyState >= READY_STATE_CAN_PLAY) {
@@ -313,6 +370,7 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
       } else {
         setRate(1); // in sync
       }
+      probe(target);
     };
 
     // Snap to the host's position whenever the guest actually starts playing (e.g. after a blocked-then-retried start).
@@ -360,5 +418,5 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
       initialVideo?.removeEventListener("seeked", trySendReady);
       unsub();
     };
-  }, [role, onSyncMessage, sendGuestReady, clockOffsetRef, startSynchronizedPlayback]);
+  }, [role, onSyncMessage, sendGuestReady, clockOffsetRef, videoNode, startSynchronizedPlayback]);
 }

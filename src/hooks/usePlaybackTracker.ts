@@ -16,6 +16,9 @@ export interface PlaybackProgress {
 
 interface UsePlaybackTrackerParams {
   videoRef: React.RefObject<HTMLVideoElement | null>;
+  /** Live <video> node as state — the save-progress listeners must re-attach when a portal swap
+   *  recreates the node. Falls back to videoRef.current when not provided. */
+  videoNode?: HTMLVideoElement | null;
   playback: {
     id: number;
     mediaType: string;
@@ -47,6 +50,7 @@ interface UsePlaybackTrackerParams {
 
 export function usePlaybackTracker({
   videoRef,
+  videoNode,
   playback,
   seekOffset,
   isActive,
@@ -266,7 +270,7 @@ export function usePlaybackTracker({
 
   // Слушатели событий жизненного цикла видео и вкладки браузера
   useEffect(() => {
-    const video = videoRef.current;
+    const video = videoNode !== undefined ? videoNode : videoRef.current;
     if (!video) return;
 
     const handlePause = () => {
@@ -332,6 +336,7 @@ export function usePlaybackTracker({
     };
   }, [
     videoRef,
+    videoNode,
     saveProgress,
     getStorageKeys,
     id,

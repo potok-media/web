@@ -24,6 +24,7 @@ interface UseWebMediaPlayerInteractionParams extends UseWebMediaPlayerBindingsPa
 export function useWebMediaPlayerInteraction({
   playback,
   videoRef,
+  videoNode,
   seekOffset,
   seekPreview,
   isBuffering,
@@ -54,6 +55,7 @@ export function useWebMediaPlayerInteraction({
 
   const subtitles = usePlayerSubtitlePipeline({
     videoRef,
+    videoNode,
     seekOffsetRef,
     seekOffset,
     seekPreview,
@@ -71,6 +73,7 @@ export function useWebMediaPlayerInteraction({
 
   const { handleSeek, handleSeekBy } = useDebouncedSeek({
     videoRef,
+    videoNode,
     displayDuration,
     seekOffsetRef,
     setSeekPreview,

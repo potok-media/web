@@ -15,6 +15,10 @@ export interface HlsQualityLevel {
 
 export interface HlsPlayerParams {
   videoRef: RefObject<HTMLVideoElement | null>;
+  /** Live <video> node as state (see UseWebMediaPlayerBindingsParams). The pipeline effect must key on
+   *  this: a portal container swap recreates the node, and re-attaching hls.js to the new node is the
+   *  only way to survive it. Falls back to videoRef.current when not provided. */
+  videoNode?: HTMLVideoElement | null;
   playback: ActivePlayback;
   currentAudioTrack: number;
   setCurrentAudioTrack: (id: number) => void;

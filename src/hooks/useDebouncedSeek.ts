@@ -5,6 +5,9 @@ const SEEK_DEBOUNCE_MS = 300;
 
 interface UseDebouncedSeekParams {
   videoRef: RefObject<HTMLVideoElement | null>;
+  /** Live <video> node as state — the retry-listener effect must re-attach when a portal swap
+   *  recreates the node. Falls back to videoRef.current when not provided. */
+  videoNode?: HTMLVideoElement | null;
   displayDuration: number;
   seekOffsetRef: RefObject<number>;
   setSeekPreview: (value: number | null) => void;
@@ -12,6 +15,7 @@ interface UseDebouncedSeekParams {
 
 export function useDebouncedSeek({
   videoRef,
+  videoNode,
   displayDuration,
   seekOffsetRef,
   setSeekPreview,
@@ -40,7 +44,7 @@ export function useDebouncedSeek({
   }, [seekOffsetRef, setSeekPreview, videoRef]);
 
   useEffect(() => {
-    const video = videoRef.current;
+    const video = videoNode !== undefined ? videoNode : videoRef.current;
     if (!video) return;
     const retryPendingSeek = () => commitSeek();
     video.addEventListener("loadedmetadata", retryPendingSeek);
@@ -50,7 +54,7 @@ export function useDebouncedSeek({
       video.removeEventListener("loadedmetadata", retryPendingSeek);
       video.removeEventListener("durationchange", retryPendingSeek);
     };
-  }, [commitSeek, videoRef]);
+  }, [commitSeek, videoNode, videoRef]);
 
   const scheduleSeek = useCallback(
     (rawTarget: number) => {

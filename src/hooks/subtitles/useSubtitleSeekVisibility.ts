@@ -6,13 +6,14 @@ export function useSubtitleSeekVisibility(
   videoRef: RefObject<HTMLVideoElement | null>,
   seekOffsetRef: RefObject<number>,
   octopusRef: RefObject<SubtitlesOctopusInstance | null>,
+  videoNode?: HTMLVideoElement | null,
 ) {
   const hiddenTracksRef = useRef<number[]>([]);
 
   useEffect(() => {
     const seeking = seekPreview != null;
     const oct = octopusRef.current;
-    const video = videoRef.current;
+    const video = videoNode !== undefined ? videoNode : videoRef.current;
     if (oct?.canvas) {
       (oct.canvas as HTMLElement).classList.toggle("player-subs-hidden", seeking);
     }
@@ -40,5 +41,5 @@ export function useSubtitleSeekVisibility(
         }
       }
     }
-  }, [seekPreview, octopusRef, seekOffsetRef, videoRef]);
+  }, [seekPreview, octopusRef, seekOffsetRef, videoNode, videoRef]);
 }

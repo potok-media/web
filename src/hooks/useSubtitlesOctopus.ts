@@ -33,6 +33,9 @@ interface InjectedSubtitleTrack {
 
 interface UseSubtitlesOctopusParams {
   videoRef: RefObject<HTMLVideoElement | null>;
+  /** Live <video> node as state — the ASS renderer binds to the node it was constructed with, so a
+   *  portal swap that recreates the node requires disposing and rebinding. Falls back to videoRef.current. */
+  videoNode?: HTMLVideoElement | null;
   seekOffsetRef: RefObject<number>;
   seekOffset: number;
   srcResetCounter: number;
@@ -43,6 +46,7 @@ interface UseSubtitlesOctopusParams {
 
 export function useSubtitlesOctopus({
   videoRef,
+  videoNode,
   seekOffsetRef,
   seekOffset,
   srcResetCounter,
@@ -51,9 +55,27 @@ export function useSubtitlesOctopus({
   subtitleFetchPromises,
 }: UseSubtitlesOctopusParams) {
   const octopusRef = useRef<SubtitlesOctopusInstance | null>(null);
+  const octopusVideoNodeRef = useRef<HTMLVideoElement | null>(null);
+
+  // A portal container swap recreates the <video> node; an octopus instance bound to the detached
+  // node renders nothing (and reads a frozen currentTime). Dispose it so the track effect below
+  // re-creates the renderer against the new node. Runs before the track effect (declaration order).
+  useEffect(() => {
+    const node = videoNode !== undefined ? videoNode : videoRef.current;
+    if (octopusRef.current && octopusVideoNodeRef.current !== node) {
+      logger.log("[OCTOPUS] video node replaced — rebinding renderer");
+      try {
+        octopusRef.current.dispose();
+      } catch (error) {
+        logger.error("[OCTOPUS] Error disposing on node swap:", error);
+      }
+      octopusRef.current = null;
+      octopusVideoNodeRef.current = null;
+    }
+  }, [videoNode, videoRef]);
 
   useEffect(() => {
-    const video = videoRef.current;
+    const video = videoNode !== undefined ? videoNode : videoRef.current;
     if (!video) return;
 
     const selectedTrack =
@@ -102,6 +124,7 @@ export function useSubtitlesOctopus({
           timeOffset: seekOffsetRef.current,
           debug: true,
         }) as SubtitlesOctopusInstance;
+        octopusVideoNodeRef.current = video;
       } catch (error: unknown) {
         logger.error("[OCTOPUS] Failed to initialize SubtitlesOctopus:", error);
       }
@@ -141,6 +164,7 @@ export function useSubtitlesOctopus({
     injectedSubtitles,
     seekOffsetRef,
     subtitleFetchPromises,
+    videoNode,
     videoRef,
   ]);
 
@@ -174,7 +198,7 @@ export function useSubtitlesOctopus({
 
   useEffect(() => {
     const oct = octopusRef.current;
-    const video = videoRef.current;
+    const video = videoNode !== undefined ? videoNode : videoRef.current;
     if (!oct) return;
     oct.timeOffset = seekOffset;
     if (video) {
@@ -184,7 +208,7 @@ export function useSubtitlesOctopus({
         /* noop */
       }
     }
-  }, [seekOffset, videoRef]);
+  }, [seekOffset, videoNode, videoRef]);
 
   return octopusRef;
 }

@@ -7,11 +7,12 @@ export function useSubtitleCueOffset(
   currentSubtitleTrack: number,
   injectedSubtitles: InjectedSubtitleTrack[],
   srcResetCounter: number,
+  videoNode?: HTMLVideoElement | null,
 ) {
   const cueOriginalTimes = useRef<WeakMap<TextTrackCue, { s: number; e: number }>>(new WeakMap());
 
   useEffect(() => {
-    const video = videoRef.current;
+    const video = videoNode !== undefined ? videoNode : videoRef.current;
     if (!video) return;
 
     const applyCueOffset = () => {
@@ -39,7 +40,7 @@ export function useSubtitleCueOffset(
     applyCueOffset();
     const timers = [window.setTimeout(applyCueOffset, 150), window.setTimeout(applyCueOffset, 600)];
     return () => timers.forEach((timerId) => clearTimeout(timerId));
-  }, [seekOffset, currentSubtitleTrack, injectedSubtitles, srcResetCounter, videoRef]);
+  }, [seekOffset, currentSubtitleTrack, injectedSubtitles, srcResetCounter, videoNode, videoRef]);
 
   return cueOriginalTimes;
 }

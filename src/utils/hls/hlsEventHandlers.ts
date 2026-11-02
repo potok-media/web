@@ -25,6 +25,8 @@ export function bindHlsEventHandlers(
   callbacks: HlsHandlerCallbacks,
 ): void {
   const isActiveSession = () => refs.playerSessionRef.current === sessionId;
+  // One recoverMediaError() per hls instance — see the ERROR handler below.
+  let mediaErrorRecovered = false;
 
   attachHlsDiagnostics(hls, video);
 
@@ -83,6 +85,22 @@ export function bindHlsEventHandlers(
     // startLoad()/recoverMediaError(). A stall/decode fault is a real upstream (TorrentGo) defect to fix
     // at the source, not to paper over on the client — see "dumb player boundary".
     if (!data.fatal) return;
+
+    // One exception: a single corrupt segment (fragParsingError) or a one-off MSE hiccup must not end
+    // the session — recoverMediaError() rebuilds the MediaSource and keeps buffering from the network
+    // cache. Only an error that survives the recovery is surfaced, and only ONE recovery per hls
+    // instance so a genuinely broken stream can't loop here.
+    if (data.type === Hls.ErrorTypes.MEDIA_ERROR && !mediaErrorRecovered) {
+      mediaErrorRecovered = true;
+      logger.error("[useHlsPlayer] Fatal media error — attempting one recoverMediaError():", data.details);
+      try {
+        hls.recoverMediaError();
+        callbacks.setIsMetadataLoading(true); // spinner until the buffer refills after the rebuild
+        return;
+      } catch (e) {
+        logger.error("[useHlsPlayer] recoverMediaError() threw:", e);
+      }
+    }
 
     logger.error("[useHlsPlayer] Fatal Hls error:", data.type, data.details);
     callbacks.setPlayerError("Ошибка при воспроизведении HLS потока.");

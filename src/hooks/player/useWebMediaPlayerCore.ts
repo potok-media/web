@@ -19,6 +19,7 @@ export function useWebMediaPlayerCore({
   playback,
   onClose,
   videoRef,
+  videoNode,
   overlayRef,
   isPlaying,
   duration,
@@ -65,6 +66,7 @@ export function useWebMediaPlayerCore({
 
   const { saveProgress } = usePlaybackTracker({
     videoRef,
+    videoNode,
     playback: useMemo(
       () => ({
         id: playback.id,
@@ -174,6 +176,7 @@ export function useWebMediaPlayerCore({
 
   const hls = useHlsPlayer({
     videoRef,
+    videoNode,
     playback,
     currentAudioTrack: metadata.currentAudioTrack,
     setCurrentAudioTrack: metadata.setCurrentAudioTrack,
@@ -186,10 +189,11 @@ export function useWebMediaPlayerCore({
     setIsMetadataLoading: metadata.setIsMetadataLoading,
   });
 
-  const { volume, setVolume, isMuted, setIsMuted } = usePlayerVolumePrefs(hls.srcResetCounter, videoRef);
+  const { volume, setVolume, isMuted, setIsMuted } = usePlayerVolumePrefs(hls.srcResetCounter, videoRef, videoNode);
 
   const octopusRef = useSubtitlesOctopus({
     videoRef,
+    videoNode,
     seekOffsetRef,
     seekOffset,
     srcResetCounter: hls.srcResetCounter,

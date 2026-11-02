@@ -1,11 +1,21 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useWebMediaPlayerBindings } from "./player/useWebMediaPlayerBindings";
 import type { WebMediaPlayerOptions } from "./player/webMediaPlayerTypes";
 
 export type { WebMediaPlayerOptions } from "./player/webMediaPlayerTypes";
 
 export function useWebMediaPlayer({ playback, onClose, isNetworkOffline = false }: WebMediaPlayerOptions) {
+  // The portal container can change after mount (PlaybackWorkspace registers its surface one render
+  // after the player first portals into document.body) and React RECREATES the <video> node on a
+  // portal container change instead of moving it. Hooks that capture the node in effects must key on
+  // `videoNode` (state, updated by this callback) so the media pipeline re-attaches to the new node;
+  // `videoRef` stays a stable object whose .current the callback keeps in sync for lazy readers.
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [videoNode, setVideoNode] = useState<HTMLVideoElement | null>(null);
+  const videoRefCallback = useCallback((node: HTMLVideoElement | null) => {
+    videoRef.current = node;
+    setVideoNode(node);
+  }, []);
   const overlayRef = useRef<HTMLDivElement>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -21,6 +31,8 @@ export function useWebMediaPlayer({ playback, onClose, isNetworkOffline = false 
     playback,
     onClose,
     videoRef,
+    videoNode,
+    videoRefCallback,
     overlayRef,
     isPlaying,
     duration,
@@ -41,6 +53,8 @@ export function useWebMediaPlayer({ playback, onClose, isNetworkOffline = false 
     isNetworkOffline,
     overlayRef,
     videoRef,
+    videoNode,
+    videoRefCallback,
     playback,
     playerError,
     setPlayerError,

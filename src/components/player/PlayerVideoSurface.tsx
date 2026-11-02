@@ -1,10 +1,10 @@
-import React, { type RefObject } from "react";
+import React from "react";
 import type { InjectedSubtitleTrack } from "../../hooks/subtitles/subtitleTypes";
 
 interface PlayerVideoSurfaceProps {
-  videoRef: RefObject<HTMLVideoElement | null>;
+  videoRef: React.Ref<HTMLVideoElement>;
   injectedSubtitles: InjectedSubtitleTrack[];
-  subtitleBlobUrls: RefObject<Record<string, string>>;
+  subtitleBlobUrls: React.RefObject<Record<string, string>>;
   srcResetCounter: number;
   currentSubtitleTrack: number;
   autoPlay: boolean;

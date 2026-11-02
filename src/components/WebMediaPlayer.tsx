@@ -114,7 +114,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = (props) => {
       }}
     >
       <PlayerVideoSurface
-        videoRef={vm.videoRef}
+        videoRef={vm.videoRefCallback}
         injectedSubtitles={vm.metadata.injectedSubtitles}
         subtitleBlobUrls={vm.subtitles.subtitleBlobUrls}
         srcResetCounter={vm.hls.srcResetCounter}
