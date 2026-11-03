@@ -8,6 +8,7 @@ import { useSettings } from "./SettingsContext";
 import { useAuth } from "./AuthContext";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import type { ActivePlayback, PlaybackMeta, PlaylistItem } from "./playbackTypes";
+import { refreshSandboxPlaylistResolver } from "../utils/playlistResolver";
 import {
   switchPlaybackSourceState,
   type PlaybackSourcePatch,
@@ -111,10 +112,13 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 
   const replacePlaylist = useCallback((playlist: PlaylistItem[], playlistIndex: number) => {
-    setActivePlayback((current) => {
-      if (!current) return current;
-      return { ...current, playlist, playlistIndex };
-    });
+    const current = activePlaybackRef.current;
+    if (!current) return;
+    const next = { ...current, playlist, playlistIndex };
+    // The resolver cached for this instance was built from the previous playlist array — a queue
+    // reorder must not leave it resolving against the pre-reorder order.
+    refreshSandboxPlaylistResolver(next);
+    setActivePlayback(next);
   }, []);
 
   const switchPlaybackSource = useCallback((patch: PlaybackSourcePatch) => {

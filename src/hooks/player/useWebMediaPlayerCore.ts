@@ -35,8 +35,9 @@ export function useWebMediaPlayerCore({
   // so late enrichment updates tracks/duration WITHOUT re-initializing the media pipeline. See PlaybackMeta.
   const { playbackMeta } = usePlayback();
 
-  // Remembered audio track for the CURRENT playlist only (same torrent). Re-applied on each episode so the
-  // user doesn't reselect the dub every time; reset when the playlist changes. In-memory, no persistence.
+  // Remembered audio track for the CURRENT playlist only (same torrent / online title). Re-applied on
+  // each episode so the user doesn't reselect the dub every time; reset when the streamHash changes.
+  // In-memory, no persistence.
   const preferredAudioRef = useRef<AudioPreference | null>(null);
   useEffect(() => {
     preferredAudioRef.current = playback.voice ? { name: playback.voice } : null;
@@ -51,6 +52,7 @@ export function useWebMediaPlayerCore({
     playback.audios,
     playback,
     playbackMeta,
+    preferredAudioRef,
   );
 
   const { connected, bytesPerSec, hasProgressSince } = usePlaybackStatus(

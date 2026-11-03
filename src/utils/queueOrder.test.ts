@@ -15,6 +15,11 @@ describe("queueOrder", () => {
     expect(orderItemsByIds(items, ["c", "a"]).map((item) => item.id)).toEqual(["c", "a", "b"]);
   });
 
+  it("matches ids across string and number domains", () => {
+    const numeric = [{ id: 1 }, { id: 2 }, { id: 3 }];
+    expect(orderItemsByIds(numeric, ["3", "1", "2"]).map((item) => item.id)).toEqual([3, 1, 2]);
+  });
+
   it("preserves the active playlist item while its index changes", () => {
     const playlist = items as PlaylistItem[];
     const result = reorderPlaylistKeepingCurrent(playlist, ["c", "a", "b"], 1);

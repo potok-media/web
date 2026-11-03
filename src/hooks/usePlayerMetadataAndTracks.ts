@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, type RefObject } from "react";
 import { i18n } from "../i18n";
 import { type ActivePlayback, type PlaybackMeta } from "../context/AppSettingsContext";
 import { resolveExternalAudioIndex } from "../utils/audioTrackOwnership";
+import { matchAudioTrack, type AudioPreference } from "../utils/hls/audioPreference";
 import {
   mergeAndDeduplicateSubtitles,
   useSubtitleWindowFetch,
@@ -19,6 +20,9 @@ export function usePlayerMetadataAndTracks(
   // Enrichable metadata (subtitles/duration) — comes from the context atom, NOT the descriptor, so late
   // enrichment updates tracks/duration without re-initializing the pipeline. See PlaybackMeta.
   playbackMeta?: PlaybackMeta,
+  // Session voice memory (torrent-style): when the external audio list carries the remembered dub,
+  // highlight it on init instead of deriving the selection from the stream url alone.
+  preferredAudioRef?: RefObject<AudioPreference | null>,
 ) {
   const [audioTracks, setAudioTracks] = useState<{ id: number; name: string }[]>([]);
   const [currentAudioTrack, setCurrentAudioTrack] = useState(-1);
@@ -135,9 +139,14 @@ export function usePlayerMetadataAndTracks(
       const tracks = audios.map((a, idx) => ({ id: idx, name: a.name }));
       setAudioTracks(tracks);
 
-      setCurrentAudioTrack(resolveExternalAudioIndex(audios, initialStreamUrl));
+      const remembered = preferredAudioRef?.current?.name
+        ? matchAudioTrack(audios, preferredAudioRef.current)
+        : -1;
+      setCurrentAudioTrack(
+        remembered >= 0 ? remembered : resolveExternalAudioIndex(audios, initialStreamUrl),
+      );
     }
-  }, [audios, initialStreamUrl]);
+  }, [audios, initialStreamUrl, preferredAudioRef]);
 
   const subtitlesJson = JSON.stringify(playbackMeta?.subtitles);
 

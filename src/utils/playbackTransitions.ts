@@ -18,6 +18,10 @@ export function switchPlaybackSourceState(
   patch: PlaybackSourcePatch,
 ): PlaybackStateSnapshot {
   if (!state.activePlayback) return state;
+  // A blank streamUrl (e.g. an audio entry built without a resolved url) must never mint a
+  // blank-url descriptor — it would re-init the pipeline onto an empty src and poison every
+  // consumer keyed on playback.streamUrl (error overlay, timecodes, co-watch announce).
+  if (typeof patch.streamUrl !== "string" || !patch.streamUrl.trim()) return state;
 
   return {
     activePlayback: {

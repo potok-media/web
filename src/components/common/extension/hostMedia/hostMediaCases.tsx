@@ -42,6 +42,7 @@ import {
   normalizeHeroItems,
 } from "./hostMediaMappers";
 import { resolvePresentedEpisodePanelView } from "./presentedEpisodePanelView";
+import { reorderPlaylistKeepingCurrent } from "../../../../utils/queueOrder";
 
 export const HostMediaCardCase: React.FC<HostMediaRendererProps<MediaCardSchema>> = ({
   schema,
@@ -191,10 +192,26 @@ const PresentedEpisodesRail: React.FC<{
   panel: PresentedEpisodesPanel;
   baseStyle: React.CSSProperties;
 }> = ({ panel, baseStyle }) => {
-  const { activePlayback } = usePlayback();
+  const { activePlayback, replacePlaylist } = usePlayback();
   const watchTogether = useWatchTogether();
   const hidePanelHeader = Boolean(watchTogether.role && watchTogether.sessionActive);
   const view = resolvePresentedEpisodePanelView(panel, activePlayback);
+  // The panel's rows come from plugin-presented data, but the player's «next» follows
+  // activePlayback.playlist — a reorder has to rewrite the actual playlist (current episode keeps
+  // its slot; nothing switches) or the visual order and the playback order diverge.
+  const handleReorderEpisodes = (episodes: GenericEpisodeItem[]) => {
+    panel.onReorderEpisodes?.(episodes);
+    if (!activePlayback?.playlist?.length) return;
+    const reordered = reorderPlaylistKeepingCurrent(
+      activePlayback.playlist,
+      episodes.map((item) => item.id),
+      activePlayback.playlistIndex ?? 0,
+    );
+    replacePlaylist(reordered.playlist, reordered.playlistIndex);
+    if (watchTogether.role === "host" && watchTogether.sessionActive) {
+      watchTogether.hostUpdateQueue(reordered.playlist, reordered.playlistIndex);
+    }
+  };
 
   return (
     <div className="sdk-episode-selector-panel streams-inline-workspace--split" style={sdkStyleVars(baseStyle)}>
@@ -209,10 +226,10 @@ const PresentedEpisodesRail: React.FC<{
           presentation="playlist"
           hideHeader={hidePanelHeader}
           activeEpisodeId={view.activeEpisodeId}
-          canReorder={!!panel.canReorder}
+          canReorder={Boolean(panel.canReorder) && watchTogether.role !== "guest"}
           onReorderEpisodes={
             panel.onReorderEpisodes
-              ? (episodes) => panel.onReorderEpisodes?.(episodes)
+              ? (episodes) => handleReorderEpisodes(episodes)
               : undefined
           }
         />

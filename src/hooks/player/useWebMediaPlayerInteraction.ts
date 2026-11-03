@@ -109,7 +109,11 @@ export function useWebMediaPlayerInteraction({
     streamResetRef.current.resetMenus();
   }, [playback.streamUrl, setIsClosed, setIsPlaying, setDuration, setSeekPreview, setIsBuffering, setPlayerError]);
 
-  const playPlaylistItemRaw = usePlayerPlaylist(playback, playVideo);
+  const getPreferredVoice = useCallback(
+    () => core.preferredAudioRef.current?.name ?? null,
+    [core.preferredAudioRef],
+  );
+  const playPlaylistItemRaw = usePlayerPlaylist(playback, playVideo, { getPreferredVoice });
   const playPlaylistItem = useCallback(
     (index: number) => {
       playPlaylistItemRaw(index).catch((error) => {
@@ -147,6 +151,8 @@ export function useWebMediaPlayerInteraction({
     setCurrentQualityLevel: hls.setCurrentQualityLevel,
     preferredAudioRef: core.preferredAudioRef,
     switchPlaybackSource,
+    setPlayerError,
+    setIsBuffering,
     setShowAudioMenu: menus.setShowAudioMenu,
     setShowQualityMenu: menus.setShowQualityMenu,
   });

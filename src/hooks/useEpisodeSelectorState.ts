@@ -15,6 +15,12 @@ interface UseEpisodeSelectorStateParams {
   onApplyOverride?: (sourceSeason: number | null, targetSeason: number, offset: number) => void;
   onApplyFileOverride?: (fileId: string, season: number, episode: number, mode: FileOverrideMode) => void;
   onApplyEpisodeBinding?: (override: SDKEpisodeBindingOverride) => void;
+  /**
+   * Publish the rendered episode order as the playlist override consumed by the next playback open.
+   * Read-only panels (a co-watch guest's queue) must leave this off — an override they armed could
+   * leak into an unrelated playback the guest starts later.
+   */
+  publishPlaylistOverride?: boolean;
 }
 
 export function useEpisodeSelectorState({
@@ -25,6 +31,7 @@ export function useEpisodeSelectorState({
   onApplyOverride,
   onApplyFileOverride,
   onApplyEpisodeBinding,
+  publishPlaylistOverride = true,
 }: UseEpisodeSelectorStateParams) {
   const { t } = useTranslation("media");
   const [isEditing, setIsEditing] = useState(false);
@@ -53,14 +60,14 @@ export function useEpisodeSelectorState({
   );
 
   useEffect(() => {
-    if (!isOpen || playlist.length === 0) return;
+    if (!isOpen || !publishPlaylistOverride || playlist.length === 0) return;
 
     setPlaylistOverride(playlist);
 
     return () => {
       clearPlaylistOverride(playlist);
     };
-  }, [isOpen, playlist]);
+  }, [isOpen, publishPlaylistOverride, playlist]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -118,11 +125,11 @@ export function useEpisodeSelectorState({
   );
 
   const handlePlayAsPlaylist = useCallback((episode: GenericEpisodeItem) => {
-    if (playlist.length > 0) {
+    if (publishPlaylistOverride && playlist.length > 0) {
       setPlaylistOverride(playlist);
     }
     onPlay(episode, "default");
-  }, [onPlay, playlist]);
+  }, [onPlay, playlist, publishPlaylistOverride]);
 
   const handleApplyEpisodeBinding = useCallback((target: SDKArmBindingTarget) => {
     if (!onApplyEpisodeBinding) return;

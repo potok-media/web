@@ -8,6 +8,7 @@ import type {
   EpisodeSourceSection,
   FileOverrideEntry,
   FileOverrideMode,
+  GenericEpisodeItem,
 } from "./types";
 import { SENTINEL_KEY } from "./utils";
 import { sectionBindingAnchorIds } from "./armOverrideModel";
@@ -66,11 +67,27 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
   const showTechnicalControls = presentation !== "playlist" || repairMode;
   const mappingEnabled = fileOverrideEnabled || canonicalBindingEnabled;
+  // The queue panel annotates the active row («Играет») and the one after it («Дальше») — the row
+  // component renders the caption from playbackStatus, so derive it from the playlist order here.
+  const isQueuePlaylist = presentation === "playlist" && !repairMode;
+  const activeQueueIndex = isQueuePlaylist && activeEpisodeId
+    ? playlistEpisodes.findIndex((episode) => episode.id === activeEpisodeId)
+    : -1;
 
-  const renderEpisode = (ep: EpisodeSourceSection["episodes"][number]) => (
+  const renderEpisode = (ep: EpisodeSourceSection["episodes"][number]) => {
+    const queueIndex = isQueuePlaylist ? playlistEpisodes.findIndex((episode) => episode.id === ep.id) : -1;
+    const queueStatus = isQueuePlaylist && queueIndex >= 0 && activeQueueIndex >= 0
+      ? queueIndex === activeQueueIndex
+        ? "playing" as const
+        : queueIndex === activeQueueIndex + 1
+          ? "next" as const
+          : undefined
+      : undefined;
+    const rowItem: GenericEpisodeItem = queueStatus ? { ...ep, playbackStatus: queueStatus } : ep;
+    return (
     <EpisodeSelectorRow
       key={ep.id}
-      episodeItem={ep}
+      episodeItem={rowItem}
       mediaType={mediaType}
       backdropSrc={backdropSrc}
       posterSrc={posterSrc}
@@ -105,7 +122,8 @@ export const EpisodeSelectorBody: React.FC<EpisodeSelectorBodyProps> = ({
         if (target) onReorderEpisode?.(ep.id, target.id);
       }}
     />
-  );
+    );
+  };
 
   return (
     <div className="files-list-container episode-files-list">

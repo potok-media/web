@@ -1,0 +1,81 @@
+import React, { useMemo } from "react";
+import { usePlayback } from "../../context/PlaybackContext";
+import { useWatchTogether } from "../../context/watchTogetherState";
+import type { ActivePlayback } from "../../context/playbackTypes";
+import type { GenericEpisodeItem } from "../common/episodeSelector/types";
+import { EpisodeSelectorContent } from "../common/EpisodeSelectorContent";
+import { usePlayerPlaylist } from "../../hooks/usePlayerPlaylist";
+import { logger } from "../../utils/logger";
+
+interface WatchTogetherQueuePanelProps {
+  playback: ActivePlayback;
+}
+
+/**
+ * Co-watch queue («Очередь») for the watch-together workspace. Rows come from the session descriptor's
+ * playlist — for a guest that is the broadcast slim playlist (id/season/episode/title, no streamUrl), so
+ * the panel is read-only: same EpisodeSelectorContent the host sees, minus the reorder handle, the
+ * mapping edit, and the playlist-override arming. A row click only REQUESTS the episode: a permitted
+ * guest asks the host, the host plays it directly.
+ */
+export const WatchTogetherQueuePanel: React.FC<WatchTogetherQueuePanelProps> = ({ playback }) => {
+  const wt = useWatchTogether();
+  const { activePlayback, playVideo } = usePlayback();
+  const playPlaylistItem = usePlayerPlaylist(activePlayback, playVideo);
+
+  const episodes = useMemo<GenericEpisodeItem[]>(
+    () => (playback.playlist ?? []).flatMap((item) =>
+      item?.id != null && item.id !== ""
+        ? [{
+            id: String(item.id),
+            season: item.season,
+            episode: item.episode,
+            title: item.title,
+            audios: [],
+          }]
+        : [],
+    ),
+    [playback.playlist],
+  );
+
+  const playlistIndex = playback.playlistIndex ?? -1;
+  const activeEpisodeId = playlistIndex >= 0 ? episodes[playlistIndex]?.id : undefined;
+
+  const handlePlay = (episode: GenericEpisodeItem) => {
+    const index = episodes.findIndex((item) => item.id === episode.id);
+    if (index < 0) return;
+    if (wt.role === "guest") {
+      // Guests don't switch episodes themselves — a permitted guest asks the host, who validates and
+      // re-broadcasts; a guest without control permission gets an inert row.
+      if (wt.sessionActive && wt.myPermissions.canControl) {
+        wt.sendControl("episode", undefined, index);
+      }
+      return;
+    }
+    void playPlaylistItem(index).catch((error) => {
+      logger.error("[WatchTogetherQueuePanel] playlist item playback failed:", error);
+    });
+  };
+
+  if (episodes.length === 0) return null;
+
+  return (
+    <section className="torrent-files-panel" aria-label={playback.title || undefined}>
+      <EpisodeSelectorContent
+        isOpen
+        onClose={() => undefined}
+        title={playback.title || ""}
+        episodes={episodes}
+        onPlay={handlePlay}
+        presentation="playlist"
+        hideHeader
+        activeEpisodeId={activeEpisodeId}
+        mediaType={playback.mediaType}
+        canReorder={false}
+        publishPlaylistOverride={false}
+      />
+    </section>
+  );
+};
+
+export default WatchTogetherQueuePanel;

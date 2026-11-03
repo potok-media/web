@@ -1,7 +1,7 @@
 import type { PlaylistItem } from "../context/playbackTypes";
 
 interface Identifiable {
-  id?: string | null;
+  id?: string | number | null;
 }
 
 export function moveItemById<T extends Identifiable>(
@@ -25,7 +25,10 @@ export function orderItemsByIds<T extends Identifiable>(
   items: readonly T[],
   orderedIds: readonly string[],
 ): T[] {
-  const rank = new Map(orderedIds.map((id, index) => [id, index]));
+  // Normalize both sides: callers hand over ids from different domains (panel rows, playlist items,
+  // URL params) and a string/number mismatch would silently rank every item as "unlisted" — the
+  // reorder would then appear to work while the order stayed untouched.
+  const rank = new Map(orderedIds.map((id, index) => [String(id), index]));
   return items
     .map((item, index) => ({ item, index, rank: item.id ? rank.get(String(item.id)) : undefined }))
     .sort((a, b) => {

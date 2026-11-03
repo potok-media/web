@@ -21,6 +21,8 @@ export interface EpisodeSelectorContentProps
   playbackBlockReason?: string;
   canReorder?: boolean;
   onReorderEpisodes?: (episodes: EpisodeSelectorPopupProps["episodes"]) => void;
+  /** Read-only queue panels (co-watch guest) skip arming the playlist override — see the hook. */
+  publishPlaylistOverride?: boolean;
 }
 
 export const EpisodeSelectorContent: React.FC<EpisodeSelectorContentProps> = ({
@@ -59,6 +61,7 @@ export const EpisodeSelectorContent: React.FC<EpisodeSelectorContentProps> = ({
   playbackBlockReason,
   canReorder = false,
   onReorderEpisodes,
+  publishPlaylistOverride = true,
 }) => {
   const { t } = useTranslation("media");
   const canonicalBindingEnabled = Boolean(onApplyEpisodeBinding);
@@ -94,6 +97,7 @@ export const EpisodeSelectorContent: React.FC<EpisodeSelectorContentProps> = ({
     onApplyOverride,
     onApplyFileOverride,
     onApplyEpisodeBinding,
+    publishPlaylistOverride,
   });
 
   const parsingFailed = useMemo(

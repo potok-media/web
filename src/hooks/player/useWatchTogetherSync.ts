@@ -131,6 +131,14 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
     };
   }, [role, sessionActive, startGateOpen, videoNode, emitSync, clientId]);
 
+  // Host: whether the host was PLAYING when the gate last closed. The hold below force-pauses the video, so
+  // once the gate has closed the element's own paused flag no longer reflects the host's intent — capture it
+  // BEFORE the hold's pause, and on gate-open only auto-start if the host had been playing. A host who was
+  // paused when the session started (or who paused mid-session and then a guest joined / a seek re-armed the
+  // gate) stays paused until they explicitly press play; guests follow the paused sync either way.
+  const wasPlayingAtGateCloseRef = useRef(false);
+  const gateHoldNodeRef = useRef<HTMLVideoElement | null>(null);
+
   // Host: hold playback until the start gate opens (every guest has reported ready via the handshake, or a
   // timeout), THEN start once our own buffer is ready — so everyone begins together. While holding, the video
   // buffers and the 1 Hz sync reports paused=true, so guests stay paused too.
@@ -140,13 +148,26 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
     if (!v) return;
 
     if (!startGateOpen) {
+      // A freshly swapped-in <video> node mounts paused regardless of intent, so when the node changed since
+      // the previous capture, inherit the intent from the node the host was actually on instead of mistaking
+      // the fresh element for an intentional pause.
+      const prevNode = gateHoldNodeRef.current;
+      wasPlayingAtGateCloseRef.current = prevNode && prevNode !== v ? !prevNode.paused : !v.paused;
+      gateHoldNodeRef.current = v;
       const keepPaused = () => v.pause();
       v.pause();
       v.addEventListener("play", keepPaused);
       return () => v.removeEventListener("play", keepPaused);
     }
 
-    // Gate open — start as soon as the host's own buffer can play.
+    // Gate open — resume only if the host had been playing when the gate closed; a deliberately paused host
+    // waits for their own play press. If the node was swapped in the meantime, inherit the intent from the
+    // node the host was on (same rule as the hold branch above).
+    if (gateHoldNodeRef.current && gateHoldNodeRef.current !== v) {
+      wasPlayingAtGateCloseRef.current = !gateHoldNodeRef.current.paused;
+      gateHoldNodeRef.current = v;
+    }
+    if (!wasPlayingAtGateCloseRef.current) return;
     if (v.readyState >= READY_STATE_CAN_PLAY) {
       void startSynchronizedPlayback(v, "host gate");
       return;

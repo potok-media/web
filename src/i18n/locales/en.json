@@ -326,7 +326,8 @@
     },
     "playback": {
       "accessRestricted": "Playback access is restricted.",
-      "loadFailed": "Failed to load the video stream."
+      "loadFailed": "Failed to load the video stream.",
+      "audioSwitchFailed": "This voice track has no playable stream link. Try another voice or reopen the episode."
     },
     "quality": {
       "auto": "Auto",

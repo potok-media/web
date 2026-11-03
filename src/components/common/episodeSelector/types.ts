@@ -43,6 +43,9 @@ export interface GenericEpisodeItem {
   progressId?: string;
   audios: Array<{ id: string; name: string; url?: string }>;
   url?: string;
+  /** Queue caption rendered under the title in playlist presentation («Играет» / «Дальше»),
+   *  derived from the visible playlist order by the panel body. */
+  playbackStatus?: "playing" | "next" | "upcoming";
 }
 
 export interface EpisodeSourceSection {

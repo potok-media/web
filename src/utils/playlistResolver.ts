@@ -17,7 +17,20 @@ import { logger } from "./logger";
 
 export type PlaylistResolver = (item: PlaylistItem) => Promise<PlaybackInfo | null | undefined>;
 
+export interface ResolvePlaylistItemOptions {
+  /**
+   * Session-remembered voice: overrides the item's default voice in the resolve request (the plugin
+   * matches by voice name). Passed as an overridden COPY of the item, so the caller's playlist entry
+   * and any cached resolver state are never mutated by a voice-specific resolution.
+   */
+  voiceOverride?: string;
+}
+
 const resolvers = new Map<number, PlaylistResolver>();
+// instanceIds whose cached resolver was built on the fly by resolvePlaylistItem (see below). Only
+// those capture the playlist array by closure, so only those can go stale when the playlist is
+// reordered — bridge/plugin-registered resolvers resolve per item and never need a rebuild.
+const sandboxResolverIds = new Set<number>();
 let pending: { owner: string; resolver: PlaylistResolver } | null = null;
 
 /** Registers a resolver for an already-known playback instanceId. */
@@ -40,7 +53,36 @@ export function clearPendingPlaylistResolver(owner: string): void {
 
 /** Drops the resolver bound to a playback instance (called on playback close/switch). */
 export function clearPlaylistResolver(instanceId: number): void {
+  sandboxResolverIds.delete(instanceId);
   resolvers.delete(instanceId);
+}
+
+/** Plugin-facing episode reference: every field a resolver may need to re-resolve one playlist item. */
+function toEpisodeRef(ep: PlaylistItem) {
+  return {
+    id: ep.id,
+    season: ep.season,
+    episode: ep.episode,
+    title: ep.title,
+    streamUrl: ep.streamUrl,
+    headers: ep.headers,
+    voice: ep.voice,
+    audios: ep.audios,
+    workId: ep.workId,
+    episodeId: ep.episodeId,
+    entryId: ep.entryId,
+    episodeIds: ep.episodeIds,
+    targets: ep.targets,
+    providerId: ep.providerId,
+  };
+}
+
+function playbackContext(playback: ActivePlayback) {
+  return {
+    type: playback.mediaType,
+    tmdbId: playback.id,
+    title: playback.originalTitle || playback.title,
+  };
 }
 
 /**
@@ -61,27 +103,9 @@ export function createSandboxPlaylistResolver(
   if (!Array.isArray(playlist) || playlist.length === 0 || !sourceStream || !pluginId) {
     return null;
   }
-  const context = {
-    type: playback.mediaType,
-    tmdbId: playback.id,
-    title: playback.originalTitle || playback.title,
-  };
+  const context = playbackContext(playback);
   return (item: PlaylistItem) => {
-    const episodes = playlist.map((ep) => ({
-      id: ep.id,
-      season: ep.season,
-      episode: ep.episode,
-      title: ep.title,
-      streamUrl: ep.streamUrl,
-      headers: ep.headers,
-      voice: ep.voice,
-      workId: ep.workId,
-      episodeId: ep.episodeId,
-      entryId: ep.entryId,
-      episodeIds: ep.episodeIds,
-      targets: ep.targets,
-      providerId: ep.providerId,
-    }));
+    const episodes = playlist.map(toEpisodeRef);
     logger.log("[playlistResolver] resolving item via sandbox request", {
       pluginId,
       itemId: item.id,
@@ -98,11 +122,56 @@ export function createSandboxPlaylistResolver(
         title: item.title,
         url: item.streamUrl,
         providerId: item.providerId,
+        voice: item.voice,
+        audios: item.audios,
       },
       episodes,
       context,
     });
   };
+}
+
+/**
+ * Re-resolves the CURRENT episode of the given playback under a different voice by asking the owning
+ * plugin directly (same STREAM_SOURCE_GET_PLAYBACK_INFO contract as the playlist resolver, but with
+ * episode.voice set to the user-picked voice — online-balancers bake the voice into the resolved
+ * stream, so switching voices requires a fresh resolution).
+ *
+ * Deliberately bypasses the instanceId-keyed resolver cache: cached resolvers forward each item's
+ * STORED voice, so routing a voice-specific request through them would poison later per-item
+ * resolutions (and a cached result would replay the wrong voice). Returns null when the playback
+ * lacks the plugin data (providerId / sourceStream) needed to re-resolve.
+ */
+export async function resolveEpisodeVoice(
+  playback: ActivePlayback,
+  voice: string,
+): Promise<PlaybackInfo | null> {
+  const sourceStream = playback.sourceStream;
+  const pluginId =
+    typeof playback.providerId === "string" && playback.providerId ? playback.providerId : undefined;
+  if (!sourceStream || !pluginId) return null;
+
+  const playlist = playback.playlist;
+  const current =
+    playlist && playback.playlistIndex !== undefined ? playlist[playback.playlistIndex] : undefined;
+  return ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(pluginId, "STREAM_SOURCE_GET_PLAYBACK_INFO", {
+    stream: sourceStream,
+    episode: {
+      id: current?.id,
+      season: current?.season ?? playback.season,
+      episode: current?.episode ?? playback.episode,
+      title: current?.title ?? playback.title,
+      url: current?.streamUrl ?? playback.streamUrl,
+      providerId: current?.providerId ?? playback.providerId,
+      voice,
+      // The TOP-LEVEL audios list — the exact entries the player's menu renders and the switch
+      // request names. Item-level audios may use different labels (long "Voice · Quality ·
+      // Provider" forms), which would fail the plugin's voice match.
+      audios: playback.audios ?? current?.audios,
+    },
+    episodes: (playlist ?? []).map(toEpisodeRef),
+    context: playbackContext(playback),
+  });
 }
 
 /**
@@ -114,6 +183,7 @@ export function createSandboxPlaylistResolver(
 export async function resolvePlaylistItem(
   playback: ActivePlayback,
   item: PlaylistItem,
+  options?: ResolvePlaylistItemOptions,
 ): Promise<PlaybackInfo | null | undefined> {
   let resolver: PlaylistResolver | undefined;
   if (playback.instanceId !== undefined) {
@@ -131,10 +201,32 @@ export async function resolvePlaylistItem(
     resolver = createSandboxPlaylistResolver(playback) ?? undefined;
     if (resolver && playback.instanceId !== undefined) {
       resolvers.set(playback.instanceId, resolver);
+      sandboxResolverIds.add(playback.instanceId);
     }
   }
   if (!resolver) return undefined;
-  return resolver(item);
+  // Session-remembered voice (set when the user explicitly switched dubs) wins over the item's
+  // default voice — the plugin matches by voice name. The item is copied so the override never
+  // mutates the caller's playlist entry (or the resolver's cached view of it).
+  const target = options?.voiceOverride ? { ...item, voice: options.voiceOverride } : item;
+  return resolver(target);
+}
+
+/**
+ * Rebuilds the on-the-fly sandbox resolver cached for a playback after its playlist was replaced
+ * (queue reorder): the cached closure still captures the pre-reorder playlist array. Resolvers
+ * registered by a bridge or plugin resolve the item passed per call and keep their registration.
+ */
+export function refreshSandboxPlaylistResolver(playback: ActivePlayback): void {
+  const instanceId = playback.instanceId;
+  if (instanceId === undefined || !sandboxResolverIds.has(instanceId)) return;
+  const resolver = createSandboxPlaylistResolver(playback);
+  if (resolver) {
+    resolvers.set(instanceId, resolver);
+  } else {
+    sandboxResolverIds.delete(instanceId);
+    resolvers.delete(instanceId);
+  }
 }
 
 // Playlist override: the episode selector publishes a rebuilt playlist here so the

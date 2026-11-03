@@ -16,7 +16,11 @@ const watchTogetherState = vi.hoisted(() => ({
 }));
 
 vi.mock("../../../../context/PlaybackContext", () => ({
-  usePlayback: () => ({ activePlayback: playbackState.activePlayback, registerPlayerPortalTarget: vi.fn() }),
+  usePlayback: () => ({
+    activePlayback: playbackState.activePlayback,
+    registerPlayerPortalTarget: vi.fn(),
+    replacePlaylist: vi.fn(),
+  }),
 }));
 
 vi.mock("react-i18next", async (importOriginal) => ({
@@ -142,6 +146,52 @@ describe("HostPlaybackWorkspaceCase", () => {
     // Display order follows the playlist (episode-2 first) and it carries the active highlight.
     expect(html.indexOf("Серия 2")).toBeLessThan(html.indexOf("Серия 1"));
     expect(html).toContain("is-active");
+  });
+
+  it("captions the active queue row as playing and the following one as next", () => {
+    presentEpisodes();
+    playbackState.activePlayback = {
+      playlist: [{ id: "episode-1" }, { id: "episode-2" }],
+      playlistIndex: 0,
+    };
+    const schema: PlaybackWorkspaceSchema = {
+      id: "workspace",
+      type: "PlaybackWorkspace",
+      props: { stageMode: "player" },
+    };
+
+    const html = renderToStaticMarkup(createElement(HostPlaybackWorkspaceCase, {
+      schema,
+      pluginId: PANEL_PLUGIN_ID,
+      baseStyle: {},
+      renderChild: () => null,
+    }));
+
+    // The playing caption sits under the current row's title, «Дальше» under the next one's.
+    expect(html.indexOf("selector.playing")).toBeGreaterThan(html.indexOf("Серия 1"));
+    expect(html.indexOf("selector.playing")).toBeLessThan(html.indexOf("Серия 2"));
+    expect(html.indexOf("selector.next")).toBeGreaterThan(html.indexOf("Серия 2"));
+  });
+
+  it("offers the reorder handle to the host but never to a guest", () => {
+    presentEpisodes();
+    const schema: PlaybackWorkspaceSchema = {
+      id: "workspace",
+      type: "PlaybackWorkspace",
+      props: { stageMode: "player" },
+    };
+    const renderRail = () => renderToStaticMarkup(createElement(HostPlaybackWorkspaceCase, {
+      schema,
+      pluginId: PANEL_PLUGIN_ID,
+      baseStyle: {},
+      renderChild: () => null,
+    }));
+
+    watchTogetherState.role = "host";
+    expect(renderRail()).toContain("file-card-drag-handle");
+
+    watchTogetherState.role = "guest";
+    expect(renderRail()).not.toContain("file-card-drag-handle");
   });
 
   it("prefers a schema-authored rail over presented episode data", () => {

@@ -3,6 +3,7 @@ import { ListVideo } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { ActivePlayback } from "../../context/playbackTypes";
 import { PlaybackWorkspace } from "../playback/PlaybackWorkspace";
+import { WatchTogetherQueuePanel } from "./WatchTogetherQueuePanel";
 
 interface WatchTogetherWorkspaceProps {
   playback: ActivePlayback;
@@ -18,7 +19,11 @@ export const WatchTogetherWorkspace: React.FC<WatchTogetherWorkspaceProps> = ({
   children,
 }) => {
   const { t } = useTranslation("streams");
-  const defaultRail = (
+  // A session descriptor without a playlist (e.g. a direct movie stream) has no queue to show —
+  // fall back to the current-title card.
+  const defaultRail = playback.playlist?.length ? (
+    <WatchTogetherQueuePanel playback={playback} />
+  ) : (
     <div className="wt-queue-current">
       <ListVideo size="1.5rem" />
       <div>

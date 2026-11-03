@@ -8,7 +8,9 @@ import { clearPlaylistResolver, resolvePlaylistItem } from "../utils/playlistRes
 export function usePlayerPlaylist(
   playback: ActivePlayback | null,
   playVideo: (next: ActivePlayback) => void,
+  options?: { getPreferredVoice?: () => string | null },
 ) {
+  const getPreferredVoice = options?.getPreferredVoice;
   // The resolver is keyed by playback.instanceId, so drop it when the playback
   // switches or closes — the next playVideo mints a fresh instanceId anyway.
   const instanceId = playback?.instanceId;
@@ -27,7 +29,14 @@ export function usePlayerPlaylist(
         : item.title || `Episode ${index + 1}`;
 
       try {
-        const info: PlaybackInfo | null | undefined = await resolvePlaylistItem(playback, item);
+        // Session-remembered voice (the user explicitly switched dubs earlier in this playback):
+        // override the item's default voice so the plugin resolves the remembered dub.
+        const rememberedVoice = getPreferredVoice?.() ?? null;
+        const info: PlaybackInfo | null | undefined = await resolvePlaylistItem(
+          playback,
+          item,
+          rememberedVoice ? { voiceOverride: rememberedVoice } : undefined,
+        );
         if (info && isPlayableUrl(info.streamUrl)) {
           const st = info.streamType;
           const nextPlayback: ActivePlayback = {
@@ -56,7 +65,7 @@ export function usePlayerPlaylist(
             episodeIds: item.episodeIds,
             targets: item.targets,
             title: itemTitle,
-            voice: item.voice || playback.voice,
+            voice: info.voice || item.voice || playback.voice,
             playlistIndex: index,
             startAt: undefined,
           };
@@ -110,6 +119,6 @@ export function usePlayerPlaylist(
       };
       playVideo(fallbackPlayback);
     },
-    [playback, playVideo],
+    [playback, playVideo, getPreferredVoice],
   );
 }

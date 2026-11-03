@@ -48,6 +48,10 @@ describe("MediaStreamsPage layout", () => {
       new URL("../components/watchTogether/WatchTogetherWorkspace.tsx", import.meta.url),
       "utf8",
     );
+    const queuePanel = readFileSync(
+      new URL("../components/watchTogether/WatchTogetherQueuePanel.tsx", import.meta.url),
+      "utf8",
+    );
     const playbackWorkspace = readFileSync(
       new URL("../components/playback/PlaybackWorkspace.tsx", import.meta.url),
       "utf8",
@@ -61,6 +65,11 @@ describe("MediaStreamsPage layout", () => {
     expect(guestPage).toContain("<WatchTogetherWorkspace");
     expect(guestPage).toContain("sessionActive && activePlayback");
     expect(workspace).toContain("<PlaybackWorkspace");
+    expect(workspace).toContain("<WatchTogetherQueuePanel");
+    expect(queuePanel).toContain('presentation="playlist"');
+    expect(queuePanel).toContain("canReorder={false}");
+    expect(queuePanel).toContain("publishPlaylistOverride={false}");
+    expect(queuePanel).toContain('sendControl("episode"');
     expect(playbackWorkspace).toContain("registerPlayerPortalTarget");
     expect(playbackWorkspace).toContain("streams-page-shell--split");
     expect(playbackWorkspace).toContain("streams-inline-workspace--split");
