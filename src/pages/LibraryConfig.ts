@@ -1,13 +1,13 @@
-import { Clock, Heart, Bookmark, type LucideIcon } from "lucide-react";
+import { Clock, Heart, Bookmark, Play, type LucideIcon } from "lucide-react";
 
 // Values are i18next keys (namespace "media"), resolved by the consumer (LibraryPage) via t().
 export const CATEGORY_MAP: Record<string, { title: string; endpoint: string; icon: LucideIcon; emptyText: string; emptySub: string }> = {
-  "up-next": {
-    title: "categories.upNext.title",
-    endpoint: "up-next",
-    icon: Clock,
-    emptyText: "categories.upNext.empty",
-    emptySub: "categories.upNext.emptySub",
+  "continue": {
+    title: "categories.continue.title",
+    endpoint: "continue",
+    icon: Play,
+    emptyText: "categories.continue.empty",
+    emptySub: "categories.continue.emptySub",
   },
   "watchlist": {
     title: "categories.watchlist.title",

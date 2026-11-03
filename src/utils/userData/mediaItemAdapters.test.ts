@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ApiClient } from "../../network/ApiClient";
 import {
   tmdbPosterSrc,
   userFolderItemToMediaCard,
@@ -37,6 +38,18 @@ describe("userStatusRecordToMediaCard", () => {
     expect(card.title).toBe("Fight Club");
     expect(card.mediaType).toBe("movie");
     expect(card.posterSrc).toBe("https://image.tmdb.org/t/p/w500/abc.jpg");
+  });
+
+  it("prefers a hydrated posterSrc, resolving relative paths through the gateway proxy", () => {
+    const record: UserStatusRecord = {
+      tmdbId: "1399",
+      mediaType: "tv",
+      title: "Show",
+      posterSrc: "/abc.jpg",
+      status: "watching",
+    };
+    const card = userStatusRecordToMediaCard(record);
+    expect(card.posterSrc).toBe(`${ApiClient.baseURL}/media/tmdb/t/p/original/abc.jpg`);
   });
 });
 

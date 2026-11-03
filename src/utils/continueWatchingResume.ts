@@ -1,5 +1,6 @@
 import type { PlaybackInfo, PlaybackMetadata, StreamEpisode } from "@potok/sdk-types";
 import type { ActivePlayback, PlaylistItem } from "../context/playbackTypes";
+import type { MediaCard } from "../network/ApiTypes";
 import { buildPlaybackFromInfo } from "./mediaStreamsPlayback";
 import type { StreamContext } from "../hooks/mediaStreams/mediaStreamsTypes";
 import type { ContinueWatchingCursor } from "./continueWatching";
@@ -81,6 +82,127 @@ export function buildResumePlaylist(
 }
 
 const bridgeOwner = "continue-watching";
+
+/**
+ * A continue-watching card is resumable only when the server saved a source descriptor
+ * (the player started attaching `lastSource` to progress saves).
+ */
+export function isCardResumable(card: MediaCard): boolean {
+  return Boolean(card.resume?.lastSource?.providerId);
+}
+
+/**
+ * Server payload → ledger-shaped cursor so the standard resume path can consume it:
+ * torrents resolve through streamHash/fileIndex (file anchor first), online sources through
+ * the opaque sourceStream round-trip into the owning plugin sandbox.
+ */
+export function resumeCursorFromCard(card: MediaCard): ContinueWatchingCursor | null {  const resume = card.resume;
+  if (!resume) return null;
+  const lastSource = resume.lastSource ?? {};
+  const now = Date.now();
+  return {
+    key: card.potokId ? card.potokId : `tmdb:${card.id}`,
+    workId: card.potokId,
+    tmdbId: card.id,
+    entryId: card.entryId,
+    mediaType: card.mediaType,
+    title: card.title,
+    posterSrc: card.posterSrc,
+    backdropSrc: card.backdropSrc,
+    providerId: lastSource.providerId,
+    streamHash: lastSource.streamHash,
+    fileIndex: lastSource.fileIndex != null ? String(lastSource.fileIndex) : undefined,
+    sourceStream: lastSource.sourceStream,
+    season: resume.season,
+    episode: resume.episode,
+    progressSeconds: Number(resume.progressSeconds) || 0,
+    durationSeconds: Number(resume.durationSeconds) || 0,
+    audioName: lastSource.voice,
+    updatedAt: now,
+  };
+}
+
+/**
+ * Fills in the watch-progress overlay for cards the server didn't hydrate with a percentage —
+ * /api/library/continue-watching returns the WatchProgress shape minus `percentage`, and the
+ * resume payload alone is enough to render the bar. Server-provided fields (next episode pill)
+ * are preserved.
+ */
+export function cardProgressFromResume(card: MediaCard): MediaCard {
+  const resume = card.resume;
+  if (!resume) return card;
+  const existing = card.progress;
+  if (existing && typeof existing.percentage === "number" && existing.percentage > 0) return card;
+  const progressSeconds = Number(resume.progressSeconds) || 0;
+  const durationSeconds = Number(resume.durationSeconds) || 0;
+  const percentage = durationSeconds > 0
+    ? Math.min(100, Math.round((progressSeconds / durationSeconds) * 100))
+    : 0;
+  if (percentage <= 0) return card;
+  return {
+    ...card,
+    progress: {
+      completed: existing?.completed ?? 0,
+      aired: existing?.aired ?? 0,
+      percentage,
+      lastSeason: existing?.lastSeason ?? resume.season,
+      lastEpisode: existing?.lastEpisode ?? resume.episode,
+      ...(existing?.nextSeason !== undefined ? { nextSeason: existing.nextSeason } : {}),
+      ...(existing?.nextEpisode !== undefined ? { nextEpisode: existing.nextEpisode } : {}),
+    },
+  };
+}
+
+/**
+ * The ledger cursor backing a card, matched by ARM workId first then by tmdb id. Drives both the
+ * lastSource backfill merge and the hero "Продолжить" fallback for server rows saved before the
+ * player attached a source descriptor.
+ */
+export function findLedgerCursorForCard(
+  card: Pick<MediaCard, "potokId" | "id">,
+  ledger: ContinueWatchingCursor[],
+): ContinueWatchingCursor | undefined {
+  return ledger.find(
+    (c) => (c.workId && c.workId === card.potokId) || (c.tmdbId != null && c.tmdbId === card.id),
+  );
+}
+
+/**
+ * Bridges the lastSource backfill gap: server rows saved before the player started attaching
+ * lastSource carry no resume source, but this device may still hold the full cursor in its local
+ * ledger — splice the ledger source into the card so the row stays resumable.
+ *
+ * TODO(lastSource-backfill): remove this merge (and the ledger fallback in the profile rail)
+ * once progress saves have repopulated lastSource server-side.
+ */
+export function mergeLedgerLastSource(
+  cards: MediaCard[],
+  ledger: ContinueWatchingCursor[],
+): MediaCard[] {
+  if (!ledger.length) return cards;
+  return cards.map((card) => {
+    if (isCardResumable(card)) return card;
+    const cursor = findLedgerCursorForCard(card, ledger);
+    if (!cursor?.providerId) return card;
+    return {
+      ...card,
+      resume: {
+        ...(card.resume ?? {}),
+        season: card.resume?.season ?? cursor.season,
+        episode: card.resume?.episode ?? cursor.episode,
+        progressSeconds: card.resume?.progressSeconds ?? cursor.progressSeconds,
+        durationSeconds: card.resume?.durationSeconds ?? cursor.durationSeconds,
+        lastSource: {
+          providerId: cursor.providerId,
+          ...(cursor.audioName ? { voice: cursor.audioName } : {}),
+          ...(cursor.streamHash ? { streamHash: cursor.streamHash } : {}),
+          ...(cursor.fileIndex != null ? { fileIndex: cursor.fileIndex } : {}),
+          ...(cursor.sourceStream !== undefined ? { sourceStream: cursor.sourceStream } : {}),
+        },
+      },
+    };
+  });
+}
 
 /**
  * Host playlist navigation (player next/prev, auto-advance) bypasses plugin code, so a resolver

@@ -54,6 +54,8 @@ export const App: React.FC = () => {
                         <Route path="media/:mediaType/:id" element={<MediaDetailsPage />} />
                         <Route path="media/:mediaType/:id/watch/:tab?" element={<MediaStreamsPage />} />
                         <Route path="library/planned" element={<StatusLibraryPage status="planned" titleKey="library.tabs.planned" />} />
+                        <Route path="library/watching" element={<StatusLibraryPage status="watching" titleKey="library.tabs.watching" />} />
+                        <Route path="library/completed" element={<StatusLibraryPage status="completed" titleKey="library.tabs.completed" />} />
                         <Route path="library/folder/:folderId" element={<LibraryFolderPage />} />
                         <Route path="library/:collectionType" element={<LibraryPage />} />
                         <Route path="actor/:id" element={<ActorPage />} />

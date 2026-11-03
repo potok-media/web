@@ -1,4 +1,5 @@
 import type { SaveProgressRequest } from "../../network/SyncHistoryApiClient";
+import type { LastSourcePayload } from "../../network/ApiTypes";
 import type {
   ArmEpisodeId,
   ArmWorkId,
@@ -17,10 +18,12 @@ export function toPlaybackProgressRequest(
   playback: PlaybackHistorySource,
   progressSeconds: number,
   durationSeconds: number,
+  lastSource?: LastSourcePayload,
 ): SaveProgressRequest {
   const tmdbId = Number.isFinite(playback.id) && playback.id > 0
     ? String(playback.id)
     : undefined;
+  const lastSourcePart = lastSource ? { lastSource } : {};
 
   if (playback.workId && playback.episodeId) {
     return {
@@ -32,6 +35,7 @@ export function toPlaybackProgressRequest(
       ...(playback.episode !== undefined ? { episodeNumber: playback.episode } : {}),
       progressSeconds,
       durationSeconds,
+      ...lastSourcePart,
     };
   }
 
@@ -42,5 +46,6 @@ export function toPlaybackProgressRequest(
     ...(playback.episode !== undefined ? { episodeNumber: playback.episode } : {}),
     progressSeconds,
     durationSeconds,
+    ...lastSourcePart,
   };
 }

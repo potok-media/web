@@ -16,9 +16,12 @@ import { Button, cx } from "../components/ui";
 export const LibraryPage: React.FC = () => {
   const { collectionType } = useParams<{ collectionType: string }>();
   // Legacy /library/watchlist: watchlist semantics moved to the planned status, which has its
-  // own route + user-data-backed page.
+  // own route + user-data-backed page. /library/up-next likewise moved to /library/continue.
   if (collectionType === "watchlist") {
     return <Navigate to="/library/planned" replace />;
+  }
+  if (collectionType === "up-next") {
+    return <Navigate to="/library/continue" replace />;
   }
   return <LibraryPageContent />;
 };
@@ -129,7 +132,7 @@ const LibraryPageContent: React.FC = () => {
               <MediaCardComponent
                 key={item.id}
                 item={item}
-                showContinueOverlay={collectionType === "up-next"}
+                showContinueOverlay={collectionType === "continue"}
               />
             ))}
           </Grid>

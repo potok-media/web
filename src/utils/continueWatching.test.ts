@@ -10,6 +10,7 @@ import {
   formatTimecode,
   listContinueCursors,
   listCursorsFromLedger,
+  continueCursorToMediaCard,
   stripEpisodeSuffix,
   useContinueWatchingCursors,
   type ContinueLedger,
@@ -224,6 +225,42 @@ describe("listCursorsFromLedger", () => {
     expect(list).toHaveLength(CONTINUE_WATCHING_MAX_ITEMS);
     expect(list[0].key).toBe(`tmdb:${2000 + CONTINUE_WATCHING_MAX_ITEMS + 1}`);
     expect(list.at(-1)!.updatedAt).toBeGreaterThan(NOW - 1);
+  });
+});
+
+describe("continueCursorToMediaCard", () => {
+  it("carries the same image and resume fields server cards have", () => {
+    const ledger = applyProgressToLedger(
+      {},
+      progressPayload({
+        posterSrc: "https://gw/media/tmdb/t/p/w342/p.jpg",
+        backdropSrc: "https://gw/media/tmdb/t/p/original/b.jpg",
+      }),
+      NOW,
+    ).ledger;
+    const card = continueCursorToMediaCard(ledger[WORK_ID]);
+    expect(card.posterSrc).toBe("https://gw/media/tmdb/t/p/w342/p.jpg");
+    expect(card.backdropSrc).toBe("https://gw/media/tmdb/t/p/original/b.jpg");
+    expect(card.resume).toEqual({
+      season: undefined,
+      episode: undefined,
+      progressSeconds: 300,
+      durationSeconds: 1800,
+    });
+    expect(card.progress?.percentage).toBe(17);
+  });
+
+  it("keeps season/episode coordinates in the resume payload", () => {
+    const ledger = applyProgressToLedger(
+      {},
+      progressPayload({ season: 2, episode: 5 }),
+      NOW,
+    ).ledger;
+    const card = continueCursorToMediaCard(ledger[WORK_ID]);
+    expect(card.resume?.season).toBe(2);
+    expect(card.resume?.episode).toBe(5);
+    expect(card.progress?.lastSeason).toBe(2);
+    expect(card.progress?.lastEpisode).toBe(5);
   });
 });
 

@@ -1,4 +1,6 @@
+import { ApiClient } from "../../network/ApiClient";
 import type { MediaCard } from "../../network/ApiTypes";
+import { resolveTmdbImageUrl } from "../mediaUtils";
 import type { UserFolderItem, UserStatusRecord } from "./types";
 
 /**
@@ -14,10 +16,15 @@ export const tmdbPosterSrc = (posterPath?: string | null): string | undefined =>
 /** Status list records are hydrated (server) or label-persisted (guest) — both fit a MediaCard. */
 export function userStatusRecordToMediaCard(record: UserStatusRecord): MediaCard {
   const id = Number(record.tmdbId);
+  // Hydrated server rows carry posterSrc (relative TMDB path or full URL) — resolve it through
+  // the gateway image proxy exactly like the continue-watching cards; guests keep posterPath.
+  const posterSrc = record.posterSrc
+    ? resolveTmdbImageUrl(record.posterSrc, ApiClient.baseURL)
+    : tmdbPosterSrc(record.posterPath);
   return {
     id: Number.isFinite(id) ? id : 0,
     title: record.title ?? "",
-    posterSrc: tmdbPosterSrc(record.posterPath),
+    posterSrc,
     mediaType: record.mediaType,
   };
 }

@@ -41,7 +41,7 @@ export const MobileBottomNavigation: React.FC = () => {
       </NavLink>
 
       <NavLink
-        to="/library/up-next"
+        to="/library/continue"
         className={({ isActive }) => `mobile-nav-item ${isActive ? "active" : ""}`}
         onClick={handleProtectedClick}
       >

@@ -92,6 +92,22 @@ export interface MediaCard {
   matchedTitleSnippet?: string;
   /** Potok-owned identity; absent on older Gateways and explicit when ARM is unresolved. */
   arm?: ArmMediaSummary;
+  /** Resume coordinates — present on /api/library/continue-watching items. */
+  resume?: ContinueResumePayload;
+  /**
+   * Per-title meta for the now-watching hero chips — present on continue-watching items where
+   * the gateway could compute them; null/absent fields mean "no data", the chip is hidden.
+   */
+  titleMeta?: TitleMetaPayload | null;
+}
+
+/** Per-title statistics attached to continue-watching items (gateway extension, tolerant read). */
+export interface TitleMetaPayload {
+  totalEpisodes?: number | null;
+  watchedEpisodes?: number | null;
+  genres?: string[] | null;
+  streakDays?: number | null;
+  runtimeMinutes?: number | null;
 }
 
 export interface MediaTitle {
@@ -154,6 +170,36 @@ export interface PotokUser {
   telegramLinked?: boolean;
   telegramUsername?: string;
   hasPassword?: boolean;
+  /** Account creation time (ISO) — drives the "member since" line on the profile hero. */
+  createdAt?: string;
+}
+
+/** Source descriptor persisted alongside progress so continue-watching can resume server-side. */
+export interface LastSourcePayload {
+  providerId?: string;
+  voice?: string;
+  streamHash?: string;
+  fileIndex?: string;
+  /** Opaque plugin-owned stream payload, passed back verbatim for sandbox resume. */
+  sourceStream?: unknown;
+}
+
+/** Resume coordinates attached to continue-watching cards by /api/library/continue-watching. */
+export interface ContinueResumePayload {
+  season?: number;
+  episode?: number;
+  progressSeconds?: number;
+  durationSeconds?: number;
+  lastSource?: LastSourcePayload;
+}
+
+export interface ProfileSummary {
+  totalWatchMinutes: number;
+  episodesWatched: number;
+  titlesCompleted: number;
+  topGenre: { id: number | null; name: string } | null;
+  streakDays: number;
+  daily: { date: string; minutes: number }[];
 }
 
 export interface ConnectionProfile {

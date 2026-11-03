@@ -176,12 +176,12 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
         <div className="sidebar-section">
           <div className="sidebar-section-title">{t("library")}</div>
           <SidebarNavLink
-            to="/library/up-next"
+            to="/library/continue"
             className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
             onClick={handleProtectedClick}
           >
             <Play size="1.125rem" />
-            <span>{t("upNext")}</span>
+            <span>{t("continue")}</span>
           </SidebarNavLink>
           <SidebarNavLink
             to="/calendar"

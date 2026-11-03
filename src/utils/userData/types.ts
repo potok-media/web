@@ -15,6 +15,8 @@ export interface UserDataMediaItem {
   mediaType: UserDataMediaType;
   title: string | null;
   posterPath?: string | null;
+  /** Hydrated server cards carry a ready poster reference (full URL or TMDB path) instead. */
+  posterSrc?: string | null;
 }
 
 export interface UserDataPage<T> {

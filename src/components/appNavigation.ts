@@ -35,9 +35,9 @@ export const APP_NAVIGATION_ITEMS = [
     showInTopbar: true,
   },
   {
-    id: "up-next",
-    to: "/library/up-next",
-    labelKey: "upNext",
+    id: "continue",
+    to: "/library/continue",
+    labelKey: "continue",
     icon: Play,
     group: "library",
     end: true,

@@ -34,7 +34,7 @@ export const LibraryPageHeader: React.FC<LibraryPageHeaderProps> = ({
   const navigate = useNavigate();
 
   const categoriesList = [
-    { id: "up-next", label: t("library.tabs.upNext") },
+    { id: "continue", label: t("library.tabs.continue") },
     { id: "planned", label: t("library.tabs.planned") },
     { id: "favorites", label: t("library.tabs.favorites") },
     { id: "history", label: t("library.tabs.history") },

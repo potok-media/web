@@ -1,5 +1,6 @@
 import { canSyncPlaybackIdentity, playbackStorageKeys } from "../utils/playbackIdentity";
 import { applyContinueProgress } from "../utils/continueWatching";
+import { buildLastSource } from "../utils/lastSource";
 import { getUserSnapshot } from "../sdk/src/user";
 import { useEffect, useRef, useCallback } from "react";
 import { Storage } from "../utils/StorageService";
@@ -206,11 +207,19 @@ export function usePlaybackTracker({
       if (canSync && getUserSnapshot().isAuth) {
         const progressSeconds = Math.floor(actualTime);
         const durationSeconds = Math.floor(durationVal);
+        const lastSource = buildLastSource({
+          providerId,
+          voice: audioNameRef.current || voice,
+          streamHash,
+          fileIndex,
+          sourceStream,
+        });
         const save = workId && episodeId
           ? SyncApiClient.saveHistoryProgress(toPlaybackProgressRequest(
               { id, mediaType, season, episode, workId, episodeId },
               progressSeconds,
               durationSeconds,
+              lastSource,
             ))
           : SyncApiClient.saveSyncProgress(
               id.toString(),
@@ -219,6 +228,7 @@ export function usePlaybackTracker({
               episode,
               progressSeconds,
               durationSeconds,
+              lastSource,
             );
         save.catch((err) => logger.error("[Sync] Failed to save progress:", err));
       }
@@ -230,11 +240,15 @@ export function usePlaybackTracker({
     episode,
     workId,
     episodeId,
-    entryId,
     canSync,
     seekOffset,
     getStorageKeys,
     broadcastProgress,
+    providerId,
+    voice,
+    streamHash,
+    fileIndex,
+    sourceStream,
   ]);
 
   const handleManualSave = useCallback(() => {
@@ -297,11 +311,19 @@ export function usePlaybackTracker({
       // Удаляем с бэкенда/Trakt прогресс (переходит в статус полностью просмотрено)
       if (canSync && getUserSnapshot().isAuth) {
         const completed = Math.floor(duration);
+        const lastSource = buildLastSource({
+          providerId,
+          voice: audioNameRef.current || voice,
+          streamHash,
+          fileIndex,
+          sourceStream,
+        });
         const save = workId && episodeId
           ? SyncApiClient.saveHistoryProgress(toPlaybackProgressRequest(
               { id, mediaType, season, episode, workId, episodeId },
               completed,
               completed,
+              lastSource,
             ))
           : SyncApiClient.saveSyncProgress(
               id.toString(),
@@ -310,6 +332,7 @@ export function usePlaybackTracker({
               episode,
               completed,
               completed,
+              lastSource,
             );
         save.catch((err) => logger.error("[Sync] Failed to mark completed on ended:", err));
       }
@@ -351,6 +374,11 @@ export function usePlaybackTracker({
     duration,
     canSync,
     broadcastProgress,
+    providerId,
+    voice,
+    streamHash,
+    fileIndex,
+    sourceStream,
   ]);
 
   return {

@@ -1,90 +1,12 @@
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  formatProgressLabel,
-  useContinueWatchingCursors,
-  type ContinueWatchingCursor,
-} from "../utils/continueWatching";
-import { resumeContinueWatching, type ContinueResumeDeps } from "../utils/continueWatchingResume";
-import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
-import { usePlayback } from "../context/PlaybackContext";
-import { useHUD } from "../context/useHUD";
+import { useContinueWatchingCursors } from "../utils/continueWatching";
+import { continueCursorToMediaCard } from "../utils/continueWatching";
+import { useResumeContinueWatching } from "../hooks/useResumeContinueWatching";
 import type { MediaCard } from "../network/ApiTypes";
-import type { EpisodesResponse } from "../hooks/mediaStreams/mediaStreamsTypes";
-import type { PlaybackInfo, PlaybackMetadata } from "@potok/sdk-types";
 import { MediaCardComponent } from "./MediaCardComponent";
 import { ScrollView } from "./common/ScrollView";
 import { mediaCardKey } from "../utils/mediaLink";
-
-/** Resume wiring: sandbox requests go to the cursor's owning plugin, playback into the host player. */
-function useResumeContinueWatching(): {
-  resume: (cursor: ContinueWatchingCursor) => Promise<void>;
-} {
-  const { playVideo, enrichPlayback } = usePlayback();
-  const { show: showHUD } = useHUD();
-
-  const deps = React.useMemo<ContinueResumeDeps>(
-    () => ({
-      requestEpisodes: (providerId, stream, context) =>
-        ExtensionRegistry.sendSandboxRequest<EpisodesResponse>(
-          providerId,
-          "STREAM_SOURCE_GET_EPISODES",
-          { stream, context },
-        ),
-      requestPlaybackInfo: (providerId, args) =>
-        ExtensionRegistry.sendSandboxRequest<PlaybackInfo | null>(
-          providerId,
-          "STREAM_SOURCE_GET_PLAYBACK_INFO",
-          args,
-        ),
-      requestPlaybackMetadata: (providerId, args) =>
-        ExtensionRegistry.sendSandboxRequest<PlaybackMetadata | null>(
-          providerId,
-          "STREAM_SOURCE_GET_PLAYBACK_METADATA",
-          args,
-          15000,
-        ),
-      playVideo,
-      enrichPlayback,
-    }),
-    [playVideo, enrichPlayback],
-  );
-
-  const resume = useCallback(
-    async (cursor: ContinueWatchingCursor) => {
-      try {
-        await resumeContinueWatching(cursor, deps);
-      } catch (err) {
-        showHUD("error", err instanceof Error ? err.message : String(err));
-      }
-    },
-    [deps, showHUD],
-  );
-
-  return { resume };
-}
-
-function cursorToMediaCard(cursor: ContinueWatchingCursor): MediaCard {
-  const percentage = cursor.durationSeconds > 0
-    ? Math.min(100, Math.round((cursor.progressSeconds / cursor.durationSeconds) * 100))
-    : 0;
-  return {
-    id: cursor.tmdbId ?? 0,
-    potokId: cursor.workId,
-    entryId: cursor.entryId,
-    title: cursor.title,
-    mediaType: cursor.mediaType,
-    posterSrc: cursor.posterSrc,
-    subtitle: formatProgressLabel(cursor.progressSeconds, cursor.durationSeconds),
-    progress: {
-      completed: 0,
-      aired: 0,
-      percentage,
-      lastSeason: cursor.season,
-      lastEpisode: cursor.episode,
-    },
-  };
-}
 
 /**
  * Native host "Continue watching" home row — the cross-source ledger rendered with the standard
@@ -96,7 +18,7 @@ export const ContinueWatchingRow: React.FC = () => {
   const { resume } = useResumeContinueWatching();
 
   const entries = useMemo(
-    () => cursors.map((cursor) => ({ cursor, card: cursorToMediaCard(cursor) })),
+    () => cursors.map((cursor) => ({ cursor, card: continueCursorToMediaCard(cursor) })),
     [cursors],
   );
 

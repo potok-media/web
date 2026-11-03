@@ -2,6 +2,7 @@ import type {
   ArmEpisodeId,
   ArmWorkId,
 } from "./ArmTypes";
+import type { LastSourcePayload } from "./ApiTypes";
 
 export type TraktSyncState =
   | "notRequested"
@@ -45,9 +46,10 @@ export interface HistoryIdentity {
 export interface SaveProgressRequest extends HistoryIdentity {
   progressSeconds: number;
   durationSeconds: number;
+  lastSource?: LastSourcePayload;
 }
 
-export interface RemoveProgressRequest extends HistoryIdentity {}
+export type RemoveProgressRequest = HistoryIdentity;
 
 export interface BulkProgressChange {
   seasonNumber?: number;

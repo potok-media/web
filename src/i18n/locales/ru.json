@@ -580,6 +580,9 @@
       "totalCount": "Всего элементов: {{count}}",
       "tabs": {
         "upNext": "Продолжить",
+        "continue": "Продолжить",
+        "watching": "Смотрю",
+        "completed": "Просмотрено",
         "watchlist": "Запланировано",
         "favorites": "Избранное",
         "history": "История",
@@ -686,6 +689,11 @@
     "categories": {
       "upNext": {
         "title": "Продолжить",
+        "empty": "Здесь будут фильмы и серии, которые вы начали смотреть",
+        "emptySub": "История ваших просмотров начнется автоматически при запуске воспроизведения"
+      },
+      "continue": {
+        "title": "Продолжить просмотр",
         "empty": "Здесь будут фильмы и серии, которые вы начали смотреть",
         "emptySub": "История ваших просмотров начнется автоматически при запуске воспроизведения"
       },
@@ -957,6 +965,66 @@
           "description": "Нулевая задержка сети при сохранении ваших отметок, истории и списков."
         }
       }
+    },
+    "hero": {
+      "nowWatching": "Сейчас смотрите",
+      "continue": "Продолжить",
+      "toDetails": "К деталям",
+      "memberSince": "на сайте с {{date}}",
+      "guestName": "Гость",
+      "login": "Войти",
+      "episode": "Серия {{number}}",
+      "remainingMinutes_one": "осталось {{count}} минута",
+      "remainingMinutes_few": "осталось {{count}} минуты",
+      "remainingMinutes_many": "осталось {{count}} минут",
+      "remainingMinutes_other": "осталось {{count}} минут",
+      "chips": {
+        "runtime": "Хронометраж",
+        "episodesProgress": "просмотрено {{watched}} из {{total}}",
+        "genre": "Жанр",
+        "streak_one": "{{count}} день подряд",
+        "streak_few": "{{count}} дня подряд",
+        "streak_many": "{{count}} дней подряд",
+        "streak_other": "{{count}} дней подряд",
+        "streakLabel": "Стрик по этому тайтлу"
+      }
+    },
+    "stats": {
+      "hoursMinutes": "{{hours}} ч {{minutes}} мин",
+      "minutesOnly": "{{minutes}} мин",
+      "episodes_one": "{{count}} эпизод",
+      "episodes_few": "{{count}} эпизода",
+      "episodes_many": "{{count}} эпизодов",
+      "episodes_other": "{{count}} эпизодов",
+      "genre": "жанр: {{name}}",
+      "streak_one": "{{count}} день подряд",
+      "streak_few": "{{count}} дня подряд",
+      "streak_many": "{{count}} дней подряд",
+      "streak_other": "{{count}} дней подряд",
+      "time": "Время просмотра",
+      "episodesLabel": "Эпизоды",
+      "titlesLabel": "Просмотрено",
+      "genreLabel": "Любимый жанр",
+      "streakLabel": "Серия дней",
+      "titles": "{{count}} просмотрено"
+    },
+    "chart": {
+      "title": "Статистика",
+      "subtitle": "последние 30 дней",
+      "expand": "Развернуть статистику",
+      "collapse": "Свернуть статистику",
+      "minutes_one": "{{count}} минута",
+      "minutes_few": "{{count}} минуты",
+      "minutes_many": "{{count}} минут",
+      "minutes_other": "{{count}} минут",
+      "empty": "Пока нет данных о просмотрах",
+      "loading": "Загрузка статистики…",
+      "errorTitle": "Не удалось загрузить статистику",
+      "errorMessage": "Проверьте соединение с сервером и попробуйте снова.",
+      "retry": "Повторить"
+    },
+    "history": {
+      "subtitle": "лента событий"
     }
   },
   "sidebar": {
@@ -967,6 +1035,7 @@
     "home": "Главная",
     "library": "Медиатека",
     "upNext": "Продолжить",
+    "continue": "Продолжить",
     "calendar": "Расписание",
     "watchlist": "Запланировано",
     "favorites": "Избранное",

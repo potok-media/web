@@ -1,4 +1,5 @@
 import { ApiClient } from "../../network/ApiClient";
+import { withLanguageParam } from "../../network/locale";
 import type {
   SetFolderOrderInput,
   SetStatusInput,
@@ -32,7 +33,8 @@ function pageQuery(page?: number, pageSize?: number): string {
   if (page !== undefined) params.set("page", String(page));
   if (pageSize !== undefined) params.set("pageSize", String(pageSize));
   const qs = params.toString();
-  return qs ? `?${qs}` : "";
+  // Hydrated lists must be localized — same ?language= source as ApiClient.
+  return withLanguageParam(qs ? `?${qs}` : "");
 }
 
 function asRecord(value: unknown): Record<string, unknown> {

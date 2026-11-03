@@ -568,6 +568,9 @@
       "totalCount": "Total items: {{count}}",
       "tabs": {
         "upNext": "Continue",
+        "continue": "Continue",
+        "watching": "Watching",
+        "completed": "Completed",
         "watchlist": "Planned",
         "favorites": "Favorites",
         "history": "History",
@@ -674,6 +677,11 @@
     "categories": {
       "upNext": {
         "title": "Continue",
+        "empty": "Here you'll see movies and episodes you've started watching",
+        "emptySub": "Your watch history starts automatically when you begin playback"
+      },
+      "continue": {
+        "title": "Continue watching",
         "empty": "Here you'll see movies and episodes you've started watching",
         "emptySub": "Your watch history starts automatically when you begin playback"
       },
@@ -943,6 +951,56 @@
           "description": "Zero network latency when saving your marks, history, and lists."
         }
       }
+    },
+    "hero": {
+      "nowWatching": "Continue watching now",
+      "continue": "Resume",
+      "toDetails": "View details",
+      "memberSince": "member since {{date}}",
+      "guestName": "Guest",
+      "login": "Sign in",
+      "episode": "Episode {{number}}",
+      "remainingMinutes_one": "{{count}} minute left",
+      "remainingMinutes_other": "{{count}} minutes left",
+      "chips": {
+        "runtime": "Runtime",
+        "episodesProgress": "{{watched}} of {{total}} watched",
+        "genre": "Genre",
+        "streak_one": "{{count}} day in a row",
+        "streak_other": "{{count}} days in a row",
+        "streakLabel": "Streak for this title"
+      }
+    },
+    "stats": {
+      "hoursMinutes": "{{hours}}h {{minutes}}m",
+      "minutesOnly": "{{minutes}}m",
+      "episodes_one": "{{count}} episode",
+      "episodes_other": "{{count}} episodes",
+      "genre": "genre: {{name}}",
+      "streak_one": "{{count}} day streak",
+      "streak_other": "{{count}} day streak",
+      "time": "Watch time",
+      "episodesLabel": "Episodes",
+      "titlesLabel": "Completed",
+      "genreLabel": "Top genre",
+      "streakLabel": "Day streak",
+      "titles": "{{count}} watched"
+    },
+    "chart": {
+      "title": "Statistics",
+      "subtitle": "last 30 days",
+      "expand": "Expand statistics",
+      "collapse": "Collapse statistics",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes",
+      "empty": "No watch data yet",
+      "loading": "Loading statistics…",
+      "errorTitle": "Failed to load statistics",
+      "errorMessage": "Check the server connection and try again.",
+      "retry": "Retry"
+    },
+    "history": {
+      "subtitle": "activity feed"
     }
   },
   "sidebar": {
@@ -953,6 +1011,7 @@
     "home": "Home",
     "library": "Library",
     "upNext": "Up next",
+    "continue": "Continue",
     "calendar": "Schedule",
     "watchlist": "Watchlist",
     "favorites": "Favorites",

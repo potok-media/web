@@ -8,6 +8,23 @@ export const resizeTmdbImage = (url: string | undefined | null, size: string): s
   return url.replace(/\/t\/p\/(w\d+|h\d+|original)\//, `/t/p/${size}/`);
 };
 
+/**
+ * Turns a TMDB image reference into a displayable URL through the gateway image proxy.
+ * Gateways may return either a full proxied URL, a `/t/p/<size>/...` path, or a raw TMDB
+ * file path (`/x.jpg`) — all three are normalized here. Non-TMDB absolute URLs pass through.
+ */
+export const resolveTmdbImageUrl = (
+  url: string | undefined | null,
+  gatewayBaseUrl: string,
+): string => {
+  if (!url) return "";
+  if (/^https?:\/\//.test(url)) return url;
+  const tmdbSegment = url.startsWith("/t/p/")
+    ? url
+    : `/t/p/original/${url.replace(/^\/+/, "")}`;
+  return `${gatewayBaseUrl.replace(/\/+$/, "")}/media/tmdb${tmdbSegment}`;
+};
+
 export const backdropSizeForQuality = (quality: string): string => {
   if (quality === "max") return "original";
   return "w1280"; // auto/high default

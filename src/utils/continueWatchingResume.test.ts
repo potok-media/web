@@ -1,12 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   buildResumePlaylist,
+  cardProgressFromResume,
+  findLedgerCursorForCard,
+  isCardResumable,
+  mergeLedgerLastSource,
   pickResumeEpisode,
   resumeContinueWatching,
+  resumeCursorFromCard,
   type ContinueResumeDeps,
 } from "./continueWatchingResume";
 import { clearPlaylistResolver, resolvePlaylistItem } from "./playlistResolver";
 import type { ContinueWatchingCursor } from "./continueWatching";
+import type { MediaCard } from "../network/ApiTypes";
 import type { PlaybackInfo, StreamEpisode } from "@potok/sdk-types";
 
 const WORK_ID = "11111111-2222-3333-4444-555555555555";
@@ -181,5 +187,177 @@ describe("resumeContinueWatching", () => {
     const playback = deps.playVideo.mock.calls[0][0];
     expect(playback.providerId).toBe("potok-online-balancers");
     expect(playback.streamHash).toBeUndefined();
+  });
+});
+
+describe("resumeCursorFromCard", () => {
+  function makeCard(overrides: Partial<MediaCard> = {}): MediaCard {
+    return {
+      id: 42,
+      potokId: WORK_ID,
+      title: "Show",
+      mediaType: "tv",
+      resume: {
+        season: 1,
+        episode: 3,
+        progressSeconds: 300,
+        durationSeconds: 1800,
+        lastSource: {
+          providerId: "potok-torrents",
+          streamHash: "ABC",
+          fileIndex: "3",
+        },
+      },
+      ...overrides,
+    };
+  }
+
+  it("builds a ledger-shaped cursor from the server resume payload", () => {
+    const cursor = resumeCursorFromCard(makeCard())!;
+    expect(cursor).toMatchObject({
+      key: WORK_ID,
+      workId: WORK_ID,
+      tmdbId: 42,
+      providerId: "potok-torrents",
+      streamHash: "ABC",
+      fileIndex: "3",
+      season: 1,
+      episode: 3,
+      progressSeconds: 300,
+      durationSeconds: 1800,
+    });
+  });
+
+  it("passes the online sourceStream through verbatim", () => {
+    const sourceStream = { id: "serial-1" };
+    const card = makeCard({
+      resume: {
+        episode: 1,
+        progressSeconds: 10,
+        durationSeconds: 100,
+        lastSource: { providerId: "potok-online-balancers", sourceStream },
+      },
+    });
+    const cursor = resumeCursorFromCard(card)!;
+    expect(cursor.providerId).toBe("potok-online-balancers");
+    expect(cursor.sourceStream).toBe(sourceStream);
+  });
+
+  it("returns null for cards without a resume payload", () => {
+    expect(resumeCursorFromCard(makeCard({ resume: undefined }))).toBeNull();
+  });
+});
+
+describe("isCardResumable", () => {
+  it("requires a saved lastSource with a provider", () => {
+    const base: MediaCard = { id: 1, title: "T", mediaType: "movie" };
+    expect(isCardResumable(base)).toBe(false);
+    expect(isCardResumable({ ...base, resume: { progressSeconds: 5 } })).toBe(false);
+    expect(
+      isCardResumable({ ...base, resume: { lastSource: { providerId: "potok-torrents" } } }),
+    ).toBe(true);
+  });
+});
+
+describe("cardProgressFromResume", () => {
+  const base: MediaCard = { id: 1, title: "T", mediaType: "tv" };
+
+  it("derives the overlay percentage from the resume payload", () => {
+    const card = cardProgressFromResume({
+      ...base,
+      resume: { season: 1, episode: 3, progressSeconds: 300, durationSeconds: 1800 },
+    });
+    expect(card.progress).toMatchObject({ percentage: 17, lastSeason: 1, lastEpisode: 3 });
+  });
+
+  it("augments a server progress object that lacks percentage, keeping next-episode fields", () => {
+    const card = cardProgressFromResume({
+      ...base,
+      progress: {
+        completed: 0,
+        aired: 1,
+        percentage: 0,
+        nextSeason: 1,
+        nextEpisode: 11,
+      },
+      resume: { progressSeconds: 278, durationSeconds: 1439 },
+    });
+    expect(card.progress).toMatchObject({
+      percentage: 19,
+      aired: 1,
+      nextSeason: 1,
+      nextEpisode: 11,
+    });
+  });
+
+  it("keeps a populated percentage and skips cards without usable data", () => {
+    const withProgress: MediaCard = {
+      ...base,
+      progress: { completed: 1, aired: 2, percentage: 55 },
+      resume: { progressSeconds: 1, durationSeconds: 2 },
+    };
+    expect(cardProgressFromResume(withProgress).progress?.percentage).toBe(55);
+    expect(cardProgressFromResume(base)).toBe(base);
+    const zero = cardProgressFromResume({ ...base, resume: { progressSeconds: 0, durationSeconds: 0 } });
+    expect(zero.progress).toBeUndefined();
+  });
+});
+
+describe("mergeLedgerLastSource", () => {
+  const base: MediaCard = { id: 42, potokId: WORK_ID, title: "Show", mediaType: "tv" };
+  const ledgerCursor: ContinueWatchingCursor = {
+    ...makeCursor(),
+    audioName: "Оригинал",
+    sourceStream: { id: "stream-1" },
+  };
+
+  it("splices the ledger source into server rows missing lastSource", () => {
+    const [merged] = mergeLedgerLastSource([base], [ledgerCursor]);
+    expect(merged.resume?.lastSource).toMatchObject({
+      providerId: "potok-torrents",
+      voice: "Оригинал",
+      streamHash: "ABCDEF0123456789",
+      fileIndex: "3",
+      sourceStream: { id: "stream-1" },
+    });
+    expect(merged.resume?.episode).toBe(3);
+  });
+
+  it("leaves resumable cards and unmatched cards untouched", () => {
+    const resumable: MediaCard = {
+      ...base,
+      resume: { lastSource: { providerId: "other" } },
+    };
+    const other: MediaCard = { ...base, id: 999, potokId: "99999999-9999-9999-9999-999999999999" };
+    const [m1, m2] = mergeLedgerLastSource([resumable, other], [ledgerCursor]);
+    expect(m1.resume?.lastSource?.providerId).toBe("other");
+    expect(m2.resume).toBeUndefined();
+  });
+
+  it("is a no-op without ledger entries", () => {
+    expect(mergeLedgerLastSource([base], [])).toEqual([base]);
+  });
+});
+
+describe("findLedgerCursorForCard", () => {
+  const ledger = [
+    makeCursor({ key: WORK_ID, workId: WORK_ID, tmdbId: 42 }),
+    makeCursor({ key: "tmdb:777", workId: undefined, tmdbId: 777 }),
+  ];
+
+  it("matches by ARM workId first", () => {
+    expect(
+      findLedgerCursorForCard({ potokId: WORK_ID, id: 999 }, ledger)?.tmdbId,
+    ).toBe(42);
+  });
+
+  it("falls back to the tmdb id", () => {
+    expect(
+      findLedgerCursorForCard({ potokId: undefined, id: 777 }, ledger)?.key,
+    ).toBe("tmdb:777");
+  });
+
+  it("returns undefined when nothing matches", () => {
+    expect(findLedgerCursorForCard({ potokId: undefined, id: 1 }, ledger)).toBeUndefined();
   });
 });

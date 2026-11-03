@@ -1,5 +1,6 @@
 import { DataWorkerBridge } from "../utils/worker/DataWorkerBridge";
 import { SettingsService } from "../utils/SettingsService";
+import { getRequestLanguage } from "./locale";
 import { MemorySafeCache } from "./MemorySafeCache";
 import { SyncApiClient } from "./SyncApiClient";
 import { ensureAbsoluteURL, handleApiResponse } from "./apiClientHelpers";
@@ -54,7 +55,7 @@ export class ApiClient {
   }
 
   private static get language(): string {
-    return SettingsService.getLanguage();
+    return getRequestLanguage();
   }
 
   private static mediaDetailsCache = new Map<string, MediaCard>();
@@ -358,6 +359,11 @@ export class ApiClient {
       return this.fetchMediaRow(category);
     }
     const strategy = SettingsService.getSyncStrategy();
+    if (category === "continue") {
+      // Canonical continue-watching endpoint (hydrated cards + resume payload), independent
+      // of the sync strategy; guests resolve to the local ledger inside the client.
+      return SyncApiClient.fetchContinueWatching();
+    }
     if (strategy === "trakt") {
       const res = await fetch(`${this.baseURL}/api/library/${category}?language=${encodeURIComponent(this.language)}`, {
         headers: this.headers,

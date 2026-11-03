@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { Storage } from "./StorageService";
+import type { MediaCard } from "../network/ApiTypes";
 
 /**
  * Host-owned "Continue watching" ledger.
@@ -268,6 +269,38 @@ export function applyContinueProgress(payload: ContinueProgressPayload): void {
 /** Latest first, TTL-filtered, capped — what the home row renders. */
 export function listContinueCursors(): ContinueWatchingCursor[] {
   return getSnapshot();
+}
+
+/** Ledger cursor → MediaCard with the episode pill + watch-progress bar the continue UI expects.
+ * Carries the same image/resume fields the server cards do, so the profile hero and rail render
+ * local and server rows identically. */
+export function continueCursorToMediaCard(cursor: ContinueWatchingCursor): MediaCard {
+  const percentage = cursor.durationSeconds > 0
+    ? Math.min(100, Math.round((cursor.progressSeconds / cursor.durationSeconds) * 100))
+    : 0;
+  return {
+    id: cursor.tmdbId ?? 0,
+    potokId: cursor.workId,
+    entryId: cursor.entryId,
+    title: cursor.title,
+    mediaType: cursor.mediaType,
+    posterSrc: cursor.posterSrc,
+    backdropSrc: cursor.backdropSrc,
+    subtitle: formatProgressLabel(cursor.progressSeconds, cursor.durationSeconds),
+    resume: {
+      season: cursor.season,
+      episode: cursor.episode,
+      progressSeconds: cursor.progressSeconds,
+      durationSeconds: cursor.durationSeconds,
+    },
+    progress: {
+      completed: 0,
+      aired: 0,
+      percentage,
+      lastSeason: cursor.season,
+      lastEpisode: cursor.episode,
+    },
+  };
 }
 
 /** Reactive read for React components. */

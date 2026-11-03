@@ -1,5 +1,9 @@
 import { ApiClient } from "./ApiClient";
 import { handleApiResponse } from "./apiClientHelpers";
+import { withLanguageParam } from "./locale";
+import type { LastSourcePayload, MediaCard, ProfileSummary } from "./ApiTypes";
+import { listContinueCursors, continueCursorToMediaCard } from "../utils/continueWatching";
+import { resolveTmdbImageUrl } from "../utils/mediaUtils";
 import {
   createSyncHistoryApiClient,
   type BulkProgressMutationResponse,
@@ -85,7 +89,8 @@ export class SyncApiClient {
     seasonNumber?: number,
     episodeNumber?: number,
     progressSeconds: number = 100,
-    durationSeconds: number = 100
+    durationSeconds: number = 100,
+    lastSource?: LastSourcePayload
   ): Promise<void> {
     if (this.isGuest) {
       await guestSync.saveProgress({
@@ -108,9 +113,42 @@ export class SyncApiClient {
         episodeNumber,
         progressSeconds,
         durationSeconds,
+        ...(lastSource ? { lastSource } : {}),
       }),
     });
     if (!res.ok) throw new Error(`Failed to save progress on server (Status ${res.status})`);
+  }
+
+  /**
+   * Canonical continue-watching list: hydrated cards with a `resume` payload each. Guests have
+   * no server copy — they read the host-owned local ledger instead (same cards the home row uses).
+   * Server cards are normalized: relative TMDB image paths become full gateway-proxy URLs so the
+   * cards render identically to the home-page cards, and the UI language is passed for hydration.
+   */
+  public static async fetchContinueWatching(): Promise<MediaCard[]> {
+    if (this.isGuest) {
+      return listContinueCursors().map(continueCursorToMediaCard);
+    }
+    const res = await fetch(withLanguageParam(`${ApiClient.baseURL}/api/library/continue-watching`), {
+      headers: ApiClient.headers,
+    });
+    if (!res.ok) throw new Error(`Failed to fetch continue watching (Status ${res.status})`);
+    const cards = (await res.json()) as MediaCard[];
+    return cards.map((card) => ({
+      ...card,
+      posterSrc: resolveTmdbImageUrl(card.posterSrc, ApiClient.baseURL),
+      backdropSrc: resolveTmdbImageUrl(card.backdropSrc, ApiClient.baseURL),
+      logoSrc: resolveTmdbImageUrl(card.logoSrc, ApiClient.baseURL),
+    }));
+  }
+
+  /** Profile summary stats (30-day chart data). Auth-only; guests never call this. */
+  public static async fetchProfileSummary(): Promise<ProfileSummary> {
+    const res = await fetch(`${ApiClient.baseURL}/api/profile/summary`, {
+      headers: ApiClient.headers,
+    });
+    if (!res.ok) throw new Error(`Failed to fetch profile summary (Status ${res.status})`);
+    return res.json();
   }
 
   public static async removeSyncProgress(

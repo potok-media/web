@@ -14,7 +14,7 @@ interface MediaCardComponentProps {
   onClick?: (item: MediaCard) => void;
   style?: React.CSSProperties;
   delay?: number;
-  /** Episode badge + watch progress bar — only for the Continue (up-next) library tab. */
+  /** Episode badge + watch progress bar — the Continue library tab and the profile rail. */
   showContinueOverlay?: boolean;
 }
 
