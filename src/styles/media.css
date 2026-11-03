@@ -6225,7 +6225,8 @@ button.popover-item.popover-menu-item:hover {
 }
 
 .season-popover-menu,
-.watch-popover-menu {
+.watch-popover-menu,
+.details-picker-menu {
   position: absolute;
   top: calc(100% + 0.5rem);
   left: 0;
@@ -6281,7 +6282,8 @@ button.popover-item.popover-menu-item:hover {
 
 /* Beat generic .popover-item (space-between + wide padding) from ui.css cascade. */
 button.popover-item.season-popover-item,
-button.popover-item.watch-popover-item {
+button.popover-item.watch-popover-item,
+button.popover-item.details-picker-item {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -6301,7 +6303,8 @@ button.popover-item.watch-popover-item {
 }
 
 button.popover-item.season-popover-item:hover,
-button.popover-item.watch-popover-item:hover {
+button.popover-item.watch-popover-item:hover,
+button.popover-item.details-picker-item:hover {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text-primary);
 }
@@ -6311,12 +6314,14 @@ button.popover-item.season-popover-item.active {
 }
 
 .season-item-icon,
-.watch-item-icon {
+.watch-item-icon,
+.details-picker-item-icon {
   opacity: 0.7;
   flex-shrink: 0;
 }
 
-button.popover-item.season-popover-item > span {
+button.popover-item.season-popover-item > span,
+button.popover-item.details-picker-item > span {
   flex: 1;
   min-width: 0;
   white-space: normal;

@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Search as SearchIcon, X } from "lucide-react";
+import { FolderCog, Search as SearchIcon, X } from "lucide-react";
 import { Chip, IconButton, Input } from "../ui";
 
 interface LibraryCategory {
@@ -17,6 +17,8 @@ interface LibraryPageHeaderProps {
   setQuery: (q: string) => void;
   itemsCount: number;
   collectionType: string;
+  /** Opens the collection (подборки) manager — not shown on the search surface. */
+  onOpenFolders?: () => void;
 }
 
 export const LibraryPageHeader: React.FC<LibraryPageHeaderProps> = ({
@@ -26,13 +28,14 @@ export const LibraryPageHeader: React.FC<LibraryPageHeaderProps> = ({
   setQuery,
   itemsCount,
   collectionType,
+  onOpenFolders,
 }) => {
   const { t } = useTranslation("media");
   const navigate = useNavigate();
 
   const categoriesList = [
     { id: "up-next", label: t("library.tabs.upNext") },
-    { id: "watchlist", label: t("library.tabs.watchlist") },
+    { id: "planned", label: t("library.tabs.planned") },
     { id: "favorites", label: t("library.tabs.favorites") },
     { id: "history", label: t("library.tabs.history") },
   ];
@@ -85,6 +88,16 @@ export const LibraryPageHeader: React.FC<LibraryPageHeaderProps> = ({
         <header className="library-header">
           <h1 className="library-large-title">{category.title}</h1>
           <p className="library-metadata-count">{t("library.totalCount", { count: itemsCount })}</p>
+          {onOpenFolders && (
+            <IconButton
+              className="library-folders-btn"
+              onClick={onOpenFolders}
+              title={t("folders.title")}
+              aria-label={t("folders.title")}
+            >
+              <FolderCog size="1.25rem" />
+            </IconButton>
+          )}
         </header>
       )}
       <div className="library-mobile-tabs-container">

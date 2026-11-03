@@ -56,6 +56,17 @@ export const hostApiDts = `
       /** Fires when the current stream fails fatally in the player. Receives { title, season, episode, providerId, message, streamUrl }. */
       onPlaybackError(cb: (event: { title: string | null; season: number | null; episode: number | null; providerId: string | null; message: string; streamUrl: string }) => void): () => void;
     };
+    /** Dry info about the current user — never exposes tokens or secrets. Guests see isAuth() === false. */
+    user: {
+      /** Whether a Potok account is signed in on the host. */
+      isAuth(): boolean;
+      /** Account id, or null for guests. */
+      id(): string | null;
+      /** Account username, or null for guests. */
+      username(): string | null;
+      /** Fires on login/logout/auth-state transitions. Returns an unsubscribe function. */
+      onChange(cb: (user: SDKUserSnapshot) => void): () => void;
+    };
     /** Methods for managing UI layers and components. */
     ui: {
       /** Shows a transient HUD notification (toast) on the host side. */

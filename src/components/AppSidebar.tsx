@@ -192,12 +192,12 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
             <span>{t("calendar")}</span>
           </SidebarNavLink>
           <SidebarNavLink
-            to="/library/watchlist"
+            to="/library/planned"
             className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}
             onClick={handleProtectedClick}
           >
             <Bookmark size="1.125rem" />
-            <span>{t("watchlist")}</span>
+            <span>{t("planned")}</span>
           </SidebarNavLink>
           <SidebarNavLink
             to="/library/favorites"

@@ -1,0 +1,151 @@
+/* ==========================================================================
+   User-data (status / collections) surfaces: details hero pickers, folder
+   manager modal, library header affordances.
+   ========================================================================== */
+
+.details-picker-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.details-picker-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.details-picker-menu {
+  max-height: 21rem;
+  overflow-y: auto;
+}
+
+.details-picker-check {
+  margin-left: auto;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.details-picker-empty {
+  padding: 0.5rem 0.625rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.details-picker-checkbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border: 0.0625rem solid rgba(255, 255, 255, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
+}
+
+.details-picker-checkbox.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.details-picker-count {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.details-picker-new {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 0.375rem 0.25rem 0.25rem;
+  border-top: 0.0625rem solid rgba(255, 255, 255, 0.08);
+}
+
+.details-picker-create-btn {
+  flex-shrink: 0;
+}
+
+/* Folder manager modal (opened from the library header) */
+
+.folder-manager-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+  padding: var(--space-m) var(--space-l) var(--space-l);
+  min-width: min(24rem, calc(100vw - 2rem));
+}
+
+.folder-manager-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.folder-manager-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+}
+
+.folder-manager-row-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  width: 100%;
+  min-width: 0;
+}
+
+.folder-manager-name {
+  font: var(--font-body);
+  color: var(--text-primary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-manager-row-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.folder-manager-icon-btn {
+  opacity: 0.8;
+}
+
+.folder-manager-icon-btn:hover {
+  opacity: 1;
+}
+
+.folder-manager-confirm-text {
+  font: var(--font-caption);
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.folder-manager-action-btn {
+  flex-shrink: 0;
+}
+
+/* Library header: collections button + folder page back button */
+
+.library-header {
+  position: relative;
+}
+
+.library-folders-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.folder-back-btn {
+  align-self: flex-start;
+}

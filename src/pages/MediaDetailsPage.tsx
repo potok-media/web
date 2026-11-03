@@ -5,6 +5,7 @@ import { useHUD } from "../context/useHUD";
 import { Slot } from "../components/common/extension/Slot";
 
 import { useMediaDetails } from "../hooks/useMediaDetails";
+import { useMediaDetailsUserData } from "../hooks/mediaDetails/useMediaDetailsUserData";
 import { useMediaDetailsAutoPlay } from "../hooks/useMediaDetailsAutoPlay";
 import { useMediaDetailsPageNavigation } from "../hooks/useMediaDetailsPageNavigation";
 import { SeasonEpisodesSection } from "../components/SeasonEpisodesSection";
@@ -132,10 +133,8 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
     error,
     refetch,
     isFavorite,
-    inWatchlist,
     isWatched,
     toggleFavorite,
-    toggleWatchlist,
     toggleWatched,
     toggleEpisodeWatched,
     toggleSeasonWatched,
@@ -146,6 +145,17 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
     playParam: searchParams.get("play"),
     onNavigateToStreams: (season, episode) => handleNavigateToStreams(undefined, season, episode),
     showHUD,
+  });
+
+  const normalizedMediaType =
+    mediaType === "movie" || mediaType === "tv" ? mediaType : null;
+  const userData = useMediaDetailsUserData({
+    media,
+    tmdbId: String(tmdbId),
+    mediaType: normalizedMediaType,
+    workId: armSummary?.workId ?? media?.arm?.workId ?? undefined,
+    showHUD,
+    t,
   });
 
   useEffect(() => {
@@ -187,11 +197,15 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
         selectedEpisode={selectedEpisode}
         setSelectedEpisode={setSelectedEpisode}
         isWatched={isWatched}
-        inWatchlist={inWatchlist}
         isFavorite={isFavorite}
+        titleStatus={userData.status}
+        folders={userData.folders}
+        folderMembership={userData.membership}
         toggleWatched={toggleWatched}
-        toggleWatchlist={toggleWatchlist}
         toggleFavorite={toggleFavorite}
+        onSelectStatus={userData.selectStatus}
+        onToggleFolder={userData.toggleFolder}
+        onCreateFolder={userData.createFolder}
       />
 
       <div className={`details-content-grid ${hasEpisodeLibrary ? "details-content-grid--series" : "details-content-grid--movie"}`}>

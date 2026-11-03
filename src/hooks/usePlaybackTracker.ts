@@ -1,5 +1,6 @@
 import { canSyncPlaybackIdentity, playbackStorageKeys } from "../utils/playbackIdentity";
 import { applyContinueProgress } from "../utils/continueWatching";
+import { getUserSnapshot } from "../sdk/src/user";
 import { useEffect, useRef, useCallback } from "react";
 import { Storage } from "../utils/StorageService";
 import { SyncApiClient } from "../network/SyncApiClient";
@@ -200,8 +201,9 @@ export function usePlaybackTracker({
       lastSavedTimeRef.current = actualTime;
 
       // Remote history is keyed by TMDB id — a plugin-opened stream legitimately has id 0, so skip the remote
-      // sync for it (local resume still works). Only sync when there's a real TMDB id.
-      if (canSync) {
+      // sync for it (local resume still works). Only sync when there's a real TMDB id. Guests have no
+      // server DB — their progress already lives in the local keys above.
+      if (canSync && getUserSnapshot().isAuth) {
         const progressSeconds = Math.floor(actualTime);
         const durationSeconds = Math.floor(durationVal);
         const save = workId && episodeId
@@ -293,7 +295,7 @@ export function usePlaybackTracker({
       broadcastProgress(duration, duration, true);
 
       // Удаляем с бэкенда/Trakt прогресс (переходит в статус полностью просмотрено)
-      if (canSync) {
+      if (canSync && getUserSnapshot().isAuth) {
         const completed = Math.floor(duration);
         const save = workId && episodeId
           ? SyncApiClient.saveHistoryProgress(toPlaybackProgressRequest(

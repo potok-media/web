@@ -1,12 +1,15 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Star, Eye, Bookmark } from "lucide-react";
+import { Star, Eye } from "lucide-react";
 import { IconButton } from "../ui";
 import { Slot } from "../common/extension/Slot";
 import { MediaOverviewSection } from "../MediaOverviewSection";
+import { StatusPickerMenu } from "./StatusPickerMenu";
+import { FolderPickerMenu } from "./FolderPickerMenu";
 import type { MediaCard, TvEpisode } from "../../network/ApiTypes";
 import type { ArmGroupSummary } from "../../features/arm/armGroupDisplay";
 import type { ArmMediaSummary } from "../../network/ArmTypes";
+import type { TitleStatus, UserFolder } from "../../utils/userData";
 
 interface SelectedEpisodeState {
   episode: TvEpisode;
@@ -24,11 +27,15 @@ interface MediaDetailsHeroSectionProps {
   selectedEpisode: SelectedEpisodeState | null;
   setSelectedEpisode: (value: SelectedEpisodeState | null) => void;
   isWatched: boolean;
-  inWatchlist: boolean;
   isFavorite: boolean;
+  titleStatus: TitleStatus | null;
+  folders: UserFolder[];
+  folderMembership: Record<string, boolean>;
   toggleWatched: () => void;
-  toggleWatchlist: () => void;
   toggleFavorite: () => void;
+  onSelectStatus: (status: TitleStatus | null) => void;
+  onToggleFolder: (folderId: string) => void;
+  onCreateFolder: (name: string) => Promise<unknown>;
 }
 
 export const MediaDetailsHeroSection: React.FC<MediaDetailsHeroSectionProps> = ({
@@ -41,11 +48,15 @@ export const MediaDetailsHeroSection: React.FC<MediaDetailsHeroSectionProps> = (
   selectedEpisode,
   setSelectedEpisode,
   isWatched,
-  inWatchlist,
   isFavorite,
+  titleStatus,
+  folders,
+  folderMembership,
   toggleWatched,
-  toggleWatchlist,
   toggleFavorite,
+  onSelectStatus,
+  onToggleFolder,
+  onCreateFolder,
 }) => {
   const { t } = useTranslation("media");
 
@@ -105,14 +116,19 @@ export const MediaDetailsHeroSection: React.FC<MediaDetailsHeroSectionProps> = (
                     <Eye size="1.125rem" />
                   </IconButton>
 
-                  <IconButton
-                    className={`action-btn-circle ${inWatchlist ? "active" : ""}`}
-                    onClick={toggleWatchlist}
-                    title={inWatchlist ? t("details.removeFromWatchlist") : t("details.addToWatchlist")}
-                    aria-label={inWatchlist ? t("details.removeFromWatchlist") : t("details.addToWatchlist")}
-                  >
-                    <Bookmark size="1.125rem" fill={inWatchlist ? "var(--accent)" : "none"} />
-                  </IconButton>
+                  <StatusPickerMenu
+                    status={titleStatus}
+                    isWatched={isWatched}
+                    onSelectStatus={onSelectStatus}
+                    onMarkWatched={toggleWatched}
+                  />
+
+                  <FolderPickerMenu
+                    folders={folders}
+                    membership={folderMembership}
+                    onToggleFolder={onToggleFolder}
+                    onCreateFolder={onCreateFolder}
+                  />
 
                   <IconButton
                     className={`action-btn-circle ${isFavorite ? "active" : ""}`}

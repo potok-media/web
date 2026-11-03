@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams, useLocation, Link } from "react-router-dom";
+import { useParams, useLocation, Link, Navigate } from "react-router-dom";
 import { Film, Search as SearchIcon, AlertTriangle } from "lucide-react";
 import { useLibraryPage } from "../hooks/useLibraryPage";
 import { useLibraryPageRendering } from "../hooks/useLibraryPageRendering";
@@ -8,13 +8,22 @@ import type { MediaCard } from "../network/ApiTypes";
 import { MediaCardComponent } from "../components/MediaCardComponent";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { LibraryPageHeader } from "../components/library/LibraryPageHeader";
+import { FolderManagerModal } from "../components/library/FolderManagerModal";
 import { CATEGORY_MAP, DYNAMIC_CATEGORY_TITLES } from "./LibraryConfig";
 import { Grid } from "../components/common/Grid";
 import { Button, cx } from "../components/ui";
 
-
-
 export const LibraryPage: React.FC = () => {
+  const { collectionType } = useParams<{ collectionType: string }>();
+  // Legacy /library/watchlist: watchlist semantics moved to the planned status, which has its
+  // own route + user-data-backed page.
+  if (collectionType === "watchlist") {
+    return <Navigate to="/library/planned" replace />;
+  }
+  return <LibraryPageContent />;
+};
+
+const LibraryPageContent: React.FC = () => {
   const { collectionType: routeType } = useParams<{ collectionType: string }>();
   const location = useLocation();
   const { t } = useTranslation("media");
@@ -27,6 +36,7 @@ export const LibraryPage: React.FC = () => {
 
   const stateData = location.state as { items?: MediaCard[]; title?: string } | null;
   const hasStateData = !!stateData?.items;
+  const [foldersModalOpen, setFoldersModalOpen] = useState(false);
 
   const isDynamicCategory = collectionType.includes(".");
   const dynamicTitleKey = DYNAMIC_CATEGORY_TITLES[collectionType];
@@ -181,8 +191,13 @@ export const LibraryPage: React.FC = () => {
         setQuery={setQuery}
         itemsCount={items.length}
         collectionType={collectionType}
+        onOpenFolders={() => setFoldersModalOpen(true)}
       />
       <main className="library-content-area">{renderContent()}</main>
+      <FolderManagerModal
+        isOpen={foldersModalOpen}
+        onClose={() => setFoldersModalOpen(false)}
+      />
     </div>
   );
 };

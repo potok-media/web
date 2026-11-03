@@ -570,7 +570,8 @@
         "upNext": "Continue",
         "watchlist": "Planned",
         "favorites": "Favorites",
-        "history": "History"
+        "history": "History",
+        "planned": "Planned"
       },
       "searching": "Searching for media...",
       "loadingCollection": "Loading collection...",
@@ -734,6 +735,35 @@
       },
       "seasons_one": "{{count}} season",
       "seasons_other": "{{count}} seasons"
+    },
+    "status": {
+      "watching": "Watching",
+      "planned": "Planned",
+      "completed": "Completed",
+      "on_hold": "On hold",
+      "dropped": "Dropped",
+      "clear": "— Clear status",
+      "set": "Status updated",
+      "removed": "Status cleared",
+      "error": "Failed to update status"
+    },
+    "folders": {
+      "title": "Collections",
+      "newPlaceholder": "New collection…",
+      "create": "Create",
+      "empty": "No collections yet",
+      "itemCount": "{{count}} titles",
+      "rename": "Rename",
+      "delete": "Delete",
+      "deleteConfirm": "Delete collection \"{{name}}\"? Titles in it will not be removed.",
+      "added": "Added to collection",
+      "removed": "Removed from collection",
+      "error": "Failed to update collections",
+      "open": "Open collection",
+      "close": "Close",
+      "cancel": "Cancel",
+      "emptyItems": "This collection is empty",
+      "back": "Back"
     }
   },
   "profile": {
@@ -770,6 +800,44 @@
       "extensions": {
         "heading": "Your extensions and tools",
         "subheading": "Quick access to installed plugins"
+      },
+      "tabs": {
+        "account": "Account",
+        "watching": "Watching",
+        "planned": "Planned",
+        "completed": "Completed",
+        "on_hold": "On hold",
+        "dropped": "Dropped",
+        "history": "History"
+      },
+      "sections": {
+        "watching": {
+          "empty": "Nothing in progress",
+          "emptySub": "Set a title status on its details screen — it will show up here"
+        },
+        "planned": {
+          "empty": "Planned list is empty",
+          "emptySub": "Add movies and shows to your plans so you don't forget to watch them later"
+        },
+        "completed": {
+          "empty": "Nothing watched yet",
+          "emptySub": "Titles marked as watched will appear here"
+        },
+        "on_hold": {
+          "empty": "Nothing on hold",
+          "emptySub": "Titles you put on hold will appear here"
+        },
+        "dropped": {
+          "empty": "Nothing dropped",
+          "emptySub": "Titles you dropped will appear here"
+        }
+      },
+      "historySection": {
+        "empty": "History is empty",
+        "emptySub": "Your watch feed will appear here",
+        "episodeLine": "Season {{season}}, episode {{episode}}",
+        "movieLine": "Movie",
+        "loadError": "Failed to load history"
       }
     },
     "hud": {
@@ -897,7 +965,8 @@
     "statusOff": "off",
     "statusOffline": "offline",
     "mobileLibrary": "Library",
-    "mobileAccount": "Account"
+    "mobileAccount": "Account",
+    "planned": "Planned"
   },
   "extensions": {
     "title": "Extensions",

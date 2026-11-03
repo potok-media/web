@@ -3,6 +3,8 @@ import { HttpClient } from "./core/http";
 import { ArmSdkClient } from "./core/arm";
 import { LocalStorageBridge } from "./core/storage";
 import { SDK_TYPINGS } from "./sdkTypings";
+import { user, setUserSnapshot } from "./user";
+import type { SDKUserSnapshot } from "./types";
 import type { UIComponent } from "./components/base";
 
 import {
@@ -98,6 +100,8 @@ interface PotokInitialState {
   language?: string;
   hostStrings?: Record<string, Record<string, unknown>>;
   localStorage?: Record<string, string>;
+  /** Dry host auth identity at iframe build time; live transitions arrive as USER_STATE_CHANGED. */
+  user?: SDKUserSnapshot;
 }
 
 declare global {
@@ -166,6 +170,8 @@ export const storage = {
 };
 
 export const streams = streamsSpace;
+
+export { user, getUserSnapshot, setUserSnapshot, onUserChange } from "./user";
 
 export const media = {
   searchProvider: (id: string, name: string) => new MediaSearchProviderBuilder(id, name)
@@ -508,6 +514,8 @@ export function initPotokSDK(): void {
   win.PotokSDK.i18n = i18n;
   win.PotokSDK.arm = arm;
   win.PotokSDK.typings = SDK_TYPINGS;
+  win.PotokSDK.user = user;
+  setUserSnapshot(initialState.user);
   
   win.PotokSDK.onSettingsChanged = (cb: (key: string, value: unknown, currentSettings: Record<string, unknown>) => void) => {
     win.PotokSettingsChangedListener = cb;
@@ -617,6 +625,8 @@ export function initPotokSDK(): void {
       if (newConfig) {
         Object.assign(win.PotokSDK.config as Record<string, unknown>, newConfig);
       }
+    } else if (msg.action === 'USER_STATE_CHANGED') {
+      setUserSnapshot(msg.payload as SDKUserSnapshot);
     } else if (msg.action === 'LANGUAGE_CHANGED') {
       win.PotokInitialState = { ...win.PotokInitialState, language: msg.payload?.language };
       handleLanguageChanged(msg.payload || {});

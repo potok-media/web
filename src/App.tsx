@@ -13,6 +13,8 @@ import { AppLayout } from "./components/AppLayout";
 import { WikiDocumentRedirect } from "./pages/WikiDocumentRedirect";
 const HomePage = React.lazy(() => import("./pages/HomePage").then(m => ({ default: m.HomePage })));
 const LibraryPage = React.lazy(() => import("./pages/LibraryPage").then(m => ({ default: m.LibraryPage })));
+const StatusLibraryPage = React.lazy(() => import("./pages/StatusLibraryPage").then(m => ({ default: m.StatusLibraryPage })));
+const LibraryFolderPage = React.lazy(() => import("./pages/LibraryFolderPage").then(m => ({ default: m.LibraryFolderPage })));
 const SearchPage = React.lazy(() => import("./pages/SearchPage").then(m => ({ default: m.SearchPage })));
 const CalendarPage = React.lazy(() => import("./pages/CalendarPage").then(m => ({ default: m.CalendarPage })));
 const ProfilePage = React.lazy(() => import("./pages/ProfilePage").then(m => ({ default: m.ProfilePage })));
@@ -45,11 +47,14 @@ export const App: React.FC = () => {
                         <Route path="search" element={<SearchPage />} />
                         <Route path="calendar" element={<CalendarPage />} />
                         <Route path="profile" element={<ProfilePage />} />
+                        <Route path="profile/:section" element={<ProfilePage />} />
                         <Route path="settings" element={<SettingsPage />} />
                         <Route path="extensions/:tab" element={<ExtensionPage />} />
                         <Route path="media/p/:potokId" element={<MediaArmDetailsPage />} />
                         <Route path="media/:mediaType/:id" element={<MediaDetailsPage />} />
                         <Route path="media/:mediaType/:id/watch/:tab?" element={<MediaStreamsPage />} />
+                        <Route path="library/planned" element={<StatusLibraryPage status="planned" titleKey="library.tabs.planned" />} />
+                        <Route path="library/folder/:folderId" element={<LibraryFolderPage />} />
                         <Route path="library/:collectionType" element={<LibraryPage />} />
                         <Route path="actor/:id" element={<ActorPage />} />
                         <Route path="watch-together" element={<WatchTogetherPage />} />

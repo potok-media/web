@@ -80,7 +80,8 @@
   border: var(--glass-border);
   border-radius: 1.25rem;
   padding: var(--space-xl);
-  max-width: 36.25rem;
+  /* 52rem matches the settings content column — the profile shell is as wide as Settings. */
+  max-width: 52rem;
   width: 100%;
   margin: 0 auto;
 }
@@ -183,12 +184,16 @@
 }
 
 .profile-container {
-  padding: 3rem;
+  /* Same shell width/padding as the Settings page (69rem + --space-xl). */
+  padding: var(--space-xl);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: var(--space-l);
   width: 100%;
+  max-width: 69rem;
+  margin: var(--space-m) auto 0;
+  box-sizing: border-box;
 }
 
 .profile-header-wrap {
@@ -196,7 +201,7 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-width: 36.25rem;
+  max-width: 52rem;
   margin: 0 auto;
 }
 
@@ -235,7 +240,7 @@
   display: flex;
   justify-content: flex-start;
   width: 100%;
-  max-width: 36.25rem;
+  max-width: 52rem;
   margin: 0 auto;
   padding-bottom: 0.5rem;
 }
@@ -1303,4 +1308,65 @@
 
 .profile-slot-gap {
   margin-bottom: 0.5rem;
+}
+
+
+/* ==========================================================================
+   Profile tabs (Аккаунт / statuses / История) + status grids + history rows
+   ========================================================================== */
+
+.profile-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-s);
+  width: 100%;
+  max-width: 52rem;
+  margin: 0 auto;
+}
+
+.profile-section {
+  width: 100%;
+}
+
+.profile-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  width: 100%;
+  max-width: 52rem;
+  margin: 0 auto;
+}
+
+.profile-history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-m);
+  padding: var(--space-s) var(--space-m);
+  background: var(--bg-surface-high);
+  border: var(--glass-border);
+  border-radius: var(--radius-m);
+}
+
+.profile-history-row-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  min-width: 0;
+}
+
+.profile-history-kind {
+  font: var(--font-body-bold);
+  color: var(--text-primary);
+}
+
+.profile-history-meta {
+  font: var(--font-caption);
+  color: var(--text-secondary);
+}
+
+.profile-history-date {
+  font: var(--font-caption);
+  color: var(--text-secondary);
+  flex-shrink: 0;
 }

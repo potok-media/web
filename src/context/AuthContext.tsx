@@ -5,6 +5,8 @@ import type { PotokUser } from "../network/ApiTypes";
 import { AuthApiClient } from "../network/AuthApiClient";
 import { logger } from "../utils/logger";
 import { useSettings } from "./SettingsContext";
+import { setUserSnapshot } from "../sdk/src/user";
+import type { SDKUserSnapshot } from "../sdk/src/types";
 
 export interface AuthContextType {
   potokToken: string | null;
@@ -99,6 +101,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSyncStrategyState("none");
     setTraktConnectedState(false);
   }, []);
+
+  // Feeds the PotokSDK.user store (plugins + host code branch on it). Dry identity only —
+  // tokens never leave AuthContext.
+  useEffect(() => {
+    const snapshot: SDKUserSnapshot = potokToken && potokUser
+      ? { isAuth: true, id: potokUser.id ?? null, username: potokUser.username }
+      : { isAuth: false, id: null, username: null };
+    setUserSnapshot(snapshot);
+  }, [potokToken, potokUser]);
 
   useEffect(() => {
     if (!potokToken) return;

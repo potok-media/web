@@ -7,6 +7,7 @@ import { computeHostStrings } from "../../utils/extensions/pluginSandbox/pluginS
 import { getScopedLocalStorage } from "../../utils/extensions/pluginSandbox/pluginSandboxScopedStorage";
 import { loadActiveExtensions } from "../../utils/extensions/pluginSandbox/pluginSandboxMessageBridge";
 import { removePluginHostCss } from "../../utils/extensions/pluginSandbox/pluginSandboxHostCss";
+import { getUserSnapshot } from "../../sdk/src/user";
 import type { ConnectionProfile } from "../../network/ApiTypes";
 
 interface UsePluginSandboxExtensionLifecycleParams {
@@ -41,6 +42,7 @@ export function usePluginSandboxExtensionLifecycle({
         window.location.origin,
         i18n.language,
         computeHostStrings(i18n.language),
+        getUserSnapshot(),
       ),
     [activeProfile],
   );

@@ -1,6 +1,7 @@
 import potokSdkRaw from "../../../public/sdk/potok-sdk.js?raw";
 import { Storage } from "../StorageService";
 import type { PluginConfigPayload, RegisteredExtension, ConnectionProfile } from "./extensionHostTypes";
+import type { SDKUserSnapshot } from "../../sdk/src/types";
 
 // Lets a locally-served dev plugin use `import { PotokSDK } from 'potok-sdk'` without a bundler: the
 // bare specifier is mapped (via <script type="importmap">) to a tiny shim module served by our own
@@ -31,6 +32,7 @@ export const createIframeHtml = (
   hostOrigin: string,
   language?: string,
   hostStrings?: Record<string, unknown>,
+  user?: SDKUserSnapshot,
 ): string => {
   const normalizedDirUrl = normalizeUrl(ext.url);
   const baseUrl = normalizedDirUrl.endsWith("/") ? normalizedDirUrl : `${normalizedDirUrl}/`;
@@ -108,7 +110,8 @@ export const createIframeHtml = (
           localStorage: ${JSON.stringify(scopedStorage)},
           hostOrigin: ${JSON.stringify(hostOrigin)},
           language: ${JSON.stringify(language || "en")},
-          hostStrings: ${JSON.stringify(hostStrings || {})}
+          hostStrings: ${JSON.stringify(hostStrings || {})},
+          user: ${JSON.stringify(user ?? null)}
         };
       </script>
       <script>

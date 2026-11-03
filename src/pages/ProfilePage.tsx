@@ -1,64 +1,28 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { RefreshCw } from "lucide-react";
-import { AuthApiClient } from "../network/AuthApiClient";
-import { useHUD } from "../context/useHUD";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AppSettingsContext";
-import { useIsMobile } from "../hooks/useIsMobile";
-import { useTraktAuth } from "../hooks/useTraktAuth";
-import { SyncStrategySelectionView } from "../components/profile/SyncStrategySelectionView";
-import { ServerSyncActiveView } from "../components/profile/ServerSyncActiveView";
-import { TraktDeviceAuthView } from "../components/profile/TraktDeviceAuthView";
-import { TraktActiveView } from "../components/profile/TraktActiveView";
+import { Chip } from "../components/ui";
 import { PotokAuthView } from "../components/profile/PotokAuthView";
-import { ProfileHeader } from "../components/profile/ProfileHeader";
-import { ProfileSyncStrategyControls } from "../components/profile/ProfileSyncStrategyControls";
-import { TraktConnectCard } from "../components/profile/TraktConnectCard";
-import { ProfileMobileExtensions } from "../components/profile/ProfileMobileExtensions";
+import { ProfileAccountSection } from "../components/profile/ProfileAccountSection";
+import { ProfileStatusSection } from "../components/profile/ProfileStatusSection";
+import { ProfileHistorySection } from "../components/profile/ProfileHistorySection";
+import type { TitleStatus } from "../utils/userData";
 import "../styles/profile.css";
-import { Button } from "../components/ui";
+
+const STATUS_SECTIONS: TitleStatus[] = ["watching", "planned", "completed", "on_hold", "dropped"];
+
+const SECTION_IDS = ["account", ...STATUS_SECTIONS, "history"] as const;
+type SectionId = (typeof SECTION_IDS)[number];
+
+const isSectionId = (value: string | undefined): value is SectionId =>
+  !!value && (SECTION_IDS as readonly string[]).includes(value);
 
 export const ProfilePage: React.FC = () => {
   const { t } = useTranslation("profile");
-  const { show: showHUD } = useHUD();
-  const {
-    potokToken,
-    potokUser,
-    login,
-    logout,
-    syncStrategy,
-    traktConnected,
-    setSyncStrategy,
-  } = useAuth();
-
-  const isMobile = useIsMobile();
-  const {
-    traktProfile,
-    deviceCode,
-    loadingTrakt,
-    startTraktAuth,
-    handleTraktLogout,
-    setDeviceCode,
-    copyToClipboard,
-    clearTraktState,
-  } = useTraktAuth(syncStrategy);
-
-  const handlePotokLogout = () => {
-    logout();
-    clearTraktState();
-    showHUD("info", t("hud.loggedOut"));
-  };
-
-  const selectStrategy = async (strategy: string) => {
-    setSyncStrategy(strategy);
-    if (potokToken) {
-      try {
-        await AuthApiClient.updateSyncStrategy(strategy);
-      } catch {
-        showHUD("error", t("hud.strategyUpdateFailed"));
-      }
-    }
-  };
+  const { potokToken, login } = useAuth();
+  const { section } = useParams<{ section: string }>();
+  const navigate = useNavigate();
 
   if (!potokToken) {
     return (
@@ -70,62 +34,36 @@ export const ProfilePage: React.FC = () => {
     );
   }
 
+  const activeSection: SectionId = isSectionId(section) ? section : "account";
+
   return (
     <div className="profile-container">
-      <ProfileHeader
-        username={potokUser?.username}
-        syncStrategy={syncStrategy}
-        onLogout={handlePotokLogout}
-      />
+      <nav className="profile-tabs" aria-label={t("page.title")}>
+        {SECTION_IDS.map((id) => (
+          <Chip
+            key={id}
+            active={activeSection === id}
+            onClick={() => navigate(id === "account" ? "/profile" : `/profile/${id}`)}
+            className="profile-tab-chip"
+          >
+            {t(`page.tabs.${id}`)}
+          </Chip>
+        ))}
+      </nav>
 
-      <ProfileSyncStrategyControls
-        syncStrategy={syncStrategy}
-        isMobile={isMobile}
-        traktConnected={traktConnected}
-        onSelectStrategy={selectStrategy}
-        onStartTraktAuth={startTraktAuth}
-      />
-
-      {syncStrategy === "localDevice" && (
-        <div className="strategy-card-wrapper profile-warning-card">
-          <h3 className="profile-warning-title">{t("page.localWarning.title")}</h3>
-          <p className="profile-warning-text">
-            {t("page.localWarning.text")}
-          </p>
-          <div className="profile-warning-buttons">
-            <Button variant="accent" className="profile-btn-caption-bold" onClick={() => selectStrategy("server")}>{t("page.localWarning.serverButton")}</Button>
-            <Button variant="glass" className="profile-btn-caption-bold" onClick={() => { selectStrategy("trakt"); startTraktAuth(); }}>{t("page.localWarning.traktButton")}</Button>
-          </div>
+      {activeSection === "account" ? (
+        <div className="profile-section">
+          <ProfileAccountSection />
+        </div>
+      ) : STATUS_SECTIONS.includes(activeSection as TitleStatus) ? (
+        <div className="profile-section">
+          <ProfileStatusSection status={activeSection as TitleStatus} />
+        </div>
+      ) : (
+        <div className="profile-section">
+          <ProfileHistorySection />
         </div>
       )}
-
-      {(syncStrategy === "none" || syncStrategy === "localDevice") && (
-        <SyncStrategySelectionView onSelectStrategy={selectStrategy} onStartTraktAuth={startTraktAuth} />
-      )}
-
-      {syncStrategy === "trakt" && (
-        <>
-          {traktConnected && traktProfile ? (
-            <TraktActiveView traktProfile={traktProfile} onLogout={handleTraktLogout} />
-          ) : deviceCode ? (
-            <TraktDeviceAuthView
-              deviceCode={deviceCode}
-              onCancel={() => setDeviceCode(null)}
-              onCopyCode={() => copyToClipboard(deviceCode.user_code)}
-            />
-          ) : traktConnected && loadingTrakt ? (
-            <div className="profile-loading-wrap">
-              <RefreshCw className="spin profile-loading-spinner" size="2rem" />
-            </div>
-          ) : (
-            <TraktConnectCard loadingTrakt={loadingTrakt} onConnect={startTraktAuth} />
-          )}
-        </>
-      )}
-
-      {syncStrategy === "server" && <ServerSyncActiveView />}
-
-      {isMobile && <ProfileMobileExtensions />}
     </div>
   );
 };

@@ -16,6 +16,13 @@ export const CATEGORY_MAP: Record<string, { title: string; endpoint: string; ico
     emptyText: "categories.watchlist.empty",
     emptySub: "categories.watchlist.emptySub",
   },
+  "planned": {
+    title: "library.tabs.planned",
+    endpoint: "planned",
+    icon: Bookmark,
+    emptyText: "categories.watchlist.empty",
+    emptySub: "categories.watchlist.emptySub",
+  },
   "favorites": {
     title: "categories.favorites.title",
     endpoint: "favorites",

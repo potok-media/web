@@ -6,6 +6,8 @@ import { logger } from "../../utils/logger";
 import { computeHostStrings } from "../../utils/extensions/pluginSandbox/pluginSandboxHostStrings";
 import { getScopedLocalStorage } from "../../utils/extensions/pluginSandbox/pluginSandboxScopedStorage";
 import { buildPluginConfigPayload } from "../../utils/extensions/pluginSandbox/pluginSandboxProfileConfig";
+import { getUserSnapshot, onUserChange } from "../../sdk/src/user";
+import type { SDKUserSnapshot } from "../../sdk/src/types";
 import type { ConnectionProfile } from "../../network/ApiTypes";
 import type { HUDType } from "../../context/hudContextState";
 
@@ -104,4 +106,17 @@ export function usePluginSandboxHostEffects({
       );
     }
   }, [language, activeExtensions, iframeRefs]);
+
+  useEffect(() => {
+    const broadcast = (user: SDKUserSnapshot) => {
+      for (const [, iframe] of iframeRefs.current.entries()) {
+        iframe.contentWindow?.postMessage(
+          { source: "potok-host", action: "USER_STATE_CHANGED", payload: user },
+          "*",
+        );
+      }
+    };
+    broadcast(getUserSnapshot());
+    return onUserChange(broadcast);
+  }, [iframeRefs]);
 }

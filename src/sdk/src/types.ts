@@ -1,6 +1,16 @@
 // SDK Isolated DTO and schema type definitions
 import type { TvEpisode } from "../../network/ApiTypes";
 
+/**
+ * Dry user identity exposed to plugins via PotokSDK.user. Intentionally carries no tokens or
+ * other secrets — plugins branch on isAuth/id/username only.
+ */
+export interface SDKUserSnapshot {
+  isAuth: boolean;
+  id: string | null;
+  username: string | null;
+}
+
 export type SDKArmFillerStatus = "canon" | "filler" | "mixed" | "recap";
 
 /** Filler verdict attached to a layout episode; canon renders no badge. */

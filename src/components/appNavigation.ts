@@ -56,8 +56,8 @@ export const APP_NAVIGATION_ITEMS = [
   },
   {
     id: "watchlist",
-    to: "/library/watchlist",
-    labelKey: "watchlist",
+    to: "/library/planned",
+    labelKey: "planned",
     icon: Bookmark,
     group: "library",
     end: true,
