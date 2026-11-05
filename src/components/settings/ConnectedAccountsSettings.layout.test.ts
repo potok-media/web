@@ -30,6 +30,25 @@ describe("ConnectedAccountsSettings layout", () => {
     expect(component).toContain("closeTraktModal");
   });
 
+  it("collects the Trakt account actions behind a MoreHorizontal popover", () => {
+    expect(component).toContain("MoreHorizontal");
+    expect(component).toContain("popover-wrapper-relative");
+    expect(component).toContain("popover-dropdown-menu-positioned");
+    expect(component).toContain('aria-label={t("account.traktActions")}');
+    expect(component).toContain("connected-accounts-menu__item--danger");
+    expect(component).toContain("traktMenuOpen");
+    expect(component).toContain("Escape");
+    // Unified transfer UX: export, import (opens the wipe modal), divider, unlink.
+    expect(component).toContain('t("account.traktExport")');
+    expect(component).toContain('t("account.traktImport")');
+    expect(component).toContain("connected-accounts-menu__divider");
+    expect(component).toContain("handleExport");
+    expect(component).toContain("handleImport");
+    expect(component).toContain("traktStartAllExport");
+    expect(component).toContain("traktStartAllImport");
+    expect(component).toContain("traktAllTransferStatus");
+  });
+
   it("stacks account actions below their descriptions on narrow screens", () => {
     expect(styles).toContain("@media (max-width: 640px)");
     expect(styles).toContain("grid-column: 2;");

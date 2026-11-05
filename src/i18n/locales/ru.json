@@ -120,7 +120,23 @@
       "traktLinkDesc": "Не привязан · история и списки Trakt.tv не синхронизируются",
       "traktModalTitle": "Привязать Trakt.tv",
       "traktPreparing": "Получаем код авторизации...",
-      "traktCodeUnavailable": "Не удалось получить код авторизации Trakt.tv"
+      "traktCodeUnavailable": "Не удалось получить код авторизации Trakt.tv",
+      "traktExport": "Экспорт в Trakt",
+      "traktImport": "Импорт из Trakt",
+      "traktImportTitle": "Импорт истории из Trakt",
+      "traktImportDesc": "История просмотров Trakt будет добавлена в вашу историю Potok. Элементы без привязки к каталогу будут пропущены.",
+      "traktImportWipe": "Сначала удалить мою текущую историю Potok",
+      "traktImportWipeWarning": "Вся локальная история просмотров будет безвозвратно заменена историей Trakt.",
+      "traktImportConfirm": "Импортировать",
+      "traktImportCancel": "Отмена",
+      "traktTransferFailed": "Не удалось выполнить операцию с Trakt",
+      "traktNotConnected": "Trakt не подключён",
+      "traktActions": "Действия Trakt",
+      "traktExportStarted": "Экспорт истории в Trakt запущен",
+      "traktImportStarted": "Импорт истории из Trakt запущен",
+      "traktTransferRunning": "Операция с историей Trakt уже выполняется",
+      "traktTransferTimeout": "Импорт/экспорт Trakt ещё выполняется — статус появится позже",
+      "traktTransferDone": "Готово. История: {{history}} (пропущено {{historySkipped}}, ошибок {{historyErrors}}); вотчлист: фильмов {{watchlistMovies}}, сериалов {{watchlistShows}}, пропущено {{watchlistSkipped}}; избранное: фильмов {{favoritesMovies}}, сериалов {{favoritesShows}}"
     },
     "profiles": {
       "errorEmptyGateway": "Введите адрес шлюза",
@@ -895,7 +911,8 @@
       "codeExpired": "Срок действия кода истек",
       "traktDisconnected": "Trakt.tv отключен",
       "codeCopied": "Код скопирован",
-      "sourceUnavailable": "Источник недоступен: плагин \"{{name}}\" не установлен"
+      "sourceUnavailable": "Источник недоступен: плагин \"{{name}}\" не установлен",
+      "codeDenied": "Доступ к Trakt отклонён. Начните подключение заново."
     },
     "traktDeviceAuth": {
       "title": "Активация устройства",

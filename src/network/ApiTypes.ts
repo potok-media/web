@@ -292,6 +292,36 @@ export interface TraktProfile {
   ratingsCount: number;
 }
 
+export interface TraktHistoryTransferResult {
+  exported?: number;
+  imported?: number;
+  skipped: number;
+  errors: number;
+}
+
+export interface TraktListTransferResult {
+  movies: number;
+  shows: number;
+  skipped: number;
+  errors: number;
+}
+
+export interface TraktHistoryTransferStatus {
+  status: "idle" | "running" | "done" | "error";
+  kind: "export" | "import" | null;
+  exportResult?: { exported: number; skipped: number; errors: number } | null;
+  importResult?: {
+    imported: number;
+    skipped: number;
+    errors: number;
+    skippedNoTmdb: number;
+    skippedEpisodeNotInLayout: number;
+  } | null;
+  listsResult?: { watchlist: TraktListTransferResult; favorites: TraktListTransferResult } | null;
+  error?: string | null;
+  finishedAt?: string | null;
+}
+
 export interface DeviceCodeResponse {
   device_code: string;
   user_code: string;

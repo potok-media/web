@@ -38,11 +38,21 @@ export function useTraktAuth() {
       }
     } catch (err: unknown) {
       if (!(err instanceof ApiError)) return;
-      if (POLL_PENDING_STATUSES.has(err.status)) return;
-      if (POLL_EXPIRED_STATUSES.has(err.status)) {
+      // Trakt verdicts ride in the 400 body: authorization_pending (keep polling),
+      // expired_token (code timed out) / access_denied (user declined) — stop and say so.
+      if (err.message === "authorization_pending") return;
+      if (err.message === "expired_token" || POLL_EXPIRED_STATUSES.has(err.status)) {
         setDeviceCode(null);
         showHUD("error", t("hud.codeExpired"));
+        return;
       }
+      if (err.message === "access_denied") {
+        setDeviceCode(null);
+        showHUD("error", t("hud.codeDenied"));
+        return;
+      }
+      // Unrecognized 400/429 (e.g. a proxy hiccup): keep polling as before.
+      if (POLL_PENDING_STATUSES.has(err.status)) return;
     }
   };
 

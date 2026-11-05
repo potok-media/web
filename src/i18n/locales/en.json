@@ -120,7 +120,23 @@
       "traktLinkDesc": "Not connected · Trakt.tv history and lists are not synchronized",
       "traktModalTitle": "Connect Trakt.tv",
       "traktPreparing": "Getting an authorization code...",
-      "traktCodeUnavailable": "Could not get a Trakt.tv authorization code"
+      "traktCodeUnavailable": "Could not get a Trakt.tv authorization code",
+      "traktExport": "Export to Trakt",
+      "traktImport": "Import from Trakt",
+      "traktImportTitle": "Import history from Trakt",
+      "traktImportDesc": "Your Trakt play history will be added to your Potok history. Items without a catalog mapping will be skipped.",
+      "traktImportWipe": "First delete my current Potok history",
+      "traktImportWipeWarning": "All local watch history will be permanently replaced with your Trakt history.",
+      "traktImportConfirm": "Import",
+      "traktImportCancel": "Cancel",
+      "traktTransferFailed": "Trakt operation failed",
+      "traktNotConnected": "Trakt is not connected",
+      "traktActions": "Trakt actions",
+      "traktExportStarted": "History export to Trakt started",
+      "traktImportStarted": "History import from Trakt started",
+      "traktTransferRunning": "A Trakt history transfer is already running",
+      "traktTransferTimeout": "The Trakt transfer is still running — check back later",
+      "traktTransferDone": "Done. History: {{history}} (skipped {{historySkipped}}, errors {{historyErrors}}); watchlist: {{watchlistMovies}} movies, {{watchlistShows}} shows, {{watchlistSkipped}} skipped; favorites: {{favoritesMovies}} movies, {{favoritesShows}} shows"
     },
     "profiles": {
       "errorEmptyGateway": "Enter a gateway address",
@@ -877,7 +893,8 @@
       "codeExpired": "The code has expired",
       "traktDisconnected": "Trakt.tv disconnected",
       "codeCopied": "Code copied",
-      "sourceUnavailable": "Source unavailable: the plugin \"{{name}}\" is not installed"
+      "sourceUnavailable": "Source unavailable: the plugin \"{{name}}\" is not installed",
+      "codeDenied": "Trakt access was denied. Start the connection again."
     },
     "traktDeviceAuth": {
       "title": "Device activation",
