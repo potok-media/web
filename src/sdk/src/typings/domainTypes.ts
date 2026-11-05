@@ -428,6 +428,6 @@ export const domainTypesDts = `
     saveFileOverride?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number }, fileId: string, season: number, episode: number, mode: 'anchor' | 'pin'): Promise<void>;
     clearFileOverride?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number }, fileId: string): Promise<void>;
     saveEpisodeBinding?(stream: SDKRawStreamPayload, context: { type: 'movie' | 'tv'; tmdbId: number; workId?: string; entryId?: string; episodeId?: string }, override: SDKEpisodeBindingOverride): Promise<void>;
-    getPlaybackInfo(stream: SDKRawStreamPayload, episode?: SDKStreamEpisode, context?: { type: 'movie' | 'tv'; tmdbId: number; workId?: string; entryId?: string; episodeId?: string; season?: number; episode?: number }): Promise<SDKPlaybackInfo>;
+    getPlaybackInfo(payload: { stream: SDKRawStreamPayload; episode?: SDKStreamEpisode; context?: { type: 'movie' | 'tv'; tmdbId: number; workId?: string; entryId?: string; episodeId?: string; season?: number; episode?: number }; episodes?: SDKStreamEpisode[]; activeEpisodeId?: string }): Promise<SDKPlaybackInfo>;
   }
 `;

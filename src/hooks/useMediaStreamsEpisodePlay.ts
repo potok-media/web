@@ -222,7 +222,7 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
       ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(
         activeSource.pluginId,
         "STREAM_SOURCE_GET_PLAYBACK_INFO",
-        { stream: clickedStream, episode: ep, context },
+        { stream: clickedStream, episode: ep, context, episodes: episodeSelectorData?.episodes, activeEpisodeId: ep.id },
       )
         .then((info) => {
           if (generation !== selectionGeneration.current) return;

@@ -79,7 +79,15 @@ export function useWebMediaPlayerInteraction({
     setSeekPreview,
   });
 
-  usePlayerKeyboardControls({ videoRef, handleSeekBy, handleClose, handleUserActivity });
+  const { togglePictureInPicture } = core.pictureInPicture;
+
+  usePlayerKeyboardControls({
+    videoRef,
+    handleSeekBy,
+    handleClose,
+    handleUserActivity,
+    onTogglePictureInPicture: togglePictureInPicture,
+  });
 
   const { showSpinner, resetSpinner } = usePlayerBufferingSpinner(isBuffering);
   const resume = usePlayerResumeToast(playback, metadata.isMetadataLoading);

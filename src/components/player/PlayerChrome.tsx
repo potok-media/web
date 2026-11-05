@@ -27,6 +27,9 @@ interface PlayerChromeProps {
   onToggleStats: () => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
+  isPictureInPicture: boolean;
+  isPictureInPictureSupported: boolean;
+  onTogglePictureInPicture: () => void;
   onClose: () => void;
   seekOffset: number;
   seekPreview: number | null;
@@ -74,6 +77,9 @@ export const PlayerChrome: React.FC<PlayerChromeProps> = ({
   onToggleStats,
   isFullscreen,
   onToggleFullscreen,
+  isPictureInPicture,
+  isPictureInPictureSupported,
+  onTogglePictureInPicture,
   onClose,
   seekOffset,
   seekPreview,
@@ -160,6 +166,9 @@ export const PlayerChrome: React.FC<PlayerChromeProps> = ({
       onToggleStats={onToggleStats}
       isFullscreen={isFullscreen}
       onToggleFullscreen={onToggleFullscreen}
+      isPictureInPicture={isPictureInPicture}
+      isPictureInPictureSupported={isPictureInPictureSupported}
+      onTogglePictureInPicture={onTogglePictureInPicture}
       audioTracks={audioTracks}
       currentAudioTrack={currentAudioTrack}
       onSelectAudioTrack={onSelectAudioTrack}

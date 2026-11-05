@@ -5,6 +5,7 @@ interface KeyboardControlsParams {
   handleSeekBy: (delta: number) => void;
   handleClose: () => void;
   handleUserActivity: () => void;
+  onTogglePictureInPicture: () => void;
 }
 
 export function usePlayerKeyboardControls({
@@ -12,6 +13,7 @@ export function usePlayerKeyboardControls({
   handleSeekBy,
   handleClose,
   handleUserActivity,
+  onTogglePictureInPicture,
 }: KeyboardControlsParams) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -47,11 +49,15 @@ export function usePlayerKeyboardControls({
         } else {
           handleClose();
         }
+      } else if (e.key === "p" || e.key === "P") {
+        e.preventDefault();
+        onTogglePictureInPicture();
+        handleUserActivity();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [videoRef, handleSeekBy, handleClose, handleUserActivity]);
+  }, [videoRef, handleSeekBy, handleClose, handleUserActivity, onTogglePictureInPicture]);
 }

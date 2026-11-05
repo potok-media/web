@@ -21,6 +21,7 @@ export function useWebMediaPlayerBindings(params: UseWebMediaPlayerBindingsParam
     setVolume: core.setVolume,
     isMuted: core.isMuted,
     setIsMuted: core.setIsMuted,
+    pictureInPicture: core.pictureInPicture,
     ...interaction,
   };
 }

@@ -60,7 +60,8 @@ export function setupPlaylistBridge({
         title: item.title,
         url: item.streamUrl,
         providerId: item.providerId,
-        audios: [],
+        voice: item.voice,
+        audios: item.audios ?? [],
       };
       const nextInfo = await ExtensionRegistry.sendSandboxRequest<PlaybackInfo>(
         src.pluginId,

@@ -4,6 +4,7 @@ import {
   Maximize,
   Minimize,
   Activity,
+  PictureInPicture,
   Settings,
   ListVideo,
   Airplay,
@@ -28,6 +29,9 @@ interface PlayerUtilityControlsProps {
   onToggleStats: () => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
+  isPictureInPicture: boolean;
+  isPictureInPictureSupported: boolean;
+  onTogglePictureInPicture: () => void;
   audioTracks: TrackItem[];
   currentAudioTrack: number;
   onSelectAudioTrack: (id: number) => void;
@@ -58,6 +62,9 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
   onToggleStats,
   isFullscreen,
   onToggleFullscreen,
+  isPictureInPicture,
+  isPictureInPictureSupported,
+  onTogglePictureInPicture,
   audioTracks,
   currentAudioTrack,
   onSelectAudioTrack,
@@ -187,6 +194,21 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
           onSelectQualityLevel={onSelectQualityLevel}
         />
       </div>
+
+      {isPictureInPictureSupported && (
+        <IconButton
+          className={cx("control-icon-btn", isPictureInPicture && "active-accent")}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onTogglePictureInPicture();
+          }}
+          title={t("controls.pip")}
+          aria-label={t("controls.pip")}
+        >
+          <PictureInPicture size="1.125rem" />
+        </IconButton>
+      )}
 
       <IconButton
         className="control-icon-btn"

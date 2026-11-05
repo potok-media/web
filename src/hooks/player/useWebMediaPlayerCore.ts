@@ -10,6 +10,7 @@ import { useSubtitlesOctopus } from "../useSubtitlesOctopus";
 import { usePlayerMenus } from "../usePlayerMenus";
 import { usePlayerVolumePrefs } from "./usePlayerVolumePrefs";
 import { useStreamRefresh } from "./useStreamRefresh";
+import { usePlayerPictureInPicture } from "./usePlayerPictureInPicture";
 import { usePlayback } from "../../context/PlaybackContext";
 import type { AudioPreference } from "../../utils/hls/audioPreference";
 import { resolvePlaybackDuration } from "../../utils/playerTimeline";
@@ -187,6 +188,8 @@ export function useWebMediaPlayerCore({
 
   const { volume, setVolume, isMuted, setIsMuted } = usePlayerVolumePrefs(hls.srcResetCounter, videoRef, videoNode);
 
+  const pictureInPicture = usePlayerPictureInPicture(videoRef, videoNode);
+
   const octopusRef = useSubtitlesOctopus({
     videoRef,
     videoNode,
@@ -217,6 +220,7 @@ export function useWebMediaPlayerCore({
     setVolume,
     isMuted,
     setIsMuted,
+    pictureInPicture,
     isFullscreen,
     toggleFullscreen,
     octopusRef,

@@ -1543,7 +1543,7 @@ export interface DeclarativeStreamSource {
   saveFileOverride?(stream: RawStreamPayload, context: LookupQuery, fileId: string, season: number, episode: number, mode: 'anchor' | 'pin'): Promise<void>;
   clearFileOverride?(stream: RawStreamPayload, context: LookupQuery, fileId: string): Promise<void>;
   saveEpisodeBinding?(stream: RawStreamPayload, context: LookupQuery, override: SDKEpisodeBindingOverride): Promise<void>;
-  getPlaybackInfo(payload: { stream: RawStreamPayload; episode?: StreamEpisode; context?: LookupQuery; episodes?: StreamEpisode[] }): Promise<PlaybackInfo>;
+  getPlaybackInfo(payload: { stream: RawStreamPayload; episode?: StreamEpisode; context?: LookupQuery; episodes?: StreamEpisode[]; activeEpisodeId?: string }): Promise<PlaybackInfo>;
   /** Deferred enrichment (subtitles + duration) fetched AFTER getPlaybackInfo so a slow probe never blocks
    *  player-open. Optional: if absent, the descriptor from getPlaybackInfo is treated as complete. */
   getPlaybackMetadata?(stream: RawStreamPayload, episode?: StreamEpisode, context?: LookupQuery): Promise<PlaybackMetadata>;

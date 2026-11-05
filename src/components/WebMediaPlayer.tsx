@@ -171,6 +171,9 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = (props) => {
         onToggleStats={() => vm.setShowStats(!vm.showStats)}
         isFullscreen={vm.isFullscreen}
         onToggleFullscreen={vm.toggleFullscreen}
+        isPictureInPicture={vm.pictureInPicture.isPictureInPicture}
+        isPictureInPictureSupported={vm.pictureInPicture.isPictureInPictureSupported}
+        onTogglePictureInPicture={vm.pictureInPicture.togglePictureInPicture}
         onClose={vm.handleClose}
         seekOffset={vm.seekOffset}
         seekPreview={vm.seekPreview}

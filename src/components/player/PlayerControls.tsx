@@ -36,6 +36,9 @@ interface PlayerControlsProps {
   onToggleStats: () => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
+  isPictureInPicture: boolean;
+  isPictureInPictureSupported: boolean;
+  onTogglePictureInPicture: () => void;
   audioTracks: TrackItem[];
   currentAudioTrack: number;
   onSelectAudioTrack: (id: number) => void;
@@ -83,6 +86,9 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
   onToggleStats,
   isFullscreen,
   onToggleFullscreen,
+  isPictureInPicture,
+  isPictureInPictureSupported,
+  onTogglePictureInPicture,
   audioTracks,
   currentAudioTrack,
   onSelectAudioTrack,
@@ -195,6 +201,9 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             onToggleStats={onToggleStats}
             isFullscreen={isFullscreen}
             onToggleFullscreen={onToggleFullscreen}
+            isPictureInPicture={isPictureInPicture}
+            isPictureInPictureSupported={isPictureInPictureSupported}
+            onTogglePictureInPicture={onTogglePictureInPicture}
             audioTracks={displayAudioTracks}
             currentAudioTrack={displayCurrentAudio}
             onSelectAudioTrack={onSelectAudioTrack}

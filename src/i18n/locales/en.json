@@ -322,7 +322,8 @@
       "watchTogetherAria": "Start watching together",
       "chatTitle": "Chat",
       "skipFillers": "Skip fillers",
-      "fillerTag": "Filler"
+      "fillerTag": "Filler",
+      "pip": "Picture in picture"
     },
     "playback": {
       "accessRestricted": "Playback access is restricted.",

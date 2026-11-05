@@ -322,7 +322,8 @@
       "watchTogetherAria": "Начать совместный просмотр",
       "chatTitle": "Чат",
       "skipFillers": "Пропускать филлеры",
-      "fillerTag": "Филлер"
+      "fillerTag": "Филлер",
+      "pip": "Открыть в окне"
     },
     "playback": {
       "accessRestricted": "Доступ к воспроизведению ограничен.",
