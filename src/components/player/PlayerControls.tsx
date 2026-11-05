@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { SDKThumbnails } from "../../sdk/src/types";
 import type { PlaylistItem } from "../../context/playbackTypes";
 import { useSkipFillers } from "../../utils/skipFillers";
+import type { SettingsMenuSection } from "../../hooks/usePlayerMenus";
 import { nextPlayableIndex, playlistItemLabel } from "./playlistNavigation";
 import type { ActivePlayback } from "../../context/playbackTypes";
 import { TimelineSlider } from "./TimelineSlider";
@@ -38,21 +39,17 @@ interface PlayerControlsProps {
   audioTracks: TrackItem[];
   currentAudioTrack: number;
   onSelectAudioTrack: (id: number) => void;
-  showAudioMenu: boolean;
-  onToggleAudioMenu: () => void;
   subtitleTracks: TrackItem[];
-  subtitlesLoading?: boolean;
   currentSubtitleTrack: number;
   onSelectSubtitleTrack: (id: number) => void;
-  showSubtitleMenu: boolean;
-  onToggleSubtitleMenu: () => void;
-  onUploadSubtitle?: (file: File) => void;
-  onAddSubtitleUrl?: (url: string) => Promise<void>;
   qualityLevels: TrackItem[];
   currentQualityLevel: number;
   onSelectQualityLevel: (id: number) => void;
-  showQualityMenu: boolean;
-  onToggleQualityMenu: () => void;
+  showSettingsMenu: boolean;
+  settingsMenuSection: SettingsMenuSection;
+  onOpenSettingsMenu: (section?: SettingsMenuSection) => void;
+  onCloseSettingsMenu: () => void;
+  onSettingsMenuSectionChange: (section: SettingsMenuSection) => void;
   playlist?: PlaylistItem[];
   playlistIndex?: number;
   onSelectPlaylistItem?: (index: number) => void;
@@ -89,21 +86,17 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
   audioTracks,
   currentAudioTrack,
   onSelectAudioTrack,
-  showAudioMenu,
-  onToggleAudioMenu,
   subtitleTracks,
-  subtitlesLoading,
   currentSubtitleTrack,
   onSelectSubtitleTrack,
-  showSubtitleMenu,
-  onToggleSubtitleMenu,
-  onUploadSubtitle,
-  onAddSubtitleUrl,
   qualityLevels,
   currentQualityLevel,
   onSelectQualityLevel,
-  showQualityMenu,
-  onToggleQualityMenu,
+  showSettingsMenu,
+  settingsMenuSection,
+  onOpenSettingsMenu,
+  onCloseSettingsMenu,
+  onSettingsMenuSectionChange,
   playlist,
   playlistIndex,
   onSelectPlaylistItem,
@@ -148,7 +141,6 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
 
   const displayAudioTracks = audioTracks.length > 0 ? audioTracks : fallbackAudioTracks;
   const displayCurrentAudio = audioTracks.length > 0 ? currentAudioTrack : -1;
-  const anySubReady = subtitleTracks.some((track) => !track.loading && !track.error);
 
   return (
     <div
@@ -206,21 +198,17 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             audioTracks={displayAudioTracks}
             currentAudioTrack={displayCurrentAudio}
             onSelectAudioTrack={onSelectAudioTrack}
-            showAudioMenu={showAudioMenu}
-            onToggleAudioMenu={onToggleAudioMenu}
             subtitleTracks={subtitleTracks}
-            subtitlesLoading={subtitlesLoading}
             currentSubtitleTrack={currentSubtitleTrack}
             onSelectSubtitleTrack={onSelectSubtitleTrack}
-            showSubtitleMenu={showSubtitleMenu}
-            onToggleSubtitleMenu={onToggleSubtitleMenu}
-            onUploadSubtitle={onUploadSubtitle}
-            onAddSubtitleUrl={onAddSubtitleUrl}
             qualityLevels={qualityLevels}
             currentQualityLevel={currentQualityLevel}
             onSelectQualityLevel={onSelectQualityLevel}
-            showQualityMenu={showQualityMenu}
-            onToggleQualityMenu={onToggleQualityMenu}
+            showSettingsMenu={showSettingsMenu}
+            settingsMenuSection={settingsMenuSection}
+            onOpenSettingsMenu={onOpenSettingsMenu}
+            onCloseSettingsMenu={onCloseSettingsMenu}
+            onSettingsMenuSectionChange={onSettingsMenuSectionChange}
             playlistItems={playlistItems}
             playlistIndex={playlistIndex}
             onSelectPlaylistItem={onSelectPlaylistItem}
@@ -229,7 +217,6 @@ export const PlayerControls: React.FC<PlayerControlsProps> = React.memo(({
             playlistDisabled={episodeDisabled}
             showPlaylistMenu={showPlaylistMenu}
             onTogglePlaylistMenu={onTogglePlaylistMenu}
-            anySubReady={anySubReady}
             playback={playback}
           />
         </div>

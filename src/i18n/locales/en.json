@@ -336,6 +336,13 @@
     },
     "offline": {
       "banner": "Connection lost. Playing from buffer..."
+    },
+    "settings": {
+      "title": "Settings",
+      "quality": "Quality",
+      "audio": "Audio",
+      "subtitles": "Subtitles",
+      "skipFillers": "Skip fillers"
     }
   },
   "streams": {
@@ -584,7 +591,17 @@
       "startSearchSub": "Enter a movie or TV show title to search the database",
       "loadError": "Failed to load the library",
       "nextPageError": "Failed to load the next page",
-      "categoryNotFound": "Category not found"
+      "categoryNotFound": "Category not found",
+      "continuePage": {
+        "emptyTitle": "Nothing in progress",
+        "emptySub": "Start watching — movies and episodes you didn't finish will appear here",
+        "episodesCount": "{{count}} of {{total}}",
+        "episodesCountShort": "{{count}} episodes",
+        "remainingMinutes": "{{count}} min left",
+        "resumeFrom": "resume from {{time}}",
+        "today": "today",
+        "yesterday": "yesterday"
+      }
     },
     "calendar": {
       "filters": {
@@ -753,14 +770,14 @@
       "clear": "— Clear status",
       "set": "Status updated",
       "removed": "Status cleared",
-      "error": "Failed to update status"
+      "error": "Failed to update status",
+      "none": "Set status"
     },
     "folders": {
       "title": "Collections",
       "newPlaceholder": "New collection…",
       "create": "Create",
       "empty": "No collections yet",
-      "itemCount": "{{count}} titles",
       "rename": "Rename",
       "delete": "Delete",
       "deleteConfirm": "Delete collection \"{{name}}\"? Titles in it will not be removed.",
@@ -771,52 +788,47 @@
       "close": "Close",
       "cancel": "Cancel",
       "emptyItems": "This collection is empty",
-      "back": "Back"
+      "back": "Back",
+      "itemCount_one": "{{count}} title",
+      "itemCount_other": "{{count}} titles"
+    },
+    "collections": {
+      "title": "Collections",
+      "favorites": "Favorites",
+      "newFolder": "New collection",
+      "newPlaceholder": "Collection name…",
+      "create": "Create",
+      "empty": "Your collections will appear here — create the first one.",
+      "open": "Open collection \"{{name}}\"",
+      "rename": "Rename",
+      "delete": "Delete",
+      "confirmDelete": "Delete this collection?",
+      "cancel": "Cancel",
+      "itemCount_one": "{{count}} title",
+      "itemCount_other": "{{count}} titles"
+    },
+    "continueWatch": {
+      "title": "Continue watching",
+      "resolving": "Restoring playback…",
+      "opened": "Playback opened",
+      "error": "Failed to restore playback",
+      "empty": "Nothing to resume — start playback from a title card.",
+      "back": "Back to profile",
+      "resuming": "Resuming"
     }
   },
   "profile": {
     "page": {
-      "title": "Profile",
-      "settings": "Settings",
-      "subtitle": "Manage accounts and synchronization",
       "defaultUser": "User",
       "logout": "Log out",
-      "syncLabel": "Synchronization:",
-      "strategyLabel": {
-        "trakt": "Trakt.tv Cloud",
-        "server": "Potok Server",
-        "none": "Synchronization disabled"
-      },
-      "chip": {
-        "off": "Off"
-      },
-      "dropdown": {
-        "none": "Not selected"
-      },
-      "localWarning": {
-        "title": "Local mode is not supported on the web client",
-        "text": "In the browser, the offline cache is unstable and easily wiped. Please switch to Trakt.tv cloud sync or the Potok Server to keep your history safe.",
-        "serverButton": "Sync to server",
-        "traktButton": "Sync with Trakt.tv"
-      },
-      "traktConnect": {
-        "title": "Sync with Trakt.tv",
-        "description": "Connect your account for cloud sync of your history and ratings.",
-        "loading": "Loading...",
-        "connectButton": "Connect account"
-      },
-      "extensions": {
-        "heading": "Your extensions and tools",
-        "subheading": "Quick access to installed plugins"
-      },
       "tabs": {
-        "account": "Account",
         "watching": "Watching",
         "planned": "Planned",
         "completed": "Completed",
         "on_hold": "On hold",
         "dropped": "Dropped",
-        "history": "History"
+        "history": "History",
+        "continue": "Continue"
       },
       "sections": {
         "watching": {
@@ -843,9 +855,17 @@
       "historySection": {
         "empty": "History is empty",
         "emptySub": "Your watch feed will appear here",
-        "episodeLine": "Season {{season}}, episode {{episode}}",
-        "movieLine": "Movie",
-        "loadError": "Failed to load history"
+        "loadError": "Failed to load history",
+        "retry": "Retry",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "seriesLine": "Episode {{episode}}",
+        "filmLine": "movie",
+        "loadMore": "Load more",
+        "loadingMore": "Loading…",
+        "loadMoreError": "Failed to load more",
+        "seriesRangeLine": "Episodes {{from}}–{{to}}",
+        "bingeCountLine": "{{count}} episodes"
       }
     },
     "hud": {
@@ -855,52 +875,8 @@
       "traktConnected": "Trakt.tv connected!",
       "codeExpired": "The code has expired",
       "traktDisconnected": "Trakt.tv disconnected",
-      "codeCopied": "Code copied"
-    },
-    "serverSync": {
-      "syncActive": "Synchronization active",
-      "title": "Potok Server",
-      "description": "All your library data, watch history, and bookmarks are securely stored on your personal Potok server.",
-      "benefits": {
-        "centralized": {
-          "title": "Centralized storage",
-          "description": "History and lists sync across all your clients through your server."
-        },
-        "fullControl": {
-          "title": "Full control",
-          "description": "Your data is stored in your own PostgreSQL database."
-        },
-        "multiUser": {
-          "title": "Multi-user mode",
-          "description": "Support for separate accounts with isolated history and settings."
-        }
-      }
-    },
-    "strategySelection": {
-      "title": "Choose a synchronization method",
-      "description": "Sync your history, watchlist, and ratings across devices, or keep everything on this device.",
-      "trakt": {
-        "title": "Trakt.tv Cloud",
-        "description": "Automatically sync your watch history, progress, and watchlist with the popular Trakt.tv service."
-      },
-      "server": {
-        "title": "Potok Server",
-        "description": "Sync with your personal self-hosted Potok server (PostgreSQL). Full privacy and support for multiple accounts."
-      }
-    },
-    "traktActive": {
-      "connected": "Connected",
-      "disconnect": "Disconnect",
-      "watchTime": {
-        "daysHours": "{{days}}d {{hours}}h",
-        "hours": "{{hours}}h"
-      },
-      "stats": {
-        "moviesWatched": "Movies watched",
-        "episodesWatched": "Episodes watched",
-        "watchTime": "Watch time",
-        "ratingsGiven": "Ratings given"
-      }
+      "codeCopied": "Code copied",
+      "sourceUnavailable": "Source unavailable: the plugin \"{{name}}\" is not installed"
     },
     "traktDeviceAuth": {
       "title": "Device activation",
@@ -932,25 +908,6 @@
       "telegramOpenAgain": "Open Telegram",
       "telegramCancel": "Cancel",
       "telegramExpired": "The code expired. Please try again."
-    },
-    "localSync": {
-      "syncActive": "Synchronization active",
-      "title": "Local mode",
-      "description": "All your library data and watch history are stored exclusively on this device. No network connection required.",
-      "benefits": {
-        "fullyOffline": {
-          "title": "Fully offline",
-          "description": "All your library data and watch history are stored locally."
-        },
-        "absoluteControl": {
-          "title": "Absolute control",
-          "description": "Absolute privacy and security without sending your history to external servers."
-        },
-        "instantResponse": {
-          "title": "Instant response",
-          "description": "Zero network latency when saving your marks, history, and lists."
-        }
-      }
     },
     "hero": {
       "nowWatching": "Continue watching now",
@@ -1001,6 +958,23 @@
     },
     "history": {
       "subtitle": "activity feed"
+    },
+    "continueSection": {
+      "empty": "Nothing to continue yet…",
+      "emptySub": "Start watching a favorite — if you don't finish, it'll be right here"
+    },
+    "activity": {
+      "title": "Activity",
+      "allHistory": "Full history →",
+      "empty": "No activity yet",
+      "loadError": "Failed to load activity"
+    },
+    "statusGrid": {
+      "movie": "movie",
+      "episodeLine": "Episode {{number}}",
+      "remainingMovie": "{{time}} left",
+      "tv": "series",
+      "showMore": "Show {{count}} more"
     }
   },
   "sidebar": {
@@ -1008,6 +982,7 @@
     "expandMenu": "Expand menu",
     "collapseMenu": "Collapse menu",
     "profile": "Profile",
+    "logout": "Log out",
     "home": "Home",
     "library": "Library",
     "upNext": "Up next",
@@ -1025,7 +1000,8 @@
     "statusOffline": "offline",
     "mobileLibrary": "Library",
     "mobileAccount": "Account",
-    "planned": "Planned"
+    "planned": "Planned",
+    "collections": "Collections"
   },
   "extensions": {
     "title": "Extensions",

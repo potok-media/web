@@ -5,6 +5,7 @@ import {
   isEpisodeWatched,
   toBulkEpisodeHistoryRequest,
   toEpisodeHistoryIdentity,
+  toTitleWatchedBulkRequests,
 } from "./episodeHistoryModel";
 
 describe("ARM episode history identity", () => {
@@ -132,5 +133,129 @@ describe("ARM episode history identity", () => {
 
     const removed = applyEpisodeWatchedState(watched, [episode], false);
     expect(removed.progress?.watchedEpisodeIds).toEqual([]);
+  });
+
+  it("counts ARM ids toward the completed total so the watched banner follows id-only rows", () => {
+    const media: MediaCard = {
+      id: 777,
+      title: "Example",
+      mediaType: "tv",
+      progress: { completed: 0, aired: 2, percentage: 0, watchedEpisodes: [] },
+    };
+    const episodes: TvEpisode[] = [
+      {
+        id: "episode-1",
+        name: "One",
+        seasonNumber: 1,
+        episodeNumber: 1,
+        armEpisodeId: "episode-1",
+        armEntryId: "entry-1",
+      },
+      {
+        id: "episode-2",
+        name: "Two",
+        seasonNumber: 1,
+        episodeNumber: 2,
+        armEpisodeId: "episode-2",
+        armEntryId: "entry-1",
+        tmdbSeasonNumber: 1,
+        tmdbEpisodeNumber: 2,
+      },
+    ];
+
+    const watched = applyEpisodeWatchedState(media, episodes, true);
+    // Two ARM episodes; one also carries a TMDB coordinate — the count must not double it.
+    expect(watched.progress?.completed).toBe(2);
+  });
+
+  it("builds a mark-all bulk request keyed by Potok identity with TMDB coordinates only as payload", () => {
+    const media: MediaCard = {
+      id: 777,
+      title: "Example",
+      mediaType: "tv",
+      arm: { workId: "work-1", graphVersion: "graph-1" },
+    };
+    const episodes: TvEpisode[] = [
+      {
+        id: "episode-1",
+        name: "One",
+        seasonNumber: 1,
+        episodeNumber: 1,
+        armEpisodeId: "episode-1",
+        armEntryId: "entry-1",
+        tmdbSeasonNumber: 1,
+        tmdbEpisodeNumber: 1,
+      },
+      {
+        id: "episode-2",
+        name: "Two",
+        seasonNumber: 1,
+        episodeNumber: 2,
+        armEpisodeId: "episode-2",
+        armEntryId: "entry-1",
+      },
+      {
+        id: 99,
+        name: "Legacy only",
+        seasonNumber: 2,
+        episodeNumber: 1,
+      },
+    ];
+
+    const requests = toTitleWatchedBulkRequests(media, episodes, true);
+    expect(requests).toHaveLength(2);
+    expect(requests[0]).toEqual({
+      tmdbId: "777",
+      mediaType: "episode",
+      workId: "work-1",
+      changes: [
+        { seasonNumber: 1, episodeNumber: 1, episodeId: "episode-1", isWatched: true },
+        { episodeId: "episode-2", isWatched: true },
+      ],
+    });
+    expect(requests[1]).toEqual({
+      tmdbId: "777",
+      mediaType: "tv",
+      changes: [{ seasonNumber: 2, episodeNumber: 1, isWatched: true }],
+    });
+  });
+
+  it("clears BOTH identity spaces on unmark-all so no stale row survives a reload", () => {
+    const media: MediaCard = {
+      id: 777,
+      title: "Example",
+      mediaType: "tv",
+      arm: { workId: "work-1", graphVersion: "graph-1" },
+    };
+    const episodes: TvEpisode[] = [
+      {
+        id: "episode-1",
+        name: "One",
+        seasonNumber: 1,
+        episodeNumber: 1,
+        armEpisodeId: "episode-1",
+        armEntryId: "entry-1",
+        tmdbSeasonNumber: 1,
+        tmdbEpisodeNumber: 1,
+      },
+      {
+        id: 99,
+        name: "Legacy only",
+        seasonNumber: 2,
+        episodeNumber: 1,
+      },
+    ];
+
+    const requests = toTitleWatchedBulkRequests(media, episodes, false);
+    expect(requests).toHaveLength(2);
+    // The projected ARM episode is deleted by Potok id AND by TMDB coordinate — rows written by
+    // legacy clients would survive a Potok-keyed delete alone.
+    expect(requests[0].changes).toEqual([
+      { seasonNumber: 1, episodeNumber: 1, episodeId: "episode-1", isWatched: false },
+    ]);
+    expect(requests[1].changes).toEqual([
+      { seasonNumber: 1, episodeNumber: 1, isWatched: false },
+      { seasonNumber: 2, episodeNumber: 1, isWatched: false },
+    ]);
   });
 });

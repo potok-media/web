@@ -38,7 +38,9 @@ export function mergeWatchedEpisodes(
   if (mediaType === "movie") {
     progress.completed = watchState ? 100 : 0;
   } else {
-    progress.completed = watchedEpisodes.length;
+    // Episodes tracked by Potok id and by TMDB coordinate may overlap; take the larger space so
+    // id-only rows (no published TMDB projection) still count toward the title watched state.
+    progress.completed = Math.max(watchedEpisodes.length, watchedEpisodeIds.length);
   }
 
   return { ...prev, progress };

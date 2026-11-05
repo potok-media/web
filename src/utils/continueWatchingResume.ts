@@ -1,6 +1,6 @@
 import type { PlaybackInfo, PlaybackMetadata, StreamEpisode } from "@potok/sdk-types";
 import type { ActivePlayback, PlaylistItem } from "../context/playbackTypes";
-import type { MediaCard } from "../network/ApiTypes";
+import type { ContinueResumePayload, MediaCard } from "../network/ApiTypes";
 import { buildPlaybackFromInfo } from "./mediaStreamsPlayback";
 import type { StreamContext } from "../hooks/mediaStreams/mediaStreamsTypes";
 import type { ContinueWatchingCursor } from "./continueWatching";
@@ -26,8 +26,25 @@ export interface ContinueResumeDeps {
     providerId: string,
     args: { stream: unknown; episode: unknown; context: StreamContext },
   ) => Promise<PlaybackMetadata | null | undefined>;
+  /**
+   * Installed/enabled lookup for the owning plugin (potok_extensions list).
+   * true = available, false = known-missing → abort before any sandbox call,
+   * undefined = inconclusive → attempt the sandbox call and surface its failure instead.
+   */
+  checkPluginAvailability?: (providerId: string) => boolean | undefined;
   playVideo: (playback: ActivePlayback) => void;
   enrichPlayback?: (patch: Partial<ActivePlayback>, match?: { streamHash?: string; fileIndex?: string }) => void;
+}
+
+/** Raised when the saved source's plugin is known to be uninstalled/disabled — resume must not touch the sandbox. */
+export class ResumePluginUnavailableError extends Error {
+  readonly providerId: string;
+
+  constructor(providerId: string) {
+    super(`Source unavailable: the plugin "${providerId}" is not installed`);
+    this.name = "ResumePluginUnavailableError";
+    this.providerId = providerId;
+  }
 }
 
 export interface ResumeEpisodeMatch {
@@ -92,6 +109,20 @@ export function isCardResumable(card: MediaCard): boolean {
 }
 
 /**
+ * Hero eligibility: rows at or past 90% of their duration are "досмотри последние 2 секунды"
+ * noise, not "Сейчас смотрите" material — the episode-level endpoint already excludes them,
+ * and the hero applies the same predicate to its title-level candidates. Rows without a
+ * usable duration cannot be judged and stay eligible.
+ */
+export function isResumeEffectivelyComplete(
+  resume: Pick<ContinueResumePayload, "progressSeconds" | "durationSeconds"> | null | undefined,
+): boolean {
+  const progressSeconds = Number(resume?.progressSeconds) || 0;
+  const durationSeconds = Number(resume?.durationSeconds) || 0;
+  return durationSeconds > 0 && progressSeconds >= durationSeconds * 0.9;
+}
+
+/**
  * Server payload → ledger-shaped cursor so the standard resume path can consume it:
  * torrents resolve through streamHash/fileIndex (file anchor first), online sources through
  * the opaque sourceStream round-trip into the owning plugin sandbox.
@@ -113,8 +144,9 @@ export function resumeCursorFromCard(card: MediaCard): ContinueWatchingCursor | 
     streamHash: lastSource.streamHash,
     fileIndex: lastSource.fileIndex != null ? String(lastSource.fileIndex) : undefined,
     sourceStream: lastSource.sourceStream,
-    season: resume.season,
-    episode: resume.episode,
+    audios: lastSource.audios,
+    season: resume.season ?? undefined,
+    episode: resume.episode ?? undefined,
     progressSeconds: Number(resume.progressSeconds) || 0,
     durationSeconds: Number(resume.durationSeconds) || 0,
     audioName: lastSource.voice,
@@ -145,8 +177,8 @@ export function cardProgressFromResume(card: MediaCard): MediaCard {
       completed: existing?.completed ?? 0,
       aired: existing?.aired ?? 0,
       percentage,
-      lastSeason: existing?.lastSeason ?? resume.season,
-      lastEpisode: existing?.lastEpisode ?? resume.episode,
+      lastSeason: existing?.lastSeason ?? resume.season ?? undefined,
+      lastEpisode: existing?.lastEpisode ?? resume.episode ?? undefined,
       ...(existing?.nextSeason !== undefined ? { nextSeason: existing.nextSeason } : {}),
       ...(existing?.nextEpisode !== undefined ? { nextEpisode: existing.nextEpisode } : {}),
     },
@@ -264,6 +296,18 @@ export async function resumeContinueWatching(
     throw new Error("Continue watching: the saved item has no source plugin to resume from");
   }
   const providerId = cursor.providerId;
+
+  // Online sources (no torrent identity) die inside the plugin sandbox with a raw timeout or
+  // "sandbox not active" when their plugin is gone. With a conclusive registry answer, fail
+  // fast instead and let the host surface a proper "plugin not installed" notification.
+  // An inconclusive lookup (undefined) falls through to the sandbox attempt by design.
+  if (!cursor.streamHash) {
+    const available = deps.checkPluginAvailability?.(providerId);
+    if (available === false) {
+      throw new ResumePluginUnavailableError(providerId);
+    }
+  }
+
   const context: StreamContext = {
     type: cursor.mediaType,
     tmdbId: cursor.tmdbId ?? 0,
@@ -285,15 +329,29 @@ export async function resumeContinueWatching(
   if (!start) throw new Error("Continue watching: no matching episode found");
   const sameFile = cursor.fileIndex != null && String(start.id) === String(cursor.fileIndex);
 
+  // The saved voice is part of the resume context: online sources bake the voice into the
+  // resolved stream, so the resolve request must name it or the plugin returns the default dub.
+  // The stored candidate list (cross-provider merge from the title page) travels with the
+  // request so the plugin can match the voice among ALL candidates and re-resolve through the
+  // candidate's own provider — the resolved PlaybackInfo then carries the full list for the menu.
+  const episodeForResolve = cursor.audioName || cursor.audios
+    ? { ...start, ...(cursor.audioName ? { voice: cursor.audioName } : {}), ...(cursor.audios ? { audios: cursor.audios } : {}) }
+    : start;
   const info = await deps.requestPlaybackInfo(providerId, {
     stream: cursor.sourceStream,
-    episode: start,
+    episode: episodeForResolve,
     context,
     episodes,
   });
   if (!info) throw new Error("Continue watching: the source returned no playback info");
 
   attachResumePlaylistResolver(cursor, context, episodes, deps);
+
+  // Position restore: a file anchor (torrents) only keeps the position when the resolved file
+  // is the same one; coordinate/plugin resumes have no file switch to guard against.
+  const startAt = cursor.fileIndex != null
+    ? (sameFile ? cursor.progressSeconds : 0)
+    : cursor.progressSeconds;
 
   const playlist = buildResumePlaylist(episodes, providerId);
   const playlistIndex = Math.max(0, episodes.indexOf(start));
@@ -315,7 +373,7 @@ export async function resumeContinueWatching(
       playlistIndex,
       sourceStream: cursor.sourceStream,
       stillSrc: sameFile ? cursor.stillSrc : undefined,
-      startAt: sameFile ? cursor.progressSeconds : 0,
+      startAt,
     }),
   );
 }

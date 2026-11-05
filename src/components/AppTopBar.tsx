@@ -1,13 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Search, UserRound, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useAuth } from "../context/AppSettingsContext";
 import { usePlayback } from "../context/PlaybackContext";
 import { useWatchTogether } from "../context/watchTogetherState";
 import { mediaCardLink } from "../utils/mediaLink";
 import { rememberSearch } from "../utils/recentSearches";
 import { AppMenuPopover } from "./AppMenuPopover";
+import { UserMenuPopover } from "./UserMenuPopover";
 import { getTopbarSearchDestination } from "./appTopBarSearchBehavior";
 import { TOPBAR_NAVIGATION_ITEMS } from "./appNavigation";
 import { SearchDropdown } from "./search/SearchDropdown";
@@ -150,14 +151,7 @@ export const AppTopBar: React.FC = React.memo(() => {
             </div>
               </form>
 
-              <NavLink
-                to="/profile"
-                className={({ isActive }) => cx("app-topbar__profile", isActive && "is-active")}
-                title={t("profile")}
-                aria-label={t("profile")}
-              >
-                <UserRound size="1.125rem" />
-              </NavLink>
+              <UserMenuPopover />
             </div>
           </>
         )}

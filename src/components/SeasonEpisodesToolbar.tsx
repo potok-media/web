@@ -22,6 +22,8 @@ interface SeasonEpisodesToolbarProps {
   onOpenMultiPicker?: () => void;
   showAllEpisodes?: boolean;
   onOpenAllEpisodes?: () => void;
+  /** Extra control rendered at the far right of the toolbar row (e.g. episode sort). */
+  trailing?: React.ReactNode;
 }
 
 export const SeasonEpisodesToolbar: React.FC<SeasonEpisodesToolbarProps> = ({
@@ -41,6 +43,7 @@ export const SeasonEpisodesToolbar: React.FC<SeasonEpisodesToolbarProps> = ({
   onOpenMultiPicker,
   showAllEpisodes = false,
   onOpenAllEpisodes,
+  trailing,
 }) => {
   const { t } = useTranslation("media");
   const activeGroup = episodeGroups?.find((group) => group.id === activeGroupId);
@@ -185,6 +188,8 @@ export const SeasonEpisodesToolbar: React.FC<SeasonEpisodesToolbarProps> = ({
           <span>{t("seasons.allEpisodes")}</span>
         </Button>
       )}
+
+      {trailing}
     </div>
   );
 };

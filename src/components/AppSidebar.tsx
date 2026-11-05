@@ -207,6 +207,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = React.memo(
             <Star size="1.125rem" />
             <span>{t("favorites")}</span>
           </SidebarNavLink>
+          {/* «Подборки» скрыты: зависание вкладки при возврате из папки не локализовано (превью, аккаунт с данными). Вернём пункт, когда разберёмся. */}
           <SidebarNavLink
             to="/library/history"
             className={({ isActive }) => getNavLinkClass(isActive, !potokToken ? "disabled" : "")}

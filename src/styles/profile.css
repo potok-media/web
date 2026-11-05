@@ -1,16 +1,3 @@
-.profile-user-card {
-  display: flex;
-  align-items: center;
-  gap: var(--space-s);
-  background: var(--bg-surface-high);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: var(--glass-border);
-  border-radius: var(--radius-m);
-  padding: 0.625rem var(--space-m);
-  box-shadow: var(--shadow-s);
-}
-
 .profile-avatar {
   width: 2.25rem;
   height: 2.25rem;
@@ -194,55 +181,6 @@
   max-width: 69rem;
   margin: var(--space-m) auto 0;
   box-sizing: border-box;
-}
-
-.profile-header-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 52rem;
-  margin: 0 auto;
-}
-
-.profile-hero-title {
-  font: var(--font-hero);
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.profile-subtitle {
-  font: var(--font-body);
-  color: var(--text-secondary);
-  margin-top: 0.25rem;
-  display: block;
-}
-
-.profile-shrink-zero {
-  flex-shrink: 0;
-}
-
-.profile-username-label {
-  font: var(--font-body-bold);
-  color: var(--text-primary);
-  font-size: 0.875rem;
-  line-height: 1.2;
-}
-
-.profile-strategy-label {
-  font: var(--font-caption);
-  color: var(--text-secondary);
-  font-size: 0.6875rem;
-  margin-top: 0.125rem;
-}
-
-.profile-dropdown-wrap {
-  display: flex;
-  justify-content: flex-start;
-  width: 100%;
-  max-width: 52rem;
-  margin: 0 auto;
-  padding-bottom: 0.5rem;
 }
 
 .profile-warning-card {
@@ -1048,18 +986,26 @@
   color: var(--text-primary);
 }
 
-.profile-mobile-settings-btn {
-  display: none;
-}
-
-.profile-mobile-extensions-section {
-  display: none;
-  width: 100%;
-  margin-top: var(--space-xl);
-}
-
 .mobile-only {
   display: none !important;
+}
+
+/* Mobile-only logout at the very bottom of the profile page: the topbar user menu is
+   unreachable below 768px (topbar hidden), so a plain text button is the fallback. */
+.profile-page-logout {
+  align-self: center;
+  margin-top: var(--space-m);
+  background: none;
+  border: none;
+  padding: var(--space-xs) var(--space-s);
+  font: var(--font-caption-bold);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-interactive);
+}
+
+.profile-page-logout:hover {
+  color: var(--error);
 }
 
 /* Premium Segmented Sync Strategy Selector */
@@ -1115,17 +1061,6 @@
     gap: var(--space-m);
   }
 
-  .profile-header-wrap {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-m);
-  }
-
-  .profile-dropdown-wrap {
-    width: 100%;
-    max-width: 100%;
-  }
-
   .strategy-dropdown-container {
     width: 100%;
     justify-content: space-between;
@@ -1144,80 +1079,6 @@
     gap: var(--space-s) !important;
   }
 
-  .profile-warning-buttons {
-    flex-direction: column;
-    width: 100%;
-    gap: 0.5rem;
-  }
-
-  .profile-warning-buttons button {
-    width: 100%;
-    padding: 0.75rem !important;
-  }
-
-  .profile-mobile-settings-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: var(--radius-m);
-    background: var(--bg-surface-high);
-    border: var(--glass-border);
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: var(--transition-interactive);
-  }
-
-  .profile-mobile-settings-btn:hover {
-    background: var(--bg-surface-highest);
-  }
-
-  .profile-mobile-extensions-section {
-    display: block;
-    width: 100%;
-    margin-top: var(--space-l);
-    background: var(--bg-surface-high);
-    border: var(--glass-border);
-    border-radius: var(--radius-l);
-    padding: 1.25rem;
-    box-sizing: border-box;
-  }
-
-  .profile-extensions-heading {
-    font: var(--font-title3);
-    color: var(--text-primary);
-    margin: 0 0 0.25rem 0;
-  }
-
-  .profile-extensions-subheading {
-    font: var(--font-caption);
-    color: var(--text-secondary);
-    margin: 0 0 1rem 0;
-  }
-
-  .profile-extensions-grid-wrapper .sidebar-nav-item {
-    display: flex;
-    align-items: center;
-    background: var(--bg-surface-high);
-    border: var(--glass-border) !important;
-    border-radius: var(--radius-m);
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.5rem;
-    color: var(--text-primary);
-    transition: var(--transition-interactive);
-  }
-
-  .profile-extensions-grid-wrapper .sidebar-nav-item:active {
-    background: var(--bg-surface-highest);
-    transform: scale(0.98);
-  }
-
-  .profile-extensions-grid-wrapper .sidebar-nav-item.active {
-    border-color: var(--accent) !important;
-    background: var(--accent-dim);
-  }
-
   .desktop-only {
     display: none !important;
   }
@@ -1225,13 +1086,6 @@
   .mobile-only {
     display: flex !important;
   }
-}
-
-.profile-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
 }
 
 @media (max-width: 480px) {
@@ -1306,13 +1160,8 @@
   }
 }
 
-.profile-slot-gap {
-  margin-bottom: 0.5rem;
-}
-
-
 /* ==========================================================================
-   Profile tabs (Аккаунт / statuses / История) + status grids + history rows
+   Profile tabs (statuses / История) + status grids + history timeline
    ========================================================================== */
 
 .profile-tabs {
@@ -1328,49 +1177,6 @@
   width: 100%;
 }
 
-.profile-history-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-  width: 100%;
-  max-width: 52rem;
-  margin: 0 auto;
-}
-
-.profile-history-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-m);
-  padding: var(--space-s) var(--space-m);
-  background: var(--bg-surface-high);
-  border: var(--glass-border);
-  border-radius: var(--radius-m);
-}
-
-.profile-history-row-main {
-  display: flex;
-  align-items: center;
-  gap: var(--space-s);
-  min-width: 0;
-}
-
-.profile-history-kind {
-  font: var(--font-body-bold);
-  color: var(--text-primary);
-}
-
-.profile-history-meta {
-  font: var(--font-caption);
-  color: var(--text-secondary);
-}
-
-.profile-history-date {
-  font: var(--font-caption);
-  color: var(--text-secondary);
-  flex-shrink: 0;
-}
-
 /* --- Approved single-scroll profile layout (hero / chart / rail / shelves / history) --- */
 
 .profile-container--scroll {
@@ -1384,10 +1190,6 @@
   min-height: 19rem;
   display: flex;
   flex-direction: column;
-  background: var(--bg-surface-high);
-  border: var(--glass-border);
-  border-radius: var(--radius-l);
-  box-shadow: var(--shadow-s);
 }
 
 .profile-hero-backdrop {
@@ -1407,7 +1209,14 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 0%, RGBA(0, 0, 0, 0.45) 100%);
+  /* The cover art fades into the page background at the bottom; a light top scrim keeps
+     the identity row readable over bright backdrops. */
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.25) 0%,
+    transparent 40%,
+    var(--bg-window) 100%
+  );
   pointer-events: none;
 }
 
@@ -1547,36 +1356,174 @@
   }
 }
 
+/* Episode-level continue rail ("Продолжить просмотр"): episode still + "Серия N" pill +
+   episode name + the owning title in small type, watch-progress bar. The row sizing and the
+   visibility caps mirror the title-card carousel rules in media.css — those target
+   .media-card only, so the episode card declares its own parallel rules. */
+
+.carousel-row .continue-episode-card {
+  --carousel-card-basis: calc(
+    (100% - (var(--carousel-visible-slots) - 1) * var(--space-m)) / var(--carousel-visible-slots)
+  );
+  flex: 0 0 var(--carousel-card-basis);
+  width: var(--carousel-card-basis);
+  max-width: var(--carousel-card-basis);
+  min-width: 0;
+}
+
+.carousel-row .continue-episode-card:nth-child(n+11) {
+  display: none;
+}
+
+@media (max-width: 1919px) {
+  .carousel-row .continue-episode-card:nth-child(n+10) {
+    display: none;
+  }
+}
+
+@media (max-width: 1699px) {
+  .carousel-row .continue-episode-card:nth-child(n+9) {
+    display: none;
+  }
+}
+
+@media (max-width: 1479px) {
+  .carousel-row .continue-episode-card:nth-child(n+8) {
+    display: none;
+  }
+}
+
+@media (max-width: 1279px) {
+  .carousel-row .continue-episode-card:nth-child(n+7) {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .carousel-row .continue-episode-card:nth-child(n+6) {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .carousel-row .continue-episode-card:nth-child(n+5) {
+    display: none;
+  }
+}
+
+@media (max-width: 479px) {
+  .carousel-row .continue-episode-card:nth-child(n+4) {
+    display: none;
+  }
+}
+
+.continue-episode-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.continue-episode-card-still-wrap {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background: var(--bg-surface-high);
+}
+
+.continue-episode-card-still {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.continue-episode-card-still-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+.continue-episode-card-pill {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 2;
+}
+
+.continue-episode-card .media-card-progress-container {
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  margin-top: 0;
+  z-index: 2;
+}
+
+.continue-episode-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding-top: 0.5rem;
+  min-width: 0;
+}
+
+.continue-episode-card-episode {
+  font: var(--font-caption);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.continue-episode-card-title {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Statistics panel */
 
 .profile-chart-panel {
   width: 100%;
-  background: var(--bg-surface-high);
-  border: var(--glass-border);
-  border-radius: var(--radius-l);
-  box-shadow: var(--shadow-s);
-  overflow: hidden;
 }
 
 .profile-chart-header {
   display: flex;
   align-items: center;
-  gap: var(--space-s);
+  gap: var(--space-s) var(--space-m);
+  flex-wrap: wrap;
   width: 100%;
-  padding: var(--space-m) var(--space-l);
-  background: transparent;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  text-align: left;
+  padding: var(--space-m) 0;
+}
+
+.profile-chart-header .profile-section-title {
+  flex-basis: 100%;
 }
 
 .profile-section-title {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--text-primary);
   white-space: nowrap;
+}
+
+/* Short accent underline — mirrors .details-section-title on the title-details page. */
+.profile-section-title::after {
+  content: "";
+  display: block;
+  width: 20%;
+  min-width: 2.5rem;
+  height: 0.1875rem;
+  margin-top: var(--space-xs);
+  border-radius: var(--radius-full);
+  background: var(--accent);
 }
 
 .profile-chart-subtitle {
@@ -1613,11 +1560,11 @@
 }
 
 .profile-chart-body {
-  padding: 0 var(--space-l) var(--space-m);
+  padding: 0;
 }
 
 .profile-chart-metrics {
-  padding: var(--space-xs) var(--space-l) var(--space-s);
+  padding: var(--space-xs) 0 var(--space-s);
 }
 
 .profile-skeleton-chip {
@@ -1712,7 +1659,17 @@
   display: flex;
   align-items: center;
   gap: var(--space-m);
-  padding: var(--space-m) var(--space-l);
+  padding: var(--space-m) 0;
+}
+
+/* The error state keeps a compact title — the 2rem section treatment is for the
+   page-level headers, not an inline alert row. */
+.profile-chart-error .profile-section-title {
+  font-size: 1.125rem;
+}
+
+.profile-chart-error .profile-section-title::after {
+  display: none;
 }
 
 .profile-chart-error-icon {
@@ -1738,13 +1695,18 @@
   flex-shrink: 0;
 }
 
-/* Section headers shared by history/account blocks */
+/* Section header for the history block */
 
 .profile-section-header {
   display: flex;
   align-items: baseline;
-  gap: var(--space-s);
+  gap: var(--space-s) var(--space-m);
   flex-wrap: wrap;
+}
+
+/* The title takes its own line (title + accent underline), the subtitle flows below. */
+.profile-section-header .profile-section-title {
+  flex-basis: 100%;
 }
 
 .profile-section-subtitle {
@@ -1752,11 +1714,280 @@
   color: var(--text-secondary);
 }
 
-.profile-history-section,
-.profile-account-section {
+/* Subtle divider between major profile sections — mirrors .details-section-divider. */
+.profile-section-divider {
+  margin: 0 10%;
+  border: none;
+  border-top: 0.0625rem solid var(--bg-surface);
+}
+
+/* Activity marks (sidebar) — Check accent for completed, muted Play for progress-only. */
+.profile-history-mark--done {
+  color: var(--accent);
+}
+
+.profile-history-mark--progress {
+  color: var(--text-secondary);
+}
+
+
+/* /continue-watch — a purely technical restore page: the only visible state is the resolving
+   loader; everything else redirects away. Centered glass card, brand spinner, "Продолжаем…"
+   with the co-watch dot-cascade. */
+.continue-watch-loading {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--bg-base);
+}
+
+.continue-watch-loading .loading-text {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.125rem;
+}
+
+.continue-watch-loading .premium-spinner--large {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+
+/* Aurora — a slow, heavily blurred gradient wash behind the hero content. Fills the empty
+   banner (no backdrop / sparse states) with a subtle living shimmer; stays below the backdrop
+   image and the fade overlay, above the page background. */
+.profile-hero::before {
+  content: "";
+  position: absolute;
+  inset: -25%;
+  z-index: 0;
+  background:
+    radial-gradient(55% 70% at 18% 25%, rgba(229, 72, 77, 0.16), transparent 62%),
+    radial-gradient(50% 65% at 82% 20%, rgba(84, 110, 210, 0.13), transparent 60%),
+    radial-gradient(60% 75% at 60% 85%, rgba(64, 150, 160, 0.10), transparent 65%);
+  filter: blur(48px);
+  animation: profile-hero-aurora 22s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes profile-hero-aurora {
+  from {
+    transform: translate3d(-3%, -2%, 0) rotate(0deg) scale(1);
+  }
+  to {
+    transform: translate3d(3%, 3%, 0) rotate(10deg) scale(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-hero::before {
+    animation: none;
+  }
+}
+
+/* ── Profile v2 layout (approved mockup profile-v2) ─────────────────────────
+   Text tab bar under the hero, then a two-column body: tab content left,
+   320px sidebar right. Everything stays de-blocked — no panels, no cards. */
+
+.profile-tabs {
+  display: flex;
+  gap: var(--space-l);
+  margin: var(--space-l) 0 var(--space-m);
+  border-bottom: 0.0625rem solid var(--bg-surface);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.profile-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.profile-tabs .profile-tab {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4375rem;
+  position: relative;
+  padding: 0 0.125rem var(--space-s);
+  background: none;
+  border: 0;
+  color: var(--text-secondary);
+  font: 600 0.875rem/1 inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.profile-tabs .profile-tab:hover {
+  background: none;
+  color: var(--text-primary);
+}
+
+.profile-tab--active {
+  color: var(--text-primary);
+}
+
+.profile-tab--active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.0625rem;
+  height: 0.125rem;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+}
+
+.profile-tab-count {
+  padding: 0.0625rem 0.4375rem;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface-high);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.profile-body-split {
+  display: grid;
+  grid-template-columns: 1fr 20rem;
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+.profile-body-main {
+  min-width: 0;
+}
+
+/* «Продолжить» tab: the 16:9 episode continue-cards in a 2-col grid (1-col on phones). */
+.profile-continue-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-m);
+}
+
+/* Status tabs: dense poster grid with micro progress bars (4 → 2 columns). */
+/* Right sidebar — statistics + activity, stacked below the tab content on mobile. */
+.profile-sidebar {
   display: flex;
   flex-direction: column;
-  gap: var(--space-m);
-  width: 100%;
-  scroll-margin-top: var(--space-l);
+  gap: var(--space-xl);
+  min-width: 0;
+}
+
+.profile-sidebar-title {
+  margin: 0 0 var(--space-s);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.0875rem;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.profile-activity-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-activity-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  padding: var(--space-xs) 0;
+  border-top: 0.0625rem solid var(--bg-surface);
+  font-size: 0.8125rem;
+}
+
+.profile-activity-row:first-child {
+  border-top: 0;
+}
+
+.profile-activity-day {
+  flex: 0 0 2.75rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.profile-activity-main {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-activity-main b {
+  font-weight: 600;
+}
+
+.profile-activity-meta {
+  color: var(--text-secondary);
+}
+
+.profile-activity-more {
+  display: inline-block;
+  margin-top: var(--space-s);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.profile-activity-more:hover {
+  color: var(--text-primary);
+}
+
+.profile-activity-error {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.profile-activity-empty {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  color: var(--text-secondary);
+}
+
+.profile-activity-empty-text {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.profile-activity-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.profile-skeleton-activity-row {
+  display: block;
+  height: 0.875rem;
+  border-radius: var(--radius-full);
+}
+
+@media (max-width: 56.25rem) {
+  .profile-body-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 40rem) {
+  .profile-continue-grid,
+  .profile-status-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Status-tab cards: reduced tile + the inline "show more" control. */
+.profile-status-more {
+  margin-top: var(--space-m);
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font: var(--font-caption-bold);
+  cursor: pointer;
+  padding: var(--space-xs) 0;
+}
+
+.profile-status-more:hover {
+  color: var(--accent);
 }

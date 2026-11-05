@@ -205,17 +205,12 @@ class SettingsServiceImpl {
     return getActiveLanguage();
   }
 
-  getSyncStrategy(): string {
-    return Storage.get<string>("syncStrategy", "none");
-  }
-
   snapshot(): Record<string, unknown> {
     return {
       activeProfileID: this.getActiveProfileId(),
       connectionProfiles: this.getConnectionProfiles(),
       language: this.getLanguage(),
       potokToken: this.getToken(),
-      syncStrategy: this.getSyncStrategy(),
       netDebug: Storage.get<boolean>("netDebug", true),
       [TORRENT_PLAYER_KEY]: Storage.get<string>(TORRENT_PLAYER_KEY, ""),
       [TORRENT_LEGACY_KEY]: Storage.get<string>(TORRENT_LEGACY_KEY, ""),

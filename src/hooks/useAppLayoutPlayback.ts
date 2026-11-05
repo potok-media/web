@@ -1,9 +1,33 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { matchPath, useLocation } from "react-router-dom";
 import { usePlayback } from "../context/AppSettingsContext";
 import { logger } from "../utils/logger";
 
+// Routes that host the player inline (a workspace registers the portal target). Everywhere
+// else the player is KILLED on arrival — leaving the player page stops playback (the unmount
+// saves progress and closes the backend session), no background audio, no health pings.
+const PLAYER_HOST_PATTERNS = [
+  "media/:mediaType/:id/watch",
+  "media/:mediaType/:id/watch/:tab",
+  "continue-watch",
+  "watch-together",
+];
+
 export function useAppLayoutPlayback() {
   const { activePlayback, playbackMeta, playVideo, stopVideo } = usePlayback();
+  const location = useLocation();
+  const previousPathnameRef = useRef(location.pathname);
+
+  useEffect(() => {
+    const previousPathname = previousPathnameRef.current;
+    previousPathnameRef.current = location.pathname;
+    if (!activePlayback) return;
+    // Playback starting (or restoring from the session slot) on the CURRENT route is not a
+    // leave — only a real pathname change to a non-host route kills the player.
+    if (previousPathname === location.pathname) return;
+    if (PLAYER_HOST_PATTERNS.some((pattern) => matchPath(pattern, location.pathname))) return;
+    stopVideo();
+  }, [location.pathname, activePlayback, stopVideo]);
 
   useEffect(() => {
     const saved = sessionStorage.getItem("potok_last_playback");

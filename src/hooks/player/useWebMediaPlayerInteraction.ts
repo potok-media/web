@@ -153,14 +153,9 @@ export function useWebMediaPlayerInteraction({
     switchPlaybackSource,
     setPlayerError,
     setIsBuffering,
-    setShowAudioMenu: menus.setShowAudioMenu,
-    setShowQualityMenu: menus.setShowQualityMenu,
   });
 
-  const switchSubtitle = (id: number) => {
-    subtitles.switchSubtitle(id);
-    menus.setShowSubtitleMenu(false);
-  };
+  const switchSubtitle = (id: number) => subtitles.switchSubtitle(id);
 
   const togglePlay = () => {
     const video = videoRef.current;

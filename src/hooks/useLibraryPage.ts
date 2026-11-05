@@ -3,8 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ApiClient } from "../network/ApiClient";
 import { ApiError } from "../network/ApiTypes";
 import type { MediaCard } from "../network/ApiTypes";
-import { useSettings, useAuth } from "../context/AppSettingsContext";
-
+import { useSettings } from "../context/AppSettingsContext";
 // Search query and results caches are kept to preserve search state when navigating back from details
 const profileSearchQueryCache: Record<string, string> = {};
 const profileSearchResultsCache: Record<string, MediaCard[]> = {};
@@ -28,10 +27,9 @@ interface UseLibraryPageProps {
 
 export function useLibraryPage({ collectionType, isSearchPage, initialQuery }: UseLibraryPageProps) {
   const { activeProfileID, language } = useSettings();
-  const { syncStrategy } = useAuth();
   const { i18n } = useTranslation();
   // Language in the key isolates caches per language and re-runs fetches on language change.
-  const profileKey = `${activeProfileID || "default"}_${syncStrategy}_${language}`;
+  const profileKey = `${activeProfileID || "default"}_${language}`;
 
   const [items, setItems] = useState<MediaCard[]>(() => {
     if (isSearchPage) {

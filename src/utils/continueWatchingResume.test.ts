@@ -4,10 +4,12 @@ import {
   cardProgressFromResume,
   findLedgerCursorForCard,
   isCardResumable,
+  isResumeEffectivelyComplete,
   mergeLedgerLastSource,
   pickResumeEpisode,
   resumeContinueWatching,
   resumeCursorFromCard,
+  ResumePluginUnavailableError,
   type ContinueResumeDeps,
 } from "./continueWatchingResume";
 import { clearPlaylistResolver, resolvePlaylistItem } from "./playlistResolver";
@@ -187,6 +189,109 @@ describe("resumeContinueWatching", () => {
     const playback = deps.playVideo.mock.calls[0][0];
     expect(playback.providerId).toBe("potok-online-balancers");
     expect(playback.streamHash).toBeUndefined();
+    // No file anchor to guard against — the saved position carries straight through.
+    expect(playback.startAt).toBe(300);
+  });
+
+  it("names the saved voice in the resolve request for online sources", async () => {
+    const cursor = makeCursor({
+      providerId: "potok-online-balancers",
+      streamHash: undefined,
+      fileIndex: undefined,
+      audioName: "Озвучка",
+    });
+    const episodes = [makeEpisode({ id: "ep-1" })];
+    const deps = makeDeps(episodes);
+    await resumeContinueWatching(cursor, deps);
+    expect(deps.requestPlaybackInfo).toHaveBeenCalledWith(
+      "potok-online-balancers",
+      expect.objectContaining({
+        episode: expect.objectContaining({ id: "ep-1", voice: "Озвучка" }),
+      }),
+    );
+    const playback = deps.playVideo.mock.calls[0][0];
+    expect(playback.startAt).toBe(300);
+  });
+
+  it("carries the stored voice candidates into the resolve request so the menu restores fully", async () => {
+    const audios = [
+      { name: "AniDUB · 1080p · Kodik", voice: "AniDUB", providerId: "kodik", sourceId: "43" },
+      { name: "AniLiberty", voice: "AniLiberty", providerId: "aniliberty", sourceId: "42" },
+    ];
+    const cursor = makeCursor({
+      providerId: "potok-online-balancers",
+      streamHash: undefined,
+      fileIndex: undefined,
+      audioName: "AniLiberty",
+      audios,
+    });
+    const episodes = [makeEpisode({ id: "ep-1" })];
+    const deps = makeDeps(episodes);
+    await resumeContinueWatching(cursor, deps);
+    expect(deps.requestPlaybackInfo).toHaveBeenCalledWith(
+      "potok-online-balancers",
+      expect.objectContaining({
+        episode: expect.objectContaining({ id: "ep-1", voice: "AniLiberty", audios }),
+      }),
+    );
+    expect(deps.playVideo).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves torrent resolve requests voice-untouched when no voice was saved", async () => {
+    const deps = makeDeps([makeEpisode({ id: "3" })]);
+    await resumeContinueWatching(makeCursor(), deps);
+    const episodeArg = (
+      deps.requestPlaybackInfo as unknown as ReturnType<typeof vi.fn>
+    ).mock.calls[0][1].episode;
+    expect(episodeArg.voice).toBeUndefined();
+  });
+
+  it("aborts online resumes when the owning plugin is known to be unavailable", async () => {
+    const cursor = makeCursor({
+      providerId: "potok-online-balancers",
+      streamHash: undefined,
+      fileIndex: undefined,
+    });
+    const deps = {
+      ...makeDeps([makeEpisode()]),
+      checkPluginAvailability: vi.fn().mockReturnValue(false),
+    };
+    await expect(resumeContinueWatching(cursor, deps)).rejects.toBeInstanceOf(
+      ResumePluginUnavailableError,
+    );
+    expect(deps.checkPluginAvailability).toHaveBeenCalledWith("potok-online-balancers");
+    expect(deps.requestEpisodes).not.toHaveBeenCalled();
+    expect(deps.requestPlaybackInfo).not.toHaveBeenCalled();
+    expect(deps.playVideo).not.toHaveBeenCalled();
+  });
+
+  it("attempts the sandbox when the plugin availability lookup is inconclusive", async () => {
+    const cursor = makeCursor({
+      providerId: "potok-online-balancers",
+      streamHash: undefined,
+      fileIndex: undefined,
+    });
+    const deps = {
+      ...makeDeps([makeEpisode({ id: "ep-1" })]),
+      checkPluginAvailability: vi.fn().mockReturnValue(undefined),
+    };
+    await resumeContinueWatching(cursor, deps);
+    expect(deps.requestEpisodes).toHaveBeenCalledWith(
+      "potok-online-balancers",
+      undefined,
+      expect.objectContaining({ type: "tv" }),
+    );
+    expect(deps.playVideo).toHaveBeenCalledTimes(1);
+  });
+
+  it("never gates torrent resumes on plugin availability", async () => {
+    const deps = {
+      ...makeDeps([makeEpisode()]),
+      checkPluginAvailability: vi.fn().mockReturnValue(false),
+    };
+    await resumeContinueWatching(makeCursor(), deps);
+    expect(deps.checkPluginAvailability).not.toHaveBeenCalled();
+    expect(deps.playVideo).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -243,6 +348,21 @@ describe("resumeCursorFromCard", () => {
     expect(cursor.sourceStream).toBe(sourceStream);
   });
 
+  it("maps the stored voice candidates and tmdb identity onto the cursor", () => {
+    const audios = [{ name: "AniLiberty", voice: "AniLiberty", providerId: "aniliberty" }];
+    const card = makeCard({
+      resume: {
+        season: 1,
+        episode: 3,
+        progressSeconds: 10,
+        durationSeconds: 100,
+        lastSource: { providerId: "potok-online-balancers", sourceStream: { id: "s" }, audios },
+      },
+    });
+    const cursor = resumeCursorFromCard(card)!;
+    expect(cursor.audios).toEqual(audios);
+  });
+
   it("returns null for cards without a resume payload", () => {
     expect(resumeCursorFromCard(makeCard({ resume: undefined }))).toBeNull();
   });
@@ -256,6 +376,27 @@ describe("isCardResumable", () => {
     expect(
       isCardResumable({ ...base, resume: { lastSource: { providerId: "potok-torrents" } } }),
     ).toBe(true);
+  });
+});
+
+describe("isResumeEffectivelyComplete", () => {
+  it("flags rows at or past 90% of their duration", () => {
+    expect(isResumeEffectivelyComplete({ progressSeconds: 90, durationSeconds: 100 })).toBe(true);
+    expect(isResumeEffectivelyComplete({ progressSeconds: 100, durationSeconds: 100 })).toBe(true);
+    expect(isResumeEffectivelyComplete({ progressSeconds: 634, durationSeconds: 634 })).toBe(true);
+  });
+
+  it("keeps genuinely in-progress rows eligible", () => {
+    expect(isResumeEffectivelyComplete({ progressSeconds: 89, durationSeconds: 100 })).toBe(false);
+    expect(isResumeEffectivelyComplete({ progressSeconds: 1200, durationSeconds: 3600 })).toBe(false);
+    expect(isResumeEffectivelyComplete({ progressSeconds: 0, durationSeconds: 100 })).toBe(false);
+  });
+
+  it("cannot judge rows without a usable duration and keeps them eligible", () => {
+    expect(isResumeEffectivelyComplete({ progressSeconds: 100, durationSeconds: 0 })).toBe(false);
+    expect(isResumeEffectivelyComplete({ progressSeconds: 100 })).toBe(false);
+    expect(isResumeEffectivelyComplete(null)).toBe(false);
+    expect(isResumeEffectivelyComplete(undefined)).toBe(false);
   });
 });
 

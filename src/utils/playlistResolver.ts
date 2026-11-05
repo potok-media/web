@@ -162,7 +162,11 @@ export async function resolveEpisodeVoice(
       episode: current?.episode ?? playback.episode,
       title: current?.title ?? playback.title,
       url: current?.streamUrl ?? playback.streamUrl,
-      providerId: current?.providerId ?? playback.providerId,
+      // NEVER playback.providerId here — that field holds the OWNING PLUGIN id (e.g.
+      // "potok-online-balancers"), not a provider slug; the plugin reads episode.providerId as
+      // the balancer slug and would reject it ("Unknown online provider"). The plugin falls
+      // back to sourceStream.providerId, which is the correct slug.
+      providerId: current?.providerId,
       voice,
       // The TOP-LEVEL audios list — the exact entries the player's menu renders and the switch
       // request names. Item-level audios may use different labels (long "Voice · Quality ·

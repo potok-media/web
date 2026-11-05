@@ -194,7 +194,7 @@ const LibraryPageContent: React.FC = () => {
         setQuery={setQuery}
         itemsCount={items.length}
         collectionType={collectionType}
-        onOpenFolders={() => setFoldersModalOpen(true)}
+        onOpenFolders={undefined /* папки скрыты — см. AppSidebar */}
       />
       <main className="library-content-area">{renderContent()}</main>
       <FolderManagerModal

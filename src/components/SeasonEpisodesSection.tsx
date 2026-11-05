@@ -203,50 +203,7 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
 
   return (
     <section className="season-episodes-section">
-      <div className="season-episodes-heading-row">
-        <h2 className="season-episodes-title">{t("seasons.episodeSelection")}</h2>
-        <div className="episode-sort-wrapper">
-          <Button
-            variant="glass"
-            className="episode-sort-trigger"
-            onClick={() => setShowSortPopover((current) => !current)}
-            aria-expanded={showSortPopover}
-            aria-haspopup="menu"
-          >
-            <ArrowDownWideNarrow size="0.9375rem" />
-            <span>{t(`seasons.sort.${sortOption}`)}</span>
-            <ChevronDown size="0.875rem" />
-          </Button>
-
-          {showSortPopover && (
-            <>
-              <div className="popover-overlay" onClick={() => setShowSortPopover(false)} />
-              <div className="episode-sort-menu" role="menu">
-                {([
-                  ["numberAsc", ListOrdered],
-                  ["releaseDesc", CalendarDays],
-                  ["unwatchedFirst", EyeOff],
-                ] as const).map(([option, SortIcon]) => (
-                  <PopoverItem
-                    key={option}
-                    active={sortOption === option}
-                    onClick={() => {
-                      setSortOption(option);
-                      setShowSortPopover(false);
-                    }}
-                  >
-                    <div className="episode-sort-item-content">
-                      <SortIcon size="0.9375rem" />
-                      <span>{t(`seasons.sort.${option}`)}</span>
-                    </div>
-                    {sortOption === option && <Check size="0.9375rem" />}
-                  </PopoverItem>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+      <h2 className="season-episodes-title">{t("seasons.episodeSelection")}</h2>
 
       <SeasonEpisodesToolbar
         activeSeason={activeSeason}
@@ -262,7 +219,49 @@ export const SeasonEpisodesSection: React.FC<SeasonEpisodesSectionProps> = ({
         showWatchPopover={showWatchPopover}
         setShowWatchPopover={setShowWatchPopover}
         toggleSeasonWatched={handleToggleDisplayedGroup}
-        onOpenMultiPicker={armLayout.status === "arm" ? undefined : onOpenMultiPicker}
+        onOpenMultiPicker={onOpenMultiPicker}
+        trailing={(
+          <div className="episode-sort-wrapper">
+            <Button
+              variant="glass"
+              className="episode-sort-trigger"
+              onClick={() => setShowSortPopover((current) => !current)}
+              aria-expanded={showSortPopover}
+              aria-haspopup="menu"
+            >
+              <ArrowDownWideNarrow size="0.9375rem" />
+              <span>{t(`seasons.sort.${sortOption}`)}</span>
+              <ChevronDown size="0.875rem" />
+            </Button>
+
+            {showSortPopover && (
+              <>
+                <div className="popover-overlay" onClick={() => setShowSortPopover(false)} />
+                <div className="season-popover-menu episode-sort-menu" role="menu">
+                  {([
+                    ["numberAsc", ListOrdered],
+                    ["releaseDesc", CalendarDays],
+                    ["unwatchedFirst", EyeOff],
+                  ] as const).map(([option, SortIcon]) => (
+                    <PopoverItem
+                      key={option}
+                      active={sortOption === option}
+                      className="episode-sort-popover-item"
+                      onClick={() => {
+                        setSortOption(option);
+                        setShowSortPopover(false);
+                      }}
+                    >
+                      <SortIcon size="1rem" className="episode-sort-item-icon" />
+                      <span>{t(`seasons.sort.${option}`)}</span>
+                      {sortOption === option && <Check size="1rem" className="season-active-check" />}
+                    </PopoverItem>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
       />
 
       {loading ? (

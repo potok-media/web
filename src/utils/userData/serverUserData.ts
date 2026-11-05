@@ -82,21 +82,27 @@ function adaptFolder(raw: unknown): UserFolder {
 
 function adaptFolderItem(raw: unknown): UserFolderItem {
   const item = asRecord(raw);
+  // Hydrated server rows are LibraryCardDto-shaped (id/title/posterSrc), so fall back to `id`
+  // for the TMDB id and carry the poster reference through for cover mosaics.
+  const tmdbId = item.tmdbId ?? item.id;
   const entry: UserFolderItem = {
-    tmdbId: item.tmdbId != null ? String(item.tmdbId) : "",
+    tmdbId: tmdbId != null ? String(tmdbId) : "",
     mediaType: asMediaType(item.mediaType),
     addedAt: typeof item.addedAt === "string" ? item.addedAt : "",
   };
   if (typeof item.label === "string") entry.label = item.label;
+  if (typeof item.title === "string") entry.title = item.title;
+  if (typeof item.posterSrc === "string") entry.posterSrc = item.posterSrc;
   return entry;
 }
 
 export class ServerUserData implements UserDataService {
   async getStatus(tmdbId: string, mediaType: UserDataMediaType): Promise<{ status: TitleStatus | null }> {
-    const payload = await request<{ status?: TitleStatus | null }>(
+    // The endpoint answers "none" when no status row exists; the client contract is null.
+    const payload = await request<{ status?: TitleStatus | "none" | null }>(
       `/api/library/status/${encodeURIComponent(tmdbId)}/${encodeURIComponent(mediaType)}`,
     );
-    return { status: payload?.status ?? null };
+    return { status: payload?.status === "none" ? null : (payload?.status ?? null) };
   }
 
   async setStatus(input: SetStatusInput): Promise<void> {

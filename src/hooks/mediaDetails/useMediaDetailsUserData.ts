@@ -33,6 +33,19 @@ export function useMediaDetailsUserData({
   const [membership, setMembership] = useState<Record<string, boolean>>({});
   const [loaded, setLoaded] = useState(false);
 
+  // Status is derived server-side from (stored status, watched count), so any history mutation
+  // changes it — history actions call this to re-pull the effective status after their
+  // reconciling refetch instead of guessing client-side.
+  const refreshStatus = useCallback(async () => {
+    if (!mediaType) return;
+    try {
+      const { status: next } = await getUserData().getStatus(tmdbId, mediaType);
+      setStatus(next);
+    } catch {
+      /* user data is additive — a failure here must not block the details page */
+    }
+  }, [tmdbId, mediaType]);
+
   useEffect(() => {
     let cancelled = false;
     setLoaded(false);
@@ -133,5 +146,5 @@ export function useMediaDetailsUserData({
     [],
   );
 
-  return { status, folders, membership, loaded, selectStatus, toggleFolder, createFolder };
+  return { status, folders, membership, loaded, selectStatus, refreshStatus, toggleFolder, createFolder };
 }

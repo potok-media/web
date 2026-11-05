@@ -37,7 +37,7 @@ export const ConnectedAccountsSettings: React.FC = () => {
     handleTraktLogout,
     setDeviceCode,
     copyToClipboard,
-  } = useTraktAuth("trakt");
+  } = useTraktAuth();
   const [traktModalOpen, setTraktModalOpen] = useState(false);
 
   useEffect(() => {

@@ -125,16 +125,6 @@ export class AuthApiClient {
     return res.json();
   }
 
-  public static async updateSyncStrategy(strategy: string): Promise<PotokUser> {
-    const res = await fetch(`${ApiClient.baseURL}/api/auth/sync-strategy`, {
-      method: "POST",
-      headers: ApiClient.headers,
-      body: JSON.stringify({ strategy }),
-    });
-    if (!res.ok) throw new Error("Failed to update sync strategy");
-    return res.json();
-  }
-
   public static async getTraktDeviceCode(): Promise<DeviceCodeResponse> {
     const res = await fetch(`${ApiClient.baseURL}/api/trakt/oauth/device/code`, {
       method: "POST",

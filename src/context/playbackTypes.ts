@@ -7,6 +7,22 @@ import type {
 
 export type ConnectionState = "checking" | "connected" | "offline" | "setupRequired";
 
+/**
+ * One audio-track / voice-candidate entry. Beyond the playable `{name, url}` pair, online
+ * sources attach candidate metadata (plain voice label + provider identity + resolve query) so
+ * voice switching can re-resolve through the candidate's OWN provider and resume can restore
+ * the full cross-provider menu.
+ */
+export interface AudioTrackEntry {
+  name: string;
+  url: string;
+  label?: string | null;
+  voice?: string | null;
+  providerId?: string | null;
+  sourceId?: string | null;
+  query?: unknown;
+}
+
 export interface PlaylistItem {
   id?: string;
   workId?: string | null;
@@ -20,7 +36,7 @@ export interface PlaylistItem {
   filler?: import("../network/ArmTypes").ArmEpisodeFiller | null;
   streamUrl: string;
   streamType?: "m3u8" | "mp4" | "hls" | "dash";
-  audios?: { name: string; url: string }[];
+  audios?: AudioTrackEntry[];
   headers?: Record<string, string>;
   providerId?: string;
   voice?: string;
@@ -54,7 +70,7 @@ export interface ActivePlayback {
   /** Opaque plugin-owned progress identity — used verbatim as the local progress/resume key. */
   progressId?: string;
   streamType?: "m3u8" | "mp4" | "hls" | "dash";
-  audios?: { name: string; url: string }[];
+  audios?: AudioTrackEntry[];
   audioNames?: string[];
   headers?: Record<string, string>;
   providerId?: string;

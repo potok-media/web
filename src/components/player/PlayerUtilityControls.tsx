@@ -3,18 +3,16 @@ import { useTranslation } from "react-i18next";
 import {
   Maximize,
   Minimize,
-  Captions,
   Activity,
   Settings,
   ListVideo,
-  Volume2,
   Airplay,
   MessageSquare,
 } from "lucide-react";
 import { TrackSelectorDropdown } from "./TrackSelectorDropdown";
-import { CaptionsLoadingIcon } from "./SubtitleLoadingIcons";
-import { IconButton, Switch, cx } from "../ui";
-import { useSkipFillers } from "../../utils/skipFillers";
+import { PlayerSettingsMenu } from "./PlayerSettingsMenu";
+import type { SettingsMenuSection } from "../../hooks/usePlayerMenus";
+import { IconButton, cx } from "../ui";
 import { useWatchTogether } from "../../context/watchTogetherState";
 import type { ActivePlayback } from "../../context/playbackTypes";
 
@@ -33,21 +31,17 @@ interface PlayerUtilityControlsProps {
   audioTracks: TrackItem[];
   currentAudioTrack: number;
   onSelectAudioTrack: (id: number) => void;
-  showAudioMenu: boolean;
-  onToggleAudioMenu: () => void;
   subtitleTracks: TrackItem[];
-  subtitlesLoading?: boolean;
   currentSubtitleTrack: number;
   onSelectSubtitleTrack: (id: number) => void;
-  showSubtitleMenu: boolean;
-  onToggleSubtitleMenu: () => void;
-  onUploadSubtitle?: (file: File) => void;
-  onAddSubtitleUrl?: (url: string) => Promise<void>;
   qualityLevels: TrackItem[];
   currentQualityLevel: number;
   onSelectQualityLevel: (id: number) => void;
-  showQualityMenu: boolean;
-  onToggleQualityMenu: () => void;
+  showSettingsMenu: boolean;
+  settingsMenuSection: SettingsMenuSection;
+  onOpenSettingsMenu: (section?: SettingsMenuSection) => void;
+  onCloseSettingsMenu: () => void;
+  onSettingsMenuSectionChange: (section: SettingsMenuSection) => void;
   playlistItems: TrackItem[];
   playlistIndex?: number;
   onSelectPlaylistItem?: (index: number) => void;
@@ -56,7 +50,6 @@ interface PlayerUtilityControlsProps {
   playlistDisabled?: boolean;
   showPlaylistMenu?: boolean;
   onTogglePlaylistMenu?: () => void;
-  anySubReady: boolean;
   playback: ActivePlayback; // the player's actual descriptor (plugin players bypass the global PlaybackContext)
 }
 
@@ -68,21 +61,17 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
   audioTracks,
   currentAudioTrack,
   onSelectAudioTrack,
-  showAudioMenu,
-  onToggleAudioMenu,
   subtitleTracks,
-  subtitlesLoading,
   currentSubtitleTrack,
   onSelectSubtitleTrack,
-  showSubtitleMenu,
-  onToggleSubtitleMenu,
-  onUploadSubtitle,
-  onAddSubtitleUrl,
   qualityLevels,
   currentQualityLevel,
   onSelectQualityLevel,
-  showQualityMenu,
-  onToggleQualityMenu,
+  showSettingsMenu,
+  settingsMenuSection,
+  onOpenSettingsMenu,
+  onCloseSettingsMenu,
+  onSettingsMenuSectionChange,
   playlistItems,
   playlistIndex,
   onSelectPlaylistItem,
@@ -91,11 +80,9 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
   playlistDisabled,
   showPlaylistMenu,
   onTogglePlaylistMenu,
-  anySubReady,
   playback,
 }) => {
   const { t } = useTranslation("player");
-  const [skipFillers, setSkipFillers] = useSkipFillers();
   const {
     createRoom,
     role: coWatchRole,
@@ -157,31 +144,6 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
         </IconButton>
       )}
 
-      <TrackSelectorDropdown
-        icon={<Volume2 size="1.125rem" />}
-        title={t("controls.audioTracks")}
-        items={audioTracks}
-        currentItemId={currentAudioTrack}
-        onSelect={onSelectAudioTrack}
-        isOpen={showAudioMenu}
-        onToggle={onToggleAudioMenu}
-      />
-
-      <TrackSelectorDropdown
-        icon={subtitlesLoading ? <CaptionsLoadingIcon size="1.125rem" /> : <Captions size="1.125rem" />}
-        title={t("controls.subtitles")}
-        items={subtitleTracks}
-        currentItemId={currentSubtitleTrack}
-        onSelect={onSelectSubtitleTrack}
-        isOpen={showSubtitleMenu}
-        onToggle={onToggleSubtitleMenu}
-        showDisableOption={true}
-        disableOptionLabel={t("controls.disable")}
-        onUploadSubtitle={onUploadSubtitle}
-        onAddSubtitleUrl={onAddSubtitleUrl}
-        disabled={!anySubReady}
-      />
-
       {showPlaylistSelector && playlistItems.length > 0 && (
         <TrackSelectorDropdown
           icon={<ListVideo size="1.125rem" />}
@@ -192,30 +154,39 @@ export const PlayerUtilityControls: React.FC<PlayerUtilityControlsProps> = ({
           isOpen={showPlaylistMenu || false}
           onToggle={onTogglePlaylistMenu || (() => {})}
           disabled={playlistDisabled}
-          headerExtra={
-            <label className="skip-fillers-toggle" onClick={(e) => e.stopPropagation()}>
-              <span>{t("controls.skipFillers")}</span>
-              <Switch
-                checked={skipFillers}
-                onCheckedChange={setSkipFillers}
-                aria-label={t("controls.skipFillers")}
-              />
-            </label>
-          }
         />
       )}
 
-      {qualityLevels.length > 0 && (
-        <TrackSelectorDropdown
-          icon={<Settings size="1.125rem" />}
-          title={t("controls.quality")}
-          items={qualityLevels}
-          currentItemId={currentQualityLevel}
-          onSelect={onSelectQualityLevel}
-          isOpen={showQualityMenu}
-          onToggle={onToggleQualityMenu}
+      <div className="selector-menu-container">
+        <IconButton
+          className={cx("control-icon-btn", showSettingsMenu && "active-accent")}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (showSettingsMenu) onCloseSettingsMenu();
+            else onOpenSettingsMenu(null);
+          }}
+          title={t("settings.title")}
+          aria-label={t("settings.title")}
+        >
+          <Settings size="1.125rem" />
+        </IconButton>
+        <PlayerSettingsMenu
+          isOpen={showSettingsMenu}
+          section={settingsMenuSection}
+          onSectionChange={onSettingsMenuSectionChange}
+          onClose={onCloseSettingsMenu}
+          audioTracks={audioTracks}
+          currentAudioTrack={currentAudioTrack}
+          onSelectAudioTrack={onSelectAudioTrack}
+          subtitleTracks={subtitleTracks}
+          currentSubtitleTrack={currentSubtitleTrack}
+          onSelectSubtitleTrack={onSelectSubtitleTrack}
+          qualityLevels={qualityLevels}
+          currentQualityLevel={currentQualityLevel}
+          onSelectQualityLevel={onSelectQualityLevel}
         />
-      )}
+      </div>
 
       <IconButton
         className="control-icon-btn"

@@ -165,7 +165,6 @@ export interface HomeResponse {
 export interface PotokUser {
   id?: string;
   username: string;
-  syncStrategy: string;
   traktConnected?: boolean;
   telegramLinked?: boolean;
   telegramUsername?: string;
@@ -180,17 +179,65 @@ export interface LastSourcePayload {
   voice?: string;
   streamHash?: string;
   fileIndex?: string;
+  /**
+   * Full voice-candidate list the player held at save time (cross-provider merge from the title
+   * page). Entries are trimmed (no url) and self-capped — see buildLastSource. Absent on rows
+   * saved before this existed; resume then resolves through the single saved sourceStream.
+   */
+  audios?: LastSourceAudioCandidate[];
   /** Opaque plugin-owned stream payload, passed back verbatim for sandbox resume. */
   sourceStream?: unknown;
 }
 
+/**
+ * One persisted voice candidate. `url` is deliberately stripped (dead weight — switching always
+ * re-resolves through the candidate's own provider). `query` is dropped first and `label` second
+ * when the 4KB cap needs headroom.
+ */
+export interface LastSourceAudioCandidate {
+  name: string;
+  label?: string;
+  voice?: string;
+  providerId?: string;
+  sourceId?: string;
+  query?: unknown;
+}
+
 /** Resume coordinates attached to continue-watching cards by /api/library/continue-watching. */
 export interface ContinueResumePayload {
-  season?: number;
-  episode?: number;
+  /** Movies have no episode coordinates — both are null there (resume still ships progress). */
+  season?: number | null;
+  episode?: number | null;
   progressSeconds?: number;
   durationSeconds?: number;
   lastSource?: LastSourcePayload;
+}
+
+/**
+ * One episode-level continue-watching row from /api/library/continue-watching/episodes:
+ * the hydrated title identity, the episode coordinates (null for movies), the watch progress
+ * and the per-episode resume payload (that history row's own last_source — clicking the card
+ * resumes THIS episode at its position).
+ */
+export interface ContinueWatchingEpisodeItem {
+  id: number;
+  title: string;
+  overview?: string;
+  mediaType: "movie" | "tv";
+  backdropSrc?: string;
+  posterSrc?: string;
+  logoSrc?: string;
+  year?: number;
+  tmdbRating?: number;
+  imdbId?: string;
+  /** Episode coordinates — null for movies. */
+  seasonNumber?: number | null;
+  episodeNumber?: number | null;
+  progressSeconds: number;
+  durationSeconds: number;
+  progressPercent: number;
+  lastWatchedAt?: string;
+  resume?: ContinueResumePayload;
 }
 
 export interface ProfileSummary {
@@ -200,6 +247,27 @@ export interface ProfileSummary {
   topGenre: { id: number | null; name: string } | null;
   streakDays: number;
   daily: { date: string; minutes: number }[];
+}
+
+/** One profile-activity feed row: a watch event plus its TMDB-hydrated title identity. */
+export interface ProfileActivityItem {
+  occurredAt: string;
+  mediaType: "movie" | "tv";
+  /** Episode coordinates — null for movies. */
+  seasonNumber?: number | null;
+  episodeNumber?: number | null;
+  isCompleted: boolean;
+  title: { tmdbId: string; name?: string | null; posterPath?: string | null };
+}
+
+/**
+ * One page of /api/profile/activity: at most `days` non-empty UTC calendar days of events
+ * (newest first). `nextBefore` is the oldest returned day's date (yyyy-MM-dd) for the next
+ * page, or null when the log is exhausted.
+ */
+export interface ProfileActivityResponse {
+  items: ProfileActivityItem[];
+  nextBefore: string | null;
 }
 
 export interface ConnectionProfile {

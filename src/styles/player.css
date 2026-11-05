@@ -27,6 +27,7 @@
   border-radius: 0;
 }
 
+
 @keyframes inline-player-reveal {
   from {
     opacity: 0;
@@ -643,6 +644,139 @@
   content: "✓";
   margin-right: 0.5rem;
   font-size: 0.75rem;
+}
+
+/* Two-level settings popover (⚙) */
+.player-settings-menu {
+  position: absolute;
+  bottom: 3rem;
+  right: -1.25rem;
+  width: max-content;
+  background: #18181c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-m);
+  padding: 0.5rem 0;
+  box-shadow: var(--shadow-l);
+  display: flex;
+  flex-direction: column;
+  animation: slideUpFade 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.settings-menu-row,
+.settings-menu-option,
+.settings-menu-toggle {
+  min-width: 0;
+}
+
+.settings-menu-row {
+  gap: 0.625rem;
+}
+
+.settings-menu-row .settings-menu-label {
+  flex: 0 0 auto;
+}
+
+.settings-menu-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1rem;
+  color: var(--text-secondary);
+}
+
+.settings-menu-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+  padding-left: 1rem;
+  flex: 0 1 auto;
+  min-width: 0;
+  color: var(--text-tertiary);
+  font-size: 0.8125rem;
+}
+
+.settings-menu-value > span {
+  max-width: 30ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.settings-menu-value svg {
+  flex-shrink: 0;
+}
+
+/* Single-line text that may shrink; beyond 30 chars the ellipsis appears. */
+.settings-menu-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 30ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-menu-back-row {
+  padding: 0.125rem 0.5rem;
+}
+
+.settings-menu-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  border-radius: var(--radius-m);
+}
+
+.ui-btn.settings-menu-back {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+}
+
+.ui-btn.settings-menu-back:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+/* Selected option shows a Check icon; unselected options keep an empty slot of the same width. */
+.settings-menu-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 0.875rem;
+  color: var(--accent);
+}
+
+.settings-menu-option > svg {
+  flex-shrink: 0;
+}
+
+.settings-menu-toggle {
+  cursor: pointer;
+}
+
+.settings-menu-toggle .settings-menu-label {
+  margin-right: auto;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 30ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-menu-toggle > :last-child {
+  flex-shrink: 0;
 }
 
 @keyframes slideUpFade {

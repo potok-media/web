@@ -5,6 +5,8 @@ import type { ActivePlayback } from "../../context/playbackTypes";
 import type { GenericEpisodeItem } from "../common/episodeSelector/types";
 import { EpisodeSelectorContent } from "../common/EpisodeSelectorContent";
 import { usePlayerPlaylist } from "../../hooks/usePlayerPlaylist";
+import { useSeasonEpisodes, buildSeasonStillMap } from "../../hooks/profile/useSeasonEpisodes";
+import { ApiClient } from "../../network/ApiClient";
 import { logger } from "../../utils/logger";
 
 interface WatchTogetherQueuePanelProps {
@@ -23,6 +25,21 @@ export const WatchTogetherQueuePanel: React.FC<WatchTogetherQueuePanelProps> = (
   const { activePlayback, playVideo } = usePlayback();
   const playPlaylistItem = usePlayerPlaylist(activePlayback, playVideo);
 
+  // TMDB stills for the active season (tv only). Rows of other seasons stay title-only — one
+  // fetch per (show, season), shared with every other consumer of the same hook.
+  const playlistSeason =
+    playback.mediaType === "tv"
+      ? playback.season ?? playback.playlist?.find((item) => item.season != null)?.season
+      : undefined;
+  const seasonEpisodes = useSeasonEpisodes(
+    playback.mediaType === "tv" && playback.id > 0 ? playback.id : undefined,
+    playlistSeason,
+  );
+  const stills = useMemo(
+    () => buildSeasonStillMap(seasonEpisodes, ApiClient.baseURL),
+    [seasonEpisodes],
+  );
+
   const episodes = useMemo<GenericEpisodeItem[]>(
     () => (playback.playlist ?? []).flatMap((item) =>
       item?.id != null && item.id !== ""
@@ -32,10 +49,13 @@ export const WatchTogetherQueuePanel: React.FC<WatchTogetherQueuePanelProps> = (
             episode: item.episode,
             title: item.title,
             audios: [],
+            stillPath: item.season != null && item.episode != null
+              ? stills.get(`${item.season}:${item.episode}`)
+              : undefined,
           }]
         : [],
     ),
-    [playback.playlist],
+    [playback.playlist, stills],
   );
 
   const playlistIndex = playback.playlistIndex ?? -1;

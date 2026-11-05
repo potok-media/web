@@ -83,7 +83,7 @@ const strictTypedFiles = [
 const rawControlExceptions = ['src/components/ui/**']
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'wiki/.astro/**']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

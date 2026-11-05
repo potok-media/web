@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useHUD } from "../context/useHUD";
@@ -20,6 +20,7 @@ import { reconstructLayout } from "../features/arm/layoutReconstruction";
 import { resolveLegacyRedirect } from "../features/arm/armGroupSelection";
 import { ApiClient } from "../network/ApiClient";
 import type { TvEpisode } from "../network/ApiTypes";
+import type { EpisodeSelection } from "../hooks/mediaDetails/mediaDetailsTypes";
 import type { ArmGroupSummary } from "../features/arm/armGroupDisplay";
 import type { ArmMediaSummary } from "../network/ArmTypes";
 
@@ -158,6 +159,41 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
     t,
   });
 
+  // History mutations change the server-derived effective status (auto-completed when the last
+  // episode is marked, fallen back when the title is cleared) — re-pull it after each mutation's
+  // reconciling refetch so the picker stays the single source of server truth.
+  const { refreshStatus } = userData;
+  const toggleWatchedWithStatus = useCallback(async () => {
+    await toggleWatched();
+    await refreshStatus();
+  }, [toggleWatched, refreshStatus]);
+  const toggleEpisodeWatchedWithStatus = useCallback(
+    async (episode: TvEpisode, nextState: boolean) => {
+      await toggleEpisodeWatched(episode, nextState);
+      await refreshStatus();
+    },
+    [toggleEpisodeWatched, refreshStatus],
+  );
+  const toggleSeasonWatchedWithStatus = useCallback(
+    async (
+      seasonNumber: number | undefined,
+      episodesList: TvEpisode[],
+      nextState: boolean,
+      groupTitle?: string,
+    ) => {
+      await toggleSeasonWatched(seasonNumber, episodesList, nextState, groupTitle);
+      await refreshStatus();
+    },
+    [toggleSeasonWatched, refreshStatus],
+  );
+  const saveEpisodeSelectionWithStatus = useCallback(
+    async (selection: EpisodeSelection[]) => {
+      await saveEpisodeSelection(selection);
+      await refreshStatus();
+    },
+    [saveEpisodeSelection, refreshStatus],
+  );
+
   useEffect(() => {
     mediaRef.current = media;
   }, [media, mediaRef]);
@@ -201,7 +237,7 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
         titleStatus={userData.status}
         folders={userData.folders}
         folderMembership={userData.membership}
-        toggleWatched={toggleWatched}
+        toggleWatched={toggleWatchedWithStatus}
         toggleFavorite={toggleFavorite}
         onSelectStatus={userData.selectStatus}
         onToggleFolder={userData.toggleFolder}
@@ -225,12 +261,14 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
                 }}
                 watchedEpisodes={media.progress?.watchedEpisodes || []}
                 watchedEpisodeIds={media.progress?.watchedEpisodeIds || []}
-                toggleEpisodeWatched={toggleEpisodeWatched}
-                toggleSeasonWatched={toggleSeasonWatched}
+                toggleEpisodeWatched={toggleEpisodeWatchedWithStatus}
+                toggleSeasonWatched={toggleSeasonWatchedWithStatus}
                 onOpenMultiPicker={() => setIsMultiPickerOpen(true)}
               />
             </div>
           )}
+
+          {hasEpisodeLibrary && <hr className="details-section-divider" />}
 
           {!hasEpisodeLibrary && cast.length > 0 && (
             <MediaCastSection cast={cast} variant="wide" />
@@ -246,16 +284,18 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
               mediaTitle={media.title}
               numberOfSeasons={media.numberOfSeasons ?? 0}
               initialSelected={media.progress?.watchedEpisodes || []}
-              onSave={saveEpisodeSelection}
+              onSave={saveEpisodeSelectionWithStatus}
             />
           )}
         </main>
 
         <aside className="details-side-column">
           <MediaDetailsInfoSection media={media} />
+          <hr className="details-section-divider" />
           {hasEpisodeLibrary && cast.length > 0 && (
             <MediaCastSection cast={cast} variant="compact" />
           )}
+          {hasEpisodeLibrary && cast.length > 0 && <hr className="details-section-divider" />}
           <MediaRelatedSection />
         </aside>
       </div>

@@ -1,0 +1,315 @@
+/* ==========================================================================
+   Collections page («Подборки») — de-blocked section style: the page title carries the
+   short accent underline, cards sit directly on the page surface, no wrapping panels.
+   ========================================================================== */
+
+.collections-page {
+  --collections-gutter: 1rem;
+  box-sizing: border-box;
+  width: min(
+    calc(100% - var(--collections-gutter) - var(--collections-gutter)),
+    var(--wide-shell-max-width)
+  );
+  margin-inline: auto;
+  padding: var(--space-l) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+}
+
+@media (min-width: 48rem) {
+  .collections-page {
+    --collections-gutter: 1.5rem;
+  }
+}
+
+@media (min-width: 80rem) {
+  .collections-page {
+    --collections-gutter: 2rem;
+  }
+}
+
+.collections-title {
+  margin: 0;
+  color: var(--text-primary);
+  font: var(--font-title3);
+  font-size: 2rem;
+}
+
+.collections-title::after {
+  content: "";
+  display: block;
+  width: 20%;
+  min-width: 2.5rem;
+  height: 0.1875rem;
+  margin-top: var(--space-xs);
+  border-radius: var(--radius-full);
+  background: var(--accent);
+}
+
+.collections-error {
+  margin: 0;
+  font: var(--font-caption);
+  color: var(--potok-danger, #e5534b);
+}
+
+.collections-empty {
+  margin: 0;
+  font: var(--font-caption);
+  color: var(--text-secondary);
+}
+
+.collections-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: var(--space-m);
+}
+
+/* --- Card tile ------------------------------------------------------------ */
+
+.collections-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: none;
+  border-radius: var(--radius-l);
+  background: var(--bg-surface);
+  overflow: hidden;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: var(--transition-interactive);
+}
+
+/* Cards that ARE buttons (favorites system card, creation tile) come from components/ui. */
+.ui-btn.collections-card {
+  width: 100%;
+  padding: 0;
+  justify-content: flex-start;
+  border-radius: var(--radius-l);
+}
+
+.ui-btn.collections-card:hover:not(:disabled) {
+  background: var(--bg-surface-high);
+  transform: translateY(-0.125rem);
+}
+
+.collections-card-cover {
+  position: relative;
+  /* 2×2 poster mosaic keeps the 2:3 poster ratio of a regular card grid. */
+  aspect-ratio: 2 / 3;
+}
+
+.collections-card-open {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.ui-btn.collections-card-open:hover:not(:disabled) {
+  background: none;
+  transform: none;
+}
+
+/* --- Cover mosaic ---------------------------------------------------------- */
+
+.collections-cover {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0.125rem;
+  width: 100%;
+  height: 100%;
+}
+
+.collections-cover.is-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-surface-high);
+}
+
+.collections-cover-cell {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-surface-high);
+}
+
+.collections-cover-placeholder-icon {
+  color: var(--text-tertiary);
+}
+
+/* --- Hover menu ------------------------------------------------------------ */
+
+.collections-card-menu {
+  position: absolute;
+  top: var(--space-s);
+  right: var(--space-s);
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: var(--radius-full);
+  background: RGBA(15, 15, 20, 0.65);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  opacity: 0;
+  transition: var(--transition-interactive);
+}
+
+.collections-card:hover .collections-card-menu,
+.collections-card:focus-within .collections-card-menu {
+  opacity: 1;
+}
+
+/* Touch devices have no hover — keep the menu reachable. */
+@media (hover: none) {
+  .collections-card-menu {
+    opacity: 1;
+  }
+}
+
+.collections-card-menu-btn {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+}
+
+.collections-card-menu-btn.is-danger {
+  color: var(--potok-danger, #e5534b);
+}
+
+/* --- Card footer ----------------------------------------------------------- */
+
+.collections-card-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin-top: auto;
+  padding: var(--space-s) var(--space-m) var(--space-m);
+}
+
+.collections-card-name {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  justify-content: flex-start;
+  font: var(--font-body-bold);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.collections-card-name-text {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-btn.collections-card-name:hover:not(:disabled) {
+  background: none;
+  color: var(--accent);
+}
+
+.collections-card-count {
+  font: var(--font-caption);
+  color: var(--text-secondary);
+}
+
+.collections-card-rename,
+.collections-card-confirm {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.collections-card-rename .ui-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+}
+
+.collections-card-confirm-text {
+  flex: 1;
+  min-width: 0;
+  font: var(--font-caption);
+  color: var(--text-secondary);
+}
+
+/* --- Favorites system card -------------------------------------------------- */
+
+.collections-favorites-cover {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  aspect-ratio: 2 / 3;
+  background:
+    radial-gradient(circle at 50% 42%, var(--accent-dim) 0%, transparent 65%),
+    var(--bg-surface-high);
+}
+
+.collections-favorites-icon {
+  color: var(--accent);
+}
+
+/* --- New-folder tile --------------------------------------------------------- */
+
+.ui-btn.collections-new-tile {
+  width: 100%;
+  min-height: 100%;
+  padding: var(--space-m);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-s);
+  border: 0.125rem dashed var(--bg-surface-highest);
+  border-radius: var(--radius-l);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.ui-btn.collections-new-tile:hover:not(:disabled) {
+  border-color: var(--accent-semi);
+  background: var(--accent-dim);
+  color: var(--text-primary);
+  transform: translateY(-0.125rem);
+}
+
+.collections-new-tile-label {
+  font: var(--font-caption);
+  text-align: center;
+}
+
+.collections-new-tile.is-editing {
+  align-items: stretch;
+  justify-content: center;
+  gap: var(--space-s);
+  border-style: solid;
+  border-color: var(--accent-semi);
+  background: var(--bg-surface);
+  padding: var(--space-m);
+}
+
+.collections-new-tile-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.collections-new-tile-create {
+  flex: 1;
+}

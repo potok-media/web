@@ -5,6 +5,7 @@ import type {
   BulkProgressMutationResponse,
   HistoryIdentity,
   ProgressMutationResponse,
+  RemoveBulkProgressRequest,
   SaveBulkProgressRequest,
   SaveProgressRequest,
 } from "../../network/SyncHistoryApiClient";
@@ -141,10 +142,22 @@ function toHistoryEntry(identity: HistoryIdentity, progressSeconds: number, dura
     episodeNumber: identity.episodeNumber,
     workId: identity.workId,
     episodeId: identity.episodeId,
+    isWatched: durationSeconds > 0 && progressSeconds / durationSeconds > 0.9,
     progressSeconds,
     durationSeconds,
     lastWatchedAt: new Date().toISOString(),
   };
+}
+
+/** Whole-title clear: every ledger row for the tmdb id, both episode labels. */
+function removeTitleHistory(tmdbId: string | undefined, mediaType: string): void {
+  const entries = readHistory();
+  const isMovie = mediaType === "movie";
+  writeHistory(entries.filter((existing) =>
+    existing.tmdbId !== tmdbId
+    || (isMovie
+      ? existing.mediaType !== "movie"
+      : existing.mediaType !== "tv" && existing.mediaType !== "episode")));
 }
 
 function progressResponse(progressSeconds: number, durationSeconds: number): ProgressMutationResponse {
@@ -190,6 +203,11 @@ export const guestSync = {
     return Promise.resolve(progressResponse(0, 0));
   },
 
+  removeBulkProgress: (request: RemoveBulkProgressRequest): Promise<ProgressMutationResponse> => {
+    removeTitleHistory(request.tmdbId, request.mediaType);
+    return Promise.resolve(progressResponse(0, 0));
+  },
+
   saveBulkProgress: (request: SaveBulkProgressRequest): Promise<BulkProgressMutationResponse> => {
     const traktSync: BulkProgressMutationResponse["traktSync"] = [];
     for (const change of request.changes as BulkProgressChange[]) {
@@ -202,7 +220,7 @@ export const guestSync = {
         episodeId: change.episodeId,
       };
       if (change.isWatched) {
-        upsertHistory(toHistoryEntry(identity, 100, 100));
+        upsertHistory({ ...toHistoryEntry(identity, 0, 0), isWatched: true });
         writeLocalProgress(identity, 100, 100);
       } else {
         removeHistory(identity);

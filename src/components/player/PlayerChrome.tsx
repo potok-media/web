@@ -1,6 +1,7 @@
 import React, { type RefObject } from "react";
 import type Hls from "hls.js";
 import type { ActivePlayback } from "../../context/playbackTypes";
+import type { SettingsMenuSection } from "../../hooks/usePlayerMenus";
 import { PlayerTopBar } from "./PlayerTopBar";
 import { SkipIntroButton } from "./SkipIntroButton";
 import { SkipOutroButton } from "./SkipOutroButton";
@@ -34,21 +35,17 @@ interface PlayerChromeProps {
   audioTracks: Array<{ id: number; name: string }>;
   currentAudioTrack: number;
   onSelectAudioTrack: (id: number) => void;
-  showAudioMenu: boolean;
-  onToggleAudioMenu: () => void;
   subtitleTracksUi: Array<{ id: number; name: string; loading?: boolean; error?: boolean }>;
-  subtitlesLoading: boolean;
   currentSubtitleTrack: number;
   onSelectSubtitleTrack: (id: number) => void;
-  showSubtitleMenu: boolean;
-  onToggleSubtitleMenu: () => void;
-  onUploadSubtitle: (file: File) => void;
-  onAddSubtitleUrl: (url: string) => Promise<void>;
   qualityLevels: Array<{ id: number; name: string }>;
   currentQualityLevel: number;
   onSelectQualityLevel: (id: number) => void;
-  showQualityMenu: boolean;
-  onToggleQualityMenu: () => void;
+  showSettingsMenu: boolean;
+  settingsMenuSection: SettingsMenuSection;
+  onOpenSettingsMenu: (section?: SettingsMenuSection) => void;
+  onCloseSettingsMenu: () => void;
+  onSettingsMenuSectionChange: (section: SettingsMenuSection) => void;
   onSelectPlaylistItem: (index: number) => void;
   showPlaylistSelector?: boolean;
   coWatchInRail?: boolean;
@@ -85,21 +82,17 @@ export const PlayerChrome: React.FC<PlayerChromeProps> = ({
   audioTracks,
   currentAudioTrack,
   onSelectAudioTrack,
-  showAudioMenu,
-  onToggleAudioMenu,
   subtitleTracksUi,
-  subtitlesLoading,
   currentSubtitleTrack,
   onSelectSubtitleTrack,
-  showSubtitleMenu,
-  onToggleSubtitleMenu,
-  onUploadSubtitle,
-  onAddSubtitleUrl,
   qualityLevels,
   currentQualityLevel,
   onSelectQualityLevel,
-  showQualityMenu,
-  onToggleQualityMenu,
+  showSettingsMenu,
+  settingsMenuSection,
+  onOpenSettingsMenu,
+  onCloseSettingsMenu,
+  onSettingsMenuSectionChange,
   onSelectPlaylistItem,
   showPlaylistSelector = true,
   coWatchInRail = false,
@@ -170,21 +163,17 @@ export const PlayerChrome: React.FC<PlayerChromeProps> = ({
       audioTracks={audioTracks}
       currentAudioTrack={currentAudioTrack}
       onSelectAudioTrack={onSelectAudioTrack}
-      showAudioMenu={showAudioMenu}
-      onToggleAudioMenu={onToggleAudioMenu}
       subtitleTracks={subtitleTracksUi}
-      subtitlesLoading={subtitlesLoading}
       currentSubtitleTrack={currentSubtitleTrack}
       onSelectSubtitleTrack={onSelectSubtitleTrack}
-      showSubtitleMenu={showSubtitleMenu}
-      onToggleSubtitleMenu={onToggleSubtitleMenu}
-      onUploadSubtitle={onUploadSubtitle}
-      onAddSubtitleUrl={onAddSubtitleUrl}
       qualityLevels={qualityLevels}
       currentQualityLevel={currentQualityLevel}
       onSelectQualityLevel={onSelectQualityLevel}
-      showQualityMenu={showQualityMenu}
-      onToggleQualityMenu={onToggleQualityMenu}
+      showSettingsMenu={showSettingsMenu}
+      settingsMenuSection={settingsMenuSection}
+      onOpenSettingsMenu={onOpenSettingsMenu}
+      onCloseSettingsMenu={onCloseSettingsMenu}
+      onSettingsMenuSectionChange={onSettingsMenuSectionChange}
       playlist={playback.playlist}
       playlistIndex={playback.playlistIndex}
       onSelectPlaylistItem={onSelectPlaylistItem}

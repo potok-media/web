@@ -55,6 +55,10 @@ export interface UserFolderItem {
   mediaType: UserDataMediaType;
   /** Display label persisted for guests (server ignores it). */
   label?: string | null;
+  /** Hydrated title from the server card (guests don't have it). */
+  title?: string | null;
+  /** Hydrated server cards carry a ready poster reference (full URL or TMDB path). */
+  posterSrc?: string | null;
   addedAt: string;
 }
 

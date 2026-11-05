@@ -1,8 +1,10 @@
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { useContinueWatchingCursors } from "../utils/continueWatching";
 import { continueCursorToMediaCard } from "../utils/continueWatching";
 import { useResumeContinueWatching } from "../hooks/useResumeContinueWatching";
+import { videoSettingsFromCursor } from "../utils/videoSettings";
 import type { MediaCard } from "../network/ApiTypes";
 import { MediaCardComponent } from "./MediaCardComponent";
 import { ScrollView } from "./common/ScrollView";
@@ -14,6 +16,7 @@ import { mediaCardKey } from "../utils/mediaLink";
  */
 export const ContinueWatchingRow: React.FC = () => {
   const { t } = useTranslation("media");
+  const navigate = useNavigate();
   const cursors = useContinueWatchingCursors();
   const { resume } = useResumeContinueWatching();
 
@@ -26,9 +29,14 @@ export const ContinueWatchingRow: React.FC = () => {
     (item: MediaCard) => {
       const entry = entries.find((e) => e.card === item);
       if (!entry) return;
+      const snapshot = videoSettingsFromCursor(entry.cursor);
+      if (snapshot) {
+        navigate("/continue-watch", { state: { snapshot } });
+        return;
+      }
       void resume(entry.cursor);
     },
-    [entries, resume],
+    [entries, navigate, resume],
   );
 
   if (!entries.length) return null;

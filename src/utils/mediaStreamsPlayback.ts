@@ -86,7 +86,7 @@ export const buildPlaybackFromInfo = (
   )
     ? (info.streamType as ActivePlayback["streamType"])
     : undefined,
-  audios: info.audios?.map((a) => ({ name: a.name, url: a.url })),
+  audios: info.audios?.map((a) => ({ ...a })),
   headers: info.headers,
   providerId: info.providerId || base.providerId,
   voice: info.voice,

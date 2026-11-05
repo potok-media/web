@@ -89,6 +89,7 @@ export function useWebMediaPlayerCore({
         sourceStream: playback.sourceStream,
         startAt: playback.startAt,
         stillSrc: playback.stillSrc,
+        audios: playback.audios,
       }),
       [
         playback.id,
@@ -109,6 +110,7 @@ export function useWebMediaPlayerCore({
         playback.sourceStream,
         playback.startAt,
         playback.stillSrc,
+        playback.audios,
       ],
     ),
     seekOffset,
@@ -131,17 +133,13 @@ export function useWebMediaPlayerCore({
   }, [closeBackendSession, onClose, setIsClosed]);
 
   const menusRef = useRef({
-    showAudioMenu: false,
-    showSubtitleMenu: false,
-    showQualityMenu: false,
+    showSettingsMenu: false,
     showPlaylistMenu: false,
   });
 
   const suppressControlsAutoHide = useCallback(
     () =>
-      menusRef.current.showAudioMenu
-      || menusRef.current.showSubtitleMenu
-      || menusRef.current.showQualityMenu
+      menusRef.current.showSettingsMenu
       || menusRef.current.showPlaylistMenu,
     [],
   );
@@ -152,18 +150,14 @@ export function useWebMediaPlayerCore({
 
   useEffect(() => {
     menusRef.current = {
-      showAudioMenu: menus.showAudioMenu,
-      showSubtitleMenu: menus.showSubtitleMenu,
-      showQualityMenu: menus.showQualityMenu,
+      showSettingsMenu: menus.showSettingsMenu,
       showPlaylistMenu: menus.showPlaylistMenu,
     };
     if (suppressControlsAutoHide()) {
       handleUserActivity();
     }
   }, [
-    menus.showAudioMenu,
-    menus.showSubtitleMenu,
-    menus.showQualityMenu,
+    menus.showSettingsMenu,
     menus.showPlaylistMenu,
     suppressControlsAutoHide,
     handleUserActivity,

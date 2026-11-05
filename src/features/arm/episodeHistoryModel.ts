@@ -3,6 +3,7 @@ import type {
   ArmEpisodeId,
   ArmWorkId,
 } from "../../network/ArmTypes";
+import type { SaveBulkProgressRequest } from "../../network/SyncHistoryApiClient";
 
 export interface EpisodeHistoryIdentity {
   tmdbId?: string;
@@ -123,6 +124,67 @@ export function toBulkEpisodeHistoryRequest(
   };
 }
 
+export function toTitleWatchedBulkRequests(
+  media: MediaCard,
+  episodes: TvEpisode[],
+  isWatched: boolean,
+): SaveBulkProgressRequest[] {
+  const tmdbId = Number.isFinite(media.id) && media.id > 0 ? String(media.id) : undefined;
+  const workId = media.arm?.workId;
+
+  const armChanges: SaveBulkProgressRequest["changes"] = [];
+  const legacyChanges: SaveBulkProgressRequest["changes"] = [];
+
+  const toArmChange = (episode: TvEpisode) => ({
+    ...(episode.tmdbSeasonNumber !== undefined ? { seasonNumber: episode.tmdbSeasonNumber } : {}),
+    ...(episode.tmdbEpisodeNumber !== undefined ? { episodeNumber: episode.tmdbEpisodeNumber } : {}),
+    episodeId: episode.armEpisodeId!,
+    isWatched,
+  });
+  const toLegacyChange = (seasonNumber: number, episodeNumber: number) => ({
+    seasonNumber,
+    episodeNumber,
+    isWatched,
+  });
+
+  for (const episode of episodes) {
+    const season = episode.armEpisodeId ? episode.tmdbSeasonNumber : episode.seasonNumber;
+    const number = episode.armEpisodeId ? episode.tmdbEpisodeNumber : episode.episodeNumber;
+
+    if (episode.armEpisodeId && workId) {
+      armChanges.push(toArmChange(episode));
+      // A remove must clear BOTH identity spaces: rows written by legacy clients carry only the
+      // TMDB coordinate, and the Potok-keyed delete would leave them behind (and vice versa).
+      if (!isWatched && season !== undefined && number !== undefined) {
+        legacyChanges.push(toLegacyChange(season, number));
+      }
+      continue;
+    }
+
+    if (season !== undefined && number !== undefined) {
+      legacyChanges.push(toLegacyChange(season, number));
+    }
+  }
+
+  const requests: SaveBulkProgressRequest[] = [];
+  if (armChanges.length > 0) {
+    requests.push({
+      ...(tmdbId ? { tmdbId } : {}),
+      mediaType: "episode",
+      ...(workId ? { workId } : {}),
+      changes: armChanges,
+    });
+  }
+  if (legacyChanges.length > 0) {
+    requests.push({
+      ...(tmdbId ? { tmdbId } : {}),
+      mediaType: media.mediaType,
+      changes: legacyChanges,
+    });
+  }
+  return requests;
+}
+
 export function applyEpisodeWatchedState(
   media: MediaCard,
   episodes: TvEpisode[],
@@ -153,12 +215,14 @@ export function applyEpisodeWatchedState(
   return {
     ...media,
     progress: {
-      completed: media.progress?.completed ?? 0,
       aired: media.progress?.aired ?? 0,
       percentage: media.progress?.percentage ?? 0,
       ...media.progress,
       watchedEpisodes: [...legacyCoordinates.values()],
       watchedEpisodeIds: [...episodeIds],
+      // ARM-identity episodes and legacy-coordinate episodes can track the same title; count the
+      // union approximately so the watched banner/season checks don't lag behind the ticks.
+      completed: Math.max(episodeIds.size, legacyCoordinates.size),
     },
   };
 }

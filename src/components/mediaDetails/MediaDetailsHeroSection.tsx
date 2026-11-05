@@ -5,7 +5,6 @@ import { IconButton } from "../ui";
 import { Slot } from "../common/extension/Slot";
 import { MediaOverviewSection } from "../MediaOverviewSection";
 import { StatusPickerMenu } from "./StatusPickerMenu";
-import { FolderPickerMenu } from "./FolderPickerMenu";
 import type { MediaCard, TvEpisode } from "../../network/ApiTypes";
 import type { ArmGroupSummary } from "../../features/arm/armGroupDisplay";
 import type { ArmMediaSummary } from "../../network/ArmTypes";
@@ -50,13 +49,11 @@ export const MediaDetailsHeroSection: React.FC<MediaDetailsHeroSectionProps> = (
   isWatched,
   isFavorite,
   titleStatus,
-  folders,
-  folderMembership,
+  // folders/folderMembership/onToggleFolder/onCreateFolder: папки скрыты — пропсы оставлены в
+  // интерфейсе, чтобы не трогать callers; не деструктурируются, пока раздел выключен.
   toggleWatched,
   toggleFavorite,
   onSelectStatus,
-  onToggleFolder,
-  onCreateFolder,
 }) => {
   const { t } = useTranslation("media");
 
@@ -123,12 +120,7 @@ export const MediaDetailsHeroSection: React.FC<MediaDetailsHeroSectionProps> = (
                     onMarkWatched={toggleWatched}
                   />
 
-                  <FolderPickerMenu
-                    folders={folders}
-                    membership={folderMembership}
-                    onToggleFolder={onToggleFolder}
-                    onCreateFolder={onCreateFolder}
-                  />
+                  {/* FolderPickerMenu скрыт вместе с разделом «Подборки» (см. AppSidebar). */}
 
                   <IconButton
                     className={`action-btn-circle ${isFavorite ? "active" : ""}`}

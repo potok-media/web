@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { Storage } from "./StorageService";
-import type { MediaCard } from "../network/ApiTypes";
+import type { ContinueWatchingEpisodeItem, LastSourceAudioCandidate, MediaCard } from "../network/ApiTypes";
 
 /**
  * Host-owned "Continue watching" ledger.
@@ -41,6 +41,8 @@ export interface ContinueWatchingCursor {
   sourceStream?: unknown;
   season?: number;
   episode?: number;
+  /** Full voice-candidate list saved with lastSource (cross-provider merge) for menu restore. */
+  audios?: LastSourceAudioCandidate[];
   progressSeconds: number;
   durationSeconds: number;
   audioName?: string;
@@ -299,6 +301,42 @@ export function continueCursorToMediaCard(cursor: ContinueWatchingCursor): Media
       percentage,
       lastSeason: cursor.season,
       lastEpisode: cursor.episode,
+    },
+  };
+}
+
+/** Ledger cursor → episode-level continue-watching item (guest rail / fetch degradation). */
+export function continueCursorToEpisodeItem(cursor: ContinueWatchingCursor): ContinueWatchingEpisodeItem {
+  const percentage = cursor.durationSeconds > 0
+    ? Math.min(100, Math.round((cursor.progressSeconds / cursor.durationSeconds) * 100))
+    : 0;
+  return {
+    id: cursor.tmdbId ?? 0,
+    title: cursor.title,
+    mediaType: cursor.mediaType,
+    posterSrc: cursor.posterSrc,
+    backdropSrc: cursor.backdropSrc,
+    seasonNumber: cursor.season ?? null,
+    episodeNumber: cursor.episode ?? null,
+    progressSeconds: cursor.progressSeconds,
+    durationSeconds: cursor.durationSeconds,
+    progressPercent: percentage,
+    lastWatchedAt: cursor.updatedAt ? new Date(cursor.updatedAt).toISOString() : undefined,
+    resume: {
+      season: cursor.season ?? null,
+      episode: cursor.episode ?? null,
+      progressSeconds: cursor.progressSeconds,
+      durationSeconds: cursor.durationSeconds,
+      lastSource: cursor.providerId
+        ? {
+            providerId: cursor.providerId,
+            ...(cursor.audioName ? { voice: cursor.audioName } : {}),
+            ...(cursor.streamHash ? { streamHash: cursor.streamHash } : {}),
+            ...(cursor.fileIndex != null ? { fileIndex: cursor.fileIndex } : {}),
+            ...(cursor.sourceStream !== undefined ? { sourceStream: cursor.sourceStream } : {}),
+            ...(cursor.audios ? { audios: cursor.audios } : {}),
+          }
+        : undefined,
     },
   };
 }

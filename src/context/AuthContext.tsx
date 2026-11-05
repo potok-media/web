@@ -14,14 +14,12 @@ export interface AuthContextType {
   multiUserMode: boolean;
   telegramAuthEnabled: boolean;
   telegramBotUsername: string | null;
-  syncStrategy: string;
   traktConnected: boolean;
   login: (token: string, user: PotokUser) => void;
   logout: () => void;
   setMultiUserMode: React.Dispatch<React.SetStateAction<boolean>>;
   setTelegramAuth: (enabled: boolean, botUsername: string | null) => void;
   updateUser: (user: PotokUser) => void;
-  setSyncStrategy: (strategy: string) => void;
   setTraktConnected: (connected: boolean) => void;
 }
 
@@ -44,17 +42,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [telegramBotUsername, setTelegramBotUsername] = useState<string | null>(() =>
     Storage.get<string | null>("telegramBotUsername", null),
   );
-  const [syncStrategy, setSyncStrategyState] = useState<string>(() =>
-    Storage.get<string>("syncStrategy", "none"),
-  );
   const [traktConnected, setTraktConnectedState] = useState<boolean>(() =>
     Storage.get<PotokUser | null>("potokUser", null)?.traktConnected ?? false,
   );
-
-  const setSyncStrategy = useCallback((strategy: string) => {
-    Storage.set("syncStrategy", strategy);
-    setSyncStrategyState(strategy);
-  }, []);
 
   const setTraktConnected = useCallback((connected: boolean) => {
     setTraktConnectedState(connected);
@@ -82,23 +72,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = useCallback((token: string, user: PotokUser) => {
     Storage.set("potokToken", token);
     Storage.set("potokUser", user);
-    const strategy = user.syncStrategy || "none";
-    Storage.set("syncStrategy", strategy);
     setPotokToken(token);
     setPotokUser(user);
-    setSyncStrategyState(strategy);
     setTraktConnectedState(user.traktConnected ?? false);
   }, []);
 
   const logout = useCallback(() => {
     Storage.remove("potokToken");
     Storage.remove("potokUser");
-    Storage.remove("syncStrategy");
     Storage.remove("multiUserMode");
     setPotokToken(null);
     setPotokUser(null);
     setMultiUserMode(false);
-    setSyncStrategyState("none");
     setTraktConnectedState(false);
   }, []);
 
@@ -117,9 +102,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .then((user) => {
         Storage.set("potokUser", user);
         setPotokUser(user);
-        const strategy = user.syncStrategy || "none";
-        Storage.set("syncStrategy", strategy);
-        setSyncStrategyState(strategy);
         setTraktConnectedState(user.traktConnected ?? false);
       })
       .catch((err) => {
@@ -137,14 +119,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       multiUserMode,
       telegramAuthEnabled,
       telegramBotUsername,
-      syncStrategy,
       traktConnected,
       login,
       logout,
       setMultiUserMode,
       setTelegramAuth,
       updateUser,
-      setSyncStrategy,
       setTraktConnected,
     }),
     [
@@ -153,13 +133,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       multiUserMode,
       telegramAuthEnabled,
       telegramBotUsername,
-      syncStrategy,
       traktConnected,
       login,
       logout,
       setTelegramAuth,
       updateUser,
-      setSyncStrategy,
       setTraktConnected,
     ],
   );
@@ -170,7 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         DataWorkerBridge.syncSettings();
       });
     }
-  }, [potokToken, syncStrategy]);
+  }, [potokToken]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

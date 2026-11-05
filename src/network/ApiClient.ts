@@ -1,5 +1,6 @@
 import { DataWorkerBridge } from "../utils/worker/DataWorkerBridge";
 import { SettingsService } from "../utils/SettingsService";
+import { resolveTmdbImageUrl } from "../utils/mediaUtils";
 import { getRequestLanguage } from "./locale";
 import { MemorySafeCache } from "./MemorySafeCache";
 import { SyncApiClient } from "./SyncApiClient";
@@ -352,51 +353,59 @@ export class ApiClient {
   }
 
   public static async fetchLibraryCategory(category: string): Promise<MediaCard[]> {
+    if (category === "continue") {
+      // Canonical continue-watching endpoint (hydrated cards + resume payload). This runs on
+      // the calling thread on purpose: the guest fallback reads the host's localStorage ledger,
+      // which the data worker (no DOM storage) cannot see, and auth detection there relies on the
+      // main-thread-only user snapshot.
+      return SyncApiClient.fetchContinueWatching();
+    }
     if (!this.isWorker) {
       return DataWorkerBridge.request<MediaCard[]>("fetchLibraryCategory", [category]);
     }
     if (category.includes(".")) {
       return this.fetchMediaRow(category);
     }
-    const strategy = SettingsService.getSyncStrategy();
-    if (category === "continue") {
-      // Canonical continue-watching endpoint (hydrated cards + resume payload), independent
-      // of the sync strategy; guests resolve to the local ledger inside the client.
-      return SyncApiClient.fetchContinueWatching();
+    // The Potok server DB is the only library source: favorites/watchlist/history resolve
+    // through the sync endpoints — guests fall back to their local ledger inside the
+    // SyncApiClient calls.
+    let entries: { tmdbId: string; mediaType: string }[] = [];
+    if (category === "watchlist") {
+      entries = await SyncApiClient.fetchSyncWatchlist();
+    } else if (category === "favorites") {
+      // Hydrated server-side (one round-trip, no TMDB batch) — same shape as continue-watching
+      // cards; image paths arrive raw and go through the gateway proxy like the continue path.
+      const res = await fetch(
+        `${this.baseURL}/api/library/favorites/cards?language=${encodeURIComponent(this.language)}`,
+        { headers: this.headers },
+      );
+      const cards = await handleApiResponse<MediaCard[]>(res, "Failed to fetch favorites");
+      return cards.map((card) => ({
+        ...card,
+        posterSrc: resolveTmdbImageUrl(card.posterSrc, this.baseURL),
+        backdropSrc: resolveTmdbImageUrl(card.backdropSrc, this.baseURL),
+        logoSrc: resolveTmdbImageUrl(card.logoSrc, this.baseURL),
+      }));
+    } else if (category === "history" || category === "up-next") {
+      const hist = await SyncApiClient.fetchSyncHistory();
+      entries = hist.flatMap((h) => h.tmdbId
+        ? [{
+            tmdbId: h.tmdbId,
+            mediaType: h.mediaType === "episode" ? "tv" : h.mediaType,
+          }]
+        : []);
     }
-    if (strategy === "trakt") {
-      const res = await fetch(`${this.baseURL}/api/library/${category}?language=${encodeURIComponent(this.language)}`, {
-        headers: this.headers,
-      });
-      return handleApiResponse<MediaCard[]>(res, `Failed to fetch library category: ${category}`);
-    } else if (strategy === "server") {
-      let entries: { tmdbId: string; mediaType: string }[] = [];
-      if (category === "watchlist") {
-        entries = await SyncApiClient.fetchSyncWatchlist();
-      } else if (category === "favorites") {
-        entries = await SyncApiClient.fetchSyncFavorites();
-      } else if (category === "history" || category === "up-next") {
-        const hist = await SyncApiClient.fetchSyncHistory();
-        entries = hist.flatMap((h) => h.tmdbId
-          ? [{
-              tmdbId: h.tmdbId,
-              mediaType: h.mediaType === "episode" ? "tv" : h.mediaType,
-            }]
-          : []);
-      }
-      const seen = new Set<string>();
-      const unique = entries.filter((e) => {
-        const key = `${e.tmdbId}_${e.mediaType}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-      return this.fetchBatchDetails(unique.map((e) => ({
-        tmdbId: Number(e.tmdbId),
-        mediaType: e.mediaType,
-      })));
-    }
-    return [];
+    const seen = new Set<string>();
+    const unique = entries.filter((e) => {
+      const key = `${e.tmdbId}_${e.mediaType}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    return this.fetchBatchDetails(unique.map((e) => ({
+      tmdbId: Number(e.tmdbId),
+      mediaType: e.mediaType,
+    })));
   }
 
   public static async fetchExtensionManifest(url: string, signal?: AbortSignal): Promise<ExtensionManifest> {

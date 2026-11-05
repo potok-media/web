@@ -51,15 +51,14 @@ export function useMediaStreamsDetails({
     [showHUD, i18n],
   );
 
+  // Server history is the only watched-state source (guests resolve to the local ledger
+  // inside SyncApiClient).
   useEffect(() => {
-    const strategy = Storage.get<string>("syncStrategy", "none");
-    if (strategy === "server" || strategy === "trakt") {
-      SyncApiClient.fetchSyncHistory()
-        .then((history) => {
-          if (history) setRemoteHistory(history);
-        })
-        .catch((err) => logger.error("[useMediaStreams] Failed to load sync history:", err));
-    }
+    SyncApiClient.fetchSyncHistory()
+      .then((history) => {
+        if (history) setRemoteHistory(history);
+      })
+      .catch((err) => logger.error("[useMediaStreams] Failed to load sync history:", err));
   }, [mediaId]);
 
   useEffect(() => {

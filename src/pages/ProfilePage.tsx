@@ -1,43 +1,59 @@
-import React, { useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useParams } from "react-router-dom";
+import { History } from "lucide-react";
 import { useAuth } from "../context/AppSettingsContext";
+import { useHUD } from "../context/useHUD";
 import { useContinueWatchingCards } from "../hooks/useContinueWatchingCards";
+import { useContinueWatchingEpisodes } from "../hooks/profile/useContinueWatchingEpisodes";
 import { useResumeContinueCard } from "../hooks/useResumeContinueCard";
+import { useResumeContinueEpisode } from "../hooks/profile/useResumeContinueEpisode";
+import { isResumeEffectivelyComplete } from "../utils/continueWatchingResume";
 import { useProfileSummary } from "../hooks/useProfileSummary";
+import { useUserDataCollection } from "../hooks/useUserDataCollection";
 import { PotokAuthView } from "../components/profile/PotokAuthView";
-import { ProfileAccountSection } from "../components/profile/ProfileAccountSection";
-import { ProfileHistorySection } from "../components/profile/ProfileHistorySection";
 import { ProfileHero } from "../components/profile/ProfileHero";
 import { ProfileStatisticsSection } from "../components/profile/ProfileStatisticsSection";
-import { ProfileContinueRail } from "../components/profile/ProfileContinueRail";
-import { ProfileStatusShelf } from "../components/profile/ProfileStatusShelf";
+import { ProfileActivitySection } from "../components/profile/ProfileActivitySection";
+import { ProfileStatusGrid } from "../components/profile/ProfileStatusGrid";
+import { ProfileTabs, type ProfileTabDef, type ProfileTabId } from "../components/profile/ProfileTabs";
+import { ContinueEpisodeCard } from "../components/profile/ContinueEpisodeCard";
+import type { TitleStatus } from "../utils/userData";
 import "../styles/profile.css";
 
-const PROFILE_SHELVES = ["watching", "planned", "completed"] as const;
+const PROFILE_STATUSES: TitleStatus[] = ["watching", "planned", "completed", "on_hold", "dropped"];
 
 /**
- * The approved profile layout: a single-scroll page — hero (identity + stats + "Сейчас
- * смотрите"), a 30-day statistics chart, the server-driven continue-watching rail, the three
- * status shelves, the phase-2 history placeholder, and the unchanged account section.
- * Guests get the same scroll minus server-backed blocks (stat chips, statistics, history,
- * account) plus a sign-in entry point; their shelves and continue rail come from the local
- * guest stores.
+ * The approved profile layout (mockup profile-v2): a full-bleed hero (identity + «Сейчас
+ * смотрите» with the resume/details actions), a text tab bar directly under it
+ * («Продолжить · N», the five watch statuses with count badges), then a two-column body —
+ * the active tab's content on the left (16:9 episode continue-cards in a 2-col grid for
+ * «Продолжить», a 4-col poster grid with micro progress for the statuses) and a 320px
+ * sidebar on the right («Статистика · 30 дней» + compact «Активность» preview linking to the
+ * full history page). Mobile gets the plain «Выйти»
+ * button at the bottom, guests get the login form. Tab state is local — no URL param.
  */
-const ProfileScrollPage: React.FC<{ scrollToAccount: boolean }> = ({ scrollToAccount }) => {
+const ProfileScrollPage: React.FC = () => {
   const { t } = useTranslation("profile");
-  const { potokToken, potokUser, login } = useAuth();
+  const { potokToken, potokUser, login, logout } = useAuth();
+  const { show: showHUD } = useHUD();
   const isAuth = Boolean(potokToken);
   const { cards: continueCards } = useContinueWatchingCards(isAuth);
+  const { items: continueEpisodes } = useContinueWatchingEpisodes(isAuth);
   const resumeCard = useResumeContinueCard();
+  const resumeEpisode = useResumeContinueEpisode();
   const summaryState = useProfileSummary(isAuth);
-  const accountRef = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useState<ProfileTabId>("continue");
 
-  useEffect(() => {
-    if (scrollToAccount) {
-      accountRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [scrollToAccount]);
+  // One collection per status feeds both the tab count badges and the active tab's grid —
+  // the unified user-data layer (server list / guest store) does the auth branching.
+  const statusCollections: Record<TitleStatus, ReturnType<typeof useUserDataCollection>> = {
+    watching: useUserDataCollection("status", "watching"),
+    planned: useUserDataCollection("status", "planned"),
+    completed: useUserDataCollection("status", "completed"),
+    on_hold: useUserDataCollection("status", "on_hold"),
+    dropped: useUserDataCollection("status", "dropped"),
+  };
 
   // Unauthenticated users get the full login form right away — no guest hero parody
   // (owner decision). Guest local data remains available after login.
@@ -52,11 +68,28 @@ const ProfileScrollPage: React.FC<{ scrollToAccount: boolean }> = ({ scrollToAcc
   }
 
   // Any in-progress continue-watching item qualifies — server and ledger cards both carry
-  // resume coordinates. Resumability through a saved lastSource only gates the resume action,
-  // never the now-block itself.
-  const nowWatching = isAuth
-    ? continueCards.find((card) => card.resume != null) ?? null
-    : null;
+  // resume coordinates. Rows at/past 90% watched are completion leftovers, not "Сейчас
+  // смотрите" material: skipped like the episode-level endpoint skips them. Resumability
+  // through a saved lastSource only gates the resume action, never the now-block itself.
+  const nowWatching = continueCards.find(
+    (card) => card.resume != null && !isResumeEffectivelyComplete(card.resume),
+  ) ?? null;
+
+  const handleLogout = () => {
+    logout();
+    showHUD("info", t("hud.loggedOut"));
+  };
+
+  const tabs: ProfileTabDef[] = [
+    { id: "continue", label: t("page.tabs.continue"), count: continueEpisodes.length },
+    ...PROFILE_STATUSES.map((status) => ({
+      id: status as ProfileTabId,
+      label: t(`page.tabs.${status}`),
+      count: statusCollections[status].total,
+    })),
+  ];
+
+  const activeCollection = activeTab === "continue" ? null : statusCollections[activeTab];
 
   return (
     <div className="profile-container profile-container--scroll">
@@ -68,32 +101,47 @@ const ProfileScrollPage: React.FC<{ scrollToAccount: boolean }> = ({ scrollToAcc
         onResume={resumeCard}
       />
 
-      {isAuth && <ProfileStatisticsSection state={summaryState} />}
+      <ProfileTabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
 
-      <ProfileContinueRail cards={continueCards} onResume={resumeCard} />
+      <div className="profile-body-split">
+        <div className="profile-body-main">
+          {activeTab === "continue" ? (
+            continueEpisodes.length > 0 ? (
+              <div className="profile-continue-grid">
+                {continueEpisodes.map((item) => (
+                  <ContinueEpisodeCard
+                    key={`${item.id}:${item.seasonNumber ?? "movie"}:${item.episodeNumber ?? 0}`}
+                    item={item}
+                    onClick={resumeEpisode}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="library-empty-view collection-mode">
+                <History size="3rem" className="library-empty-icon muted" />
+                <h2 className="library-empty-title">{t("continueSection.empty")}</h2>
+                <p className="library-empty-subtitle">{t("continueSection.emptySub")}</p>
+              </div>
+            )
+          ) : activeCollection ? (
+            <ProfileStatusGrid
+              status={activeTab}
+              items={activeCollection.items}
+              loading={activeCollection.loading}
+              continueEpisodes={continueEpisodes}
+            />
+          ) : null}
+        </div>
 
-      {PROFILE_SHELVES.map((status) => (
-        <ProfileStatusShelf key={status} status={status} />
-      ))}
+        <aside className="profile-sidebar">
+          <ProfileStatisticsSection state={summaryState} />
+          <ProfileActivitySection />
+        </aside>
+      </div>
 
-      {isAuth && (
-        <section className="profile-history-section">
-          <div className="profile-section-header">
-            <h2 className="profile-section-title">{t("page.tabs.history")}</h2>
-            <span className="profile-section-subtitle">{t("history.subtitle")}</span>
-          </div>
-          <ProfileHistorySection />
-        </section>
-      )}
-
-      {isAuth && (
-        <section className="profile-account-section" ref={accountRef}>
-          <div className="profile-section-header">
-            <h2 className="profile-section-title">{t("page.tabs.account")}</h2>
-          </div>
-          <ProfileAccountSection />
-        </section>
-      )}
+      <button type="button" className="profile-page-logout mobile-only" onClick={handleLogout}>
+        {t("page.logout")}
+      </button>
     </div>
   );
 };
@@ -102,11 +150,12 @@ export const ProfilePage: React.FC = () => {
   const { section } = useParams<{ section: string }>();
 
   // The phase-2 status tabs are gone — their deep links land on the single-scroll page.
-  if (section && section !== "account") {
+  // «Аккаунт» went the same way: no in-page account section to scroll to anymore.
+  if (section) {
     return <Navigate to="/profile" replace />;
   }
 
-  return <ProfileScrollPage scrollToAccount={section === "account"} />;
+  return <ProfileScrollPage />;
 };
 
 export default ProfilePage;

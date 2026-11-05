@@ -1,41 +1,49 @@
 import { useCallback, useEffect, useState } from "react";
 
+export type SettingsMenuSection = "quality" | "audio" | "subtitles" | null;
+
 export function usePlayerMenus(controlsVisible: boolean) {
-  const [showAudioMenu, setShowAudioMenu] = useState(false);
-  const [showSubtitleMenu, setShowSubtitleMenu] = useState(false);
-  const [showQualityMenu, setShowQualityMenu] = useState(false);
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  const [settingsMenuSection, setSettingsMenuSection] = useState<SettingsMenuSection>(null);
   const [showPlaylistMenu, setShowPlaylistMenu] = useState(false);
 
   useEffect(() => {
     if (!controlsVisible) {
-      setShowAudioMenu(false);
-      setShowSubtitleMenu(false);
-      setShowQualityMenu(false);
+      setShowSettingsMenu(false);
+      setSettingsMenuSection(null);
       setShowPlaylistMenu(false);
     }
   }, [controlsVisible]);
 
+  const openSettingsMenu = useCallback((section: SettingsMenuSection = null) => {
+    setSettingsMenuSection(section);
+    setShowSettingsMenu(true);
+  }, []);
+
+  const closeSettingsMenu = useCallback(() => {
+    setShowSettingsMenu(false);
+    setSettingsMenuSection(null);
+  }, []);
+
   const closeAllMenus = useCallback(() => {
-    setShowAudioMenu(false);
-    setShowSubtitleMenu(false);
-    setShowQualityMenu(false);
+    setShowSettingsMenu(false);
+    setSettingsMenuSection(null);
     setShowPlaylistMenu(false);
   }, []);
 
   const resetMenus = useCallback(() => {
-    setShowAudioMenu(false);
-    setShowSubtitleMenu(false);
-    setShowQualityMenu(false);
+    setShowSettingsMenu(false);
+    setSettingsMenuSection(null);
     setShowPlaylistMenu(false);
   }, []);
 
   return {
-    showAudioMenu,
-    setShowAudioMenu,
-    showSubtitleMenu,
-    setShowSubtitleMenu,
-    showQualityMenu,
-    setShowQualityMenu,
+    showSettingsMenu,
+    setShowSettingsMenu,
+    settingsMenuSection,
+    setSettingsMenuSection,
+    openSettingsMenu,
+    closeSettingsMenu,
     showPlaylistMenu,
     setShowPlaylistMenu,
     closeAllMenus,

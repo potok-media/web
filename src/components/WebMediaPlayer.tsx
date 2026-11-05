@@ -21,6 +21,7 @@ const PLAYER_CHROME_SELECTOR = [
   ".player-resume-toast",
   ".player-loading-overlay",
   ".player-error-overlay",
+  ".player-settings-menu",
   ".selector-dropdown-menu",
 ].join(", ");
 
@@ -178,46 +179,26 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = (props) => {
         audioTracks={vm.metadata.audioTracks}
         currentAudioTrack={vm.metadata.currentAudioTrack}
         onSelectAudioTrack={vm.trackSwitching.switchAudio}
-        showAudioMenu={vm.menus.showAudioMenu}
-        onToggleAudioMenu={() => {
-          vm.menus.setShowAudioMenu(!vm.menus.showAudioMenu);
-          vm.menus.setShowSubtitleMenu(false);
-          vm.menus.setShowQualityMenu(false);
-          vm.menus.setShowPlaylistMenu(false);
-        }}
         subtitleTracksUi={vm.subtitles.subtitleTracksUi}
-        subtitlesLoading={vm.subtitles.subtitlesLoading}
         currentSubtitleTrack={vm.metadata.currentSubtitleTrack}
         onSelectSubtitleTrack={vm.switchSubtitle}
-        showSubtitleMenu={vm.menus.showSubtitleMenu}
-        onToggleSubtitleMenu={() => {
-          vm.menus.setShowSubtitleMenu(!vm.menus.showSubtitleMenu);
-          vm.menus.setShowAudioMenu(false);
-          vm.menus.setShowQualityMenu(false);
-          vm.menus.setShowPlaylistMenu(false);
-        }}
-        onUploadSubtitle={vm.subtitles.handleUploadSubtitle}
-        onAddSubtitleUrl={vm.subtitles.handleAddSubtitleUrl}
         qualityLevels={vm.trackSwitching.displayQualityLevels}
         currentQualityLevel={vm.hls.currentQualityLevel}
         onSelectQualityLevel={vm.trackSwitching.switchQuality}
-        showQualityMenu={vm.menus.showQualityMenu}
-        onToggleQualityMenu={() => {
-          vm.menus.setShowQualityMenu(!vm.menus.showQualityMenu);
-          vm.menus.setShowAudioMenu(false);
-          vm.menus.setShowSubtitleMenu(false);
-          vm.menus.setShowPlaylistMenu(false);
-        }}
+        showSettingsMenu={vm.menus.showSettingsMenu}
+        settingsMenuSection={vm.menus.settingsMenuSection}
+        onOpenSettingsMenu={vm.menus.openSettingsMenu}
+        onCloseSettingsMenu={vm.menus.closeSettingsMenu}
+        onSettingsMenuSectionChange={vm.menus.setSettingsMenuSection}
         onSelectPlaylistItem={onSelectPlaylistItem}
         showPlaylistSelector={!isInline || vm.isFullscreen}
         coWatchInRail={isInline}
         hideTopBar={isInline && coWatchSessionActive}
         showPlaylistMenu={vm.menus.showPlaylistMenu}
         onTogglePlaylistMenu={() => {
-          vm.menus.setShowPlaylistMenu(!vm.menus.showPlaylistMenu);
-          vm.menus.setShowAudioMenu(false);
-          vm.menus.setShowSubtitleMenu(false);
-          vm.menus.setShowQualityMenu(false);
+          const next = !vm.menus.showPlaylistMenu;
+          vm.menus.setShowPlaylistMenu(next);
+          if (next) vm.menus.closeSettingsMenu();
         }}
         onUserActivity={vm.handleUserActivity}
       />

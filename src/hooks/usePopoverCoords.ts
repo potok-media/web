@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useLayoutEffect, useState } from "react";
 
 export interface PopoverCoords {
   top: number;
@@ -31,7 +31,7 @@ export function usePopoverCoords(
     });
   }, [triggerRef, minSpaceBelow]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isOpen) return;
     updateCoords();
     window.addEventListener("resize", updateCoords);

@@ -43,6 +43,7 @@ interface UsePlaybackTrackerParams {
     sourceStream?: unknown;
     startAt?: number;
     stillSrc?: string;
+    audios?: { name: string; url: string }[];
   };
   seekOffset: number;
   isActive: boolean;
@@ -81,6 +82,7 @@ export function usePlaybackTracker({
     voice,
     sourceStream,
     stillSrc,
+    audios,
   } = playback;
   const { progressKey, resumeKey } = playbackStorageKeys(playback);
   const canSync = canSyncPlaybackIdentity(playback);
@@ -212,6 +214,7 @@ export function usePlaybackTracker({
           voice: audioNameRef.current || voice,
           streamHash,
           fileIndex,
+          audios,
           sourceStream,
         });
         const save = workId && episodeId
@@ -249,6 +252,7 @@ export function usePlaybackTracker({
     streamHash,
     fileIndex,
     sourceStream,
+    audios,
   ]);
 
   const handleManualSave = useCallback(() => {
@@ -316,6 +320,7 @@ export function usePlaybackTracker({
           voice: audioNameRef.current || voice,
           streamHash,
           fileIndex,
+          audios,
           sourceStream,
         });
         const save = workId && episodeId
@@ -379,6 +384,7 @@ export function usePlaybackTracker({
     streamHash,
     fileIndex,
     sourceStream,
+    audios,
   ]);
 
   return {

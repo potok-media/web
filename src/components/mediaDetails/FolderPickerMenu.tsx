@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Check, ChevronDown, Folder, FolderPlus } from "lucide-react";
 import { Button, IconButton, Input, PopoverItem } from "../ui";
+import { DetailsPickerPopover } from "./DetailsPickerPopover";
 import type { UserFolder } from "../../utils/userData";
 
 interface FolderPickerMenuProps {
@@ -19,6 +20,7 @@ export const FolderPickerMenu: React.FC<FolderPickerMenuProps> = ({
 }) => {
   const { t } = useTranslation("media");
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
 
@@ -41,6 +43,7 @@ export const FolderPickerMenu: React.FC<FolderPickerMenuProps> = ({
   return (
     <div className="details-picker-wrapper">
       <IconButton
+        ref={triggerRef}
         className={`action-btn-circle details-picker-trigger ${inAnyFolder ? "active" : ""}`}
         onClick={() => setOpen((prev) => !prev)}
         aria-expanded={open}
@@ -51,54 +54,49 @@ export const FolderPickerMenu: React.FC<FolderPickerMenuProps> = ({
         <ChevronDown size="0.75rem" />
       </IconButton>
 
-      {open && (
-        <>
-          <div className="popover-overlay" onClick={() => setOpen(false)} />
-          <div className="details-picker-menu">
-            <div className="popover-header">{t("folders.title")}</div>
-            {folders.length === 0 && (
-              <div className="details-picker-empty">{t("folders.empty")}</div>
-            )}
-            {folders.map((folder) => {
-              const checked = !!membership[folder.id];
-              return (
-                <PopoverItem
-                  key={folder.id}
-                  className="details-picker-item"
-                  onClick={() => onToggleFolder(folder.id)}
-                >
-                  <span className={`details-picker-checkbox ${checked ? "checked" : ""}`}>
-                    {checked && <Check size="0.75rem" strokeWidth={3.5} />}
-                  </span>
-                  <Folder size="1rem" className="details-picker-item-icon" />
-                  <span>{folder.name}</span>
-                  <span className="details-picker-count">
-                    {t("folders.itemCount", { count: folder.itemCount })}
-                  </span>
-                </PopoverItem>
-              );
-            })}
-            <div className="details-picker-new">
-              <Input
-                value={newName}
-                onChange={(event) => setNewName(event.target.value)}
-                placeholder={t("folders.newPlaceholder")}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") void handleCreate();
-                }}
-              />
-              <Button
-                variant="glass"
-                className="details-picker-create-btn"
-                onClick={() => void handleCreate()}
-                disabled={creating || !newName.trim()}
-              >
-                {t("folders.create")}
-              </Button>
-            </div>
-          </div>
-        </>
-      )}
+      <DetailsPickerPopover open={open} onClose={() => setOpen(false)} triggerRef={triggerRef}>
+        <div className="popover-header">{t("folders.title")}</div>
+        {folders.length === 0 && (
+          <div className="details-picker-empty">{t("folders.empty")}</div>
+        )}
+        {folders.map((folder) => {
+          const checked = !!membership[folder.id];
+          return (
+            <PopoverItem
+              key={folder.id}
+              className="details-picker-item"
+              onClick={() => onToggleFolder(folder.id)}
+            >
+              <span className={`details-picker-checkbox ${checked ? "checked" : ""}`}>
+                {checked && <Check size="0.75rem" strokeWidth={3.5} />}
+              </span>
+              <Folder size="1rem" className="details-picker-item-icon" />
+              <span>{folder.name}</span>
+              <span className="details-picker-count">
+                {t("folders.itemCount", { count: folder.itemCount })}
+              </span>
+            </PopoverItem>
+          );
+        })}
+        <div className="details-picker-new">
+          <Input
+            value={newName}
+            onChange={(event) => setNewName(event.target.value)}
+            placeholder={t("folders.newPlaceholder")}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") void handleCreate();
+            }}
+          />
+          <Button
+            variant="glass"
+            className="details-picker-create-btn"
+            onClick={() => void handleCreate()}
+            disabled={creating || !newName.trim()}
+          >
+            {t("folders.create")}
+          </Button>
+        </div>
+      </DetailsPickerPopover>
     </div>
   );
 };

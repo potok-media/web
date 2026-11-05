@@ -9,7 +9,7 @@ import type { TraktProfile, DeviceCodeResponse } from "../network/ApiTypes";
 const POLL_PENDING_STATUSES = new Set([400, 429]);
 const POLL_EXPIRED_STATUSES = new Set([404, 409, 410, 418]);
 
-export function useTraktAuth(syncStrategy: string) {
+export function useTraktAuth() {
   const { t } = useTranslation("profile");
   const { show: showHUD } = useHUD();
   const { traktConnected, setTraktConnected } = useAuth();
@@ -68,12 +68,10 @@ export function useTraktAuth(syncStrategy: string) {
       setTraktProfile(data);
     } catch (err) {
       setTraktProfile(null);
-      if (syncStrategy !== "trakt") return;
       const status = err instanceof ApiError ? err.status : undefined;
       const disconnected = status === 401 || status === 500 || status === undefined;
       if (!disconnected) return;
       setTraktConnected(false);
-      await startTraktAuth();
     } finally {
       setLoadingTrakt(false);
     }
@@ -117,12 +115,12 @@ export function useTraktAuth(syncStrategy: string) {
   }, [deviceCode]);
 
   useEffect(() => {
-    if (syncStrategy === "trakt" && traktConnected) {
+    if (traktConnected) {
       fetchTraktProfileData();
     }
-    // Fetch only when the strategy/connection changes; fetchTraktProfileData is re-created per render.
+    // Fetch only when the connection changes; fetchTraktProfileData is re-created per render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [syncStrategy, traktConnected]);
+  }, [traktConnected]);
 
   return {
     traktProfile,

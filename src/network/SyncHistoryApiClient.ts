@@ -65,6 +65,13 @@ export interface SaveBulkProgressRequest {
   changes: BulkProgressChange[];
 }
 
+/** Whole-title watch clear: every history row for the title, both identity spaces. */
+export interface RemoveBulkProgressRequest {
+  tmdbId?: string;
+  mediaType: string;
+  workId?: ArmWorkId;
+}
+
 export interface SyncHistoryHttpTransport {
   post<T>(path: string, body: unknown): Promise<T>;
 }
@@ -73,6 +80,7 @@ export interface SyncHistoryApiClient {
   saveProgress(request: SaveProgressRequest): Promise<ProgressMutationResponse>;
   removeProgress(request: RemoveProgressRequest): Promise<ProgressMutationResponse>;
   saveBulkProgress(request: SaveBulkProgressRequest): Promise<BulkProgressMutationResponse>;
+  removeBulkProgress(request: RemoveBulkProgressRequest): Promise<ProgressMutationResponse>;
 }
 
 export function createSyncHistoryApiClient(
@@ -85,5 +93,7 @@ export function createSyncHistoryApiClient(
       transport.post<ProgressMutationResponse>("/api/sync/history/remove", request),
     saveBulkProgress: (request) =>
       transport.post<BulkProgressMutationResponse>("/api/sync/history/bulk-progress", request),
+    removeBulkProgress: (request) =>
+      transport.post<ProgressMutationResponse>("/api/sync/history/bulk-remove", request),
   };
 }

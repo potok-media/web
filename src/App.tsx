@@ -15,6 +15,7 @@ const HomePage = React.lazy(() => import("./pages/HomePage").then(m => ({ defaul
 const LibraryPage = React.lazy(() => import("./pages/LibraryPage").then(m => ({ default: m.LibraryPage })));
 const StatusLibraryPage = React.lazy(() => import("./pages/StatusLibraryPage").then(m => ({ default: m.StatusLibraryPage })));
 const LibraryFolderPage = React.lazy(() => import("./pages/LibraryFolderPage").then(m => ({ default: m.LibraryFolderPage })));
+const ContinueWatchingPage = React.lazy(() => import("./pages/ContinueWatchingPage").then(m => ({ default: m.ContinueWatchingPage })));
 const SearchPage = React.lazy(() => import("./pages/SearchPage").then(m => ({ default: m.SearchPage })));
 const CalendarPage = React.lazy(() => import("./pages/CalendarPage").then(m => ({ default: m.CalendarPage })));
 const ProfilePage = React.lazy(() => import("./pages/ProfilePage").then(m => ({ default: m.ProfilePage })));
@@ -23,6 +24,7 @@ const ExtensionPage = React.lazy(() => import("./pages/ExtensionPage").then(m =>
 const MediaDetailsPage = React.lazy(() => import("./pages/MediaDetailsPage").then(m => ({ default: m.MediaDetailsPage })));
 const MediaArmDetailsPage = React.lazy(() => import("./pages/MediaArmDetailsPage").then(m => ({ default: m.MediaArmDetailsPage })));
 const MediaStreamsPage = React.lazy(() => import("./pages/MediaStreamsPage").then(m => ({ default: m.MediaStreamsPage })));
+const ContinueWatchPage = React.lazy(() => import("./pages/ContinueWatchPage").then(m => ({ default: m.ContinueWatchPage })));
 const SandboxPage = React.lazy(() => import("./pages/SandboxPage").then(m => ({ default: m.SandboxPage })));
 const ActorPage = React.lazy(() => import("./pages/ActorPage").then(m => ({ default: m.ActorPage })));
 const WatchTogetherPage = React.lazy(() => import("./pages/WatchTogetherPage").then(m => ({ default: m.WatchTogetherPage })));
@@ -53,10 +55,15 @@ export const App: React.FC = () => {
                         <Route path="media/p/:potokId" element={<MediaArmDetailsPage />} />
                         <Route path="media/:mediaType/:id" element={<MediaDetailsPage />} />
                         <Route path="media/:mediaType/:id/watch/:tab?" element={<MediaStreamsPage />} />
+                        <Route path="continue-watch" element={<ContinueWatchPage />} />
                         <Route path="library/planned" element={<StatusLibraryPage status="planned" titleKey="library.tabs.planned" />} />
                         <Route path="library/watching" element={<StatusLibraryPage status="watching" titleKey="library.tabs.watching" />} />
                         <Route path="library/completed" element={<StatusLibraryPage status="completed" titleKey="library.tabs.completed" />} />
                         <Route path="library/folder/:folderId" element={<LibraryFolderPage />} />
+                        {/* Компактные группы серий (owner-approved Variant 3) — НЕ generic LibraryPage:
+                            /library/up-next по-прежнему редиректится на /library/continue из LibraryPage. */}
+                        <Route path="library/continue" element={<ContinueWatchingPage />} />
+                        {/* /collections скрыт: см. комментарий в AppSidebar — раздел «Подборки» временно убран из-за зависания. */}
                         <Route path="library/:collectionType" element={<LibraryPage />} />
                         <Route path="actor/:id" element={<ActorPage />} />
                         <Route path="watch-together" element={<WatchTogetherPage />} />

@@ -69,7 +69,7 @@ export const MediaArmDetailsPage: React.FC = () => {
       resolvedMediaId={state.target.tmdbId}
       resolvedGroupSummary={state.target.mediaType === "tv" ? state.groupSummary : undefined}
       initialGroupId={state.target.entryId}
-      armSummary={{ workId: potokId, graphVersion: null }}
+      armSummary={{ workId: potokId ?? null, graphVersion: null }}
     />
   );
 };

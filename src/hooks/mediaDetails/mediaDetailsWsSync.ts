@@ -3,6 +3,8 @@ import type { MediaCard } from "../../network/ApiTypes";
 import { checkIsWatched, mergeWatchedEpisodes } from "./mediaDetailsUtils";
 
 interface WsSyncPayload {
+  mediaId?: number | string;
+  mediaType?: string;
   seasonNumber?: number;
   episodeNumber?: number;
   isWatched?: boolean;
@@ -65,7 +67,13 @@ export function applyMediaWsSyncEvent(
     );
     mediaRef.current = updatedMedia;
     setters.setMedia(updatedMedia);
-    setters.setIsWatched(mediaType === "movie" ? watchState : checkIsWatched(updatedMedia));
+    // A title-level event (no episode scope) speaks for the whole title — recomputing from the
+    // episode lists would wrongly flip the banner back to unwatched.
+    const scopedToEpisode =
+      episodeId !== undefined || (seasonNumber !== undefined && episodeNumber !== undefined);
+    setters.setIsWatched(
+      mediaType === "movie" || !scopedToEpisode ? watchState : checkIsWatched(updatedMedia),
+    );
     return;
   }
 

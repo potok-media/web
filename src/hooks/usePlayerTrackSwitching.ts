@@ -28,8 +28,6 @@ interface UsePlayerTrackSwitchingParams {
   }) => void;
   setPlayerError: (error: string | null) => void;
   setIsBuffering: (value: boolean) => void;
-  setShowAudioMenu: (open: boolean) => void;
-  setShowQualityMenu: (open: boolean) => void;
 }
 
 export function usePlayerTrackSwitching({
@@ -45,8 +43,6 @@ export function usePlayerTrackSwitching({
   switchPlaybackSource,
   setPlayerError,
   setIsBuffering,
-  setShowAudioMenu,
-  setShowQualityMenu,
 }: UsePlayerTrackSwitchingParams) {
   const { t } = useTranslation("player");
 
@@ -116,7 +112,6 @@ export function usePlayerTrackSwitching({
   };
 
   const switchAudio = (id: number) => {
-    setShowAudioMenu(false);
     const externalAudio = playback.audios?.[id];
     if (externalAudio) {
       // A distinct playable stream (differs from the current url beyond the ?audio= selector) can be
@@ -150,7 +145,6 @@ export function usePlayerTrackSwitching({
       hlsRef.current.currentLevel = id;
       setCurrentQualityLevel(id);
     }
-    setShowQualityMenu(false);
   };
 
   const displayQualityLevels = useMemo(() => {
