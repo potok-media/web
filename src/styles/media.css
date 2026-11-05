@@ -1254,7 +1254,7 @@
 .immersive-hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, var(--bg-window) 0%, transparent 30%);
+  background: linear-gradient(to top, var(--bg-window) 0%, transparent 50%);
   z-index: 1;
   pointer-events: none;
 }
