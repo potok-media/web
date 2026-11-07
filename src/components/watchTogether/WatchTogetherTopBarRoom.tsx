@@ -17,11 +17,11 @@ export const WatchTogetherTopBarRoom: React.FC<WatchTogetherTopBarRoomProps> = (
   const { t } = useTranslation("watchTogether");
   const navigate = useNavigate();
   const { show: showHUD } = useHUD();
-  // portalTarget is registered by PlaybackWorkspace (media/plugin pages). Its presence means the
-  // player lives INSIDE the page — navigating away would unregister the target and throw the
-  // surviving playback into the fullscreen body portal.
-  const { stopVideo, playerPortalTarget } = usePlayback();
-  const isInlinePlayer = Boolean(playerPortalTarget);
+  // An inline playback lives inside its host page (media/plugin page) — back means "close the
+  // player and stay on the page" for the host too. Leave the room and stop the playback; navigating
+  // away would just strand the playback state instead of closing it.
+  const { stopVideo } = usePlayback();
+  const isInlinePlayer = playback.mount === "inline";
   const wt = useWatchTogether();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
@@ -49,9 +49,7 @@ export const WatchTogetherTopBarRoom: React.FC<WatchTogetherTopBarRoomProps> = (
 
   const handleLeaveRoom = (navigateBack: boolean) => {
     if (isInlinePlayer) {
-      // Inline workspace page (plugin/media page): back means "close the player and stay on the page" —
-      // for the host too. Leave the room and stop the playback; navigating away would orphan the
-      // player into the fullscreen body portal instead of closing it.
+      // Inline host page: leave the room and stop the playback, stay on the page.
       wt.leave();
       stopVideo();
       return;

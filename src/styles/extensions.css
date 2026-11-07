@@ -29,9 +29,9 @@
   flex-grow: 1;
 }
 
-/* A host-owned playback workspace replaces the padded plugin canvas with the same viewport shell
-   used by native playback pages. The workspace itself still owns the inner responsive gutters. */
-.extension-page-container .sdk-playback-workspace {
+/* A host-owned inline playback stage replaces the padded plugin canvas with the same viewport shell
+   used by native playback pages. The stage itself still owns the inner responsive gutters. */
+.extension-page-container .sdk-inline-player {
   width: calc(100% + var(--space-xl) + var(--space-xl));
   margin: calc(0px - var(--space-xl));
 }
@@ -43,7 +43,7 @@
     padding-bottom: calc(var(--space-m) + var(--mobile-bottom-nav-height, 60px));
   }
 
-  .extension-page-container .sdk-playback-workspace {
+  .extension-page-container .sdk-inline-player {
     width: calc(100% + var(--space-m) + var(--space-m));
     margin: calc(0px - var(--space-m));
   }

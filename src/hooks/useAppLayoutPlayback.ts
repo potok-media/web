@@ -3,9 +3,10 @@ import { matchPath, useLocation } from "react-router-dom";
 import { usePlayback } from "../context/AppSettingsContext";
 import { logger } from "../utils/logger";
 
-// Routes that host the player inline (a workspace registers the portal target). Everywhere
-// else the player is KILLED on arrival — leaving the player page stops playback (the unmount
-// saves progress and closes the backend session), no background audio, no health pings.
+// Routes where playback is allowed to keep running in the background. Everywhere else the player is
+// KILLED on arrival — leaving the player page stops playback (the unmount saves progress and closes
+// the backend session), no background audio, no health pings. An inline player additionally dies the
+// moment its host page unmounts — no portal re-targeting, no fullscreen fallback.
 const PLAYER_HOST_PATTERNS = [
   "media/:mediaType/:id/watch",
   "media/:mediaType/:id/watch/:tab",
@@ -33,7 +34,9 @@ export function useAppLayoutPlayback() {
     const saved = sessionStorage.getItem("potok_last_playback");
     if (saved && !activePlayback) {
       try {
-        playVideo(JSON.parse(saved));
+        // Restore always opens the overlay player — the original inline host may not exist anymore
+        // (reload lands wherever the URL says), and nothing else is allowed to resurrect a player.
+        playVideo({ ...JSON.parse(saved), mount: "overlay" });
       } catch (e) {
         logger.error("Failed to restore playback from sessionStorage", e);
         sessionStorage.removeItem("potok_last_playback");

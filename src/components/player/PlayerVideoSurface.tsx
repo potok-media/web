@@ -21,6 +21,8 @@ interface PlayerVideoSurfaceProps {
   onVolumeChange: (volume: number, muted: boolean) => void;
   onError: () => void;
   onEnded: () => void;
+  /** localStorage key prefix for persisting volume/mute. Inline and overlay players keep separate prefs. */
+  volumeStorageKeyPrefix?: string;
 }
 
 export const PlayerVideoSurface: React.FC<PlayerVideoSurfaceProps> = ({
@@ -43,6 +45,7 @@ export const PlayerVideoSurface: React.FC<PlayerVideoSurfaceProps> = ({
   onVolumeChange,
   onError,
   onEnded,
+  volumeStorageKeyPrefix = "potok_player",
 }) => (
   <div className="artplayer-video-container" onClick={onTogglePlay} onDoubleClick={onToggleFullscreen}>
     <video
@@ -61,8 +64,8 @@ export const PlayerVideoSurface: React.FC<PlayerVideoSurfaceProps> = ({
       onVolumeChange={(e) => {
         const video = e.currentTarget;
         onVolumeChange(video.volume, video.muted);
-        localStorage.setItem("potok_player_volume", video.volume.toString());
-        localStorage.setItem("potok_player_muted", video.muted.toString());
+        localStorage.setItem(`${volumeStorageKeyPrefix}_volume`, video.volume.toString());
+        localStorage.setItem(`${volumeStorageKeyPrefix}_muted`, video.muted.toString());
       }}
       onError={onError}
       onEnded={onEnded}

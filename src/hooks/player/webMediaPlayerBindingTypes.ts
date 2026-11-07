@@ -3,9 +3,11 @@ import type { ActivePlayback } from "../../context/playbackTypes";
 export interface UseWebMediaPlayerBindingsParams {
   playback: ActivePlayback;
   onClose?: () => void;
+  /** localStorage key prefix for the persisted volume/mute prefs (inline vs overlay namespaces). */
+  volumeStorageKeyPrefix?: string;
   videoRef: React.RefObject<HTMLVideoElement | null>;
-  /** The live <video> node as state — effects that attach listeners/attachMedia must depend on this,
-   *  because a portal container swap recreates the node and leaves videoRef pointing at the new one. */
+  /** The live <video> node as state — effects that attach listeners/attachMedia must depend on this:
+   *  if the node is ever re-created, videoRef alone would leave them attached to the stale element. */
   videoNode: HTMLVideoElement | null;
   /** Callback ref to put on the <video> element; keeps videoRef.current and videoNode in sync. */
   videoRefCallback: (node: HTMLVideoElement | null) => void;

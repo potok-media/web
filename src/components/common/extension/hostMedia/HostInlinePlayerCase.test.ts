@@ -1,13 +1,13 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { PlaybackWorkspaceSchema, UIComponentSchema } from "@potok/sdk-types";
-import { HostPlaybackWorkspaceCase } from "./hostMediaCases";
+import type { InlinePlayerSchema, UIComponentSchema } from "@potok/sdk-types";
+import { HostInlinePlayerCase } from "./hostMediaCases";
 import { ExtensionRegistry, type PresentedEpisodesPanel } from "../../../../utils/extensions/ExtensionRegistry";
 import type { GenericEpisodeItem } from "../../episodeSelector/types";
 
 const playbackState = vi.hoisted(() => ({
-  activePlayback: null as { playlist?: { id?: string }[]; playlistIndex?: number } | null,
+  activePlayback: null as { mount?: string; playlist?: { id?: string }[]; playlistIndex?: number } | null,
 }));
 
 const watchTogetherState = vi.hoisted(() => ({
@@ -18,7 +18,7 @@ const watchTogetherState = vi.hoisted(() => ({
 vi.mock("../../../../context/PlaybackContext", () => ({
   usePlayback: () => ({
     activePlayback: playbackState.activePlayback,
-    registerPlayerPortalTarget: vi.fn(),
+    stopVideo: vi.fn(),
     replacePlaylist: vi.fn(),
   }),
 }));
@@ -41,6 +41,14 @@ vi.mock("../../../../context/watchTogetherState", () => ({
   useWatchTogether: () => watchTogetherState,
 }));
 
+vi.mock("../../../player/InlinePlayer", () => ({
+  InlinePlayer: ({ playback }: { playback: { mount?: string } }) => createElement(
+    "div",
+    { "data-testid": "inline-player" },
+    `inline:${playback.mount ?? "none"}`,
+  ),
+}));
+
 const PANEL_PLUGIN_ID = "panel-plugin";
 const sandboxWindow = { postMessage: vi.fn() } as unknown as Window;
 
@@ -60,7 +68,7 @@ function presentEpisodes(panel: Partial<PresentedEpisodesPanel> = {}) {
   });
 }
 
-describe("HostPlaybackWorkspaceCase", () => {
+describe("HostInlinePlayerCase", () => {
   beforeEach(() => {
     playbackState.activePlayback = null;
     watchTogetherState.role = null;
@@ -75,47 +83,74 @@ describe("HostPlaybackWorkspaceCase", () => {
     ExtensionRegistry.unregisterSandbox(PANEL_PLUGIN_ID);
   });
 
-  it("renders plugin rail content through the shared host workspace", () => {
+  it("renders the playback stage layout with plugin rail content", () => {
     const rail: UIComponentSchema = {
       id: "rail",
       type: "Text",
       props: { text: "Queue" },
     };
-    const schema: PlaybackWorkspaceSchema = {
-      id: "workspace",
-      type: "PlaybackWorkspace",
-      props: { backdropSrc: "https://example.test/backdrop.jpg", stageMode: "player" },
+    const schema: InlinePlayerSchema = {
+      id: "stage",
+      type: "InlinePlayer",
+      props: { backdropSrc: "https://example.test/backdrop.jpg" },
       children: [rail],
     };
 
-    const html = renderToStaticMarkup(createElement(HostPlaybackWorkspaceCase, {
+    const html = renderToStaticMarkup(createElement(HostInlinePlayerCase, {
       schema,
       pluginId: "plugin",
       baseStyle: {},
       renderChild: () => createElement("aside", null, "Queue"),
     }));
 
-    expect(html).toContain("sdk-playback-workspace");
+    expect(html).toContain("sdk-inline-player");
     expect(html).toContain("streams-inline-workspace--split");
     expect(html).toContain("Queue");
   });
 
+  it("embeds the InlinePlayer only while an inline playback is active", () => {
+    const schema: InlinePlayerSchema = { id: "stage", type: "InlinePlayer", props: {} };
+
+    playbackState.activePlayback = null;
+    const empty = renderToStaticMarkup(createElement(HostInlinePlayerCase, {
+      schema,
+      pluginId: "plugin",
+      baseStyle: {},
+      renderChild: () => null,
+    }));
+    expect(empty).not.toContain('data-testid="inline-player"');
+
+    playbackState.activePlayback = { mount: "overlay" };
+    const overlay = renderToStaticMarkup(createElement(HostInlinePlayerCase, {
+      schema,
+      pluginId: "plugin",
+      baseStyle: {},
+      renderChild: () => null,
+    }));
+    expect(overlay).not.toContain('data-testid="inline-player"');
+
+    playbackState.activePlayback = { mount: "inline" };
+    const inline = renderToStaticMarkup(createElement(HostInlinePlayerCase, {
+      schema,
+      pluginId: "plugin",
+      baseStyle: {},
+      renderChild: () => null,
+    }));
+    expect(inline).toContain('data-testid="inline-player"');
+  });
+
   it("fills the rail with the host episode panel built from presented episode data", () => {
     presentEpisodes();
-    const schema: PlaybackWorkspaceSchema = {
-      id: "workspace",
-      type: "PlaybackWorkspace",
-      props: { stageMode: "player" },
-    };
+    const schema: InlinePlayerSchema = { id: "stage", type: "InlinePlayer", props: {} };
 
-    const html = renderToStaticMarkup(createElement(HostPlaybackWorkspaceCase, {
+    const html = renderToStaticMarkup(createElement(HostInlinePlayerCase, {
       schema,
       pluginId: PANEL_PLUGIN_ID,
       baseStyle: {},
       renderChild: () => null,
     }));
 
-    expect(html).toContain("sdk-playback-workspace");
+    expect(html).toContain("sdk-inline-player");
     expect(html).toContain("streams-inline-workspace--split");
     expect(html).toContain("sdk-episode-selector-panel");
     expect(html).toContain("episode-selector-content--playlist");
@@ -127,16 +162,13 @@ describe("HostPlaybackWorkspaceCase", () => {
     presentEpisodes();
     // Player "next" moved the playlist — the panel follows playlistIndex alone.
     playbackState.activePlayback = {
+      mount: "inline",
       playlist: [{ id: "episode-2" }, { id: "episode-1" }],
       playlistIndex: 0,
     };
-    const schema: PlaybackWorkspaceSchema = {
-      id: "workspace",
-      type: "PlaybackWorkspace",
-      props: { stageMode: "player" },
-    };
+    const schema: InlinePlayerSchema = { id: "stage", type: "InlinePlayer", props: {} };
 
-    const html = renderToStaticMarkup(createElement(HostPlaybackWorkspaceCase, {
+    const html = renderToStaticMarkup(createElement(HostInlinePlayerCase, {
       schema,
       pluginId: PANEL_PLUGIN_ID,
       baseStyle: {},
@@ -151,16 +183,13 @@ describe("HostPlaybackWorkspaceCase", () => {
   it("captions the active queue row as playing and the following one as next", () => {
     presentEpisodes();
     playbackState.activePlayback = {
+      mount: "inline",
       playlist: [{ id: "episode-1" }, { id: "episode-2" }],
       playlistIndex: 0,
     };
-    const schema: PlaybackWorkspaceSchema = {
-      id: "workspace",
-      type: "PlaybackWorkspace",
-      props: { stageMode: "player" },
-    };
+    const schema: InlinePlayerSchema = { id: "stage", type: "InlinePlayer", props: {} };
 
-    const html = renderToStaticMarkup(createElement(HostPlaybackWorkspaceCase, {
+    const html = renderToStaticMarkup(createElement(HostInlinePlayerCase, {
       schema,
       pluginId: PANEL_PLUGIN_ID,
       baseStyle: {},
@@ -175,12 +204,8 @@ describe("HostPlaybackWorkspaceCase", () => {
 
   it("offers the reorder handle to the host but never to a guest", () => {
     presentEpisodes();
-    const schema: PlaybackWorkspaceSchema = {
-      id: "workspace",
-      type: "PlaybackWorkspace",
-      props: { stageMode: "player" },
-    };
-    const renderRail = () => renderToStaticMarkup(createElement(HostPlaybackWorkspaceCase, {
+    const schema: InlinePlayerSchema = { id: "stage", type: "InlinePlayer", props: {} };
+    const renderRail = () => renderToStaticMarkup(createElement(HostInlinePlayerCase, {
       schema,
       pluginId: PANEL_PLUGIN_ID,
       baseStyle: {},
@@ -196,14 +221,14 @@ describe("HostPlaybackWorkspaceCase", () => {
 
   it("prefers a schema-authored rail over presented episode data", () => {
     presentEpisodes();
-    const schema: PlaybackWorkspaceSchema = {
-      id: "workspace",
-      type: "PlaybackWorkspace",
-      props: { stageMode: "player" },
+    const schema: InlinePlayerSchema = {
+      id: "stage",
+      type: "InlinePlayer",
+      props: {},
       children: [{ id: "rail", type: "Text", props: { text: "Queue" } }],
     };
 
-    const html = renderToStaticMarkup(createElement(HostPlaybackWorkspaceCase, {
+    const html = renderToStaticMarkup(createElement(HostInlinePlayerCase, {
       schema,
       pluginId: PANEL_PLUGIN_ID,
       baseStyle: {},

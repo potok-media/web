@@ -5,7 +5,8 @@ import { ArrowLeft, ListVideo, ShieldAlert } from "lucide-react";
 import { StreamList } from "../components/common/StreamList";
 import { StreamSidebar } from "../components/StreamSidebar";
 import { TorrentFilesPanel } from "../components/TorrentFilesPanel";
-import { PlaybackWorkspace } from "../components/playback/PlaybackWorkspace";
+import { PlaybackStageLayout } from "../components/playback/PlaybackStageLayout";
+import { InlinePlayer } from "../components/player/InlinePlayer";
 import { useMediaStreams } from "../hooks/useMediaStreams";
 import { usePlayback } from "../context/PlaybackContext";
 import { useWatchTogether } from "../context/watchTogetherState";
@@ -23,7 +24,7 @@ export const MediaStreamsPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { activePlayback, playVideo, replacePlaylist } = usePlayback();
+  const { activePlayback, playVideo, replacePlaylist, stopVideo } = usePlayback();
   const watchTogether = useWatchTogether();
   const playPlaylistItem = usePlayerPlaylist(activePlayback, playVideo);
   const mediaStageRef = useRef<HTMLDivElement>(null);
@@ -99,7 +100,11 @@ export const MediaStreamsPage: React.FC = () => {
     ? displayedEpisodes.length
     : activePlayback?.playlist?.length || (activePlayback ? 1 : 0);
   const workspaceMode = releasePlaybackPhase !== "browsing" || inlinePlaybackActive || showCoWatchRail;
-  const stageMode = inlinePlaybackActive ? "player" : "preview";
+  // The stage hosts the inline player for inline playback; anything else (no playback yet, or an
+  // overlay playback floating above) shows the plain preview content.
+  const stageContent = activePlayback?.mount === "inline" ? (
+    <InlinePlayer playback={activePlayback} onClose={stopVideo} />
+  ) : null;
 
   const handleQueuePlay = (episodeItem: GenericEpisodeItem) => {
     const playlistIndex = activePlayback?.playlist
@@ -284,29 +289,27 @@ export const MediaStreamsPage: React.FC = () => {
     );
   }
 
-  // Keep the stage and its portal target mounted when a solo player becomes a room host.
+  // Keep the stage mounted when a solo player becomes a room host.
   if (workspaceMode) {
-    const stageContent = stageMode === "preview" ? (
-      <>
-        {renderPlayerPreview()}
-        {clickedStream?.title ? (
-          <div className="streams-media-stage__release-title" title={clickedStream.title}>
-            {clickedStream.title}
-          </div>
-        ) : null}
-      </>
-    ) : null;
-
     return (
-      <PlaybackWorkspace
+      <PlaybackStageLayout
         backdropSrc={currentMedia?.backdropSrc}
-        stageMode={stageMode}
-        stageContent={stageContent}
         mediaStageRef={mediaStageRef}
         rail={showRightRail ? renderContent() : undefined}
         coWatchQueue={showCoWatchRail ? renderCoWatchQueue() : undefined}
         coWatchQueueCount={coWatchQueueCount}
-      />
+      >
+        {stageContent ?? (
+          <>
+            {renderPlayerPreview()}
+            {clickedStream?.title ? (
+              <div className="streams-media-stage__release-title" title={clickedStream.title}>
+                {clickedStream.title}
+              </div>
+            ) : null}
+          </>
+        )}
+      </PlaybackStageLayout>
     );
   }
 

@@ -3,41 +3,47 @@ import { usePlayback } from "../../context/PlaybackContext";
 import { useWatchTogether } from "../../context/watchTogetherState";
 import { WatchTogetherRail } from "../watchTogether/WatchTogetherRail";
 
-export type PlaybackWorkspaceStageMode = "player" | "preview";
-export type PlaybackWorkspaceVariant = "default" | "co-watch";
+export type PlaybackStageLayoutVariant = "default" | "co-watch";
 
-interface PlaybackWorkspaceProps {
+interface PlaybackStageLayoutProps {
   id?: string;
   className?: string;
   style?: React.CSSProperties;
   backdropSrc?: string;
-  stageMode?: PlaybackWorkspaceStageMode;
-  stageContent?: React.ReactNode;
   mediaStageRef?: React.Ref<HTMLDivElement>;
+  /** Content of the media stage: an InlinePlayer or the preview overlay. */
+  children?: React.ReactNode;
   rail?: React.ReactNode;
   coWatchQueue?: React.ReactNode;
   coWatchQueueCount?: number;
-  variant?: PlaybackWorkspaceVariant;
+  variant?: PlaybackStageLayoutVariant;
 }
 
-export const PlaybackWorkspace: React.FC<PlaybackWorkspaceProps> = ({
+/**
+ * Host-side playback page layout: backdrop + centered shell + media stage + optional right rail.
+ * Pure layout — it never mounts a player itself; hosts put an InlinePlayer into the stage (or leave
+ * preview content there). The co-watch shell wraps the rail while a room is live. The stage surface
+ * styling follows the mounted playback: black box for an inline player, transparent for preview
+ * content — derived from activePlayback.mount, not a separate state axis.
+ */
+export const PlaybackStageLayout: React.FC<PlaybackStageLayoutProps> = ({
   id,
   className,
   style,
   backdropSrc,
-  stageMode = "player",
-  stageContent,
   mediaStageRef,
+  children,
   rail,
   coWatchQueue,
   coWatchQueueCount = 0,
   variant = "default",
 }) => {
-  const { activePlayback, registerPlayerPortalTarget } = usePlayback();
+  const { activePlayback } = usePlayback();
   const watchTogether = useWatchTogether();
   const coWatchActive = Boolean(
     activePlayback && watchTogether.role && watchTogether.sessionActive,
   );
+  const stageMode = activePlayback?.mount === "inline" ? "player" : "preview";
   const resolvedRail = coWatchActive ? (
     <section className="streams-page-content">
       <section className="torrent-files-panel torrent-files-panel--co-watch">
@@ -66,8 +72,8 @@ export const PlaybackWorkspace: React.FC<PlaybackWorkspaceProps> = ({
       >
         <div className={`streams-inline-workspace${hasRail ? " streams-inline-workspace--split" : ""}`}>
           <div ref={mediaStageRef} className={`streams-media-stage streams-media-stage--${stageMode}`}>
-            <div ref={registerPlayerPortalTarget} className="streams-media-stage__surface">
-              {stageContent}
+            <div className="streams-media-stage__surface">
+              {children}
             </div>
           </div>
           {resolvedRail}
@@ -77,4 +83,4 @@ export const PlaybackWorkspace: React.FC<PlaybackWorkspaceProps> = ({
   );
 };
 
-export default PlaybackWorkspace;
+export default PlaybackStageLayout;

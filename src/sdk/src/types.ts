@@ -407,6 +407,11 @@ export interface SDKPlaybackInfo {
   outroEnd?: number;
   thumbnails?: SDKThumbnails;
   requiresBuffering?: boolean; // stream warms up → player shows the loading/progress overlay until first frame
+  /**
+   * Where the host mounts the player: 'inline' — the current plugin page hosts it in its own stage
+   * (dies with the page); 'overlay' (default) — the fullscreen player above the app.
+   */
+  mount?: 'inline' | 'overlay';
 }
 
 export interface SDKRawStreamPayload {
@@ -725,29 +730,16 @@ export interface MediaRowSchema extends BaseSchema {
   };
 }
 
-export type SDKPlaybackWorkspaceStageMode = "player" | "preview";
-
-export interface SDKPlaybackWorkspacePreviewOverlay {
-  centerTitle: string;
-  bottomSubtitle?: string;
-  backdropSrc?: string;
-}
-
-export interface PlaybackWorkspaceSchema extends BaseSchema {
-  type: "PlaybackWorkspace";
+export interface InlinePlayerSchema extends BaseSchema {
+  type: "InlinePlayer";
   props: SDKBaseComponentProps & {
     backdropSrc?: string;
-    stageMode?: SDKPlaybackWorkspaceStageMode;
-    previewOverlay?: SDKPlaybackWorkspacePreviewOverlay;
   };
 }
 
-export interface MediaPlayerSchema extends BaseSchema {
-  type: "MediaPlayer";
-  props: SDKBaseComponentProps & {
-    playback: SDKPlaybackInfo;
-    isNetworkOffline?: boolean;
-  };
+export interface OverlayPlayerSchema extends BaseSchema {
+  type: "OverlayPlayer";
+  props: SDKBaseComponentProps;
 }
 
 /** Controls whether EpisodeSelector opens as a dialog or renders as the inline Potok queue panel. */
@@ -1285,8 +1277,8 @@ export type UIComponentSchema =
   | MediaCastSchema
   | MediaOverviewSchema
   | MediaRowSchema
-  | PlaybackWorkspaceSchema
-  | MediaPlayerSchema
+  | InlinePlayerSchema
+  | OverlayPlayerSchema
   | EpisodeSelectorSchema
   | EpisodeSelectorPopupSchema
   | EpisodeCardSchema

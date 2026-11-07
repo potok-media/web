@@ -103,4 +103,8 @@ export interface ActivePlayback {
   // Monotonic per-playVideo id. Used as the player's React key so every playVideo mounts a fresh player
   // instance (no stale HLS/state carried over); enrichPlayback preserves it so mid-playback patches don't remount.
   instanceId?: number;
+  // Who renders this playback: AppLayout lifts an OverlayPlayer for 'overlay' (the default — resume,
+  // hero, sessionStorage restore all open fullscreen-style); an inline host (media/plugin/room pages)
+  // embeds an InlinePlayer for 'inline' while it stays mounted. The player dies with its host.
+  mount?: "inline" | "overlay";
 }

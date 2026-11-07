@@ -46,7 +46,7 @@ function postUiEvent(source: MessageEventSource, callbackId: string, eventData: 
 }
 
 // Panel presentation: episodes travel as plain data — the host stores them and renders its own episode
-// panel in the workspace rail (see HostPlaybackWorkspaceCase). Callbacks route back to the presenting
+// panel in the inline player's rail (see HostInlinePlayerCase). Callbacks route back to the presenting
 // plugin through the shared TRIGGER_UI_EVENT channel. A panel payload without episodes dismisses.
 function handlePresentEpisodePanel(payload: ShowEpisodeSelectorPayload, source: MessageEventSource) {
   const episodes = payload.episodes;

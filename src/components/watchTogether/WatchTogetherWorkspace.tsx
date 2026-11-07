@@ -1,8 +1,12 @@
 import React from "react";
 import { ListVideo } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import type { ActivePlayback } from "../../context/playbackTypes";
-import { PlaybackWorkspace } from "../playback/PlaybackWorkspace";
+import { usePlayback } from "../../context/PlaybackContext";
+import { useWatchTogether } from "../../context/watchTogetherState";
+import { PlaybackStageLayout } from "../playback/PlaybackStageLayout";
+import { InlinePlayer } from "../player/InlinePlayer";
 import { WatchTogetherQueuePanel } from "./WatchTogetherQueuePanel";
 
 interface WatchTogetherWorkspaceProps {
@@ -19,6 +23,9 @@ export const WatchTogetherWorkspace: React.FC<WatchTogetherWorkspaceProps> = ({
   children,
 }) => {
   const { t } = useTranslation("streams");
+  const navigate = useNavigate();
+  const watchTogether = useWatchTogether();
+  const { stopVideo } = usePlayback();
   // A session descriptor without a playlist (e.g. a direct movie stream) has no queue to show —
   // fall back to the current-title card.
   const defaultRail = playback.playlist?.length ? (
@@ -33,14 +40,30 @@ export const WatchTogetherWorkspace: React.FC<WatchTogetherWorkspaceProps> = ({
     </div>
   );
 
+  // The room page owns close semantics: a guest leaves the room and goes home; the host leaves the
+  // room and stops the playback (the lobby takes over once activePlayback clears).
+  const handleClose = () => {
+    if (watchTogether.role === "guest") {
+      watchTogether.leave();
+      navigate("/");
+      return;
+    }
+    watchTogether.leave();
+    stopVideo();
+  };
+
   return (
-    <PlaybackWorkspace
+    <PlaybackStageLayout
       backdropSrc={backdropSrc}
       mediaStageRef={mediaStageRef}
+      variant="co-watch"
       rail={children ?? defaultRail}
       coWatchQueueCount={playback.playlist?.length || 1}
-      variant="co-watch"
-    />
+    >
+      {playback.mount === "inline" ? (
+        <InlinePlayer playback={playback} onClose={handleClose} />
+      ) : null}
+    </PlaybackStageLayout>
   );
 };
 

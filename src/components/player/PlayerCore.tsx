@@ -1,17 +1,15 @@
-import React, { useCallback, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { useNavigate } from "react-router-dom";
-import type { ActivePlayback } from "../context/playbackTypes";
-import { useWebMediaPlayer } from "../hooks/useWebMediaPlayer";
-import { useWatchTogetherSync } from "../hooks/player/useWatchTogetherSync";
-import { useWatchTogether } from "../context/watchTogetherState";
-import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
-import { PlayerCoWatchNotices } from "./player/PlayerCoWatchNotices";
-import { PlayerCoWatchPauseOverlay } from "./player/PlayerCoWatchPauseOverlay";
-import { PlayerCoWatchWaitOverlay } from "./player/PlayerCoWatchWaitOverlay";
-import { PlayerOverlayStack } from "./player/PlayerOverlayStack";
-import { PlayerVideoSurface } from "./player/PlayerVideoSurface";
-import { PlayerChrome } from "./player/PlayerChrome";
+import React, { useEffect } from "react";
+import type { ActivePlayback } from "../../context/playbackTypes";
+import { useWebMediaPlayer } from "../../hooks/useWebMediaPlayer";
+import { useWatchTogetherSync } from "../../hooks/player/useWatchTogetherSync";
+import { useWatchTogether } from "../../context/watchTogetherState";
+import { ExtensionRegistry } from "../../utils/extensions/ExtensionRegistry";
+import { PlayerCoWatchNotices } from "./PlayerCoWatchNotices";
+import { PlayerCoWatchPauseOverlay } from "./PlayerCoWatchPauseOverlay";
+import { PlayerCoWatchWaitOverlay } from "./PlayerCoWatchWaitOverlay";
+import { PlayerOverlayStack } from "./PlayerOverlayStack";
+import { PlayerVideoSurface } from "./PlayerVideoSurface";
+import { PlayerChrome } from "./PlayerChrome";
 
 const PLAYER_CHROME_SELECTOR = [
   ".player-controller-container",
@@ -25,40 +23,27 @@ const PLAYER_CHROME_SELECTOR = [
   ".selector-dropdown-menu",
 ].join(", ");
 
-interface WebMediaPlayerProps {
+export interface PlayerCoreProps {
   playback: ActivePlayback;
   onClose?: () => void;
   isNetworkOffline?: boolean;
-  portalTarget?: HTMLElement | null;
+  /** Who hosts this core — drives the inline/overlay chrome variants (class, playlist placement, co-watch rail). */
+  mount: "inline" | "overlay";
+  /** localStorage key prefix for persisted volume/mute prefs; each mount kind keeps its own namespace. */
+  volumeStorageKeyPrefix?: string;
 }
 
-export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = (props) => {
-  const { portalTarget, ...playerProps } = props;
-  const isInline = Boolean(portalTarget);
-  const {
-    role: coWatchRole,
-    sessionActive: coWatchSessionActive,
-    myPermissions,
-    sendControl,
-    leave: coWatchLeave,
-  } = useWatchTogether();
-  const navigate = useNavigate();
-  const propsOnClose = playerProps.onClose;
+/**
+ * Shared player core: video surface + co-watch overlays + chrome + notices + loading/error stack.
+ * Knows nothing about WHERE it renders — InlinePlayer embeds it directly, OverlayPlayer portals it
+ * into document.body. Close routing (leave room / navigate / stop) belongs to the wrappers.
+ */
+export const PlayerCore: React.FC<PlayerCoreProps> = (props) => {
+  const { mount, volumeStorageKeyPrefix, ...playerProps } = props;
+  const isInline = mount === "inline";
+  const { role: coWatchRole, sessionActive: coWatchSessionActive, myPermissions, sendControl } = useWatchTogether();
 
-  // Closing an inline player keeps the current media page in place. Legacy full-screen co-watch still returns
-  // to the route it started from because it has no surrounding workspace to reveal.
-  const handlePlayerClose = useCallback(() => {
-    if (coWatchRole === "host") {
-      coWatchLeave();
-      if (!isInline) navigate(-1);
-    } else if (coWatchRole === "guest") {
-      coWatchLeave();
-      navigate("/");
-    }
-    propsOnClose?.();
-  }, [coWatchRole, coWatchLeave, isInline, navigate, propsOnClose]);
-
-  const vm = useWebMediaPlayer({ ...playerProps, onClose: handlePlayerClose });
+  const vm = useWebMediaPlayer({ ...playerProps, volumeStorageKeyPrefix });
   useWatchTogetherSync(vm);
 
   // Fatal playback errors never reach plugin code (the failing "next" episode may have been resolved
@@ -102,7 +87,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = (props) => {
 
   if (vm.isClosed) return null;
 
-  return createPortal(
+  return (
     <div
       ref={vm.overlayRef}
       className={`web-player-overlay ${isInline ? "web-player-overlay--inline" : ""} ${!vm.controlsVisible ? "controls-hidden" : ""}`}
@@ -121,6 +106,7 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = (props) => {
         srcResetCounter={vm.hls.srcResetCounter}
         currentSubtitleTrack={vm.metadata.currentSubtitleTrack}
         autoPlay={!vm.playback.coWatch}
+        volumeStorageKeyPrefix={volumeStorageKeyPrefix}
         onTogglePlay={vm.togglePlay}
         onToggleFullscreen={vm.toggleFullscreen}
         onPlayState={vm.setIsPlaying}
@@ -222,7 +208,6 @@ export const WebMediaPlayer: React.FC<WebMediaPlayerProps> = (props) => {
         onClose={vm.handleClose}
         isNetworkOffline={vm.isNetworkOffline}
       />
-    </div>,
-    portalTarget ?? document.body,
+    </div>
   );
 };

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 describe("host → plugin playback events", () => {
   const contextSource = readFileSync(new URL("./PlaybackContext.tsx", import.meta.url), "utf8");
-  const playerSource = readFileSync(new URL("../components/WebMediaPlayer.tsx", import.meta.url), "utf8");
+  const playerSource = readFileSync(new URL("../components/player/PlayerCore.tsx", import.meta.url), "utf8");
   const sdkSource = readFileSync(new URL("../sdk/src/index.ts", import.meta.url), "utf8");
 
   it("broadcasts PLAYLIST_ITEM_CHANGED with the active playlist item", () => {

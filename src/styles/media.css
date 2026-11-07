@@ -2739,17 +2739,6 @@
   line-height: 1.5;
 }
 
-.sdk-playback-workspace-preview-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.sdk-playback-workspace-preview-overlay > * {
-  pointer-events: auto;
-}
-
 .streams-media-hero {
   position: relative;
   min-height: clamp(18rem, 29vw, 26rem);

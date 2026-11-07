@@ -7,8 +7,8 @@ import {
   HostMediaCardCase,
   HostMediaCastCase,
   HostMediaOverviewCase,
-  HostPlaybackWorkspaceCase,
-  HostMediaPlayerCase,
+  HostInlinePlayerCase,
+  HostOverlayPlayerCase,
   HostMediaRowCase,
   HostSeasonEpisodesCase,
 } from "./hostMedia/hostMediaCases";
@@ -40,17 +40,17 @@ export const HostMediaComponentsRenderer: React.FC<HostMediaComponentsRendererPr
       return <HostMediaOverviewCase schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
     case "MediaRow":
       return <HostMediaRowCase schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
-    case "PlaybackWorkspace":
+    case "InlinePlayer":
       return (
-        <HostPlaybackWorkspaceCase
+        <HostInlinePlayerCase
           schema={schema}
           pluginId={pluginId}
           baseStyle={baseStyle}
           renderChild={renderChild}
         />
       );
-    case "MediaPlayer":
-      return <HostMediaPlayerCase schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
+    case "OverlayPlayer":
+      return <HostOverlayPlayerCase schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;
     case "EpisodeSelector":
     case "EpisodeSelectorPopup":
       return <HostEpisodeSelectorCase schema={schema} pluginId={pluginId} baseStyle={baseStyle} />;

@@ -44,9 +44,13 @@ describe("SDK_TYPINGS strong typing", () => {
     expect(SDK_TYPINGS).toContain("targets?: SDKReleaseBindingTarget[]");
   });
 
-  it("exposes the shared playback workspace to plugins", () => {
-    expect(SDK_TYPINGS).toContain("interface PlaybackWorkspaceBuilder");
-    expect(SDK_TYPINGS).toContain("PlaybackWorkspace(): PlaybackWorkspaceBuilder");
-    expect(SDK_TYPINGS).toContain("declare const PlaybackWorkspace: () => PlaybackWorkspaceBuilder");
+  it("exposes the inline/overlay players to plugins", () => {
+    expect(SDK_TYPINGS).toContain("interface InlinePlayerBuilder");
+    expect(SDK_TYPINGS).toContain("InlinePlayer(): InlinePlayerBuilder");
+    expect(SDK_TYPINGS).toContain("declare const InlinePlayer: () => InlinePlayerBuilder");
+    expect(SDK_TYPINGS).toContain("interface OverlayPlayerBuilder");
+    expect(SDK_TYPINGS).toContain("OverlayPlayer(): OverlayPlayerBuilder");
+    expect(SDK_TYPINGS).toContain("declare const OverlayPlayer: () => OverlayPlayerBuilder");
+    expect(SDK_TYPINGS).not.toContain("PlaybackWorkspaceBuilder");
   });
 });

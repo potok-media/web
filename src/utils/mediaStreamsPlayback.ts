@@ -60,6 +60,7 @@ export const buildPlaybackFromInfo = (
     startAt?: number;
     sourceStream?: unknown;
     stillSrc?: string;
+    mount?: ActivePlayback["mount"];
   },
 ): ActivePlayback => ({
   streamUrl: info.streamUrl,
@@ -103,4 +104,5 @@ export const buildPlaybackFromInfo = (
   playlistIndex: base.playlistIndex,
   startAt: base.startAt,
   sourceStream: base.sourceStream,
+  mount: base.mount,
 });

@@ -18,8 +18,6 @@ export type { ActivePlayback, PlaybackMeta, PlaylistItem } from "./playbackTypes
 
 export interface PlaybackContextType {
   activePlayback: ActivePlayback | null;
-  playerPortalTarget: HTMLElement | null;
-  registerPlayerPortalTarget: (target: HTMLElement | null) => void;
   // Enrichable metadata (subtitles/duration) lives here, NOT on activePlayback — so enrichPlayback never
   // mints a new descriptor and never tears the player down mid-playback. Consumers read it separately.
   playbackMeta: PlaybackMeta;
@@ -41,7 +39,6 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const { show: showHUD } = useHUD();
   const [activePlayback, setActivePlayback] = useState<ActivePlayback | null>(null);
   const [playbackMeta, setPlaybackMeta] = useState<PlaybackMeta>({});
-  const [playerPortalTarget, setPlayerPortalTarget] = useState<HTMLElement | null>(null);
   const instanceCounter = useRef(0);
   // Latest descriptor, read by enrichPlayback's match guard (which writes only playbackMeta and so has no
   // access to `prev` descriptor via a functional update). Synced every render; enrich is async, so current.
@@ -81,7 +78,13 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // mounts clean. An episode switch / enrich re-uses the current playback object (spreads its instanceId),
         // so we KEEP it — the player updates in place instead of remounting. Remounting every episode would
         // reset in-player state such as the remembered dub (preferredAudioRef), losing the selected voice.
-        setActivePlayback({ ...playback, instanceId: playback.instanceId ?? ++instanceCounter.current });
+        // mount decides WHO renders the player: inline hosts pass 'inline', everything else (resume, hero,
+        // sessionStorage restore, plugin playback without an inline stage) stays 'overlay'.
+        setActivePlayback({
+          ...playback,
+          instanceId: playback.instanceId ?? ++instanceCounter.current,
+          mount: playback.mount === "inline" ? "inline" : "overlay",
+        });
         // Seed the enrichable metadata atom from the descriptor (fresh open OR sessionStorage restore).
         setPlaybackMeta({ subtitles: playback.subtitles, duration: playback.duration });
       }
@@ -132,10 +135,6 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     sessionStorage.removeItem("potok_last_playback");
     setActivePlayback(null);
     setPlaybackMeta({});
-  }, []);
-
-  const registerPlayerPortalTarget = useCallback((target: HTMLElement | null) => {
-    setPlayerPortalTarget(target);
   }, []);
 
   useEffect(() => {
@@ -192,8 +191,6 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     () => ({
       activePlayback,
       playbackMeta,
-      playerPortalTarget,
-      registerPlayerPortalTarget,
       playVideo,
       switchPlaybackSource,
       replacePlaylist,
@@ -203,8 +200,6 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     [
       activePlayback,
       playbackMeta,
-      playerPortalTarget,
-      registerPlayerPortalTarget,
       playVideo,
       switchPlaybackSource,
       replacePlaylist,

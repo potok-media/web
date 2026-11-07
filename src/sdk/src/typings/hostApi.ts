@@ -129,8 +129,8 @@ export const hostApiDts = `
         CodeEditor(name: string): CodeEditorBuilder;
         StreamSkeletonList(): StreamSkeletonListBuilder;
         StreamFilterBar(): StreamFilterBarBuilder;
-        PlaybackWorkspace(): PlaybackWorkspaceBuilder;
-        MediaPlayer(): MediaPlayerBuilder;
+        InlinePlayer(): InlinePlayerBuilder;
+        OverlayPlayer(): OverlayPlayerBuilder;
         EpisodesSection(): EpisodesSectionBuilder;
         EpisodeSelector(): EpisodeSelectorBuilder;
         StreamRow(): StreamRowBuilder;

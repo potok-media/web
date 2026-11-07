@@ -29,7 +29,7 @@ import {
   DetailHeroBuilder,
   StreamListBuilder,
   EpisodeSelectorBuilder,
-  PlaybackWorkspaceBuilder,
+  InlinePlayerBuilder,
 } from "./media";
 import {
   RangeBuilder,
@@ -407,17 +407,14 @@ describe("EpisodeSelector panel presentation", () => {
   });
 });
 
-describe("PlaybackWorkspace", () => {
-  it("compiles a host-owned player stage with the right rail as its child", () => {
-    const json = new PlaybackWorkspaceBuilder()
+describe("InlinePlayer", () => {
+  it("compiles a host-embedded player stage with its backdrop", () => {
+    const json = new InlinePlayerBuilder()
       .backdropSrc("https://example.test/backdrop.jpg")
-      .child(new EpisodeSelectorBuilder().isOpen(true).presentation("panel"))
       .compile("root");
 
-    expect(json.type).toBe("PlaybackWorkspace");
+    expect(json.type).toBe("InlinePlayer");
     expect(json.props.backdropSrc).toBe("https://example.test/backdrop.jpg");
-    expect(json.props.stageMode).toBe("player");
-    expect(json.children).toHaveLength(1);
-    expect(json.children?.[0].type).toBe("EpisodeSelector");
+    expect(json.children).toHaveLength(0);
   });
 });

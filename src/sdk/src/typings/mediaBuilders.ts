@@ -15,20 +15,18 @@ export const mediaBuildersDts = `
     onTrackerChange(cb: (val: string) => void): this;
   }
 
-  /** Video player (MediaPlayer) for streaming video playback. */
-  interface MediaPlayerBuilder extends UIComponent {
-    /** Playback settings (streamUrl, title, etc.). */
-    playback(v: SDKPlaybackInfo): this;
+  /** Inline player (InlinePlayer) — the plugin page hosts it in its own playback stage. */
+  interface InlinePlayerBuilder extends UIComponent {
+    /** Background image of the playback stage. */
+    backdropSrc(v: string): this;
   }
 
-  /** Shared inline player stage with a host-sized right rail. */
-  interface PlaybackWorkspaceBuilder extends UIComponent {
-    /** Background image used by the shared playback shell. */
-    backdropSrc(v: string): this;
-    /** Visual state of the left stage. Defaults to player. */
-    stageMode(v: "player" | "preview"): this;
-    /** Sets the right-rail content. */
-    child(v: UIComponent): this;
+  /**
+   * Overlay player (OverlayPlayer) — fullscreen player above the app. The host lifts it into
+   * document.body whenever the active playback has mount='overlay'; embedding this component in a
+   * page changes nothing (AppLayout owns the only overlay slot).
+   */
+  interface OverlayPlayerBuilder extends UIComponent {
   }
 
   /** Season and episode picker grid (EpisodesSection). */

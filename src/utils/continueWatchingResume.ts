@@ -374,6 +374,8 @@ export async function resumeContinueWatching(
       sourceStream: cursor.sourceStream,
       stillSrc: sameFile ? cursor.stillSrc : undefined,
       startAt,
+      // The restore page hosts the player inline in its stage — never as a floating overlay.
+      mount: "inline" as const,
     }),
   );
 }

@@ -99,14 +99,17 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
   const handleClosePopup = useCallback(() => {
     selectionGeneration.current++;
     editRequest.current?.abort();
-    if (activePlayback && flow.phase === "playing") stopVideo();
+    // Closing the panel kills the player regardless of the release-flow phase (R1: a playback alive
+    // in ready/preparing — or arriving from resume/playlist-next — used to survive, outlive the
+    // workspace and pop up as a fullscreen overlay). No playback, no-op.
+    if (activePlayback) stopVideo();
     dispatchFlow({ type: "reset" });
     setArmLayout(null);
     setArmLayoutLoading(false);
     setArmLayoutError(false);
     sessionStorage.removeItem("potok_popup_stream");
     sessionStorage.removeItem("potok_popup_data");
-  }, [activePlayback, flow.phase, stopVideo]);
+  }, [activePlayback, stopVideo]);
 
   const persistSelectorData = useCallback(
     (stream: RawStreamPayload, res: EpisodesResponse) => {
@@ -155,6 +158,9 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
           mediaType: mediaType as "movie" | "tv",
           id: mediaId,
           providerId: activeSource?.pluginId,
+          // This page hosts the player inline in its stage — the descriptor must say so, otherwise
+          // AppLayout would lift it as a fullscreen overlay.
+          mount: "inline" as const,
           ...playbackLabels,
           ...extras,
         }),

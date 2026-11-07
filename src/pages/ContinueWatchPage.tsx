@@ -5,7 +5,8 @@ import { useHUD } from "../context/useHUD";
 import { usePlayback } from "../context/PlaybackContext";
 import { useResumeContinueWatching } from "../hooks/useResumeContinueWatching";
 import { getPluginAvailability } from "../utils/extensions/pluginAvailability";
-import { PlaybackWorkspace } from "../components/playback/PlaybackWorkspace";
+import { PlaybackStageLayout } from "../components/playback/PlaybackStageLayout";
+import { InlinePlayer } from "../components/player/InlinePlayer";
 import { WatchTogetherQueuePanel } from "../components/watchTogether/WatchTogetherQueuePanel";
 import {
   cursorFromVideoSettings,
@@ -28,7 +29,7 @@ export const ContinueWatchPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { activePlayback } = usePlayback();
+  const { activePlayback, stopVideo } = usePlayback();
   const { resume } = useResumeContinueWatching();
   const { show: showHUD } = useHUD();
   const { t } = useTranslation("media");
@@ -89,14 +90,17 @@ export const ContinueWatchPage: React.FC = () => {
 
   if (!snapshot) return null;
 
-  // Playback opened: host the player in the workspace layout with the episode rail.
+  // Playback opened: host the player inline in the stage layout with the episode rail. Closing the
+  // player stops the playback — the effect above then sends the page back where it came from.
   if (phase === "opened" && activePlayback) {
     const hasPlaylist = Boolean(activePlayback.playlist?.length);
     return (
-      <PlaybackWorkspace
+      <PlaybackStageLayout
         backdropSrc={activePlayback.backdropSrc}
         rail={hasPlaylist ? <WatchTogetherQueuePanel playback={activePlayback} /> : undefined}
-      />
+      >
+        <InlinePlayer playback={activePlayback} onClose={stopVideo} />
+      </PlaybackStageLayout>
     );
   }
 

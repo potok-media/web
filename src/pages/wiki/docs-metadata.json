@@ -477,41 +477,22 @@
       }
     }
   },
-  "PlaybackWorkspace": {
-    "title": "PlaybackWorkspace (Единый экран воспроизведения)",
-    "description": "Host-owned экран с inline-плеером слева и панелью плагина справа. Использует тот же layout и portal target, что торрентный плеер и совместный просмотр.",
-    "example": "// Плеер слева, очередь серий справа\nui.render(\n  PlaybackWorkspace()\n    .backdropSrc(\"https://example.test/backdrop.jpg\")\n    .child(\n      EpisodeSelector()\n        .isOpen(true)\n        .presentation(\"panel\")\n        .episodes(episodes)\n        .onPlay((episode) => openEpisode(episode))\n    )\n);",
+  "InlinePlayer": {
+    "title": "InlinePlayer (Встроенный плеер)",
+    "description": "Плеер, встраиваемый страницей плагина прямо в её сцену воспроизведения (без портала). Хост рендерит его только пока активный плеербэк открыт с mount='inline' (запрашивается через ui.playVideo с полем mount) и только пока страница смонтирована — плеер умирает вместе со страницей. Закрытие решает хост (обычно: закрыть плеер, страница остаётся). Настройки громкости хранятся в собственном namespace potok_inline_*.",
+    "example": "// Сцена воспроизведения: плеер слева, очередь серий справа — через ui.presentEpisodes\nui.playVideo({ ...playback, mount: \"inline\" });\nui.render(\n  InlinePlayer()\n    .backdropSrc(\"https://example.test/backdrop.jpg\")\n);",
     "methods": {
       "backdropSrc": {
         "argument": "string",
-        "description": "Фоновое изображение общего экрана воспроизведения."
-      },
-      "stageMode": {
-        "argument": "\"player\" | \"preview\"",
-        "description": "Состояние левой сцены до или во время воспроизведения.",
-        "default": "\"player\""
-      },
-      "child": {
-        "argument": "UIComponent",
-        "description": "Содержимое правой панели, обычно EpisodeSelector в режиме panel."
+        "description": "Фоновое изображение сцены воспроизведения."
       }
     }
   },
-  "MediaPlayer": {
-    "title": "MediaPlayer (Видеоплеер)",
-    "description": "Встроенный HTML5-видеоплеер с поддержкой форматов HLS (.m3u8), Dash (.mpd) и обычных MP4-файлов. Предоставляет полноценное управление воспроизведением, субтитрами и звуковыми дорожками.",
-    "example": "// Встроенный плеер\nconst { ui } = PotokSDK;\n\nui.render(\n  MediaPlayer()\n    .playback({\n      streamUrl: \"http://example.com/video.m3u8\",\n      streamType: \"m3u8\",\n      title: \"Название фильма\",\n      season: 1,\n      episode: 3,\n      torrentHash: \"abc123def456\",\n      fileIndex: \"0\",\n      audios: [\n        { id: \"ru\", name: \"Русский дубляж\", url: \"http://example.com/video_ru.m3u8\" },\n        { id: \"en\", name: \"Английский оригинал\", url: \"http://example.com/video_en.m3u8\" }\n      ],\n      headers: { \"User-Agent\": \"PotokPlayer\" },\n      providerId: \"my-torrents\",\n      voice: \"dub\",\n      subtitles: [\n        {\n          id: \"ru-vtt\",\n          src: \"http://example.com/subs_ru.vtt\",\n          label: \"Русские\",\n          language: \"ru\",\n          isDefault: true,\n          format: \"vtt\",\n          name: \"Русские\",\n          srclang: \"ru\",\n          url: \"http://example.com/subs_ru.vtt\"\n        }\n      ],\n      session: {\n        keepaliveUrl: \"http://example.com/session/keepalive\",\n        stopUrl: \"http://example.com/session/stop\",\n        intervalSec: 30,\n        hash: \"abc123def456\",\n        file: \"0\",\n        statusUrl: \"http://example.com/session/status\",\n        statusIntervalSec: 5\n      },\n      duration: 7200,\n      introStart: 0,\n      introEnd: 90,\n      outroStart: 7080,\n      outroEnd: 7200,\n      thumbnails: {\n        urlTemplate: \"http://example.com/thumbs/{time}.jpg\",\n        intervalSec: 5\n      },\n      requiresBuffering: false\n    })\n    .isNetworkOffline(false)\n    .height(400)\n);",
-    "methods": {
-      "playback": {
-        "argument": "object",
-        "description": "Метаданные воспроизводимого потока (SDKPlaybackInfo): streamUrl, streamType, title, season, episode, torrentHash, fileIndex, audios ({id, name, url}[]), headers, providerId, voice, subtitles, session, duration, introStart/End, outroStart/End, thumbnails, requiresBuffering."
-      },
-      "isNetworkOffline": {
-        "argument": "boolean",
-        "description": "Управляет оффлайн-режимом. При значении true останавливает проигрывание и выводит ошибку сети.",
-        "default": "false"
-      }
-    }
+  "OverlayPlayer": {
+    "title": "OverlayPlayer (Полноэкранный плеер)",
+    "description": "Полноэкранный плеер поверх всего приложения. Хост поднимает его сам в document.body при mount='overlay' (значение по умолчанию у ui.playVideo) — независимо от того, что ещё рендерит страница. Встраивание этого компонента в страницу ничего не меняет: оверлей показывает AppLayout, закрытие останавливает плеер. Настройки громкости — прежние ключи potok_player_*; у InlinePlayer собственный namespace potok_inline_*.",
+    "example": "// Обычный плеер открывается через ui.playVideo(playback) без поля mount —\n// OverlayPlayer появляется сам, компонент в дереве страницы не обязателен.\nui.playVideo({ streamUrl: \"http://example.com/video.m3u8\", title: \"Фильм\" });",
+    "methods": {}
   },
   "ProfileSelector": {
     "title": "ProfileSelector (Селектор профилей)",

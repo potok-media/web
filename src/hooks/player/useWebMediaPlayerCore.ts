@@ -19,6 +19,7 @@ import type { UseWebMediaPlayerBindingsParams } from "./webMediaPlayerBindingTyp
 export function useWebMediaPlayerCore({
   playback,
   onClose,
+  volumeStorageKeyPrefix,
   videoRef,
   videoNode,
   overlayRef,
@@ -186,7 +187,7 @@ export function useWebMediaPlayerCore({
     setIsMetadataLoading: metadata.setIsMetadataLoading,
   });
 
-  const { volume, setVolume, isMuted, setIsMuted } = usePlayerVolumePrefs(hls.srcResetCounter, videoRef, videoNode);
+  const { volume, setVolume, isMuted, setIsMuted } = usePlayerVolumePrefs(hls.srcResetCounter, videoRef, videoNode, volumeStorageKeyPrefix);
 
   const pictureInPicture = usePlayerPictureInPicture(videoRef, videoNode);
 

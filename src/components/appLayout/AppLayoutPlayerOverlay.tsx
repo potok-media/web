@@ -2,10 +2,9 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { useTranslation } from "react-i18next";
 import type { ActivePlayback } from "../../context/playbackTypes";
-import { usePlayback } from "../../context/PlaybackContext";
 import type { ConnectionState } from "../../context/AppSettingsContext";
 import type { ConnectionProfile } from "../../network/ApiTypes";
-import { WebMediaPlayer } from "../WebMediaPlayer";
+import { OverlayPlayer } from "../player/OverlayPlayer";
 import { ErrorBoundary } from "../ErrorBoundary";
 import { OfflineOverlay } from "../OfflineOverlay";
 import { FocusTrap } from "../common/FocusTrap";
@@ -33,11 +32,12 @@ export const AppLayoutPlayerOverlay: React.FC<AppLayoutPlayerOverlayProps> = ({
   checkConnection,
 }) => {
   const { t } = useTranslation("common");
-  const { playerPortalTarget } = usePlayback();
 
+  // Only overlay playbacks render here — inline ones are embedded by their host page (media/plugin/room),
+  // which owns their lifecycle. playVideo normalizes mount, so a missing field means 'overlay'.
   return (
     <>
-      {activePlayback && (
+      {activePlayback && activePlayback.mount === "overlay" && (
         <ErrorBoundary fallback={(error, resetError) => (
           <div className="player-error-fallback player-error-fallback--toast">
             <h4 className="player-error-fallback__title">{t("playerError")}</h4>
@@ -54,12 +54,11 @@ export const AppLayoutPlayerOverlay: React.FC<AppLayoutPlayerOverlayProps> = ({
             </div>
           </div>
         )}>
-          <WebMediaPlayer
+          <OverlayPlayer
             key={activePlayback.instanceId ?? activePlayback.id}
             playback={activePlayback}
             onClose={onClosePlayer}
             isNetworkOffline={connectionState === "offline"}
-            portalTarget={playerPortalTarget}
           />
         </ErrorBoundary>
       )}

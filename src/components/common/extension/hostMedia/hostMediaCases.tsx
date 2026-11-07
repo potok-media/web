@@ -9,8 +9,8 @@ import type {
   MediaCardSchema,
   MediaCastSchema,
   MediaOverviewSchema,
-  PlaybackWorkspaceSchema,
-  MediaPlayerSchema,
+  InlinePlayerSchema,
+  OverlayPlayerSchema,
   MediaRowSchema,
   SDKMediaCard,
   SDKTvEpisode,
@@ -26,8 +26,8 @@ import { SeasonEpisodesSection } from "../../../SeasonEpisodesSection";
 import MediaCastSection from "../../../MediaCastSection";
 import { MediaOverviewSection } from "../../../MediaOverviewSection";
 import MediaRow from "../../../MediaRow";
-import { WebMediaPlayer } from "../../../WebMediaPlayer";
-import { PlaybackWorkspace } from "../../../playback/PlaybackWorkspace";
+import { PlaybackStageLayout } from "../../../playback/PlaybackStageLayout";
+import { InlinePlayer } from "../../../player/InlinePlayer";
 import EpisodeSelectorPopup, { type GenericEpisodeItem } from "../../EpisodeSelectorPopup";
 import { EpisodeSelectorContent } from "../../EpisodeSelectorContent";
 import { EpisodeCard } from "../../../EpisodeCard";
@@ -35,7 +35,6 @@ import type { HostMediaRendererProps } from "./types";
 import { sdkClass, sdkStyleVars } from "../componentRendererUtils";
 import {
   asApiMediaCard,
-  mapSdkPlayback,
   mapSdkSelectedEpisode,
   mapSdkStreamEpisodes,
   mapSdkTvEpisode,
@@ -168,20 +167,7 @@ export const HostMediaRowCase: React.FC<HostMediaRendererProps<MediaRowSchema>> 
   );
 };
 
-export const HostMediaPlayerCase: React.FC<HostMediaRendererProps<MediaPlayerSchema>> = ({ schema }) => {
-  const { id, props } = schema;
-  if (!props.playback) return null;
-
-  return (
-    <WebMediaPlayer
-      key={id}
-      playback={mapSdkPlayback(props.playback)}
-      isNetworkOffline={props.isNetworkOffline}
-    />
-  );
-};
-
-interface HostPlaybackWorkspaceCaseProps extends HostMediaRendererProps<PlaybackWorkspaceSchema> {
+interface HostInlinePlayerCaseProps extends HostMediaRendererProps<InlinePlayerSchema> {
   renderChild: (child: UIComponentSchema, index: number) => React.ReactNode;
 }
 
@@ -238,40 +224,7 @@ const PresentedEpisodesRail: React.FC<{
   );
 };
 
-const PreviewOverlayContent: React.FC<{
-  centerTitle: string;
-  bottomSubtitle?: string;
-  backdropSrc?: string;
-}> = ({ centerTitle, bottomSubtitle, backdropSrc }) => (
-  <div className="streams-player-preview">
-    <div
-      className="streams-player-preview__artwork"
-      style={{ backgroundImage: backdropSrc ? `url(${backdropSrc})` : undefined }}
-    />
-    <div className="streams-player-preview__veil" />
-    <div className="streams-player-preview__content">
-      <svg
-        className="streams-player-preview__content-icon"
-        width="32"
-        height="32"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <rect x="2" y="3" width="20" height="14" rx="2" />
-        <polyline points="8 21 16 21" />
-        <line x1="12" y1="17" x2="12" y2="21" />
-      </svg>
-      <strong>{centerTitle}</strong>
-      {bottomSubtitle && <span>{bottomSubtitle}</span>}
-    </div>
-  </div>
-);
-
-export const HostPlaybackWorkspaceCase: React.FC<HostPlaybackWorkspaceCaseProps> = ({
+export const HostInlinePlayerCase: React.FC<HostInlinePlayerCaseProps> = ({
   schema,
   pluginId,
   baseStyle,
@@ -279,6 +232,7 @@ export const HostPlaybackWorkspaceCase: React.FC<HostPlaybackWorkspaceCaseProps>
 }) => {
   // Episodes a plugin handed over as data (ui.presentEpisodes). Subscribe to registry updates so the
   // rail appears/disappears without waiting for the plugin's next slot render.
+  const { activePlayback, stopVideo } = usePlayback();
   const [episodePanel, setEpisodePanel] = useState(() => ExtensionRegistry.getPresentedEpisodes(pluginId));
   useEffect(() => {
     const syncPanel = () => setEpisodePanel(ExtensionRegistry.getPresentedEpisodes(pluginId));
@@ -299,28 +253,25 @@ export const HostPlaybackWorkspaceCase: React.FC<HostPlaybackWorkspaceCaseProps>
         : 0)
     : episodePanel?.episodes.length || 0;
 
-  const isPreview = schema.props.stageMode === "preview";
-  const previewOverlay = isPreview && schema.props.previewOverlay
-    ? <PreviewOverlayContent
-        centerTitle={schema.props.previewOverlay.centerTitle}
-        bottomSubtitle={schema.props.previewOverlay.bottomSubtitle}
-        backdropSrc={schema.props.previewOverlay.backdropSrc}
-      />
-    : undefined;
-
   return (
-    <PlaybackWorkspace
+    <PlaybackStageLayout
       id={schema.id}
-      className={sdkClass(schema, "sdk-playback-workspace")}
+      className={sdkClass(schema, "sdk-inline-player")}
       style={sdkStyleVars(baseStyle)}
       backdropSrc={schema.props.backdropSrc}
-      stageMode={schema.props.stageMode || "player"}
-      stageContent={previewOverlay}
       rail={schemaRail ? renderChild(schemaRail, 0) : presentedRail}
       coWatchQueueCount={coWatchQueueCount}
-    />
+    >
+      {activePlayback?.mount === "inline" ? (
+        <InlinePlayer playback={activePlayback} onClose={stopVideo} />
+      ) : null}
+    </PlaybackStageLayout>
   );
 };
+
+// The overlay slot is owned by AppLayout (mount === 'overlay' → OverlayPlayer in document.body).
+// A plugin page embedding OverlayPlayer changes nothing — the host deliberately renders nothing here.
+export const HostOverlayPlayerCase: React.FC<HostMediaRendererProps<OverlayPlayerSchema>> = () => null;
 
 export const HostEpisodeSelectorCase: React.FC<
   HostMediaRendererProps<EpisodeSelectorSchema | EpisodeSelectorPopupSchema>

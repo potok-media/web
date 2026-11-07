@@ -4,12 +4,11 @@ import type { WebMediaPlayerOptions } from "./player/webMediaPlayerTypes";
 
 export type { WebMediaPlayerOptions } from "./player/webMediaPlayerTypes";
 
-export function useWebMediaPlayer({ playback, onClose, isNetworkOffline = false }: WebMediaPlayerOptions) {
-  // The portal container can change after mount (PlaybackWorkspace registers its surface one render
-  // after the player first portals into document.body) and React RECREATES the <video> node on a
-  // portal container change instead of moving it. Hooks that capture the node in effects must key on
-  // `videoNode` (state, updated by this callback) so the media pipeline re-attaches to the new node;
-  // `videoRef` stays a stable object whose .current the callback keeps in sync for lazy readers.
+export function useWebMediaPlayer({ playback, onClose, isNetworkOffline = false, volumeStorageKeyPrefix }: WebMediaPlayerOptions) {
+  // The <video> node is mirrored into state (videoNode) because some hosts historically re-mounted it
+  // mid-flight (portal container swaps) and hooks that attach listeners/attachMedia in effects must
+  // re-attach to the new node; videoRef stays a stable object whose .current the callback keeps in
+  // sync for lazy readers.
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [videoNode, setVideoNode] = useState<HTMLVideoElement | null>(null);
   const videoRefCallback = useCallback((node: HTMLVideoElement | null) => {
@@ -30,6 +29,7 @@ export function useWebMediaPlayer({ playback, onClose, isNetworkOffline = false 
   const bindings = useWebMediaPlayerBindings({
     playback,
     onClose,
+    volumeStorageKeyPrefix,
     videoRef,
     videoNode,
     videoRefCallback,
