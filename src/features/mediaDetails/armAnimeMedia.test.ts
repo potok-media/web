@@ -24,7 +24,7 @@ const makeEntry = (overrides: Partial<ArmEntryDetail> = {}): ArmEntryDetail => (
   sortPosition: 0,
   structureSource: "anilist",
   externalIds: [],
-  localizedTitles: [{ language: "ru", value: "Тестовое аниме" }],
+  localizedTitles: [{ language: "ru", value: "Тестовое аниме", source: "shikimori" }],
   tmdb: null,
   displayMetadata: {
     cover: { large: "https://img/cover.jpg", medium: null },
@@ -90,8 +90,8 @@ describe("selectAnimeTitle", () => {
   it("prefers exact locale, then language prefix, then the first stored title", () => {
     const entry = makeEntry({
       localizedTitles: [
-        { language: "en", value: "English" },
-        { language: "ru", value: "Русский" },
+        { language: "en", value: "English", source: "anilist" },
+        { language: "ru", value: "Русский", source: "shikimori" },
       ],
     });
     expect(selectAnimeTitle(entry, "ru")).toBe("Русский");
