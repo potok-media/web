@@ -418,6 +418,28 @@
       "typeMovie": "Movie",
       "typeSeries": "Series"
     },
+    "anime": {
+      "format": {
+        "tv": "TV",
+        "tv_short": "TV short",
+        "movie": "Movie",
+        "ova": "OVA",
+        "special": "Special",
+        "ona": "ONA",
+        "music": "Music"
+      },
+      "status": {
+        "releasing": "Airing",
+        "finished": "Finished",
+        "not_yet_released": "Announced",
+        "cancelled": "Cancelled",
+        "hiatus": "On hiatus"
+      },
+      "episodesCount_one": "{{count}} episode",
+      "episodesCount_other": "{{count}} episodes",
+      "minutes_one": "{{count}} min",
+      "minutes_other": "{{count}} min"
+    },
     "common": {
       "retry": "Retry"
     },

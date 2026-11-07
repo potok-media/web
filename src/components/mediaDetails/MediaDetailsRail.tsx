@@ -5,6 +5,8 @@ import type { MediaCard } from "../../network/ApiTypes";
 
 interface MediaDetailsInfoSectionProps {
   media: MediaCard;
+  /** Outbound source links (MAL/Shikimori/AniList) — anime ARM works only. */
+  links?: { label: string; url: string }[];
 }
 
 function splitGenres(genres?: string): string[] {
@@ -15,7 +17,7 @@ function splitGenres(genres?: string): string[] {
     .filter(Boolean);
 }
 
-export const MediaDetailsInfoSection: React.FC<MediaDetailsInfoSectionProps> = ({ media }) => {
+export const MediaDetailsInfoSection: React.FC<MediaDetailsInfoSectionProps> = ({ media, links }) => {
   const { t } = useTranslation("media");
   const genres = splitGenres(media.genres);
   const ratings = [
@@ -67,6 +69,16 @@ export const MediaDetailsInfoSection: React.FC<MediaDetailsInfoSectionProps> = (
       {genres.length > 0 && (
         <div className="details-info-genres" aria-label={t("detailsPage.genres")}>
           {genres.map((genre) => <span key={genre}>{genre}</span>)}
+        </div>
+      )}
+
+      {links && links.length > 0 && (
+        <div className="details-info-links">
+          {links.map((link) => (
+            <a key={link.label} href={link.url} target="_blank" rel="noreferrer">
+              {link.label}
+            </a>
+          ))}
         </div>
       )}
     </section>

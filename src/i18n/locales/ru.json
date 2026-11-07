@@ -422,6 +422,32 @@
       "typeMovie": "Фильм",
       "typeSeries": "Сериал"
     },
+    "anime": {
+      "format": {
+        "tv": "ТВ",
+        "tv_short": "ТВ (короткие)",
+        "movie": "Фильм",
+        "ova": "OVA",
+        "special": "Спешл",
+        "ona": "ONA",
+        "music": "Клип"
+      },
+      "status": {
+        "releasing": "Онгоинг",
+        "finished": "Завершён",
+        "not_yet_released": "Анонс",
+        "cancelled": "Отменён",
+        "hiatus": "Приостановлен"
+      },
+      "episodesCount_one": "{{count}} серия",
+      "episodesCount_few": "{{count}} серии",
+      "episodesCount_many": "{{count}} серий",
+      "episodesCount_other": "{{count}} серий",
+      "minutes_one": "{{count}} минута",
+      "minutes_few": "{{count}} минуты",
+      "minutes_many": "{{count}} минут",
+      "minutes_other": "{{count}} минут"
+    },
     "common": {
       "retry": "Повторить загрузку"
     },

@@ -181,6 +181,10 @@ export interface ArmEntryDisplayMetadata {
   isAdult: boolean | null;
   popularity: number | null;
   siteUrl: string | null;
+  /** AniList banner image (wide backdrop) — absolute URL when present. */
+  banner: string | null;
+  /** Russian description from the Shikimori catalog cache (HTML-ish markup included). */
+  shikimoriDescription: string | null;
 }
 
 /** Entry-level TMDB bridge coordinate. */

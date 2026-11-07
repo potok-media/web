@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useSearchParams } from "react-router-dom";
 import { LoadingSpinner } from "../components/LoadingSpinner";
@@ -6,20 +6,33 @@ import { MediaDetailsErrorView } from "../components/mediaDetails/MediaDetailsEr
 import { reconstructLayout } from "../features/arm/layoutReconstruction";
 import { resolveCanonicalTarget, type ArmCanonicalTarget } from "../features/arm/armGroupSelection";
 import { summarizeArmGroups, type ArmGroupSummary } from "../features/arm/armGroupDisplay";
+import { selectArmAnimeEntry } from "../features/mediaDetails/armAnimeMedia";
 import { getArmEntriesCached, getArmEpisodesCached } from "../features/arm/armLayoutCache";
 import { ApiClient } from "../network/ApiClient";
+import type { ArmEntryDetail, ArmEpisodeDetail } from "../network/ArmTypes";
 import MediaDetailsPage from "./MediaDetailsPage";
 
 type CanonicalState =
   | { status: "loading" }
-  | { status: "ready"; target: ArmCanonicalTarget; groupSummary: ArmGroupSummary }
+  | {
+      status: "ready";
+      /** TMDB coordinate of the selected group; null when the work has no tmdb bridge yet. */
+      target: ArmCanonicalTarget | null;
+      groupSummary: ArmGroupSummary;
+      entries: ArmEntryDetail[];
+      episodes: ArmEpisodeDetail[];
+    }
   | { status: "missing" };
 
 /**
  * Canonical media page: /media/p/:potokId (?g=<entryId>). The ARM graph owns identity and
  * structure — the layout yields the selected group's TMDB coordinate, and the regular details
- * page renders from it (display metadata stays TMDB-sourced on the user's locale). A work
- * without a bridged group has no TMDB-addressable content yet: the error view stands in.
+ * page renders from it (display metadata stays TMDB-sourced on the user's locale).
+ *
+ * Works WITHOUT a tmdb bridge used to be a dead error view even though the anime exists in
+ * AniList/Shikimori/MAL: when the selected entry carries anime display metadata, the same
+ * details page renders from the ARM identity instead (banner, AniList/Shikimori description,
+ * genres, score — synthesized into the regular media card).
  */
 export const MediaArmDetailsPage: React.FC = () => {
   const { potokId } = useParams<{ potokId: string }>();
@@ -45,7 +58,7 @@ export const MediaArmDetailsPage: React.FC = () => {
         const layout = reconstructLayout(entriesRes.entries, episodesRes.episodes, potokId, i18n.language);
         const target = resolveCanonicalTarget(layout, entryId);
         const groupSummary = summarizeArmGroups(layout.groups);
-        setState(target ? { status: "ready", target, groupSummary } : { status: "missing" });
+        setState({ status: "ready", target, groupSummary, entries: entriesRes.entries, episodes: episodesRes.episodes });
       } catch {
         if (!controller.signal.aborted) setState({ status: "missing" });
       }
@@ -53,12 +66,38 @@ export const MediaArmDetailsPage: React.FC = () => {
     return () => controller.abort();
   }, [potokId, entryId, i18n.language, reloadKey]);
 
+  const armAnime = useMemo(
+    () =>
+      state.status === "ready" && !state.target
+        ? {
+            workId: potokId as string,
+            entries: state.entries,
+            episodes: state.episodes,
+            initialGroupId: entryId,
+          }
+        : undefined,
+    [state, potokId, entryId],
+  );
+
   if (state.status === "loading") return <LoadingSpinner />;
-  if (state.status === "missing") {
+
+  const errorView = (
+    <MediaDetailsErrorView
+      error={t("details.loadFailed")}
+      onRetry={() => setReloadKey((key) => key + 1)}
+    />
+  );
+
+  if (state.status === "missing") return errorView;
+  if (!state.target) {
+    const animeEntry = selectArmAnimeEntry(state.entries, entryId);
+    if (!animeEntry?.displayMetadata || !armAnime) return errorView;
     return (
-      <MediaDetailsErrorView
-        error={t("details.loadFailed")}
-        onRetry={() => setReloadKey((key) => key + 1)}
+      <MediaDetailsPage
+        key={`${potokId}:${animeEntry.entryId}`}
+        initialGroupId={animeEntry.entryId}
+        armSummary={{ workId: potokId ?? null, graphVersion: null }}
+        armAnime={armAnime}
       />
     );
   }

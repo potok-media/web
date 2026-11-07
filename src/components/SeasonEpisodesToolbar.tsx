@@ -162,16 +162,18 @@ export const SeasonEpisodesToolbar: React.FC<SeasonEpisodesToolbarProps> = ({
                         : t("seasons.markSeason")}
                   </span>
                 </PopoverItem>
+                {onOpenMultiPicker && (
                 <PopoverItem
                   className="watch-popover-item"
                   onClick={() => {
                     setShowWatchPopover(false);
-                    onOpenMultiPicker?.();
+                    onOpenMultiPicker();
                   }}
                 >
                   <ListTodo size="1rem" className="watch-item-icon" />
                   <span>{t("seasons.markSelectively")}</span>
                 </PopoverItem>
+                )}
               </div>
             </>
           )}

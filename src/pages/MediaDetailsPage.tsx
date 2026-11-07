@@ -23,6 +23,8 @@ import type { TvEpisode } from "../network/ApiTypes";
 import type { EpisodeSelection } from "../hooks/mediaDetails/mediaDetailsTypes";
 import type { ArmGroupSummary } from "../features/arm/armGroupDisplay";
 import type { ArmMediaSummary } from "../network/ArmTypes";
+import type { ArmAnimeDetailsInput } from "../features/mediaDetails/armAnimeMedia";
+import { animeExternalLinks, selectArmAnimeEntry } from "../features/mediaDetails/armAnimeMedia";
 
 
 interface SelectedEpisodeState {
@@ -45,6 +47,12 @@ interface MediaDetailsPageProps {
   initialGroupId?: string;
   /** Resolved ARM summary with workId from the canonical page — avoids a duplicate ARM fetch. */
   armSummary?: ArmMediaSummary | null;
+  /**
+   * Anime works without a TMDB bridge: the page renders from ARM identity (entries +
+   * AniList/Shikimori metadata synthesized into the regular media card) instead of fetching
+   * tmdb-keyed details. Favorites/watchlist stay tmdb-keyed and hide for this identity.
+   */
+  armAnime?: ArmAnimeDetailsInput;
 }
 
 export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
@@ -53,6 +61,7 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
   resolvedGroupSummary,
   initialGroupId,
   armSummary,
+  armAnime,
 }) => {
   const params = useParams<{ mediaType: string; id: string }>();
   const [searchParams] = useSearchParams();
@@ -126,6 +135,7 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
   const { mediaRef, handleNavigateToStreams } = useMediaDetailsPageNavigation({
     mediaType,
     mediaId,
+    workId: armAnime?.workId,
   });
 
   const {
@@ -146,6 +156,7 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
     playParam: searchParams.get("play"),
     onNavigateToStreams: (season, episode) => handleNavigateToStreams(undefined, season, episode),
     showHUD,
+    armAnime,
   });
 
   const normalizedMediaType =
@@ -212,6 +223,11 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
 
   const cast = media.cast || [];
   const hasEpisodeLibrary = media.mediaType === "tv" && ((media.numberOfSeasons ?? 0) > 0 || Boolean(media.arm?.workId));
+  // Anime-only works carry no tmdb coordinate: the tmdb-keyed social surfaces (favorites,
+  // status picker, the legacy multi-picker) hide; episode history stays workId-keyed.
+  const hasTmdbIdentity = Number.isFinite(mediaId) && mediaId > 0;
+  const animeEntry = armAnime ? selectArmAnimeEntry(armAnime.entries, initialGroupId) : null;
+  const externalLinks = animeEntry ? animeExternalLinks(animeEntry) : [];
   const detailsSlotProps = {
     mediaId,
     tmdbId,
@@ -242,6 +258,7 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
         onSelectStatus={userData.selectStatus}
         onToggleFolder={userData.toggleFolder}
         onCreateFolder={userData.createFolder}
+        showSocialActions={hasTmdbIdentity}
       />
 
       <div className={`details-content-grid ${hasEpisodeLibrary ? "details-content-grid--series" : "details-content-grid--movie"}`}>
@@ -263,7 +280,7 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
                 watchedEpisodeIds={media.progress?.watchedEpisodeIds || []}
                 toggleEpisodeWatched={toggleEpisodeWatchedWithStatus}
                 toggleSeasonWatched={toggleSeasonWatchedWithStatus}
-                onOpenMultiPicker={() => setIsMultiPickerOpen(true)}
+                onOpenMultiPicker={hasTmdbIdentity ? () => setIsMultiPickerOpen(true) : undefined}
               />
             </div>
           )}
@@ -276,7 +293,7 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
 
           <Slot name="details-bottom" props={detailsSlotProps} className="details-extension-slot" />
 
-          {isMultiPickerOpen && hasEpisodeLibrary && (
+          {isMultiPickerOpen && hasEpisodeLibrary && hasTmdbIdentity && (
             <EpisodeMultiPickerModal
               isOpen={isMultiPickerOpen}
               onClose={() => setIsMultiPickerOpen(false)}
@@ -290,7 +307,7 @@ export const MediaDetailsPage: React.FC<MediaDetailsPageProps> = ({
         </main>
 
         <aside className="details-side-column">
-          <MediaDetailsInfoSection media={media} />
+          <MediaDetailsInfoSection media={media} links={externalLinks} />
           <hr className="details-section-divider" />
           {hasEpisodeLibrary && cast.length > 0 && (
             <MediaCastSection cast={cast} variant="compact" />

@@ -35,6 +35,11 @@ interface MediaDetailsHeroSectionProps {
   onSelectStatus: (status: TitleStatus | null) => void;
   onToggleFolder: (folderId: string) => void;
   onCreateFolder: (name: string) => Promise<unknown>;
+  /**
+   * Favorites and the status picker are tmdb-keyed; anime-only works (no tmdb coordinate)
+   * hide them. The watched toggle stays — title history is workId-keyed.
+   */
+  showSocialActions?: boolean;
 }
 
 export const MediaDetailsHeroSection: React.FC<MediaDetailsHeroSectionProps> = ({
@@ -54,6 +59,7 @@ export const MediaDetailsHeroSection: React.FC<MediaDetailsHeroSectionProps> = (
   toggleWatched,
   toggleFavorite,
   onSelectStatus,
+  showSocialActions = true,
 }) => {
   const { t } = useTranslation("media");
 
@@ -113,15 +119,18 @@ export const MediaDetailsHeroSection: React.FC<MediaDetailsHeroSectionProps> = (
                     <Eye size="1.125rem" />
                   </IconButton>
 
+                  {showSocialActions && (
                   <StatusPickerMenu
                     status={titleStatus}
                     isWatched={isWatched}
                     onSelectStatus={onSelectStatus}
                     onMarkWatched={toggleWatched}
                   />
+                  )}
 
                   {/* FolderPickerMenu скрыт вместе с разделом «Подборки» (см. AppSidebar). */}
 
+                  {showSocialActions && (
                   <IconButton
                     className={`action-btn-circle ${isFavorite ? "active" : ""}`}
                     onClick={toggleFavorite}
@@ -130,6 +139,7 @@ export const MediaDetailsHeroSection: React.FC<MediaDetailsHeroSectionProps> = (
                   >
                     <Star size="1.125rem" fill={isFavorite ? "var(--accent)" : "none"} />
                   </IconButton>
+                  )}
                 </div>
               </div>
             </div>

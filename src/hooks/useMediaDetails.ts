@@ -2,12 +2,18 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { MediaCard } from "../network/ApiTypes";
 import { useWSSync } from "../context/useWSSync";
-import { fetchMediaDetailsData } from "./mediaDetails/mediaDetailsFetch";
+import { fetchMediaDetailsData, fetchArmAnimeDetailsData } from "./mediaDetails/mediaDetailsFetch";
 import { applyMediaWsSyncEvent } from "./mediaDetails/mediaDetailsWsSync";
 import { useMediaDetailsActions } from "./mediaDetails/useMediaDetailsActions";
+import type { ArmAnimeDetailsInput } from "../features/mediaDetails/armAnimeMedia";
 import type { UseMediaDetailsProps } from "./mediaDetails/mediaDetailsTypes";
 
 export type { UseMediaDetailsProps } from "./mediaDetails/mediaDetailsTypes";
+
+export interface UseMediaDetailsArmAnimeOptions {
+  /** ARM-side identity: anime works render from AniList/Shikimori metadata instead of TMDB. */
+  armAnime?: ArmAnimeDetailsInput;
+}
 
 export function useMediaDetails({
   mediaType,
@@ -15,7 +21,8 @@ export function useMediaDetails({
   playParam,
   onNavigateToStreams,
   showHUD,
-}: UseMediaDetailsProps) {
+  armAnime,
+}: UseMediaDetailsProps & UseMediaDetailsArmAnimeOptions) {
   const [media, setMedia] = useState<MediaCard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +30,7 @@ export function useMediaDetails({
   const [isFavorite, setIsFavorite] = useState(false);
   const [isWatched, setIsWatched] = useState(false);
 
-  const { t } = useTranslation("media");
+  const { t, i18n } = useTranslation("media");
   const { subscribeToMedia } = useWSSync();
 
   const lastFetchTimeRef = useRef(0);
@@ -42,6 +49,22 @@ export function useMediaDetails({
 
   const fetchDetails = useCallback(
     async (silent = false) => {
+      if (armAnime) {
+        try {
+          if (!silent) setLoading(true);
+          setError(null);
+          const result = await fetchArmAnimeDetailsData(armAnime, i18n.language, t);
+          setMedia(result.media);
+          setInWatchlist(result.inWatchlist);
+          setIsFavorite(result.isFavorite);
+          setIsWatched(result.isWatched);
+        } catch (err: unknown) {
+          setError(err instanceof Error ? err.message : t("details.loadFailed"));
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
       if (!mediaType || !mediaId) return;
       try {
         if (!silent) {
@@ -71,7 +94,7 @@ export function useMediaDetails({
         setLoading(false);
       }
     },
-    [mediaType, mediaId, playParam, t],
+    [mediaType, mediaId, playParam, t, armAnime, i18n.language],
   );
 
   useEffect(() => {
@@ -79,7 +102,8 @@ export function useMediaDetails({
   }, [fetchDetails]);
 
   useEffect(() => {
-    if (!mediaId || !mediaType) return;
+    // Anime-synthesized cards have no tmdb identity — nothing to subscribe to.
+    if (!mediaId || !mediaType || armAnime) return;
 
     const unsubscribe = subscribeToMedia(mediaId, mediaType, (event, payload, timestamp) => {
       const eventTime = new Date(timestamp).getTime();
@@ -94,7 +118,7 @@ export function useMediaDetails({
     });
 
     return unsubscribe;
-  }, [mediaId, mediaType, subscribeToMedia]);
+  }, [mediaId, mediaType, subscribeToMedia, armAnime]);
 
   const actions = useMediaDetailsActions({
     media,

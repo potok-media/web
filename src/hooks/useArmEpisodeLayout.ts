@@ -22,6 +22,7 @@ interface ArmEpisodeLayoutState {
 }
 
 interface UseArmEpisodeLayoutOptions {
+  /** TMDB show id; only used for the work resolve when `summary` carries no workId. */
   tmdbId: number;
   summary?: ArmMediaSummary | null;
   /** Movies never enter the ARM season flow. */
@@ -68,7 +69,10 @@ export function useArmEpisodeLayout({
   const summaryReadable = canReadArmLayout(summary);
 
   useEffect(() => {
-    if (!enabled || !tmdbId) {
+    // A known workId is a complete ARM identity on its own — anime works without a TMDB
+    // bridge enter the ARM layout without any tmdb resolve.
+    const hasArmIdentity = Boolean(summaryReadable && summaryWorkId);
+    if (!enabled || (!tmdbId && !hasArmIdentity)) {
       setState(providerFallbackState);
       return;
     }

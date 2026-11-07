@@ -4,6 +4,8 @@ import type { UserHistoryEntry } from "../../network/SyncApiClient";
 import { Storage } from "../../utils/StorageService";
 import { resizeTmdbImage, backdropSizeForQuality } from "../../utils/mediaUtils";
 import type { MediaCard } from "../../network/ApiTypes";
+import type { ArmAnimeDetailsInput } from "../../features/mediaDetails/armAnimeMedia";
+import { buildArmAnimeMedia } from "../../features/mediaDetails/armAnimeMedia";
 
 /**
  * The single watched derivation, mirroring the server predicate: the manual is_watched flag
@@ -97,4 +99,43 @@ export async function fetchMediaDetailsData(
     isFavorite: favActive,
     isWatched: watchedActive,
   };
+}
+
+/**
+ * Anime works without a TMDB bridge have no tmdb-keyed details payload at all — the card is
+ * synthesized from the ARM entry metadata and only the server history is pulled (favorites and
+ * watchlist are tmdb-keyed and stay inactive on anime-only works). Watched state matches by
+ * workId + episodeId, the same identity space the ARM episode ticks write to.
+ */
+export async function fetchArmAnimeDetailsData(
+  armAnime: ArmAnimeDetailsInput,
+  locale: string,
+  t: Parameters<typeof buildArmAnimeMedia>[2],
+): Promise<FetchedMediaDetails> {
+  const media = buildArmAnimeMedia(armAnime, locale, t);
+  if (!media) throw new Error(t("details.loadFailed"));
+
+  const history = await SyncApiClient.fetchSyncHistory();
+
+  const watchedEpisodeIds = history
+    .filter(
+      (entry) =>
+        entry.workId === armAnime.workId &&
+        entry.episodeId !== undefined &&
+        isHistoryEntryWatched(entry),
+    )
+    .map((entry) => entry.episodeId!);
+  const isWatched = history.some(
+    (entry) => entry.workId === armAnime.workId && isHistoryEntryWatched(entry),
+  );
+
+  media.progress = {
+    completed: media.mediaType === "movie" ? (isWatched ? 100 : 0) : watchedEpisodeIds.length,
+    aired: 0,
+    percentage: 0,
+    watchedEpisodes: [],
+    watchedEpisodeIds,
+  };
+
+  return { media, inWatchlist: false, isFavorite: false, isWatched };
 }
