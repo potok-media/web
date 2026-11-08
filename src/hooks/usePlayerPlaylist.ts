@@ -48,7 +48,17 @@ export function usePlayerPlaylist(
                 : undefined,
             streamHash: info.torrentHash,
             fileIndex: info.fileIndex,
-            audios: info.audios?.map((a) => ({ name: a.name, url: a.url })),
+            audios: info.audios?.map((a) => ({
+              name: a.name,
+              url: a.url,
+              // Keep the FULL candidate shape: cross-provider voices re-resolve through their
+              // OWN provider (the plugin requires providerId/sourceId/query for that).
+              label: a.label ?? null,
+              voice: a.voice ?? null,
+              providerId: a.providerId ?? null,
+              sourceId: a.sourceId ?? null,
+              query: a.query ?? null,
+            })),
             headers: info.headers,
             subtitles: info.subtitles,
             session: info.session,
@@ -80,7 +90,11 @@ export function usePlayerPlaylist(
           );
         }
       } catch (error) {
-        logger.error("[usePlayerPlaylist] playlist resolve failed:", error);
+        // The resolver (plugin sandbox / bridge) usually knows the real reason — a failed
+        // provider playback call, an unknown voice, a dead upstream. Surface it instead of
+        // the misleading "no stream URL" fallback message.
+        const reason = error instanceof Error ? error.message : String(error);
+        throw new Error(`Cannot start "${itemTitle}": ${reason}`, { cause: error });
       }
 
       // Pre-built fallback is only safe when it holds a directly loadable URL.

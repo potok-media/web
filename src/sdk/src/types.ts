@@ -1480,7 +1480,23 @@ export interface PlaybackInfo {
   fileIndex?: string;
   /** Opaque plugin-owned progress identity — the host uses it verbatim as the local progress/resume key. */
   progressId?: string;
-  audios?: { id: string; name: string; url: string }[];
+  /**
+   * Voice candidates for the current episode. Entries keep their FULL shape (plain voice
+   * label + provider identity + resolve query) so voice switching can re-resolve through
+   * the candidate's OWN provider — a merged list may span providers. `url` is the
+   * candidate's own resolved link or '' (the dub is baked into the stream; switching
+   * always re-resolves by voice).
+   */
+  audios?: {
+    id?: string;
+    name: string;
+    url: string;
+    label?: string | null;
+    voice?: string | null;
+    providerId?: string | null;
+    sourceId?: string | null;
+    query?: unknown;
+  }[];
   headers?: Record<string, string>;
   providerId?: string;
   voice?: string;

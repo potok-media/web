@@ -145,6 +145,10 @@ export function usePlayerMetadataAndTracks(
       setCurrentAudioTrack(
         remembered >= 0 ? remembered : resolveExternalAudioIndex(audios, initialStreamUrl),
       );
+    } else {
+      // No candidates on this episode: the previous episode's menu must not linger.
+      setAudioTracks([]);
+      setCurrentAudioTrack(-1);
     }
   }, [audios, initialStreamUrl, preferredAudioRef]);
 
