@@ -53,6 +53,12 @@ export function bindHlsEventHandlers(
     video.addEventListener("waiting", resumeGatedBuffering);
     video.addEventListener("playing", resumeGatedBuffering);
   }
+  // Episode switches reload the pipeline; Safari can leave the new MediaSource in the gated
+  // state from the start. Un-gate as soon as the manifest is ready so the first fragments
+  // actually load without a manual pause/play nudge.
+  hls.on(Hls.Events.MANIFEST_PARSED, () => {
+    resumeGatedBuffering();
+  });
 
   hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_e, data: { audioTracks?: { name?: string; lang?: string }[] }) => {
     if (!isActiveSession()) return;
@@ -103,6 +109,21 @@ export function bindHlsEventHandlers(
   hls.on(Hls.Events.ERROR, (_event, data) => {
     if (!isActiveSession()) return;
     logHlsDiagnosticError(hls, data);
+
+    // Non-fatal stall after an episode switch: the same ManagedMediaSource gate as above —
+    // the element sits in "waiting", hls.js reports bufferStalledError and nudges a few
+    // times, but its loading loop is gated and no fragment ever arrives (the user-visible
+    // symptom is fixed only by a manual pause/play). Un-gate and kick the loader; hls.js's
+    // gap controller then fills the position on its own.
+    if (!data.fatal && data.details === "bufferStalledError") {
+      const bufferingEnabled = (hls as unknown as { bufferingEnabled?: boolean }).bufferingEnabled;
+      if (bufferingEnabled === false) {
+        logger.warn("[useHlsPlayer] bufferStalledError while buffering gated — auto-resuming");
+        (hls as unknown as { resumeBuffering?: () => void }).resumeBuffering?.();
+        (hls as unknown as { streamController?: { tick?: () => void } }).streamController?.tick?.();
+      }
+      return;
+    }
 
     // No client-side auto-heal. Non-fatal errors are handled internally by hls.js; a FATAL error is
     // surfaced to the user (the error overlay offers a manual stream refresh) instead of looping
