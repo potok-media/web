@@ -5,11 +5,14 @@ describe("usePlayerPlaylist pseudo-url guard", () => {
   const source = readFileSync(new URL("./usePlayerPlaylist.ts", import.meta.url), "utf8");
 
   it("never feeds a non-playable streamUrl to the player fallback", () => {
-    // The guard must sit between the resolver attempt and the fallback playVideo call.
-    const guardAt = source.indexOf("if (!isPlayableUrl(item.streamUrl))");
-    const fallbackAt = source.indexOf("playVideo(fallbackPlayback)");
-    expect(guardAt).toBeGreaterThan(-1);
-    expect(fallbackAt).toBeGreaterThan(guardAt);
+    // Ready-content path: directUrl is only assigned after isPlayableUrl checks, and the
+    // direct playVideo is gated on it. The legacy resolver tail keeps its own guard.
+    expect(source).toContain("isPlayableUrl(item.streamUrl) ? item.streamUrl : null");
+    const directGateAt = source.indexOf("if (directUrl) {");
+    const directPlayAt = source.indexOf("playVideo(fallbackPlayback)");
+    expect(directGateAt).toBeGreaterThan(-1);
+    expect(directPlayAt).toBeGreaterThan(directGateAt);
+    expect(source).toContain("if (!isPlayableUrl(item.streamUrl))");
     expect(source).toContain('throw new Error(');
   });
 

@@ -28,14 +28,64 @@ export function usePlayerPlaylist(
         ? `${item.title || ""} - S${item.season}E${item.episode}`
         : item.title || `Episode ${index + 1}`;
 
+      // Ready content wins: when the plugin handed the item a playable streamUrl (resolved
+      // window payload), the player just plays it — no resolver roundtrip at all. The voice
+      // follows the session-remembered dub when the item carries per-candidate ready urls.
+      const rememberedVoice = getPreferredVoice?.() ?? null;
+      const norm = (value: unknown) =>
+        typeof value === "string" && value.trim() ? value.trim().toLowerCase() : "";
+      const wantedVoice = norm(rememberedVoice) || norm(item.voice);
+      let directUrl: string | null = isPlayableUrl(item.streamUrl) ? item.streamUrl : null;
+      let directVoice: string | null = item.voice || null;
+      if (Array.isArray(item.audios)) {
+        const matched = item.audios.find(
+          (audio) => isPlayableUrl(audio.url) && (norm(audio.voice) === wantedVoice || norm(audio.name) === wantedVoice),
+        );
+        const anyReady = matched ?? item.audios.find((audio) => isPlayableUrl(audio.url));
+        if (anyReady && isPlayableUrl(anyReady.url)) {
+          directUrl = anyReady.url;
+          directVoice = anyReady.voice || anyReady.name || directVoice;
+        }
+      }
+      if (directUrl) {
+        const fallbackPlayback: ActivePlayback = {
+          ...playback,
+          streamUrl: directUrl,
+          streamType: item.streamType,
+          streamHash: undefined,
+          fileIndex: undefined,
+          season: item.season,
+          episode: item.episode,
+          workId: item.workId,
+          episodeId: item.episodeId,
+          entryId: item.entryId,
+          episodeIds: item.episodeIds,
+          targets: item.targets,
+          title: itemTitle,
+          audios: item.audios,
+          headers: item.headers ?? playback.headers,
+          // The pre-built item has no segment metadata. Do not inherit the previous episode's cut.
+          duration: undefined,
+          introStart: undefined,
+          introEnd: undefined,
+          outroStart: undefined,
+          outroEnd: undefined,
+          voice: directVoice || item.voice || playback.voice,
+          playlistIndex: index,
+          startAt: undefined,
+        };
+        playVideo(fallbackPlayback);
+        return;
+      }
+
       try {
         // Session-remembered voice (the user explicitly switched dubs earlier in this playback):
         // override the item's default voice so the plugin resolves the remembered dub.
-        const rememberedVoice = getPreferredVoice?.() ?? null;
+        const rememberedForResolve = getPreferredVoice?.() ?? null;
         const info: PlaybackInfo | null | undefined = await resolvePlaylistItem(
           playback,
           item,
-          rememberedVoice ? { voiceOverride: rememberedVoice } : undefined,
+          rememberedForResolve ? { voiceOverride: rememberedForResolve } : undefined,
         );
         if (info && isPlayableUrl(info.streamUrl)) {
           const st = info.streamType;
