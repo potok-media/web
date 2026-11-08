@@ -1,6 +1,7 @@
 import React, { type RefObject } from "react";
 import type Hls from "hls.js";
 import type { ActivePlayback } from "../../context/playbackTypes";
+import { getCurrentPlaylistItem } from "../../context/playbackTypes";
 import type { SettingsMenuSection } from "../../hooks/usePlayerMenus";
 import { PlayerTopBar } from "./PlayerTopBar";
 import { SkipIntroButton } from "./SkipIntroButton";
@@ -106,18 +107,22 @@ export const PlayerChrome: React.FC<PlayerChromeProps> = ({
   showPlaylistMenu,
   onTogglePlaylistMenu,
   onUserActivity,
-}) => (
-  <>
-    {!hideTopBar && (
-      <PlayerTopBar
-        title={playback.title}
-        mediaType={playback.mediaType}
-        season={playback.season}
-        episode={playback.episode}
-        onClose={onClose}
-        visible={controlsVisible}
-      />
-    )}
+}) => {
+  // R3: the top-bar episode label and the stats HUD read the CURRENT playlist item.
+  const currentItem = getCurrentPlaylistItem(playback);
+
+  return (
+    <>
+      {!hideTopBar && (
+        <PlayerTopBar
+          title={playback.title}
+          mediaType={playback.mediaType}
+          season={currentItem?.season}
+          episode={currentItem?.episode}
+          onClose={onClose}
+          visible={controlsVisible}
+        />
+      )}
     <SkipIntroButton
       videoRef={videoRef}
       seekOffset={seekOffset}
@@ -137,8 +142,8 @@ export const PlayerChrome: React.FC<PlayerChromeProps> = ({
       videoRef={videoRef}
       hlsRef={hlsRef}
       isPlaying={isPlaying}
-      streamUrl={playback.streamUrl}
-      statusUrl={playback.session?.statusUrl || ""}
+      streamUrl={currentItem?.streamUrl ?? ""}
+      statusUrl={currentItem?.session?.statusUrl || ""}
       duration={displayDuration}
       onClose={() => onToggleStats()}
     />
@@ -195,5 +200,6 @@ export const PlayerChrome: React.FC<PlayerChromeProps> = ({
       seekPreview={seekPreview}
       onUserActivity={onUserActivity}
     />
-  </>
-);
+    </>
+  );
+};

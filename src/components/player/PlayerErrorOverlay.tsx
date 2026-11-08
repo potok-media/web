@@ -6,14 +6,12 @@ import { Button } from "../ui";
 interface PlayerErrorOverlayProps {
   error: string;
   streamUrl: string;
-  onRefresh: () => void;
   onClose: () => void;
 }
 
 export const PlayerErrorOverlay: React.FC<PlayerErrorOverlayProps> = ({
   error,
   streamUrl,
-  onRefresh,
   onClose,
 }) => {
   const { t } = useTranslation("player");
@@ -24,9 +22,6 @@ export const PlayerErrorOverlay: React.FC<PlayerErrorOverlayProps> = ({
       <p className="error-message">{error}</p>
       <div className="error-details">{t("error.linkLabel")} <code>{streamUrl}</code></div>
       <div className="player-error-actions">
-        <Button variant="secondary" className="error-close-btn error-close-btn--refresh" onClick={onRefresh}>
-          {t("error.refreshStream")}
-        </Button>
         <Button variant="ghost" className="error-close-btn" onClick={onClose}>
           {t("error.closePlayer")}
         </Button>

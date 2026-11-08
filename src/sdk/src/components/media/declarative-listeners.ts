@@ -267,24 +267,6 @@ export function initDeclarativeStreamListeners(): void {
           payload: { requestId, data: {}, error: null }
         }, hostOrigin);
       }
-    } else if (msg.action === 'REFRESH_STREAM_URL') {
-      const source = Array.from(registeredStreamSources.values())[0];
-      if (source && source.refreshStreamUrl) {
-        try {
-          const data = await source.refreshStreamUrl(msg.payload);
-          window.parent.postMessage({
-            source: 'potok-plugin-sdk',
-            action: 'REFRESH_STREAM_URL_RESPONSE',
-            payload: { success: true, ...data }
-          }, hostOrigin);
-        } catch (err: unknown) {
-          window.parent.postMessage({
-            source: 'potok-plugin-sdk',
-            action: 'REFRESH_STREAM_URL_RESPONSE',
-            payload: { success: false, error: errorMessage(err) || 'Failed to refresh stream URL' }
-          }, hostOrigin);
-        }
-      }
     }
   });
 }

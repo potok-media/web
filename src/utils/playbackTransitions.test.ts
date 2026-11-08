@@ -7,30 +7,34 @@ import {
 import { resolveExternalAudioIndex, isSameBaseStreamUrl } from "./audioTrackOwnership";
 
 const playback: ActivePlayback = {
-  streamUrl: "https://streams.test/dororo/anilibria.m3u8?audio=0",
-  streamType: "m3u8",
   title: "Дороро",
   mediaType: "tv",
   id: 345,
-  season: 1,
-  episode: 7,
   instanceId: 41,
   startAtZero: true,
-  voice: "AniLibria",
-  audios: [
-    { name: "AniLibria", url: "https://streams.test/dororo/anilibria.m3u8?audio=0" },
-    { name: "AnimeGo", url: "https://streams.test/dororo/animego.m3u8?audio=1" },
-    { name: "AniLiberty", url: "https://streams.test/dororo/aniliberty.m3u8?audio=2" },
-  ],
   playlist: [
-    { title: "1 серия", streamUrl: "https://streams.test/dororo/1.m3u8" },
+    {
+      id: "1:7",
+      season: 1,
+      episode: 7,
+      title: "7 серия",
+      streamUrl: "https://streams.test/dororo/anilibria.m3u8?audio=0",
+      streamType: "m3u8",
+      audios: [
+        { name: "AniLibria", url: "https://streams.test/dororo/anilibria.m3u8?audio=0" },
+        { name: "AnimeGo", url: "https://streams.test/dororo/animego.m3u8?audio=1" },
+        { name: "AniLiberty", url: "https://streams.test/dororo/aniliberty.m3u8?audio=2" },
+      ],
+    },
+    { id: "1:8", season: 1, episode: 8, title: "8 серия", streamUrl: "https://streams.test/dororo/8.m3u8" },
   ],
+  playlistIndex: 0,
   subtitles: [{ label: "Русские", src: "https://streams.test/dororo/ru.vtt" }],
   duration: 1440,
 };
 
 describe("switchPlaybackSourceState", () => {
-  it("changes only the external source and exact resume point", () => {
+  it("patches the CURRENT playlist item's url/voice immutably, leaving the queue intact", () => {
     const playbackMeta: PlaybackMeta = {
       subtitles: [{ label: "Русские", src: "https://streams.test/dororo/ru.vtt" }],
       duration: 1440,
@@ -39,33 +43,35 @@ describe("switchPlaybackSourceState", () => {
     const next = switchPlaybackSourceState(
       { activePlayback: playback, playbackMeta },
       {
-        streamUrl: playback.audios![1].url,
+        streamUrl: playback.playlist[0].audios![1].url,
         streamType: "m3u8",
         voice: "AnimeGo",
         startAt: 613.25,
       },
     );
 
+    const item = next.activePlayback!.playlist[0];
+    expect(item.streamUrl).toBe(playback.playlist[0].audios![1].url);
+    expect(item.voice).toBe("AnimeGo");
+    expect(item.season).toBe(1);
+    expect(item.episode).toBe(7);
+    // Immutable replace: the source item and the rest of the queue are untouched.
+    expect(playback.playlist[0].streamUrl).toContain("anilibria");
+    expect(next.activePlayback!.playlist[1]).toBe(playback.playlist[1]);
+    expect(next.activePlayback!.playlist).not.toBe(playback.playlist);
     expect(next.activePlayback).toMatchObject({
-      streamUrl: playback.audios![1].url,
-      streamType: "m3u8",
-      voice: "AnimeGo",
       startAt: 613.25,
       startAtZero: false,
       id: 345,
-      season: 1,
-      episode: 7,
       instanceId: 41,
+      playlistIndex: 0,
     });
-    expect(next.activePlayback?.audios).toBe(playback.audios);
-    expect(next.activePlayback?.playlist).toBe(playback.playlist);
     expect(next.playbackMeta).toBe(playbackMeta);
-    expect(playback.streamUrl).toContain("anilibria");
   });
 
-  it("ignores a patch with a blank streamUrl instead of minting an empty-source descriptor", () => {
+  it("ignores a patch with a blank streamUrl instead of minting an empty-source item", () => {
     // Audio entries built without a resolved url carry "" / undefined — switching to one must keep
-    // the current descriptor intact, not re-init the pipeline onto an empty streamUrl.
+    // the current item intact, not re-init the pipeline onto an empty streamUrl.
     for (const streamUrl of ["", "   ", undefined as unknown as string]) {
       const next = switchPlaybackSourceState(
         { activePlayback: playback, playbackMeta: {} },
@@ -82,11 +88,9 @@ describe("getPlaybackPipelineKey", () => {
     const descriptorOnlyUpdate: ActivePlayback = {
       ...playback,
       coWatch: true,
-      voice: "renamed voice",
-      audios: [...(playback.audios ?? [])],
       playlist: [
-        ...(playback.playlist ?? []),
-        { title: "2 серия", streamUrl: "https://streams.test/dororo/2.m3u8" },
+        ...playback.playlist,
+        { id: "1:9", season: 1, episode: 9, title: "9 серия", streamUrl: "https://streams.test/dororo/9.m3u8" },
       ],
       subtitles: [{ label: "English", src: "https://streams.test/dororo/en.vtt" }],
       duration: 9999,
@@ -95,10 +99,13 @@ describe("getPlaybackPipelineKey", () => {
     expect(getPlaybackPipelineKey(descriptorOnlyUpdate)).toBe(baseKey);
   });
 
-  it("restarts media when the actual source changes", () => {
-    const switched = {
+  it("restarts media when the current item's source changes", () => {
+    const switched: ActivePlayback = {
       ...playback,
-      streamUrl: playback.audios![2].url,
+      playlist: [
+        { ...playback.playlist[0], streamUrl: playback.playlist[0].audios![2].url },
+        playback.playlist[1],
+      ],
       startAt: 613.25,
       startAtZero: false,
     };
@@ -109,8 +116,9 @@ describe("getPlaybackPipelineKey", () => {
 
 describe("resolveExternalAudioIndex", () => {
   it("matches the actual selected provider URL before falling back to its query index", () => {
-    expect(resolveExternalAudioIndex(playback.audios!, playback.audios![2].url)).toBe(2);
-    expect(resolveExternalAudioIndex(playback.audios!, "https://proxy.test/watch.m3u8?audio=1")).toBe(1);
+    const audios = playback.playlist[0].audios!;
+    expect(resolveExternalAudioIndex(audios, audios[2].url)).toBe(2);
+    expect(resolveExternalAudioIndex(audios, "https://proxy.test/watch.m3u8?audio=1")).toBe(1);
   });
 });
 

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { ActivePlayback } from "../context/AppSettingsContext";
+import { getCurrentPlaylistItem } from "../context/playbackTypes";
 
 interface UsePlayerBackendSessionParams {
   playback: ActivePlayback;
@@ -8,6 +9,10 @@ interface UsePlayerBackendSessionParams {
   onBeforeClose?: () => void;
 }
 
+/**
+ * Backend session keepalive/stop for the CURRENT playlist item's session (R3 — the session
+ * rides the item, not the descriptor). Statistics and session hygiene only; never content.
+ */
 export function usePlayerBackendSession({
   playback,
   streamHash,
@@ -19,9 +24,10 @@ export function usePlayerBackendSession({
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random()}`,
   );
+  const session = getCurrentPlaylistItem(playback)?.session;
 
   const stopBackendSession = useCallback(() => {
-    const stopUrl = playback.session?.stopUrl;
+    const stopUrl = session?.stopUrl;
     if (!stopUrl) return;
     try {
       const sep = stopUrl.includes("?") ? "&" : "?";
@@ -31,7 +37,7 @@ export function usePlayerBackendSession({
     } catch {
       /* noop */
     }
-  }, [playback.session?.stopUrl]);
+  }, [session?.stopUrl]);
 
   const closePlayer = useCallback(() => {
     onBeforeClose?.();
@@ -44,7 +50,6 @@ export function usePlayerBackendSession({
   }, [stopBackendSession]);
 
   const sendKeepalive = useCallback(() => {
-    const session = playback.session;
     if (!session?.keepaliveUrl) return;
     fetch(session.keepaliveUrl, {
       method: "POST",
@@ -55,15 +60,15 @@ export function usePlayerBackendSession({
       }),
       keepalive: true,
     }).catch(() => {});
-  }, [playback.session, streamHash, fileIndex]);
+  }, [session, streamHash, fileIndex]);
 
   useEffect(() => {
-    if (!playback.session?.keepaliveUrl) return;
+    if (!session?.keepaliveUrl) return;
     sendKeepalive();
-    const ms = (playback.session.intervalSec || 7) * 1000;
+    const ms = (session.intervalSec || 7) * 1000;
     const id = setInterval(sendKeepalive, ms);
     return () => clearInterval(id);
-  }, [sendKeepalive, playback.session?.keepaliveUrl, playback.session?.intervalSec]);
+  }, [sendKeepalive, session?.keepaliveUrl, session?.intervalSec]);
 
   return { closePlayer, stopBackendSession };
 }

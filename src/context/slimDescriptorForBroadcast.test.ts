@@ -4,13 +4,9 @@ import type { ActivePlayback } from "./playbackTypes";
 
 function buildDescriptor(): ActivePlayback {
   return {
-    streamUrl: "https://cdn.test/current.m3u8",
     title: "Serial",
     mediaType: "tv",
     id: 1,
-    season: 1,
-    episode: 3,
-    audios: [{ name: "Dub", url: "https://cdn.test/current.m3u8?audio=0" }],
     playlist: [
       {
         id: "1:1",
@@ -28,32 +24,44 @@ function buildDescriptor(): ActivePlayback {
         title: "E2",
         streamUrl: "https://very-long-cdn.test/resolved/episode-2/index.m3u8?token=abcdef",
       },
+      {
+        id: "1:3",
+        season: 1,
+        episode: 3,
+        title: "E3",
+        streamUrl: "https://very-long-cdn.test/resolved/episode-3/index.m3u8?token=abcdef",
+      },
     ],
     playlistIndex: 2,
-  } as ActivePlayback;
+  };
 }
 
 describe("slimDescriptorForBroadcast", () => {
-  it("keeps the active episode playable but strips per-episode urls/headers from playlist items", () => {
+  it("keeps the current episode's item fully playable and strips urls from the rest", () => {
     const slim = slimDescriptorForBroadcast(buildDescriptor());
 
-    // The current episode must remain fully playable on the guest.
-    expect(slim.streamUrl).toBe("https://cdn.test/current.m3u8");
-    expect(slim.season).toBe(1);
-    expect(slim.episode).toBe(3);
-    expect(slim.audios).toEqual([{ name: "Dub", url: "https://cdn.test/current.m3u8?audio=0" }]);
+    // The current item must remain fully playable on the guest.
+    expect(slim.playlist[2]).toMatchObject({
+      id: "1:3",
+      season: 1,
+      episode: 3,
+      streamUrl: "https://very-long-cdn.test/resolved/episode-3/index.m3u8?token=abcdef",
+    });
 
-    // Items cross the wire as lobby metadata only.
-    expect(slim.playlist).toHaveLength(2);
-    expect(slim.playlist?.[0]).toEqual({ id: "1:1", season: 1, episode: 1, title: "E1" });
-    expect(slim.playlist?.[1]).toEqual({ id: "1:2", season: 1, episode: 2, title: "E2" });
-    expect(JSON.stringify(slim.playlist)).not.toContain("very-long-cdn.test");
+    // Every other item crosses the wire as lobby metadata only.
+    expect(slim.playlist).toHaveLength(3);
+    expect(slim.playlist[0]).toEqual({ id: "1:1", season: 1, episode: 1, title: "E1" });
+    expect(slim.playlist[1]).toEqual({ id: "1:2", season: 1, episode: 2, title: "E2" });
+    expect(JSON.stringify(slim.playlist[0])).not.toContain("very-long-cdn.test");
+    expect(JSON.stringify(slim.playlist[1])).not.toContain("very-long-cdn.test");
     expect(slim.playlistIndex).toBe(2);
+    // R3: nothing content-ish at the top level at all.
+    expect(JSON.stringify(slim)).not.toContain('"streamUrl":""');
   });
 
-  it("handles a descriptor without a playlist", () => {
-    const slim = slimDescriptorForBroadcast({ ...buildDescriptor(), playlist: undefined });
-    expect(slim.playlist).toBeUndefined();
-    expect(slim.streamUrl).toBe("https://cdn.test/current.m3u8");
+  it("moves the playable item with the index", () => {
+    const slim = slimDescriptorForBroadcast({ ...buildDescriptor(), playlistIndex: 0 });
+    expect(slim.playlist[0].streamUrl).toContain("episode-1");
+    expect(slim.playlist[1]).toEqual({ id: "1:2", season: 1, episode: 2, title: "E2" });
   });
 });

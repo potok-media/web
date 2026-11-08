@@ -4,7 +4,6 @@ import type { ContinueResumePayload, MediaCard } from "../network/ApiTypes";
 import { buildPlaybackFromInfo } from "./mediaStreamsPlayback";
 import type { StreamContext } from "../hooks/mediaStreams/mediaStreamsTypes";
 import type { ContinueWatchingCursor } from "./continueWatching";
-import { registerPendingPlaylistResolver } from "./playlistResolver";
 
 /**
  * Host-side resume for the continue-watching ledger. Provider-agnostic: the cursor's providerId
@@ -97,8 +96,6 @@ export function buildResumePlaylist(
     providerId,
   }));
 }
-
-const bridgeOwner = "continue-watching";
 
 /**
  * A continue-watching card is resumable only when the server saved a source descriptor
@@ -236,58 +233,6 @@ export function mergeLedgerLastSource(
   });
 }
 
-/**
- * Host playlist navigation (player next/prev, auto-advance) bypasses plugin code, so a resolver
- * must be parked for the resumed playback — same contract as mediaStreamsPlaylistBridge, but
- * owned by this flow so a later media-streams selection cleanly replaces it and vice versa.
- * The host playlist hook keys it to the playback's instanceId on first use.
- */
-function attachResumePlaylistResolver(
-  cursor: ContinueWatchingCursor,
-  context: StreamContext,
-  episodes: StreamEpisode[],
-  deps: ContinueResumeDeps,
-): void {
-  const providerId = cursor.providerId;
-  if (!providerId) return;
-  registerPendingPlaylistResolver(bridgeOwner, (item: PlaylistItem) => {
-    const episode = {
-      id: item.id,
-      workId: item.workId,
-      episodeId: item.episodeId,
-      entryId: item.entryId,
-      episodeIds: item.episodeIds,
-      targets: item.targets,
-      season: item.season,
-      episode: item.episode,
-      title: item.title,
-      url: item.streamUrl,
-      providerId: item.providerId,
-      audios: [],
-    };
-    const infoPromise = deps.requestPlaybackInfo(providerId, {
-      stream: cursor.sourceStream,
-      episode,
-      context,
-      episodes,
-    });
-    if (deps.requestPlaybackMetadata && deps.enrichPlayback) {
-      Promise.all([infoPromise, deps.requestPlaybackMetadata(providerId, { stream: cursor.sourceStream, episode, context })])
-        .then(([info, meta]) => {
-          if (!info || !meta) return;
-          deps.enrichPlayback!(
-            { subtitles: meta.subtitles, duration: meta.duration },
-            { streamHash: info.torrentHash, fileIndex: info.fileIndex },
-          );
-        })
-        .catch(() => {
-          // Background metadata enrichment is best-effort.
-        });
-    }
-    return infoPromise;
-  });
-}
-
 export async function resumeContinueWatching(
   cursor: ContinueWatchingCursor,
   deps: ContinueResumeDeps,
@@ -344,8 +289,6 @@ export async function resumeContinueWatching(
     episodes,
   });
   if (!info) throw new Error("Continue watching: the source returned no playback info");
-
-  attachResumePlaylistResolver(cursor, context, episodes, deps);
 
   // Position restore: a file anchor (torrents) only keeps the position when the resolved file
   // is the same one; coordinate/plugin resumes have no file switch to guard against.

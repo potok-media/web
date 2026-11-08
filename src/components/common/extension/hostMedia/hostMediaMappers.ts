@@ -1,11 +1,9 @@
 import type {
   SDKMediaCard,
-  SDKPlaybackInfo,
   SDKSelectedEpisodeType,
   SDKStreamEpisode,
   SDKTvEpisode,
 } from "@potok/sdk-types";
-import type { ActivePlayback } from "../../../../context/AppSettingsContext";
 import type { HeroItem, MediaCard as ApiMediaCard, TvEpisode } from "../../../../network/ApiTypes";
 import type { GenericEpisodeItem } from "../../EpisodeSelectorPopup";
 
@@ -58,24 +56,6 @@ export function normalizeHeroItems(
       backdropSrc: card.backdropSrc || card.posterSrc,
     };
   });
-}
-
-export function mapSdkPlayback(playback: SDKPlaybackInfo): ActivePlayback {
-  return {
-    streamUrl: playback.streamUrl,
-    title: playback.title,
-    mediaType: playback.season !== undefined ? "tv" : "movie",
-    id: 0,
-    season: playback.season,
-    episode: playback.episode,
-    streamHash: playback.torrentHash,
-    progressId: playback.progressId,
-    streamType: playback.streamType as "m3u8" | "mp4" | "dash" | undefined,
-    audios: playback.audios?.map((a) => ({ name: a.name, url: a.url })),
-    headers: playback.headers,
-    providerId: playback.providerId,
-    voice: playback.voice,
-  };
 }
 
 export function mapSdkStreamEpisodes(episodes: SDKStreamEpisode[] | undefined): GenericEpisodeItem[] {

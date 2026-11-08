@@ -1,4 +1,5 @@
 import type { ActivePlayback } from "../context/playbackTypes";
+import { getCurrentPlaylistItem } from "../context/playbackTypes";
 
 function transliterate(word: string): string {
   const converter: Record<string, string> = {
@@ -20,7 +21,8 @@ function transliterate(word: string): string {
 
 /** Build a clean filename URL for external players (Infuse). */
 export function cleanStreamUrlForExternalPlayer(playback: ActivePlayback): string {
-  let url = playback.streamUrl;
+  const item = getCurrentPlaylistItem(playback);
+  let url = item?.streamUrl ?? "";
 
   const queryIndex = url.indexOf("?");
   if (queryIndex !== -1) {
@@ -53,8 +55,8 @@ export function cleanStreamUrlForExternalPlayer(playback: ActivePlayback): strin
 
   let snEn = "";
   if (playback.mediaType === "tv") {
-    const s = playback.season !== undefined ? playback.season : 1;
-    const e = playback.episode !== undefined ? playback.episode : 1;
+    const s = item?.season !== undefined ? item.season : 1;
+    const e = item?.episode !== undefined ? item.episode : 1;
     snEn = `S${String(s).padStart(2, "0")}E${String(e).padStart(2, "0")}.`;
   }
 

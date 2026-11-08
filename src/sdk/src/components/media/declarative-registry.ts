@@ -28,7 +28,6 @@ export interface RegisteredStreamSource {
   saveEpisodeBinding?(stream: unknown, context: unknown, override: unknown): unknown;
   getPlaybackInfo?(payload: { stream?: unknown; episode?: unknown; context?: unknown; episodes?: unknown[]; activeEpisodeId?: string }): Promise<unknown>;
   getPlaybackMetadata?(stream: unknown, episode: unknown, context: unknown): unknown;
-  refreshStreamUrl?(payload: unknown): Record<string, unknown> | Promise<Record<string, unknown>>;
 }
 
 // Declarative streams support (from SDKDeclarativeCode.ts)

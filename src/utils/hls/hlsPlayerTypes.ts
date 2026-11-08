@@ -27,7 +27,6 @@ export interface HlsPlayerParams {
   syncNativeTextTracks: (video: HTMLVideoElement | null) => void;
   setSeekOffset: (offset: number) => void;
   setPlayerError: (error: string | null) => void;
-  handleRefreshStream: () => void;
   setIsMetadataLoading: (loading: boolean) => void;
 }
 

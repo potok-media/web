@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 import type { EpisodeSourceSection, FileOverrideMode, GenericEpisodeItem } from "../components/common/episodeSelector/types";
 import { buildEpisodeSourceSections } from "../components/common/episodeSelector/utils";
 import { buildEpisodeBindingOverride } from "../components/common/episodeSelector/armOverrideModel";
 import type { SDKArmBindingTarget, SDKEpisodeBindingOverride } from "../sdk/src/types";
-import { buildEpisodePlaylist } from "../utils/episodePlaylist";
-import { clearPlaylistOverride, setPlaylistOverride } from "../utils/playlistResolver";
 
 interface UseEpisodeSelectorStateParams {
   isOpen: boolean;
@@ -15,12 +12,6 @@ interface UseEpisodeSelectorStateParams {
   onApplyOverride?: (sourceSeason: number | null, targetSeason: number, offset: number) => void;
   onApplyFileOverride?: (fileId: string, season: number, episode: number, mode: FileOverrideMode) => void;
   onApplyEpisodeBinding?: (override: SDKEpisodeBindingOverride) => void;
-  /**
-   * Publish the rendered episode order as the playlist override consumed by the next playback open.
-   * Read-only panels (a co-watch guest's queue) must leave this off — an override they armed could
-   * leak into an unrelated playback the guest starts later.
-   */
-  publishPlaylistOverride?: boolean;
 }
 
 export function useEpisodeSelectorState({
@@ -31,9 +22,7 @@ export function useEpisodeSelectorState({
   onApplyOverride,
   onApplyFileOverride,
   onApplyEpisodeBinding,
-  publishPlaylistOverride = true,
 }: UseEpisodeSelectorStateParams) {
-  const { t } = useTranslation("media");
   const [isEditing, setIsEditing] = useState(false);
   const [editingSource, setEditingSource] = useState<{
     sourceSeason: number | null;
@@ -49,25 +38,6 @@ export function useEpisodeSelectorState({
   );
 
   const firstEpId = useMemo(() => sourceSections[0]?.episodes[0]?.id, [sourceSections]);
-
-  const playlist = useMemo(
-    () => buildEpisodePlaylist(episodes, {
-      fallbackEpisodeTitle: (episode) => t("episode.fallbackName", { number: episode }),
-      unresolvedTitle: t("selector.unresolvedEpisode"),
-      mainStreamTitle: t("selector.mainStream"),
-    }),
-    [episodes, t],
-  );
-
-  useEffect(() => {
-    if (!isOpen || !publishPlaylistOverride || playlist.length === 0) return;
-
-    setPlaylistOverride(playlist);
-
-    return () => {
-      clearPlaylistOverride(playlist);
-    };
-  }, [isOpen, publishPlaylistOverride, playlist]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -125,11 +95,8 @@ export function useEpisodeSelectorState({
   );
 
   const handlePlayAsPlaylist = useCallback((episode: GenericEpisodeItem) => {
-    if (publishPlaylistOverride && playlist.length > 0) {
-      setPlaylistOverride(playlist);
-    }
     onPlay(episode, "default");
-  }, [onPlay, playlist, publishPlaylistOverride]);
+  }, [onPlay]);
 
   const handleApplyEpisodeBinding = useCallback((target: SDKArmBindingTarget) => {
     if (!onApplyEpisodeBinding) return;

@@ -1,7 +1,8 @@
 import { playbackStorageKeys } from "../playbackIdentity";
 import type { RefObject } from "react";
 import type Hls from "hls.js";
-import type { ActivePlayback } from "../../context/playbackTypes";
+import type { ActivePlayback, PlaylistItem } from "../../context/playbackTypes";
+import { getCurrentPlaylistItem } from "../../context/playbackTypes";
 import { getFileExtension } from "../playerHelpers";
 import { logger } from "../logger";
 
@@ -12,20 +13,22 @@ export function isSmartTVUserAgent(): boolean {
 }
 
 export function isHlsPlayback(playback: ActivePlayback, streamUrl: string): boolean {
-  // streamType is authoritative — the plugin declares it in the descriptor. The `.m3u8` check is a
-  // provider-neutral fallback (the standard HLS playlist extension) for descriptors that omit streamType.
-  // The old `/hls/` sniff was a TorrentGo URL convention and was removed so the player stays provider-agnostic.
+  // The item's streamType is authoritative — the plugin declares it in the descriptor. The `.m3u8`
+  // check is a provider-neutral fallback (the standard HLS playlist extension) for items that omit
+  // streamType. The old `/hls/` sniff was a TorrentGo URL convention and was removed so the player
+  // stays provider-agnostic.
+  const streamType = getCurrentPlaylistItem(playback)?.streamType;
   return (
-    playback.streamType === "m3u8" ||
-    playback.streamType === "hls" ||
-    (!playback.streamType && streamUrl.includes(".m3u8"))
+    streamType === "m3u8" ||
+    streamType === "hls" ||
+    (!streamType && streamUrl.includes(".m3u8"))
   );
 }
 
 export function inferStreamTypeFromUrl(
   streamUrl: string,
-  fallback?: ActivePlayback["streamType"],
-): ActivePlayback["streamType"] {
+  fallback?: PlaylistItem["streamType"],
+): PlaylistItem["streamType"] {
   const extension = getFileExtension(streamUrl);
   if (extension === "m3u8") return "m3u8";
   if (extension === "mp4") return "mp4";

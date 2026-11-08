@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { usePlayback } from "../../context/PlaybackContext";
 import { useWatchTogether } from "../../context/watchTogetherState";
 import type { ActivePlayback } from "../../context/playbackTypes";
+import { getCurrentPlaylistItem } from "../../context/playbackTypes";
 import type { GenericEpisodeItem } from "../common/episodeSelector/types";
 import { EpisodeSelectorContent } from "../common/EpisodeSelectorContent";
 import { usePlayerPlaylist } from "../../hooks/usePlayerPlaylist";
@@ -29,7 +30,7 @@ export const WatchTogetherQueuePanel: React.FC<WatchTogetherQueuePanelProps> = (
   // fetch per (show, season), shared with every other consumer of the same hook.
   const playlistSeason =
     playback.mediaType === "tv"
-      ? playback.season ?? playback.playlist?.find((item) => item.season != null)?.season
+      ? getCurrentPlaylistItem(playback)?.season ?? playback.playlist?.find((item) => item.season != null)?.season
       : undefined;
   const seasonEpisodes = useSeasonEpisodes(
     playback.mediaType === "tv" && playback.id > 0 ? playback.id : undefined,
@@ -92,7 +93,6 @@ export const WatchTogetherQueuePanel: React.FC<WatchTogetherQueuePanelProps> = (
         activeEpisodeId={activeEpisodeId}
         mediaType={playback.mediaType}
         canReorder={false}
-        publishPlaylistOverride={false}
       />
     </section>
   );

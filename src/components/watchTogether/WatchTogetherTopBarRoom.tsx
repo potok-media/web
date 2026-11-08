@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { NavLink, useNavigate } from "react-router-dom";
 import { ArrowLeft, Copy, Settings2, Users, X } from "lucide-react";
 import { usePlayback } from "../../context/PlaybackContext";
+import { getCurrentPlaylistItem } from "../../context/playbackTypes";
 import type { ActivePlayback } from "../../context/playbackTypes";
 import { useHUD } from "../../context/useHUD";
 import { useWatchTogether } from "../../context/watchTogetherState";
@@ -23,6 +24,7 @@ export const WatchTogetherTopBarRoom: React.FC<WatchTogetherTopBarRoomProps> = (
   const { stopVideo } = usePlayback();
   const isInlinePlayer = playback.mount === "inline";
   const wt = useWatchTogether();
+  const currentItem = getCurrentPlaylistItem(playback);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
   const hostName = wt.participants.find((participant) => participant.role === "host")?.name
@@ -84,8 +86,8 @@ export const WatchTogetherTopBarRoom: React.FC<WatchTogetherTopBarRoomProps> = (
           <span>
             {playback.mediaType === "tv"
               ? t("playbackMeta", {
-                season: playback.season ?? 0,
-                episode: playback.episode ?? 1,
+                season: currentItem?.season ?? 0,
+                episode: currentItem?.episode ?? 1,
                 host: hostName,
               })
               : t("hostedBy", { host: hostName })}

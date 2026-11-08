@@ -7,11 +7,12 @@ function context(providerId: string | null): PluginSandboxMessageContext {
     activeExtensions: [],
     activeProfile: null,
     activePlayback: providerId ? {
-      streamUrl: "https://media.invalid/master.m3u8",
       title: "Example",
       mediaType: "tv",
       id: 1,
       providerId,
+      playlist: [{ streamUrl: "https://media.invalid/master.m3u8" }],
+      playlistIndex: 0,
     } : null,
     showHUD: vi.fn(),
     playVideo: vi.fn(),

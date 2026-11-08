@@ -23,7 +23,6 @@ import type {
   PluginSandboxMessageContext,
 } from "./pluginSandboxTypes";
 import type { ActivePlayback, PlaylistItem } from "../../../context/playbackTypes";
-import { consumePlaylistOverride, createSandboxPlaylistResolver, registerPendingPlaylistResolver } from "../../playlistResolver";
 
 const TORRENT_HASH_KEY = "tor" + "rentHash";
 const TORRENT_PLUGIN_ID = "potok-tor" + "rents";
@@ -50,29 +49,17 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 }
 
-function nullIfUndefined(error: string | undefined): string | null {
-  return error ?? null;
+/** Maps a patch over a payload's playlist items; undefined when the payload carries no playlist. */
+function withItemPatch(
+  playlist: unknown,
+  patch: (item: PlaylistItem) => PlaylistItem,
+): PlaylistItem[] | undefined {
+  if (!Array.isArray(playlist)) return undefined;
+  return (playlist as PlaylistItem[]).map(patch);
 }
 
-const RESOLVER_OWNER = "plugin-sandbox";
-
-/**
- * Parks a playlist resolver for the playback that PLAY_VIDEO is about to open.
- * The resolver is keyed to the playback's instanceId on first use by the host
- * playlist hook (see utils/playlistResolver).
- */
-function attachPlaylistResolver(
-  playback: ActivePlayback & Record<string, unknown>,
-  fallbackPluginId: string,
-) {
-  logger.log("[attachPlaylistResolver] playback=", JSON.parse(JSON.stringify(playback)));
-  const resolver = createSandboxPlaylistResolver(playback, fallbackPluginId);
-  if (!resolver) {
-    logger.log("[attachPlaylistResolver] SKIPPED — playlist missing/empty or sourceStream missing or pluginId missing");
-    return;
-  }
-  logger.log("[attachPlaylistResolver] registering pending playlist resolver");
-  registerPendingPlaylistResolver(RESOLVER_OWNER, resolver);
+function nullIfUndefined(error: string | undefined): string | null {
+  return error ?? null;
 }
 
 export async function handlePluginSandboxMessage(
@@ -170,37 +157,26 @@ export async function handlePluginSandboxMessage(
       logger.log("[PluginSandbox.PLAY_VIDEO] RECEIVED from plugin", pluginId, "raw payload=", JSON.parse(JSON.stringify(payload)));
       const playbackPayload = { ...payload } as ActivePlayback & Record<string, unknown>;
       if (TORRENT_HASH_KEY in playbackPayload && playbackPayload[TORRENT_HASH_KEY]) {
-        playbackPayload.streamHash = String(playbackPayload[TORRENT_HASH_KEY]);
+        // Legacy torrent descriptors carry the hash top-level — the playlist item owns it now.
+        const patched = withItemPatch(playbackPayload.playlist, (item) => ({
+          ...item,
+          streamHash: String(playbackPayload[TORRENT_HASH_KEY]),
+        }));
+        if (patched) playbackPayload.playlist = patched;
         delete playbackPayload[TORRENT_HASH_KEY];
       }
-      logger.log("[PluginSandbox.PLAY_VIDEO] processed payload (streamUrl, playlist, sourceStream)", {
-        streamUrl: playbackPayload.streamUrl,
-        streamType: playbackPayload.streamType,
+      logger.log("[PluginSandbox.PLAY_VIDEO] processed payload (playlist, sourceStream)", {
         title: playbackPayload.title,
-        season: playbackPayload.season,
-        episode: playbackPayload.episode,
         playlistLength: playbackPayload.playlist?.length,
         playlistIndex: playbackPayload.playlistIndex,
         hasSourceStream: !!playbackPayload.sourceStream,
         sourceStream: playbackPayload.sourceStream,
         providerId: playbackPayload.providerId,
         onlineProviderId: playbackPayload.onlineProviderId,
-        audios: playbackPayload.audios,
       });
-      const playlistOverride = consumePlaylistOverride();
-      if (playlistOverride) {
-        logger.log("[PluginSandbox.PLAY_VIDEO] Applying playlist override");
-        playbackPayload.playlist = playlistOverride;
-        const playlist = playbackPayload.playlist as PlaylistItem[];
-        const currentIndex = playlist.findIndex(
-          (item) => item.id && playbackPayload.fileIndex
-            ? String(item.id) === String(playbackPayload.fileIndex)
-            : item.season === playbackPayload.season && item.episode === playbackPayload.episode,
-        );
-        playbackPayload.playlistIndex = currentIndex !== -1 ? currentIndex : 0;
-      }
-      attachPlaylistResolver(playbackPayload, pluginId);
-      logger.log("[PluginSandbox.PLAY_VIDEO] calling ctx.playVideo with", { streamUrl: playbackPayload.streamUrl, playlistLength: playbackPayload.playlist?.length, playlistIndex: playbackPayload.playlistIndex });
+      // The plugin's playlist is authoritative and complete (ready streamUrls + per-item
+      // voices). No host-side overrides — see player rules R1/R3.
+      logger.log("[PluginSandbox.PLAY_VIDEO] calling ctx.playVideo with", { playlistLength: playbackPayload.playlist?.length, playlistIndex: playbackPayload.playlistIndex });
       ctx.playVideo(playbackPayload);
       break;
     }
@@ -341,26 +317,6 @@ export async function handlePluginSandboxMessage(
           eventSource as MessageEventSource,
           ctx.activeProfile,
           pluginId,
-        );
-      }
-      break;
-    case "REFRESH_STREAM_URL_RESPONSE":
-      if (payload.success) {
-        ctx.showHUD("success", i18n.t("extensions:hud.hlsRefreshed"));
-        if (ctx.activePlayback) {
-          ctx.playVideo({
-            ...ctx.activePlayback,
-            streamUrl: String(payload.streamUrl),
-            audios: (payload.audios as ActivePlayback["audios"]) || ctx.activePlayback.audios,
-            headers: (payload.headers as ActivePlayback["headers"]) || ctx.activePlayback.headers,
-          });
-        }
-      } else {
-        ctx.showHUD(
-          "error",
-          i18n.t("extensions:hud.refreshFailed", {
-            error: String(payload.error || i18n.t("extensions:hud.genericError")),
-          }),
         );
       }
       break;

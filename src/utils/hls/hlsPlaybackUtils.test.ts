@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 import { getPlaybackResumePosition, inferStreamTypeFromUrl } from "./hlsPlaybackUtils";
 import type { ActivePlayback } from "../../context/playbackTypes";
 
-const base = { streamUrl: "x", title: "t", mediaType: "tv" as const, id: 1 };
+const base = {
+  title: "t",
+  mediaType: "tv" as const,
+  id: 1,
+  playlist: [{ streamUrl: "x" }],
+  playlistIndex: 0,
+};
 
 describe("getPlaybackResumePosition", () => {
   it("prefers explicit startAt over stored resume", () => {

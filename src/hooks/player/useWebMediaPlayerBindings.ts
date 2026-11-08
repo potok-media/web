@@ -11,7 +11,6 @@ export function useWebMediaPlayerBindings(params: UseWebMediaPlayerBindingsParam
     controlsVisible: core.controlsVisible,
     handleUserActivity: core.handleUserActivity,
     menus: core.menus,
-    handleRefreshStream: core.handleRefreshStream,
     metadata: core.metadata,
     hls: core.hls,
     isFullscreen: core.isFullscreen,

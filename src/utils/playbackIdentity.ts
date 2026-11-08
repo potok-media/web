@@ -1,3 +1,6 @@
+import type { ActivePlayback } from "../context/playbackTypes";
+import { getCurrentPlaylistItem } from "../context/playbackTypes";
+
 export interface PlaybackIdentity {
   id: number;
   mediaType: string;
@@ -9,6 +12,25 @@ export interface PlaybackIdentity {
   /** Opaque plugin-owned progress identity, used verbatim — the host never interprets it. */
   progressId?: string;
   streamUrl?: string;
+}
+
+/**
+ * Identity of the CURRENT playlist item merged with the title-level id (R3): progress/resume
+ * keys and sync gating read the episode from `playlist[playlistIndex]`, never top-level fields.
+ */
+export function currentItemIdentity(playback: ActivePlayback): PlaybackIdentity {
+  const item = getCurrentPlaylistItem(playback);
+  return {
+    id: playback.id,
+    mediaType: playback.mediaType,
+    season: item?.season,
+    episode: item?.episode,
+    workId: item?.workId,
+    episodeId: item?.episodeId,
+    episodeIds: item?.episodeIds,
+    progressId: item?.progressId,
+    streamUrl: item?.streamUrl,
+  };
 }
 
 function hasLegacyEpisode(identity: PlaybackIdentity): boolean {

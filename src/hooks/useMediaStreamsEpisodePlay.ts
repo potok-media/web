@@ -16,7 +16,6 @@ import {
   type StreamSource,
 } from "./mediaStreams/mediaStreamsTypes";
 import { deferPlaybackMetadata } from "./mediaStreams/mediaStreamsMetadata";
-import { setupPlaylistBridge } from "./mediaStreams/mediaStreamsPlaylistBridge";
 import { useMediaStreamsOverrideHandlers } from "./mediaStreams/useMediaStreamsOverrideHandlers";
 import { loadArmBindingLayout } from "./mediaStreams/armBindingLayout";
 import {
@@ -232,14 +231,6 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
       )
         .then((info) => {
           if (generation !== selectionGeneration.current) return;
-          const { playlist, playlistIndex } = setupPlaylistBridge({
-            ep,
-            activeSource,
-            clickedStream,
-            context,
-            enrichPlayback,
-            episodes: episodeSelectorData?.episodes,
-          });
           if (!info) throw new Error(i18n.t("media:streams.playbackInfoEmpty"));
           playFromInfo(info, {
             season: mediaType === "tv" ? ep.season : undefined,
@@ -250,8 +241,6 @@ export function useMediaStreamsEpisodePlay(params: UseMediaStreamsEpisodePlayPar
             episodeIds: ep.episodeIds,
             targets: ep.targets,
             progressId: ep.progressId,
-            playlist,
-            playlistIndex,
             sourceStream: clickedStream,
             stillSrc: ep.stillPath,
           });

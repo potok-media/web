@@ -86,6 +86,29 @@ export function attachHlsDiagnostics(hls: Hls, video: HTMLVideoElement): void {
       paused: video.paused,
     });
   });
+
+  // Seek truth: hls.js must react to element seeks by jumping its fragment iterator. When a
+  // far seek "does nothing", this pair shows whether hls SAW the seek and where its stream
+  // controller thinks the media is.
+  hls.on(Hls.Events.MEDIA_ATTACHING, () => {
+    logger.warn("[HLS-DIAG] MEDIA_ATTACHING", { src: (video.src || "").slice(0, 60) });
+  });
+  hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+    logger.warn("[HLS-DIAG] MEDIA_ATTACHED", {
+      src: (video.src || "").slice(0, 60),
+      sameElement: hls.media === video,
+    });
+    (window as unknown as Record<string, unknown>).__potokHls = hls;
+  });
+  hls.on(Hls.Events.MEDIA_DETACHED, () => {
+    logger.warn("[HLS-DIAG] MEDIA_DETACHED");
+    (window as unknown as Record<string, unknown>).__potokHls = null;
+  });
+  if (typeof video.addEventListener === "function") {
+    video.addEventListener("seeking", () => {
+      logger.warn("[HLS-DIAG] ELEMENT_SEEKING", { currentTime: Number(video.currentTime.toFixed(2)) });
+    });
+  }
 }
 
 export function logHlsDiagnosticError(hls: Hls, data: HlsErrorData): void {

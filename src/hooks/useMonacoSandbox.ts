@@ -126,8 +126,8 @@ export function useMonacoSandbox(activePage: string, theme: "light" | "dark", in
           navigateTo: (to: string, state?: unknown) => {
             addLog("NAVIGATE", `NAVIGATE to "${to}" ${state ? `with state: ${JSON.stringify(state)}` : ""}`);
           },
-          playVideo: (playback: { title?: string; streamUrl?: string }) => {
-            addLog("PLAY_VIDEO", `PLAY_VIDEO: "${playback.title}" (${playback.streamUrl})`);
+          playVideo: (playback: { title?: string; playlist?: unknown[] }) => {
+            addLog("PLAY_VIDEO", `PLAY_VIDEO: "${playback.title}" (${playback.playlist?.length ?? 0} playlist item(s))`);
           },
           setAccentTheme: (themeId: string) => {
             addLog("THEME", `setAccentTheme: "${themeId}"`);

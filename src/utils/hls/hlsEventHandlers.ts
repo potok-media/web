@@ -30,6 +30,30 @@ export function bindHlsEventHandlers(
 
   attachHlsDiagnostics(hls, video);
 
+  // ManagedMediaSource contract: Safari fires `endstreaming` to suspend loading (system
+  // sleep, focus loss, seeks into unbuffered ranges) and hls.js gates its loading loop on
+  // the internal `buffering` flag — with NO error event and NO automatic recovery while
+  // the element keeps reporting "playing" from its drained buffer. Every seek/wait/play
+  // must therefore un-gate buffering BEFORE hls.js's own 'seeking' handler runs, so its
+  // tickImmediate() actually reaches the loader. Registered before MEDIA_ATTACHED on
+  // purpose: hls.js attaches its listeners on attach, ours must run first.
+  const resumeGatedBuffering = () => {
+    if (!isActiveSession()) return;
+    const bufferingEnabled = (hls as unknown as { bufferingEnabled?: boolean }).bufferingEnabled;
+    if (bufferingEnabled === false) {
+      logger.warn("[useHlsPlayer] hls.js buffering gated by MediaSource (endstreaming) — resuming");
+      (hls as unknown as { resumeBuffering?: () => void }).resumeBuffering?.();
+      // resumeBuffering flips the gate but schedules no tick — without a kick the loading
+      // loop stays asleep until the next unrelated hls.js event.
+      (hls as unknown as { streamController?: { tick?: () => void } }).streamController?.tick?.();
+    }
+  };
+  if (typeof video.addEventListener === "function") {
+    video.addEventListener("seeking", resumeGatedBuffering);
+    video.addEventListener("waiting", resumeGatedBuffering);
+    video.addEventListener("playing", resumeGatedBuffering);
+  }
+
   hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_e, data: { audioTracks?: { name?: string; lang?: string }[] }) => {
     if (!isActiveSession()) return;
     if (callbacks.manageHlsAudioTracks === false) return;

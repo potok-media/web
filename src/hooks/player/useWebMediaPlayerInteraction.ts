@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { usePlayback } from "../../context/PlaybackContext";
+import { getCurrentPlaylistItem } from "../../context/playbackTypes";
+import { getPlaybackPipelineKey } from "../../utils/playbackTransitions";
 import { useTimecodes } from "../useTimecodes";
 import { usePlayerSubtitlePipeline } from "../usePlayerSubtitlePipeline";
 import { useDebouncedSeek } from "../useDebouncedSeek";
@@ -48,10 +50,13 @@ export function useWebMediaPlayerInteraction({
     handleUserActivity,
     menus,
     seekOffsetRef,
-    handleRefreshStream,
     hls,
     octopusRef,
   } = core;
+
+  // R3: episode identity for UI resets and timecodes comes from the CURRENT playlist item.
+  const currentItem = getCurrentPlaylistItem(playback);
+  const pipelineKey = getPlaybackPipelineKey(playback);
 
   const subtitles = usePlayerSubtitlePipeline({
     videoRef,
@@ -103,7 +108,7 @@ export function useWebMediaPlayerInteraction({
     resetMenus: menus.resetMenus,
   };
 
-  // Reset player UI state only when the stream changes — not on every render.
+  // Reset player UI state only when the pipeline restarts — not on every render.
   // (menus/resume/resetSpinner objects are unstable and must not be effect deps.)
   useEffect(() => {
     setIsClosed(false);
@@ -115,7 +120,7 @@ export function useWebMediaPlayerInteraction({
     streamResetRef.current.resetSpinner();
     streamResetRef.current.resetResumeToast();
     streamResetRef.current.resetMenus();
-  }, [playback.streamUrl, setIsClosed, setIsPlaying, setDuration, setSeekPreview, setIsBuffering, setPlayerError]);
+  }, [pipelineKey, setIsClosed, setIsPlaying, setDuration, setSeekPreview, setIsBuffering, setPlayerError]);
 
   const getPreferredVoice = useCallback(
     () => core.preferredAudioRef.current?.name ?? null,
@@ -125,7 +130,7 @@ export function useWebMediaPlayerInteraction({
   const playPlaylistItem = useCallback(
     (index: number) => {
       playPlaylistItemRaw(index).catch((error) => {
-        // Already logged inside the hook — surface the failure in the player UI.
+        // Already surfaced inside the hook — show the failure in the player UI.
         setPlayerError(error instanceof Error ? error.message : String(error));
       });
     },
@@ -133,7 +138,7 @@ export function useWebMediaPlayerInteraction({
   );
 
   const handleEnded = useCallback(() => {
-    if (!playback.playlist || playback.playlistIndex === undefined) return;
+    if (!playback.playlist?.length) return;
     const nextIndex = nextPlayableIndex(playback.playlist, playback.playlistIndex, 1, getSkipFillers());
     if (nextIndex !== undefined) {
       playPlaylistItem(nextIndex);
@@ -145,7 +150,6 @@ export function useWebMediaPlayerInteraction({
     videoRef,
     setPlayerError,
     metadata.setIsMetadataLoading,
-    handleRefreshStream,
   );
 
   const trackSwitching = usePlayerTrackSwitching({
@@ -160,7 +164,6 @@ export function useWebMediaPlayerInteraction({
     preferredAudioRef: core.preferredAudioRef,
     switchPlaybackSource,
     setPlayerError,
-    setIsBuffering,
   });
 
   const switchSubtitle = (id: number) => subtitles.switchSubtitle(id);
@@ -175,12 +178,12 @@ export function useWebMediaPlayerInteraction({
 
   const timecodes = useTimecodes({
     tmdbId: playback.id,
-    season: playback.season,
-    episode: playback.episode,
-    armEpisodeId: playback.episodeId,
+    season: currentItem?.season,
+    episode: currentItem?.episode,
+    armEpisodeId: currentItem?.episodeId,
     isTv: playback.mediaType === "tv",
     duration: timecodeDuration,
-    streamUrl: playback.streamUrl,
+    streamUrl: currentItem?.streamUrl ?? "",
   });
   const introRange = metadata.localIntroRange || timecodes.introRange;
   const outroRange = metadata.localOutroRange || timecodes.outroRange;

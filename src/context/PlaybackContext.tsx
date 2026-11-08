@@ -8,7 +8,7 @@ import { useSettings } from "./SettingsContext";
 import { useAuth } from "./AuthContext";
 import { ExtensionRegistry } from "../utils/extensions/ExtensionRegistry";
 import type { ActivePlayback, PlaybackMeta, PlaylistItem } from "./playbackTypes";
-import { refreshSandboxPlaylistResolver } from "../utils/playlistResolver";
+import { getCurrentPlaylistItem } from "./playbackTypes";
 import {
   switchPlaybackSourceState,
   type PlaybackSourcePatch,
@@ -49,6 +49,13 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const playVideo = useCallback(
     (playback: ActivePlayback) => {
+      // R3: the playlist is the ONLY content carrier. A descriptor without items (or with a
+      // dangling index) can never start — fail loudly instead of opening a dead player.
+      if (!Array.isArray(playback.playlist) || playback.playlist.length === 0) {
+        logger.error("[PlaybackProvider] playVideo rejected: playlist is empty", playback.title);
+        showHUD("error", "Плейлист пуст — воспроизведение невозможно.");
+        return;
+      }
       if (PlatformManager.playVideo(playback)) {
         logger.log("[PlaybackProvider] Playback handled natively by PlatformManager.");
         return;
@@ -97,10 +104,11 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // Write ONLY the enrichable atom, never the descriptor — that is what stops the mid-playback teardown.
       const cur = activePlaybackRef.current;
       if (!cur) return;
+      const currentItem = getCurrentPlaylistItem(cur);
       if (
         match &&
-        ((match.streamHash !== undefined && match.streamHash !== cur.streamHash) ||
-          (match.fileIndex !== undefined && match.fileIndex !== cur.fileIndex))
+        ((match.streamHash !== undefined && match.streamHash !== currentItem?.streamHash) ||
+          (match.fileIndex !== undefined && match.fileIndex !== currentItem?.fileIndex))
       ) {
         return;
       }
@@ -117,11 +125,7 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const replacePlaylist = useCallback((playlist: PlaylistItem[], playlistIndex: number) => {
     const current = activePlaybackRef.current;
     if (!current) return;
-    const next = { ...current, playlist, playlistIndex };
-    // The resolver cached for this instance was built from the previous playlist array — a queue
-    // reorder must not leave it resolving against the pre-reorder order.
-    refreshSandboxPlaylistResolver(next);
-    setActivePlayback(next);
+    setActivePlayback({ ...current, playlist, playlistIndex });
   }, []);
 
   const switchPlaybackSource = useCallback((patch: PlaybackSourcePatch) => {
@@ -149,8 +153,8 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // broadcasts; the host-rendered episode panel (ui.presentEpisodes) doesn't need them — it reads
   // activePlayback.playlist/playlistIndex directly.
   useEffect(() => {
-    if (!activePlayback?.playlist?.length || activePlayback.playlistIndex === undefined) return;
-    const item = activePlayback.playlist[activePlayback.playlistIndex];
+    if (!activePlayback?.playlist?.length) return;
+    const item = getCurrentPlaylistItem(activePlayback);
     if (!item) return;
     ExtensionRegistry.broadcast("PLAYLIST_ITEM_CHANGED", {
       episodeId: item.id ?? null,
@@ -169,11 +173,12 @@ export const PlaybackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     const hasPlayback = Boolean(activePlayback);
     if (hasPlayback && !hadPlaybackRef.current) {
+      const currentItem = activePlayback ? getCurrentPlaylistItem(activePlayback) : undefined;
       ExtensionRegistry.broadcast("PLAYBACK_STARTED", {
         title: activePlayback?.title ?? null,
         mediaType: activePlayback?.mediaType ?? null,
-        season: activePlayback?.season ?? null,
-        episode: activePlayback?.episode ?? null,
+        season: currentItem?.season ?? null,
+        episode: currentItem?.episode ?? null,
         providerId: activePlayback?.providerId ?? null,
       });
     } else if (!hasPlayback && hadPlaybackRef.current) {

@@ -22,7 +22,6 @@ interface PlayerOverlayStackProps {
   showSpinner: boolean;
   playerError: string | null;
   streamUrl: string;
-  onRefresh: () => void;
   onClose: () => void;
   isNetworkOffline: boolean;
 }
@@ -37,7 +36,6 @@ export const PlayerOverlayStack: React.FC<PlayerOverlayStackProps> = ({
   showSpinner,
   playerError,
   streamUrl,
-  onRefresh,
   onClose,
   isNetworkOffline,
 }) => {
@@ -56,7 +54,6 @@ export const PlayerOverlayStack: React.FC<PlayerOverlayStackProps> = ({
         <PlayerErrorOverlay
           error={playerError}
           streamUrl={streamUrl}
-          onRefresh={onRefresh}
           onClose={onClose}
         />
       )}

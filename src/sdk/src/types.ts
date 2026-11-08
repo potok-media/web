@@ -376,8 +376,6 @@ export interface SDKThumbnails {
 }
 
 export interface SDKPlaybackInfo {
-  streamUrl: string;
-  streamType?: 'mp4' | 'm3u8' | 'hls' | 'dash' | string;
   title: string;
   season?: number;
   episode?: number;
@@ -389,12 +387,16 @@ export interface SDKPlaybackInfo {
   fileIndex?: string;
   /** Opaque plugin-owned progress identity — the host uses it verbatim as the local progress/resume key. */
   progressId?: string;
-  audios?: { id: string; name: string; url: string }[];
   headers?: Record<string, string>;
   providerId?: string;
   voice?: string;
   startAt?: number;
-  playlist?: unknown;
+  /**
+   * The ONLY content carrier (R3): every episode object holds its own ready streamUrl, voices,
+   * headers and session. The host plays `playlist[playlistIndex]`; a descriptor without items
+   * never starts.
+   */
+  playlist?: SDKPlaybackItem[];
   playlistIndex?: number;
   sourceStream?: unknown;
   subtitles?: SDKSubtitleInfo[];
@@ -412,6 +414,43 @@ export interface SDKPlaybackInfo {
    * (dies with the page); 'overlay' (default) — the fullscreen player above the app.
    */
   mount?: 'inline' | 'overlay';
+}
+
+/**
+ * One playable episode entry of a playback payload/response. All content fields are item-scoped
+ * (R2/R3): the player's voice menu reads `audios` from the CURRENT item, the pipeline reads the
+ * item's streamUrl/streamType/headers, and the backend session rides the item too.
+ */
+export interface SDKPlaybackItem {
+  id?: string;
+  workId?: string | null;
+  entryId?: string | null;
+  episodeId?: string | null;
+  episodeIds?: string[];
+  targets?: SDKReleaseBindingTarget[];
+  season?: number;
+  episode?: number;
+  title?: string;
+  streamUrl: string;
+  streamType?: 'mp4' | 'm3u8' | 'hls' | 'dash' | string;
+  torrentHash?: string;
+  fileIndex?: string;
+  /** Opaque plugin-owned progress identity — used verbatim as the local progress/resume key. */
+  progressId?: string;
+  audios?: {
+    id?: string;
+    name: string;
+    url: string;
+    label?: string | null;
+    voice?: string | null;
+    providerId?: string | null;
+    sourceId?: string | null;
+    query?: unknown;
+  }[];
+  headers?: Record<string, string>;
+  providerId?: string;
+  voice?: string;
+  session?: SDKPlaybackSession;
 }
 
 export interface SDKRawStreamPayload {
@@ -1471,8 +1510,6 @@ export interface StreamEpisode {
 }
 
 export interface PlaybackInfo {
-  streamUrl: string;
-  streamType?: 'mp4' | 'm3u8' | 'hls' | 'dash' | string;
   title: string;
   season?: number;
   episode?: number;
@@ -1481,22 +1518,12 @@ export interface PlaybackInfo {
   /** Opaque plugin-owned progress identity — the host uses it verbatim as the local progress/resume key. */
   progressId?: string;
   /**
-   * Voice candidates for the current episode. Entries keep their FULL shape (plain voice
-   * label + provider identity + resolve query) so voice switching can re-resolve through
-   * the candidate's OWN provider — a merged list may span providers. `url` is the
-   * candidate's own resolved link or '' (the dub is baked into the stream; switching
-   * always re-resolves by voice).
+   * The resolved content as playlist items (R3): the current episode is `playlist[playlistIndex]`,
+   * each item carrying its own streamUrl/streamType/audios/headers/session. Plugins that still
+   * answer with a top-level streamUrl are folded into a single current item by the host.
    */
-  audios?: {
-    id?: string;
-    name: string;
-    url: string;
-    label?: string | null;
-    voice?: string | null;
-    providerId?: string | null;
-    sourceId?: string | null;
-    query?: unknown;
-  }[];
+  playlist?: SDKPlaybackItem[];
+  playlistIndex?: number;
   headers?: Record<string, string>;
   providerId?: string;
   voice?: string;
@@ -1555,12 +1582,4 @@ export interface DeclarativeStreamSource {
   /** Deferred enrichment (subtitles + duration) fetched AFTER getPlaybackInfo so a slow probe never blocks
    *  player-open. Optional: if absent, the descriptor from getPlaybackInfo is treated as complete. */
   getPlaybackMetadata?(stream: RawStreamPayload, episode?: StreamEpisode, context?: LookupQuery): Promise<PlaybackMetadata>;
-  refreshStreamUrl?(payload: {
-    providerId: string;
-    mediaId: number;
-    mediaType: 'movie' | 'tv';
-    season?: number;
-    episode?: number;
-    voice?: string;
-  }): Promise<{ streamUrl: string; audios?: { id: string; name: string; url: string }[]; headers?: Record<string, string> }>;
 }

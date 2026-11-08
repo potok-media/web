@@ -27,6 +27,7 @@ import type {
 import type { WTSessionState } from "../network/watchTogetherTypes";
 import { NO_PERMISSIONS } from "../network/watchTogetherTypes";
 import type { ActivePlayback, PlaylistItem } from "./playbackTypes";
+import { currentEpisodeKey, getCurrentPlaylistItem } from "./playbackTypes";
 import { WatchTogetherContext, type WatchTogetherContextType } from "./watchTogetherState";
 
 const START_HANDSHAKE_TIMEOUT_MS = 12000; // fallback: start even if a guest never reports ready
@@ -47,14 +48,16 @@ function descriptorToSessionInfo(d: ActivePlayback): WTSessionInfo {
 // Co-watch broadcasts (start-watch / state-sync / queue-update) must stay small: the gateway caps the
 // incoming message size and a fat payload faults the sender's ENTIRE connection (the "host disappeared"
 // bug — a TV-series playlist with per-episode streamUrls/headers blows past a 32 KB cap). Guests never
-// resolve playlist items themselves — episode switches are re-broadcast by the host — so items cross the
-// wire as lobby metadata only (id/season/episode/title), never with streamUrl/audios/headers.
-function slimPlaylistForBroadcast(playlist: PlaylistItem[] | undefined): PlaylistItem[] | undefined {
-  return playlist?.map((p) => ({ id: p.id, season: p.season, episode: p.episode, title: p.title }) as PlaylistItem);
+// resolve playlist items themselves (R1) — episode switches arrive as fresh broadcasts — so only the
+// CURRENT item crosses the wire fully playable; every other item is lobby metadata (id/season/episode/title).
+function slimPlaylistForBroadcast(playlist: PlaylistItem[], playlistIndex: number): PlaylistItem[] {
+  return playlist.map((p, index) => index === playlistIndex
+    ? p
+    : ({ id: p.id, season: p.season, episode: p.episode, title: p.title }) as PlaylistItem);
 }
 
 export function slimDescriptorForBroadcast(d: ActivePlayback): ActivePlayback {
-  return { ...d, playlist: slimPlaylistForBroadcast(d.playlist) };
+  return { ...d, playlist: slimPlaylistForBroadcast(d.playlist, d.playlistIndex) };
 }
 
 function getClientId(): string {
@@ -130,9 +133,9 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
     paused: true,
     started: false,
   });
-  // Host: streamUrl associated with the room's current episode. Guards hostAnnounceEpisode so mounting the
-  // already-playing host player does not announce the initial episode as a playlist change.
-  const lastBroadcastUrlRef = useRef<string | null>(null);
+  // Host: episode key (index + item id/url) of the room's current episode. Guards hostAnnounceEpisode
+  // so mounting the already-playing host player does not announce the initial episode as a playlist change.
+  const lastBroadcastEpisodeRef = useRef<string | null>(null);
   // Guest: fires if the host neither replies (state-sync) nor the server rejects (no-host) — treat as dead room.
   const joinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -175,7 +178,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
     readyGuestsRef.current = new Set();
     roundRef.current = 0;
     hostSnapshotRef.current = { time: 0, paused: true, started: false };
-    lastBroadcastUrlRef.current = null;
+    lastBroadcastEpisodeRef.current = null;
     if (startTimeoutRef.current) clearTimeout(startTimeoutRef.current);
     startTimeoutRef.current = null;
     if (joinTimeoutRef.current) clearTimeout(joinTimeoutRef.current);
@@ -240,7 +243,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
       senderId: clientId,
       role: "host",
       time: 0,
-      streamUrl: descriptor.streamUrl,
+      streamUrl: getCurrentPlaylistItem(descriptor)?.streamUrl ?? "",
       descriptor: slimDescriptorForBroadcast({ ...descriptor, startAtZero: true, coWatch: true }), // co-watch always begins at 00:00
     });
   }, [clientId]);
@@ -501,7 +504,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
       readyGuestsRef.current = new Set();
       roundRef.current = 0;
       hostSnapshotRef.current = { time: 0, paused: true, started: false };
-      lastBroadcastUrlRef.current = null;
+      lastBroadcastEpisodeRef.current = null;
       if (startTimeoutRef.current) clearTimeout(startTimeoutRef.current);
       setStartGateOpen(true);
       guestPermissionsRef.current = NO_PERMISSIONS;
@@ -514,7 +517,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
       roleRef.current = "host";
       descriptorRef.current = descriptor;
       sessionActiveRef.current = true;
-      lastBroadcastUrlRef.current = descriptor.streamUrl;
+      lastBroadcastEpisodeRef.current = currentEpisodeKey(descriptor);
 
       setRoomId(key);
       setRole("host");
@@ -602,7 +605,7 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
     const descriptor = descriptorRef.current;
     if (roleRef.current !== "host" || !roomKeyRef.current || !descriptor) return;
     sessionActiveRef.current = true;
-    lastBroadcastUrlRef.current = descriptor.streamUrl; // this episode is broadcast here; don't re-announce on mount
+    lastBroadcastEpisodeRef.current = currentEpisodeKey(descriptor); // this episode is broadcast here; don't re-announce on mount
 
     armStartGate(); // wait for every present guest's ready-handshake before releasing playback
     broadcastStart();
@@ -617,8 +620,8 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
   const hostAnnounceEpisode = useCallback(
     (descriptor: ActivePlayback) => {
       if (roleRef.current !== "host" || !sessionActiveRef.current || !roomKeyRef.current) return;
-      if (descriptor.streamUrl === lastBroadcastUrlRef.current) return;
-      lastBroadcastUrlRef.current = descriptor.streamUrl;
+      if (currentEpisodeKey(descriptor) === lastBroadcastEpisodeRef.current) return;
+      lastBroadcastEpisodeRef.current = currentEpisodeKey(descriptor);
       descriptorRef.current = descriptor;
       setPendingDescriptor(descriptor);
       armStartGate();
@@ -642,7 +645,9 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
         type: "queue-update",
         senderId: clientId,
         role: "host",
-        playlist: slimPlaylistForBroadcast(playlist) ?? [],
+        // The reordered queue with the CURRENT item kept fully playable — a later episode
+        // switch re-broadcasts the new current item anyway, the rest stays lobby metadata.
+        playlist: slimPlaylistForBroadcast(playlist, playlistIndex),
         playlistIndex,
       });
     },
@@ -845,7 +850,8 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
   // isn't running. Keep pinging the backend session ourselves so the torrent/stream isn't reaped before the
   // host presses Start. Once the session starts (player opens) usePlayerBackendSession takes over.
   useEffect(() => {
-    const session = pendingDescriptor?.session;
+    const pendingItem = pendingDescriptor ? getCurrentPlaylistItem(pendingDescriptor) : undefined;
+    const session = pendingItem?.session;
     const keepaliveUrl = session?.keepaliveUrl;
     if (role !== "host" || sessionActive || !keepaliveUrl) return;
     const ping = () => {
@@ -853,8 +859,8 @@ export const WatchTogetherProvider: React.FC<{ children: React.ReactNode }> = ({
         method: "POST",
         body: JSON.stringify({
           sessionId: clientId,
-          hash: (session?.hash || pendingDescriptor?.streamHash || "").toLowerCase(),
-          file: session?.file ?? pendingDescriptor?.fileIndex,
+          hash: (session?.hash || pendingItem?.streamHash || "").toLowerCase(),
+          file: session?.file ?? pendingItem?.fileIndex,
         }),
         keepalive: true,
       }).catch(() => {});

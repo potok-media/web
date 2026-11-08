@@ -15,6 +15,7 @@ import {
 } from "../utils/hls/hlsPlaybackUtils";
 import type { HlsPlayerParams } from "../utils/hls/hlsPlayerTypes";
 import { getPlaybackPipelineKey } from "../utils/playbackTransitions";
+import { getCurrentPlaylistItem } from "../context/playbackTypes";
 
 export type { HlsPlayerParams } from "../utils/hls/hlsPlayerTypes";
 
@@ -32,7 +33,6 @@ export function useHlsPlayer({
 }: HlsPlayerParams) {
   const hlsRef = useRef<Hls | null>(null);
   const playerSessionRef = useRef(0);
-  const autoRefreshCountRef = useRef(0);
   const [srcResetCounter, setSrcResetCounter] = useState(0);
 
   const syncNativeTextTracksRef = useRef(syncNativeTextTracks);
@@ -57,7 +57,15 @@ export function useHlsPlayer({
     const video = videoNode !== undefined ? videoNode : videoRef.current;
     if (!video) return;
     const pipelinePlayback = playbackRef.current;
+    // R3: the pipeline initializes from the CURRENT playlist item — its streamUrl/type/headers
+    // are the only sources. No item / no url → nothing to play; the error overlay says so.
+    const currentItem = getCurrentPlaylistItem(pipelinePlayback);
 
+    logger.log("[useHlsPlayer] pipeline start", {
+      pipelineKey,
+      readyState: video.readyState,
+      src: (video.src || "").slice(0, 80),
+    });
     cleanupActiveResources();
     const sessionId = playerSessionRef.current;
 
@@ -65,7 +73,12 @@ export function useHlsPlayer({
     setIsMetadataLoading(true);
     setSrcResetCounter((p) => p + 1);
 
-    const audioUrl = pipelinePlayback.streamUrl;
+    const audioUrl = currentItem?.streamUrl ?? "";
+    if (!audioUrl) {
+      setPlayerError(i18n.t("player:playback.loadFailed"));
+      setIsMetadataLoading(false);
+      return;
+    }
     const isHls = isHlsPlayback(pipelinePlayback, audioUrl);
 
     if (!isHls && !isSmartTVUserAgent()) {
@@ -102,7 +115,7 @@ export function useHlsPlayer({
     };
 
     if (isHls && Hls.isSupported()) {
-      const hls = new Hls(createHlsPlayerConfig(startPos, pipelinePlayback.headers));
+      const hls = new Hls(createHlsPlayerConfig(startPos, currentItem?.headers));
       hlsRef.current = hls;
 
       bindHlsEventHandlers(hls, video, sessionId, sessionRefs, {
@@ -117,7 +130,7 @@ export function useHlsPlayer({
           const pref = preferredAudioRef.current;
           return pref ? matchAudioTrack(rawTracks, pref) : -1;
         },
-        manageHlsAudioTracks: !pipelinePlayback.audios?.length,
+        manageHlsAudioTracks: !currentItem?.audios?.length,
       });
 
       const startHlsPlayback = () => startPlayback("hls");
@@ -173,14 +186,12 @@ export function useHlsPlayer({
   return {
     hlsRef,
     srcResetCounter,
-    setSrcResetCounter,
     rawLevels,
     setRawLevels,
     hlsActiveLevel,
     setHlsActiveLevel,
     currentQualityLevel,
     setCurrentQualityLevel,
-    autoRefreshCountRef,
     cleanupActiveResources,
   };
 }

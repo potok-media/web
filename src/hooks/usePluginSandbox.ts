@@ -36,7 +36,6 @@ export function usePluginSandbox() {
     activeProfile,
     activeProfileID,
     language,
-    showHUD,
     iframeRefs: lifecycle.iframeRefs,
     buildIframeSrcDoc: lifecycle.buildIframeSrcDoc,
     setSettingsVersion: lifecycle.setSettingsVersion,

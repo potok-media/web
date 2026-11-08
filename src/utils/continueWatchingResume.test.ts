@@ -12,7 +12,6 @@ import {
   ResumePluginUnavailableError,
   type ContinueResumeDeps,
 } from "./continueWatchingResume";
-import { clearPlaylistResolver, resolvePlaylistItem } from "./playlistResolver";
 import type { ContinueWatchingCursor } from "./continueWatching";
 import type { MediaCard } from "../network/ApiTypes";
 import type { PlaybackInfo, StreamEpisode } from "@potok/sdk-types";
@@ -49,10 +48,13 @@ function makeEpisode(overrides: Partial<StreamEpisode> = {}): StreamEpisode {
   } as StreamEpisode;
 }
 
-const INFO: PlaybackInfo = {
+// Legacy-shaped plugin response (pre-playlist plugins): resolved content sits top-level and the
+// host folds it into the resume window's current item.
+const INFO = {
+  title: "Episode 1",
   streamUrl: "https://cdn.test/episode.m3u8",
   streamType: "m3u8",
-} as PlaybackInfo;
+} as unknown as PlaybackInfo;
 
 describe("pickResumeEpisode", () => {
   const episodes = [
@@ -138,7 +140,7 @@ describe("resumeContinueWatching", () => {
     );
     expect(deps.playVideo).toHaveBeenCalledTimes(1);
     const playback = deps.playVideo.mock.calls[0][0];
-    expect(playback.streamUrl).toBe("https://cdn.test/episode.m3u8");
+    expect(playback.playlist[playback.playlistIndex].streamUrl).toBe("https://cdn.test/episode.m3u8");
     expect(playback.providerId).toBe("potok-torrents");
     expect(playback.startAt).toBe(300);
     expect(playback.playlist).toHaveLength(2);
@@ -155,24 +157,16 @@ describe("resumeContinueWatching", () => {
     expect(playback.playlistIndex).toBe(0);
   });
 
-  it("installs a playlist resolver for in-player navigation", async () => {
+  it("keeps the episode window as ready playlist items for in-player navigation (R1: no resolver)", async () => {
     const episodes = [makeEpisode({ id: "3", url: "plugin://handle" })];
     const deps = makeDeps(episodes);
     await resumeContinueWatching(makeCursor(), deps);
 
-    // The resolver is parked in the host registry and keyed to the playback's
-    // instanceId by the playlist hook on first use.
     const playback = deps.playVideo.mock.calls[0][0];
-    const info = await resolvePlaylistItem(
-      { ...playback, instanceId: 501 },
-      { id: "3", streamUrl: "plugin://handle" },
-    );
-    expect(info).toEqual(INFO);
-    expect(deps.requestPlaybackInfo).toHaveBeenLastCalledWith(
-      "potok-torrents",
-      expect.objectContaining({ episode: expect.objectContaining({ id: "3" }) }),
-    );
-    clearPlaylistResolver(501);
+    // The resolved content patches the window's current item; the queue identity stays.
+    expect(playback.playlist[0].streamUrl).toBe("https://cdn.test/episode.m3u8");
+    expect(playback.playlist[0].id).toBe("3");
+    expect(deps.requestPlaybackInfo).toHaveBeenCalledTimes(1); // one resolve, for the resumed episode only
   });
 
   it("works for progressId-keyed online sources without torrent identities", async () => {
@@ -188,7 +182,7 @@ describe("resumeContinueWatching", () => {
     expect(deps.requestPlaybackInfo).toHaveBeenCalled();
     const playback = deps.playVideo.mock.calls[0][0];
     expect(playback.providerId).toBe("potok-online-balancers");
-    expect(playback.streamHash).toBeUndefined();
+    expect(playback.playlist[0].streamHash).toBeUndefined();
     // No file anchor to guard against — the saved position carries straight through.
     expect(playback.startAt).toBe(300);
   });

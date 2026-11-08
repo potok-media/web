@@ -9,9 +9,10 @@ import { useHlsPlayer } from "../useHlsPlayer";
 import { useSubtitlesOctopus } from "../useSubtitlesOctopus";
 import { usePlayerMenus } from "../usePlayerMenus";
 import { usePlayerVolumePrefs } from "./usePlayerVolumePrefs";
-import { useStreamRefresh } from "./useStreamRefresh";
 import { usePlayerPictureInPicture } from "./usePlayerPictureInPicture";
 import { usePlayback } from "../../context/PlaybackContext";
+import { getCurrentPlaylistItem } from "../../context/playbackTypes";
+import { currentItemIdentity } from "../../utils/playbackIdentity";
 import type { AudioPreference } from "../../utils/hls/audioPreference";
 import { resolvePlaybackDuration } from "../../utils/playerTimeline";
 import type { UseWebMediaPlayerBindingsParams } from "./webMediaPlayerBindingTypes";
@@ -30,8 +31,10 @@ export function useWebMediaPlayerCore({
   setPlayerError,
   setIsClosed,
 }: UseWebMediaPlayerBindingsParams) {
-  const streamHash = useMemo(() => (playback.streamHash || "").toLowerCase(), [playback.streamHash]);
-  const fileIndex = playback.fileIndex || "";
+  // R3: torrent identity, session, voices — everything content-ish lives on the CURRENT item.
+  const currentItem = getCurrentPlaylistItem(playback);
+  const streamHash = useMemo(() => (currentItem?.streamHash || "").toLowerCase(), [currentItem?.streamHash]);
+  const fileIndex = currentItem?.fileIndex || "";
 
   // Enrichable metadata (subtitles/duration) comes from the context atom, not the stable descriptor prop —
   // so late enrichment updates tracks/duration WITHOUT re-initializing the media pipeline. See PlaybackMeta.
@@ -42,7 +45,7 @@ export function useWebMediaPlayerCore({
   // In-memory, no persistence.
   const preferredAudioRef = useRef<AudioPreference | null>(null);
   useEffect(() => {
-    preferredAudioRef.current = playback.voice ? { name: playback.voice } : null;
+    preferredAudioRef.current = currentItem?.voice ? { name: currentItem.voice } : null;
     // Seed once per torrent; mid-playlist user picks stay in the ref.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streamHash]);
@@ -50,15 +53,15 @@ export function useWebMediaPlayerCore({
   const metadata = usePlayerMetadataAndTracks(
     streamHash,
     fileIndex,
-    playback.streamUrl,
-    playback.audios,
+    currentItem?.streamUrl ?? "",
+    currentItem?.audios,
     playback,
     playbackMeta,
     preferredAudioRef,
   );
 
   const { connected, bytesPerSec, hasProgressSince } = usePlaybackStatus(
-    playback.session,
+    currentItem?.session,
     metadata.isMetadataLoading,
   );
 
@@ -66,53 +69,29 @@ export function useWebMediaPlayerCore({
   const displayDuration = timecodeDuration;
 
   const audioName = metadata.audioTracks.find((t) => t.id === metadata.currentAudioTrack)?.name
-    || playback.voice;
+    || currentItem?.voice;
 
   const { saveProgress } = usePlaybackTracker({
     videoRef,
     videoNode,
     playback: useMemo(
       () => ({
-        id: playback.id,
-        mediaType: playback.mediaType,
-        season: playback.season,
-        episode: playback.episode,
-        workId: playback.workId,
-        episodeId: playback.episodeId,
-        entryId: playback.entryId,
+        ...currentItemIdentity(playback),
+        entryId: currentItem?.entryId,
         title: playback.title,
         originalTitle: playback.originalTitle,
         posterSrc: playback.posterSrc,
         backdropSrc: playback.backdropSrc,
-        streamHash: playback.streamHash,
-        fileIndex: playback.fileIndex,
         providerId: playback.providerId,
-        voice: playback.voice,
         sourceStream: playback.sourceStream,
         startAt: playback.startAt,
         stillSrc: playback.stillSrc,
-        audios: playback.audios,
+        audios: currentItem?.audios,
       }),
       [
-        playback.id,
-        playback.mediaType,
-        playback.season,
-        playback.episode,
-        playback.workId,
-        playback.episodeId,
-        playback.entryId,
-        playback.title,
-        playback.originalTitle,
-        playback.posterSrc,
-        playback.backdropSrc,
-        playback.streamHash,
-        playback.fileIndex,
-        playback.providerId,
-        playback.voice,
-        playback.sourceStream,
-        playback.startAt,
-        playback.stillSrc,
-        playback.audios,
+        playback,
+        currentItem?.entryId,
+        currentItem?.audios,
       ],
     ),
     seekOffset,
@@ -170,8 +149,6 @@ export function useWebMediaPlayerCore({
     seekOffsetRef.current = seekOffset;
   }, [seekOffset]);
 
-  const handleRefreshStream = useStreamRefresh({ playback, videoRef, seekOffsetRef });
-
   const hls = useHlsPlayer({
     videoRef,
     videoNode,
@@ -183,7 +160,6 @@ export function useWebMediaPlayerCore({
     syncNativeTextTracks: metadata.syncNativeTextTracks,
     setSeekOffset,
     setPlayerError,
-    handleRefreshStream,
     setIsMetadataLoading: metadata.setIsMetadataLoading,
   });
 
@@ -215,7 +191,6 @@ export function useWebMediaPlayerCore({
     handleUserActivity,
     menus,
     seekOffsetRef,
-    handleRefreshStream,
     hls,
     volume,
     setVolume,

@@ -34,12 +34,32 @@ export interface PlaylistItem {
   episode?: number;
   title?: string;
   filler?: import("../network/ArmTypes").ArmEpisodeFiller | null;
+  /** The ONLY content link. No streamUrl on an item — no playback for that item. */
   streamUrl: string;
   streamType?: "m3u8" | "mp4" | "hls" | "dash";
+  streamHash?: string;
+  fileIndex?: string;
+  /** Opaque plugin-owned progress identity — used verbatim as the local progress/resume key. */
+  progressId?: string;
   audios?: AudioTrackEntry[];
   headers?: Record<string, string>;
   providerId?: string;
   voice?: string;
+  session?: SDKPlaybackSession;
+}
+
+/** The episode the player works with — strictly through the playlist, never a top-level url. */
+export function getCurrentPlaylistItem(playback: ActivePlayback): PlaylistItem | undefined {
+  return playback.playlist[playback.playlistIndex];
+}
+
+/**
+ * Stable per-episode identity (co-watch re-broadcast gating): playlist index + the item's id,
+ * falling back to its stream url.
+ */
+export function currentEpisodeKey(playback: ActivePlayback): string {
+  const item = getCurrentPlaylistItem(playback);
+  return `${playback.playlistIndex}:${item?.id ?? item?.streamUrl ?? ""}`;
 }
 
 // Enrichable playback metadata — the ONLY fields patched asynchronously after playback starts
@@ -52,32 +72,17 @@ export interface PlaybackMeta {
 }
 
 export interface ActivePlayback {
-  streamUrl: string;
+  /** Media identity (title-level), not episode content — episodes live in the playlist. */
   title: string;
   originalTitle?: string;
   englishTitle?: string;
   mediaType: "movie" | "tv";
   id: number;
-  season?: number;
-  episode?: number;
-  workId?: string | null;
-  episodeId?: string | null;
-  entryId?: string | null;
-  episodeIds?: string[];
-  targets?: SDKReleaseBindingTarget[];
-  streamHash?: string;
-  fileIndex?: string;
-  /** Opaque plugin-owned progress identity — used verbatim as the local progress/resume key. */
-  progressId?: string;
-  streamType?: "m3u8" | "mp4" | "hls" | "dash";
-  audios?: AudioTrackEntry[];
-  audioNames?: string[];
-  headers?: Record<string, string>;
+  /** Owning plugin id (sandbox addressing, stop gating, stats) — not a content link. */
   providerId?: string;
-  voice?: string;
-  session?: SDKPlaybackSession;
-  playlist?: PlaylistItem[];
-  playlistIndex?: number;
+  /** The ONLY carrier of episode content: every episode object holds its own stream link and voices. */
+  playlist: PlaylistItem[];
+  playlistIndex: number;
   subtitles?: SDKSubtitleInfo[];
   duration?: number;
   introStart?: number;
@@ -95,7 +100,7 @@ export interface ActivePlayback {
   startAtZero?: boolean;
   /** Explicit start position in seconds. When set, skips the resume toast and wins over stored resume. */
   startAt?: number;
-  /** Opaque source payload a plugin needs to resolve later playlist items. Host does not interpret it. */
+  /** Opaque source payload a plugin may publish for its own bookkeeping. Host does not interpret it. */
   sourceStream?: unknown;
   // Set for co-watch playbacks. Such a playback is tied to a live SignalR session, so it must NOT be
   // persisted/restored across reloads (the session is gone on reload — restoring would spawn a solo zombie).

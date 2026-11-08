@@ -10,7 +10,8 @@ describe("host → plugin playback events", () => {
     expect(contextSource).toContain('ExtensionRegistry.broadcast("PLAYLIST_ITEM_CHANGED"');
     expect(contextSource).toContain("episodeId: item.id ?? null");
     // Only playlist playbacks broadcast — movies/single streams have nothing to highlight.
-    expect(contextSource).toContain("if (!activePlayback?.playlist?.length || activePlayback.playlistIndex === undefined) return;");
+    expect(contextSource).toContain("if (!activePlayback?.playlist?.length) return;");
+    expect(contextSource).toContain("const item = getCurrentPlaylistItem(activePlayback);");
   });
 
   it("broadcasts PLAYBACK_STARTED on open and PLAYBACK_STOPPED on close exactly once per transition", () => {

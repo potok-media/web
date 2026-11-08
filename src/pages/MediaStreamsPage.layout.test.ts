@@ -68,7 +68,6 @@ describe("MediaStreamsPage layout", () => {
     expect(workspace).toContain("<InlinePlayer");
     expect(queuePanel).toContain('presentation="playlist"');
     expect(queuePanel).toContain("canReorder={false}");
-    expect(queuePanel).toContain("publishPlaylistOverride={false}");
     expect(queuePanel).toContain('sendControl("episode"');
     expect(stageLayout).not.toContain("registerPlayerPortalTarget");
     expect(stageLayout).toContain("streams-page-shell--split");
@@ -225,7 +224,7 @@ describe("MediaStreamsPage layout", () => {
     );
 
     expect(content).toContain("handlePlayAsPlaylist");
-    expect(selectorState).toContain("setPlaylistOverride(playlist)");
+    expect(selectorState).not.toContain("setPlaylistOverride");
     expect(header).not.toContain("onOpenAsPlaylist");
     expect(header).not.toContain("openAsPlaylist");
   });

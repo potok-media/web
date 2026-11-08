@@ -3,6 +3,7 @@ import { useWatchTogether } from "../../context/watchTogetherState";
 import { useClockSync } from "./useClockSync";
 import type { useWebMediaPlayer } from "../useWebMediaPlayer";
 import type { WTSyncWatch } from "../../network/watchTogetherTypes";
+import { currentEpisodeKey } from "../../context/playbackTypes";
 import { i18n } from "../../i18n";
 import { logger } from "../../utils/logger";
 import { startMediaPlayback, isAbortError } from "../../utils/mediaPlayback";
@@ -223,9 +224,10 @@ export function useWatchTogetherSync(vm: PlayerVM): void {
   // Host: whenever the active episode changes (host used the playlist menu, or a permitted guest requested it),
   // the player remounts on the new descriptor — re-broadcast start-watch + re-run the ready-handshake so every
   // guest switches to the same episode and everyone restarts in sync. The initial episode is a no-op (guarded).
+  const episodeKey = currentEpisodeKey(vm.playback);
   useEffect(() => {
     if (role === "host" && sessionActive) hostAnnounceEpisode(vmRef.current.playback);
-  }, [role, sessionActive, vm.playback.streamUrl, hostAnnounceEpisode]);
+  }, [role, sessionActive, episodeKey, hostAnnounceEpisode]);
 
   // Guest: follow the host. Rewritten as an explicit state machine (see the module notes above): one
   // decision pass — pause / start / align — driven by every sync-watch AND a 1 s self-tick, with a log

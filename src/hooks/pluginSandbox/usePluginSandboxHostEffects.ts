@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import type { RegisteredExtension } from "@potok/sdk-types";
 import { ApiClient } from "../../network/ApiClient";
-import { i18n } from "../../i18n";
 import { logger } from "../../utils/logger";
 import { computeHostStrings } from "../../utils/extensions/pluginSandbox/pluginSandboxHostStrings";
 import { getScopedLocalStorage } from "../../utils/extensions/pluginSandbox/pluginSandboxScopedStorage";
@@ -9,14 +8,12 @@ import { buildPluginConfigPayload } from "../../utils/extensions/pluginSandbox/p
 import { getUserSnapshot, onUserChange } from "../../sdk/src/user";
 import type { SDKUserSnapshot } from "../../sdk/src/types";
 import type { ConnectionProfile } from "../../network/ApiTypes";
-import type { HUDType } from "../../context/hudContextState";
 
 interface UsePluginSandboxHostEffectsParams {
   activeExtensions: RegisteredExtension[];
   activeProfile: ConnectionProfile | null;
   activeProfileID: string | null;
   language: string;
-  showHUD: (type: HUDType, message: string) => void;
   iframeRefs: React.MutableRefObject<Map<string, HTMLIFrameElement>>;
   buildIframeSrcDoc: (ext: RegisteredExtension) => string;
   setSettingsVersion: React.Dispatch<React.SetStateAction<Record<string, number>>>;
@@ -28,33 +25,11 @@ export function usePluginSandboxHostEffects({
   activeProfile,
   activeProfileID,
   language,
-  showHUD,
   iframeRefs,
   buildIframeSrcDoc,
   setSettingsVersion,
   setIframeSrcDocs,
 }: UsePluginSandboxHostEffectsParams) {
-  useEffect(() => {
-    const handleRefreshRequest = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      const payload = customEvent.detail;
-      showHUD("info", i18n.t("extensions:hud.refreshRequesting"));
-      let dispatched = false;
-      for (const [, iframe] of iframeRefs.current.entries()) {
-        iframe.contentWindow?.postMessage(
-          { source: "potok-host", action: "REFRESH_STREAM_URL", payload },
-          "*",
-        );
-        dispatched = true;
-      }
-      if (!dispatched) {
-        showHUD("error", i18n.t("extensions:hud.noActivePlugins"));
-      }
-    };
-    window.addEventListener("potok:refresh-stream-url", handleRefreshRequest);
-    return () => window.removeEventListener("potok:refresh-stream-url", handleRefreshRequest);
-  }, [showHUD, iframeRefs]);
-
   useEffect(() => {
     const handleSettingsUpdated = (e: Event) => {
       const { pluginId } = (e as CustomEvent).detail;

@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import type { ActivePlayback } from "../../context/playbackTypes";
+import { getCurrentPlaylistItem } from "../../context/playbackTypes";
 import { useWebMediaPlayer } from "../../hooks/useWebMediaPlayer";
 import { useWatchTogetherSync } from "../../hooks/player/useWatchTogetherSync";
 import { useWatchTogether } from "../../context/watchTogetherState";
@@ -46,20 +47,21 @@ export const PlayerCore: React.FC<PlayerCoreProps> = (props) => {
   const vm = useWebMediaPlayer({ ...playerProps, volumeStorageKeyPrefix });
   useWatchTogetherSync(vm);
 
-  // Fatal playback errors never reach plugin code (the failing "next" episode may have been resolved
-  // by the host, not the plugin) — broadcast so plugin UIs can react, e.g. drop the stale highlight.
+  // Fatal playback errors never reach plugin code (the failing "next" episode may have been opened
+  // from a host-built queue, not the plugin) — broadcast so plugin UIs can react, e.g. drop the stale highlight.
+  const currentItem = getCurrentPlaylistItem(props.playback);
   useEffect(() => {
     if (!vm.playerError) return;
     ExtensionRegistry.broadcast("PLAYBACK_ERROR", {
       title: props.playback.title,
       mediaType: props.playback.mediaType,
-      season: props.playback.season ?? null,
-      episode: props.playback.episode ?? null,
+      season: currentItem?.season ?? null,
+      episode: currentItem?.episode ?? null,
       providerId: props.playback.providerId ?? null,
       message: vm.playerError,
-      streamUrl: props.playback.streamUrl,
+      streamUrl: currentItem?.streamUrl ?? null,
     });
-  }, [vm.playerError, props.playback]);
+  }, [vm.playerError, props.playback, currentItem]);
 
   // A co-watch guest doesn't drive its own video — its controls request the host (if permitted) and the video
   // then follows via sync. Without permission the pause/seek controls are disabled.
@@ -203,8 +205,7 @@ export const PlayerCore: React.FC<PlayerCoreProps> = (props) => {
         loadingState={vm.loadingState}
         showSpinner={vm.showSpinner}
         playerError={vm.playerError}
-        streamUrl={vm.playback.streamUrl}
-        onRefresh={vm.handleRefreshStream}
+        streamUrl={currentItem?.streamUrl ?? ""}
         onClose={vm.handleClose}
         isNetworkOffline={vm.isNetworkOffline}
       />
