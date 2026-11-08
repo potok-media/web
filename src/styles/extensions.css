@@ -36,6 +36,18 @@
   margin: calc(0px - var(--space-xl));
 }
 
+/* Plugin-declared "resolving the episode" state: centered loading in the stage while there is
+   no playback yet (no black screen between the episode click and the player's own buffering UI). */
+.extension-page-container .sdk-inline-player-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
 @media (max-width: 768px) {
   .extension-page-container {
     padding: var(--space-m);

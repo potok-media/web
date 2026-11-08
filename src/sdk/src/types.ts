@@ -773,6 +773,12 @@ export interface InlinePlayerSchema extends BaseSchema {
   type: "InlinePlayer";
   props: SDKBaseComponentProps & {
     backdropSrc?: string;
+    /**
+     * The plugin is resolving the episode (upstream round trip) and has not called playVideo
+     * yet. The host shows a centered loading state in the stage while there is no playback —
+     * no black screen between the click and the player's own buffering UI.
+     */
+    loading?: boolean;
   };
 }
 

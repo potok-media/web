@@ -21,6 +21,7 @@ import { usePlayback } from "../../../../context/PlaybackContext";
 import { useWatchTogether } from "../../../../context/watchTogetherState";
 import { ExtensionRegistry, type PresentedEpisodesPanel } from "../../../../utils/extensions/ExtensionRegistry";
 import MediaCardComponent from "../../../MediaCardComponent";
+import { LoadingSpinner } from "../../../LoadingSpinner";
 import HeroSpotlight from "../../../HeroSpotlight";
 import { SeasonEpisodesSection } from "../../../SeasonEpisodesSection";
 import MediaCastSection from "../../../MediaCastSection";
@@ -264,6 +265,10 @@ export const HostInlinePlayerCase: React.FC<HostInlinePlayerCaseProps> = ({
     >
       {activePlayback?.mount === "inline" ? (
         <InlinePlayer playback={activePlayback} onClose={stopVideo} />
+      ) : schema.props.loading ? (
+        <div className="sdk-inline-player-loading" role="status">
+          <LoadingSpinner />
+        </div>
       ) : null}
     </PlaybackStageLayout>
   );

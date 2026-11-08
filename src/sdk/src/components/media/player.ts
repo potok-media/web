@@ -15,6 +15,7 @@ import { LayoutComponent, UIComponent } from "../base";
  */
 export class InlinePlayerBuilder extends LayoutComponent {
   private _backdropSrc?: string;
+  private _loading?: boolean;
 
   constructor() {
     super("InlinePlayer");
@@ -30,10 +31,24 @@ export class InlinePlayerBuilder extends LayoutComponent {
     return this;
   }
 
+  /**
+   * Плагин резолвит серию (апстрим к балансеру) и ещё не вызвал ui.playVideo. Пока активного
+   * плейбека нет, хост показывает в сцене индикатор загрузки вместо пустого (чёрного) экрана.
+   * Снимается само: как только плейбек приходит, сцена переключается на плеер.
+   *
+   * @param v Значение метода
+   * @default false
+   */
+  loading(v: boolean): this {
+    this._loading = v;
+    return this;
+  }
+
   protected override getProps(): Record<string, unknown> {
     return {
       ...super.getProps(),
       backdropSrc: this._backdropSrc,
+      loading: this._loading,
     };
   }
 }
