@@ -1,7 +1,10 @@
 import type { LastSourceAudioCandidate, LastSourcePayload } from "../network/ApiTypes";
 
-/** Server cap for the serialized lastSource object attached to progress saves. */
-export const LAST_SOURCE_MAX_BYTES = 4096;
+/** Server cap for the serialized lastSource object attached to progress saves (UTF-8 bytes). */
+export const LAST_SOURCE_MAX_BYTES = 16384;
+
+const utf8Bytes = (value: string): number =>
+  typeof TextEncoder === "function" ? new TextEncoder().encode(value).length : value.length;
 
 export interface LastSourceFields {
   providerId?: string;
@@ -65,7 +68,7 @@ export function buildLastSource(fields: LastSourceFields): LastSourcePayload | u
   if (fields.sourceStream !== undefined && fields.sourceStream !== null) {
     try {
       const serialized = JSON.stringify(fields.sourceStream);
-      if (serialized && serialized.length <= LAST_SOURCE_MAX_BYTES) {
+      if (serialized && utf8Bytes(serialized) <= LAST_SOURCE_MAX_BYTES) {
         payload.sourceStream = fields.sourceStream;
       }
     } catch {
@@ -76,10 +79,11 @@ export function buildLastSource(fields: LastSourceFields): LastSourcePayload | u
   return Object.keys(payload).length > 0 ? payload : undefined;
 }
 
-/** Trims the payload to the server cap: candidate query → candidate label → the audios list. */
+/** Trims the payload to the server cap (UTF-8 bytes): candidate query → candidate label → the audios list. */
 function fitLastSourceBudget(payload: LastSourcePayload): void {
   for (;;) {
-    if (JSON.stringify(payload).length <= LAST_SOURCE_MAX_BYTES) return;
+    // Server-side cap counts UTF-8 bytes (Cyrillic = 2 bytes/char) — measure identically.
+    if (utf8Bytes(JSON.stringify(payload)) <= LAST_SOURCE_MAX_BYTES) return;
     if (dropField(payload.audios, "query")) continue;
     if (dropField(payload.audios, "label")) continue;
     if (payload.audios !== undefined) {

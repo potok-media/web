@@ -21,8 +21,8 @@ import { sanitizeLastSourceAudios } from "./lastSource";
 
 export const VIDEO_SETTINGS_QUERY_PARAM = "videoSettings";
 export const VIDEO_SETTINGS_SNAPSHOT_VERSION = 1;
-/** Upper bound for the encoded payload; the server-side lastSource cap is 4KB, this is headroom for query-param use. */
-export const VIDEO_SETTINGS_MAX_BYTES = 8192;
+/** Upper bound for the encoded payload; the server-side lastSource cap is 16KB, this is headroom for base64 (+33%). */
+export const VIDEO_SETTINGS_MAX_BYTES = 24576;
 
 interface VideoSettingsBase {
   v: number;
