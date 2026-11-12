@@ -1,10 +1,14 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type { ActivePlayback } from "../../context/playbackTypes";
 import { getCurrentPlaylistItem } from "../../context/playbackTypes";
 import { useWebMediaPlayer } from "../../hooks/useWebMediaPlayer";
 import { useWatchTogetherSync } from "../../hooks/player/useWatchTogetherSync";
 import { useWatchTogether } from "../../context/watchTogetherState";
 import { ExtensionRegistry } from "../../utils/extensions/ExtensionRegistry";
+import { useAnime4kUpscale, isAnime4kSupported } from "../../hooks/player/useAnime4kUpscale";
+import { useIsAnimePlayback } from "../../hooks/player/useIsAnimePlayback";
+import { useAnime4kUpscalePref } from "../../utils/anime4k/prefs";
+import { isNativeSubtitleTrackShowing, resolveUpscaleCeiling } from "../../utils/anime4k/decide";
 import { PlayerCoWatchNotices } from "./PlayerCoWatchNotices";
 import { PlayerCoWatchPauseOverlay } from "./PlayerCoWatchPauseOverlay";
 import { PlayerCoWatchWaitOverlay } from "./PlayerCoWatchWaitOverlay";
@@ -46,6 +50,56 @@ export const PlayerCore: React.FC<PlayerCoreProps> = (props) => {
 
   const vm = useWebMediaPlayer({ ...playerProps, volumeStorageKeyPrefix });
   useWatchTogetherSync(vm);
+
+  // --- Anime4K upscale: setting + anime detection + surface gating ---
+  const [upscalePref] = useAnime4kUpscalePref();
+  const isAnimePlayback = useIsAnimePlayback(props.playback);
+  const [anime4kSupported] = useState(() => isAnime4kSupported());
+  const upscaleCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Output larger than the source (CSS pixels × DPR) — upscaling a video that already fills
+  // its display box is wasted GPU. Re-measured on resizes and episode switches.
+  const [displayBiggerThanSource, setDisplayBiggerThanSource] = useState(false);
+  useEffect(() => {
+    const measure = () => {
+      const video = vm.videoNode;
+      if (!video || video.videoWidth === 0) {
+        setDisplayBiggerThanSource(false);
+        return;
+      }
+      setDisplayBiggerThanSource(video.clientWidth * (window.devicePixelRatio || 1) > video.videoWidth);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    // Metadata lands after mount — the first measure runs while videoWidth is still 0.
+    vm.videoNode?.addEventListener("loadedmetadata", measure);
+    return () => {
+      window.removeEventListener("resize", measure);
+      vm.videoNode?.removeEventListener("loadedmetadata", measure);
+    };
+  }, [vm.videoNode, vm.hls.srcResetCounter]);
+
+  const selectedSubtitle = vm.metadata.currentSubtitleTrack !== -1
+    ? vm.metadata.injectedSubtitles[vm.metadata.currentSubtitleTrack]
+    : undefined;
+  const nativeSubtitleShowing = isNativeSubtitleTrackShowing(selectedSubtitle);
+
+  const upscaleCeiling = resolveUpscaleCeiling(upscalePref, {
+    supported: anime4kSupported,
+    isAnime: isAnimePlayback,
+  });
+  const upscaleActive = upscaleCeiling !== null
+    && vm.videoNode != null
+    && displayBiggerThanSource
+    && !nativeSubtitleShowing
+    && !vm.pictureInPicture.isPictureInPicture;
+
+  useAnime4kUpscale({
+    videoNode: vm.videoNode,
+    active: upscaleActive,
+    ceiling: upscaleCeiling ?? "high",
+    canvasRef: upscaleCanvasRef,
+  });
 
   // Fatal playback errors never reach plugin code (the failing "next" episode may have been opened
   // from a host-built queue, not the plugin) — broadcast so plugin UIs can react, e.g. drop the stale highlight.
@@ -108,6 +162,8 @@ export const PlayerCore: React.FC<PlayerCoreProps> = (props) => {
         srcResetCounter={vm.hls.srcResetCounter}
         currentSubtitleTrack={vm.metadata.currentSubtitleTrack}
         autoPlay={!vm.playback.coWatch}
+        upscaleActive={upscaleActive}
+        upscaleCanvasRef={upscaleCanvasRef}
         volumeStorageKeyPrefix={volumeStorageKeyPrefix}
         onTogglePlay={vm.togglePlay}
         onToggleFullscreen={vm.toggleFullscreen}

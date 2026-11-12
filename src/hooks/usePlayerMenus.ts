@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-export type SettingsMenuSection = "quality" | "audio" | "subtitles" | null;
+export type SettingsMenuSection = "quality" | "audio" | "subtitles" | "upscale" | null;
 
 export function usePlayerMenus(controlsVisible: boolean) {
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);

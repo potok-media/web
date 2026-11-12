@@ -359,7 +359,15 @@
       "quality": "Качество",
       "audio": "Озвучка",
       "subtitles": "Субтитры",
-      "skipFillers": "Пропускать филлеры"
+      "skipFillers": "Пропускать филлеры",
+      "upscale": "Апскейл"
+    },
+    "upscale": {
+      "auto": "Авто",
+      "high": "Высокий",
+      "medium": "Средний",
+      "light": "Лёгкий",
+      "off": "Выкл"
     }
   },
   "streams": {

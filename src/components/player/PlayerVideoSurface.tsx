@@ -8,6 +8,10 @@ interface PlayerVideoSurfaceProps {
   srcResetCounter: number;
   currentSubtitleTrack: number;
   autoPlay: boolean;
+  /** Anime4K pipeline is drawing this video — the surface hides the element (decoding and
+   *  audio keep running) and shows the WebGL canvas composited on top of it instead. */
+  upscaleActive?: boolean;
+  upscaleCanvasRef?: React.Ref<HTMLCanvasElement>;
   onTogglePlay: () => void;
   onToggleFullscreen: () => void;
   onPlayState: (playing: boolean) => void;
@@ -32,6 +36,8 @@ export const PlayerVideoSurface: React.FC<PlayerVideoSurfaceProps> = ({
   srcResetCounter,
   currentSubtitleTrack,
   autoPlay,
+  upscaleActive = false,
+  upscaleCanvasRef,
   onTogglePlay,
   onToggleFullscreen,
   onPlayState,
@@ -51,7 +57,7 @@ export const PlayerVideoSurface: React.FC<PlayerVideoSurfaceProps> = ({
     <video
       ref={videoRef}
       crossOrigin="anonymous"
-
+      style={upscaleActive ? { opacity: 0 } : undefined}
       onPlay={() => onPlayState(true)}
       onPlaying={onPlaying}
       onCanPlay={onCanPlay}
@@ -93,5 +99,9 @@ export const PlayerVideoSurface: React.FC<PlayerVideoSurfaceProps> = ({
         );
       })}
     </video>
+    {/* Always mounted so the engine has a stable attach target; blank/transparent until the
+        Anime4K pipeline drives it. DOM order keeps it above the video and below the libass
+        subtitle canvas and the player chrome. */}
+    <canvas ref={upscaleCanvasRef} className="player-upscale-canvas" />
   </div>
 );

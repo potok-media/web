@@ -67,6 +67,18 @@
   object-fit: contain;
 }
 
+/* Anime4K WebGL output composited over the (hidden) video element. object-fit matches the
+   video's contain-fit so the upscaled picture keeps the original display box and aspect. */
+.player-upscale-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
 /* Mac-style Top Bar */
 .player-top-bar {
   position: absolute;

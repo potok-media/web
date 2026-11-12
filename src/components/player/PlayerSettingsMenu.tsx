@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   AlertCircle,
@@ -9,10 +9,13 @@ import {
   ChevronRight,
   MonitorUp,
   SkipForward,
+  Sparkles,
 } from "lucide-react";
 import { SpinnerIcon } from "./SubtitleLoadingIcons";
 import { Button, Switch } from "../ui";
 import { useSkipFillers } from "../../utils/skipFillers";
+import { useAnime4kUpscalePref, type Anime4kUpscalePref } from "../../utils/anime4k/prefs";
+import { isAnime4kSupported } from "../../hooks/player/useAnime4kUpscale";
 import type { SettingsMenuSection } from "../../hooks/usePlayerMenus";
 
 interface TrackItem {
@@ -60,6 +63,18 @@ export const PlayerSettingsMenu: React.FC<PlayerSettingsMenuProps> = ({
 }) => {
   const { t } = useTranslation("player");
   const [skipFillers, setSkipFillers] = useSkipFillers();
+  const [upscalePref, setUpscalePref] = useAnime4kUpscalePref();
+  // Support is probed once (WebGL1 + float-linear context); unsupported devices never see the section.
+  const [anime4kSupported] = useState(() => isAnime4kSupported());
+
+  const upscaleOptions: Array<{ id: number; pref: Anime4kUpscalePref }> = [
+    { id: 0, pref: "auto" },
+    { id: 1, pref: "high" },
+    { id: 2, pref: "medium" },
+    { id: 3, pref: "light" },
+    { id: 4, pref: "off" },
+  ];
+  const upscaleLabel = (pref: Anime4kUpscalePref) => t(`upscale.${pref}`);
 
   // Esc steps back to the root first, then closes the popover entirely.
   useEffect(() => {
@@ -112,22 +127,33 @@ export const PlayerSettingsMenu: React.FC<PlayerSettingsMenuProps> = ({
             : currentName(subtitleTracks, currentSubtitleTrack, t("controls.disable")),
         }]
       : []),
+    ...(anime4kSupported
+      ? [{
+          key: "upscale" as const,
+          icon: <Sparkles size={SECTION_ICON_SIZE} />,
+          label: t("settings.upscale"),
+          value: upscaleLabel(upscalePref),
+        }]
+      : []),
   ];
 
   const sectionItems: Record<Exclude<SettingsMenuSection, null>, TrackItem[]> = {
     quality: qualityLevels,
     audio: audioTracks,
     subtitles: subtitleTracks,
+    upscale: upscaleOptions.map((option) => ({ id: option.id, name: upscaleLabel(option.pref) })),
   };
   const sectionCurrent: Record<Exclude<SettingsMenuSection, null>, number> = {
     quality: currentQualityLevel,
     audio: currentAudioTrack,
     subtitles: currentSubtitleTrack,
+    upscale: upscaleOptions.find((option) => option.pref === upscalePref)?.id ?? 0,
   };
   const sectionSelect: Record<Exclude<SettingsMenuSection, null>, (id: number) => void> = {
     quality: onSelectQualityLevel,
     audio: onSelectAudioTrack,
     subtitles: onSelectSubtitleTrack,
+    upscale: (id) => setUpscalePref(upscaleOptions.find((option) => option.id === id)?.pref ?? "auto"),
   };
 
   const activeSection = section && sections.some((s) => s.key === section) ? section : null;

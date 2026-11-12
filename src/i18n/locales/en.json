@@ -359,7 +359,15 @@
       "quality": "Quality",
       "audio": "Audio",
       "subtitles": "Subtitles",
-      "skipFillers": "Skip fillers"
+      "skipFillers": "Skip fillers",
+      "upscale": "Upscale"
+    },
+    "upscale": {
+      "auto": "Auto",
+      "high": "High",
+      "medium": "Medium",
+      "light": "Light",
+      "off": "Off"
     }
   },
   "streams": {
