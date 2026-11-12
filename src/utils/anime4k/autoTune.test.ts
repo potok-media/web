@@ -13,10 +13,10 @@ function makeQuality() {
   let total = 0;
   let dropped = 0;
   return {
-    present: (frames: number, drops = 0): PlaybackQualitySample => {
+    present: (frames: number, drops = 0, jankRatio?: number): PlaybackQualitySample => {
       total += frames + drops;
       dropped += drops;
-      return { totalVideoFrames: total, droppedVideoFrames: dropped };
+      return { totalVideoFrames: total, droppedVideoFrames: dropped, jankRatio };
     },
   };
 }
@@ -146,6 +146,43 @@ describe("createAutoTune", () => {
     tune.sample(quality.present(60)); // 2s @ 30fps baseline
     clock.advance(2000);
     tune.sample(quality.present(40)); // 20fps presented, no drops → below 85% of 30 → down
+    expect(tune.tier()).toBe("medium");
+  });
+
+  it("steps down on sustained rAF jank even with zero dropped video frames", () => {
+    const clock = makeClock();
+    const quality = makeQuality();
+    const tune = createAutoTune({ ceiling: "high", startTier: "high", now: clock.now });
+
+    tune.sample(quality.present(48));
+    clock.advance(2000);
+    // Zero drops (the macOS quirk) but 60% of rAF intervals exceed the jank threshold.
+    tune.sample(quality.present(48, 0, 0.6));
+    expect(tune.tier()).toBe("medium");
+  });
+
+  it("jank downgrades work even when no playback-quality API exists (zero presented frames)", () => {
+    const clock = makeClock();
+    const tune = createAutoTune({ ceiling: "high", startTier: "high", now: clock.now });
+    const sample = (jankRatio: number) => ({ totalVideoFrames: 0, droppedVideoFrames: 0, jankRatio });
+
+    tune.sample(sample(0));
+    clock.advance(2000);
+    tune.sample(sample(0.8));
+    expect(tune.tier()).toBe("medium");
+  });
+
+  it("resets the clean window on jank, blocking upgrades until it settles", () => {
+    const clock = makeClock();
+    const quality = makeQuality();
+    const tune = createAutoTune({ ceiling: "high", startTier: "medium", now: clock.now });
+
+    tune.sample(quality.present(48));
+    for (let i = 0; i < 10; i += 1) {
+      clock.advance(2000);
+      // Alternating clean and janky windows: the clean clock keeps restarting.
+      tune.sample(quality.present(48, 0, i % 2 === 0 ? 0.3 : 0));
+    }
     expect(tune.tier()).toBe("medium");
   });
 

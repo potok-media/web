@@ -1,5 +1,5 @@
 import {
-  ANIME4K_HIGHEREND_MODE_A,
+  ANIME4K_HIGHEREND_MODE_A_FAST,
   ANIME4K_LOWEREND_MODE_A,
   ANIME4KJS_SIMPLE_S_2X,
   ignoreAutoDownscalePre,
@@ -13,7 +13,9 @@ export type Anime4kProfileConfig = typeof ANIME4KJS_SIMPLE_S_2X;
 
 /**
  * The three highest-quality Anime4K v4 chains, descending:
- * - high:    HIGHEREND Mode A — Restore_CNN_VL + Upscale_CNN_x2_VL, second M pass (1080p→4K max quality)
+ * - high:    HIGHEREND Mode A FAST — Clamp + Restore_CNN_VL + Upscale_CNN_x2_VL + Upscale_CNN_x2_M
+ *            (the full Mode A's second Restore_Soft_M pass is the heaviest link and is dropped —
+ *            it is what tips integrated GPUs into UI jank)
  * - medium:  LOWEREND Mode A  — the official "Mode A" (M + S two-pass) for mid-range GPUs
  * - light:   SIMPLE S         — single Clamp + Restore_S + Upscale_x2_S pass for weak iGPUs
  *
@@ -22,7 +24,7 @@ export type Anime4kProfileConfig = typeof ANIME4KJS_SIMPLE_S_2X;
  * display — the pre-downscales would only cut effective output resolution.
  */
 export const ANIME4K_PROFILES: Record<Anime4kTier, Anime4kProfileConfig> = {
-  high: ignoreAutoDownscalePre(ANIME4K_HIGHEREND_MODE_A),
+  high: ignoreAutoDownscalePre(ANIME4K_HIGHEREND_MODE_A_FAST),
   medium: ignoreAutoDownscalePre(ANIME4K_LOWEREND_MODE_A),
   light: ANIME4KJS_SIMPLE_S_2X,
 };

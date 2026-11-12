@@ -58,19 +58,42 @@ export function useAnime4kUpscale({ videoNode, active, ceiling, canvasRef }: Use
         setTier(nextTier);
       },
     });
+
+    // rAF probe: the droppedVideoFrames signal is unreliable on macOS browsers (the compositor
+    // keeps presenting on time while the GPU saturates), so interface stutter is measured
+    // directly — rAF intervals longer than the jank threshold mean the page can't keep its
+    // frame cadence and the tier should step down.
+    let rafId = 0;
+    let lastRafAt = 0;
+    let rafIntervals: number[] = [];
+    const JANK_FRAME_MS = 25;
+    const probe = (timestamp: number) => {
+      if (lastRafAt > 0) rafIntervals.push(timestamp - lastRafAt);
+      lastRafAt = timestamp;
+      rafId = requestAnimationFrame(probe);
+    };
+    rafId = requestAnimationFrame(probe);
+
     // getVideoPlaybackQuality is Chromium/Safari-standard; when missing the engine just runs
     // at the current tier without adaptation.
     const sampleTimer = window.setInterval(() => {
       const quality = videoNode.getVideoPlaybackQuality?.();
-      if (!quality) return;
+      const intervals = rafIntervals;
+      rafIntervals = [];
+      const jankRatio = intervals.length > 0
+        ? intervals.filter((ms) => ms > JANK_FRAME_MS).length / intervals.length
+        : undefined;
+      if (!quality && jankRatio == null) return;
       tune.sample({
-        totalVideoFrames: quality.totalVideoFrames,
-        droppedVideoFrames: quality.droppedVideoFrames,
+        totalVideoFrames: quality?.totalVideoFrames ?? 0,
+        droppedVideoFrames: quality?.droppedVideoFrames ?? 0,
+        jankRatio,
       });
     }, QUALITY_SAMPLE_INTERVAL_MS);
 
     return () => {
       window.clearInterval(sampleTimer);
+      cancelAnimationFrame(rafId);
       upscaler.detachVideo();
     };
   }, [active, videoNode, ceiling, tier, canvasRef]);

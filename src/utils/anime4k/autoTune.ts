@@ -3,6 +3,9 @@ import { ANIME4K_TIERS, clampTier, tierIndex, type Anime4kTier } from "./profile
 export interface PlaybackQualitySample {
   totalVideoFrames: number;
   droppedVideoFrames: number;
+  /** Share of rAF intervals above the jank threshold in the window (0..1) — captures GPU
+   *  contention that macOS browsers do NOT report via droppedVideoFrames. */
+  jankRatio?: number;
 }
 
 export interface AutoTuneOptions {
@@ -13,9 +16,13 @@ export interface AutoTuneOptions {
   onTierChange?: (tier: Anime4kTier, direction: "down" | "up") => void;
   /** Dropped-frame share of the window that triggers a downgrade. */
   downDropRatio?: number;
+  /** Janky rAF-interval share that triggers a downgrade (sustained UI stutter). */
+  downJankRatio?: number;
+  /** Jank share still tolerated as "clean" for upgrades. */
+  upJankRatio?: number;
   /** Optional presented-FPS floor (share of the expected fps); pass undefined to disable. */
   downPresentedRatio?: number;
-  /** Sustained clean (zero-drop) time before an upgrade is attempted. */
+  /** Sustained clean (zero-drop, low-jank) time before an upgrade is attempted. */
   upCleanMs?: number;
   /** Minimum interval between tier steps — keeps network/decode hiccups from ratcheting down. */
   stepCooldownMs?: number;
@@ -43,6 +50,8 @@ export function createAutoTune(options: AutoTuneOptions): AutoTune {
     now = () => Date.now(),
     onTierChange,
     downDropRatio = 0.08,
+    downJankRatio = 0.5,
+    upJankRatio = 0.1,
     downPresentedRatio,
     upCleanMs = 15_000,
     stepCooldownMs = 5_000,
@@ -86,30 +95,32 @@ export function createAutoTune(options: AutoTuneOptions): AutoTune {
       const windowMs = at - baseline.at;
       if (windowMs < sampleWindowMs) return;
       const totalDelta = quality.totalVideoFrames - baseline.totalVideoFrames;
-      if (totalDelta <= 0) return; // nothing presented (source stall) — no evidence about the GPU
-
       const droppedDelta = quality.droppedVideoFrames - baseline.droppedVideoFrames;
-      const dropRatio = Math.max(0, droppedDelta) / totalDelta;
+      const dropRatio = totalDelta > 0 ? Math.max(0, droppedDelta) / totalDelta : 0;
       const presentedFps = (totalDelta / windowMs) * 1000;
       const canStep = at - lastStepAt >= stepCooldownMs;
 
       const tooManyDrops = dropRatio > downDropRatio;
+      const tooJanky = (quality.jankRatio ?? 0) > downJankRatio;
       const tooSlowPresented =
         downPresentedRatio != null &&
         expectedFps != null &&
         expectedFps > 0 &&
         presentedFps < expectedFps * downPresentedRatio;
 
-      if ((tooManyDrops || tooSlowPresented) && currentIndex < lastIndex && canStep) {
+      if ((tooManyDrops || tooJanky || tooSlowPresented) && currentIndex < lastIndex && canStep) {
         step("down");
         return;
       }
 
-      if (droppedDelta > 0) {
+      // A source stall (nothing presented) carries no GPU evidence either way — only real
+      // drops and measured jank reset the clean window.
+      const unclean = droppedDelta > 0 || (quality.jankRatio ?? 0) > upJankRatio;
+      if (unclean) {
         cleanSince = null;
         return;
       }
-      if (currentIndex <= ceilingIndex || !canStep) return;
+      if (totalDelta <= 0 || currentIndex <= ceilingIndex || !canStep) return;
       cleanSince ??= baseline.at;
       if (at - cleanSince >= upCleanMs) step("up");
     },
