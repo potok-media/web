@@ -157,6 +157,19 @@ describe("resumeContinueWatching", () => {
     expect(playback.playlistIndex).toBe(0);
   });
 
+  it("passes the matched episode id as activeEpisodeId so the plugin anchors the payload window", async () => {
+    const episodes = [makeEpisode({ id: "1", episode: 1 }), makeEpisode({ id: "13", episode: 13 })];
+    const deps = makeDeps(episodes);
+    await resumeContinueWatching(
+      makeCursor({ fileIndex: undefined, episodeId: undefined, episode: 13 }),
+      deps,
+    );
+    expect(deps.requestPlaybackInfo).toHaveBeenCalledWith(
+      "potok-torrents",
+      expect.objectContaining({ activeEpisodeId: "13" }),
+    );
+  });
+
   it("keeps the episode window as ready playlist items for in-player navigation (R1: no resolver)", async () => {
     const episodes = [makeEpisode({ id: "3", url: "plugin://handle" })];
     const deps = makeDeps(episodes);

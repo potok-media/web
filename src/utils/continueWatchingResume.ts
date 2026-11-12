@@ -19,7 +19,13 @@ export interface ContinueResumeDeps {
   ) => Promise<{ episodes: StreamEpisode[] }>;
   requestPlaybackInfo: (
     providerId: string,
-    args: { stream: unknown; episode: unknown; context: StreamContext; episodes?: unknown[] },
+    args: {
+      stream: unknown;
+      episode: unknown;
+      context: StreamContext;
+      episodes?: unknown[];
+      activeEpisodeId?: string;
+    },
   ) => Promise<PlaybackInfo | null | undefined>;
   requestPlaybackMetadata?: (
     providerId: string,
@@ -287,6 +293,9 @@ export async function resumeContinueWatching(
     episode: episodeForResolve,
     context,
     episodes,
+    // The plugin anchors its resolved window and the payload playlistIndex on this id; without
+    // it the payload falls back to index 0 and the player mounts the first playlist item.
+    activeEpisodeId: start.id != null ? String(start.id) : undefined,
   });
   if (!info) throw new Error("Continue watching: the source returned no playback info");
 
